@@ -1,293 +1,206 @@
-# Gakumas Agent 项目规划
+# Gakumas Decision Engine（GDE）项目规划 v0.2
 
-> 版本：v0.1（规划稿）
-> 日期：2026-11-09
-> 目标：给《学园偶像大师》做一个**低 token、低延迟、可自学习**的打牌 agent。
-> 原则：先确定性，后学习；先模拟器，后真机；先竞赛，后培育。
+> 定位：**MAA 的决策外挂**，不是另一个 MAA。
+> 一句话：MAA 负责看和点，GDE 负责“这手牌该怎么打、这条路该怎么走、为什么”。
 
 ---
 
-## 1. 目标与非目标
+## 1. 为什么不是“又一个 MAA”
 
-### 1.1 目标
+MaaGakumasu 已经把“手和眼”做得很完整：截屏、模板/YOLO 识别、点击、日常、商店、工作、社团、启动游戏、DMM/汉化适配。再做一个同样的东西，只是重复劳动，而且维护不过它。
 
-1. **会打牌**：竞赛/考试能稳定做出接近强玩家的决策。
-2. **低 token**：日常流程 0 token；单次培育 < 2 万 token；不把截图当 prompt。
-3. **低延迟**：策略单步 < 10ms，端到端（截屏→点击）p95 < 80ms。
-4. **可自学习**：每局可回放，离线训练，灰度替换，不在线改权重。
-5. **可回滚**：任何一局都能复现；策略/模型/规则都有版本号。
+GDE 只做 MAA 做不了/做不深的部分：
 
-### 1.2 非目标（明确不做）
-
-- 不改游戏数据、不注入内存、不伪造请求。
-- 不做排行榜刷分、不多账号、不 24×7 无人值守（至少前两个阶段）。
-- 不追求“全自动过所有内容”；先做竞赛，再评估培育。
-- 不为了绕过检测做对抗性设计。
-
-### 1.3 风险声明
-
-点击模拟仍违反游戏利用规约，存在账号限制/封禁风险。本项目按“个人研究、可随时停”设计：默认 shadow 模式、动作白名单、人工接管、限速。
-
----
-
-## 2. 硬件与约束
-
-| 项 | 值 | 影响 |
+| 能力 | MaaGakumasu | GDE |
 |---|---|---|
-| GPU | RTX 5060 Laptop 8 GB | 策略网 5–20M 参数；本地 3B Q4 LLM；不能跑大模型全参 |
-| CPU | Ultra 9 275HX 24 核 | 模拟器并行 6–8 worker |
-| RAM | 15.4 GB | 控制 worker 数，回放用 SQLite 不驻留 |
-| 磁盘 | D: 215 GB 空闲 | 回放/模型/截图够用 |
-| Python | 3.10.11 + uv 0.13.5 | 用 uv 建 3.11 venv |
+| 截屏/点击/日常 | ✅ 完整 | ❌ 不做，直接复用 |
+| 手牌识别 | 只分 `suggestions/cards/useless` | ✅ 识别到**卡 ID、费用、效果** |
+| 出牌决策 | 启发式：有推荐打推荐，否则打一张 | ✅ 模拟搜索 + 价值网 + 学习 |
+| 长程规划 | 弱（事件/道具/饮料多为规则） | ✅ 培育路线、道具时机、考试策略 |
+| 竞赛 | 选一个对手打 | ✅ 对手/卡组/分数期望建模 |
+| 复盘 | 日志 | ✅ 每步回放、反事实“如果打 X 会怎样” |
+| 学习 | 无 | ✅ BC → 自对弈 → 蒸馏 → ONNX |
+| 低 token | 不涉及 | ✅ 规则/搜索 0 token，LLM 只兜底 |
+| 汉化/日常/更新 | ✅ | ❌ 不碰 |
 
-**结论**：走“小模型 + 模拟器搜索 + 蒸馏”，不走大规模端到端 RL。
+**结论**：GDE 是插件/外挂/教练，不是替代品。
 
 ---
 
-## 3. 总体架构
+## 2. 三种共存模式
+
+### 模式 A：教练模式（最安全，先做）
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│ runtime/loop                                                 │
-│  ┌────────────┐   ┌────────────┐   ┌────────────┐            │
-│  │ perception │ → │  contract  │ → │   policy   │ → action   │
-│  │ 截屏/OCR/  │   │ Observation│   │ 规则→搜索→ │   Win32/   │
-│  │ YOLO/模板  │   │  /Action   │   │ 价值网→LLM │   ADB      │
-│  └────────────┘   └────────────┘   └────────────┘            │
-│         ↑                ↑                ↑                  │
-│     replay/DB       schema 校验       模型/规则版本            │
-└──────────────────────────────────────────────────────────────┘
-        │                                        │
-        ▼                                        ▼
-┌──────────────────┐                  ┌──────────────────┐
-│ sim/             │                  │ training/        │
-│ 竞赛/培育模拟器   │ ←── self-play ── │ BC→PPO/AlphaZero │
-│ 动作掩码/状态编码 │ ── 数据/评估 ──→ │ 蒸馏→ONNX        │
-└──────────────────┘                  └──────────────────┘
+MaaGakumasu 正常跑
+        │  同一窗口
+        ▼
+GDE 只读：截屏 → 识别 → 推荐动作 → 写日志/悬浮提示
+        │
+        └─ 不点击、不改 MAA、不抢焦点
 ```
 
-### 3.1 分层职责
+- 用途：收集数据、对比“GDE 推荐 vs MAA 实际动作”、验证识别。
+- 风险：最低；不影响现有自动化。
+- 交付：`scripts/run_coach.py` + 每日对比报告。
 
-| 层 | 职责 | 不做什么 |
-|---|---|---|
-| perception | 截屏、识别、状态还原 | 不做决策 |
-| contract | 定义 Observation/Action、版本、校验 | 不含业务逻辑 |
-| policy | 规则、搜索、价值网、LLM 兜底 | 不碰鼠标键盘 |
-| action | 点击/拖拽/等待、白名单、限速 | 不决定点哪 |
-| runtime | 主循环、回放、指标、熔断 | 不实现策略 |
-| sim | 规则模拟、动作掩码、奖励 | 不依赖真机 |
-| training | 数据集、训练、蒸馏、导出 | 不直接控制游戏 |
+### 模式 B：插件模式（核心）
 
-### 3.2 决策路由（核心）
+在 MaaGakumasu 的 `agent/custom/action/` 里加一个自定义动作：
+
+```python
+@AgentServer.custom_action("GkAgentCardsAuto")
+class GkAgentCardsAuto(CustomAction):
+    def run(self, context: Context, argv: CustomAction.RunArg) -> bool:
+        image = context.tasker.controller.post_screencap().wait().get()
+        reco = context.run_recognition("ProduceRecognitionCards", image)
+        obs = build_observation(reco, context)       # GDE 适配层
+        action = gde.act(obs)                         # 本地策略服务
+        context.tasker.controller.post_click(*action.point).wait()
+        return True
+```
+
+- 复用 MAA 的截屏、识别节点、点击、任务调度。
+- 只替换 `ProduceCardsAuto` 的决策部分。
+- 通过配置开关：`cards_policy: maa | gde`，可随时回退。
+- 许可证：MaaGakumasu 是 AGPL-3.0，插件一起分发需 AGPL；个人使用不受影响。
+
+### 模式 C：独立竞赛（可选）
+
+MAA 不跑的时候，GDE 自己截屏/点击，只打竞赛。
+不作为主路径，避免和 MAA 抢输入。
+
+---
+
+## 3. “深入”的路线：从出牌到策略
+
+| 层级 | 能力 | 依赖 | 产出 |
+|---|---|---|---|
+| L1 | 出牌建议（shadow） | MAA 识别结果 | 推荐日志、准确率 |
+| L2 | 卡 ID/费用/效果识别 | 卡图模板 + OCR | 真正的 hand state |
+| L3 | 模拟搜索出牌 | 竞赛模拟器 | 期望分最高的牌序 |
+| L4 | 价值网 + 蒸馏 | 搜索数据 | <5ms 的 policy/value |
+| L5 | 培育路线规划 | 培育模拟器 | 事件/道具/饮料/考试策略 |
+| L6 | 竞赛对手/卡组建模 | 对战日志 | 选对手、调卡组 |
+| L7 | 持续学习 | 回放库 | 每周灰度更新 |
+
+> 先 L1–L3，能打；再 L4，变快；L5–L7 是护城河。
+
+---
+
+## 4. 架构
+
+```
+┌──────────────────────────────┐
+│ MaaGakumasu（手和眼）         │
+│  截屏 / 识别 / 点击 / 日常    │
+└──────────────┬───────────────┘
+               │ custom_action / custom_recognition
+               ▼
+┌──────────────────────────────┐
+│ GDE（脑子）                   │
+│  adapter → contract → policy  │
+│  rules → search → value → LLM │
+│  replay / metrics / safety    │
+└──────────────┬───────────────┘
+               │ 离线
+               ▼
+┌──────────────────────────────┐
+│ sim / training               │
+│  竞赛/培育模拟器 → BC/RL/蒸馏 │
+└──────────────────────────────┘
+```
+
+### 4.1 GDE 内部模块
+
+- `integration/maa.py`：把 MAA 的 recognition 结果转成 `Observation`；把 `Action` 转成点击坐标。
+- `contract/`：Observation/Action/Replay（已有）。
+- `policy/`：规则、搜索、价值网、LLM 兜底、路由。
+- `sim/`：竞赛/培育环境（自研 clean-room）。
+- `training/`：BC、PPO/AlphaZero、蒸馏、ONNX。
+- `eval/`：模拟器基准 + 教练对比报告。
+- `runtime/`：回放、指标、熔断。
+
+### 4.2 决策路由
 
 ```
 Observation
-   │
-   ├─ 命中规则/宏？ ──是──→ 直接动作（0 token, <1ms）
-   │
-   ├─ 是战斗/考试局面？ ──是──→ 模拟器搜索（0 token, 5–20ms）
-   │                              └─ 叶子用 value net 评估
-   │
-   ├─ 是未知界面/活动文本？ ──是──→ 本地 3B LLM（50–200 token, 缓存）
-   │
-   └─ 都不匹配 ──→ 安全停住，等人接管（不猜）
+ ├─ 规则/宏命中 → 动作（0 token, <1ms）
+ ├─ 战斗/考试 → 模拟搜索（0 token, 5–20ms）
+ ├─ 未知界面/文本 → 本地 3B LLM（50–200 token, 缓存）
+ └─ 都不匹配 → 停住，交给 MAA/人工
 ```
 
 ---
 
-## 4. 目录结构
+## 5. 里程碑（8–10 周）
 
-```
-gakumas-agent/
-├── README.md
-├── pyproject.toml
-├── .gitignore
-├── configs/
-│   └── default.yaml
-├── docs/
-│   ├── PROJECT_PLAN.md        # 本文
-│   ├── ARCHITECTURE.md        # 架构与 ADR
-│   ├── STATE_CONTRACT.md      # Observation/Action 规范
-│   └── ROADMAP.md             # 里程碑与验收
-├── src/gkagent/
-│   ├── __init__.py
-│   ├── contract/
-│   │   ├── __init__.py
-│   │   └── models.py          # Pydantic 模型
-│   ├── perception/
-│   │   ├── __init__.py
-│   │   ├── capture.py         # Win32/DXGI 截屏
-│   │   ├── ocr.py             # RapidOCR/PaddleOCR
-│   │   ├── templates.py       # 模板匹配
-│   │   └── state_builder.py   # 帧 → Observation
-│   ├── policy/
-│   │   ├── __init__.py
-│   │   ├── base.py            # Policy 接口
-│   │   ├── rules.py           # 规则/宏
-│   │   ├── search.py          # expectimax/MCTS
-│   │   ├── value.py           # 价值网/启发式
-│   │   ├── llm.py             # 本地 LLM 兜底
-│   │   └── router.py          # 决策路由
-│   ├── action/
-│   │   ├── __init__.py
-│   │   ├── win32.py           # SendMessage/PostMessage
-│   │   ├── adb.py             # 模拟器备用
-│   │   └── guard.py           # 白名单/限速/熔断
-│   ├── runtime/
-│   │   ├── __init__.py
-│   │   ├── loop.py            # 主循环
-│   │   ├── replay.py          # SQLite 回放
-│   │   ├── metrics.py         # 延迟/成功率/token
-│   │   └── safety.py          # 异常停住/人工接管
-│   ├── sim/
-│   │   ├── __init__.py
-│   │   ├── env.py             # Gym 风格接口
-│   │   ├── contest.py         # 竞赛环境
-│   │   ├── produce.py         # 培育环境（P6）
-│   │   └── adapters.py        # 外部模拟器桥接
-│   ├── training/
-│   │   ├── __init__.py
-│   │   ├── dataset.py         # 轨迹 → 样本
-│   │   ├── bc.py              # 行为克隆
-│   │   ├── ppo.py             # 自对弈 RL
-│   │   ├── distill.py         # 教师→学生
-│   │   └── export_onnx.py     # 量化/导出
-│   └── eval/
-│       ├── __init__.py
-│       ├── bench.py           # 模拟器基准
-│       └── report.py          # 报告
-├── scripts/
-│   ├── run_shadow.py          # 只看不点
-│   ├── run_agent.py           # 闭环
-│   ├── train.sh
-│   └── export.sh
-├── tests/
-│   ├── test_contract.py
-│   └── test_sim_env.py
-└── data/                      # gitignore
-    ├── replays/
-    ├── models/
-    └── cache/
-```
-
----
-
-## 5. 阶段计划（8–10 周，单人 + AI）
-
-### P0 基础设施（第 1 周）
-
-- 建仓、uv 环境、pyproject、config、日志。
-- 定义 Observation/Action 契约（Pydantic + JSON Schema），版本号。
-- SQLite 回放格式：每步 `frame_hash, obs, action, latency, result`。
-- 模拟器接口 `sim/env.py`，随机策略基线。
-- **验收**：`pytest` 通过；回放可重放；随机基线能跑 100 局不崩。
-
-### P1 竞赛模拟器 + 规则基线（第 2 周）
-
-- 竞赛环境（动作掩码、状态编码、奖励）。
-- 规则策略：按分数差/属性/体力做启发式。
-- 评估脚本：胜率、平均分、p95 延迟。
-- **验收**：规则策略胜率显著高于随机；单步 <5ms；1 万局无异常。
-
-### P2 搜索策略（第 3 周）
-
-- expectimax / MCTS（深度 2–4），带动作掩码和启发式价值。
-- 搜索预算自适应：普通局面浅搜，关键局面深搜。
-- **验收**：对比规则基线胜率 +10%；p95 <20ms；可复现（固定种子）。
-
-### P3 感知 + 执行（第 4–5 周）
-
-- Win32 截屏（客户区），模板匹配 + OCR + 轻量 YOLO。
-- `state_builder` 输出契约；置信度低于阈值 → 停住。
-- Shadow 模式：只识别、只决策、不点击，对比日志。
-- **验收**：500 帧状态准确率 >98%；动作 dry-run 与人工一致 >95%。
-
-### P4 闭环竞赛（第 6 周）
-
-- 动作白名单、限速、异常恢复、人工接管。
-- 真机跑 20 局，记录崩溃/卡住/误点。
-- **验收**：20 局完成率 >90%；无卡死 >30s；误点 0 次。
-
-### P5 学习与蒸馏（第 7–8 周）
-
-- 从搜索结果生成数据集；BC 预训练；value net。
-- 自对弈 PPO/AlphaZero 微调；蒸馏到小网。
-- ONNX INT8 导出，延迟 benchmark。
-- **验收**：学生达到教师 90% 胜率；策略 <5ms；模型 <50MB。
-
-### P6 培育（第 9–10 周，可选）
-
-- 培育环境（长程、事件、道具、饮料）。
-- LLM 兜底只处理未知事件；缓存。
-- **验收**：完整跑完一局培育；token <2 万；失败可重试。
-
----
-
-## 6. 关键设计决策（ADR）
-
-| 编号 | 决策 | 理由 |
+| 阶段 | 内容 | 验收 |
 |---|---|---|
-| ADR-001 | 先竞赛，后培育 | 回合短、模拟器成熟、奖励清晰 |
-| ADR-002 | 自研 clean-room 模拟器 | gakumastrain 无许可证，不能直接 fork；只参考思路 |
-| ADR-003 | 规则 + 搜索优先，RL 后置 | bottled_ai/spire-agent 证明确定性更强；RL 需要数据和调参 |
-| ADR-004 | LLM 只做兜底 | 每步 LLM 2 万 token 的反面教材；延迟不可接受 |
-| ADR-005 | 先 shadow 再点击 | 感知错误比策略错误更致命 |
-| ADR-006 | 契约版本化 + 可回放 | 出问题能定位是感知、策略还是执行 |
+| P0 ✅ | 契约、Env/Policy 接口、Loop、回放、测试 | 5 passed |
+| P1 | MAA 适配层 + 教练模式（只读） | 100 局推荐日志；状态字段准确率 >95% |
+| P2 | 卡 ID 识别 + 竞赛模拟器 + 规则基线 | 模拟器胜率 > 随机；单步 <5ms |
+| P3 | 搜索策略（expectimax/MCTS） | 比规则 +10%；p95 <20ms |
+| P4 | 插件模式 `GkAgentCardsAuto` | 可开关；与 MAA 原逻辑 A/B |
+| P5 | 价值网 + 蒸馏 + ONNX | 学生达教师 90%；<5ms |
+| P6 | 培育路线规划 | 完整一局；token <2 万 |
 
-### 许可证注意
-
-- `MaaGakumasu`：AGPL-3.0；复用其模板/代码需同样开源。
-- `hiro-gakumas-hero`：GPL-3.0；参考架构可以，复制代码需 GPL。
-- `gakumastrain`：**无许可证**（默认保留所有权利），只能读思路，不能复制。
-- 本项目默认 MIT；若引入 GPL/AGPL 代码，整体改为对应许可证。
+**先做 P1**：不改 MAA 一行代码，只读、只记录、只推荐。
 
 ---
 
-## 7. 指标体系
+## 6. 指标
 
 | 类别 | 指标 | 目标 |
 |---|---|---|
-| 策略 | 模拟器胜率/平均分 | 逐阶段提升 |
-| 感知 | 状态字段准确率 | >98% |
-| 延迟 | 策略单步 p95 | <10ms |
-| 延迟 | 端到端 p95 | <80ms |
-| 成本 | 日常 token/天 | ≈0 |
+| 决策 | 模拟器期望分/胜率 | 逐阶段提升 |
+| 教练 | 与 MAA 动作一致率 | 先观测，不设目标 |
+| 识别 | 卡 ID/费用准确率 | >98% |
+| 延迟 | 策略 p95 | <10ms |
+| 成本 | 日常 token | 0 |
 | 成本 | 单次培育 token | <2 万 |
-| 稳定 | 完成率/卡死率 | >90% / 0 |
-| 安全 | 白名单外点击 | 0 |
+| 稳定 | 插件异常率 | <1% |
 
 ---
 
-## 8. 风险与对策
+## 7. 风险
 
-| 风险 | 影响 | 对策 |
+- **封号**：点击仍违反 ToS；先教练模式，插件模式限速、可随时关。
+- **和 MAA 抢输入**：插件模式必须走 MAA 的 controller，不自己点。
+- **许可证**：MaaGakumasu AGPL；插件分发需 AGPL，个人使用不受限。
+- **模拟器偏差**：gakumasu-diff 同步； nightly 回归。
+- **识别错误**：置信度阈值；低置信度交给 MAA 原逻辑/停住。
+
+---
+
+## 8. 关键决策（ADR）
+
+| 编号 | 决策 | 理由 |
 |---|---|---|
-| 封号 | 账号损失 | 个人研究、限速、不刷榜、异常即停 |
-| 模拟器与真机偏差 | 策略失真 | gakumasu-diff 同步； nightly 回归 |
-| 感知错误 | 误点 | 置信度阈值 + 人工接管 + 白名单 |
-| 数据不足 | RL 不收敛 | 模拟器自对弈 + shadow 日志 + BC |
-| 8GB 显存 | 训练受限 | 小模型、梯度累积、CPU 模拟 |
-| 规则更新 | 脚本失效 | 版本化 + 快速回滚 |
+| ADR-001 | 不做日常/商店/点击层 | MAA 已做好，重复无价值 |
+| ADR-002 | 以 MAA custom_action 为第一集成点 | 复用识别/点击，改动最小 |
+| ADR-003 | 先教练模式 | 零风险验证识别与推荐 |
+| ADR-004 | 先竞赛后培育 | 回合短、模拟成熟 |
+| ADR-005 | 规则+搜索优先，RL 后置 | 确定性方案已被 STS 项目验证 |
+| ADR-006 | LLM 只兜底 | 每步 LLM 成本/延迟不可接受 |
+| ADR-007 | 自研 clean-room 模拟器 | 参考项目无许可证/GPL/AGPL |
 
 ---
 
-## 9. 本周要做的 5 件事
+## 9. 本周
 
-1. 建仓 + uv 环境 + CI（pytest）。
-2. 落 Observation/Action 契约（先竞赛）。
-3. 竞赛模拟器最小闭环 + 随机基线。
-4. 回放格式 + SQLite。
-5. Shadow 截屏原型（只截一张图，验证 Win32 capture）。
+1. 写 `integration/maa.py` 适配层（吃 MAA recognition 结果）。
+2. `scripts/run_coach.py`：只读截屏 + 推荐 + 日志。
+3. 用 MaaGakumasu 的 `ProduceRecognitionCards` 跑 10 局，统计卡牌框/标签。
+4. 定卡 ID 识别方案（模板 vs 分类器）。
 
 ---
 
-## 10. 验收方式
+## 10. 参考
 
-每个阶段结束跑一次固定基准：
-
-```bash
-uv run python -m gkagent.eval.bench --env contest --episodes 1000 --seed 42
-uv run pytest -q
-```
-
-输出：胜率、平均分、p95 延迟、异常数、token 估算。基准结果入库，回退可见。
+- MaaGakumasu: <https://github.com/SuperWaterGod/MaaGakumasu>
+- MaaFramework: <https://github.com/MaaXYZ/MaaFramework>
+- bottled_ai（规则+模拟）: <https://github.com/xaved88/bottled_ai>
+- spire-agent（deterministic first）: <https://github.com/AttemorySystem/spire-agent>
+- spire-mentor（Rust 模拟 + MCTS/PPO）: <https://github.com/tfriedel/spire-mentor>
+- STS-AI-Master（headless + ONNX）: <https://github.com/XlousMao/STS-AI-Master>
