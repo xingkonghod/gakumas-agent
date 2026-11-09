@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+data/replays/*
+!data/replays/.gitkeep
+data/models/*
+!data/models/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+*.onnx
+*.pt
+*.pth
+*.log
+.env

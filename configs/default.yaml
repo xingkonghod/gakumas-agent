@@ -1,0 +1,58 @@
+# gkagent runtime config
+# 所有阈值先给保守值，P3 用真实数据再调。
+
+runtime:
+  mode: shadow            # shadow | live
+  max_steps: 2000
+  step_timeout_s: 30
+  idle_sleep_ms: 120
+  save_replay: true
+  replay_dir: data/replays
+
+capture:
+  backend: win32          # win32 | dxgi | adb
+  window_regex: gakumas
+  client_only: true
+
+perception:
+  min_confidence: 0.85
+  ocr_backend: rapidocr
+  templates_dir: data/templates
+  yolo_model: data/models/cards.onnx
+
+policy:
+  router: rules_first
+  search:
+    enabled: true
+    max_depth: 3
+    time_budget_ms: 15
+    max_nodes: 2000
+  value:
+    backend: heuristic    # heuristic | onnx
+    model_path: data/models/value.onnx
+  llm:
+    enabled: false
+    backend: llama_cpp
+    model_path: data/models/qwen2.5-3b-instruct-q4.gguf
+    max_tokens: 64
+    cache: true
+
+action:
+  backend: win32
+  min_interval_ms: 180
+  whitelist:
+    - play_card
+    - choose
+    - end_turn
+    - wait
+  kill_switch_file: data/STOP
+
+safety:
+  require_confidence: true
+  stop_on_unknown: true
+  max_consecutive_errors: 3
+  max_actions_per_minute: 180
+
+metrics:
+  report_every_s: 30
+  percentiles: [50, 95, 99]
