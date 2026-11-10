@@ -689,6 +689,8 @@ class ProduceTask:
         finished_clicks = 0
         last_digest: str | None = None
         repeats = 0
+        last_change = time.monotonic()
+        stuck_actions = 0
         stage = "培育主界面"
 
         while steps < self.max_steps:
@@ -700,8 +702,17 @@ class ProduceTask:
             else:
                 last_digest = digest
                 repeats = 0
-            if repeats >= self.max_repeat:
-                return TaskResult(False, f"卡在{stage}：连续 {repeats} 帧画面没有变化")
+                last_change = time.monotonic()
+
+            # 下载/加载：只等待，不点击
+            if (
+                self.enable_lessons
+                and agent.matcher.find("produce_loading", image, threshold=0.9) is not None
+            ):
+                last_change = time.monotonic()
+                self._pause(1.0)
+                steps += 1
+                continue
 
             if screen.home is not None:
                 return TaskResult(True, "培育已结束，已回到主页")
@@ -803,6 +814,14 @@ class ProduceTask:
                         agent.click(action)
                         handled = True
                         break
+            if not handled and self.enable_lessons:
+                get_btn = agent.matcher.find("produce_claim", image, threshold=0.8)
+                if get_btn is not None:
+                    stage = "领取奖励"
+                    agent.device.click(360, 900)
+                    self._pause(self.click_delay)
+                    agent.device.click(*get_btn.center)
+                    handled = True
             if (
                 not handled
                 and self.enable_lessons
@@ -833,6 +852,14 @@ class ProduceTask:
                 stage = "关闭弹窗"
                 steps += 1
                 self._pause(self.click_delay)
+                continue
+            if time.monotonic() - last_change > 15.0:
+                stage = "卡住兜底"
+                stuck_actions += 1
+                self._stuck_advance(agent, image, stuck_actions)
+                last_change = time.monotonic()
+                self._pause(self.click_delay)
+                steps += 1
                 continue
             if time.monotonic() >= deadline:
                 return TaskResult(False, f"卡在{stage}：等待超过 {self.main_timeout:.1f}s")
@@ -1082,6 +1109,17 @@ class ProduceTask:
         intersection = (x2 - x1) * (y2 - y1)
         union = lw * lh + rw * rh - intersection
         return intersection / union if union else 0.0
+
+    def _stuck_advance(self, agent: Agent, image: np.ndarray, index: int) -> None:
+        """卡住超过 15s：按顺序尝试下一步。"""
+        for template in ("produce_claim", "produce_get", "decide", "next_step", "close"):
+            match = agent.matcher.find(template, image, threshold=0.8)
+            if match is not None:
+                agent.click(match)
+                return
+        points = [(360, 1000), (360, 900), (360, 1100), (620, 1195), (380, 1130)]
+        x, y = points[(index - 1) % len(points)]
+        agent.device.click(x, y)
 
     @staticmethod
     def _looks_like_dialogue(image: np.ndarray) -> bool:
