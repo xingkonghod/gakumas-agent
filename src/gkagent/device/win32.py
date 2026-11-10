@@ -1,8 +1,8 @@
 """Win32 设备：截屏 + 点击。
 
 底层复用 MaaFramework 的 Win32Controller。
-点击默认用 Seize（DPI 感知的全局输入），并在点击前隐藏 DMM Play Assist，
-否则真实鼠标会被 player-assist 覆盖层吃掉。
+默认用 PostMessage：不移动光标、不抢焦点；只隐藏 DMM Play Assist 覆盖层。
+需要真实鼠标时才显式传 input_method="Seize"。
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ class Win32Device:
         hwnd: int,
         maa_home: str | os.PathLike[str] = r"D:\Games\MaaGakumasu",
         screencap: str = "FramePool",
-        input_method: str = "Seize",
+        input_method: str = "PostMessage",
     ) -> None:
         self.hwnd = int(hwnd)
         self.maa_home = Path(maa_home)
@@ -45,6 +45,8 @@ class Win32Device:
         from maa.define import MaaWin32ScreencapMethodEnum as ScreencapMethod
 
         self._overlay = find_window("player-assist")
+        if self._overlay:
+            USER32.ShowWindow(self._overlay, 0)
         cap = getattr(ScreencapMethod, self.screencap)
         inp = getattr(InputMethod, self.input_method)
         self._ctrl = Win32Controller(self.hwnd, cap, inp, inp)
@@ -58,19 +60,23 @@ class Win32Device:
         return self._ctrl
 
     def _prepare_input(self) -> None:
-        if self._overlay:
-            USER32.ShowWindow(self._overlay, 0)  # SW_HIDE
-            time.sleep(0.12)
-        USER32.ShowWindow(self.hwnd, 9)
-        USER32.SetForegroundWindow(self.hwnd)
-        time.sleep(0.12)
+        # 不再移动光标/抢焦点；PostMessage 直接投递窗口消息。
+        return
 
     def capture(self) -> np.ndarray:
         return self.controller.post_screencap().wait().get()
 
     def click(self, x: int, y: int, delay: float = 0.3) -> None:
-        self._prepare_input()
-        self.controller.post_click(int(x), int(y)).wait()
+        """原生 PostMessage 点击：不移动系统光标，不抢前台焦点。"""
+        rect = wintypes.RECT()
+        USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
+        cw, ch = rect.right, rect.bottom
+        cx = int(round(int(x) * cw / 720.0))
+        cy = int(round(int(y) * ch / 1280.0))
+        lp = (cy << 16) | (cx & 0xFFFF)
+        USER32.PostMessageW(self.hwnd, 0x0201, 0x0001, lp)  # WM_LBUTTONDOWN
+        time.sleep(0.03)
+        USER32.PostMessageW(self.hwnd, 0x0202, 0, lp)  # WM_LBUTTONUP
         if delay:
             time.sleep(delay)
 

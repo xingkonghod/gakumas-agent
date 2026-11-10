@@ -452,6 +452,11 @@ class ProduceTask:
         ):
             stage = ProduceStage.MAIN
         if stage == ProduceStage.UNKNOWN:
+            home_icon = agent.matcher.find("produce_home_icon", image, threshold=0.8)
+            if home_icon is not None:
+                agent.click(home_icon)
+                self._pause(1.5)
+                return self.run(agent)
             return self._play_main(agent)
         if stage in (
             ProduceStage.MAIN,
@@ -1148,7 +1153,22 @@ class ProduceTask:
 
     def _stuck_advance(self, agent: Agent, image: np.ndarray, index: int) -> None:
         """卡住超过 15s：按顺序尝试下一步。"""
-        for template in ("produce_retry", "produce_claim", "produce_get", "decide", "close"):
+        home_icon = None
+        try:
+            home_icon = agent.matcher.find("produce_home_icon", image, threshold=0.8)
+        except FileNotFoundError:
+            home_icon = None
+        if home_icon is not None:
+            agent.click(home_icon)
+            return
+        for template in (
+            "produce_retry",
+            "produce_claim",
+            "produce_claim2",
+            "produce_get",
+            "decide",
+            "close",
+        ):
             try:
                 match = agent.matcher.find(template, image, threshold=0.8)
             except FileNotFoundError:
@@ -1167,6 +1187,8 @@ class ProduceTask:
             (360, 1100),
             (620, 1195),
             (380, 1130),
+            (95, 1200),
+            (60, 80),
         ]
         x, y = points[(index - 1) % len(points)]
         agent.device.click(x, y)
