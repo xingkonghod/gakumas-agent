@@ -44,7 +44,7 @@ class CardInfo:
     text: str
     value: float
 
-    def efficiency(self, cost: int | float | None) -> float:
+    def efficiency(self, cost: float | None) -> float:
         if not cost or cost <= 0:
             return self.value
         return self.value / float(cost)
@@ -89,7 +89,7 @@ class CardLibrary:
                 return info
         return None
 
-    def score(self, name: str, text: str = "", cost: int | float | None = None) -> float:
+    def score(self, name: str, text: str = "", cost: float | None = None) -> float:
         info = self.find(name)
         if info is not None and not text:
             return info.efficiency(cost)

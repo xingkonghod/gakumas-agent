@@ -29,7 +29,7 @@ class OcrCardPolicy:
         self.library = library
         self.detail_roi = detail_roi
 
-    def read(self, image: np.ndarray, cost: int | float | None = None) -> CardReading:
+    def read(self, image: np.ndarray, cost: float | None = None) -> CardReading:
         lines = self.engine.read(image, self.detail_roi)
         for line in lines:
             info = self.library.find(line.text)
