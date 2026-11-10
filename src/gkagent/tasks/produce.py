@@ -891,6 +891,9 @@ class ProduceTask:
         current = self.observe(agent, img) if screen is None else screen
         # 始终识别手牌/费用：即使暂时没有策略，也能把状态留给后续 GDE 复用。
         hand = self.read_hand(img)
+        for index, card in enumerate(hand.cards):
+            if getattr(card, "suggested", False) and index < len(hand.boxes):
+                return CardPlay(self._box_center(hand.boxes[index]), "suggested", index)
         if hand.cards and self.card_policy is not None:
             recommendation = self.card_policy.recommend(self._observation(hand))
             if (
