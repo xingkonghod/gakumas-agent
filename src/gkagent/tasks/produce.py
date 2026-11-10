@@ -268,7 +268,7 @@ class ProduceTask:
         self.main_timeout = 1800.0 if main_timeout is None else main_timeout
         self.max_steps = 400 if max_steps is None else max_steps
         self.max_panel_steps = 12 if max_panel_steps is None else max_panel_steps
-        self.max_repeat = 3 if max_repeat is None else max_repeat
+        self.max_repeat = 6 if max_repeat is None else max_repeat
         self.max_get_clicks = 2 if max_get_clicks is None else max_get_clicks
         self.get_retry = 2.0 if get_retry is None else get_retry
         self.finish_attempts = 3 if finish_attempts is None else finish_attempts
@@ -795,6 +795,14 @@ class ProduceTask:
                 stage = "课程选择"
                 agent.device.click(*self.lesson_point)
                 handled = True
+            if not handled and self.enable_lessons:
+                for action_template in ("produce_class", "produce_reward", "produce_rest"):
+                    action = agent.matcher.find(action_template, image, threshold=0.8)
+                    if action is not None:
+                        stage = "主界面行动"
+                        agent.click(action)
+                        handled = True
+                        break
             if (
                 not handled
                 and self.enable_lessons
@@ -817,6 +825,7 @@ class ProduceTask:
                         handled = True
 
             if handled:
+                repeats = 0
                 steps += 1
                 self._pause(self.click_delay)
                 continue
