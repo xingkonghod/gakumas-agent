@@ -757,6 +757,10 @@ class ProduceTask:
                     self._record(image, card_play)
                     agent.device.click(*card_play.point)
                     handled = True
+                else:
+                    # 认不出手牌时，点中间卡位：第一次选中，第二次打出
+                    agent.device.click(360, 1000)
+                    handled = True
             if not handled and screen.event_recommend is not None:
                 stage = "事件选项"
                 agent.click(screen.event_recommend)
@@ -767,10 +771,12 @@ class ProduceTask:
                 handled = True
             if not handled and screen.cards_get is not None:
                 stage = "领取奖励"
+                agent.device.click(360, 900)
                 agent.click(screen.cards_get)
                 handled = True
             if not handled and screen.get is not None:
                 stage = "领取奖励"
+                agent.device.click(360, 900)
                 agent.click(screen.get)
                 handled = True
             if not handled and screen.skip_round is not None:
