@@ -1140,7 +1140,15 @@ class ProduceTask:
             if match is not None:
                 agent.click(match)
                 return
-        points = [(360, 1000), (360, 900), (360, 1100), (620, 1195), (380, 1130)]
+        points = [
+            (360, 1000),
+            (360, 900),
+            (150, 860),
+            (500, 860),
+            (360, 1100),
+            (620, 1195),
+            (380, 1130),
+        ]
         x, y = points[(index - 1) % len(points)]
         agent.device.click(x, y)
 
