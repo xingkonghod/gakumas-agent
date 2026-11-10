@@ -17,7 +17,15 @@
 - `config/cards_policy.json`：`coach` | `plugin` | `maa`
 - `python/Lib/site-packages/gkagent.pth`：让 MAA 的 Python 能 import `gkagent`
 
-接法：把出牌节点的 `custom_action` 从 `ProduceCardsAuto` 改成 `GkAgentCoach`（先教练），验证后再改 `GkAgentCardsAuto`（插件）。异常/低置信度返回 `False`，由 pipeline 回退。
+接法：用脚本切换出牌节点（会备份 `*.bak-gde`）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\switch_cards_policy.ps1 -Mode coach   # 只记录，行为不变
+powershell -ExecutionPolicy Bypass -File scripts\switch_cards_policy.ps1 -Mode plugin  # GDE 点击，失败回退
+powershell -ExecutionPolicy Bypass -File scripts\switch_cards_policy.ps1 -Mode maa     # 完全回原版
+```
+
+`GkAgentCoach` 记录推荐后会调用原 `ProduceCardsAuto`，所以教练模式零行为变化；插件模式没有推荐时也会回退。
 
 ## 补齐 MAA 失败任务
 

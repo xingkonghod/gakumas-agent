@@ -20,7 +20,7 @@ foreach ($f in $files) {
     if (-not (Test-Path $f)) { continue }
     $bak = "$f.bak-gde"
     if (-not (Test-Path $bak)) { Copy-Item $f $bak -Force }
-    $raw = Get-Content $f -Raw
+    $raw = Get-Content $f -Raw -Encoding UTF8
     $raw = $raw -replace '"custom_action": "ProduceCardsAuto"', ('"custom_action": "' + $target + '"')
     $raw = $raw -replace '"custom_action": "GkAgentCoach"', ('"custom_action": "' + $target + '"')
     $raw = $raw -replace '"custom_action": "GkAgentCardsAuto"', ('"custom_action": "' + $target + '"')
@@ -30,6 +30,7 @@ foreach ($f in $files) {
 
 $cfg = Join-Path $maa 'config\cards_policy.json'
 New-Item -ItemType Directory -Force -Path (Split-Path $cfg) | Out-Null
-('{"policy":"' + $Mode + '"}') | Set-Content -Path $cfg -Encoding UTF8
+$json = '{"policy":"' + $Mode + '"}'
+[IO.File]::WriteAllText($cfg, $json, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "cards_policy.json -> $Mode"
 Write-Host "restart MAA to apply."
