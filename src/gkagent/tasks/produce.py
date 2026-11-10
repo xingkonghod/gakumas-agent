@@ -801,6 +801,14 @@ class ProduceTask:
                 stage = "剧情"
                 agent.device.click(360, 1000)
                 handled = True
+            if not handled and self.enable_lessons:
+                hand = self.read_hand(image)
+                if hand.boxes:
+                    stage = "出牌"
+                    card_play = self.decide_card(agent, image, screen=screen)
+                    if card_play is not None:
+                        agent.device.click(*card_play.point)
+                        handled = True
 
             if handled:
                 steps += 1

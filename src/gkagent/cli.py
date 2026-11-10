@@ -85,7 +85,18 @@ def cmd_task(args) -> int:
     }
     task = tasks[args.name]()
     if args.name == "produce":
-        task = ProduceTask(enable_lessons=True)
+        from gkagent.policy.search import SearchPolicy
+        from gkagent.vision.cards import recognize_hand
+
+        def _hand_reader(image):
+            cards = recognize_hand(image)
+            return list(cards), [tuple(card.box) for card in cards]
+
+        task = ProduceTask(
+            enable_lessons=True,
+            hand_reader=_hand_reader,
+            card_policy=SearchPolicy(),
+        )
     if getattr(args, "resume", False) and hasattr(task, "resume"):
         result = task.resume(agent)
     else:
