@@ -1141,8 +1141,11 @@ class ProduceTask:
 
     def _stuck_advance(self, agent: Agent, image: np.ndarray, index: int) -> None:
         """卡住超过 15s：按顺序尝试下一步。"""
-        for template in ("produce_retry", "produce_claim", "produce_get", "decide", "next_step", "close"):
-            match = agent.matcher.find(template, image, threshold=0.8)
+        for template in ("produce_retry", "produce_claim", "produce_get", "decide", "close"):
+            try:
+                match = agent.matcher.find(template, image, threshold=0.8)
+            except FileNotFoundError:
+                continue
             if match is not None:
                 agent.click(match)
                 return
