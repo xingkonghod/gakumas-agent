@@ -443,6 +443,11 @@ class ProduceTask:
             and agent.matcher.find(self.lesson_template, image, threshold=0.8) is not None
         ):
             stage = ProduceStage.MAIN
+        if (
+            stage == ProduceStage.UNKNOWN
+            and agent.matcher.find("produce_dialogue_box", image, threshold=0.8) is not None
+        ):
+            stage = ProduceStage.MAIN
         if stage in (
             ProduceStage.MAIN,
             ProduceStage.CARD_PLAY,
@@ -787,6 +792,14 @@ class ProduceTask:
             ):
                 stage = "课程选择"
                 agent.device.click(*self.lesson_point)
+                handled = True
+            if (
+                not handled
+                and self.enable_lessons
+                and agent.matcher.find("produce_dialogue_box", image, threshold=0.8) is not None
+            ):
+                stage = "剧情"
+                agent.device.click(360, 1000)
                 handled = True
 
             if handled:
