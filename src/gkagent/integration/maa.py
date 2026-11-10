@@ -6,8 +6,9 @@ docs/MAA_INTEGRATION.md 里给出。
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 from gkagent.contract.models import Action, ActionKind, Card, Observation, Phase
 

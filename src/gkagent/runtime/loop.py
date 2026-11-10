@@ -32,7 +32,7 @@ class LoopStats:
         if not self.latencies_ms:
             return 0.0
         data = sorted(self.latencies_ms)
-        idx = min(len(data) - 1, max(0, int(round((p / 100.0) * (len(data) - 1)))))
+        idx = min(len(data) - 1, max(0, round((p / 100.0) * (len(data) - 1))))
         return data[idx]
 
 

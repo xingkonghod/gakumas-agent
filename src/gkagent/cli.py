@@ -65,10 +65,16 @@ def cmd_click(args) -> int:
 
 
 def cmd_task(args) -> int:
-    from gkagent.tasks import ActivityFeeTask
+    from gkagent.tasks import ActivityFeeTask, ChallengeTask, DailyTask, SocietyTask, WorkTask
 
     agent = _agent(args)
-    tasks = {"activity_fee": ActivityFeeTask}
+    tasks = {
+        "activity_fee": ActivityFeeTask,
+        "challenge": ChallengeTask,
+        "daily": DailyTask,
+        "society": SocietyTask,
+        "work": WorkTask,
+    }
     task = tasks[args.name]()
     result = task.run(agent)
     _print({"task": task.name, "ok": result.ok, "message": result.message})
@@ -103,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(func=cmd_click)
 
     p = sub.add_parser("task", help="run a task")
-    p.add_argument("name", choices=["activity_fee"])
+    p.add_argument("name", choices=["activity_fee", "work", "challenge", "society", "daily"])
     p.add_argument("--hwnd", type=int, default=None)
     p.set_defaults(func=cmd_task)
 

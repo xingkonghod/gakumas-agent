@@ -11,7 +11,6 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-
 SCHEMA_VERSION = "1.0"
 
 
@@ -90,7 +89,7 @@ class Action(BaseModel):
     note: str | None = None
 
     @model_validator(mode="after")
-    def _require_index(self) -> "Action":
+    def _require_index(self) -> Action:
         if self.kind in (ActionKind.PLAY_CARD, ActionKind.CHOOSE) and self.index is None:
             raise ValueError(f"{self.kind.value} requires index")
         if self.index is not None and self.index < 0:

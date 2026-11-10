@@ -28,7 +28,7 @@ class Win32Device:
         self.input_method = input_method
         self._ctrl = None
 
-    def connect(self) -> "Win32Device":
+    def connect(self) -> Win32Device:
         os.chdir(self.maa_home)
         site = self.maa_home / "python" / "Lib" / "site-packages"
         if site.exists() and str(site) not in sys.path:
