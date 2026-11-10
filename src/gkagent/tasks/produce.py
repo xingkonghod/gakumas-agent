@@ -692,9 +692,10 @@ class ProduceTask:
         finished_clicks = 0
         last_digest: str | None = None
         repeats = 0
-        last_change = time.monotonic()
-        stuck_actions = 0
         stage = "培育主界面"
+        stage_since = time.monotonic()
+        last_stage = stage
+        stuck_actions = 0
 
         while steps < self.max_steps:
             image = agent.shot()
@@ -705,20 +706,33 @@ class ProduceTask:
             else:
                 last_digest = digest
                 repeats = 0
-                last_change = time.monotonic()
 
             # 下载/加载：只等待，不点击
             if (
                 self.enable_lessons
                 and agent.matcher.find("produce_loading", image, threshold=0.9) is not None
             ):
-                last_change = time.monotonic()
+                stage_since = time.monotonic()
                 self._pause(1.0)
                 steps += 1
                 continue
 
             if screen.home is not None:
                 return TaskResult(True, "培育已结束，已回到主页")
+
+            now = time.monotonic()
+            if stage != last_stage:
+                last_stage = stage
+                stage_since = now
+            if now - stage_since > 15.0:
+                stage = "卡住兜底"
+                last_stage = stage
+                stage_since = now
+                stuck_actions += 1
+                self._stuck_advance(agent, image, stuck_actions)
+                self._pause(self.click_delay)
+                steps += 1
+                continue
 
             handled = False
             if screen.finished is not None:
@@ -857,14 +871,6 @@ class ProduceTask:
                 stage = "关闭弹窗"
                 steps += 1
                 self._pause(self.click_delay)
-                continue
-            if time.monotonic() - last_change > 15.0:
-                stage = "卡住兜底"
-                stuck_actions += 1
-                self._stuck_advance(agent, image, stuck_actions)
-                last_change = time.monotonic()
-                self._pause(self.click_delay)
-                steps += 1
                 continue
             if time.monotonic() >= deadline:
                 return TaskResult(False, f"卡在{stage}：等待超过 {self.main_timeout:.1f}s")
