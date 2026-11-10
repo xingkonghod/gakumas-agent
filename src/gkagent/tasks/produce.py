@@ -33,6 +33,7 @@ import numpy as np
 
 from gkagent.agent import Agent
 from gkagent.contract.models import Card, Observation, Phase
+from gkagent.policy.ocr_cards import OcrCardPolicy
 from gkagent.policy.router import Recommendation, RuleCardPolicy
 from gkagent.runtime.replay import ReplayDB
 from gkagent.tasks.base import TaskResult
@@ -245,7 +246,7 @@ class ProduceTask:
         finish_attempts: int | None = None,
         enable_lessons: bool = False,
         replay_db: ReplayDB | None = None,
-        ocr_policy: "OcrCardPolicy | None" = None,
+        ocr_policy: OcrCardPolicy | None = None,
     ) -> None:
         if selection_action not in ("get", "exchange", "cancel"):
             raise ValueError(f"unsupported selection_action: {selection_action}")
