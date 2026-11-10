@@ -24,17 +24,19 @@ class OcrCardPolicy:
         engine: OcrEngine,
         library: CardLibrary,
         detail_roi: tuple[int, int, int, int] | None = None,
+        extra_libraries: list[object] | None = None,
     ) -> None:
         self.engine = engine
-        self.library = library
+        self.libraries = [library, *(extra_libraries or [])]
         self.detail_roi = detail_roi
 
     def read(self, image: np.ndarray, cost: float | None = None) -> CardReading:
         lines = self.engine.read(image, self.detail_roi)
-        for line in lines:
-            info = self.library.find(line.text)
-            if info is not None:
-                return CardReading(info.name, info.text, info.value, info.efficiency(cost))
+        for library in self.libraries:
+            for line in lines:
+                info = library.find(line.text)  # type: ignore[attr-defined]
+                if info is not None:
+                    return CardReading(info.name, info.text, info.value, info.efficiency(cost))
         joined = " ".join(line.text for line in lines)
         value = score_text(joined)
         efficiency = value / float(cost) if cost else value
