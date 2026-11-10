@@ -448,6 +448,8 @@ class ProduceTask:
             and agent.matcher.find("produce_dialogue_box", image, threshold=0.8) is not None
         ):
             stage = ProduceStage.MAIN
+        if stage == ProduceStage.UNKNOWN:
+            return self._play_main(agent)
         if stage in (
             ProduceStage.MAIN,
             ProduceStage.CARD_PLAY,
@@ -801,6 +803,10 @@ class ProduceTask:
                 stage = "剧情"
                 agent.device.click(360, 1000)
                 handled = True
+            if not handled and self.enable_lessons and self._looks_like_dialogue(image):
+                stage = "剧情"
+                agent.device.click(360, 1000)
+                handled = True
             if not handled and self.enable_lessons:
                 hand = self.read_hand(image)
                 if hand.boxes:
@@ -1067,6 +1073,11 @@ class ProduceTask:
         intersection = (x2 - x1) * (y2 - y1)
         union = lw * lh + rw * rh - intersection
         return intersection / union if union else 0.0
+
+    @staticmethod
+    def _looks_like_dialogue(image: np.ndarray) -> bool:
+        roi = image[950:1140, 40:680]
+        return bool(roi.size) and float(roi.mean()) > 190.0
 
     @staticmethod
     def _digest(image: np.ndarray) -> str:
