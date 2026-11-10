@@ -60,8 +60,11 @@ def cmd_home(args) -> int:
 
 def cmd_click(args) -> int:
     agent = _agent(args)
-    agent.device.click(args.x, args.y)
-    _print({"clicked": [args.x, args.y]})
+    if getattr(args, "force", False):
+        agent.device.click_force(args.x, args.y)
+    else:
+        agent.device.click(args.x, args.y)
+    _print({"clicked": [args.x, args.y], "force": bool(getattr(args, "force", False))})
     return 0
 
 
@@ -137,6 +140,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--x", type=int, required=True)
     p.add_argument("--y", type=int, required=True)
     p.add_argument("--hwnd", type=int, default=None)
+    p.add_argument("--force", action="store_true", help="physical click fallback")
     p.set_defaults(func=cmd_click)
 
     p = sub.add_parser("task", help="run a task")

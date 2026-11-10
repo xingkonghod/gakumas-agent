@@ -454,7 +454,7 @@ class ProduceTask:
         if stage == ProduceStage.UNKNOWN:
             home_icon = agent.matcher.find("produce_home_icon", image, threshold=0.8)
             if home_icon is not None:
-                agent.click(home_icon)
+                agent.device.click_force(*home_icon.center)
                 self._pause(1.5)
                 return self.run(agent)
             return self._play_main(agent)
@@ -1159,7 +1159,7 @@ class ProduceTask:
         except FileNotFoundError:
             home_icon = None
         if home_icon is not None:
-            agent.click(home_icon)
+            agent.device.click_force(*home_icon.center)
             return
         for template in (
             "produce_retry",

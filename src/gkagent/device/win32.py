@@ -80,6 +80,30 @@ class Win32Device:
         if delay:
             time.sleep(delay)
 
+    def click_force(self, x: int, y: int, delay: float = 0.4) -> None:
+        """物理点击（必要时的兜底）：短暂聚焦+移动光标，点完恢复光标位置。"""
+        rect = wintypes.RECT()
+        USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
+        cw, ch = rect.right, rect.bottom
+        origin = wintypes.POINT(0, 0)
+        USER32.ClientToScreen(self.hwnd, ctypes.byref(origin))
+        sx = origin.x + round(int(x) * cw / 720.0)
+        sy = origin.y + round(int(y) * ch / 1280.0)
+
+        saved = wintypes.POINT()
+        USER32.GetCursorPos(ctypes.byref(saved))
+        USER32.ShowWindow(self.hwnd, 9)
+        USER32.SetForegroundWindow(self.hwnd)
+        USER32.SetCursorPos(sx, sy)
+        time.sleep(0.05)
+        USER32.mouse_event(0x0002, 0, 0, 0, 0)
+        time.sleep(0.05)
+        USER32.mouse_event(0x0004, 0, 0, 0, 0)
+        time.sleep(0.06)
+        USER32.SetCursorPos(saved.x, saved.y)
+        if delay:
+            time.sleep(delay)
+
     def swipe(self, x1: int, y1: int, x2: int, y2: int, duration_ms: int = 300) -> None:
         self._prepare_input()
         self.controller.post_swipe(int(x1), int(y1), int(x2), int(y2), int(duration_ms)).wait()
