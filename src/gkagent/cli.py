@@ -88,11 +88,11 @@ def cmd_task(args) -> int:
     if args.name == "produce":
         from gkagent.policy.search import SearchPolicy
         from gkagent.runtime.replay import ReplayDB
-        from gkagent.vision.cards import recognize_hand
+        from gkagent.vision.cards import scan_hand
 
         def _hand_reader(image):
-            cards = recognize_hand(image)
-            return list(cards), [tuple(card.box) for card in cards]
+            scan = scan_hand(image)
+            return list(scan.cards), [tuple(card.box) for card in scan.cards]
 
         replay = ReplayDB(
             r"D:\Games\gakumas-agent\data\replays\produce.sqlite3",
