@@ -833,7 +833,11 @@ class ProduceTask:
                         handled = True
                         break
             if not handled and self.enable_lessons:
-                get_btn = agent.matcher.find("produce_claim", image, threshold=0.8)
+                get_btn = agent.matcher.find_any(
+                    ["produce_claim", "produce_claim2"],
+                    image,
+                    threshold=0.8,
+                )
                 if get_btn is not None:
                     stage = "领取奖励"
                     agent.device.click(360, 900)
