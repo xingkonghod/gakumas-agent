@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 import cv2
@@ -86,16 +87,22 @@ def cmd_task(args) -> int:
     task = tasks[args.name]()
     if args.name == "produce":
         from gkagent.policy.search import SearchPolicy
+        from gkagent.runtime.replay import ReplayDB
         from gkagent.vision.cards import recognize_hand
 
         def _hand_reader(image):
             cards = recognize_hand(image)
             return list(cards), [tuple(card.box) for card in cards]
 
+        replay = ReplayDB(
+            r"D:\Games\gakumas-agent\data\replays\produce.sqlite3",
+            run_id=time.strftime("produce-%Y%m%d-%H%M%S"),
+        )
         task = ProduceTask(
             enable_lessons=True,
             hand_reader=_hand_reader,
             card_policy=SearchPolicy(),
+            replay_db=replay,
         )
     if getattr(args, "resume", False) and hasattr(task, "resume"):
         result = task.resume(agent)

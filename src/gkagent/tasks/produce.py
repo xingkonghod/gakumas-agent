@@ -34,6 +34,7 @@ import numpy as np
 from gkagent.agent import Agent
 from gkagent.contract.models import Card, Observation, Phase
 from gkagent.policy.router import Recommendation, RuleCardPolicy
+from gkagent.runtime.replay import ReplayDB
 from gkagent.tasks.base import TaskResult
 from gkagent.vision.matcher import Match
 
@@ -243,6 +244,7 @@ class ProduceTask:
         get_retry: float | None = None,
         finish_attempts: int | None = None,
         enable_lessons: bool = False,
+        replay_db: ReplayDB | None = None,
     ) -> None:
         if selection_action not in ("get", "exchange", "cancel"):
             raise ValueError(f"unsupported selection_action: {selection_action}")
@@ -275,6 +277,7 @@ class ProduceTask:
         self.enable_lessons = enable_lessons
         self.lesson_point: tuple[int, int] = (360, 1010)
         self.lesson_template = "produce_lesson_row"
+        self.replay_db = replay_db
 
     # ------------------------------------------------------------------ 识别
     def observe(self, agent: Agent, image: np.ndarray | None = None) -> ProduceScreen:
@@ -732,6 +735,7 @@ class ProduceTask:
                 stage = "出牌"
                 card_play = self.decide_card(agent, image, screen=screen)
                 if card_play is not None:
+                    self._record(image, card_play)
                     agent.device.click(*card_play.point)
                     handled = True
             if not handled and screen.event_recommend is not None:
@@ -840,6 +844,7 @@ class ProduceTask:
                     stage = "出牌"
                     card_play = self.decide_card(agent, image, screen=screen)
                     if card_play is not None:
+                        self._record(image, card_play)
                         agent.device.click(*card_play.point)
                         handled = True
 
@@ -1109,6 +1114,24 @@ class ProduceTask:
         intersection = (x2 - x1) * (y2 - y1)
         union = lw * lh + rw * rh - intersection
         return intersection / union if union else 0.0
+
+    def _record(self, image: np.ndarray, card_play: CardPlay) -> None:
+        """把一次出牌决策写入回放库，供 BC/搜索训练。"""
+        if self.replay_db is None or card_play.index is None:
+            return
+        hand = self.read_hand(image)
+        if not hand.cards:
+            return
+        self.replay_db.record(
+            frame_hash=self._digest(image),
+            state_json=self._observation(hand),
+            action_json={
+                "index": card_play.index,
+                "point": list(card_play.point),
+                "source": card_play.source,
+            },
+            reward=0.0,
+        )
 
     def _stuck_advance(self, agent: Agent, image: np.ndarray, index: int) -> None:
         """卡住超过 15s：按顺序尝试下一步。"""
