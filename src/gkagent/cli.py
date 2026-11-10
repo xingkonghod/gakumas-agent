@@ -65,18 +65,31 @@ def cmd_click(args) -> int:
 
 
 def cmd_task(args) -> int:
-    from gkagent.tasks import ActivityFeeTask, ChallengeTask, DailyTask, SocietyTask, WorkTask
+    from gkagent.tasks import (
+        ActivityFeeTask,
+        ChallengeTask,
+        DailyTask,
+        ProduceTask,
+        SocietyTask,
+        WorkTask,
+    )
 
     agent = _agent(args)
     tasks = {
         "activity_fee": ActivityFeeTask,
         "challenge": ChallengeTask,
         "daily": DailyTask,
+        "produce": ProduceTask,
         "society": SocietyTask,
         "work": WorkTask,
     }
     task = tasks[args.name]()
-    result = task.run(agent)
+    if args.name == "produce":
+        task = ProduceTask(enable_lessons=True)
+    if getattr(args, "resume", False) and hasattr(task, "resume"):
+        result = task.resume(agent)
+    else:
+        result = task.run(agent)
     _print({"task": task.name, "ok": result.ok, "message": result.message})
     return 0 if result.ok else 1
 
@@ -109,8 +122,12 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(func=cmd_click)
 
     p = sub.add_parser("task", help="run a task")
-    p.add_argument("name", choices=["activity_fee", "work", "challenge", "society", "daily"])
+    p.add_argument(
+        "name",
+        choices=["activity_fee", "work", "challenge", "society", "daily", "produce"],
+    )
     p.add_argument("--hwnd", type=int, default=None)
+    p.add_argument("--resume", action="store_true", help="continue current produce")
     p.set_defaults(func=cmd_task)
 
     args = parser.parse_args(argv)
