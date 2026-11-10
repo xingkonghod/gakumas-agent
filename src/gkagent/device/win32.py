@@ -71,8 +71,8 @@ class Win32Device:
         rect = wintypes.RECT()
         USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
         cw, ch = rect.right, rect.bottom
-        cx = int(round(int(x) * cw / 720.0))
-        cy = int(round(int(y) * ch / 1280.0))
+        cx = round(int(x) * cw / 720.0)
+        cy = round(int(y) * ch / 1280.0)
         lp = (cy << 16) | (cx & 0xFFFF)
         USER32.PostMessageW(self.hwnd, 0x0201, 0x0001, lp)  # WM_LBUTTONDOWN
         time.sleep(0.03)
