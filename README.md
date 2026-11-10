@@ -1,57 +1,65 @@
-# gkagent（GDE）
+# gkagent（自建自动化）
 
-**MAA 的决策外挂，不是另一个 MAA。**
+独立于 MAA pipeline 的《学园偶像大师》自动化 agent。
 
-MaaGakumasu 负责看和点（截屏、识别、点击、日常、商店、启动、更新）；
-GDE 负责“这手牌怎么打、这条路怎么走、为什么”，并把决策过程变成可回放、可训练的数据。
+- **只把 MaaFramework 当“手和眼”**：FramePool 截屏 + SendMessage 点击。
+- 逻辑、模板、任务、回放全部自己控制，不再受 MAA 的 `base/zh_CN` 图片覆盖问题影响。
+- 目标是低 token、低延迟、可回放，后续接模拟器搜索/RL。
 
-## 分工
+## 当前能力
 
-| 能力 | MaaGakumasu | GDE |
-|---|---|---|
-| 截屏/识别/点击/日常 | ✅ | ❌ 复用 |
-| 卡 ID/费用/效果识别 | 只分三类框 | ✅ |
-| 出牌决策 | 启发式 | ✅ 搜索 + 价值网 + 学习 |
-| 培育路线/事件/道具 | 规则 | ✅ 规划 |
-| 竞赛策略 | 选对手 | ✅ 建模 |
-| 复盘/反事实 | 日志 | ✅ 回放 + 分析 |
-| 学习闭环 | 无 | ✅ BC/RL/蒸馏/ONNX |
+| 命令 | 作用 |
+|---|---|
+| `capture` | 截取游戏窗口（720×1280） |
+| `find` | 离线模板匹配，输出 box/center/score |
+| `home` | 认主页 + 点底部主页 tab |
+| `click` | 按坐标点击 |
+| `task activity_fee` | 主页 → 活动经费 → 关闭弹窗 |
 
-## 三种共存模式
+## 环境
 
-1. **教练模式**：挂 MAA 里只读、只记录、只推荐，不点击。先做这个。
-2. **插件模式**：用 MAA 的 `CustomAction` 替换 `ProduceCardsAuto` 的决策，点击仍走 MAA controller。
-3. **独立竞赛**（可选）：MAA 不跑时自己打竞赛。
-
-## 文档
-
-- [项目规划](docs/PROJECT_PLAN.md)
-- [架构与 ADR](docs/ARCHITECTURE.md)
-- [MAA 集成](docs/MAA_INTEGRATION.md)
-
-## 快速开始
+- 逻辑/测试：项目自己的 `.venv`（`uv`）
+- 设备命令：用 **MaaGakumasu 自带的 Python**（已含 `maa` 包和 MaaFramework 原生库）
 
 ```powershell
-uv venv --python 3.11
-uv pip install -e ".[dev]"
+cd D:\Games\gakumas-agent
 uv run pytest -q
+
+# 设备命令走 run.py（自动把 src 加进 sys.path，绕开 embedded python 忽略 PYTHONPATH 的问题）
+& 'D:\Games\MaaGakumasu\python\python.exe' 'D:\Games\gakumas-agent\run.py' capture --out shot.png
+& 'D:\Games\MaaGakumasu\python\python.exe' 'D:\Games\gakumas-agent\run.py' home
+& 'D:\Games\MaaGakumasu\python\python.exe' 'D:\Games\gakumas-agent\run.py' task activity_fee
 ```
+
+> 游戏是管理员进程，设备命令也要**以管理员运行**；否则 `PostMessage`/`SetCursorPos` 返回 error 5。
+
+## 模板
+
+`templates/`：
+
+- `home.png`：主页「プロデュース」区域（0.979）
+- `home_tab.png`：底部「主页」tab
+- `activity_fee.png`：左侧「活动经费」按钮（1.0）
+- `close.png` / `decide.png`：通用关闭/确定
+- `shop.png`：右侧「商店」按钮
+
+新增模板用 `capture` 截图 + `find` 验证分数。
 
 ## 目录
 
 ```
 src/gkagent/
-  integration/ MAA 适配层（识别结果 ↔ 契约）
-  contract/    Observation / Action / Replay
-  perception/  独立截屏/OCR（教练模式备用）
-  policy/      规则、搜索、价值网、LLM 兜底
-  action/      Win32 / ADB / 安全守卫（插件模式下不用）
-  runtime/     主循环、回放、指标
-  sim/         竞赛/培育模拟器
-  training/    BC / PPO / 蒸馏 / ONNX
-  eval/        基准与报告
+  device/win32.py     MaaFramework Win32Controller 封装 + 找窗口
+  vision/matcher.py   OpenCV 模板匹配
+  agent.py            ensure_home / click / close_popup / claim_activity_fee
+  tasks/              activity_fee + 后续 work/challenge/society
+  cli.py              capture / find / home / click / task
+templates/            中文 UI 模板
+tests/                matcher 单测
 ```
 
-## 免责声明
+## 下一步
 
-仅供个人学习研究。点击模拟违反游戏利用规约，存在封号风险；默认教练模式，插件模式可随时回退。
+1. 游戏开着时跑 `task activity_fee` 验证设备链路。
+2. 按同样方式加 `work`、`challenge`、`society` 三个任务：先 `capture` 截界面、`find` 定模板，再写状态机。
+3. 接 replay：每步存截图 hash + 动作 + 结果，为后续搜索/RL 准备数据。
