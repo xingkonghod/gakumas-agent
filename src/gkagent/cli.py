@@ -101,11 +101,19 @@ def cmd_task(args) -> int:
             r"D:\Games\gakumas-agent\data\replays\produce.sqlite3",
             run_id=time.strftime("produce-%Y%m%d-%H%M%S"),
         )
+        ocr_policy = None
+        if getattr(args, "ocr_cards", False):
+            from gkagent.data.cards_db import CardLibrary
+            from gkagent.policy.ocr_cards import OcrCardPolicy
+            from gkagent.vision.ocr import OcrEngine
+
+            ocr_policy = OcrCardPolicy(OcrEngine(), CardLibrary())
         task = ProduceTask(
             enable_lessons=True,
             hand_reader=_hand_reader,
             card_policy=SearchPolicy(),
             replay_db=replay,
+            ocr_policy=ocr_policy,
         )
     if getattr(args, "resume", False) and hasattr(task, "resume"):
         result = task.resume(agent)
@@ -150,6 +158,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--hwnd", type=int, default=None)
     p.add_argument("--resume", action="store_true", help="continue current produce")
+    p.add_argument("--ocr-cards", action="store_true", help="read card details with OCR")
     p.set_defaults(func=cmd_task)
 
     args = parser.parse_args(argv)

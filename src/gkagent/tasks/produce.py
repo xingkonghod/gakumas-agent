@@ -245,6 +245,7 @@ class ProduceTask:
         finish_attempts: int | None = None,
         enable_lessons: bool = False,
         replay_db: ReplayDB | None = None,
+        ocr_policy: "OcrCardPolicy | None" = None,
     ) -> None:
         if selection_action not in ("get", "exchange", "cancel"):
             raise ValueError(f"unsupported selection_action: {selection_action}")
@@ -278,6 +279,7 @@ class ProduceTask:
         self.lesson_point: tuple[int, int] = (360, 1010)
         self.lesson_template = "produce_lesson_row"
         self.replay_db = replay_db
+        self.ocr_policy = ocr_policy
 
     # ------------------------------------------------------------------ 识别
     def observe(self, agent: Agent, image: np.ndarray | None = None) -> ProduceScreen:
@@ -906,6 +908,22 @@ class ProduceTask:
         current = self.observe(agent, img) if screen is None else screen
         # 始终识别手牌/费用：即使暂时没有策略，也能把状态留给后续 GDE 复用。
         hand = self.read_hand(img)
+        if self.ocr_policy is not None and hand.boxes:
+            best: tuple[float, int] | None = None
+            for index, box in enumerate(hand.boxes[:4]):
+                agent.device.click(*self._box_center(box))
+                self._pause(0.35)
+                detail = agent.shot()
+                cost = hand.cards[index].cost if index < len(hand.cards) else None
+                reading = self.ocr_policy.read(detail, cost)
+                candidate = reading.efficiency
+                if best is None or candidate > best[0]:
+                    best = (candidate, index)
+            if best is not None:
+                _, index = best
+                point = self._box_center(hand.boxes[index])
+                agent.device.click(*point)
+                return CardPlay(point, "ocr", index)
         for index, card in enumerate(hand.cards):
             if getattr(card, "suggested", False) and index < len(hand.boxes):
                 return CardPlay(self._box_center(hand.boxes[index]), "suggested", index)
