@@ -92,8 +92,13 @@ class Win32Device:
 
         saved = wintypes.POINT()
         USER32.GetCursorPos(ctypes.byref(saved))
+        # 绕过前台锁：最小化再恢复，强制把游戏拉到最前
+        USER32.ShowWindow(self.hwnd, 6)
+        time.sleep(0.12)
         USER32.ShowWindow(self.hwnd, 9)
+        time.sleep(0.12)
         USER32.SetForegroundWindow(self.hwnd)
+        time.sleep(0.1)
         USER32.SetCursorPos(sx, sy)
         time.sleep(0.05)
         USER32.mouse_event(0x0002, 0, 0, 0, 0)
@@ -146,6 +151,8 @@ def find_game_hwnd(title_substr: str = "gakumas", class_name: str = "UnityWndCla
         cbuf = ctypes.create_unicode_buffer(256)
         USER32.GetClassNameW(hwnd, cbuf, 256)
         cls = cbuf.value
+        if not USER32.IsWindowVisible(hwnd):
+            return True
         if class_name == cls or title_substr.lower() in title.lower():
             found.append(int(hwnd))
         return True
