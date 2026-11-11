@@ -509,6 +509,7 @@ class ProduceTask:
     def _enter_produce(self, agent: Agent) -> bool:
         """主页点「プロデュース」，等待进入 SSR 选择/培育页面。"""
         deadline = time.monotonic() + self.entry_timeout
+        fallback_used = False
         while True:
             screen = self.observe(agent)
             if screen.stage in (
@@ -537,6 +538,13 @@ class ProduceTask:
                     agent.click(screen.produce_entry)
                 self._pause(self.click_delay)
                 continue
+            if not fallback_used and time.monotonic() >= deadline - 8:
+                click_force = getattr(agent.device, "click_force", None)
+                if click_force is not None:
+                    click_force(360, 1005)  # 主页「プロデュース」兜底点
+                    fallback_used = True
+                    self._pause(self.click_delay)
+                    continue
             if agent.close_popup():
                 self._pause(self.click_delay)
                 continue
