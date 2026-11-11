@@ -21,3 +21,7 @@ data/master/
 data/ssr/
 data/*.png
 data/*.txt
+
+data/auto/
+data/pytest-tmp/
+data/auto_log.txt

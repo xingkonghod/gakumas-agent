@@ -1,8 +1,11 @@
 """Win32 设备：截屏 + 点击。
 
-底层复用 MaaFramework 的 Win32Controller。
-默认用 PostMessage：不移动光标、不抢焦点；只隐藏 DMM Play Assist 覆盖层。
-需要真实鼠标时才显式传 input_method="Seize"。
+底层复用 MaaFramework 的 Win32Controller：
+- 截屏 FramePool；
+- 点击 Seize（真实鼠标注入）。MAA 内部完成了窗口坐标→屏幕坐标的换算，
+  比自算 ClientToScreen 更可靠（本机 200% DPI 缩放下自算会偏）。
+
+只隐藏 DMM Play Assist 覆盖层。
 """
 
 from __future__ import annotations
@@ -26,7 +29,7 @@ class Win32Device:
         hwnd: int,
         maa_home: str | os.PathLike[str] = r"D:\Games\MaaGakumasu",
         screencap: str = "FramePool",
-        input_method: str = "PostMessage",
+        input_method: str = "Seize",
     ) -> None:
         self.hwnd = int(hwnd)
         self.maa_home = Path(maa_home)
@@ -64,13 +67,32 @@ class Win32Device:
         # 不再移动光标/抢焦点；PostMessage 直接投递窗口消息。
         return
 
-    def capture(self) -> np.ndarray:
+    def capture(self, attempts: int = 3) -> np.ndarray:
+        """截屏；窗口最小化或拿到黑帧/异常尺寸时重试几次再报错。"""
         if USER32.IsIconic(self.hwnd):
             raise RuntimeError("game window is minimized; restore it first")
-        return self.controller.post_screencap().wait().get()
+        frame = None
+        for _ in range(max(1, attempts)):
+            frame = np.asarray(self.controller.post_screencap().wait().get())
+            if frame.ndim == 3 and frame.shape[:2] == (1280, 720) and float(frame.mean()) > 3.0:
+                return frame
+            time.sleep(0.2)
+        shape = getattr(frame, "shape", None)
+        mean = float(frame.mean()) if frame is not None else -1.0
+        raise RuntimeError(f"invalid screenshot shape={shape} mean={mean:.1f}")
 
-    def click(self, x: int, y: int, delay: float = 0.3) -> None:
-        """原生 PostMessage 点击：不移动系统光标，不抢前台焦点。"""
+    def click(self, x: int, y: int, delay: float = 0.35) -> None:
+        """真实点击：交给 MAA 的 Seize 输入（自动处理 DPI/窗口偏移）。"""
+        self.controller.post_click(int(x), int(y)).wait()
+        if delay:
+            time.sleep(delay)
+
+    def click_force(self, x: int, y: int, delay: float = 0.4) -> None:
+        """兼容旧调用：与 click 相同，统一走 MAA 输入。"""
+        self.click(x, y, delay=delay)
+
+    def click_bg(self, x: int, y: int, delay: float = 0.3) -> None:
+        """原生 PostMessage 点击：不移动系统光标，不抢前台焦点（本游戏无效，留作他用）。"""
         rect = wintypes.RECT()
         USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
         cw, ch = rect.right, rect.bottom
@@ -83,8 +105,8 @@ class Win32Device:
         if delay:
             time.sleep(delay)
 
-    def click_force(self, x: int, y: int, delay: float = 0.4) -> None:
-        """物理点击（必要时的兜底）：短暂聚焦+移动光标，点完恢复光标位置。"""
+    def click_raw(self, x: int, y: int, delay: float = 0.4) -> None:
+        """旧的自算坐标点击（调试用）：短暂聚焦+移动光标，点完恢复光标位置。"""
         rect = wintypes.RECT()
         USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
         cw, ch = rect.right, rect.bottom
@@ -147,25 +169,42 @@ def find_window(title: str) -> int | None:
 
 
 def find_game_hwnd(title_substr: str = "gakumas", class_name: str = "UnityWndClass") -> int | None:
-    """按窗口类/标题查找游戏窗口。"""
+    """按窗口类查找游戏窗口。
+
+    历史坑：daemon 的控制台窗口标题里带 ``gakumas-agent`` 路径，早先按标题子串匹配会
+    误把控制台当成游戏（截到 720x1396 黑图、点击也打到控制台）。这里只认
+    ``UnityWndClass``，标题匹配必须完全相等；并优先返回未最小化的窗口。
+    """
     proc_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
-    found: list[int] = []
+    found: list[tuple[int, int, int]] = []  # (优先级, hwnd, 是否最小化)
 
     def _cb(hwnd, _lparam):
-        length = USER32.GetWindowTextLengthW(hwnd)
-        title = ""
-        if length:
-            buf = ctypes.create_unicode_buffer(length + 1)
-            USER32.GetWindowTextW(hwnd, buf, length + 1)
-            title = buf.value
+        if not USER32.IsWindowVisible(hwnd):
+            return True
         cbuf = ctypes.create_unicode_buffer(256)
         USER32.GetClassNameW(hwnd, cbuf, 256)
         cls = cbuf.value
-        if not USER32.IsWindowVisible(hwnd):
+        length = USER32.GetWindowTextLengthW(hwnd)
+        title = ""
+        if length:
+            tbuf = ctypes.create_unicode_buffer(length + 1)
+            USER32.GetWindowTextW(hwnd, tbuf, length + 1)
+            title = tbuf.value.strip()
+        iconic = int(bool(USER32.IsIconic(hwnd)))
+        if cls == class_name:
+            priority = 0 + iconic
+        elif title.lower() == title_substr.strip().lower():
+            priority = 2 + iconic
+        else:
             return True
-        if class_name == cls or title_substr.lower() in title.lower():
-            found.append(int(hwnd))
+        found.append((priority, int(hwnd), iconic))
         return True
 
     USER32.EnumWindows(proc_type(_cb), 0)
-    return found[0] if found else None
+    if not found:
+        return None
+    found.sort(key=lambda item: item[0])
+    for _, hwnd, iconic in found:
+        if not iconic:
+            return hwnd
+    return found[0][1]
