@@ -8,6 +8,9 @@ from __future__ import annotations
 
 import time
 
+import cv2
+import numpy as np
+
 from gkagent.agent import Agent
 from gkagent.vision.ocr import OcrEngine, OcrLine
 
@@ -32,14 +35,40 @@ class Navigator:
                 return line
         return None
 
-    def click_text(self, needle: str, image=None) -> bool:
+    def click_text(self, needle: str, image=None, verify: str | None = None) -> bool:
         line = self.find_text(needle, image)
         if line is None:
             return False
+        if verify is not None:
+            return self.click_verified(line, verify_text=verify)
         x, y, w, h = line.box
         self.agent.device.click(x + w // 2, y + h // 2)
         time.sleep(self.settle)
         return True
+
+    def click_verified(
+        self,
+        line: OcrLine,
+        verify_text: str | None = None,
+        retries: int = 3,
+        threshold: float = 2.0,
+    ) -> bool:
+        """点击后校验：目标文字出现或画面变化，否则偏移重点。"""
+        before = self.agent.shot()
+        x, y, w, h = line.box
+        cx, cy = x + w // 2, y + h // 2
+        offsets = ((0, 0), (0, -10), (0, 10), (-10, 0), (10, 0))
+        for dx, dy in offsets[: max(1, retries)]:
+            self.agent.device.click(cx + dx, cy + dy)
+            time.sleep(0.7)
+            after = self.agent.shot()
+            if verify_text and self.find_text(verify_text, after) is not None:
+                return True
+            changed = float(np.mean(cv2.absdiff(before, after)))
+            if verify_text is None and changed > threshold:
+                return True
+            before = after
+        return False
 
     def home(self) -> bool:
         return self.agent.ensure_home()
