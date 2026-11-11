@@ -92,13 +92,8 @@ class Win32Device:
 
         saved = wintypes.POINT()
         USER32.GetCursorPos(ctypes.byref(saved))
-        # 绕过前台锁：最小化再恢复，强制把游戏拉到最前
-        USER32.ShowWindow(self.hwnd, 6)
-        time.sleep(0.12)
         USER32.ShowWindow(self.hwnd, 9)
-        time.sleep(0.12)
         USER32.SetForegroundWindow(self.hwnd)
-        time.sleep(0.1)
         USER32.SetCursorPos(sx, sy)
         time.sleep(0.05)
         USER32.mouse_event(0x0002, 0, 0, 0, 0)
