@@ -477,8 +477,8 @@ class ProduceTask:
     def run(self, agent: Agent) -> TaskResult:
         screen = self.observe(agent)
         if screen.stage in (ProduceStage.HOME, ProduceStage.UNKNOWN):
-            if not self._go_home(agent):
-                return TaskResult(False, "不在主页，也回不到主页，无法开始培育")
+            # 主页模板可能识别失败；继续尝试用固定点进入培育
+            self._go_home(agent)
             if not self._enter_produce(agent):
                 return TaskResult(
                     False,
