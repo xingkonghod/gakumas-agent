@@ -476,7 +476,7 @@ class ProduceTask:
 
     def run(self, agent: Agent) -> TaskResult:
         screen = self.observe(agent)
-        if screen.stage in (ProduceStage.HOME, ProduceStage.UNKNOWN):
+        if screen.stage in (ProduceStage.HOME, ProduceStage.UNKNOWN) and screen.produce_entry is None:
             if not self._go_home(agent):
                 return TaskResult(False, "不在主页，也回不到主页，无法开始培育")
             if not self._enter_produce(agent):
@@ -530,7 +530,7 @@ class ProduceTask:
                 self._pause(self.click_delay)
                 continue
             if screen.produce_entry is not None:
-                agent.click(screen.produce_entry)
+                agent.device.click_force(*screen.produce_entry.center)
                 self._pause(self.click_delay)
                 continue
             if agent.close_popup():
@@ -1032,6 +1032,9 @@ class ProduceTask:
 
     # ------------------------------------------------------------------ 收尾
     def _go_home(self, agent: Agent, allow_tab: bool = True) -> bool:
+        image = agent.shot()
+        if agent.find(self.ENTRY, image=image) is not None:
+            return True
         if agent.ensure_home(attempts=2):
             return True
         agent.close_popup()
