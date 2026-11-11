@@ -64,6 +64,8 @@ class Win32Device:
         return
 
     def capture(self) -> np.ndarray:
+        if USER32.IsIconic(self.hwnd):
+            raise RuntimeError("game window is minimized; restore it first")
         return self.controller.post_screencap().wait().get()
 
     def click(self, x: int, y: int, delay: float = 0.3) -> None:
