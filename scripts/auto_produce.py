@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import cv2
 
 from gkagent.agent import Agent
-from gkagent.device.win32 import Win32Device, find_game_hwnd
+from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd
 from gkagent.policy.search import SearchPolicy
 from gkagent.tasks.produce import ProduceTask
 from gkagent.tasks.produce_ui import LESSON_WORDS, ProduceDriver
@@ -60,6 +60,11 @@ def is_home(text: str) -> bool:
     return "主页" in text and any(word in text for word in HOME_MARKERS)
 
 
+def stop_requested() -> bool:
+    """F12 是急停键：用户随时按一下，自动跑图立刻退出。"""
+    return bool(USER32.GetAsyncKeyState(0x7B) & 0x8000)
+
+
 def restore_window() -> None:
     """最小化/黑屏时恢复游戏窗口（本进程已是管理员）。"""
     script = ROOT / "scripts" / "force_show_game.ps1"
@@ -91,6 +96,9 @@ def main() -> int:
     seen_produce = False
 
     for step in range(1, steps + 1):
+        if stop_requested():
+            log_lines.append(f"{step:03d} [stop] 用户按了 F12，立即停止")
+            break
         try:
             image = agent.shot()
         except RuntimeError as exc:
