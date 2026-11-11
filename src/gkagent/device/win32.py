@@ -94,8 +94,20 @@ class Win32Device:
 
         saved = wintypes.POINT()
         USER32.GetCursorPos(ctypes.byref(saved))
-        USER32.ShowWindow(self.hwnd, 9)
-        USER32.SetForegroundWindow(self.hwnd)
+        # 用 AttachThreadInput 绕过前台锁，把游戏拉到最前（不最小化）
+        fg = USER32.GetForegroundWindow()
+        if fg and fg != self.hwnd:
+            fg_tid = USER32.GetWindowThreadProcessId(fg, None)
+            cur_tid = USER32.GetCurrentThreadId()
+            USER32.AttachThreadInput(cur_tid, fg_tid, True)
+            USER32.ShowWindow(self.hwnd, 9)
+            USER32.SetForegroundWindow(self.hwnd)
+            USER32.BringWindowToTop(self.hwnd)
+            USER32.AttachThreadInput(cur_tid, fg_tid, False)
+        else:
+            USER32.ShowWindow(self.hwnd, 9)
+            USER32.SetForegroundWindow(self.hwnd)
+        time.sleep(0.15)
         USER32.SetCursorPos(sx, sy)
         time.sleep(0.05)
         USER32.mouse_event(0x0002, 0, 0, 0, 0)
