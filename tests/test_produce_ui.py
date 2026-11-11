@@ -161,3 +161,26 @@ def test_activity_reward_settle_screen_taps() -> None:
     assert result.screen == "result-tap"
     assert result.action == "settle"
     assert agent.device.clicks == [(360, 1000)]
+
+
+def test_retry_confirm_cancels_to_save_stamina() -> None:
+    agent = FakeAgent()
+    lines = _lines("再挑战确认", "基础研修", "取消", "再次挑战")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "dialog"
+    assert result.action == "cancel-retry"
+    assert agent.device.clicks[-1] == _center(2)
+
+
+@dataclass
+class BusyDevice:
+    def click_force(self, x: int, y: int) -> bool:
+        return False
+
+
+def test_user_busy_pauses_without_clicking() -> None:
+    agent = FakeAgent(device=BusyDevice())
+    result = _driver().decide(agent, _lines("请选择行动", "授课", "活动奖励"))
+    assert result.screen == "pause"
+    assert result.action == "user-active"
+    assert result.ok

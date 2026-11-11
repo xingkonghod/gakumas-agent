@@ -35,6 +35,10 @@ LESSON_WORDS = ("剩余回合数", "CLEAR截止")
 _GAIN_RE = re.compile(r"[+\-]\s*\d+")
 
 
+class UserBusy(Exception):
+    """用户正在用键鼠：这一次动作先不做，等用户离开再继续。"""
+
+
 @dataclass
 class TickResult:
     screen: str
@@ -93,7 +97,9 @@ class ProduceDriver:
     def _click_once(self, agent, point: tuple[int, int]) -> None:
         device = agent.device
         force = getattr(device, "click_force", None)
-        (force if force is not None else device.click)(*point)
+        result = (force if force is not None else device.click)(*point)
+        if result is False:
+            raise UserBusy
         self.last_point = point
 
     def _click(self, agent, point: tuple[int, int]) -> None:
@@ -109,6 +115,12 @@ class ProduceDriver:
         return self.decide(agent, self.read(image))
 
     def decide(self, agent, lines: list[OcrLine]) -> TickResult:
+        try:
+            return self._decide(agent, lines)
+        except UserBusy:
+            return TickResult("pause", "user-active", ok=True)
+
+    def _decide(self, agent, lines: list[OcrLine]) -> TickResult:
         text = self.text_of(lines)
 
         # 0) 空白/纯色转场：等待，不当作「无可执行动作」
@@ -127,6 +139,10 @@ class ProduceDriver:
                 line = self.find(lines, "不播放语音")
                 self._click(agent, self.center(line) if line else VOICE_OFF)
                 return TickResult("dialog", "voice-off")
+            if "再挑战" in text:
+                cancel = self.find(lines, "取消")
+                self._click_line(agent, cancel) if cancel else self._click(agent, (175, 1163))
+                return TickResult("dialog", "cancel-retry")
             confirm = self.find(lines, "下一步", "确定", "完成")
             if confirm is not None:
                 self._click_line(agent, confirm)

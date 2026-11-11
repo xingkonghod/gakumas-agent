@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -59,6 +60,20 @@ def is_home(text: str) -> bool:
     return "主页" in text and any(word in text for word in HOME_MARKERS)
 
 
+def restore_window() -> None:
+    """最小化/黑屏时恢复游戏窗口（本进程已是管理员）。"""
+    script = ROOT / "scripts" / "force_show_game.ps1"
+    try:
+        subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script)],
+            timeout=30,
+            capture_output=True,
+        )
+    except Exception:
+        pass
+    time.sleep(2.0)
+
+
 def main() -> int:
     steps = int(sys.argv[1]) if len(sys.argv) > 1 else 30
     hwnd = find_game_hwnd()
@@ -76,7 +91,13 @@ def main() -> int:
     seen_produce = False
 
     for step in range(1, steps + 1):
-        image = agent.shot()
+        try:
+            image = agent.shot()
+        except RuntimeError as exc:
+            log_lines.append(f"{step:03d} [capture] {exc}; 尝试恢复窗口")
+            idle += 1
+            restore_window()
+            continue
         cv2.imwrite(str(SHOT_DIR / f"step_{step:03d}.png"), image)
         lines = driver.read(image)
         text = driver.text_of(lines)
@@ -93,10 +114,14 @@ def main() -> int:
             play = task.decide_card(agent, image, screen=screen)
             if play is not None:
                 task._record(image, play)
-                agent.device.click_force(*play.point)
+                clicked = agent.device.click_force(*play.point)
                 time.sleep(0.9)
-                result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
-                idle = 0
+                if clicked is False:
+                    result = "[pause] 用户正在操作，暂停出牌"
+                    idle = 0
+                else:
+                    result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
+                    idle = 0
             else:
                 agent.device.click_force(360, 1000)
                 time.sleep(0.9)
@@ -105,7 +130,11 @@ def main() -> int:
         else:
             tick = driver.decide(agent, lines)
             result = tick.describe()
-            idle = 0 if tick.ok else idle + 1
+            if tick.screen == "pause":
+                time.sleep(2.0)
+                idle = 0
+            else:
+                idle = 0 if tick.ok else idle + 1
 
         log_lines.append(f"{step:03d} {result}")
         if idle >= 5:

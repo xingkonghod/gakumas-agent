@@ -23,6 +23,19 @@ USER32 = ctypes.WinDLL("user32", use_last_error=True)
 KERNEL32 = ctypes.WinDLL("kernel32", use_last_error=True)
 
 
+class _LastInputInfo(ctypes.Structure):
+    _fields_ = [("cbSize", wintypes.UINT), ("dwTime", wintypes.DWORD)]
+
+
+def user_idle_ms() -> int:
+    """距离用户最后一次键盘/鼠标输入过去了多少毫秒。"""
+    info = _LastInputInfo()
+    info.cbSize = ctypes.sizeof(_LastInputInfo)
+    if not USER32.GetLastInputInfo(ctypes.byref(info)):
+        return 0
+    return (KERNEL32.GetTickCount() - int(info.dwTime)) & 0xFFFFFFFF
+
+
 class Win32Device:
     def __init__(
         self,
@@ -30,11 +43,13 @@ class Win32Device:
         maa_home: str | os.PathLike[str] = r"D:\Games\MaaGakumasu",
         screencap: str = "FramePool",
         input_method: str = "Seize",
+        user_idle_gate_ms: int = 3000,
     ) -> None:
         self.hwnd = int(hwnd)
         self.maa_home = Path(maa_home)
         self.screencap = screencap
         self.input_method = input_method
+        self.user_idle_gate_ms = int(user_idle_gate_ms)
         self._ctrl = None
         self._overlay: int | None = None
 
@@ -67,7 +82,7 @@ class Win32Device:
         # 不再移动光标/抢焦点；PostMessage 直接投递窗口消息。
         return
 
-    def capture(self, attempts: int = 3) -> np.ndarray:
+    def capture(self, attempts: int = 8) -> np.ndarray:
         """截屏；窗口最小化或拿到黑帧/异常尺寸时重试几次再报错。"""
         if USER32.IsIconic(self.hwnd):
             raise RuntimeError("game window is minimized; restore it first")
@@ -76,20 +91,31 @@ class Win32Device:
             frame = np.asarray(self.controller.post_screencap().wait().get())
             if frame.ndim == 3 and frame.shape[:2] == (1280, 720) and float(frame.mean()) > 3.0:
                 return frame
-            time.sleep(0.2)
+            time.sleep(0.35)
         shape = getattr(frame, "shape", None)
         mean = float(frame.mean()) if frame is not None else -1.0
         raise RuntimeError(f"invalid screenshot shape={shape} mean={mean:.1f}")
 
-    def click(self, x: int, y: int, delay: float = 0.35) -> None:
-        """真实点击：交给 MAA 的 Seize 输入（自动处理 DPI/窗口偏移）。"""
+    def click(self, x: int, y: int, delay: float = 0.35, respect_user: bool = True) -> bool:
+        """真实点击：交给 MAA 的 Seize 输入（自动处理 DPI/窗口偏移）。
+
+        ``respect_user``：用户正在用键鼠时不抢鼠标（等待最多 ~1.2s 后返回 False）。
+        返回是否真的点下去了。
+        """
+        if respect_user:
+            deadline = time.monotonic() + 1.2
+            while user_idle_ms() < self.user_idle_gate_ms:
+                if time.monotonic() >= deadline:
+                    return False
+                time.sleep(0.12)
         self.controller.post_click(int(x), int(y)).wait()
         if delay:
             time.sleep(delay)
+        return True
 
-    def click_force(self, x: int, y: int, delay: float = 0.4) -> None:
+    def click_force(self, x: int, y: int, delay: float = 0.4) -> bool:
         """兼容旧调用：与 click 相同，统一走 MAA 输入。"""
-        self.click(x, y, delay=delay)
+        return self.click(x, y, delay=delay)
 
     def click_bg(self, x: int, y: int, delay: float = 0.3) -> None:
         """原生 PostMessage 点击：不移动系统光标，不抢前台焦点（本游戏无效，留作他用）。"""
