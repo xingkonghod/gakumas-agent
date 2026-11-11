@@ -15,7 +15,22 @@
 1. `find_game_hwnd` 会把标题含 `gakumas-agent` 的 daemon 控制台误认成游戏 → 截到 720x1396 黑图、点击打到控制台。
 2. 自己算 `ClientToScreen` 的点击在本机 200% DPI 下**偏下**；改用 MAA 的 `Seize` 输入后坐标正确。
 
-**输入方式结论（2026-11-12 实测）**：后台消息点击（PostMessage / SendMessage / AnchoredTouch）全部**不生效**（对照实验 diff≈0），只有 `Seize` 真实鼠标注入能点动 Unity。所以自动化会移动系统光标、抢前台——必须在用户离开电脑时跑。设备层已加「用户空闲门限」：用户 3 秒内有键鼠输入就不点，驱动返回 `pause`，自动循环暂停等待。
+**输入方式结论（2026-11-12 实测 + 查 MaaFramework / MaaGakumasu 配置）**：
+
+MaaFramework 的 Win32 输入方式对照（Python binding `MaaWin32InputMethodEnum` 文档）：
+
+| 方式 | 后台 | 抢鼠标 | 结论 |
+|---|---|---|---|
+| Seize | 否 | 是 | 真实鼠标，必须前台；之前用它导致抢鼠标 |
+| SendMessage / PostMessage | 是 | 否 | 本游戏不认（实测 diff≈0） |
+| **SendMessageWithCursorPos** | 是 | **短暂** | 光标移到目标→发消息→还原；**原生 MaaGakumasu PC 实例就用它** |
+| AnchoredTouch | 是 | 否 | 合成触摸 WM_POINTER，本游戏不认 |
+| Interception | 否 | 驱动级 | 要装驱动，仍是真实输入 |
+
+证据：`D:\Games\MaaGakumasu\config\instances\cfcfe1e4.json` 里
+`Win32ControlMouseType = SendMessageWithCursorPos`、`Win32ControlKeyboardType = SendMessageWithCursorPos`。
+
+所以 GDE 设备层默认已从 `Seize` 改为 `SendMessageWithCursorPos`：不抢前台、后台消息、光标点完即还原；同时保留 0.8s 用户空闲门限与 F12 急停。
 
 ---
 
@@ -98,7 +113,7 @@ python scripts/agent_cmd.py shell --command "D:\Games\gakumas-agent\scripts\cap_
 | 常驻任务 | `GDEAgent`（RunLevel Highest, Interactive）→ `python agent_daemon.py` |
 | OCR | rapidocr 装在项目 venv（3.11）和 MaaGakumasu python（3.12） |
 | 游戏窗口 | `UnityWndClass`，标题 `gakumas`；**本机 DPI 200%**，物理客户区 1080x1920，渲染 720x1280 |
-| 点击 | 只有真实输入（MAA `Seize`）能点动 Unity；后台消息方式实测无效；设备层带 3s 用户空闲门限 |
+| 点击 | 默认 `SendMessageWithCursorPos`（后台消息 + 光标短暂移到目标后还原），另有 0.8s 用户空闲门限与 F12 急停；`Seize` 仅作备用 |
 
 ---
 
@@ -129,7 +144,7 @@ python scripts/agent_cmd.py shell --command "D:\Games\gakumas-agent\scripts\cap_
 7. 旧 `ProduceTask.run/_play_main` 的模板与固定点按日文 UI 写，中文界面下多数不命中；主路径已改为 `produce_ui` 驱动。
 8. 页面**最小化**后截屏会返回 720x1396 黑帧（窗口被 DMM/用户最小化），需 `force_show_game.ps1` 恢复。
 9. **点空气**：OCR 只按关键词判屏，状态判错时会点在无按钮的位置并反复重试；还没有「点完校验屏幕是否变化」的机制。
-10. 用户在用电脑时自动化会抢鼠标（Seize 必然移动光标）；现在靠 3s 空闲门限避让，但用户静坐看图超过 3s 仍可能被抢一次。
+10. 点击方式已从 `Seize` 改为 `SendMessageWithCursorPos`（对齐原生 MaaGakumasu 配置）；**尚未在游戏开启时实测**，需要真机验证一次（点 SKIP 看是否弹确认、光标是否还原）。
 
 ---
 

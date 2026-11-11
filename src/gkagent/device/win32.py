@@ -2,10 +2,19 @@
 
 底层复用 MaaFramework 的 Win32Controller：
 - 截屏 FramePool；
-- 点击 Seize（真实鼠标注入）。MAA 内部完成了窗口坐标→屏幕坐标的换算，
-  比自算 ClientToScreen 更可靠（本机 200% DPI 缩放下自算会偏）。
+- 点击默认 ``SendMessageWithCursorPos``：后台窗口消息 + 光标短暂移到目标点后还原，
+  和原生 MaaGakumasu 的 PC 配置一致（``config/instances/*.json`` 的
+  ``Win32ControlMouseType``），既不用抢前台，也不会一直占着鼠标。
 
-只隐藏 DMM Play Assist 覆盖层。
+输入方式对照（MaaFramework Python binding 的 ``MaaWin32InputMethodEnum`` 文档）：
+
+| 方式 | 后台 | 抢鼠标 | 说明 |
+|---|---|---|---|
+| Seize | 否 | 是 | 真实鼠标，必须前台 |
+| SendMessage / PostMessage | 是 | 否 | 本游戏不认（实测 diff≈0） |
+| SendMessageWithCursorPos | 是 | 短暂 | 光标移到目标→发消息→还原（默认） |
+| AnchoredTouch | 是 | 否 | 合成触摸 WM_POINTER，本游戏不认 |
+| Interception | 否 | 驱动级 | 需要驱动，仍是真实输入 |
 """
 
 from __future__ import annotations
@@ -42,8 +51,8 @@ class Win32Device:
         hwnd: int,
         maa_home: str | os.PathLike[str] = r"D:\Games\MaaGakumasu",
         screencap: str = "FramePool",
-        input_method: str = "Seize",
-        user_idle_gate_ms: int = 3000,
+        input_method: str = "SendMessageWithCursorPos",
+        user_idle_gate_ms: int = 800,
     ) -> None:
         self.hwnd = int(hwnd)
         self.maa_home = Path(maa_home)
@@ -97,9 +106,9 @@ class Win32Device:
         raise RuntimeError(f"invalid screenshot shape={shape} mean={mean:.1f}")
 
     def click(self, x: int, y: int, delay: float = 0.35, respect_user: bool = True) -> bool:
-        """真实点击：交给 MAA 的 Seize 输入（自动处理 DPI/窗口偏移）。
+        """点击：默认 SendMessageWithCursorPos（后台消息，光标短暂移到目标再还原）。
 
-        ``respect_user``：用户正在用键鼠时不抢鼠标（等待最多 ~1.2s 后返回 False）。
+        ``respect_user``：用户正在用键鼠时不点（等待最多 ~1.2s 后返回 False）。
         返回是否真的点下去了。
         """
         if respect_user:
