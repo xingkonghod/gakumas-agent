@@ -79,6 +79,17 @@ def cmd_task(args) -> int:
     )
 
     agent = _agent(args)
+    if args.name == "upgrade":
+        from gkagent.tasks.upgrade import UpgradeTask
+
+        upgrade = UpgradeTask(
+            kind=getattr(args, "kind", "support"),
+            limit=getattr(args, "limit", 3),
+            dry_run=getattr(args, "dry_run", False),
+        )
+        result = upgrade.run(agent)
+        _print({"task": upgrade.name, "ok": result.ok, "message": result.message})
+        return 0 if result.ok else 1
     tasks = {
         "activity_fee": ActivityFeeTask,
         "challenge": ChallengeTask,
@@ -104,10 +115,15 @@ def cmd_task(args) -> int:
         ocr_policy = None
         if getattr(args, "ocr_cards", False):
             from gkagent.data.cards_db import CardLibrary
+            from gkagent.data.items_db import ItemLibrary
             from gkagent.policy.ocr_cards import OcrCardPolicy
             from gkagent.vision.ocr import OcrEngine
 
-            ocr_policy = OcrCardPolicy(OcrEngine(), CardLibrary())
+            ocr_policy = OcrCardPolicy(
+                OcrEngine(),
+                CardLibrary(),
+                extra_libraries=[ItemLibrary()],
+            )
         task = ProduceTask(
             enable_lessons=True,
             hand_reader=_hand_reader,
@@ -154,11 +170,14 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("task", help="run a task")
     p.add_argument(
         "name",
-        choices=["activity_fee", "work", "challenge", "society", "daily", "produce"],
+        choices=["activity_fee", "work", "challenge", "society", "daily", "produce", "upgrade"],
     )
     p.add_argument("--hwnd", type=int, default=None)
     p.add_argument("--resume", action="store_true", help="continue current produce")
     p.add_argument("--ocr-cards", action="store_true", help="read card details with OCR")
+    p.add_argument("--kind", choices=["support", "idol"], default="support")
+    p.add_argument("--limit", type=int, default=3)
+    p.add_argument("--dry-run", action="store_true")
     p.set_defaults(func=cmd_task)
 
     args = parser.parse_args(argv)
