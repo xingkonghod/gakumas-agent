@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 
 USER32 = ctypes.WinDLL("user32", use_last_error=True)
+KERNEL32 = ctypes.WinDLL("kernel32", use_last_error=True)
 
 
 class Win32Device:
@@ -98,7 +99,7 @@ class Win32Device:
         fg = USER32.GetForegroundWindow()
         if fg and fg != self.hwnd:
             fg_tid = USER32.GetWindowThreadProcessId(fg, None)
-            cur_tid = USER32.GetCurrentThreadId()
+            cur_tid = KERNEL32.GetCurrentThreadId()
             USER32.AttachThreadInput(cur_tid, fg_tid, True)
             USER32.ShowWindow(self.hwnd, 9)
             USER32.SetForegroundWindow(self.hwnd)
