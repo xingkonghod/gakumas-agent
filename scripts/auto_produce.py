@@ -269,8 +269,8 @@ def main() -> int:
             clicked=clicked,
         )
         log_lines.append(f"{step:03d} {result}")
-        if idle >= 5:
-            log_lines.append(f"{step:03d} 连续 5 步无可执行动作，停止")
+        if idle >= 8:
+            log_lines.append(f"{step:03d} 连续 8 步无可执行动作，停止")
             break
 
     flush_pending(None)

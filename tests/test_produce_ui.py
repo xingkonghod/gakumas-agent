@@ -281,10 +281,23 @@ def test_read_uses_bottom_roi_then_top_when_setup_text() -> None:
 
 
 def test_read_skips_top_roi_without_setup_text() -> None:
-    ocr = FakeOcr(bottom_lines=[OcrLine("确定", 0.9, (40, 1100, 100, 40))])
+    ocr = FakeOcr(
+        bottom_lines=[
+            OcrLine("确定", 0.9, (40, 1100, 100, 40)),
+            OcrLine("继续", 0.9, (40, 1150, 100, 40)),
+            OcrLine("关闭", 0.9, (40, 1200, 100, 40)),
+        ]
+    )
     driver = ProduceDriver(ocr=ocr, sleep=lambda _s: None)
     driver.read(None)
     assert ocr.calls == [driver.bottom_roi]
+
+
+def test_read_adds_top_roi_when_bottom_text_is_short() -> None:
+    ocr = FakeOcr(bottom_lines=[OcrLine("确定", 0.9, (40, 1100, 100, 40))])
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _s: None)
+    driver.read(None)
+    assert ocr.calls == [driver.bottom_roi, driver.top_roi]
 
 
 def test_retry_confirm_cancels_to_save_stamina() -> None:

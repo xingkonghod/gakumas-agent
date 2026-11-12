@@ -91,7 +91,7 @@ class ProduceDriver:
         """
         lines = self.engine().read(image, self.bottom_roi)
         text = self.text_of(lines)
-        if any(key in text for key in self.top_roi_keys):
+        if any(key in text for key in self.top_roi_keys) or len(text.strip()) < 6:
             lines = lines + self.engine().read(image, self.top_roi)
         return lines
 
@@ -270,7 +270,7 @@ class ProduceDriver:
             or (training_hits >= 2 and "训练" in text)
             or ("授课" in text and "活动奖励" in text)
         ):
-            if "授课" in text:
+            if "授课" in text and training_hits == 0:
                 self._click(agent, LESSON_ACTION)
                 return TickResult("action", "lesson")
             point, label = self.choose_training(text)
