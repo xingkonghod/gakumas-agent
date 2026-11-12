@@ -10,9 +10,13 @@ from gkagent.vision.ocr import OcrLine
 class FakeDevice:
     def __init__(self) -> None:
         self.clicks: list[tuple[int, int]] = []
+        self.swipes: list[tuple[int, int, int, int]] = []
 
     def click(self, x: int, y: int) -> None:
         self.clicks.append((x, y))
+
+    def swipe(self, x1: int, y1: int, x2: int, y2: int, duration_ms: int = 300) -> None:
+        self.swipes.append((x1, y1, x2, y2))
 
 
 class FakeAgent:

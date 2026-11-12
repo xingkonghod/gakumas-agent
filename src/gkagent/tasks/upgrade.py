@@ -101,9 +101,17 @@ class UpgradeTask:
         text = self._text(nav)
         return any(marker in text for marker in ("查看详情", "支援卡加成", "支援卡变换"))
 
+    @staticmethod
+    def _scroll_top(nav: Navigator, times: int = 2) -> None:
+        """网格按选中卡滚动过；向下滑几下把列表拉回顶部，坐标才可信。"""
+        for _ in range(times):
+            nav.agent.device.swipe(360, 430, 360, 950, 400)
+            time.sleep(0.7)
+
     def _run_support(self, nav: Navigator, agent: Agent) -> TaskResult:
-        """支援卡列表 → 第一张 → 详情「Lv强化」→ 确认页「Lv强化」，反复 limit 次。"""
+        """支援卡列表 → 目标卡 → 详情「Lv强化」→ 确认页「Lv强化」，反复 limit 次。"""
         done = 0
+        target_level = ""
         for _ in range(self.limit):
             if not self._back_to_grid(nav):
                 break
@@ -114,6 +122,9 @@ class UpgradeTask:
             text = self._text(nav)
             if "Lv强化" not in text or any(token in text for token in FORBIDDEN):
                 break
+            match = re.search(r"Lv\s*(\d{1,3})\s*/\s*(\d{1,3})", text)
+            if match:
+                target_level = f"{match.group(1)}/{match.group(2)}"
             if not nav.click_exact("Lv强化"):  # 详情 → 强化确认页
                 break
             time.sleep(1.2)
@@ -129,10 +140,14 @@ class UpgradeTask:
                 nav.click_exact("取消")
                 break
             done += 1
+            # 强化后列表会滚动，拉回顶部
+            self._back_to_grid(nav)
+            self._scroll_top(nav)
         if done == 0:
             return TaskResult(False, "没有可强化的支援卡")
         mode = "（试运行未消耗）" if self.dry_run else ""
-        return TaskResult(True, f"支援卡 Lv强化 {done} 次{mode}")
+        level_note = f"（目标卡起始 Lv{target_level}）" if target_level else ""
+        return TaskResult(True, f"支援卡 Lv强化 {done} 次{mode}{level_note}")
 
     def _run_idol(self, nav: Navigator, agent: Agent) -> TaskResult:
         """偶像详情 → 「特训」→ 特训页「进行特训」→ 确认弹窗「进行特训」。"""
