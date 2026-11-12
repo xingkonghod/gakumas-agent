@@ -117,6 +117,7 @@ def main() -> int:
     ocr_cache: dict[str, tuple[list, str]] = {}
     last_signature: tuple[str, str, str] | None = None
     same_action_count = 0
+    lesson_pending: tuple[tuple[int, int], tuple] | None = None
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -187,28 +188,42 @@ def main() -> int:
         t_decide = time.perf_counter()
         clicked: bool | None = None
         if lesson_fast or any(word in text for word in LESSON_WORDS):
-            screen = task.observe(agent, image)
-            play = task.decide_card(agent, image, screen=screen)
-            if play is not None:
-                task._record(image, play)
-                clicked = agent.device.click_force(*play.point)
-                time.sleep(0.9)
-                if clicked is False:
-                    result = "[pause] 用户正在操作，暂停出牌"
-                    idle = 0
-                else:
-                    result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
-                    idle = 0
-            else:
-                clicked = agent.device.click_force(360, 1000)
-                time.sleep(0.9)
-                result = "[lesson] 无可用决策，点击中位卡兜底"
-                idle += 1
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
             last_signature = None
             same_action_count = 0
+            hand = scan_hand(image)
+            boxes = tuple(tuple(card.box) for card in hand.cards)
+            # 两段式出牌：第一次点卡只是选中（手牌不变），再点同一点才真正打出
+            if lesson_pending is not None and boxes == lesson_pending[1]:
+                point = lesson_pending[0]
+                clicked = agent.device.click_force(*point)
+                time.sleep(0.9)
+                lesson_pending = None
+                result = f"[lesson] confirm card at {point}"
+                idle = 0 if clicked is not False else idle
+            else:
+                lesson_pending = None
+                screen = task.observe(agent, image)
+                play = task.decide_card(agent, image, screen=screen)
+                if play is not None:
+                    task._record(image, play)
+                    clicked = agent.device.click_force(*play.point)
+                    time.sleep(0.9)
+                    if clicked is False:
+                        result = "[pause] 用户正在操作，暂停出牌"
+                        idle = 0
+                    else:
+                        lesson_pending = (play.point, boxes)
+                        result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
+                        idle = 0
+                else:
+                    clicked = agent.device.click_force(360, 1000)
+                    time.sleep(0.9)
+                    result = "[lesson] 无可用决策，点击中位卡兜底"
+                    idle += 1
         else:
+            lesson_pending = None
             tick = driver.decide(agent, lines)
             result = tick.describe()
             screen_name, action_name = tick.screen, tick.action
