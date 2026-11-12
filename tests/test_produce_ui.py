@@ -49,7 +49,7 @@ def test_voice_dialog_picks_silent_option() -> None:
     result = _driver().decide(agent, lines)
     assert result.screen == "dialog"
     assert result.action == "voice-off"
-    assert agent.device.clicks[-1] == _center(2)
+    assert agent.device.clicks[-1] == _center(4)
 
 
 def test_setup_support_prefers_auto_button() -> None:
@@ -65,6 +65,17 @@ def test_setup_idol_clicks_next_point() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, _lines("1.选择偶像", "下一步"))
     assert result.screen == "setup-idol"
+    assert agent.device.clicks[-1] == produce_ui.NEXT_BUTTON
+
+
+def test_setup_support_auto_only_once_then_next() -> None:
+    driver = _driver()
+    agent = FakeAgent()
+    lines = _lines("2.选择支援卡", "自动", "重置", "下一步")
+    first = driver.decide(agent, lines)
+    second = driver.decide(agent, lines)
+    assert first.action == "auto"
+    assert second.action == "next"
     assert agent.device.clicks[-1] == produce_ui.NEXT_BUTTON
 
 

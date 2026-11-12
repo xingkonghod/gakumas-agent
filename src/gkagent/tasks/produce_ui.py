@@ -56,6 +56,7 @@ class ProduceDriver:
     ocr: OcrEngine | None = None
     sleep: Callable[[float], None] | None = None
     last_point: tuple[int, int] | None = field(default=None, init=False)
+    support_auto_done: bool = field(default=False, init=False)
 
     def __post_init__(self) -> None:
         if self.sleep is None:
@@ -138,6 +139,10 @@ class ProduceDriver:
             if "不播放语音" in text:
                 line = self.find(lines, "不播放语音")
                 self._click(agent, self.center(line) if line else VOICE_OFF)
+                confirm = self.find(lines, "确定")
+                if confirm is not None:
+                    self._click_once(agent, self.center(confirm))
+                    self.sleep(0.9)
                 return TickResult("dialog", "voice-off")
             if "再挑战" in text:
                 cancel = self.find(lines, "取消")
@@ -150,6 +155,7 @@ class ProduceDriver:
 
         # 2) 培育页：定期公演 + 难度
         if "定期公演" in text or ("培育" in text and "研修" in text):
+            self.support_auto_done = False
             self._click(agent, REGULAR_DIFFICULTY)
             return TickResult("scenario", "regular")
 
@@ -159,12 +165,15 @@ class ProduceDriver:
             return TickResult("setup-idol", "next")
         if "选择支援卡" in text:
             auto = self.find(lines, "自动")
-            if auto is not None and "自动编成" not in text and "一键" not in text:
+            # 自动编成只需点一次；之后再点会反复弹「自动编成」确认，永远到不了下一步
+            if auto is not None and not self.support_auto_done and "自动编成" not in text:
+                self.support_auto_done = True
                 self._click_line(agent, auto)
                 return TickResult("setup-support", "auto")
             self._click(agent, NEXT_BUTTON)
             return TickResult("setup-support", "next")
         if "选择回忆" in text:
+            self.support_auto_done = False
             self._click(agent, NEXT_BUTTON)
             return TickResult("setup-memory", "next")
         if "开始确认" in text:
@@ -189,12 +198,15 @@ class ProduceDriver:
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "settle")
 
-        # 4.6) 领取技能卡：点推荐卡后再点「领取」
-        if "请选择要领取的技能卡" in text:
+        # 4.6) 领取奖励（技能卡或 P 饮料）：先选一张，再点「领取」
+        if "请选择要领取" in text:
             recommend = self.find(lines, "推荐")
-            self._click(agent, self.center(recommend) if recommend else (524, 905))
+            if recommend is not None:
+                self._click(agent, self.center(recommend))
+            else:
+                self._click(agent, (250, 915))  # 三选一的第一张
             claim = self.find(lines, "领取")
-            self._click_once(agent, self.center(claim) if claim else (360, 1131))
+            self._click_once(agent, self.center(claim) if claim else (360, 1097))
             self.sleep(0.9)
             return TickResult("card-reward", "pick+claim")
         if "领取" in text:
