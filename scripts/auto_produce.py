@@ -344,8 +344,13 @@ def main() -> int:
                     else unknown_streak + 1
                 )
                 # 防死循环：同一 (screen, action, 文本) 连续出现才计数；
-                # 剧情「快进」每步台词都变，不会误杀。
-                signature = (tick.screen, tick.action, text[:80])
+                # 数字全部归一化（P/体力/回合每步都在变，否则签名永远不同）；
+                # 剧情「快进」每步台词都变，仍不会误杀。
+                signature = (
+                    tick.screen,
+                    tick.action,
+                    re.sub(r"\d+", "#", text[:80]),
+                )
                 if signature == last_signature:
                     same_action_count += 1
                 else:
@@ -391,6 +396,8 @@ def main() -> int:
         )
     )
     LOG.write_text("\n".join(log_lines), encoding="utf-8")
+    # 每局单独留一份，避免被下一局/手工测试覆盖
+    (SHOT_DIR / f"auto_log_{episode}.log").write_text("\n".join(log_lines), encoding="utf-8")
     summary = metrics.summary(episode)
     print(
         json.dumps(
