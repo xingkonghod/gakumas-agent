@@ -123,7 +123,9 @@ def test_card_reward_picks_recommended_then_claims() -> None:
     lines = _lines("请选择要领取的技能卡。", "推荐", "领取")
     result = _driver().decide(agent, lines)
     assert result.screen == "card-reward"
-    assert agent.device.clicks == [_center(1), _center(2)]
+    # 「推荐」标签在卡牌下缘，实际点卡身（向上 60px）
+    assert agent.device.clicks[0] == (_center(1)[0], _center(1)[1] - 60)
+    assert agent.device.clicks[-1] == _center(2)
 
 
 def test_blank_transition_is_wait_not_stuck() -> None:

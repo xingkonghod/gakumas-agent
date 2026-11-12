@@ -48,7 +48,7 @@ MaaFramework 的 Win32 输入方式对照（Python binding `MaaWin32InputMethodE
 
 | 模块 | 路径 | 说明 |
 |---|---|---|
-| 设备层 | `src/gkagent/device/win32.py` | MaaFramework Win32Controller；**点击统一走 MAA `Seize`**（真实鼠标，自动换算 DPI）；截屏 FramePool 且校验尺寸/黑帧重试；`find_game_hwnd` 只认 `UnityWndClass`、优先非最小化窗口 |
+| 设备层 | `src/gkagent/device/win32.py` | MaaFramework Win32Controller；**点击默认 `SendMessageWithCursorPos`**（后台消息＋光标点完还原，实测光标精确归位、不抢前台）；截屏 FramePool，接受 1279/1280 高度并校验黑帧重试；`find_game_hwnd` 只认 `UnityWndClass`、优先非最小化窗口 |
 | 感知-模板 | `src/gkagent/vision/matcher.py` | OpenCV `TM_CCOEFF_NORMED` |
 | 感知-OCR | `src/gkagent/vision/ocr.py` | RapidOCR；2x 放大、置信度过滤（0.4）、去重、坐标还原 |
 | 感知-界面 | `src/gkagent/vision/recognize.py` | 关键词规则 → 屏幕类型 + 置信度 |
@@ -57,7 +57,10 @@ MaaFramework 的 Win32 输入方式对照（Python binding `MaaWin32InputMethodE
 | 道具库 | `src/gkagent/data/items_db.py` + `data/item_library.json` | 697 个道具/饮料，同样打分 |
 | Tier | `src/gkagent/data/tier.py` | game8 H.I.F（2026-11）SS 档；升级优先级排序 |
 | 导航 | `src/gkagent/nav.py` | OCR 找文字 → 点击 → 回主页；`click_verified` 点击后校验+偏移重试 |
-| **培育 UI 驱动** | `src/gkagent/tasks/produce_ui.py` | **新增**：OCR 读屏关键词 → 每步只做一个动作（编成四步、弹窗、难度、行动选择、课程奖励、剧情跳过），带 16 个单测 |
+| **培育 UI 驱动** | `src/gkagent/tasks/produce_ui.py` | OCR 读屏关键词 → 每步只做一个动作（编成四步、弹窗、难度、行动选择、课程奖励、剧情跳过），带 19 个单测 |
+| **指标** | `src/gkagent/runtime/metrics.py` | **新增**：每步 capture/ocr/decide 耗时 + 点击回执 changed、每局 EpisodeRecord，写 `data/metrics.jsonl` |
+| **无人值守** | `scripts/supervisor.py` + `scripts/start_supervisor.cmd` | **新增**：循环跑 auto_produce、窗口最小化恢复、连续失败退避、`data/STOP`/F12 停止 |
+| **点击验证** | `scripts/verify_click.py` | **新增**：点一下菜单，打印 diff / 光标是否还原 / 前台是否被抢（已实测 OK） |
 | 产出任务 | `src/gkagent/tasks/produce.py` | 培育状态机（SSR/场景/支援/主界面/出牌/事件/考试/结算），15s 阶段兜底，回放记录 |
 | 升级任务 | `src/gkagent/tasks/upgrade.py` | OCR 列表 → Tier 规划 → 强化/特训；遇「付费/购买」中止 |
 | 其他任务 | `activity_fee/work/challenge/society/daily.py` | 日常任务骨架（真机未全部验证） |
@@ -120,14 +123,18 @@ Get-Process gakumas | Select-Object Id,SessionId,MainWindowTitle
 ### 3.1 自动跑培育（当前主路径）
 
 ```powershell
-# 经常驻 daemon（管理员权限，免 UAC）
+# 单批：跑 N 步（管理员）
 python D:\Games\gakumas-agent\.venv\Scripts\python.exe scripts\agent_cmd.py shell `
-  --command "D:\Games\MaaGakumasu\python\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 40" --timeout 900
+  --command "D:\Games\MaaGakumasu\python\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 200 ep-xxx" --timeout 1500
+
+# 无人值守：经 daemon 后台拉起 supervisor（3 局 x 200 步）
+python ...\scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\scripts\start_supervisor.cmd" --timeout 60
 ```
 
-- 每步：截屏 → RapidOCR → 规则决定点哪里 → **MAA Seize 点击**；课程内交给 `ProduceTask.decide_card`（SearchPolicy）。
-- 产物：`data/auto/step_NNN.png`、`data/auto_log.txt`；脚本退出码 0 = 回主页或跑满步数。
-- 连续 5 步「无可执行动作」会停，便于人看截图补规则。
+- 每步：截屏 → （课程帧用模板快速判定，跳过整屏 OCR）→ RapidOCR → 规则决定点哪里 → `SendMessageWithCursorPos` 点击；课程内交给 `ProduceTask.decide_card`（SearchPolicy）。
+- 产物：`data/auto/step_NNN.png`、`data/auto_log.txt`、`data/metrics.jsonl`（每步耗时/回执）、`data/supervisor.log`、`data/replays/produce.sqlite3`（出牌回放）。
+- 停止：**F12** 或创建 `data/STOP` 文件；连续 5 步「无可执行动作」也会停。
+- 实测（2026-11-12）：单步平均 ~4.8s，其中整屏 OCR 2–5s 是主要耗时；课程帧走模板快路径后应显著下降。
 
 ### 3.2 常驻 agent
 
@@ -135,7 +142,7 @@ python D:\Games\gakumas-agent\.venv\Scripts\python.exe scripts\agent_cmd.py shel
 schtasks /Run /TN GDEAgent                      # 启动（最高权限，不弹 UAC）
 python ...\agent_cmd.py home                    # 回主页
 python ...\agent_cmd.py produce                 # 旧 FSM（尚未接中文界面）
-python ...\agent_cmd.py click --x 360 --y 1005  # 单点（Seize，真实鼠标）
+python ...\agent_cmd.py click --x 360 --y 1005  # 单点（默认后台消息点击，光标会还原）
 python ...\agent_cmd.py shell --command "..."   # 管理员执行任意命令
 python ...\agent_cmd.py quit
 ```
@@ -187,13 +194,15 @@ python scripts/agent_cmd.py shell --command "D:\Games\gakumas-agent\scripts\cap_
 1. **考试（期中/最终）未接**：`审查基准` 与考试回合的界面还没实拍，驱动未覆盖。
 2. 行动选择有多种变体（三训练 / 授课+活动奖励 / 外出等），目前只覆盖前两种。
 3. 卡面留白时费用 OCR 会读错（30→31、9→0），SearchPolicy 仍能出牌但策略质量打折。
-4. 支援卡页「自动」第一次点会弹「自动编成」确认，驱动靠通用弹窗规则兜住；个别弹窗文案不同会漏。
-5. 回放只有寥寥几条，`auto_produce.py` 尚未写 ReplayDB。
+4. ~~支援卡页「自动」无限循环~~ **已修**：`support_auto_done` 只点一次自动编成，之后直接「下一步」。
+5. ~~回放未接~~ **已接**：`auto_produce.py` 每步写 `ReplayDB`（run_id=episode）。
 6. 事件卡有多个选项时只点默认/推荐，没有做价值比较。
 7. 旧 `ProduceTask.run/_play_main` 的模板与固定点按日文 UI 写，中文界面下多数不命中；主路径已改为 `produce_ui` 驱动。
 8. 页面**最小化**后截屏会返回 720x1396 黑帧（窗口被 DMM/用户最小化），需 `force_show_game.ps1` 恢复。
-9. **点空气**：OCR 只按关键词判屏，状态判错时会点在无按钮的位置并反复重试；还没有「点完校验屏幕是否变化」的机制。
-10. 点击方式已从 `Seize` 改为 `SendMessageWithCursorPos`（对齐原生 MaaGakumasu 配置）；**尚未在游戏开启时实测**，需要真机验证一次（点 SKIP 看是否弹确认、光标是否还原）。
+9. **点空气**：仍靠关键词判屏；`metrics.jsonl` 里 `changed` 字段就是点击回执，可统计但还没做「无变化自动停手」。
+10. ~~点击方式未验证~~ **已验证**（2026-11-12 12:11）：点菜单 diff=54、光标 (435,171) 精确还原、前台未变。
+11. **整屏 OCR 太慢**：每步 2–5s；课程帧已走模板快路径（跳过 OCR），非课程帧仍整屏读。
+12. **考试/结算未接**：期中/期末考试界面还没有规则。
 
 ---
 
@@ -202,12 +211,11 @@ python scripts/agent_cmd.py shell --command "D:\Games\gakumas-agent\scripts\cap_
 | 优先级 | 事项 |
 |---|---|
 | P0 | 跑完一个完整培育周目（含期中考试、结算），把考试/结算屏补进驱动 |
-| P0 | 点击校验：点完立刻比对截屏，无变化就停止该动作并记录，杜绝「点空气」循环 |
-| P0 | 事件卡多选项按卡库/道具库价值选择；课程奖励选最优卡 |
-| P1 | `auto_produce.py` 接入 ReplayDB，积累出牌回放 |
+| P0 | 用 `metrics.jsonl` 的 `changed` 做「点了没反应就停手」，杜绝空转 |
+| P0 | 降低每步耗时：非课程帧改 ROI OCR（底部按钮区 + 顶部状态区），目标 <2s/步 |
+| P1 | 事件卡多选项按卡库/道具库价值选择；课程奖励选最优卡 |
 | P1 | 支援卡/回忆选择按 Tier 与卡库打分，而不是直接「自动」 |
-| P2 | supervisor 循环：最小化→恢复、daemon 掉线→重启、空闲→重跑 produce |
-| P2 | 训练 BC → ONNX，替换/兜底 SearchPolicy |
+| P2 | 训练 BC → ONNX，替换/兜底 SearchPolicy（回放已开始积累） |
 | P3 | 活动/打榜/课题：按 MaaGakumasu 的 Challenge/Society/ActivityFees 管线补 GDE 决策 |
 
 ---

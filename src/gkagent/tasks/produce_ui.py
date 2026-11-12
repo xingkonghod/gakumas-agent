@@ -202,7 +202,9 @@ class ProduceDriver:
         if "请选择要领取" in text:
             recommend = self.find(lines, "推荐")
             if recommend is not None:
-                self._click(agent, self.center(recommend))
+                cx, cy = self.center(recommend)
+                # 「推荐」标签在卡牌下缘，点它选不中卡；向上 60px 点到卡身
+                self._click(agent, (cx, max(60, cy - 60)))
             else:
                 self._click(agent, (250, 915))  # 三选一的第一张
             claim = self.find(lines, "领取")
