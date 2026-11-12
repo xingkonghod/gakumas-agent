@@ -26,7 +26,10 @@ sys.path.insert(0, str(ROOT / "src"))
 import cv2
 
 from gkagent.agent import Agent
+from gkagent.data.cards_db import CardLibrary
+from gkagent.data.items_db import ItemLibrary
 from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd
+from gkagent.policy.ocr_cards import OcrCardPolicy
 from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
 from gkagent.runtime.replay import ReplayDB
@@ -52,18 +55,27 @@ PRODUCE_MARKERS = (
 HOME_MARKERS = ("亲密度", "活动经费", "商店", "扭蛋")
 
 
-def build_task(episode: str) -> ProduceTask:
+def build_task(episode: str, engine: OcrEngine) -> ProduceTask:
     def _hand_reader(image):
         scan = scan_hand(image)
         return list(scan.cards), [tuple(card.box) for card in scan.cards]
 
+    # 按卡名/效果文本查卡库打分（权重已改成打分优先），决定出哪张
+    card_library = CardLibrary()
+    item_library = ItemLibrary()
+    ocr_policy = OcrCardPolicy(
+        engine,
+        card_library,
+        detail_roi=(0, 480, 720, 400),
+        extra_libraries=[item_library],
+    )
     replay = ReplayDB(str(ROOT / "data" / "replays" / "produce.sqlite3"), run_id=episode)
     return ProduceTask(
         enable_lessons=True,
         hand_reader=_hand_reader,
         card_policy=SearchPolicy(),
         replay_db=replay,
-        ocr_policy=None,
+        ocr_policy=ocr_policy,
     )
 
 
@@ -93,6 +105,7 @@ def restore_window() -> None:
 
 
 def main() -> int:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     steps = int(sys.argv[1]) if len(sys.argv) > 1 else 30
     episode = sys.argv[2] if len(sys.argv) > 2 else time.strftime("ep-%Y%m%d-%H%M%S")
     hwnd = find_game_hwnd()
@@ -100,8 +113,9 @@ def main() -> int:
         print("no game window", file=sys.stderr)
         return 2
     agent = Agent(Win32Device(hwnd).connect(), TemplateMatcher(ROOT / "templates"))
-    task = build_task(episode)
-    driver = ProduceDriver(ocr=OcrEngine())
+    engine = OcrEngine()
+    task = build_task(episode, engine)
+    driver = ProduceDriver(ocr=engine)
     metrics = MetricsLog(METRICS)
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
 

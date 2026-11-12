@@ -302,8 +302,8 @@ class ProduceDriver:
             self._click_line(agent, move) if move else self._click(agent, (360, 1166))
             return TickResult("exam", "move")
 
-        # 4.56) P饮料获得/技能发动说明弹窗：点中央推进
-        if "P饮料" in text and ("获得" in text or "饮料" in text):
+        # 4.56) P饮料获得/技能发动说明弹窗：点中央推进（带「领取」的是奖励选择弹窗，走 4.6）
+        if "P饮料" in text and ("获得" in text or "饮料" in text) and "领取" not in text:
             self._click(agent, (360, 1000))
             return TickResult("toast", "advance")
 
