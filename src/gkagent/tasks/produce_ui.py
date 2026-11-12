@@ -217,6 +217,11 @@ class ProduceDriver:
             self.sleep(0.6)
             return TickResult("toast", "wait")
 
+        # 4.56) P饮料获得/技能发动说明弹窗：点中央推进
+        if "P饮料" in text and ("获得" in text or "饮料" in text):
+            self._click(agent, (360, 1000))
+            return TickResult("toast", "advance")
+
         # 4.4) 行动结算页（顶部「活动奖励/授课」标题、没有「请选择行动」按钮）：点一下继续
         # 注意：奖励领取弹窗顶部也有「活动奖励」，必须排除，否则会一直点空白
         if (
@@ -299,6 +304,11 @@ class ProduceDriver:
         if len(text.strip()) > 10 and any(mark in text for mark in ("。", "！", "？", "…")):
             self._click(agent, (360, 1000))
             return TickResult("story", "tap")
+
+        # 12) 空转兜底：认不出的弹窗/提示（P饮料获得、技能发动说明等）点中央推进
+        if len(text.strip()) > 6:
+            self._click(agent, (360, 1000))
+            return TickResult("unknown-tap", "tap", detail=text[:40])
 
         return TickResult("unknown", "no-op", ok=False, detail=text[:60])
 

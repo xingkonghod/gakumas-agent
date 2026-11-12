@@ -105,6 +105,22 @@ def test_p_point_toast_waits() -> None:
     assert agent.device.clicks == []
 
 
+def test_p_drink_popup_taps_to_advance() -> None:
+    agent = FakeAgent()
+    lines = _lines("蓬松又柔软", "获得随机P饮料2瓶")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "toast"
+    assert result.action == "advance"
+    assert agent.device.clicks == [(360, 1000)]
+
+
+def test_unknown_text_falls_back_to_tap() -> None:
+    agent = FakeAgent()
+    result = _driver().decide(agent, _lines("某个从未见过的提示文字"))
+    assert result.screen == "unknown-tap"
+    assert agent.device.clicks == [(360, 1000)]
+
+
 def test_lesson_defers_to_card_policy() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, _lines("剩余回合数", "CLEAR截止", "SKIP"))

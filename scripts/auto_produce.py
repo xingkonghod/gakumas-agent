@@ -114,6 +114,7 @@ def main() -> int:
     pending: StepRecord | None = None
     markers: list[str] = []
     unknown_streak = 0
+    ocr_cache: dict[str, tuple[list, str]] = {}
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -158,6 +159,9 @@ def main() -> int:
             lines = []
             text = "LOADING"
             ocr_ms = 0.0
+        elif digest in ocr_cache:
+            lines, text = ocr_cache[digest]
+            ocr_ms = 0.0
         elif unknown_streak >= 3:
             # 连续认不出时，用整屏 OCR 兜底一次，排除 ROI 漏读
             lines = driver.engine().read(image)
@@ -167,6 +171,8 @@ def main() -> int:
             lines = driver.read(image)
             ocr_ms = (time.perf_counter() - t_ocr) * 1000
             text = driver.text_of(lines)
+            if len(ocr_cache) < 256:
+                ocr_cache[digest] = (lines, text)
 
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
@@ -207,8 +213,12 @@ def main() -> int:
                 time.sleep(2.0)
                 idle = 0
             else:
-                idle = 0 if tick.ok else idle + 1
-                unknown_streak = 0 if tick.ok and tick.screen != "unknown" else unknown_streak + 1
+                idle = 0 if tick.ok and tick.screen not in ("unknown", "unknown-tap") else idle + 1
+                unknown_streak = (
+                    0
+                    if tick.ok and tick.screen not in ("unknown", "unknown-tap")
+                    else unknown_streak + 1
+                )
 
         decide_ms = (time.perf_counter() - t_decide) * 1000
         total_ms = capture_ms + ocr_ms + decide_ms
