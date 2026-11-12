@@ -144,6 +144,25 @@ def test_lesson_choice_follows_recommended_training() -> None:
     assert agent.device.clicks[-1] == (360, 798)
 
 
+def test_event_choice_picks_cheapest_then_confirms() -> None:
+    lines = [
+        OcrLine("外出", 0.9, (90, 50, 40, 20)),
+        OcrLine("戏剧", 0.9, (90, 680, 60, 30)),
+        OcrLine("体育", 0.9, (90, 780, 60, 30)),
+        OcrLine("露营", 0.9, (90, 880, 60, 30)),
+        OcrLine("-100", 0.9, (600, 650, 60, 24)),
+        OcrLine("-50", 0.9, (600, 750, 60, 24)),
+    ]
+    driver = _driver()
+    agent = FakeAgent()
+    first = driver.decide(agent, lines)
+    second = driver.decide(agent, lines)
+    assert first.screen == "event-choice"
+    assert first.action == "cost-50"
+    assert second.action == "confirm"
+    assert agent.device.clicks == [(360, 795), (360, 795)]
+
+
 def test_lesson_defers_to_card_policy() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, _lines("剩余回合数", "CLEAR截止", "SKIP"))

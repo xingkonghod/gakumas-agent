@@ -58,6 +58,8 @@ class ProduceDriver:
     last_point: tuple[int, int] | None = field(default=None, init=False)
     support_auto_done: bool = field(default=False, init=False)
     exam_card_selected: bool = field(default=False, init=False)
+    event_pending_y: int | None = field(default=None, init=False)
+    event_pending_signature: str | None = field(default=None, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
     top_roi_keys: tuple[str, ...] = (
@@ -216,6 +218,46 @@ class ProduceDriver:
             end = self.find(lines, "结束")
             self._click_line(agent, end) if end else self._click(agent, (640, 1165))
             return TickResult("shop", "exit")
+
+        # 4.4) 外出/事件三选一：选 P 消耗最低的选项（免费项在最下面）
+        # OCR 会把「P」图标和「-100」拆成两行，所以按 y 位置把费用和选项行配对
+        option_rows = [
+            line
+            for line in lines
+            if 600 <= self.center(line)[1] <= 1000
+            and 1 <= len(line.text.strip()) <= 6
+            and not any(ch.isdigit() for ch in line.text)
+        ]
+        cost_lines: list[tuple[int, int]] = []
+        for line in lines:
+            match = re.fullmatch(r"-\s*(\d+)", line.text.strip())
+            if match:
+                cost_lines.append((int(match.group(1)), self.center(line)[1]))
+        if len(option_rows) >= 2 and (cost_lines or ("外出" in text and "咨询" not in text)):
+            signature = text[:40]
+            if self.event_pending_y is not None and signature == self.event_pending_signature:
+                y = self.event_pending_y
+                self.event_pending_y = None
+                self.event_pending_signature = None
+                self._click(agent, (360, y))
+                return TickResult("event-choice", "confirm")
+            if cost_lines:
+                cost_lines.sort(key=lambda item: item[1])
+                option_rows.sort(key=lambda line: self.center(line)[1])
+                pairs = list(zip(cost_lines, option_rows))
+                best_cost, _ = min(pairs, key=lambda pair: pair[0][0])
+                target = next(line for cost, line in pairs if cost is best_cost)
+                y = self.center(target)[1]
+                self.event_pending_y = y
+                self.event_pending_signature = signature
+                self._click(agent, (360, y))
+                return TickResult("event-choice", f"cost-{best_cost[0]}")
+            bottom = max(option_rows, key=lambda line: self.center(line)[1])
+            y = self.center(bottom)[1]
+            self.event_pending_y = y
+            self.event_pending_signature = signature
+            self._click(agent, (360, y))
+            return TickResult("event-choice", "last-row")
 
         # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励 / 外出+咨询）
         # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
