@@ -30,6 +30,7 @@ from gkagent.agent import Agent
 from gkagent.data.cards_db import CardLibrary
 from gkagent.data.items_db import ItemLibrary
 from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd
+from gkagent.nav import Navigator
 from gkagent.policy.ocr_cards import OcrCardPolicy
 from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
@@ -148,6 +149,11 @@ def main() -> int:
     engine = OcrEngine()
     task = build_task(episode, engine)
     driver = ProduceDriver(ocr=engine)
+    # 开局先回主页：上一轮可能停在支援卡/偶像/强化页面，否则前 8 步全是 unknown-tap
+    try:
+        Navigator(agent, engine).ensure_home()
+    except Exception:  # noqa: BLE001
+        pass
     metrics = MetricsLog(METRICS)
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
 
