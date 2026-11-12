@@ -115,7 +115,7 @@ def main() -> int:
     markers: list[str] = []
     unknown_streak = 0
     ocr_cache: dict[str, tuple[list, str]] = {}
-    last_signature: tuple[str, str] | None = None
+    last_signature: tuple[str, str, str] | None = None
     same_action_count = 0
 
     def flush_pending(changed: bool | None) -> None:
@@ -223,14 +223,16 @@ def main() -> int:
                     if tick.ok and tick.screen not in ("unknown", "unknown-tap")
                     else unknown_streak + 1
                 )
-                signature = (tick.screen, tick.action)
+                # 防死循环：同一 (screen, action, 文本) 连续出现才计数；
+                # 剧情「快进」每步台词都变，不会误杀。
+                signature = (tick.screen, tick.action, text[:80])
                 if signature == last_signature:
                     same_action_count += 1
                 else:
                     last_signature = signature
                     same_action_count = 1
                 if (
-                    same_action_count >= 8
+                    same_action_count >= 10
                     and tick.screen not in ("loading", "blank", "pause")
                 ):
                     log_lines.append(
