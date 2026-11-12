@@ -56,6 +56,7 @@ class UpgradeTask:
         cards: CardLibrary | None = None,
         items: ItemLibrary | None = None,
         dry_run: bool = False,
+        card_pos: tuple[int, int] | None = None,
     ) -> None:
         self.kind = kind
         self.limit = limit
@@ -63,6 +64,8 @@ class UpgradeTask:
         self.cards = cards or CardLibrary()
         self.items = items or ItemLibrary()
         self.dry_run = dry_run
+        # 支援卡网格里的目标卡坐标（不传就练第一张）
+        self.card_pos = card_pos or SUPPORT_GRID_CARD
 
     # ------------------------------------------------------------------ 入口
     def run(self, agent: Agent) -> TaskResult:
@@ -87,14 +90,26 @@ class UpgradeTask:
             nav.agent.device.click(*BACK_POINT)
             time.sleep(0.8)
 
+    def _back_to_grid(self, nav: Navigator, attempts: int = 3) -> bool:
+        """连续返回，直到回到支援卡网格页。"""
+        for _ in range(attempts):
+            text = self._text(nav)
+            if any(marker in text for marker in ("查看详情", "支援卡加成", "支援卡变换")):
+                return True
+            nav.agent.device.click(*BACK_POINT)
+            time.sleep(1.2)
+        text = self._text(nav)
+        return any(marker in text for marker in ("查看详情", "支援卡加成", "支援卡变换"))
+
     def _run_support(self, nav: Navigator, agent: Agent) -> TaskResult:
         """支援卡列表 → 第一张 → 详情「Lv强化」→ 确认页「Lv强化」，反复 limit 次。"""
         done = 0
         for _ in range(self.limit):
-            text = self._text(nav)
-            if not any(marker in text for marker in ("查看详情", "支援卡加成", "支援卡变换")):
+            if not self._back_to_grid(nav):
                 break
-            agent.device.click(*SUPPORT_GRID_CARD)
+            agent.device.click(*self.card_pos)
+            time.sleep(0.8)
+            agent.device.click(360, 1105)  # 「查看详情」
             time.sleep(2.0)
             text = self._text(nav)
             if "Lv强化" not in text or any(token in text for token in FORBIDDEN):
@@ -105,18 +120,15 @@ class UpgradeTask:
             text = self._text(nav)
             if "取消" not in text:
                 nav.click_exact("取消")
-                self._back(nav)
                 break
             if self.dry_run:
                 nav.click_exact("取消")
-            elif nav.click_exact("Lv强化"):  # 确认页 → 真正强化
+            elif nav.click_exact("Lv强化"):  # 确认页 → 真正强化（回到详情页）
                 time.sleep(1.5)
             else:
                 nav.click_exact("取消")
-                self._back(nav)
                 break
             done += 1
-            self._back(nav, 2)  # 详情 → 列表
         if done == 0:
             return TaskResult(False, "没有可强化的支援卡")
         mode = "（试运行未消耗）" if self.dry_run else ""
@@ -129,9 +141,15 @@ class UpgradeTask:
             return TaskResult(False, "偶像页没有特训/才能开花按钮")
         done = 0
         for _ in range(self.limit):
+            text = self._text(nav)
+            if "特训" not in text:
+                self._back(nav)
+                text = self._text(nav)
+                if "特训" not in text:
+                    break
             if not nav.click_exact("特训"):  # 详情 → 特训页
                 break
-            time.sleep(1.2)
+            time.sleep(2.5)
             text = self._text(nav)
             if "进行特训" not in text:
                 self._back(nav)
@@ -139,8 +157,15 @@ class UpgradeTask:
             if not nav.click_exact("进行特训"):  # 特训页 → 确认弹窗
                 self._back(nav)
                 break
-            time.sleep(1.2)
+            time.sleep(1.8)
             text = self._text(nav)
+            # 弹窗可能因动画延迟没出来，重试点几次
+            for _attempt in range(3):
+                if "特训阶段确认" in text:
+                    break
+                nav.click_exact("进行特训")
+                time.sleep(1.4)
+                text = self._text(nav)
             if "特训阶段确认" in text and any(token in text for token in FORBIDDEN):
                 nav.click_exact("取消")
                 self._back(nav)
@@ -159,9 +184,8 @@ class UpgradeTask:
             if not nav.click_exact("进行特训"):  # 弹窗 → 真正特训
                 self._back(nav)
                 break
-            time.sleep(2.2)
+            time.sleep(2.2)  # 特训动画结束后回到偶像详情页
             done += 1
-            self._back(nav)
         if done == 0:
             return TaskResult(False, "没有可特训的偶像")
         mode = "（试运行未消耗）" if self.dry_run else ""

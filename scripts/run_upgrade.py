@@ -27,13 +27,17 @@ def main() -> int:
     kind = sys.argv[1] if len(sys.argv) > 1 else "support"
     limit = int(sys.argv[2]) if len(sys.argv) > 2 else 1
     dry = "--dry" in sys.argv
+    pos = None
+    if "--pos" in sys.argv:
+        index = sys.argv.index("--pos")
+        pos = (int(sys.argv[index + 1]), int(sys.argv[index + 2]))
     hwnd = find_game_hwnd()
     if not hwnd:
         print("no game window", file=sys.stderr)
         return 2
     agent = Agent(Win32Device(hwnd).connect(), TemplateMatcher(ROOT / "templates"))
     agent.ensure_home()
-    task = UpgradeTask(kind=kind, limit=limit, dry_run=dry)
+    task = UpgradeTask(kind=kind, limit=limit, dry_run=dry, card_pos=pos)
     result = task.run(agent)
     print(f"ok={result.ok} message={result.message}")
     agent.ensure_home()
