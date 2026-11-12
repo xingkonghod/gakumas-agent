@@ -69,7 +69,6 @@ class ProduceDriver:
     support_auto_done: bool = field(default=False, init=False)
     exam_card_selected: bool = field(default=False, init=False)
     event_pending_y: int | None = field(default=None, init=False)
-    event_pending_signature: str | None = field(default=None, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -182,6 +181,10 @@ class ProduceDriver:
                 cancel = self.find(lines, "取消")
                 self._click_line(agent, cancel) if cancel else self._click(agent, (175, 1163))
                 return TickResult("dialog", "cancel-retry")
+            if "休息确认" in text:
+                rest = self.find(lines, "休息")
+                self._click_line(agent, rest) if rest else self._click(agent, (456, 1163))
+                return TickResult("dialog", "rest-confirm")
             confirm = self.find(lines, "下一步", "确定", "完成")
             if confirm is not None:
                 self._click_line(agent, confirm)
@@ -233,6 +236,7 @@ class ProduceDriver:
 
         # 4.4) 外出/事件三选一：选 P 消耗最低的选项（免费项在最下面）
         # OCR 会把「P」图标和「-100」拆成两行，所以按 y 位置把费用和选项行配对
+        # 注意排除行动页：行动页也有「外出」按钮，且同样没有「咨询」（低体力时换成休息）
         option_rows = [
             line
             for line in lines
@@ -245,12 +249,16 @@ class ProduceDriver:
             match = re.fullmatch(r"-\s*(\d+)", line.text.strip())
             if match:
                 cost_lines.append((int(match.group(1)), self.center(line)[1]))
-        if len(option_rows) >= 2 and (cost_lines or ("外出" in text and "咨询" not in text)):
-            signature = text[:40]
-            if self.event_pending_y is not None and signature == self.event_pending_signature:
+        if (
+            "快进" in text
+            and "请选择行动" not in text
+            and cost_lines
+            and len(option_rows) >= 2
+        ):
+            # 第一次点选项只是选中（页面会多出效果说明，文本会变），第二次点确认
+            if self.event_pending_y is not None:
                 y = self.event_pending_y
                 self.event_pending_y = None
-                self.event_pending_signature = None
                 self._click(agent, (360, y))
                 return TickResult("event-choice", "confirm")
             if cost_lines:
@@ -261,7 +269,6 @@ class ProduceDriver:
                 target = next(line for cost, line in pairs if cost is best_cost)
                 y = self.center(target)[1]
                 self.event_pending_y = y
-                self.event_pending_signature = signature
                 self._click(agent, (360, y))
                 return TickResult("event-choice", f"cost-{best_cost[0]}")
             bottom = max(option_rows, key=lambda line: self.center(line)[1])
@@ -282,6 +289,10 @@ class ProduceDriver:
         if "外出" in text and "咨询" in text:
             self._click(agent, (450, 1027))
             return TickResult("action", "consult")
+        if "外出" in text and "授课" in text:
+            # 外出（耗 P 回体力）+ 授课 的二选一：选外出回体力
+            self._click(agent, (268, 1010))
+            return TickResult("action", "go-out")
         if (
             "请选择行动" in text
             or (training_hits >= 2 and "训练" in text)

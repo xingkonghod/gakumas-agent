@@ -73,8 +73,13 @@ class MetricsLog:
                 continue
         return rows[-limit:] if limit else rows
 
-    def summary(self) -> dict:
-        rows = [row for row in self.read_steps() if "step" in row]
+    def summary(self, episode: str | None = None) -> dict:
+        """默认统计整个文件；传 episode 则只看这一局（避免历史均值混进来）。"""
+        rows = [
+            row
+            for row in self.read_steps()
+            if "step" in row and (episode is None or row.get("episode") == episode)
+        ]
         if not rows:
             return {"steps": 0}
         totals = [row.get("total_ms", 0.0) for row in rows]

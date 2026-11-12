@@ -152,6 +152,7 @@ def test_event_choice_picks_cheapest_then_confirms() -> None:
         OcrLine("露营", 0.9, (90, 880, 60, 30)),
         OcrLine("-100", 0.9, (600, 650, 60, 24)),
         OcrLine("-50", 0.9, (600, 750, 60, 24)),
+        OcrLine("快进", 0.9, (600, 1180, 80, 30)),
     ]
     driver = _driver()
     agent = FakeAgent()

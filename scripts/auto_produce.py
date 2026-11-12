@@ -330,7 +330,7 @@ def main() -> int:
         )
     )
     LOG.write_text("\n".join(log_lines), encoding="utf-8")
-    summary = metrics.summary()
+    summary = metrics.summary(episode)
     print(
         json.dumps(
             {
