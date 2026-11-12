@@ -124,6 +124,20 @@ class ProduceDriver:
         return None
 
     @staticmethod
+    def _checkbox_checked(image, y: int) -> bool:
+        """看右侧勾选框是否已选中（橙色勾）。拿不到图像就当作已选，避免乱点。"""
+        if image is None:
+            return True
+        patch = image[max(0, y - 14) : y + 14, 600:670]
+        if patch.size == 0:
+            return True
+        blue = patch[:, :, 0].astype(int)
+        green = patch[:, :, 1].astype(int)
+        red = patch[:, :, 2].astype(int)
+        orange = ((red > 180) & (green > 70) & (green < 210) & (blue < 130)).mean()
+        return bool(orange > 0.12)
+
+    @staticmethod
     def center(line: OcrLine) -> tuple[int, int]:
         x, y, w, h = line.box
         return x + w // 2, y + h // 2
@@ -146,15 +160,15 @@ class ProduceDriver:
     # ------------------------------------------------------------------ 主入口
     def tick(self, agent) -> TickResult:
         image = agent.shot()
-        return self.decide(agent, self.read(image))
+        return self.decide(agent, self.read(image), image)
 
-    def decide(self, agent, lines: list[OcrLine]) -> TickResult:
+    def decide(self, agent, lines: list[OcrLine], image=None) -> TickResult:
         try:
-            return self._decide(agent, lines)
+            return self._decide(agent, lines, image)
         except UserBusy:
             return TickResult("pause", "user-active", ok=True)
 
-    def _decide(self, agent, lines: list[OcrLine]) -> TickResult:
+    def _decide(self, agent, lines: list[OcrLine], image=None) -> TickResult:
         text = self.text_of(lines)
 
         # 0) 空白/纯色转场：等待，不当作「无可执行动作」
@@ -224,6 +238,22 @@ class ProduceDriver:
 
         # 4.3) 特定弹窗优先于通用「+N 飘字」处理，否则会被 _GAIN_RE 抢走
         if "持有上限" in text or ("保留" in text and "饮料" in text):
+            # 勾选不够时「保留」是灰的：先补勾未选中的饮料行
+            need = 0
+            need_match = re.search(r"还可选择\s*(\d+)", text)
+            if need_match:
+                need = int(need_match.group(1))
+            if need > 0 and image is not None:
+                for line in lines:
+                    cy = self.center(line)[1]
+                    if (
+                        440 <= cy <= 980
+                        and self.center(line)[0] < 420
+                        and len(line.text.strip()) >= 2
+                        and not self._checkbox_checked(image, cy)
+                    ):
+                        self._click(agent, (360, cy))
+                        return TickResult("drink-keep", "check-row")
             keep = self.find(lines, "保留")
             self._click_line(agent, keep) if keep else self._click(agent, (360, 1166))
             return TickResult("drink-keep", "keep")

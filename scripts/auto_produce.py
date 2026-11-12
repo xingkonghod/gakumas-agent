@@ -268,7 +268,7 @@ def main() -> int:
         else:
             lesson_pending = None
             drink_used = False
-            tick = driver.decide(agent, lines)
+            tick = driver.decide(agent, lines, image)
             result = tick.describe()
             screen_name, action_name = tick.screen, tick.action
             clicked = None if screen_name in ("pause", "loading", "blank") else True
