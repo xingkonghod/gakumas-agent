@@ -264,43 +264,29 @@ class ProduceDriver:
             self._click_line(agent, end) if end else self._click(agent, (640, 1165))
             return TickResult("shop", "exit")
 
-        # 4.4) 外出/事件三选一：选 P 消耗最低的选项（免费项在最下面）
-        # OCR 会把「P」图标和「-100」拆成两行，所以按 y 位置把费用和选项行配对
-        # 注意排除行动页：行动页也有「外出」按钮，且同样没有「咨询」（低体力时换成休息）
+        # 4.4) 外出/事件选择：点最下面那个选项（默认高亮、通常是免费项），再点一次确认
+        # 实测两种布局：戏剧/体育/露营（短标签），以及「平时都做些什么工作呢？」这种长句选项；
+        # P 费用里的「-」经常 OCR 丢，所以不按费用配对了。
         option_rows = [
             line
             for line in lines
-            if 600 <= self.center(line)[1] <= 1000
-            and 1 <= len(line.text.strip()) <= 6
+            if 600 <= self.center(line)[1] <= 950
+            and 2 <= len(line.text.strip()) <= 20
             and not any(ch.isdigit() for ch in line.text)
+            and "P" not in line.text
+            and "快进" not in line.text
         ]
-        cost_lines: list[tuple[int, int]] = []
-        for line in lines:
-            match = re.fullmatch(r"-\s*(\d+)", line.text.strip())
-            if match:
-                cost_lines.append((int(match.group(1)), self.center(line)[1]))
-        if (
-            "快进" in text
-            and "请选择行动" not in text
-            and cost_lines
-            and len(option_rows) >= 2
-        ):
-            # 第一次点选项只是选中（页面会多出效果说明，文本会变），第二次点确认
+        if "快进" in text and "请选择行动" not in text and len(option_rows) >= 2:
             if self.event_pending_y is not None:
                 y = self.event_pending_y
                 self.event_pending_y = None
                 self._click(agent, (360, y))
                 return TickResult("event-choice", "confirm")
-            # cost_lines 已在分支条件里保证非空
-            cost_lines.sort(key=lambda item: item[1])
-            option_rows.sort(key=lambda line: self.center(line)[1])
-            pairs = list(zip(cost_lines, option_rows))
-            best_cost, _ = min(pairs, key=lambda pair: pair[0][0])
-            target = next(line for cost, line in pairs if cost is best_cost)
+            target = max(option_rows, key=lambda line: self.center(line)[1])
             y = self.center(target)[1]
             self.event_pending_y = y
             self._click(agent, (360, y))
-            return TickResult("event-choice", f"cost-{best_cost[0]}")
+            return TickResult("event-choice", "last-row")
 
         # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励 / 外出+咨询 / 休息）
         # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
@@ -353,7 +339,13 @@ class ProduceDriver:
             return TickResult("exam", "move")
 
         # 4.56) P饮料获得/技能发动说明弹窗：点中央推进（带「领取」的是奖励选择弹窗，走 4.6）
-        if "P饮料" in text and ("获得" in text or "饮料" in text) and "领取" not in text:
+        # 注意：外出事件的效果说明里也有「获得随机P饮料」，带「快进」的是事件屏，交给 4.4
+        if (
+            "P饮料" in text
+            and ("获得" in text or "饮料" in text)
+            and "领取" not in text
+            and "快进" not in text
+        ):
             self._click(agent, (360, 1000))
             return TickResult("toast", "advance")
 

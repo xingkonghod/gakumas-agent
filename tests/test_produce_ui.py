@@ -144,7 +144,7 @@ def test_lesson_choice_follows_recommended_training() -> None:
     assert agent.device.clicks[-1] == (360, 798)
 
 
-def test_event_choice_picks_cheapest_then_confirms() -> None:
+def test_event_choice_picks_bottom_then_confirms() -> None:
     lines = [
         OcrLine("外出", 0.9, (90, 50, 40, 20)),
         OcrLine("戏剧", 0.9, (90, 680, 60, 30)),
@@ -159,9 +159,9 @@ def test_event_choice_picks_cheapest_then_confirms() -> None:
     first = driver.decide(agent, lines)
     second = driver.decide(agent, lines)
     assert first.screen == "event-choice"
-    assert first.action == "cost-50"
+    assert first.action == "last-row"
     assert second.action == "confirm"
-    assert agent.device.clicks == [(360, 795), (360, 795)]
+    assert agent.device.clicks == [(360, 895), (360, 895)]
 
 
 def test_lesson_defers_to_card_policy() -> None:
