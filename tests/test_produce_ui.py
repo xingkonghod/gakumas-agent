@@ -218,6 +218,14 @@ def test_action_screen_lesson_variant_clicks_lesson() -> None:
     assert agent.device.clicks[-1] == produce_ui.LESSON_ACTION
 
 
+def test_action_screen_rests_when_stamina_low() -> None:
+    agent = FakeAgent()
+    lines = _lines("请选择行动", "10/35", "休息", "授课")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "action"
+    assert result.action == "rest"
+
+
 def test_action_preview_confirms_at_last_point() -> None:
     driver = _driver()
     agent = FakeAgent()

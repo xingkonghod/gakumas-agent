@@ -33,6 +33,16 @@ DIALOGUE_SKIP = (208, 1185)  # 剧情「SKIP」
 CANCEL_WORD = "取消"
 LESSON_WORDS = ("剩余回合数", "CLEAR截止")
 _GAIN_RE = re.compile(r"[+\-]\s*\d+")
+_STAMINA_RE = re.compile(r"(\d{1,3})\s*/\s*(\d{1,3})")
+
+
+def parse_stamina(text: str) -> int | None:
+    """从左上角状态条读体力（如 31/35）；属性 /1000 不算。"""
+    for match in _STAMINA_RE.finditer(text):
+        current, maximum = int(match.group(1)), int(match.group(2))
+        if maximum <= 60 and current <= maximum:
+            return current
+    return None
 
 
 class UserBusy(Exception):
@@ -61,7 +71,7 @@ class ProduceDriver:
     event_pending_y: int | None = field(default=None, init=False)
     event_pending_signature: str | None = field(default=None, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
-    corner_roi: tuple[int, int, int, int] = (0, 0, 320, 150)
+    corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
     top_roi_keys: tuple[str, ...] = (
         "下一步",
@@ -261,9 +271,14 @@ class ProduceDriver:
             self._click(agent, (360, y))
             return TickResult("event-choice", "last-row")
 
-        # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励 / 外出+咨询）
+        # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励 / 外出+咨询 / 休息）
         # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
         training_hits = sum(1 for word in ("Vo", "Da", "Vi") if word in text)
+        stamina = parse_stamina(text)
+        if "休息" in text and stamina is not None and stamina < 12:
+            rest = self.find(lines, "休息")
+            self._click_line(agent, rest) if rest else self._click(agent, (640, 860))
+            return TickResult("action", "rest")
         if "外出" in text and "咨询" in text:
             self._click(agent, (450, 1027))
             return TickResult("action", "consult")

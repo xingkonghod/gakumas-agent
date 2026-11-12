@@ -915,15 +915,28 @@ class ProduceTask:
         agent: Agent,
         image: np.ndarray | None = None,
         screen: ProduceScreen | None = None,
+        stamina: int | None = None,
     ) -> CardPlay | None:
-        """出牌决策：手牌 + gkagent.policy 优先，其次模板「推荐」。"""
+        """出牌决策：手牌 + gkagent.policy 优先，其次模板「推荐」。
+
+        ``stamina``：当前体力；已知费用超过它的牌不推荐（省得点不动）。
+        """
         img = agent.shot() if image is None else image
         current = self.observe(agent, img) if screen is None else screen
         # 始终识别手牌/费用：即使暂时没有策略，也能把状态留给后续 GDE 复用。
         hand = self.read_hand(img)
+
+        def affordable(index: int) -> bool:
+            if stamina is None or index >= len(hand.cards):
+                return True
+            cost = hand.cards[index].cost
+            return cost is None or cost <= stamina
+
         if self.ocr_policy is not None and hand.boxes:
             best: tuple[float, int] | None = None
             for index, box in enumerate(hand.boxes[:4]):
+                if not affordable(index):
+                    continue
                 agent.device.click(*self._box_center(box))
                 self._pause(0.35)
                 detail = agent.shot()

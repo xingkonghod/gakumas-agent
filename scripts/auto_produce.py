@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -34,7 +35,7 @@ from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
 from gkagent.runtime.replay import ReplayDB
 from gkagent.tasks.produce import ProduceTask
-from gkagent.tasks.produce_ui import LESSON_WORDS, ProduceDriver
+from gkagent.tasks.produce_ui import LESSON_WORDS, ProduceDriver, parse_stamina
 from gkagent.vision.cards import scan_hand
 from gkagent.vision.matcher import TemplateMatcher
 from gkagent.vision.ocr import OcrEngine
@@ -132,6 +133,7 @@ def main() -> int:
     last_signature: tuple[str, str, str] | None = None
     same_action_count = 0
     lesson_pending: tuple[tuple[int, int], tuple] | None = None
+    drink_used = False
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -206,20 +208,47 @@ def main() -> int:
             unknown_streak = 0
             last_signature = None
             same_action_count = 0
-            hand = scan_hand(image)
-            boxes = tuple(tuple(card.box) for card in hand.cards)
+            # 体力管理：低于 8 且还有回合，用一次饮料（每节课最多一次）
+            stamina = parse_stamina(text)
+            turns_match = re.search(r"剩余回合数\s*(\d+)", text)
+            turns = int(turns_match.group(1)) if turns_match else None
+            if (
+                stamina is not None
+                and stamina <= 8
+                and not drink_used
+                and (turns is None or turns > 1)
+                and lesson_pending is None
+            ):
+                drink_used = True
+                agent.device.click_force(75, 1182)
+                time.sleep(1.0)
+                shot2 = agent.shot()
+                lines2 = driver.read(shot2)
+                use = driver.find(lines2, "使用")
+                if use is not None:
+                    agent.device.click_force(*driver.center(use))
+                time.sleep(0.8)
+                result = f"[lesson] drink at stamina={stamina}"
+                clicked = True
+                action_name = "drink"
+                hand = scan_hand(image)
+                boxes = tuple(tuple(card.box) for card in hand.cards)
+                lesson_pending = None
+            else:
+                hand = scan_hand(image)
+                boxes = tuple(tuple(card.box) for card in hand.cards)
             # 两段式出牌：第一次点卡只是选中，下一步点同一点确认（不再依赖手牌框是否变化）
-            if lesson_pending is not None:
+            if action_name != "drink" and lesson_pending is not None:
                 point = lesson_pending[0]
                 clicked = agent.device.click_force(*point)
                 time.sleep(0.9)
                 lesson_pending = None
                 result = f"[lesson] confirm card at {point}"
                 idle = 0 if clicked is not False else idle
-            else:
+            elif action_name != "drink":
                 lesson_pending = None
                 screen = task.observe(agent, image)
-                play = task.decide_card(agent, image, screen=screen)
+                play = task.decide_card(agent, image, screen=screen, stamina=stamina)
                 if play is not None:
                     task._record(image, play)
                     clicked = agent.device.click_force(*play.point)
@@ -238,6 +267,7 @@ def main() -> int:
                     idle += 1
         else:
             lesson_pending = None
+            drink_used = False
             tick = driver.decide(agent, lines)
             result = tick.describe()
             screen_name, action_name = tick.screen, tick.action
