@@ -225,14 +225,17 @@ python scripts/agent_cmd.py shell --command "D:\Games\gakumas-agent\scripts\cap_
 3. 卡面留白时费用 OCR 会读错（30→31、9→0），策略质量打折。
 4. ~~支援卡页「自动」无限循环~~ **已修**：`support_auto_done` 只点一次自动编成，之后直接「下一步」。
 5. ~~回放未接~~ **已接**：`auto_produce.py` 每步写 `ReplayDB`（run_id=episode）。
-6. ~~事件选项无比较~~ **部分修**：外出三选一按 P 消耗最低选择；普通事件卡仍只点默认/推荐。
+6. ~~事件选项无比较~~ **已修**：外出/事件选择改成点「最下面高亮选项」（两种布局：戏剧/体育/露营 与长句选项都适用；P 费用的「-」OCR 常丢，不再按费用配对），两步确认（`event_pending_y`）。
 7. 旧 `ProduceTask.run/_play_main` 的模板与固定点按日文 UI 写，中文界面下多数不命中；主路径已改为 `produce_ui` 驱动。
 8. 页面**最小化**后截屏会返回 720x1396 黑帧（窗口被 DMM/用户最小化），需 `force_show_game.ps1` 恢复。
-9. **点空气**：`metrics.jsonl` 的 `changed` 记录回执；同一 `(screen,action,text)` 连续 10 次会停，`unknown/unknown-tap` 连续 8 次会停。
+9. **点空气**：`metrics.jsonl` 的 `changed` 记录回执；同一 `(screen,action,text)` 连续 10 次会停（签名里数字已归一化，防止 P/体力/回合每步变化导致签名永不相同），`unknown/unknown-tap` 连续 8 次会停。
 10. ~~点击方式未验证~~ **已验证**（2026-11-12 12:11）：点菜单 diff=54、光标 (435,171) 精确还原、前台未变。
 11. **OCR 仍是主要耗时**：非课程帧 2–5s；已加 ROI、digest 缓存、短文本补顶部条 OCR。
 12. 过渡动画期间 unknown-tap 可能空点：guard 已放宽到 8 步。
 13. 出牌策略质量未量化：需要看最终名次（目标 ≥ 第 3，用户手打能第一）。
+14. ~~支援卡/偶像训练空转~~ **已修**：支援卡「Lv强化」、偶像「特训」都有两层/三层确认；支援卡列表会随选中卡滚动，每次升级后要滑回顶部再点目标卡。
+15. **开局必须先回主页**：上一轮若停在支援卡/偶像/强化页，直接跑会连续 unknown-tap 自停；`auto_produce` 启动时已加 `Navigator.ensure_home()`。
+16. **每局日志**：`data/auto/auto_log_<ep>.log`（`auto_log.txt` 会被下一局覆盖）。
 
 ---
 
