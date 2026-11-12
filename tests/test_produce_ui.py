@@ -130,6 +130,20 @@ def test_drink_capacity_dialog_clicks_keep() -> None:
     assert agent.device.clicks[-1] == _center(3)
 
 
+def test_lesson_choice_follows_recommended_training() -> None:
+    agent = FakeAgent()
+    lines = _lines(
+        "实力足够了呢。想要争取好成绩的话 推荐舞蹈训练!",
+        "重点练习歌唱",
+        "重点练习舞蹈",
+        "重点练习视觉效果",
+    )
+    result = _driver().decide(agent, lines)
+    assert result.screen == "lesson-choice"
+    assert result.action == "pick-舞蹈"
+    assert agent.device.clicks[-1] == (360, 798)
+
+
 def test_lesson_defers_to_card_policy() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, _lines("剩余回合数", "CLEAR截止", "SKIP"))

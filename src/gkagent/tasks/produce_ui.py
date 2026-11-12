@@ -279,6 +279,14 @@ class ProduceDriver:
             self._click_line(agent, claim) if claim else self._click(agent, (360, 1131))
             return TickResult("card-reward", "claim")
 
+        # 4.2) 课程类型选择（重点练习歌唱/舞蹈/视觉效果，底部还带「快进」按钮）
+        if "重点练习" in text:
+            match = re.search(r"推荐\s*(歌唱|舞蹈|视觉)", text)
+            choice = match.group(1) if match else "舞蹈"
+            point = {"歌唱": (360, 702), "舞蹈": (360, 798), "视觉": (360, 894)}[choice]
+            self._click(agent, point)
+            return TickResult("lesson-choice", f"pick-{choice}")
+
         # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续
         if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")):
             self._click(agent, (360, 1000))
