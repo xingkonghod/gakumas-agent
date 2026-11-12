@@ -8,6 +8,8 @@
 
 ## 0. 一句话现状
 
+> **开机先读 §3.0 启动流程**：Clash **TUN 模式**必须开（只开系统代理不够，DMM 启动游戏会报 120000）；DMM 只开一个实例；游戏必须从 DMM 里点卡片启动。
+
 **真机 produce 已经能自动跑起来**：从主页进入培育 → 走完「选择偶像/支援卡/回忆/开始确认」四步 → 语音/快进/演出设置弹窗 → 课程（出牌）→ 技能卡奖励 → 回到行动选择，循环推进。
 当前正在真机跑第一个培育周目；**考试、结算、活动/打榜/课题尚未接入**。
 
@@ -68,6 +70,53 @@ MaaFramework 的 Win32 输入方式对照（Python binding `MaaWin32InputMethodE
 
 ## 3. 关键运行方式
 
+### 3.0 启动流程（每次开机照做，2026-11-12 实测）
+
+**第 1 步：开 VPN —— 必须是 TUN 模式，不能只开系统代理**
+
+- 原因：DMM 客户端的 **Node 侧请求**（登录取 token、启动游戏）**不走系统代理**；只开系统代理时这些请求直连被 RST，表现为 DMM 日志 `ERR_CONNECTION_CLOSED` / `websocket 1006`，点游戏弹 **错误码 120000**。
+- 做法：Clash Verge 托盘图标右键 → **TUN 模式** 打开。
+  等价手工方式：`%APPDATA%\io.github.clash-verge-rev.clash-verge-rev\verge.yaml` 里 `enable_tun_mode: true`，然后重启 Clash Verge。
+- 验证（三条都过才算）：
+  1. `Get-NetAdapter` 里有 `Meta`（Meta Tunnel），Status = Up
+  2. `Get-NetRoute -DestinationPrefix 0.0.0.0/0` 里有 `Meta`，metric 0
+  3. `curl.exe -s --noproxy '*' https://api.ipify.org` 返回日本 IP（不是本地 IP）
+
+**第 2 步：启动 DMM Game Player（管理员）**
+
+- `D:\DMM\GamePlayer\DMMGamePlayer.exe`（已配 RUNASADMIN，双击即管理员）；或 `scripts\start_dmm.cmd`
+- **只能开一个实例**。重复启动会弹 `Error / Another instance is already running`。
+  已多开：`taskkill /F /IM DMMGamePlayer.exe /T`，等 3 秒，再开一个。
+
+**第 3 步：从 DMM 里启动游戏**
+
+- DMM 窗口 →「マイゲーム」→ 点「学園アイドルマスター」卡片；DMM 会自动最小化，游戏窗口 `UnityWndClass / gakumas` 出现。
+- **不要直接运行 `D:\Games\Gakumas\gakumas\gakumas.exe`**：需要 DMM 每次生成的 `onetime_token`，直接启动会秒退（日志 `dll.log` 里能看到带 token 的 "Execute of:: gakumas"）。
+- 脚本辅助：
+  - `scripts\click_screen.py <物理x> <物理y>` —— 管理员、物理像素（= 逻辑像素 × 2）
+  - `scripts\probe_cursor.py <物理x> <物理y>` —— 校准落点（截图里画红圈）
+  - `scripts\bring_dmm_front.ps1` / `scripts\maximize_dmm.ps1`
+  - `scripts\launch_gakumas.cmd` —— `dmmgameplayer://play/GCL/gakumas/cl/win`（DMM 已在跑时可能被单实例吞掉，仅作备用）
+
+**第 4 步：确认游戏窗口状态**
+
+```powershell
+Get-Process gakumas | Select-Object Id,SessionId,MainWindowTitle
+# UnityWndClass 'gakumas' 必须 visible=True、iconic=False；渲染 720x1280
+```
+
+- 最小化时截屏会拿到 720×1396 黑帧；恢复用 `scripts\force_show_game.ps1`（单次恢复，不要反复最小化/恢复）。
+
+**常见错误对照**
+
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| 点游戏弹「错误码 120000」 | DMM 启动 API 直连被 RST（VPN 没走 TUN），或游戏需更新 | 先按第 1 步验证 TUN；仍失败在 DMM 里更新游戏 |
+| DMM 日志 `ERR_CONNECTION_CLOSED` / `websocket 1006` | 同上，Node 请求没走代理 | 开 TUN |
+| `Another instance is already running` | DMM 多开 | taskkill 全部后只开一个 |
+| 截图 720×1396 黑图 | 窗口最小化 / 抓错窗口（daemon 控制台） | `force_show_game.ps1`；`find_game_hwnd` 只认 `UnityWndClass` |
+| 游戏秒退无窗口 | 直接运行了 `gakumas.exe` | 必须从 DMM 启动 |
+
 ### 3.1 自动跑培育（当前主路径）
 
 ```powershell
@@ -107,7 +156,7 @@ python scripts/agent_cmd.py shell --command "D:\Games\gakumas-agent\scripts\cap_
 
 | 项 | 值/命令 |
 |---|---|
-| Clash Verge TUN | `enable_tun_mode: true`；系统代理 127.0.0.1:7897 |
+| Clash Verge | **TUN 模式必须开启**（`enable_tun_mode: true`，默认路由走 `Meta`）；系统代理 127.0.0.1:7897 只覆盖 Chromium，DMM 的 Node 请求必须靠 TUN |
 | UAC 免弹窗 | `ConsentPromptBehaviorAdmin=0`、`PromptOnSecureDesktop=0`（**需重启生效**） |
 | DMM 自动管理员 | `HKCU\...\AppCompatFlags\Layers` → `D:\DMM\GamePlayer\DMMGamePlayer.exe = ~ RUNASADMIN` |
 | 常驻任务 | `GDEAgent`（RunLevel Highest, Interactive）→ `python agent_daemon.py` |
@@ -203,18 +252,36 @@ d5273b3 fix(click): attach input thread to bypass foreground lock
 
 ```text
 D:\Games\gakumas-agent\                 仓库
-  src\gkagent\device\win32.py           设备层（Seize 点击/截屏校验/找窗口）
-  src\gkagent\tasks\produce_ui.py       OCR 培育导航（新增）
+  docs\HANDOVER.md                      本文档（启动流程见 §3.0）
+  src\gkagent\device\win32.py           设备层（SendMessageWithCursorPos 点击/截屏校验/找窗口）
+  src\gkagent\tasks\produce_ui.py       OCR 培育导航
   src\gkagent\tasks\produce.py          培育 FSM（出牌/事件/考试）
-  scripts\auto_produce.py               自动跑培育（新增）
+  scripts\auto_produce.py               自动跑培育（F12 急停）
   scripts\agent_daemon.py              常驻 agent（计划任务）
   scripts\agent_cmd.py                 发命令（非管理员）
+  scripts\start_dmm.cmd                 启动 DMM（管理员）
+  scripts\launch_gakumas.cmd            dmmgameplayer:// 协议拉起游戏（备用）
+  scripts\bring_dmm_front.ps1           DMM 窗口置前
+  scripts\maximize_dmm.ps1              DMM 窗口最大化
+  scripts\click_screen.py               物理屏幕坐标点击（管理员）
+  scripts\probe_cursor.py               点击落点校准（截图红圈）
+  scripts\force_show_game.ps1           恢复最小化的游戏窗口
+  scripts\cap_game.cmd                  截游戏图 → data\new_account.png
   data\auto\step_*.png                 自动跑图逐步截图
   data\auto_log.txt                    自动跑图日志
   data\replays\produce.sqlite3         回放库
   templates\                           GDE 识图模板
+D:\DMM\GamePlayer\DMMGamePlayer.exe     DMM 客户端（RUNASADMIN）
+D:\Games\Gakumas\gakumas\               游戏本体（v3.5.3，11.5GB，version.dll=汉化代理）
 D:\Games\MaaGakumasu\                   MAA（资源/自定义动作）
   resource\base\pipeline\Produce.json   日文完整培育管线（参考）
   resource\zh_CN\                      中文本地化资源（不完整）
 D:\Games\Gakumas\gakumas\gakumas-local\local-files\masterTrans   112 个本地化 JSON
 ```
+
+---
+
+## 11. 一句话备忘
+
+**开游戏顺序：TUN（不是系统代理）→ 只开一个 DMM → マイゲーム点游戏卡片 → 确认 `gakumas` 窗口 visible 且不最小化。**
+点游戏弹 120000 时，99% 是 TUN 没生效（DMM 的 Node 请求直连被 RST），先按 §3.0 的三条验证。
