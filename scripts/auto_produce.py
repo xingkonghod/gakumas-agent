@@ -34,6 +34,7 @@ from gkagent.policy.ocr_cards import OcrCardPolicy
 from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
 from gkagent.runtime.replay import ReplayDB
+from gkagent.sim.exam_estimate import SimCard, estimate_score
 from gkagent.tasks.produce import ProduceTask
 from gkagent.tasks.produce_ui import LESSON_WORDS, ProduceDriver, parse_stamina
 from gkagent.vision.cards import scan_hand
@@ -82,6 +83,36 @@ def build_task(episode: str, engine: OcrEngine) -> ProduceTask:
 
 def is_home(text: str) -> bool:
     return "主页" in text and any(word in text for word in HOME_MARKERS)
+
+
+def run_exam_estimate(agent, task, driver, image):
+    """期末前估分：逐张点开手牌 → OCR 读卡名/价值 → 15 局蒙特卡洛。"""
+    policy = getattr(task, "ocr_policy", None)
+    if policy is None:
+        return None
+    hand = scan_hand(image)
+    if not hand.boxes:
+        return None
+    cards: list[SimCard] = []
+    for index, box in enumerate(hand.boxes[:4]):
+        cx = box[0] + box[2] // 2
+        cy = box[1] + box[3] // 2
+        agent.device.click_force(cx, cy)
+        time.sleep(0.35)
+        detail = agent.shot()
+        cost = hand.cards[index].cost if index < len(hand.cards) else None
+        reading = policy.read(detail, cost)
+        cards.append(SimCard(reading.name or f"card{index}", float(reading.value or 0), int(cost or 1)))
+    if not cards:
+        return None
+    return estimate_score(cards, turns=6, trials=15, seed=11)
+
+
+def should_retry(score: float | None, mean: float) -> bool:
+    """第一把打完：分数不到期望的 90% 就免费重开。"""
+    if score is None or mean <= 0:
+        return False
+    return score < mean * 0.9
 
 
 def stop_requested() -> bool:
@@ -134,6 +165,7 @@ def main() -> int:
     same_action_count = 0
     lesson_pending: tuple[tuple[int, int], tuple] | None = None
     drink_used = False
+    exam_estimate_done = False
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -201,6 +233,12 @@ def main() -> int:
             done = True
             break
 
+        status_text = text
+        if lesson_fast:
+            # 课程 frame 跳过整屏 OCR，但左上角状态条仍需读（体力/最终考试截止）
+            status_lines = driver.engine().read(image, driver.corner_roi)
+            status_text = driver.text_of(status_lines)
+
         t_decide = time.perf_counter()
         clicked: bool | None = None
         if lesson_fast or any(word in text for word in LESSON_WORDS):
@@ -208,8 +246,25 @@ def main() -> int:
             unknown_streak = 0
             last_signature = None
             same_action_count = 0
+            # 期末前估分：拿当前手牌跑 15 局蒙特卡洛
+            if not exam_estimate_done and ("最终考试" in status_text or "期末考试" in status_text):
+                exam_estimate_done = True
+                estimate = run_exam_estimate(agent, task, driver, image)
+                if estimate is not None:
+                    record = {
+                        "episode": episode,
+                        "step": step,
+                        "estimate": str(estimate),
+                        "mean": round(estimate.mean, 1),
+                        "p10": round(estimate.p10, 1),
+                        "p90": round(estimate.p90, 1),
+                        "ts": time.time(),
+                    }
+                    with (ROOT / "data" / "exam_estimates.jsonl").open("a", encoding="utf-8") as handle:
+                        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    log_lines.append(f"{step:03d} [exam] estimate {estimate}")
             # 体力管理：低于 8 且还有回合，用一次饮料（每节课最多一次）
-            stamina = parse_stamina(text)
+            stamina = parse_stamina(status_text or text)
             turns_match = re.search(r"剩余回合数\s*(\d+)", text)
             turns = int(turns_match.group(1)) if turns_match else None
             if (

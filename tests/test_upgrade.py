@@ -49,16 +49,25 @@ class FakeItems:
 def sample_lines() -> list[OcrLine]:
     return [
         OcrLine("支援卡", 0.9, (300, 900, 80, 30)),
-        OcrLine("培养P偶像", 0.9, (500, 800, 120, 30)),
-        OcrLine("强化", 0.9, (600, 100, 80, 30)),
+        OcrLine("培养", 0.9, (520, 890, 60, 30)),
+        OcrLine("P偶像", 0.9, (520, 920, 70, 30)),
+        OcrLine("查看详情", 0.9, (300, 1070, 100, 30)),
+        OcrLine("支援卡加成", 0.9, (220, 910, 100, 20)),
+        OcrLine("Lv强化", 0.9, (180, 1070, 90, 30)),
+        OcrLine("特训", 0.9, (170, 790, 60, 30)),
+        OcrLine("进行特训", 0.9, (470, 1200, 120, 30)),
+        OcrLine("特训阶段确认", 0.9, (60, 585, 200, 30)),
+        OcrLine("取消", 0.9, (200, 1155, 60, 30)),
+        OcrLine("强化", 0.9, (440, 1155, 70, 30)),
         OcrLine("ふわふわでワクワク", 0.9, (100, 200, 300, 40)),
         OcrLine("Lv 1", 0.9, (100, 250, 80, 30)),
     ]
 
 
 def make_task(**kwargs) -> UpgradeTask:
+    kind = kwargs.pop("kind", "support")
     return UpgradeTask(
-        kind="support",
+        kind=kind,
         dry_run=True,
         ocr=FakeOcr(sample_lines()),
         cards=FakeCards(),
@@ -75,12 +84,20 @@ def test_read_owned_level() -> None:
     assert card.level == 1
 
 
-def test_dry_run_returns_plan() -> None:
+def test_support_dry_run_walks_to_confirm_without_spending() -> None:
     agent = FakeAgent()
-    result = make_task().run(agent)
-    assert result.ok
-    assert "ふわふわでワクワク" in result.message
-    assert agent.device.clicks
+    result = make_task(limit=1).run(agent)
+    assert result.ok, result.message
+    assert "支援卡 Lv强化 1 次" in result.message
+    assert (455, 1155) not in agent.device.clicks  # dry_run 不点最后的强化
+
+
+def test_idol_dry_run_walks_to_confirm_without_spending() -> None:
+    agent = FakeAgent()
+    result = make_task(kind="idol", limit=1).run(agent)
+    assert result.ok, result.message
+    assert "偶像特训 1 次" in result.message
+    assert (522, 1160) not in agent.device.clicks  # dry_run 不点确认弹窗的「进行特训」
 
 
 def test_click_uses_text_boxes() -> None:
