@@ -935,7 +935,7 @@ class ProduceTask:
             if best is not None:
                 _, index = best
                 point = self._box_center(hand.boxes[index])
-                agent.device.click(*point)
+                # 只返回落点；由调用方点击（避免这里多点和调用方重复点）
                 return CardPlay(point, "ocr", index)
         for index, card in enumerate(hand.cards):
             if getattr(card, "suggested", False) and index < len(hand.boxes):

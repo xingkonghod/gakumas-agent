@@ -264,9 +264,12 @@ class FakeOcr:
 
     def read(self, image, roi=None):
         self.calls.append(roi)
-        if roi == ProduceDriver(None).bottom_roi:
+        driver = ProduceDriver(ocr=None)
+        if roi == driver.bottom_roi:
             return self.bottom_lines
-        return self.top_lines
+        if roi == driver.top_roi:
+            return self.top_lines
+        return []
 
 
 def test_read_uses_bottom_roi_then_top_when_setup_text() -> None:
@@ -276,7 +279,7 @@ def test_read_uses_bottom_roi_then_top_when_setup_text() -> None:
     driver = ProduceDriver(ocr=ocr, sleep=lambda _s: None)
     lines = driver.read(None)
     assert ocr.calls[0] == driver.bottom_roi
-    assert ocr.calls[1] == driver.top_roi
+    assert driver.top_roi in ocr.calls
     assert driver.text_of(lines) == "下一步 选择支援卡"
 
 
@@ -290,14 +293,14 @@ def test_read_skips_top_roi_without_setup_text() -> None:
     )
     driver = ProduceDriver(ocr=ocr, sleep=lambda _s: None)
     driver.read(None)
-    assert ocr.calls == [driver.bottom_roi]
+    assert ocr.calls == [driver.bottom_roi, driver.corner_roi]
 
 
 def test_read_adds_top_roi_when_bottom_text_is_short() -> None:
     ocr = FakeOcr(bottom_lines=[OcrLine("确定", 0.9, (40, 1100, 100, 40))])
     driver = ProduceDriver(ocr=ocr, sleep=lambda _s: None)
     driver.read(None)
-    assert ocr.calls == [driver.bottom_roi, driver.top_roi]
+    assert driver.top_roi in ocr.calls
 
 
 def test_retry_confirm_cancels_to_save_stamina() -> None:

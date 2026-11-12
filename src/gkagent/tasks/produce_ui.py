@@ -61,6 +61,7 @@ class ProduceDriver:
     event_pending_y: int | None = field(default=None, init=False)
     event_pending_signature: str | None = field(default=None, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
+    corner_roi: tuple[int, int, int, int] = (0, 0, 320, 150)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
     top_roi_keys: tuple[str, ...] = (
         "下一步",
@@ -84,12 +85,13 @@ class ProduceDriver:
         return self.ocr
 
     def read(self, image) -> list[OcrLine]:
-        """ROI OCR：先读底部（按钮/弹窗/行动），需要时再补一条顶部（编成步骤标题）。
+        """ROI OCR：底部（按钮/弹窗/行动）+ 左上角状态条（剩余回合数等），按需再补编成标题。
 
-        RapidOCR 的检测耗时随面积增长，整屏 2x 要 2–5s；底部 ROI 约占 60%，
-        顶部小条只有 15%，比整屏快一倍左右。
+        RapidOCR 检测耗时随面积增长；左上角小条只有 ~6% 面积，常读也便宜。
+        左上角很重要：课程屏的「剩余回合数」在这里，漏读会把课程误判成剧情去点 SKIP。
         """
         lines = self.engine().read(image, self.bottom_roi)
+        lines = lines + self.engine().read(image, self.corner_roi)
         text = self.text_of(lines)
         if any(key in text for key in self.top_roi_keys) or len(text.strip()) < 6:
             lines = lines + self.engine().read(image, self.top_roi)
