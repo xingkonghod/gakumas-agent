@@ -90,6 +90,21 @@ def test_action_screen_follows_recommendation() -> None:
     assert agent.device.clicks[-1] == produce_ui.TRAIN_VI
 
 
+def test_action_screen_tolerates_garbled_training_labels() -> None:
+    agent = FakeAgent()
+    lines = _lines("Vo.训练", "Da.训", "审查基准", "训练")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "action"
+
+
+def test_p_point_toast_waits() -> None:
+    agent = FakeAgent()
+    result = _driver().decide(agent, _lines("获得P点数", "舞蹈SP训练"))
+    assert result.screen == "toast"
+    assert result.action == "wait"
+    assert agent.device.clicks == []
+
+
 def test_lesson_defers_to_card_policy() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, _lines("剩余回合数", "CLEAR截止", "SKIP"))
@@ -174,6 +189,44 @@ def test_activity_reward_settle_screen_taps() -> None:
     assert result.screen == "result-tap"
     assert result.action == "settle"
     assert agent.device.clicks == [(360, 1000)]
+
+
+def test_reward_dialog_with_activity_header_is_not_settle() -> None:
+    agent = FakeAgent()
+    lines = _lines("活动奖励", "请选择要领取的技能卡。", "推荐", "领取")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "card-reward"
+
+
+@dataclass
+class FakeOcr:
+    bottom_lines: list[OcrLine] = field(default_factory=list)
+    top_lines: list[OcrLine] = field(default_factory=list)
+    calls: list[tuple | None] = field(default_factory=list)
+
+    def read(self, image, roi=None):
+        self.calls.append(roi)
+        if roi == ProduceDriver(None).bottom_roi:
+            return self.bottom_lines
+        return self.top_lines
+
+
+def test_read_uses_bottom_roi_then_top_when_setup_text() -> None:
+    bottom = OcrLine("下一步", 0.9, (40, 1100, 100, 40))
+    top = OcrLine("选择支援卡", 0.9, (40, 30, 200, 40))
+    ocr = FakeOcr(bottom_lines=[bottom], top_lines=[top])
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _s: None)
+    lines = driver.read(None)
+    assert ocr.calls[0] == driver.bottom_roi
+    assert ocr.calls[1] == driver.top_roi
+    assert driver.text_of(lines) == "下一步 选择支援卡"
+
+
+def test_read_skips_top_roi_without_setup_text() -> None:
+    ocr = FakeOcr(bottom_lines=[OcrLine("确定", 0.9, (40, 1100, 100, 40))])
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _s: None)
+    driver.read(None)
+    assert ocr.calls == [driver.bottom_roi]
 
 
 def test_retry_confirm_cancels_to_save_stamina() -> None:

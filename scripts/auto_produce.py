@@ -113,6 +113,7 @@ def main() -> int:
     prev_digest: str | None = None
     pending: StepRecord | None = None
     markers: list[str] = []
+    unknown_streak = 0
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -140,21 +141,32 @@ def main() -> int:
         cv2.imwrite(str(SHOT_DIR / f"step_{step:03d}.png"), image)
 
         t_ocr = time.perf_counter()
-        # 快速路径：模板命中「跳过回合/体力」就直接判定为课程，省掉整屏 OCR（2-5s）
+        # 快速路径 1：模板命中「跳过回合/体力」→ 课程帧，省掉整屏 OCR（2-5s）
         lesson_fast = (
             agent.matcher.find("produce_skip_round", image, threshold=0.85) is not None
             or agent.matcher.find("produce_health", image, threshold=0.70) is not None
+        )
+        # 快速路径 2：加载帧模板命中 → 直接当 loading 等待，不 OCR
+        loading_fast = (not lesson_fast) and (
+            agent.matcher.find("produce_loading", image, threshold=0.90) is not None
         )
         if lesson_fast:
             lines = []
             text = ""
             ocr_ms = 0.0
+        elif loading_fast:
+            lines = []
+            text = "LOADING"
+            ocr_ms = 0.0
+        elif unknown_streak >= 3:
+            # 连续认不出时，用整屏 OCR 兜底一次，排除 ROI 漏读
+            lines = driver.engine().read(image)
+            text = driver.text_of(lines)
+            ocr_ms = (time.perf_counter() - t_ocr) * 1000
         else:
             lines = driver.read(image)
             ocr_ms = (time.perf_counter() - t_ocr) * 1000
             text = driver.text_of(lines)
-        if lesson_fast:
-            text = ""  # 课程内不需要整屏文本
 
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
@@ -185,6 +197,7 @@ def main() -> int:
                 result = "[lesson] 无可用决策，点击中位卡兜底"
                 idle += 1
             action_name, screen_name = "card", "lesson"
+            unknown_streak = 0
         else:
             tick = driver.decide(agent, lines)
             result = tick.describe()
@@ -195,6 +208,7 @@ def main() -> int:
                 idle = 0
             else:
                 idle = 0 if tick.ok else idle + 1
+                unknown_streak = 0 if tick.ok and tick.screen != "unknown" else unknown_streak + 1
 
         decide_ms = (time.perf_counter() - t_decide) * 1000
         total_ms = capture_ms + ocr_ms + decide_ms

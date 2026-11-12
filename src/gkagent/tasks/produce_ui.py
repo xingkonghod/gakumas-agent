@@ -57,6 +57,16 @@ class ProduceDriver:
     sleep: Callable[[float], None] | None = None
     last_point: tuple[int, int] | None = field(default=None, init=False)
     support_auto_done: bool = field(default=False, init=False)
+    bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
+    top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
+    top_roi_keys: tuple[str, ...] = (
+        "下一步",
+        "自动",
+        "重置",
+        "开始培育",
+        "请选择行动",
+        "选择",
+    )
 
     def __post_init__(self) -> None:
         if self.sleep is None:
@@ -71,7 +81,16 @@ class ProduceDriver:
         return self.ocr
 
     def read(self, image) -> list[OcrLine]:
-        return self.engine().read(image)
+        """ROI OCR：先读底部（按钮/弹窗/行动），需要时再补一条顶部（编成步骤标题）。
+
+        RapidOCR 的检测耗时随面积增长，整屏 2x 要 2–5s；底部 ROI 约占 60%，
+        顶部小条只有 15%，比整屏快一倍左右。
+        """
+        lines = self.engine().read(image, self.bottom_roi)
+        text = self.text_of(lines)
+        if any(key in text for key in self.top_roi_keys):
+            lines = lines + self.engine().read(image, self.top_roi)
+        return lines
 
     @staticmethod
     def text_of(lines: list[OcrLine]) -> str:
@@ -193,8 +212,18 @@ class ProduceDriver:
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "gain")
 
+        # 4.55) 获得 P 点数/饮料的提示条会盖住行动按钮，等它消失
+        if "获得P点数" in text or ("P点数" in text and "获得" in text):
+            self.sleep(0.6)
+            return TickResult("toast", "wait")
+
         # 4.4) 行动结算页（顶部「活动奖励/授课」标题、没有「请选择行动」按钮）：点一下继续
-        if ("活动奖励" in text or "授课" in text) and "请选择行动" not in text:
+        # 注意：奖励领取弹窗顶部也有「活动奖励」，必须排除，否则会一直点空白
+        if (
+            ("活动奖励" in text or "授课" in text)
+            and "请选择行动" not in text
+            and "领取" not in text
+        ):
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "settle")
 
@@ -216,8 +245,13 @@ class ProduceDriver:
             self._click_line(agent, claim) if claim else self._click(agent, (360, 1131))
             return TickResult("card-reward", "claim")
 
-        # 5) 培养主界面：选择行动（三个训练按钮同时出现才算训练）
-        if "请选择行动" in text or all(word in text for word in ("Vo.训练", "Da.训练", "Vi.训练")):
+        # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励）
+        training_hits = sum(1 for word in ("Vo", "Da", "Vi") if word in text)
+        if (
+            "请选择行动" in text
+            or (training_hits >= 2 and "训练" in text)
+            or ("授课" in text and "活动奖励" in text)
+        ):
             if "授课" in text:
                 self._click(agent, LESSON_ACTION)
                 return TickResult("action", "lesson")
