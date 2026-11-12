@@ -194,8 +194,8 @@ def main() -> int:
             same_action_count = 0
             hand = scan_hand(image)
             boxes = tuple(tuple(card.box) for card in hand.cards)
-            # 两段式出牌：第一次点卡只是选中（手牌不变），再点同一点才真正打出
-            if lesson_pending is not None and boxes == lesson_pending[1]:
+            # 两段式出牌：第一次点卡只是选中，下一步点同一点确认（不再依赖手牌框是否变化）
+            if lesson_pending is not None:
                 point = lesson_pending[0]
                 clicked = agent.device.click_force(*point)
                 time.sleep(0.9)
