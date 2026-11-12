@@ -57,6 +57,7 @@ class ProduceDriver:
     sleep: Callable[[float], None] | None = None
     last_point: tuple[int, int] | None = field(default=None, init=False)
     support_auto_done: bool = field(default=False, init=False)
+    exam_card_selected: bool = field(default=False, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
     top_roi_keys: tuple[str, ...] = (
@@ -245,6 +246,17 @@ class ProduceDriver:
         if "获得P点数" in text or "P点数获得" in text:
             self.sleep(0.6)
             return TickResult("toast", "wait")
+
+        # 4.57) 考试「移动」阶段：先点上方技能卡（y≈500），再点移动（两步交替）
+        if "移动" in text:
+            if not self.exam_card_selected:
+                self.exam_card_selected = True
+                self._click(agent, (185, 500))
+                return TickResult("exam", "select-card")
+            self.exam_card_selected = False
+            move = self.find(lines, "移动")
+            self._click_line(agent, move) if move else self._click(agent, (360, 1166))
+            return TickResult("exam", "move")
 
         # 4.56) P饮料获得/技能发动说明弹窗：点中央推进
         if "P饮料" in text and ("获得" in text or "饮料" in text):
