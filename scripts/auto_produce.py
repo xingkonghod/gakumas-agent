@@ -115,6 +115,8 @@ def main() -> int:
     markers: list[str] = []
     unknown_streak = 0
     ocr_cache: dict[str, tuple[list, str]] = {}
+    last_signature: tuple[str, str] | None = None
+    same_action_count = 0
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -204,6 +206,8 @@ def main() -> int:
                 idle += 1
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
+            last_signature = None
+            same_action_count = 0
         else:
             tick = driver.decide(agent, lines)
             result = tick.describe()
@@ -219,6 +223,20 @@ def main() -> int:
                     if tick.ok and tick.screen not in ("unknown", "unknown-tap")
                     else unknown_streak + 1
                 )
+                signature = (tick.screen, tick.action)
+                if signature == last_signature:
+                    same_action_count += 1
+                else:
+                    last_signature = signature
+                    same_action_count = 1
+                if (
+                    same_action_count >= 8
+                    and tick.screen not in ("loading", "blank", "pause")
+                ):
+                    log_lines.append(
+                        f"{step:03d} 同一动作 {tick.screen}/{tick.action} 连续 {same_action_count} 次，停止"
+                    )
+                    break
 
         decide_ms = (time.perf_counter() - t_decide) * 1000
         total_ms = capture_ms + ocr_ms + decide_ms

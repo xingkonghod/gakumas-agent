@@ -210,16 +210,39 @@ class ProduceDriver:
             self._click_line(agent, keep) if keep else self._click(agent, (360, 1166))
             return TickResult("drink-keep", "keep")
 
-        # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续
-        if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")):
-            self._click(agent, (360, 1000))
-            return TickResult("result-tap", "tap")
-        if _GAIN_RE.search(text):
-            self._click(agent, (360, 1000))
-            return TickResult("result-tap", "gain")
+        # 4.35) P点数兑换商店（咨询）：不买，直接「结束」
+        if ("进行兑换" in text or "兑换的道具" in text or "用P点数" in text) and "结束" in text:
+            end = self.find(lines, "结束")
+            self._click_line(agent, end) if end else self._click(agent, (640, 1165))
+            return TickResult("shop", "exit")
 
-        # 4.55) 获得 P 点数/饮料的提示条会盖住行动按钮，等它消失
-        if "获得P点数" in text or ("P点数" in text and "获得" in text):
+        # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励 / 外出+咨询）
+        # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
+        training_hits = sum(1 for word in ("Vo", "Da", "Vi") if word in text)
+        if "外出" in text and "咨询" in text:
+            self._click(agent, (450, 1027))
+            return TickResult("action", "consult")
+        if (
+            "请选择行动" in text
+            or (training_hits >= 2 and "训练" in text)
+            or ("授课" in text and "活动奖励" in text)
+        ):
+            if "授课" in text:
+                self._click(agent, LESSON_ACTION)
+                return TickResult("action", "lesson")
+            point, label = self.choose_training(text)
+            self._click(agent, point)
+            return TickResult("action", f"train-{label}")
+
+        # 6) 已选中行动，点同一点确认（训练预览「能力值上升」/ 授课预览「根据选项」）
+        if "能力值上升" in text or "根据选项" in text or "SELECT" in text:
+            point = self.last_point or TRAIN_DA
+            self._click(agent, point)
+            return TickResult("action-confirm", "confirm")
+
+        # 4.55) 获得 P 点数的提示条会盖住行动按钮，等它消失
+        # 注意只认连在一起的「获得P点数」，避免把行动页说明「消耗P点数，可以获得…」误判
+        if "获得P点数" in text or "P点数获得" in text:
             self.sleep(0.6)
             return TickResult("toast", "wait")
 
@@ -256,25 +279,13 @@ class ProduceDriver:
             self._click_line(agent, claim) if claim else self._click(agent, (360, 1131))
             return TickResult("card-reward", "claim")
 
-        # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励）
-        training_hits = sum(1 for word in ("Vo", "Da", "Vi") if word in text)
-        if (
-            "请选择行动" in text
-            or (training_hits >= 2 and "训练" in text)
-            or ("授课" in text and "活动奖励" in text)
-        ):
-            if "授课" in text:
-                self._click(agent, LESSON_ACTION)
-                return TickResult("action", "lesson")
-            point, label = self.choose_training(text)
-            self._click(agent, point)
-            return TickResult("action", f"train-{label}")
-
-        # 6) 已选中行动，点同一点确认（训练预览「能力值上升」/ 授课预览「根据选项」）
-        if "能力值上升" in text or "根据选项" in text or "SELECT" in text:
-            point = self.last_point or TRAIN_DA
-            self._click(agent, point)
-            return TickResult("action-confirm", "confirm")
+        # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续
+        if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")):
+            self._click(agent, (360, 1000))
+            return TickResult("result-tap", "tap")
+        if _GAIN_RE.search(text):
+            self._click(agent, (360, 1000))
+            return TickResult("result-tap", "gain")
 
         # 7) 剧情快进/跳过
         if "SKIP" in text or "快进" in text:
