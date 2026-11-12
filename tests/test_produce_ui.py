@@ -121,6 +121,15 @@ def test_unknown_text_falls_back_to_tap() -> None:
     assert agent.device.clicks == [(360, 1000)]
 
 
+def test_drink_capacity_dialog_clicks_keep() -> None:
+    agent = FakeAgent()
+    lines = _lines("P饮料持有上限", "请选择保留的3瓶饮料。", "获得的饮料", "保留")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "drink-keep"
+    assert result.action == "keep"
+    assert agent.device.clicks[-1] == _center(3)
+
+
 def test_lesson_defers_to_card_policy() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, _lines("剩余回合数", "CLEAR截止", "SKIP"))

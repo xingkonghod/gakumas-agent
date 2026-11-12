@@ -204,6 +204,12 @@ class ProduceDriver:
         if any(word in text for word in LESSON_WORDS):
             return TickResult("lesson", "card-policy")
 
+        # 4.3) 特定弹窗优先于通用「+N 飘字」处理，否则会被 _GAIN_RE 抢走
+        if "持有上限" in text or ("保留" in text and "饮料" in text):
+            keep = self.find(lines, "保留")
+            self._click_line(agent, keep) if keep else self._click(agent, (360, 1166))
+            return TickResult("drink-keep", "keep")
+
         # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续
         if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")):
             self._click(agent, (360, 1000))
