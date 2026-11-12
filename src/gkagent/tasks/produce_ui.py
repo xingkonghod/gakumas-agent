@@ -261,22 +261,16 @@ class ProduceDriver:
                 self.event_pending_y = None
                 self._click(agent, (360, y))
                 return TickResult("event-choice", "confirm")
-            if cost_lines:
-                cost_lines.sort(key=lambda item: item[1])
-                option_rows.sort(key=lambda line: self.center(line)[1])
-                pairs = list(zip(cost_lines, option_rows))
-                best_cost, _ = min(pairs, key=lambda pair: pair[0][0])
-                target = next(line for cost, line in pairs if cost is best_cost)
-                y = self.center(target)[1]
-                self.event_pending_y = y
-                self._click(agent, (360, y))
-                return TickResult("event-choice", f"cost-{best_cost[0]}")
-            bottom = max(option_rows, key=lambda line: self.center(line)[1])
-            y = self.center(bottom)[1]
+            # cost_lines 已在分支条件里保证非空
+            cost_lines.sort(key=lambda item: item[1])
+            option_rows.sort(key=lambda line: self.center(line)[1])
+            pairs = list(zip(cost_lines, option_rows))
+            best_cost, _ = min(pairs, key=lambda pair: pair[0][0])
+            target = next(line for cost, line in pairs if cost is best_cost)
+            y = self.center(target)[1]
             self.event_pending_y = y
-            self.event_pending_signature = signature
             self._click(agent, (360, y))
-            return TickResult("event-choice", "last-row")
+            return TickResult("event-choice", f"cost-{best_cost[0]}")
 
         # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励 / 外出+咨询 / 休息）
         # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
