@@ -161,6 +161,7 @@ def main() -> int:
     idle = 0
     done = False
     seen_produce = False
+    produce_end_seen = False
     started_at = time.time()
     prev_digest: str | None = None
     pending: StepRecord | None = None
@@ -234,6 +235,15 @@ def main() -> int:
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
             markers.append(text[:40])
+        # 培育结束的强信号：最终评价 / 结算后成就页（粉丝数）
+        if "最终培育评价" in text or ("粉丝" in text and "成就" in text):
+            produce_end_seen = True
+        if produce_end_seen and (
+            is_home(text) or "定期公演" in text or "プロデュース" in text
+        ):
+            log_lines.append(f"{step:03d} [home] 培育结束，回到入口/主页")
+            done = True
+            break
         if seen_produce and is_home(text):
             log_lines.append(f"{step:03d} [home] 培育结束，已回主页")
             done = True
