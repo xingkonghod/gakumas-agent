@@ -92,13 +92,22 @@ class Win32Device:
         return
 
     def capture(self, attempts: int = 8) -> np.ndarray:
-        """截屏；窗口最小化或拿到黑帧/异常尺寸时重试几次再报错。"""
+        """截屏；窗口最小化或拿到黑帧/异常尺寸时重试几次再报错。
+
+        游戏实际渲染高度可能是 1279 或 1280（差 1px），两者都接受。
+        """
         if USER32.IsIconic(self.hwnd):
             raise RuntimeError("game window is minimized; restore it first")
         frame = None
         for _ in range(max(1, attempts)):
             frame = np.asarray(self.controller.post_screencap().wait().get())
-            if frame.ndim == 3 and frame.shape[:2] == (1280, 720) and float(frame.mean()) > 3.0:
+            shape = getattr(frame, "shape", ())
+            if (
+                frame.ndim == 3
+                and shape[0] in (1279, 1280)
+                and shape[1] == 720
+                and float(frame.mean()) > 3.0
+            ):
                 return frame
             time.sleep(0.35)
         shape = getattr(frame, "shape", None)
