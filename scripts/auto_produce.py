@@ -239,44 +239,55 @@ def main() -> int:
         cv2.imwrite(str(SHOT_DIR / f"step_{step:03d}.png"), image)
 
         t_ocr = time.perf_counter()
-        # 快速路径 0：先只读左上角状态条（~6% 面积）。认出「剩余回合/CLEAR/PERFECT」= 课程帧，
-        # 就只补一块手牌区 ROI，省掉整屏底部 OCR（3-5s）。
-        corner_lines = driver.engine().read(image, driver.corner_roi)
-        corner_text = driver.text_of(corner_lines)
-        corner_lesson = any(
-            word in corner_text for word in ("剩余回合", "CLEAR", "PERFECT")
-        )
-        # 快速路径 1：模板命中「跳过回合/体力」→ 课程帧，省掉整屏 OCR（2-5s）
-        lesson_fast = (
-            agent.matcher.find("produce_skip_round", image, threshold=0.85) is not None
-            or agent.matcher.find("produce_health", image, threshold=0.70) is not None
-        )
-        # 快速路径 2：加载帧模板命中 → 直接当 loading 等待，不 OCR
-        loading_fast = (not lesson_fast) and (
-            agent.matcher.find("produce_loading", image, threshold=0.90) is not None
-        )
-        if corner_lesson or lesson_fast:
-            lines = corner_lines + driver.engine().read(image, (0, 780, 720, 420))
-            text = driver.text_of(lines)
-            ocr_ms = (time.perf_counter() - t_ocr) * 1000
-        elif loading_fast:
+        if lesson_pending is not None:
+            # 两段式出牌的确认步：不需要任何 OCR，直接点上一张卡确认（省 3-5s/步）
+            corner_lines = []
+            corner_text = ""
+            corner_lesson = True
+            lesson_fast = False
+            loading_fast = False
             lines = []
-            text = "LOADING"
+            text = "剩余回合"
             ocr_ms = 0.0
-        elif digest in ocr_cache:
-            lines, text = ocr_cache[digest]
-            ocr_ms = 0.0
-        elif unknown_streak >= 3:
-            # 连续认不出时，用整屏 OCR 兜底一次，排除 ROI 漏读
-            lines = driver.engine().read(image)
-            text = driver.text_of(lines)
-            ocr_ms = (time.perf_counter() - t_ocr) * 1000
         else:
-            lines = driver.read(image, corner_lines=corner_lines)
-            ocr_ms = (time.perf_counter() - t_ocr) * 1000
-            text = driver.text_of(lines)
-            if len(ocr_cache) < 256:
-                ocr_cache[digest] = (lines, text)
+            # 快速路径 0：先只读左上角状态条（~6% 面积）。认出「剩余回合/CLEAR/PERFECT」= 课程帧，
+            # 就只补一块手牌区 ROI，省掉整屏底部 OCR（3-5s）。
+            corner_lines = driver.engine().read(image, driver.corner_roi)
+            corner_text = driver.text_of(corner_lines)
+            corner_lesson = any(
+                word in corner_text for word in ("剩余回合", "CLEAR", "PERFECT")
+            )
+            # 快速路径 1：模板命中「跳过回合/体力」→ 课程帧，省掉整屏 OCR（2-5s）
+            lesson_fast = (
+                agent.matcher.find("produce_skip_round", image, threshold=0.85) is not None
+                or agent.matcher.find("produce_health", image, threshold=0.70) is not None
+            )
+            # 快速路径 2：加载帧模板命中 → 直接当 loading 等待，不 OCR
+            loading_fast = (not lesson_fast) and (
+                agent.matcher.find("produce_loading", image, threshold=0.90) is not None
+            )
+            if corner_lesson or lesson_fast:
+                lines = corner_lines + driver.engine().read(image, (0, 780, 720, 420))
+                text = driver.text_of(lines)
+                ocr_ms = (time.perf_counter() - t_ocr) * 1000
+            elif loading_fast:
+                lines = []
+                text = "LOADING"
+                ocr_ms = 0.0
+            elif digest in ocr_cache:
+                lines, text = ocr_cache[digest]
+                ocr_ms = 0.0
+            elif unknown_streak >= 3:
+                # 连续认不出时，用整屏 OCR 兜底一次，排除 ROI 漏读
+                lines = driver.engine().read(image)
+                text = driver.text_of(lines)
+                ocr_ms = (time.perf_counter() - t_ocr) * 1000
+            else:
+                lines = driver.read(image, corner_lines=corner_lines)
+                ocr_ms = (time.perf_counter() - t_ocr) * 1000
+                text = driver.text_of(lines)
+                if len(ocr_cache) < 256:
+                    ocr_cache[digest] = (lines, text)
 
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True

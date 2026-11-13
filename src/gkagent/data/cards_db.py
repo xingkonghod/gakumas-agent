@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from gkagent.data.master import MasterData, MasterEntry
@@ -58,9 +59,37 @@ class CardInfo:
 
 
 def score_text(text: str) -> float:
+    """按效果文本估算「这张卡能带来多少分」。
+
+    优先用真实数值（打分+27 就是 27 分），而不是关键词次数；
+    防御/恢复类按收益折算，状态类给固定分。
+    """
+    if not text:
+        return 0.0
     score = 0.0
-    for keyword, weight in KEYWORDS.items():
-        score += text.count(keyword) * weight
+    # 打分/得分/伤害/スコア + 数值（兼容 "打分 / + / 9" 这种分片 OCR）
+    for keyword in ("打分", "得分", "伤害", "スコア"):
+        for match in re.finditer(keyword + r"[^0-9]{0,20}(\d{1,3})", text):
+            score += float(match.group(1))
+    # 元气/护盾（保命，折算低价值）
+    for keyword in ("元气", "护盾", "防御"):
+        for match in re.finditer(keyword + r"[^0-9]{0,20}(\d{1,3})", text):
+            score += float(match.group(1)) * 0.25
+    # 体力回复
+    for keyword in ("体力回复", "回复"):
+        for match in re.finditer(keyword + r"[^0-9]{0,20}(\d{1,3})", text):
+            score += float(match.group(1)) * 0.4
+    # 抽牌/状态类：给固定收益
+    if "抽牌" in text or "抽卡" in text:
+        score += 4.0
+    if any(word in text for word in ("好调", "好印象", "集中", "强气", "やる気")):
+        score += 3.0
+    if "训练中仅限1次" in text:
+        score += 1.0
+    if score == 0.0:
+        # 纯关键词兜底（没有数值的效果）
+        for keyword, weight in KEYWORDS.items():
+            score += text.count(keyword) * weight * 0.5
     return score
 
 
