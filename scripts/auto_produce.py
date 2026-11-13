@@ -161,6 +161,7 @@ def main() -> int:
 
     log_lines: list[str] = []
     idle = 0
+    pause_streak = 0
     done = False
     seen_produce = False
     produce_end_seen = False
@@ -380,9 +381,15 @@ def main() -> int:
             screen_name, action_name = tick.screen, tick.action
             clicked = None if screen_name in ("pause", "loading", "blank") else True
             if tick.screen == "pause":
-                time.sleep(2.0)
+                pause_streak += 1
+                # 用户在操作时逐步拉长退避，避免每 2s 空烧一步
+                time.sleep(min(2.0 + pause_streak * 0.5, 6.0))
                 idle = 0
+                if pause_streak >= 30:
+                    log_lines.append(f"{step:03d} 用户持续操作 {pause_streak} 步，暂停本局")
+                    break
             else:
+                pause_streak = 0
                 idle = 0 if tick.ok and tick.screen not in ("unknown", "unknown-tap") else idle + 1
                 unknown_streak = (
                     0
