@@ -237,6 +237,12 @@ def main() -> int:
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
             markers.append(text[:40])
+        # 最终评价画面单独存档（轮转 step_NNN 会覆盖）
+        if "最终培育评价" in text:
+            final_path = SHOT_DIR / f"final_eval_{episode}.png"
+            if not final_path.exists():
+                cv2.imwrite(str(final_path), image)
+                log_lines.append(f"{step:03d} [final] 最终培育评价截图已存 {final_path}")
         # 培育结束的强信号：最终评价 / 结算后成就页（粉丝数）
         if "最终培育评价" in text or ("粉丝" in text and "成就" in text):
             produce_end_seen = True
