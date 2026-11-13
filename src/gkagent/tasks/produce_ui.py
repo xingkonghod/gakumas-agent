@@ -95,14 +95,17 @@ class ProduceDriver:
             self.ocr = OcrEngine()
         return self.ocr
 
-    def read(self, image) -> list[OcrLine]:
+    def read(self, image, corner_lines: list[OcrLine] | None = None) -> list[OcrLine]:
         """ROI OCR：底部（按钮/弹窗/行动）+ 左上角状态条（剩余回合数等），按需再补编成标题。
 
         RapidOCR 检测耗时随面积增长；左上角小条只有 ~6% 面积，常读也便宜。
         左上角很重要：课程屏的「剩余回合数」在这里，漏读会把课程误判成剧情去点 SKIP。
+        ``corner_lines``：调用方已经读过左上角时传进来，避免重复 OCR。
         """
         lines = self.engine().read(image, self.bottom_roi)
-        lines = lines + self.engine().read(image, self.corner_roi)
+        if corner_lines is None:
+            corner_lines = self.engine().read(image, self.corner_roi)
+        lines = lines + corner_lines
         text = self.text_of(lines)
         if any(key in text for key in self.top_roi_keys) or len(text.strip()) < 6:
             lines = lines + self.engine().read(image, self.top_roi)
