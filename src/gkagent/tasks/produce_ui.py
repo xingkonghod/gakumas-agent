@@ -426,6 +426,21 @@ class ProduceDriver:
             return TickResult("result-tap", "gain")
 
         # 7) 剧情快进/跳过 + 最终演出跳过
+        # 7.0) 剧情播放器（1章6话 那种：播放条 + 「到下一个选项」+ 选项气泡）
+        if "到下一个选项" in text or ("显示所有字幕" in text and "章" in text):
+            options = [
+                line
+                for line in lines
+                if 650 <= self.center(line)[1] <= 1150
+                and ("？" in line.text or "?" in line.text)
+                and len(line.text.strip()) <= 20
+            ]
+            if options:
+                target = min(options, key=lambda line: self.center(line)[1])
+                self._click_line(agent, target)
+                return TickResult("story", "choice")
+            self._click(agent, (665, 50))  # 右上「下一个选项/跳过」
+            return TickResult("story", "next")
         if "跳过演出" in text or "演出跳过" in text:
             line = self.find(lines, "跳过演出") or self.find(lines, "演出跳过")
             self._click_line(agent, line) if line else self._click(agent, DIALOGUE_SKIP)
