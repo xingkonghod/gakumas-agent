@@ -254,15 +254,17 @@ class ProduceDriver:
             if need_match:
                 need = int(need_match.group(1))
             if need > 0 and image is not None:
+                # 「获得的饮料」那一段的勾选是灰的（不可选），只补勾「手持的饮料」下面的行
+                hand_header = self.find(lines, "手持的饮料")
+                min_y = hand_header.box[1] + 30 if hand_header is not None else 440
                 for line in lines:
                     cy = self.center(line)[1]
                     if (
-                        440 <= cy <= 980
+                        min_y <= cy <= 980
                         and self.center(line)[0] < 420
                         and len(line.text.strip()) >= 2
                         and not self._checkbox_checked(image, cy)
                     ):
-                        # 一定要点勾选框本身（x≈635），点行中间不会切换勾选
                         self._click(agent, (635, cy))
                         return TickResult("drink-keep", "check-row")
             keep = self.find(lines, "保留")
