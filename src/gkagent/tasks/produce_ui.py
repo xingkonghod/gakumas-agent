@@ -310,10 +310,18 @@ class ProduceDriver:
             or ("授课" in text and "活动奖励" in text)
         ):
             if "授课" in text and training_hits == 0:
-                self._click(agent, LESSON_ACTION)
+                lesson_line = self.find(lines, "授课")
+                if lesson_line is not None:
+                    self._click_line(agent, lesson_line)
+                else:
+                    self._click(agent, LESSON_ACTION)
                 return TickResult("action", "lesson")
             point, label = self.choose_training(text)
-            self._click(agent, point)
+            train_line = self.find(lines, f"{label}") if label in ("Vo", "Da", "Vi") else None
+            if train_line is not None:
+                self._click_line(agent, train_line)
+            else:
+                self._click(agent, point)
             return TickResult("action", f"train-{label}")
 
         # 6) 已选中行动，点同一点确认（训练预览「能力值上升」/ 授课预览「根据选项」）

@@ -87,7 +87,8 @@ def test_action_screen_follows_recommendation() -> None:
     result = _driver().decide(agent, lines)
     assert result.screen == "action"
     assert result.action == "train-Vi"
-    assert agent.device.clicks[-1] == produce_ui.TRAIN_VI
+    # 现在按 OCR 文本行定位：点「Vi.训练」文字行中心（第 6 行）
+    assert agent.device.clicks[-1] == _center(5)
 
 
 def test_action_screen_tolerates_garbled_training_labels() -> None:
@@ -216,7 +217,8 @@ def test_action_screen_lesson_variant_clicks_lesson() -> None:
     result = _driver().decide(agent, lines)
     assert result.screen == "action"
     assert result.action == "lesson"
-    assert agent.device.clicks[-1] == produce_ui.LESSON_ACTION
+    # 按「授课」文本行中心点，而不是写死坐标
+    assert agent.device.clicks[-1] == _center(1)
 
 
 def test_action_screen_rests_when_stamina_low() -> None:
@@ -233,7 +235,7 @@ def test_action_preview_confirms_at_last_point() -> None:
     driver.decide(agent, _lines("请选择行动", "授课", "活动奖励"))
     result = driver.decide(agent, _lines("根据选项会发生各种效果。", "SELECT"))
     assert result.screen == "action-confirm"
-    assert agent.device.clicks[-1] == produce_ui.LESSON_ACTION
+    assert agent.device.clicks[-1] == _center(1)
 
 
 def test_gain_overlay_taps_to_continue() -> None:
