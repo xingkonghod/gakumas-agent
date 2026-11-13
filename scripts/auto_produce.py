@@ -196,6 +196,8 @@ def main() -> int:
     bad_cards: set[str] = set()
     last_pick_name: str | None = None
     same_pick_count = 0
+    action_key: tuple[str, str] | None = None
+    action_streak = 0
     done = False
     seen_produce = False
     produce_end_seen = False
@@ -536,6 +538,29 @@ def main() -> int:
                 ):
                     log_lines.append(
                         f"{step:03d} 同一动作 {tick.screen}/{tick.action} 连续 {same_action_count} 次，停止"
+                    )
+                    break
+                # 兜底：同一 (screen, action) 即使文本每步微变，连续 12 次也判卡死
+                # （剧情/等待类屏不参与，避免误杀长对话）
+                key = (tick.screen, tick.action)
+                if tick.screen in ("story", "pause", "loading", "blank", "unknown", "unknown-tap"):
+                    action_key = None
+                    action_streak = 0
+                elif key == action_key:
+                    action_streak += 1
+                else:
+                    action_key = key
+                    action_streak = 1
+                if action_streak >= 12:
+                    log_lines.append(
+                        f"{step:03d} 同一屏/动作 {tick.screen}/{tick.action} 连续 {action_streak} 次（文本微变），停止"
+                    )
+                    log_failure(
+                        episode,
+                        step,
+                        "same-screen-stall",
+                        f"{tick.screen}/{tick.action} x{action_streak}",
+                        {"attribute": driver.lesson_attribute, "stamina": last_stamina},
                     )
                     break
 
