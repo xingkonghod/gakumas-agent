@@ -38,8 +38,16 @@ def _name_near(lines, box, library) -> str | None:
     return None
 
 
-def pick_hand_card(lines, boxes, library, stamina: int | None = None, costs=None) -> HandPick | None:
-    """按卡名价值挑一张；costs 给每张卡的体力费用（可选）。"""
+def pick_hand_card(
+    lines,
+    boxes,
+    library,
+    stamina: int | None = None,
+    costs=None,
+    attribute: str | None = None,
+) -> HandPick | None:
+    """按卡名价值挑一张；costs 给每张卡的体力费用（可选）；attribute 匹配的卡加权。"""
+    attribute_keyword = {"Vo": "歌唱", "Da": "舞蹈", "Vi": "视觉"}.get(attribute or "", None)
     best: HandPick | None = None
     for index, box in enumerate(boxes):
         cost = costs[index] if costs is not None and index < len(costs) else None
@@ -53,11 +61,14 @@ def pick_hand_card(lines, boxes, library, stamina: int | None = None, costs=None
         info = library.find(name)
         if info is None:
             continue
+        value = info.value
+        if attribute_keyword and attribute_keyword in getattr(info, "text", ""):
+            value += 1.5
         pick = HandPick(
             point=(box[0] + box[2] // 2, box[1] + box[3] // 2),
             index=index,
             name=name,
-            value=info.value,
+            value=value,
         )
         if best is None or pick.value > best.value:
             best = pick

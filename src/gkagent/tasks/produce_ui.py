@@ -69,6 +69,7 @@ class ProduceDriver:
     support_auto_done: bool = field(default=False, init=False)
     exam_card_selected: bool = field(default=False, init=False)
     event_pending_y: int | None = field(default=None, init=False)
+    lesson_attribute: str | None = field(default=None, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -381,6 +382,7 @@ class ProduceDriver:
         if "重点练习" in text:
             match = re.search(r"推荐\s*(歌唱|舞蹈|视觉)", text)
             choice = match.group(1) if match else "舞蹈"
+            self.lesson_attribute = {"歌唱": "Vo", "舞蹈": "Da", "视觉": "Vi"}[choice]
             point = {"歌唱": (360, 702), "舞蹈": (360, 798), "视觉": (360, 894)}[choice]
             self._click(agent, point)
             return TickResult("lesson-choice", f"pick-{choice}")

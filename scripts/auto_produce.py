@@ -322,7 +322,14 @@ def main() -> int:
                 lesson_pending = None
                 # 快路径：手牌上直接读卡名 → 卡库估值，选最值的一张（不逐张点开）
                 costs = [card.cost for card in hand.cards] if hand.cards else None
-                name_pick = pick_hand_card(lines, boxes, card_lib, stamina=stamina, costs=costs)
+                name_pick = pick_hand_card(
+                    lines,
+                    boxes,
+                    card_lib,
+                    stamina=stamina,
+                    costs=costs,
+                    attribute=driver.lesson_attribute,
+                )
                 if name_pick is not None:
                     clicked = agent.device.click_force(*name_pick.point)
                     time.sleep(0.9)
