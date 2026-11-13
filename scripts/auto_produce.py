@@ -140,6 +140,17 @@ def restore_window() -> None:
 
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    crash_log = ROOT / "data" / "crash.log"
+
+    def _hook(exc_type, exc_value, exc_tb):
+        import traceback
+
+        with crash_log.open("a", encoding="utf-8") as handle:
+            handle.write(f"\n[{time.strftime('%Y-%m-%d %H:%M:%S')}] crash\n")
+            traceback.print_exception(exc_type, exc_value, exc_tb, file=handle)
+        sys.__excepthook__(exc_type, exc_value, exc_tb)
+
+    sys.excepthook = _hook
     steps = int(sys.argv[1]) if len(sys.argv) > 1 else 30
     episode = sys.argv[2] if len(sys.argv) > 2 else time.strftime("ep-%Y%m%d-%H%M%S")
     hwnd = find_game_hwnd()

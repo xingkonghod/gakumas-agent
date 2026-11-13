@@ -31,7 +31,8 @@ DIALOGUE_FAST = (600, 1185)  # 剧情「快进」
 DIALOGUE_SKIP = (208, 1185)  # 剧情「SKIP」
 
 CANCEL_WORD = "取消"
-LESSON_WORDS = ("剩余回合数", "CLEAR截止")
+# OCR 常把「剩余回合数」读成「剩余回合」；CLEAR/PERFECT 截止圆环也常被拆分
+LESSON_WORDS = ("剩余回合", "CLEAR", "PERFECT")
 _GAIN_RE = re.compile(r"[+\-]\s*\d+")
 _STAMINA_RE = re.compile(r"(\d{1,3})\s*/\s*(\d{1,3})")
 

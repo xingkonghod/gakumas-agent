@@ -96,8 +96,11 @@ def run_batch(episode: str, steps: int, timeout_s: int = 2400) -> dict:
             payload = {}
     payload["elapsed_s"] = round(time.time() - started, 1)
     payload["code"] = proc.returncode
+    stderr_text = (proc.stderr or b"").decode("utf-8", "replace").strip()
+    if stderr_text:
+        log(f"{episode} stderr: {stderr_text[-500:]}")
     if proc.returncode not in (0, 1):
-        log(f"{episode} batch exit={proc.returncode} stderr={(proc.stderr or b'')[-300:]!r}")
+        log(f"{episode} batch exit={proc.returncode}")
     return payload
 
 
