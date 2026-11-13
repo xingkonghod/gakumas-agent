@@ -29,6 +29,7 @@ import cv2
 from gkagent.agent import Agent
 from gkagent.data.cards_db import CardLibrary
 from gkagent.data.items_db import ItemLibrary
+from gkagent.data.master import MasterData
 from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd
 from gkagent.nav import Navigator
 from gkagent.policy.ocr_cards import OcrCardPolicy
@@ -81,7 +82,9 @@ def build_task(episode: str, engine: OcrEngine, card_library: CardLibrary | None
         return list(scan.cards), [tuple(card.box) for card in scan.cards]
 
     # 按卡名/效果文本查卡库打分（权重已改成打分优先），决定出哪张
-    card_library = card_library or CardLibrary()
+    # 用绝对路径加载 master：进程 cwd 不一定在项目根目录（supervisor/daemon 启动时踩过坑）
+    master_root = ROOT / "data" / "master"
+    card_library = card_library or CardLibrary(MasterData(master_root))
     item_library = ItemLibrary()
     ocr_policy = OcrCardPolicy(
         engine,
@@ -175,7 +178,7 @@ def main() -> int:
         return 2
     agent = Agent(Win32Device(hwnd).connect(), TemplateMatcher(ROOT / "templates"))
     engine = OcrEngine()
-    card_lib = CardLibrary()
+    card_lib = CardLibrary(MasterData(ROOT / "data" / "master"))
     task = build_task(episode, engine, card_lib)
     driver = ProduceDriver(ocr=engine)
     # 开局先回主页：上一轮可能停在支援卡/偶像/强化页面，否则前 8 步全是 unknown-tap
@@ -401,6 +404,40 @@ def main() -> int:
                         idle = 0
                     action_name = "name-pick"
                 else:
+                    with (ROOT / "data" / "pick_debug.log").open("a", encoding="utf-8") as handle:
+                        detail = []
+                        for box in boxes:
+                            bx, by, bw, bh = box
+                            candidates = []
+                            for line in lines:
+                                lx, ly, lw, _lh = line.box
+                                cx = lx + lw // 2
+                                in_y = by + bh * 0.5 <= ly <= by + bh + 50
+                                in_x = bx - 10 <= cx <= bx + bw + 10
+                                if in_y or in_x:
+                                    candidates.append(
+                                        {
+                                            "text": line.text,
+                                            "cx": cx,
+                                            "ly": ly,
+                                            "in_y": in_y,
+                                            "in_x": in_x,
+                                            "known": card_lib.find(line.text.strip()) is not None,
+                                        }
+                                    )
+                            detail.append({"box": list(box), "candidates": candidates[:8]})
+                        handle.write(
+                            json.dumps(
+                                {
+                                    "episode": episode,
+                                    "step": step,
+                                    "boxes": [list(box) for box in boxes],
+                                    "detail": detail,
+                                },
+                                ensure_ascii=False,
+                            )
+                            + "\n"
+                        )
                     screen = task.observe(agent, image)
                     play = task.decide_card(agent, image, screen=screen, stamina=stamina)
                     if play is not None:
