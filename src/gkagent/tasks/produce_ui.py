@@ -387,6 +387,17 @@ class ProduceDriver:
             self._click(agent, point)
             return TickResult("lesson-choice", f"pick-{choice}")
 
+        # 4.45) 结果弹窗（工作完成/活动完成等）：底部有「完成」就点它，别被飘字分支抢走
+        complete = None
+        for word in ("完成",):
+            line = self.find(lines, word)
+            if line is not None and self.center(line)[1] > 1080:
+                complete = line
+                break
+        if complete is not None:
+            self._click_line(agent, complete)
+            return TickResult("button", "完成")
+
         # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续
         if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")):
             self._click(agent, (360, 1000))
@@ -395,7 +406,11 @@ class ProduceDriver:
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "gain")
 
-        # 7) 剧情快进/跳过
+        # 7) 剧情快进/跳过 + 最终演出跳过
+        if "跳过演出" in text or "演出跳过" in text:
+            line = self.find(lines, "跳过演出") or self.find(lines, "演出跳过")
+            self._click_line(agent, line) if line else self._click(agent, DIALOGUE_SKIP)
+            return TickResult("story", "skip-live")
         if "SKIP" in text or "快进" in text:
             fast = self.find(lines, "快进")
             if fast is not None:
@@ -409,7 +424,7 @@ class ProduceDriver:
             return TickResult("story", "skip-fallback")
 
         # 8) 事件卡/结果页：找按钮文字
-        for word in ("下一步", "继续", "完成", "获取", "领取", "确定", "关闭"):
+        for word in ("下一步", "继续", "完成", "获取", "领取", "确定", "跳过", "关闭"):
             line = self.find(lines, word)
             if line is not None:
                 self._click_line(agent, line)

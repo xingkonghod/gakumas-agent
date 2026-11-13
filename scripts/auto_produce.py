@@ -321,6 +321,9 @@ def main() -> int:
             elif action_name != "drink":
                 lesson_pending = None
                 # 快路径：手牌上直接读卡名 → 卡库估值，选最值的一张（不逐张点开）
+                # 课程 fastpath 跳过了整屏 OCR，这里补一块手牌区 ROI（比逐张点开读便宜）
+                if not lines:
+                    lines = driver.engine().read(image, (0, 780, 720, 420))
                 costs = [card.cost for card in hand.cards] if hand.cards else None
                 name_pick = pick_hand_card(
                     lines,
