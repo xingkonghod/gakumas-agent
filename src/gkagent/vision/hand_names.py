@@ -62,8 +62,12 @@ def pick_hand_card(
         if info is None:
             continue
         value = info.value
-        if attribute_keyword and attribute_keyword in getattr(info, "text", ""):
-            value += 1.5
+        if attribute_keyword:
+            text = getattr(info, "text", "")
+            if attribute_keyword in text:
+                value += 4.0  # 课程属性匹配的卡大幅加权（CLEAR 要的是对应属性分）
+            elif any(word in text for word in ("歌唱", "舞蹈", "视觉")):
+                value -= 1.5  # 其它属性的卡降权
         pick = HandPick(
             point=(box[0] + box[2] // 2, box[1] + box[3] // 2),
             index=index,

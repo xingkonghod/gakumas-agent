@@ -188,6 +188,11 @@ class ProduceDriver:
 
         # 1) 弹窗：取消 + 确定/完成/下一步
         if CANCEL_WORD in text:
+            # 扭蛋/抽卡确认：和培育无关，一律取消（跑培育时误入过）
+            if "扭蛋" in text and "确认" in text:
+                cancel = self.find(lines, "取消")
+                self._click_line(agent, cancel) if cancel else self._click(agent, (210, 1155))
+                return TickResult("dialog", "cancel-gacha")
             if "不播放语音" in text:
                 line = self.find(lines, "不播放语音")
                 self._click(agent, self.center(line) if line else VOICE_OFF)
@@ -321,6 +326,8 @@ class ProduceDriver:
                     self._click(agent, LESSON_ACTION)
                 return TickResult("action", "lesson")
             point, label = self.choose_training(text)
+            # 训练属性即接下来课程的属性：记下来给手牌加权用（之前没记 → 出牌不看属性 → CLEAR 失败）
+            self.lesson_attribute = label
             train_line = self.find(lines, f"{label}") if label in ("Vo", "Da", "Vi") else None
             if train_line is not None:
                 self._click_line(agent, train_line)
