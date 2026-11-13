@@ -45,9 +45,12 @@ def pick_hand_card(
     stamina: int | None = None,
     costs=None,
     attribute: str | None = None,
+    exclude: set[str] | None = None,
 ) -> HandPick | None:
-    """按卡名价值挑一张；costs 给每张卡的体力费用（可选）；attribute 匹配的卡加权。"""
+    """按卡名价值挑一张；costs 给每张卡的体力费用（可选）；attribute 匹配的卡加权；
+    exclude 里的卡名（点不动/不满足条件）跳过。"""
     attribute_keyword = {"Vo": "歌唱", "Da": "舞蹈", "Vi": "视觉"}.get(attribute or "", None)
+    excluded = exclude or set()
     best: HandPick | None = None
     for index, box in enumerate(boxes):
         cost = costs[index] if costs is not None and index < len(costs) else None
@@ -56,7 +59,7 @@ def pick_hand_card(
         if stamina is not None and cost is not None and cost > stamina:
             continue
         name = _name_near(lines, box, library)
-        if name is None:
+        if name is None or name in excluded:
             continue
         info = library.find(name)
         if info is None:

@@ -193,6 +193,9 @@ def main() -> int:
     idle = 0
     pause_streak = 0
     last_stamina: int | None = None
+    bad_cards: set[str] = set()
+    last_pick_name: str | None = None
+    same_pick_count = 0
     done = False
     seen_produce = False
     produce_end_seen = False
@@ -327,8 +330,7 @@ def main() -> int:
         if lesson_fast or any(word in text for word in LESSON_WORDS):
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
-            last_signature = None
-            same_action_count = 0
+            # 课程分支不重置防死循环签名（否则课程卡死永远不触发），交给通用签名计数
             # 期末前估分：拿当前手牌跑 15 局蒙特卡洛
             if not exam_estimate_done and ("最终考试" in status_text or "期末考试" in status_text):
                 exam_estimate_done = True
@@ -399,7 +401,29 @@ def main() -> int:
                     stamina=stamina,
                     costs=costs,
                     attribute=driver.lesson_attribute,
+                    exclude=bad_cards,
                 )
+                # 同一张卡连点 4 次手牌都没变 → 认为不可用，标记跳过、换一张
+                if name_pick is not None:
+                    if name_pick.name == last_pick_name:
+                        same_pick_count += 1
+                    else:
+                        last_pick_name = name_pick.name
+                        same_pick_count = 1
+                    if same_pick_count >= 4:
+                        bad_cards.add(name_pick.name)
+                        log_lines.append(f"{step:03d} [lesson] {name_pick.name} 连点不动，标记跳过")
+                        last_pick_name = None
+                        same_pick_count = 0
+                        name_pick = pick_hand_card(
+                            lines,
+                            boxes,
+                            card_lib,
+                            stamina=stamina,
+                            costs=costs,
+                            attribute=driver.lesson_attribute,
+                            exclude=bad_cards,
+                        )
                 if name_pick is not None:
                     clicked = agent.device.click_force(*name_pick.point)
                     time.sleep(0.9)
@@ -470,6 +494,9 @@ def main() -> int:
         else:
             lesson_pending = None
             drink_used = False
+            bad_cards.clear()
+            last_pick_name = None
+            same_pick_count = 0
             tick = driver.decide(agent, lines, image)
             result = tick.describe()
             screen_name, action_name = tick.screen, tick.action
