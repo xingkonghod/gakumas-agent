@@ -475,6 +475,18 @@ class ProduceDriver:
             return TickResult("event", "advance")
 
         # 11) 带标点的长文本基本是剧情/对话：点对话框继续
+        # 11.0) 先处理「剧情选择项」：底部 2-3 个带问号的选项气泡，点最上面那个
+        choices = [
+            line
+            for line in lines
+            if 650 <= self.center(line)[1] <= 1150
+            and ("？" in line.text or "?" in line.text)
+            and 2 <= len(line.text.strip()) <= 25
+        ]
+        if len(choices) >= 2:
+            target = min(choices, key=lambda line: self.center(line)[1])
+            self._click_line(agent, target)
+            return TickResult("story", "choice")
         if len(text.strip()) > 10 and any(mark in text for mark in ("。", "！", "？", "…")):
             self._click(agent, (360, 1000))
             return TickResult("story", "tap")
