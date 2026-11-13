@@ -262,7 +262,8 @@ class ProduceDriver:
                         and len(line.text.strip()) >= 2
                         and not self._checkbox_checked(image, cy)
                     ):
-                        self._click(agent, (360, cy))
+                        # 一定要点勾选框本身（x≈635），点行中间不会切换勾选
+                        self._click(agent, (635, cy))
                         return TickResult("drink-keep", "check-row")
             keep = self.find(lines, "保留")
             self._click_line(agent, keep) if keep else self._click(agent, (360, 1166))
