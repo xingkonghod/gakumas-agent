@@ -12,6 +12,9 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+import cv2
+import numpy as np
+
 from gkagent.vision.ocr import OcrEngine, OcrLine
 
 # ---- 固定落点（720x1280；实测） -------------------------------------------
@@ -127,6 +130,22 @@ class ProduceDriver:
             if candidates:
                 return min(candidates, key=lambda line: len(line.text))
         return None
+
+    @staticmethod
+    def _checkbox_bands(image) -> list[tuple[int, int]]:
+        """在勾选框列（x 610-655）扫描，返回每行勾选框的 (top, bottom)。"""
+        if image is None:
+            return []
+        patch = image[:, 610:655]
+        gray = cv2.cvtColor(patch, cv2.COLOR_BGR2GRAY)
+        mask = (gray < 245).astype(int).sum(axis=1)
+        bands: list[list[int]] = []
+        for y in np.where(mask > 5)[0]:
+            if bands and y - bands[-1][-1] <= 8:
+                bands[-1].append(int(y))
+            else:
+                bands.append([int(y)])
+        return [(band[0], band[-1]) for band in bands]
 
     @staticmethod
     def _checkbox_checked(image, y: int) -> bool:
@@ -254,18 +273,16 @@ class ProduceDriver:
             if need_match:
                 need = int(need_match.group(1))
             if need > 0 and image is not None:
-                # 「获得的饮料」那一段的勾选是灰的（不可选），只补勾「手持的饮料」下面的行
+                # 「获得的饮料」段勾选是灰的（不可选）；按勾选框列扫描出行位置，
+                # 只补勾「手持的饮料」下面未勾选的行（行位置和文字行 y 有 20-50px 偏差，不能直接用文字行）
                 hand_header = self.find(lines, "手持的饮料")
-                min_y = hand_header.box[1] + 30 if hand_header is not None else 440
-                for line in lines:
-                    cy = self.center(line)[1]
-                    if (
-                        min_y <= cy <= 980
-                        and self.center(line)[0] < 420
-                        and len(line.text.strip()) >= 2
-                        and not self._checkbox_checked(image, cy)
-                    ):
-                        self._click(agent, (635, cy))
+                header_y = hand_header.box[1] if hand_header is not None else 400
+                for top, bottom in self._checkbox_bands(image):
+                    center = (top + bottom) // 2
+                    if center < header_y + 20 or center > 1100:
+                        continue
+                    if not self._checkbox_checked(image, center):
+                        self._click(agent, (632, center))
                         return TickResult("drink-keep", "check-row")
             keep = self.find(lines, "保留")
             self._click_line(agent, keep) if keep else self._click(agent, (360, 1166))
