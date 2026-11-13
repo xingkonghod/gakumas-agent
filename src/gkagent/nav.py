@@ -89,9 +89,14 @@ class Navigator:
         return self.agent.ensure_home()
 
     def ensure_home(self, attempts: int = 3) -> bool:
-        """用底栏房子图标回主页（详情页的底栏和主页不同，模板常对不上）。"""
+        """用底栏房子图标回主页（详情页的底栏和主页不同，模板常对不上）。
+
+        已经在培育/课程/考试里的话不要回主页，否则会把进行中的一局打断。
+        """
         for _ in range(attempts):
             text = " ".join(line.text for line in self.lines())
+            if any(word in text for word in ("剩余回合数", "CLEAR截止", "PERFECT截止", "审查基准")):
+                return True
             if "主页" in text and any(word in text for word in ("扭蛋", "商店", "プロデュース", "礼物")):
                 return True
             self.agent.device.click(*self.HOME_ICON)
