@@ -39,6 +39,7 @@ from gkagent.sim.exam_estimate import SimCard, estimate_score
 from gkagent.tasks.produce import ProduceTask
 from gkagent.tasks.produce_ui import LESSON_WORDS, ProduceDriver, parse_stamina
 from gkagent.vision.cards import scan_hand
+from gkagent.vision.hand_names import pick_hand_card
 from gkagent.vision.matcher import TemplateMatcher
 from gkagent.vision.ocr import OcrEngine
 
@@ -58,13 +59,13 @@ PRODUCE_MARKERS = (
 HOME_MARKERS = ("亲密度", "活动经费", "商店", "扭蛋")
 
 
-def build_task(episode: str, engine: OcrEngine) -> ProduceTask:
+def build_task(episode: str, engine: OcrEngine, card_library: CardLibrary | None = None) -> ProduceTask:
     def _hand_reader(image):
         scan = scan_hand(image)
         return list(scan.cards), [tuple(card.box) for card in scan.cards]
 
     # 按卡名/效果文本查卡库打分（权重已改成打分优先），决定出哪张
-    card_library = CardLibrary()
+    card_library = card_library or CardLibrary()
     item_library = ItemLibrary()
     ocr_policy = OcrCardPolicy(
         engine,
@@ -147,7 +148,8 @@ def main() -> int:
         return 2
     agent = Agent(Win32Device(hwnd).connect(), TemplateMatcher(ROOT / "templates"))
     engine = OcrEngine()
-    task = build_task(episode, engine)
+    card_lib = CardLibrary()
+    task = build_task(episode, engine, card_lib)
     driver = ProduceDriver(ocr=engine)
     # 开局先回主页：上一轮可能停在支援卡/偶像/强化页面，否则前 8 步全是 unknown-tap
     try:
@@ -318,24 +320,42 @@ def main() -> int:
                 idle = 0 if clicked is not False else idle
             elif action_name != "drink":
                 lesson_pending = None
-                screen = task.observe(agent, image)
-                play = task.decide_card(agent, image, screen=screen, stamina=stamina)
-                if play is not None:
-                    task._record(image, play)
-                    clicked = agent.device.click_force(*play.point)
+                # 快路径：手牌上直接读卡名 → 卡库估值，选最值的一张（不逐张点开）
+                costs = [card.cost for card in hand.cards] if hand.cards else None
+                name_pick = pick_hand_card(lines, boxes, card_lib, stamina=stamina, costs=costs)
+                if name_pick is not None:
+                    clicked = agent.device.click_force(*name_pick.point)
                     time.sleep(0.9)
                     if clicked is False:
                         result = "[pause] 用户正在操作，暂停出牌"
                         idle = 0
                     else:
-                        lesson_pending = (play.point, boxes)
-                        result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
+                        lesson_pending = (name_pick.point, boxes)
+                        result = (
+                            f"[lesson] name-pick {name_pick.name} "
+                            f"({name_pick.value:.1f}) at {name_pick.point}"
+                        )
                         idle = 0
+                    action_name = "name-pick"
                 else:
-                    clicked = agent.device.click_force(360, 1000)
-                    time.sleep(0.9)
-                    result = "[lesson] 无可用决策，点击中位卡兜底"
-                    idle += 1
+                    screen = task.observe(agent, image)
+                    play = task.decide_card(agent, image, screen=screen, stamina=stamina)
+                    if play is not None:
+                        task._record(image, play)
+                        clicked = agent.device.click_force(*play.point)
+                        time.sleep(0.9)
+                        if clicked is False:
+                            result = "[pause] 用户正在操作，暂停出牌"
+                            idle = 0
+                        else:
+                            lesson_pending = (play.point, boxes)
+                            result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
+                            idle = 0
+                    else:
+                        clicked = agent.device.click_force(360, 1000)
+                        time.sleep(0.9)
+                        result = "[lesson] 无可用决策，点击中位卡兜底"
+                        idle += 1
         else:
             lesson_pending = None
             drink_used = False
