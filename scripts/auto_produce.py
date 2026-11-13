@@ -46,6 +46,22 @@ from gkagent.vision.ocr import OcrEngine
 LOG = ROOT / "data" / "auto_log.txt"
 SHOT_DIR = ROOT / "data" / "auto"
 METRICS = ROOT / "data" / "metrics.jsonl"
+FAILURES = ROOT / "data" / "failures.jsonl"
+
+
+def log_failure(episode: str, step: int, kind: str, detail: str, extra: dict | None = None) -> None:
+    """失败日志：每出现一次失败（课程 FAILED / 局未完成 / 卡死自停）都落一条。"""
+    record = {
+        "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "episode": episode,
+        "step": step,
+        "kind": kind,
+        "detail": detail[:300],
+    }
+    if extra:
+        record.update(extra)
+    with FAILURES.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 PRODUCE_MARKERS = (
     "定期公演",
@@ -173,6 +189,7 @@ def main() -> int:
     log_lines: list[str] = []
     idle = 0
     pause_streak = 0
+    last_stamina: int | None = None
     done = False
     seen_produce = False
     produce_end_seen = False
@@ -249,6 +266,22 @@ def main() -> int:
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
             markers.append(text[:40])
+        # 失败画面（课程/考试 FAILED、不合格）：落失败日志 + 截图
+        if "FAILED" in text or "不合格" in text:
+            fail_path = SHOT_DIR / f"fail_{episode}_{step:03d}.png"
+            cv2.imwrite(str(fail_path), image)
+            log_failure(
+                episode,
+                step,
+                "lesson-failed" if "FAILED" in text else "exam-failed",
+                text,
+                {
+                    "attribute": driver.lesson_attribute,
+                    "stamina": last_stamina,
+                    "screenshot": str(fail_path),
+                },
+            )
+            log_lines.append(f"{step:03d} [fail] FAILED/不合格 已记录 {fail_path}")
         # 最终评价画面单独存档（轮转 step_NNN 会覆盖）
         if "最终培育评价" in text:
             final_path = SHOT_DIR / f"final_eval_{episode}.png"
@@ -301,6 +334,8 @@ def main() -> int:
                     log_lines.append(f"{step:03d} [exam] estimate {estimate}")
             # 体力管理：低于 8 且还有回合，用一次饮料（每节课最多一次）
             stamina = parse_stamina(status_text or text)
+            if stamina is not None:
+                last_stamina = stamina
             turns_match = re.search(r"剩余回合数\s*(\d+)", text)
             turns = int(turns_match.group(1)) if turns_match else None
             if (
@@ -462,6 +497,14 @@ def main() -> int:
     LOG.write_text("\n".join(log_lines), encoding="utf-8")
     # 每局单独留一份，避免被下一局/手工测试覆盖
     (SHOT_DIR / f"auto_log_{episode}.log").write_text("\n".join(log_lines), encoding="utf-8")
+    if not done:
+        log_failure(
+            episode,
+            len(log_lines),
+            "episode-not-done",
+            log_lines[-1] if log_lines else "no log",
+            {"steps": len(log_lines), "attribute": driver.lesson_attribute},
+        )
     summary = metrics.summary(episode)
     print(
         json.dumps(
