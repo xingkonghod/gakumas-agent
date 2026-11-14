@@ -1,15 +1,20 @@
 {
-  "version": 1,
-  "lesson": {
-    "reserve_per_turn": 2.0,
-    "negligible": 0.5,
-    "min_gain": 1.0,
-    "buff_first": true,
-    "buff_max_cost_ratio": 1.0,
-    "buff_min_budget": 2.0,
-    "buff_score_guard": 5.0,
-    "buff_value_fallback": 6.0,
-    "last_turn_max_total": true,
-    "unknown_score_fallback": "cheapest"
-  }
+ "version": 1,
+ "lesson": {
+  "reserve_per_turn": 2.0,
+  "negligible": 0.5,
+  "min_gain": 1.0,
+  "buff_first": true,
+  "buff_max_cost_ratio": 1.0,
+  "buff_min_budget": 2.0,
+  "buff_score_guard": 5.0,
+  "buff_value_fallback": 6.0,
+  "last_turn_max_total": true,
+  "unknown_score_fallback": "cheapest"
+ },
+ "produce": {
+  "prefer_lesson": true,
+  "rest_threshold": 8,
+  "reward_pick": "best"
+ }
 }

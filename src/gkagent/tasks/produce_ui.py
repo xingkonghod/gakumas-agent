@@ -146,6 +146,26 @@ class ProduceDriver:
                     return line
         return None
 
+    def _produce_params(self) -> dict:
+        """读 data/knowledge/policy.json 的 produce 段；坏文件/缺文件回退默认值。"""
+        cached = getattr(self, "_produce_cfg", None)
+        if isinstance(cached, dict):
+            return cached
+        defaults = {"prefer_lesson": True, "rest_threshold": 8, "reward_pick": "best"}
+        try:
+            import json as _json
+            from pathlib import Path as _Path
+
+            raw = _json.loads(_Path(r"D:\Games\gakumas-agent\data\knowledge\policy.json").read_text(encoding="utf-8"))
+            section = raw.get("produce") or {}
+            if isinstance(section, dict):
+                defaults.update({k: v for k, v in section.items() if k in defaults})
+        except Exception:  # noqa: BLE001 - 参数文件坏了就用默认值
+            self._produce_cfg = defaults
+            return defaults
+        self._produce_cfg = defaults
+        return defaults
+
     _REWARD_TABLE = None
 
     @classmethod
@@ -423,8 +443,10 @@ class ProduceDriver:
         training_hits = sum(1 for word in ("Vo", "Da", "Vi") if word in text)
         stamina = parse_stamina(text)
         # 体力不够就别硬练：优先休息（当前帧没读到体力就用上一帧的）
+        params = self._produce_params()
+        rest_threshold = int(params.get("rest_threshold", 8))
         effective_stamina = stamina if stamina is not None else self.stamina_hint
-        if "休息" in text and effective_stamina is not None and effective_stamina < 8:
+        if "休息" in text and effective_stamina is not None and effective_stamina < rest_threshold:
             rest = self.find(lines, "休息")
             self._click_line(agent, rest) if rest else self._click(agent, (640, 860))
             return TickResult("action", "rest")
@@ -440,7 +462,8 @@ class ProduceDriver:
             or (training_hits >= 2 and "训练" in text)
             or ("授课" in text and "活动奖励" in text)
         ):
-            if "授课" in text and training_hits == 0:
+            # 模拟器结论：课程（得分×0.6 转属性）明显强于训练，能上课就上课
+            if "授课" in text and (training_hits == 0 or params.get("prefer_lesson", True)):
                 lesson_line = self.find(lines, "授课")
                 if lesson_line is not None:
                     self._click_line(agent, lesson_line)
