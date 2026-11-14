@@ -1,0 +1,19 @@
+{
+ "version": 1,
+ "source": "sim_search",
+ "produce": {
+  "rest_threshold": 6,
+  "lesson_every": 1,
+  "attr_choice": "lowest",
+  "outing_below": 20,
+  "min_stamina_to_train": 10
+ },
+ "stats": {
+  "mean": 1415.4,
+  "p10": 1294,
+  "exams": 1.69,
+  "clear_rate": 0.895,
+  "fail_exam_rate": -1013.5,
+  "n": 1200
+ }
+}

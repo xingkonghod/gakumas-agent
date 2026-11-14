@@ -32,14 +32,21 @@ def build_runs(count: int) -> list[dict]:
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
 
-    strategies = ["smart", "train_best", "lesson_heavy", "mixed", "random"]
+    strategies = ["searched", "lesson_heavy", "train_best", "smart", "random"]
     runs = []
     for index in range(count):
         name = strategies[index % len(strategies)]
         config = ProduceConfig(reward_pick="best", support_bonus=1.15)
         sim = ProduceSim(deck, config=config, rng_seed=1000 + index)
         sim.reward_pool = pool
-        if name == "random":
+        if name == "searched":
+            import json as _json
+
+            from gkagent.sim.produce import StrategyParams, strategy_from_params
+
+            best = _json.loads((ROOT / "data" / "knowledge" / "policy_sim.json").read_text(encoding="utf-8"))["produce"]
+            strategy = strategy_from_params(StrategyParams(**best))
+        elif name == "random":
             from gkagent.sim.produce import random_strategy
 
             strategy = random_strategy(1000 + index)

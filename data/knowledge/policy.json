@@ -14,7 +14,12 @@
  },
  "produce": {
   "prefer_lesson": true,
-  "rest_threshold": 8,
-  "reward_pick": "best"
+  "rest_threshold": 6,
+  "reward_pick": "best",
+  "lesson_every": 1,
+  "attr_choice": "lowest",
+  "min_stamina_to_train": 10,
+  "outing_below": 20,
+  "source": "sim_search"
  }
 }

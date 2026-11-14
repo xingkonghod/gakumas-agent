@@ -40,7 +40,10 @@ class ProduceConfig:
     support_bonus: float = 1.0      # 支援卡对训练收益的倍率（近似）
     lesson_gain_ratio: float = 0.6  # 课程得分 → 属性成长（按真机一局 ~632 标定）
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
-    exam_thresholds: tuple[float, ...] = (0.13, 0.30)  # 期中/期末过关线（属性×权重 归一化后的比例）
+    # 考试：6 人里进前 3 才算合格。基准分按真机标定：
+    # 实拍期末 1st 589 / 2nd 406 / 3rd 203 / 4th 201 / 5th 195，我们 632 属性 = 6th（不合格）
+    exam_base: tuple[float, ...] = (150.0, 205.0)     # 期中/期末「第 3 名」的实力基准
+    npc_factors: tuple[float, ...] = (2.9, 2.0, 1.0, 0.99, 0.95)  # 5 个对手相对第 3 名的倍数
     fans_per_clear: int = 800
 
 
@@ -111,6 +114,7 @@ class ProduceSim:
         self.reward_picks = 0
         self.trace: list[dict] = []       # 每周快照，给前端回放用
         self.last_lesson: dict | None = None
+        self.last_exam: dict | None = None
 
     # ------------------------------------------------------------------ 局面
     @property
@@ -162,7 +166,9 @@ class ProduceSim:
 
     def lesson(self) -> None:
         self.stamina = max(0, self.stamina - self.config.lesson_cost)
-        target = self.rng.choice(self.config.lesson_targets)
+        # 审查基准随进度抬升：前半段偏易，后半段偏难
+        stage = min(len(self.config.lesson_targets) - 1, (self.week - 1) * len(self.config.lesson_targets) // max(self.config.weeks, 1))
+        target = self.config.lesson_targets[stage]
         plays: list[dict] = []
 
         def traced_policy(inner):
@@ -219,19 +225,41 @@ class ProduceSim:
         self.log.append(f"W{self.week} lesson target{target} score{score} {grade}")
 
     # ------------------------------------------------------------------ 学期
-    def exam(self, threshold: float) -> bool:
-        score = self.weighted()
-        passed = score >= threshold * 1000
+    def exam(self, index: int) -> dict:
+        """6 人考试：属性加权 = 实力，和第 3 名基准比，进前 3 才合格。"""
+        power = self.weighted()
+        base = self.config.exam_base[min(index, len(self.config.exam_base) - 1)]
+        opponents = [base * factor for factor in self.config.npc_factors]
+        rank = 1 + sum(1 for value in opponents if value > power)
+        passed = rank <= 3
         if passed:
             self.exams_passed += 1
             self.fans += 3000
-        return passed
+        self.last_exam = {
+            "rank": rank,
+            "power": round(power, 1),
+            "passed": passed,
+            "npc": [round(value, 1) for value in opponents],
+        }
+        return self.last_exam
 
     def step(self, strategy) -> None:
         cfg = self.config
         if self.week in cfg.exam_weeks:
             index = cfg.exam_weeks.index(self.week)
-            self.exam(cfg.exam_thresholds[min(index, len(cfg.exam_thresholds) - 1)])
+            self.exam(index)
+            self.trace.append(
+                {
+                    "week": self.week,
+                    "action": "exam",
+                    "stamina_before": self.stamina,
+                    "stamina_after": self.stamina,
+                    "attrs_before": list(self.attrs),
+                    "attrs_after": list(self.attrs),
+                    "lesson": None,
+                    "exam": self.last_exam,
+                }
+            )
             self.week += 1
             return
         action = strategy(self)
@@ -274,6 +302,38 @@ class ProduceSim:
             exams_passed=self.exams_passed,
             grade=grade_for(sum(self.attrs)),
         )
+
+
+# ---------------------------------------------------------------------- 策略参数
+@dataclass(frozen=True)
+class StrategyParams:
+    """可搜的策略参数：行动节奏 + 练哪个属性。"""
+
+    rest_threshold: int = 10        # 体力低于此 → 休息
+    lesson_every: int = 1           # 每 N 周上一次课（1 = 能上就上）
+    attr_choice: str = "weight"     # weight=练权重最高 / lowest=补短板 / rotate=轮转
+    outing_below: int = -1          # 体力低于此且本周有外出 → 先外出（-1 关闭）
+    min_stamina_to_train: int = 10  # 低于此不硬练
+
+
+def strategy_from_params(params: StrategyParams):
+    """把参数变成执行函数（模拟器与真机共用的同一套节奏）。"""
+
+    def strategy(state: ProduceSim) -> str:
+        cfg = state.config
+        if state.stamina < params.rest_threshold:
+            return "rest"
+        if params.outing_below >= 0 and state.stamina < params.outing_below and state.week in cfg.outing_weeks:
+            return "outing"
+        if params.lesson_every > 0 and state.week % params.lesson_every == 0:
+            return "lesson"
+        if state.stamina < params.min_stamina_to_train:
+            return "rest"
+        if params.attr_choice == "lowest":
+            return "train_low"
+        return "train"
+
+    return strategy
 
 
 # ---------------------------------------------------------------------- 策略
