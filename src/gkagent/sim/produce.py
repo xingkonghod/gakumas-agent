@@ -219,7 +219,9 @@ class ProduceSim:
         # 之前按 30+score/20 估会低估 5-10 倍，已按机制修正。
         order = sorted(range(3), key=lambda i: self.config.weights[i], reverse=True)
         target_attr = order[self.lessons % 3]
-        self.attrs[target_attr] += int(score * self.config.lesson_gain_ratio)
+        # 支援卡也提升课程成长（真机支援卡给属性加成/技能卡；这里只建模属性加成那一路）
+        support_factor = 0.85 + 0.15 * self.config.support_bonus
+        self.attrs[target_attr] += int(score * self.config.lesson_gain_ratio * support_factor)
         # 课程奖励：真机每节课后都有三选一，所以不管 CLEAR 都给（这才是牌组变强的来源）
         reward = self.pick_reward()
         if reward is not None:

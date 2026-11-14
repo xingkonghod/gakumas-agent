@@ -55,7 +55,7 @@ def test_exam_rank_uses_six_competitors() -> None:
 
 def test_lesson_growth_ratio() -> None:
     """课程加的属性 ≈ 得分 × lesson_gain_ratio。"""
-    sim = _sim(lesson_gain_ratio=1.0)
+    sim = _sim(lesson_gain_ratio=1.0, support_bonus=1.0)
     before = list(sim.attrs)
     sim.lesson()
     gained = sum(sim.attrs) - sum(before)
