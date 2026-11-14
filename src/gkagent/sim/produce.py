@@ -64,12 +64,43 @@ class ProduceResult:
         return sum(self.attrs)
 
 
-def grade_for(total: int) -> str:
-    """三维总和 → 评价（按真机观测标定：总和 ~630 = E）。"""
-    for limit, grade in ((700, "E"), (900, "D"), (1100, "C"), (1300, "C+"), (1600, "B"), (1900, "B+"), (2200, "A")):
-        if total < limit:
+# 官方评价公式（wiki/NGA 解包，剧本「初」レギュラー/プロ/マスター）
+RANK_POINTS = {1: 1700, 2: 900, 3: 500}
+SCORE_BRACKETS = ((5000, 0.30), (10000, 0.15), (20000, 0.08), (30000, 0.04), (40000, 0.02), (10**9, 0.01))
+EVAL_RANKS = (
+    (35000, "S5"), (30000, "S4+"), (26000, "S4"), (23000, "SSS+"), (20000, "SSS"),
+    (18000, "SS+"), (16000, "SS"), (14500, "S+"), (13000, "S"), (11500, "A+"),
+    (10000, "A"), (8000, "B+"), (6000, "B"), (4500, "C+"), (3000, "C"),
+)
+
+
+def exam_score_points(score: int) -> int:
+    """终试得分 → 评价点（分段倍率）。"""
+    points = 0.0
+    lower = 0
+    for upper, rate in SCORE_BRACKETS:
+        if score <= lower:
+            break
+        points += (min(score, upper) - lower) * rate
+        lower = upper
+    return int(points)
+
+
+def grade_for(total: int, rank: int = 3, exam_score: int | None = None) -> str:
+    """官方评价：顺位点 + 2.3×三维总和 + 终试得分换算 → 评价字母。"""
+    if exam_score is None:
+        exam_score = total * 2  # 没有终试分数时的保守近似
+    value = RANK_POINTS.get(rank, 0) + int(2.3 * total) + exam_score_points(exam_score)
+    for limit, grade in EVAL_RANKS:
+        if value >= limit:
             return grade
-    return "S"
+    return "E"
+
+
+def eval_value(total: int, rank: int = 3, exam_score: int | None = None) -> int:
+    if exam_score is None:
+        exam_score = total * 2
+    return RANK_POINTS.get(rank, 0) + int(2.3 * total) + exam_score_points(exam_score)
 
 
 def lesson_policy(sim) -> int | None:
@@ -323,13 +354,20 @@ class ProduceSim:
     def run(self, strategy) -> ProduceResult:
         while not self.done:
             self.step(strategy)
+        last_rank = 3
+        for row in reversed(self.trace):
+            if row.get("exam"):
+                last_rank = row["exam"]["rank"]
+                break
+        total = sum(self.attrs)
+        exam_score = total * 2  # 近似：终试得分 ≈ 2×三维总和
         return ProduceResult(
             attrs=tuple(self.attrs),
             fans=self.fans,
             lessons=self.lessons,
             cleared=self.cleared,
             exams_passed=self.exams_passed,
-            grade=grade_for(sum(self.attrs)),
+            grade=grade_for(total, last_rank, exam_score),
         )
 
 
