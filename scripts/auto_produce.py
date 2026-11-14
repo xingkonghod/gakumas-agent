@@ -198,6 +198,7 @@ def main() -> int:
     same_pick_count = 0
     action_key: tuple[str, str] | None = None
     action_streak = 0
+    final_phase = False
     done = False
     seen_produce = False
     produce_end_seen = False
@@ -292,6 +293,41 @@ def main() -> int:
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
             markers.append(text[:40])
+        # 期末试镜之后进入「结算期」：评分/评价画面常常一闪而过，
+        # 每步先连拍几张再动作，确保能抓到最终评价
+        if not final_phase and any(
+            word in text for word in ("最终试镜", "最终考试", "最終試", "最終試験")
+        ):
+            final_phase = True
+            log_lines.append(f"{step:03d} [final] 进入期末结算期，连拍抓评价")
+        if final_phase:
+            for burst in range(2):
+                time.sleep(0.7)
+                extra = agent.shot()
+                burst_path = SHOT_DIR / f"final_{episode}_{step:03d}_{burst}.png"
+                cv2.imwrite(str(burst_path), extra)
+                extra_text = driver.text_of(driver.engine().read(extra))
+                grade = None
+                for token in ("S+", "S", "A+", "A", "B+", "B", "C+", "C", "D", "E"):
+                    if token in extra_text:
+                        grade = token
+                        break
+                score_match = re.search(r"(\d{3,6})\s*(?:pt|Pt|PT|分|点)", extra_text)
+                if grade is not None or "评价" in extra_text or "評価" in extra_text:
+                    record = {
+                        "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "episode": episode,
+                        "step": step,
+                        "grade": grade,
+                        "score": score_match.group(1) if score_match else None,
+                        "text": extra_text[:200],
+                        "screenshot": str(burst_path),
+                    }
+                    with (ROOT / "data" / "final_grades.jsonl").open("a", encoding="utf-8") as handle:
+                        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    log_lines.append(
+                        f"{step:03d} [final] 评价 grade={grade} score={record['score']} {burst_path}"
+                    )
         # 失败画面（课程/考试 FAILED、不合格）：落失败日志 + 截图
         if "FAILED" in text or "不合格" in text:
             fail_path = SHOT_DIR / f"fail_{episode}_{step:03d}.png"
