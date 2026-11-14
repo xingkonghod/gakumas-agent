@@ -9,21 +9,31 @@
 5. 没有正收益的牌就 **SKIP 结束回合**，不要瞎点卡面空转；
 6. 已经过了审查基准、剩下的牌又不值几分时，也别再烧体力。
 
+数值参数全部外置到 ``data/knowledge/policy.json``：模拟器扫出来的参数写回文件后，
+真机下一次构造 ``LessonPolicy`` 就生效；``describe()`` 返回当前生效参数，便于日志对比。
+
 策略只产出"点哪里"，不负责点击的时序（两段式确认由调用方处理）。
 """
 
 from __future__ import annotations
 
+import json
+import math
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, ClassVar
 
 from gkagent.data.buffs import BuffLibrary
 from gkagent.data.card_effects import estimate_value
 from gkagent.vision.lesson import LessonCard, LessonState, card_value
 
-# 保留给后续回合的体力下限：每剩 1 回合至少留这么多
-RESERVE_PER_TURN = 2.0
-# 分数预览为 0 且不是 buff 的牌，视为"没用"
-NEGLIGIBLE = 0.5
+# 默认参数文件：真机与模拟器共用。模拟器也可以先写 policy_sim.json 再通过 params_path 传进来。
+DEFAULT_POLICY_PATH = Path(__file__).resolve().parents[3] / "data" / "knowledge" / "policy.json"
+
+# 字符串型参数的合法取值；文件里写错就回退默认值，不让策略崩。
+_ALLOWED_VALUES: dict[str, frozenset[str]] = {
+    "unknown_score_fallback": frozenset({"cheapest", "skip"}),
+}
 
 
 @dataclass(frozen=True)
@@ -37,21 +47,132 @@ class LessonAction:
 
 
 class LessonPolicy:
-    """有状态的出牌策略：跟踪"本回合打了几张、有没有上过 buff"。"""
+    """有状态的出牌策略：跟踪"本回合打了几张、有没有上过 buff"。
+
+    参数优先级（低 → 高）：``DEFAULT_PARAMS`` → ``params_path``/默认
+    ``data/knowledge/policy.json`` → ``params`` → 显式关键字参数。
+    文件缺失、JSON 损坏、字段类型不对时都只用默认值，绝不抛异常。
+    """
+
+    DEFAULT_PARAMS: ClassVar[dict[str, Any]] = {
+        # 保留给后续回合的体力下限：每剩 1 回合至少留这么多
+        "reserve_per_turn": 2.0,
+        # 分数预览 ≤ 这个值（且不是 buff）被视为"没用"
+        "negligible": 0.5,
+        # 低于这个期望收益的牌不打（最后一回合同样生效）
+        "min_gain": 1.0,
+        # 是否先铺 buff（好调/集中等）
+        "buff_first": True,
+        # 铺 buff 的费用上限 = 本回合预算 × ratio，且不低于 buff_min_budget
+        "buff_max_cost_ratio": 1.0,
+        "buff_min_budget": 2.0,
+        # 场上已有分数 ≥ guard × buff 等效分时，先打分数牌而不是 buff
+        "buff_score_guard": 5.0,
+        # buff 文本估不出分时的兜底等效分
+        "buff_value_fallback": 6.0,
+        # 最后一回合按"总分最大"而不是"性价比"选牌
+        "last_turn_max_total": True,
+        # 分数完全没读到时：cheapest=打最便宜的保成长，skip=跳过
+        "unknown_score_fallback": "cheapest",
+    }
 
     def __init__(
         self,
         *,
         buffs: BuffLibrary | None = None,
-        buff_first: bool = True,
-        min_gain: float = 1.0,
+        buff_first: bool | None = None,
+        min_gain: float | None = None,
+        params: dict | None = None,
+        params_path: str | Path | None = None,
     ) -> None:
         self.buffs = buffs or BuffLibrary.load()
-        self.buff_first = buff_first
-        self.min_gain = min_gain
+        self.params = self._resolve_params(params, params_path)
+        # 兼容旧的显式关键字参数（优先级最高）
+        if buff_first is not None:
+            self.params["buff_first"] = bool(buff_first)
+        if min_gain is not None:
+            parsed = _as_float(min_gain)
+            if parsed is not None:
+                self.params["min_gain"] = parsed
         self._last_turns: int | None = None
         self._plays_this_turn = 0
         self._buff_played_this_turn = False
+
+    # ------------------------------------------------------------------ 参数
+    @property
+    def buff_first(self) -> bool:
+        return bool(self.params["buff_first"])
+
+    @buff_first.setter
+    def buff_first(self, value: bool) -> None:
+        self.params["buff_first"] = bool(value)
+
+    @property
+    def min_gain(self) -> float:
+        return float(self.params["min_gain"])
+
+    @min_gain.setter
+    def min_gain(self, value: float) -> None:
+        parsed = _as_float(value)
+        if parsed is not None:
+            self.params["min_gain"] = parsed
+
+    def describe(self) -> dict[str, Any]:
+        """当前生效的规则参数（拷贝，供日志/评测对比）。"""
+        return dict(self.params)
+
+    @classmethod
+    def _resolve_params(
+        cls, params: dict | None, params_path: str | Path | None
+    ) -> dict[str, Any]:
+        values = dict(cls.DEFAULT_PARAMS)
+        # 不传 params_path 时尝试默认文件；显式传路径则只认那个路径（缺失=默认值）。
+        path = Path(params_path) if params_path is not None else DEFAULT_POLICY_PATH
+        values.update(cls._read_overrides(path, values))
+        if params:
+            values.update(cls._coerce(params, values))
+        return values
+
+    @classmethod
+    def _read_overrides(cls, path: Path, base: dict[str, Any]) -> dict[str, Any]:
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return {}
+        return cls._coerce(raw, base)
+
+    @classmethod
+    def _coerce(cls, raw: object, base: dict[str, Any]) -> dict[str, Any]:
+        """只采纳类型正确的已知字段；未知字段/坏值忽略。"""
+        source = cls._lesson_section(raw)
+        out: dict[str, Any] = {}
+        for key, default in base.items():
+            if key not in source:
+                continue
+            value = source[key]
+            if isinstance(default, bool):
+                parsed_bool = _as_bool(value)
+                if parsed_bool is not None:
+                    out[key] = parsed_bool
+            elif isinstance(default, float):
+                parsed_float = _as_float(value)
+                if parsed_float is not None:
+                    out[key] = parsed_float
+            elif isinstance(default, str):
+                allowed = _ALLOWED_VALUES.get(key, frozenset())
+                if isinstance(value, str) and value in allowed:
+                    out[key] = value
+        return out
+
+    @staticmethod
+    def _lesson_section(raw: object) -> dict[str, Any]:
+        """兼容 ``{"lesson": {...}}`` 整份文件和扁平 dict 两种写法。"""
+        if not isinstance(raw, dict):
+            return {}
+        lesson = raw.get("lesson")
+        if isinstance(lesson, dict):
+            return lesson
+        return raw
 
     # ------------------------------------------------------------------ 公共
     def reset(self) -> None:
@@ -101,6 +222,12 @@ class LessonPolicy:
         # 2) 性价比最高的牌
         best = self._best_score_card(affordable, values, budget, turns)
         if best is None:
+            if self.params["unknown_score_fallback"] == "skip":
+                return LessonAction(
+                    "skip",
+                    point=state.skip_point,
+                    reason="没有值得打的牌，按配置跳过本回合",
+                )
             # 分数一个都没读到 ≠ 这些牌没用：读不到数字时打最便宜的，别浪费回合（跳课=不涨属性）
             fallback = self._cheapest_unknown(affordable)
             if fallback is not None:
@@ -147,7 +274,7 @@ class LessonPolicy:
             return 99.0
         if not turns or turns <= 1:
             return float(stamina)
-        reserve = RESERVE_PER_TURN * (turns - 1)
+        reserve = float(self.params["reserve_per_turn"]) * (turns - 1)
         return max(float(stamina) - reserve, float(stamina) / max(turns, 1))
 
     def _maybe_buff(
@@ -157,7 +284,7 @@ class LessonPolicy:
         values: dict[int, float],
         budget: float,
     ) -> LessonAction | None:
-        if not self.buff_first or self._buff_played_this_turn:
+        if not self.params["buff_first"] or self._buff_played_this_turn:
             return None
         turns = state.turns_left
         if turns is not None and turns <= 1:
@@ -173,10 +300,15 @@ class LessonPolicy:
                 card.index,
             )
         )
+        # 默认 ratio=1.0 + min_budget=2.0 等价于老的 ``cost <= max(budget, 2.0)``
+        cost_limit = max(
+            budget * float(self.params["buff_max_cost_ratio"]),
+            float(self.params["buff_min_budget"]),
+        )
         candidate = None
         for card in buffs:
             cost = card.cost if card.cost is not None else 9
-            if cost <= max(budget, 2.0):
+            if cost <= cost_limit:
                 candidate = card
                 break
         if candidate is None:
@@ -184,9 +316,16 @@ class LessonPolicy:
         # 本回合已经打过牌并且有高收益牌在，就别再上 buff 了
         if self._plays_this_turn > 0:
             return None
-        best_score = max((values.get(card.index, 0.0) for card in affordable if not card.buff), default=0.0)
-        buff_value = estimate_value(candidate.text, turns_left=turns).score if candidate.text else 6.0
-        if best_score >= 5 * max(buff_value, 1.0) and turn_gain_expected(best_score) > 0:
+        best_score = max(
+            (values.get(card.index, 0.0) for card in affordable if not card.buff),
+            default=0.0,
+        )
+        if candidate.text:
+            buff_value = estimate_value(candidate.text, turns_left=turns).score
+        else:
+            buff_value = float(self.params["buff_value_fallback"])
+        guard = float(self.params["buff_score_guard"])
+        if best_score >= guard * max(buff_value, 1.0) and turn_gain_expected(best_score) > 0:
             return None
         return LessonAction(
             "card",
@@ -226,16 +365,21 @@ class LessonPolicy:
         scored = [
             (card, values.get(card.index, 0.0))
             for card in affordable
-            if values.get(card.index, 0.0) > NEGLIGIBLE
+            if values.get(card.index, 0.0) > float(self.params["negligible"])
         ]
         if not scored:
             return None
         # 最后一回合：体力不用就是浪费，按总分最大挑（而不是性价比）
-        last_turn = turns is not None and turns <= 1
+        last_turn = (
+            bool(self.params["last_turn_max_total"])
+            and turns is not None
+            and turns <= 1
+        )
+        min_gain = float(self.params["min_gain"])
         if last_turn:
             scored.sort(key=lambda item: (item[1], -item[0].index), reverse=True)
             card, value = scored[0]
-            return (card, value) if value >= self.min_gain else None
+            return (card, value) if value >= min_gain else None
         in_budget = [
             item for item in scored if (item[0].cost or 0) <= budget or item[0].cost is None
         ]
@@ -249,7 +393,7 @@ class LessonPolicy:
             reverse=True,
         )
         card, value = pool[0]
-        if value < self.min_gain:
+        if value < min_gain:
             return None
         return card, value
 
@@ -268,3 +412,35 @@ class LessonPolicy:
 def turn_gain_expected(score: float) -> float:
     """留个钩子：以后按"还差多少分"判断值不值，现在只是把 0 分挡掉。"""
     return float(score)
+
+
+def _as_float(value: object) -> float | None:
+    """把配置文件里的数字/数字字符串转成有限 float；坏值返回 None。"""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        parsed = float(value)
+    elif isinstance(value, str):
+        try:
+            parsed = float(value)
+        except ValueError:
+            return None
+    else:
+        return None
+    return parsed if math.isfinite(parsed) else None
+
+
+def _as_bool(value: object) -> bool | None:
+    """宽容地解析布尔值；认不出来返回 None（由调用方保留默认值）。"""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return bool(value) if value in (0, 1) else None
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes", "on"}:
+            return True
+        if lowered in {"false", "0", "no", "off"}:
+            return False
+    return None
+
