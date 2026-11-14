@@ -42,7 +42,7 @@ GRID = {
 
 def evaluate(task: tuple) -> dict:
     params_dict, episodes, seed, deck_raw, pool_raw = task
-    from gkagent.sim.lesson import CardSpec
+
     from gkagent.sim.produce import (
         ProduceConfig,
         ProduceSim,
@@ -51,8 +51,8 @@ def evaluate(task: tuple) -> dict:
         strategy_from_params,
     )
 
-    deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
-    pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
+    deck = _to_specs(deck_raw)
+    pool = _to_specs(pool_raw)
     params = StrategyParams(**params_dict)
     strategy = strategy_from_params(params)
     config = ProduceConfig(reward_pick="best", support_bonus=1.15)
@@ -89,13 +89,19 @@ def evaluate(task: tuple) -> dict:
     }
 
 
+
+def _to_specs(rows):
+    """Rich/legacy 卡行 -> CardSpec（worker 内懒导入，避免 spawn 后缺模块）。"""
+    import sim_produce as sp
+
+    return [sp._spec_from_row(row) for row in rows]
+
 def evaluate_play(task: tuple) -> dict:
     """固定培育策略，只扫"出牌参数"（真机 LessonPolicy）。"""
     play_params, episodes, seed, deck_raw, pool_raw = task
     import tempfile
     from pathlib import Path as _Path
 
-    from gkagent.sim.lesson import CardSpec
     from gkagent.sim.produce import (
         ProduceConfig,
         ProduceSim,
@@ -104,8 +110,8 @@ def evaluate_play(task: tuple) -> dict:
         strategy_from_params,
     )
 
-    deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
-    pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
+    deck = _to_specs(deck_raw)
+    pool = _to_specs(pool_raw)
     config = ProduceConfig(reward_pick="best", support_bonus=1.35)
     strategy = strategy_from_params(StrategyParams(rest_threshold=8, lesson_every=1, attr_choice="weight",
                                                    outing_below=16, min_stamina_to_train=8))
@@ -229,12 +235,13 @@ def main(argv: list[str]) -> int:
 
     import sim_produce as sp
 
-    deck_raw = sp.build_deck()
-    pool_raw = sp.build_pool()
+    deck_raw = sp.build_deck(rich=True)
+    pool_raw = sp.build_pool(rich=True)
     keys = list(GRID)
     all_combos = list(itertools.product(*(GRID[key] for key in keys)))
     rng = random.Random(7)
-    combos = rng.sample(all_combos, min(args.samples, len(all_combos)))
+    warm = (8, 1, "weight", 16, 8)  # 已知好参数（rest=8/每周上课/按权重/外出16/下限8）
+    combos = [warm] + [combo for combo in rng.sample(all_combos, min(args.samples, len(all_combos))) if combo != warm]
     print(f"搜索空间 {len(all_combos)} 组，本次采样 {len(combos)} 组 x {args.episodes} 局")
 
     if args.play:
