@@ -148,3 +148,31 @@ def test_calibration_estimate_ratio(tmp_path) -> None:
     calibration.record([60, 60, 60], path=path)   # 一周增长 180
     ratio = calibration.estimate_ratio([450], path=path)  # 本周课程得 450
     assert ratio is not None and abs(ratio - 0.4) < 0.01
+
+
+def test_choose_action_excludes_outing_outside_outing_weeks() -> None:
+    from gkagent.sim.action_choice import choose_action, random_pool
+    from gkagent.sim.lesson import CardSpec
+    from gkagent.sim.produce import ProduceConfig
+
+    deck = [CardSpec(name=f"c{i}", cost=3, score=9) for i in range(8)]
+    config = ProduceConfig(outing_weeks=(3, 5))
+    result = choose_action(deck, random_pool(), attrs=[100, 100, 100], stamina=30, week=4, config=config, episodes=4)
+    actions = [row["action"] for row in result["ranking"]]
+    assert "outing" not in actions
+    result2 = choose_action(deck, random_pool(), attrs=[100, 100, 100], stamina=30, week=3, config=config, episodes=4)
+    assert "outing" in [row["action"] for row in result2["ranking"]]
+
+
+def test_choose_action_prefers_lesson_with_strong_attributes() -> None:
+    from gkagent.sim.action_choice import choose_action, random_pool
+    from gkagent.sim.lesson import CardSpec
+    from gkagent.sim.produce import ProduceConfig
+
+    deck = [CardSpec(name=f"c{i}", cost=3, score=12) for i in range(8)]
+    result = choose_action(
+        deck, random_pool(3), attrs=[900, 880, 860], stamina=30, week=9,
+        config=ProduceConfig(), actions=("train", "rest", "lesson"), episodes=6,
+    )
+    assert result["action"] in ("lesson", "train")
+    assert result["ranking"][0]["eval"] >= result["ranking"][-1]["eval"]

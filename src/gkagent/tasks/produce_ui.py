@@ -146,6 +146,54 @@ class ProduceDriver:
                     return line
         return None
 
+    def _simulator_action(self, agent, image, lines, text):
+        """调模拟器选行动：候选=当前界面能点的，比较期望评价点。"""
+        values = self._attr_values(lines or [])
+        if values is None:
+            return None  # 三维读不到就不冒险，交回原逻辑
+        try:
+            from gkagent.sim.action_choice import choose_action
+            from gkagent.sim.lesson import CardSpec
+
+            deck = [CardSpec(name=f"starter{i}", cost=3, score=9) for i in range(8)]
+            deck_raw = getattr(self, "_sim_deck", None)
+            if deck_raw:
+                deck = deck_raw
+            candidates = ["train", "train_low", "rest"]
+            if "授课" in text:
+                candidates.append("lesson")
+            if "外出" in text:
+                candidates.append("outing")
+            result = choose_action(
+                deck,
+                getattr(self, "_sim_pool", None),
+                attrs=list(values),
+                stamina=self.stamina_hint or 30,
+                week=getattr(self, "_sim_week", 1),
+                actions=tuple(candidates),
+                episodes=10,
+            )
+            action = result["action"]
+            self._sim_week = getattr(self, "_sim_week", 1) + 1
+            if action == "rest":
+                rest = self.find_button(lines, ("休息",)) or self.find(lines, "休息")
+                self._click_line(agent, rest) if rest else self._click(agent, (360, 900))
+                return TickResult("action", "sim-rest")
+            if action == "lesson":
+                lesson = self.find_button(lines, ("授课",)) or self.find(lines, "授课")
+                self._click_line(agent, lesson) if lesson else self._click(agent, (360, 900))
+                return TickResult("action", "sim-lesson")
+            if action == "outing":
+                outing = self.find_button(lines, ("外出",)) or self.find(lines, "外出")
+                self._click_line(agent, outing) if outing else self._click(agent, (360, 900))
+                return TickResult("action", "sim-outing")
+            point, label = self.choose_training(text, lines)
+            self.lesson_attribute = label
+            self._click(agent, point)
+            return TickResult("action", f"sim-train-{label}")
+        except Exception:  # noqa: BLE001 - 模拟器出错就退回原逻辑
+            return None
+
     def _produce_params(self) -> dict:
         """读 data/knowledge/policy.json 的 produce 段；坏文件/缺文件回退默认值。"""
         cached = getattr(self, "_produce_cfg", None)
@@ -471,6 +519,12 @@ class ProduceDriver:
             or (training_hits >= 2 and "训练" in text)
             or ("授课" in text and "活动奖励" in text)
         ):
+            # 模拟器选行动（默认关）：对候选行动做 rollout 比评价点，再映射到界面按钮
+            if params.get("sim_choice") and image is not None:
+                sim_pick = self._simulator_action(agent, image, lines, text)
+                if sim_pick is not None:
+                    return sim_pick
+
             # 模拟器结论：课程（得分×0.6 转属性）明显强于训练，能上课就上课
             if "授课" in text and (training_hits == 0 or params.get("prefer_lesson", True)):
                 lesson_line = self.find(lines, "授课")
