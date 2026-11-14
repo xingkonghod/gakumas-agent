@@ -19,8 +19,8 @@ ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-RATIOS = (0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80)
-CALIBRATED = 0.40
+RATIOS = (0.20, 0.40, 0.60, 0.80, 0.90, 1.00)
+CALIBRATED = 1.00
 
 VARIANTS = {
     "纯训练": {
@@ -118,7 +118,7 @@ def draw(rows: list[dict]) -> None:
     index = RATIOS.index(CALIBRATED)
     x = x0 + (x1 - x0) * index / (len(RATIOS) - 1)
     canvas.line([(x, y0), (x, y1)], fill="#999999", width=2)
-    canvas.text((x + 8, y0 + 6), "标定值 0.40", fill="#777777", font=small)
+    canvas.text((x + 8, y0 + 6), "机制值 1.00", fill="#777777", font=small)
 
     # 交叉点
     by_name = {name: {row["ratio"]: row["mean"] for row in rows if row["name"] == name} for name in VARIANTS}

@@ -39,7 +39,7 @@ class ProduceConfig:
     lesson_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
     support_levels: tuple[int, ...] = (40, 37, 29)  # 真机支援卡等级
     support_bonus: float = 1.35     # 训练收益倍率（由支援卡等级折算：1 + (40+37+29)/300）
-    lesson_gain_ratio: float = 0.4  # 课程得分 → 属性成长（按真机 W5=361 / W12=632 拟合）
+    lesson_gain_ratio: float = 1.0  # 课程得分 → 属性成长（机制上就是 1:1；0.4 是"弱牌组"补偿，见 SIMULATOR.md §9）
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     # 考试：6 人里进前 3 才算合格。基准分按真机标定：
     # 实拍期末 1st 589 / 2nd 406 / 3rd 203 / 4th 201 / 5th 195，我们 632 属性 = 6th（不合格）
