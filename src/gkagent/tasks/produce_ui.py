@@ -76,6 +76,7 @@ class ProduceDriver:
     lesson_attribute: str | None = field(default=None, init=False)
     toast_waits: int = field(default=0, init=False)
     stamina_hint: int | None = field(default=None, init=False)
+    retry_count: int = field(default=0, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -246,10 +247,12 @@ class ProduceDriver:
             if "再挑战" in text:
                 # 期末/考试不合格后的重挑战：有免费次数就重打（用户要求：落后就重开），
                 # 没有次数才结束培育。注意不能用「取消」（那是结束培育）。
+                # 每局最多重开 2 次，避免在确认框里来回点
                 retry = self.find_button(lines, ("再挑战",))
                 free_available = "免费剩余" in text and re.search(r"免费剩余\s*0", text) is None
                 left_available = re.search(r"剩余\s*[1-9]\d*\s*次", text) is not None
-                if retry is not None and (free_available or left_available):
+                if retry is not None and (free_available or left_available) and self.retry_count < 2:
+                    self.retry_count += 1
                     self._click_line(agent, retry)
                     return TickResult("dialog", "retry")
                 end = self.find_button(lines, ("结束培育",))
