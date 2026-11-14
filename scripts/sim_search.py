@@ -25,6 +25,12 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 OUT = ROOT / "data" / "knowledge" / "policy_sim.json"
 
+PLAY_GRID = {
+    "reserve_per_turn": [0.0, 1.0, 2.0, 3.0],
+    "buff_score_guard": [3.0, 5.0, 8.0],
+    "negligible": [0.0, 0.5, 2.0],
+}
+
 GRID = {
     "rest_threshold": [6, 8, 10, 12, 14],
     "lesson_every": [1, 2, 3],
@@ -62,6 +68,63 @@ def evaluate(task: tuple) -> dict:
         "exams": round(exams / episodes, 2),
         "clear_rate": round(clears / max(lessons, 1), 3),
         "fail_exam_rate": round(1 - exams / 2, 3),
+        "n": episodes,
+    }
+
+
+def evaluate_play(task: tuple) -> dict:
+    """固定培育策略，只扫"出牌参数"（真机 LessonPolicy）。"""
+    play_params, episodes, seed, deck_raw, pool_raw = task
+    import tempfile
+    from pathlib import Path as _Path
+
+    from gkagent.sim.lesson import CardSpec
+    from gkagent.sim.produce import ProduceConfig, ProduceSim, StrategyParams, strategy_from_params
+
+    deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
+    pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
+    config = ProduceConfig(reward_pick="best", support_bonus=1.35)
+    strategy = strategy_from_params(StrategyParams(rest_threshold=8, lesson_every=1, attr_choice="weight",
+                                                   outing_below=16, min_stamina_to_train=8))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _Path(tmp) / "policy.json"
+        path.write_text(json.dumps({"version": 1, "lesson": play_params}, ensure_ascii=False), encoding="utf-8")
+        from gkagent.policy.lesson import LessonPolicy
+        from gkagent.vision.lesson import LessonCard, LessonState
+
+        policy_obj = LessonPolicy(params_path=str(path))
+
+        def adapter(sim_inner):
+            cards = []
+            for index, card in enumerate(sim_inner.hand):
+                cards.append(
+                    LessonCard(
+                        index=index, box=(0, 0, 0, 0), point=(0, 0),
+                        name=card.name.split("#")[0], score=card.score or None, cost=card.cost,
+                        buff=card.score <= 0, text="",
+                    )
+                )
+            state = LessonState(cards=tuple(cards), turns_left=sim_inner.turns_left, stamina=sim_inner.stamina)
+            action = policy_obj.decide(state)
+            if action.kind == "card" and action.index is not None:
+                policy_obj.note_play(action.card)
+                return action.index
+            return None
+
+        totals, exam_pass = [], 0
+        for episode in range(episodes):
+            sim = ProduceSim(deck, config=config, rng_seed=seed + episode)
+            sim.reward_pool = pool
+            sim.lesson_policy_fn = adapter
+            result = sim.run(strategy)
+            totals.append(result.total)
+            exams = [row["exam"] for row in sim.trace if row["action"] == "exam"]
+            exam_pass += sum(1 for exam in exams if exam["passed"])
+    return {
+        "params": play_params,
+        "mean": round(sum(totals) / len(totals), 1),
+        "exam_pass": round(exam_pass / (episodes * 2), 3),
         "n": episodes,
     }
 
@@ -118,6 +181,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--samples", type=int, default=60, help="随机采样多少组参数")
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--play", action="store_true", help="扫真机出牌参数（培育策略固定）")
     parser.add_argument("--evolve", action="store_true", help="进化式搜索（保留强者+变异，输出学习曲线）")
     parser.add_argument("--generations", type=int, default=8)
     parser.add_argument("--population", type=int, default=12)
@@ -133,6 +197,25 @@ def main(argv: list[str]) -> int:
     rng = random.Random(7)
     combos = rng.sample(all_combos, min(args.samples, len(all_combos)))
     print(f"搜索空间 {len(all_combos)} 组，本次采样 {len(combos)} 组 x {args.episodes} 局")
+
+    if args.play:
+        import itertools as _it
+
+        keys_p = list(PLAY_GRID)
+        combos_p = list(_it.product(*(PLAY_GRID[key] for key in keys_p)))
+        print(f"出牌参数扫描: {len(combos_p)} 组 x {args.episodes} 局")
+        tasks_p = [
+            (dict(zip(keys_p, combo)), args.episodes, 11000 + index * 41, deck_raw, pool_raw)
+            for index, combo in enumerate(combos_p)
+        ]
+        with ProcessPoolExecutor(max_workers=args.workers) as executor:
+            results_p = list(executor.map(evaluate_play, tasks_p))
+        results_p.sort(key=lambda row: row["mean"], reverse=True)
+        for row in results_p[:6]:
+            print(f"  mean={row['mean']:>7} 考试通过={row['exam_pass']*100:.0f}% {row['params']}")
+        spread = results_p[0]["mean"] - results_p[-1]["mean"]
+        print(f"最优-最差 = {spread:.1f}")
+        return 0
 
     if args.evolve:
         return run_evolution(

@@ -116,6 +116,7 @@ class ProduceSim:
         self.reward_pool: list[CardSpec] = []
         self.reward_picks = 0
         self.trace: list[dict] = []       # 每周快照，给前端回放用
+        self.lesson_policy_fn = lesson_policy  # 可注入真机 LessonPolicy 适配器
         self.last_lesson: dict | None = None
         self.last_exam: dict | None = None
 
@@ -178,8 +179,10 @@ class ProduceSim:
         target = self.config.lesson_targets[stage]
         plays: list[dict] = []
 
+        base_policy = getattr(self, "lesson_policy_fn", None) or lesson_policy
+
         def traced_policy(inner):
-            action = lesson_policy(inner)
+            action = base_policy(inner)
             if action is None:
                 plays.append({"skip": True, "turn": inner.turns_left})
             else:

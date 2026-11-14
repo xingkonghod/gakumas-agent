@@ -10,7 +10,8 @@
   "buff_score_guard": 5.0,
   "buff_value_fallback": 6.0,
   "last_turn_max_total": true,
-  "unknown_score_fallback": "cheapest"
+  "unknown_score_fallback": "cheapest",
+  "source": "defaults"
  },
  "produce": {
   "prefer_lesson": true,

@@ -88,13 +88,21 @@ class CardTable:
                     return int(values[0])
         return 0
 
+    # 能滚雪球的 buff 类效果（打法知识库：感性先铺集中/好调）
+    COMBO_EFFECTS = ("ExamLessonBuff", "ExamConcentration", "ExamParameterBuff")
+
     def value(self, name: str) -> float | None:
-        """奖励选卡用：打分 / 体力（0 费按 1 费算）。"""
+        """奖励选卡用：打分/体力 + 带 buff 的牌加分（它能让后续每张牌更强）。"""
         score = self.score_of(name)
         if score is None:
             return None
         cost = self.cost(name)
-        return score / max(cost if cost is not None else 1, 1)
+        base = score / max(cost if cost is not None else 1, 1)
+        row = self.get(name) or {}
+        effects = {str(effect.get("type", "")) for effect in row.get("effects") or []}
+        if effects & set(self.COMBO_EFFECTS):
+            base += 2.0  # 滚雪球价值：约等于多 2 点性价比
+        return base
 
     @staticmethod
     def looks_conditional(text: str) -> bool:

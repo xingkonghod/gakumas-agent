@@ -1,0 +1,67 @@
+{
+ "version": 1,
+ "source": "game8/4gamer/gameo/gamerch/morishimemo (2026-11)",
+ "plans": {
+  "sense": {
+   "cn": "感性",
+   "priority_buffs": [
+    "好调",
+    "集中"
+   ],
+   "play_order": [
+    "buff_first",
+    "score_high",
+    "compression"
+   ],
+   "key_cards_jp": [
+    "存在感",
+    "シュプレヒコール",
+    "スポットライト",
+    "至高のエンタメ",
+    "国民的アイドル"
+   ],
+   "notes": "集中永久叠层 + 好调覆盖爆发回合；终盘 話題沸騰 抬上昇量再打火力"
+  },
+  "logic": {
+   "cn": "理性",
+   "priority_buffs": [
+    "好印象",
+    "やる気"
+   ],
+   "play_order": [
+    "dot_early",
+    "score_burst_last"
+   ],
+   "key_cards_jp": [
+    "キラメキ",
+    "手拍子",
+    "200%スマイル",
+    "私がスター",
+    "キセキの魔法"
+   ],
+   "notes": "好印象铺~15层；终盘好印象100%≈1回合价值；留3-5やる気付费用"
+  },
+  "anomaly": {
+   "cn": "非凡",
+   "priority_buffs": [
+    "温存",
+    "強気",
+    "全力"
+   ],
+   "play_order": [
+    "stance_cycle",
+    "full_power_last_turn"
+   ],
+   "key_cards_jp": [
+    "最強パフォーマー"
+   ],
+   "notes": "温存是最重要buff；全力值10后下一回合全力3x"
+  }
+ },
+ "general": {
+  "stack_early": true,
+  "active_over_mental": true,
+  "deck_compression": true,
+  "burst_last_2_3_turns": true
+ }
+}
