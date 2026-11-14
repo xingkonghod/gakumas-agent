@@ -396,6 +396,12 @@ class ProduceDriver:
             self._click(agent, point)
             return TickResult("action-confirm", "confirm")
 
+        # 4.54) 培育结束后的「回忆概览」页：点「下一步」（页面上的百分比/数字会让飘字分支误判）
+        if "回忆概览" in text or ("回忆变换" in text and "重新生成" in text):
+            nxt = self.find_button(lines, ("下一步",))
+            self._click_line(agent, nxt) if nxt else self._click(agent, (339, 1075))
+            return TickResult("memory", "next")
+
         # 4.55) 获得 P 点数的提示条会盖住行动按钮，等它消失
         # 注意只认连在一起的「获得P点数」，避免把行动页说明「消耗P点数，可以获得…」误判
         # 连续等 3 次还在 = 是「结果弹窗」里的获得P点数，点关闭/中央推进
