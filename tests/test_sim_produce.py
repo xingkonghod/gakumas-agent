@@ -180,6 +180,10 @@ def test_choose_action_prefers_lesson_with_strong_attributes() -> None:
 
 def test_reward_pool_only_contains_modeled_effects() -> None:
     """模拟器没建模的效果（好印象/抽牌/全力/温存…）不能进奖励池，否则会被当 0 分卡。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
     import sim_produce as sp
 
     pool = sp.build_pool()
