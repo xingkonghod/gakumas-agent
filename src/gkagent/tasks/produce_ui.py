@@ -485,6 +485,12 @@ class ProduceDriver:
             self._click(agent, (360, 1000))
             return TickResult("toast", "advance")
 
+        # 4.35) 活动奖励进度页（培育结束后出现）：底部是「下一步」，点空白会一直空转
+        if ("活动Pt" in text or "活动奖励进度" in text) and "下一步" in text:
+            nxt = self.find_button(lines, ("下一步",))
+            self._click_line(agent, nxt) if nxt else self._click(agent, (360, 1135))
+            return TickResult("reward-page", "next")
+
         # 4.4) 行动结算页（顶部「活动奖励/授课」标题、没有「请选择行动」按钮）：点一下继续
         # 注意：奖励领取弹窗顶部也有「活动奖励」，必须排除，否则会一直点空白
         if (
