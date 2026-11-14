@@ -17,8 +17,8 @@ from gkagent.vision.ocr import OcrEngine, OcrLine
 
 class Navigator:
     IDOL_TAB = (198, 1158)
-    HOME_TAB = (95, 1200)
-    HOME_ICON = (95, 1200)
+    HOME_TAB = (95, 1188)
+    HOME_ICON = (95, 1188)
     SUPPORT_ENTRY = "支援卡"
     # OCR 会把「培养P偶像」拆成「培养」+「P偶像」两行，必须分开匹配
     IDOL_ENTRIES = ("培养", "P偶像")
@@ -95,7 +95,23 @@ class Navigator:
         """
         for _ in range(attempts):
             text = " ".join(line.text for line in self.lines())
-            if any(word in text for word in ("剩余回合数", "CLEAR截止", "PERFECT截止", "审查基准")):
+            if any(
+                word in text
+                for word in (
+                    "剩余回合数",
+                    "CLEAR截止",
+                    "PERFECT截止",
+                    "审查基准",
+                    "选择偶像",
+                    "选择支援卡",
+                    "选择回忆",
+                    "培育信息",
+                    "编成详情",
+                    "定期公演",
+                    "培育开始",
+                    "SKIP",
+                )
+            ):
                 return True
             if "主页" in text and any(word in text for word in ("扭蛋", "商店", "プロデュース", "礼物")):
                 return True
@@ -106,20 +122,32 @@ class Navigator:
 
     def idol_menu(self, attempts: int = 2) -> bool:
         for _ in range(attempts):
-            if self.find_text(self.SUPPORT_ENTRY) or any(
-                self.find_text(entry) for entry in self.IDOL_ENTRIES
+            # 只认偶像菜单里的独立「支援卡」按钮；主页横幅「去升级2张支援卡…」会误命中
+            if self._exact("支援卡") is not None or any(
+                self._exact(entry) is not None for entry in self.IDOL_ENTRIES
             ):
                 return True
             self.agent.device.click(*self.IDOL_TAB)
-            time.sleep(self.settle)
-        return self.find_text(self.SUPPORT_ENTRY) is not None
+            time.sleep(1.6)
+        return self._exact("支援卡") is not None
+
+    def _exact(self, word: str):
+        for line in self.lines():
+            if line.text.strip() == word:
+                return line
+        return None
+
     def support_screen(self, attempts: int = 2) -> bool:
         for _ in range(attempts):
-            if (
-                self.idol_menu()
-                and self.click_text(self.SUPPORT_ENTRY)
-                and any(self.find_text(marker) for marker in self.SUPPORT_SCREEN_MARKERS)
-            ):
+            if not self.idol_menu():
+                continue
+            entry = self._exact("支援卡")
+            if entry is None:
+                continue
+            x, y, w, h = entry.box
+            self.agent.device.click(x + w // 2, y + h // 2)
+            time.sleep(1.8)
+            if any(self.find_text(marker) for marker in self.SUPPORT_SCREEN_MARKERS):
                 return True
         return False
 

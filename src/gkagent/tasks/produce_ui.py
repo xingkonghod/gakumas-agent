@@ -399,7 +399,7 @@ class ProduceDriver:
         stamina = parse_stamina(text)
         # 体力不够就别硬练：优先休息（当前帧没读到体力就用上一帧的）
         effective_stamina = stamina if stamina is not None else self.stamina_hint
-        if "休息" in text and effective_stamina is not None and effective_stamina < 15:
+        if "休息" in text and effective_stamina is not None and effective_stamina < 8:
             rest = self.find(lines, "休息")
             self._click_line(agent, rest) if rest else self._click(agent, (640, 860))
             return TickResult("action", "rest")

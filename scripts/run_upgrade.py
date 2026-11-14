@@ -36,7 +36,11 @@ def main() -> int:
         print("no game window", file=sys.stderr)
         return 2
     agent = Agent(Win32Device(hwnd).connect(), TemplateMatcher(ROOT / "templates"))
-    agent.ensure_home()
+    from gkagent.nav import Navigator
+    from gkagent.vision.ocr import OcrEngine
+
+    nav = Navigator(agent, OcrEngine())
+    nav.ensure_home()
     task = UpgradeTask(kind=kind, limit=limit, dry_run=dry, card_pos=pos)
     result = task.run(agent)
     print(f"ok={result.ok} message={result.message}")

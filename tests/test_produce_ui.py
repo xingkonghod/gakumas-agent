@@ -223,7 +223,8 @@ def test_action_screen_lesson_variant_clicks_lesson() -> None:
 
 def test_action_screen_rests_when_stamina_low() -> None:
     agent = FakeAgent()
-    lines = _lines("请选择行动", "10/35", "休息", "授课")
+    # 阈值 8：体力 5 才休息（10 以上继续练，多练才涨属性）
+    lines = _lines("请选择行动", "5/35", "休息", "授课")
     result = _driver().decide(agent, lines)
     assert result.screen == "action"
     assert result.action == "rest"

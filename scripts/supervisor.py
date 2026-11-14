@@ -76,6 +76,21 @@ def ensure_window() -> bool:
 
 def run_batch(episode: str, steps: int, timeout_s: int = 2400) -> dict:
     started = time.time()
+    # 先按初星课题开一局挑战培育（失败/不在主页时脚本自己退出，不影响后续）
+    try:
+        launcher = subprocess.run(
+            [PY, str(ROOT / "scripts" / "challenge_launcher.py")],
+            capture_output=True,
+            timeout=180,
+            cwd=str(ROOT),
+        )
+        launch_text = (launcher.stdout or b"").decode("utf-8", "replace").strip()
+        if launch_text:
+            log(f"{episode} challenge: {launch_text.splitlines()[-1][:120]}")
+    except subprocess.TimeoutExpired:
+        log(f"{episode} challenge launcher timeout")
+    except Exception as exc:  # noqa: BLE001
+        log(f"{episode} challenge launcher error: {exc!r}")
     try:
         proc = subprocess.run(
             [PY, AUTO, str(steps), episode],

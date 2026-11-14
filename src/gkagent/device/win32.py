@@ -66,7 +66,10 @@ class Win32Device:
         os.chdir(self.maa_home)
         site = self.maa_home / "python" / "Lib" / "site-packages"
         if site.exists() and str(site) not in sys.path:
-            sys.path.insert(0, str(site))
+            # 追加而不是插到最前面：MaaGakumasu 的 site-packages 里有别的 Python
+            # 编译的 C 扩展（onnxruntime 等），插到最前会把本项目 venv 里的同名包顶掉，
+            # 表现为 "DLL load failed while importing onnxruntime_pybind11_state"。
+            sys.path.append(str(site))
 
         from maa.controller import Win32Controller
         from maa.define import MaaWin32InputMethodEnum as InputMethod
