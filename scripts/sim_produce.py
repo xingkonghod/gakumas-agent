@@ -66,8 +66,12 @@ def build_deck() -> list[tuple[str, int, int, int, int]]:
     return deck
 
 
-def build_pool() -> list[tuple[str, int, int, int, int]]:
-    """奖励池：卡表里所有能打分的技能卡（分数>0，费用<=8）。"""
+def build_pool(max_score: int = 40, allow_ssr: bool = False) -> list[tuple[str, int, int, int, int]]:
+    """奖励池：真机早期能拿到的技能卡。
+
+    默认排除 SSR/Legend（本账号支援卡弱、早期拿不到高分彩卡），并限制分数 <= 40；
+    否则模拟器会"每节课都拿 155 分彩卡"，课程平均 320 分，和真机 60-180 完全不符。
+    """
     table = json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
     pool = []
     for name, row in table.items():
@@ -85,8 +89,12 @@ def build_pool() -> list[tuple[str, int, int, int, int]]:
                 condition = max(condition, value)
             elif kind == "ExamConcentration":
                 focus = max(focus, value)
-        if score > 0:
-            pool.append((name, cost, score, condition, focus))
+        rarity = str(row.get("rarity") or "")
+        if not allow_ssr and rarity in ("Ssr", "Legend"):
+            continue
+        if score <= 0 or score > max_score:
+            continue
+        pool.append((name, cost, score, condition, focus))
     return pool
 
 

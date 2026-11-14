@@ -9,11 +9,11 @@
   "min_stamina_to_train": 8
  },
  "stats": {
-  "mean": 1560.8,
-  "p10": 1427,
-  "exams": 1.94,
-  "clear_rate": 0.902,
-  "fail_exam_rate": -1454.5,
+  "mean": 782.8,
+  "p10": 721,
+  "exams": 1.0,
+  "clear_rate": 0.841,
+  "fail_exam_rate": -748.5,
   "n": 1500
  }
 }
