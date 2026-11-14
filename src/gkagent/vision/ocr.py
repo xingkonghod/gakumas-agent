@@ -118,6 +118,8 @@ class OcrEngine:
         try:
             result, _ = self._line_core()(crop)
         except Exception:  # noqa: BLE001 - 快路径失败就退回整块识别
+            if self._line_engine is not self._engine:
+                return None
             lines = self.read(image, (x, y, w, h))
             text = " ".join(line.text for line in lines).strip()
             if not text:

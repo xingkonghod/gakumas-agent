@@ -21,12 +21,15 @@ import numpy as np
 from gkagent.data.buffs import BuffLibrary
 from gkagent.data.card_effects import estimate_value, is_buff_text
 from gkagent.data.cards_db import CardLibrary
+from gkagent.vision.cards import scan_hand
 from gkagent.vision.ocr import OcrEngine
 
 HAND_BAND = (0, 860, 720, 340)
 NAME_BAND = (0, 1060, 720, 100)
 CARD_WIDTH = 190
 CARD_HEIGHT = 232
+# 手牌那一排的固定上沿（720x1280）：课程/试镜都是 y≈892，选中态会抬高 ~25px
+CARD_TOP = 892
 SKIP_POINT = (660, 868)
 
 # 两种界面布局（课程 / 试镜）。位置按 720x1280 实拍标定。
@@ -156,16 +159,61 @@ class LessonReader:
         )
 
     # ------------------------------------------------------------------ 手牌
-    def read_cards(self, image: np.ndarray, *, lines=None) -> list[LessonCard]:
+    def read_cards(
+        self, image: np.ndarray, *, lines=None, boxes=None
+    ) -> list[LessonCard]:
+        """手牌：优先用轮廓定框（~180ms）+ 逐张单行识别，定框失败才退回整块 OCR。
+
+        整块 OCR 读卡名要 4-7s/步，是课程步的主要耗时；轮廓定框便宜两个数量级。
+        """
+        if boxes is None:
+            boxes = self._detect_boxes(image)
+        if len(boxes) >= 2 and self._slot_layout_ok(boxes):
+            cards = []
+            for index, box in enumerate(boxes[:5]):
+                left = box[0] + box[2] // 2 - CARD_WIDTH // 2
+                rect = (left, CARD_TOP, CARD_WIDTH, CARD_HEIGHT)
+                card = self.read_card(image, index, rect)
+                cards.append(card)
+            if sum(1 for card in cards if card.name or card.score is not None) >= len(cards) - 1:
+                return cards
         name_lines = self._name_lines(image, lines)
-        cards: list[LessonCard] = []
+        cards = []
         for index, (name, box) in enumerate(name_lines):
             left = box[0] + box[2] // 2 - CARD_WIDTH // 2
             top = box[1] - CARD_HEIGHT + 24
             rect = (left, top, CARD_WIDTH, CARD_HEIGHT)
-            card = self.read_card(image, index, rect, name=name)
-            cards.append(card)
+            cards.append(self.read_card(image, index, rect, name=name))
         return cards
+
+    def _slot_layout_ok(self, boxes: list[tuple[int, int, int, int]]) -> bool:
+        """框的中心是否落在标准手牌槽位上（2/3/4/5 张各有固定间距）。
+
+        轮廓定框偶尔会把选中态的内框、或者卡面里的色块当成卡；落在标准槽位上
+        才敢用快路径，否则退回整块 OCR（慢但准）。
+        """
+        counts = {2: (252, 469), 3: (142, 360, 577), 4: (143, 287, 432, 577)}
+        expected = counts.get(len(boxes))
+        if expected is None:
+            return False
+        centers = sorted(box[0] + box[2] // 2 for box in boxes)
+        return all(abs(center - slot) <= 45 for center, slot in zip(centers, expected))
+
+    def _detect_boxes(self, image: np.ndarray) -> list[tuple[int, int, int, int]]:
+        """轮廓定框，并把框归一到标准手牌尺寸（选中态会给出内框）。"""
+        try:
+            scan = scan_hand(image)
+        except Exception:  # noqa: BLE001 - 定框失败就走 OCR 兜底
+            return []
+        boxes: list[tuple[int, int, int, int]] = []
+        for card in scan.cards:
+            x, y, w, h = (int(v) for v in card.box)
+            if not 100 <= w <= 260 or not 120 <= h <= 300:
+                continue
+            center = x + w // 2
+            boxes.append((center - CARD_WIDTH // 2, y, CARD_WIDTH, CARD_HEIGHT))
+        boxes.sort(key=lambda box: box[0])
+        return boxes
 
     def read_card(
         self,
