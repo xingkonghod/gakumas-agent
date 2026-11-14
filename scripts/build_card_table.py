@@ -15,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(r"D:\Games\gakumas-agent")
 YAML = ROOT / "data" / "cache" / "ProduceCard.yaml"
+EFFECTS = ROOT / "data" / "cache" / "ProduceExamEffect.yaml"
 MASTER = ROOT / "data" / "master" / "produce_cards.json"
 OUT = ROOT / "data" / "knowledge" / "card_table.json"
 
@@ -29,6 +30,11 @@ _SCALARS = {
     "costType",
     "costValue",
     "searchTag",
+    "produceExamEffectId",
+    "effectType",
+    "effectCount",
+    "effectTurn",
+    "chainProduceExamEffectId",
 }
 
 
@@ -47,6 +53,10 @@ def parse_yaml(path: Path) -> list[dict]:
             continue
         if current is None:
             continue
+        if line.strip() == "playEffects:":
+            current["_section"] = "playEffects"
+            desc = None
+            continue
         if line.startswith("  - produceDescriptionType:"):
             desc = {"produceDescriptionType": line.split(": ", 1)[1]}
             current["descriptions"].append(desc)
@@ -55,6 +65,10 @@ def parse_yaml(path: Path) -> list[dict]:
         if not stripped or ":" not in stripped:
             continue
         key, _, value = stripped.partition(": ")
+        if current.get("_section") == "playEffects" and line.startswith("    ") and key == "produceExamEffectId":
+            if value:
+                current.setdefault("playEffectIds", []).append(value)
+            continue
         if line.startswith("    ") and desc is not None:
             if key in ("examEffectType", "effectValue1", "effectValue2", "turn", "text", "targetId"):
                 desc[key] = value
@@ -64,6 +78,47 @@ def parse_yaml(path: Path) -> list[dict]:
     if current is not None:
         entries.append(current)
     return entries
+
+
+def parse_effects_yaml(path: Path) -> dict[str, dict]:
+    """e_effect-xxx -> {type, v1, v2, turn, chain}（29MB，行解析）。"""
+    table: dict[str, dict] = {}
+    current: dict | None = None
+    for raw in path.open(encoding="utf-8", errors="replace"):
+        line = raw.rstrip("\n")
+        if line.startswith("- id: "):
+            current = {"id": line[6:].strip()}
+            table[current["id"]] = current
+            continue
+        if current is None or not line.startswith("  "):
+            continue
+        key, _, value = line.strip().partition(": ")
+        if key in ("effectType", "effectValue1", "effectValue2", "effectTurn", "chainProduceExamEffectId"):
+            current[key] = value
+    return table
+
+
+def resolve_effects(effect_ids: list[str], effects: dict[str, dict], depth: int = 2) -> list[dict]:
+    out: list[dict] = []
+    for effect_id in effect_ids:
+        seen = set()
+        while effect_id and effect_id not in seen and depth > 0:
+            seen.add(effect_id)
+            row = effects.get(effect_id)
+            if row is None:
+                break
+            effect_type = str(row.get("effectType") or "").replace("ProduceExamEffectType_", "")
+            if effect_type and not effect_type.endswith("Unknown"):
+                out.append(
+                    {
+                        "type": effect_type,
+                        "v1": int(row.get("effectValue1") or 0),
+                        "v2": int(row.get("effectValue2") or 0),
+                        "turn": int(row.get("effectTurn") or 0),
+                    }
+                )
+            effect_id = str(row.get("chainProduceExamEffectId") or "")
+    return out
 
 
 def compact_effects(entry: dict) -> list[dict]:
@@ -95,6 +150,8 @@ def main(argv: list[str]) -> int:
         return 1
     entries = parse_yaml(yaml_path)
     print(f"YAML 条目: {len(entries)}")
+    effect_table = parse_effects_yaml(EFFECTS) if EFFECTS.exists() else {}
+    print(f"效果表: {len(effect_table)} 条")
 
     master = json.loads(MASTER.read_text(encoding="utf-8"))
     by_key = {(row["id"], int(row.get("upgrade") or 0)): row for row in master}
@@ -112,6 +169,9 @@ def main(argv: list[str]) -> int:
         if not name:
             continue
         effects = compact_effects(entry)
+        resolved = resolve_effects(entry.get("playEffectIds") or [], effect_table)
+        if resolved:
+            effects = [{"type": item["type"], "values": [v for v in (item["v1"], item["v2"]) if v], "turn": item["turn"]} for item in resolved]
         table[name] = {
             "id": key[0],
             "upgrade": key[1],
