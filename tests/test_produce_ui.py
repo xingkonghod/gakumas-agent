@@ -353,3 +353,37 @@ def test_user_busy_pauses_without_clicking() -> None:
     assert result.screen == "pause"
     assert result.action == "user-active"
     assert result.ok
+
+
+def _driver_attr_values(lines):
+    from gkagent.tasks.produce_ui import ProduceDriver
+    return ProduceDriver._attr_values(lines)
+
+
+def test_attr_values_parsed_left_to_right() -> None:
+    from gkagent.vision.ocr import OcrLine
+
+    lines = [
+        OcrLine("130/1000", 0.9, (120, 700, 80, 24)),
+        OcrLine("100/1000", 0.9, (330, 700, 80, 24)),
+        OcrLine("131/1000", 0.9, (520, 700, 80, 24)),
+    ]
+    assert _driver_attr_values(lines) == (130, 100, 131)
+    assert _driver_attr_values(lines[:2]) is None
+
+
+def test_choose_training_lowest_attribute(tmp_path, monkeypatch) -> None:
+    from gkagent.vision.ocr import OcrLine
+
+    driver = _driver()
+    lines = [
+        OcrLine("130/1000", 0.9, (120, 700, 80, 24)),
+        OcrLine("100/1000", 0.9, (330, 700, 80, 24)),
+        OcrLine("131/1000", 0.9, (520, 700, 80, 24)),
+    ]
+    monkeypatch.setattr(driver, "_produce_params", lambda: {"attr_choice": "lowest"})
+    point, label = driver.choose_training("请选择行动 歌唱 舞蹈 视觉", lines)
+    assert label == "Da"  # 100 最低
+    from gkagent.tasks.produce_ui import TRAIN_DA
+
+    assert point == TRAIN_DA

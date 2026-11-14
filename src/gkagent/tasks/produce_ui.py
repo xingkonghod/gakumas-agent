@@ -687,8 +687,31 @@ class ProduceDriver:
         return TickResult("unknown", "no-op", ok=False, detail=text[:60])
 
     # ------------------------------------------------------------------ 策略
+    @staticmethod
+    def _attr_values(line: list[OcrLine]) -> tuple[int, int, int] | None:
+        """训练界面三个 X/1000 的属性值 → (Vo, Da, Vi)；读不到返回 None。"""
+        import re as _re
+
+        found: list[tuple[int, int]] = []
+        for item in line:
+            match = _re.search(r"(\d{1,4})\s*/\s*1000", item.text or "")
+            if match:
+                found.append((item.box[0], int(match.group(1))))
+        if len(found) < 3:
+            return None
+        found.sort(key=lambda pair: pair[0])
+        return (found[0][1], found[1][1], found[2][1])
+
     def choose_training(self, text: str, lines: list[OcrLine] | None = None) -> tuple[tuple[int, int], str]:
-        """优先跟随游戏「推荐」气泡：气泡带属性词就用词，只有「推荐」二字就用气泡所在列。"""
+        """优先跟随游戏「推荐」气泡；开了补短板(attr_choice=lowest)时练三维最低的那项。"""
+        # 补短板：模拟器结论——同样总和，均衡三维能进前 3，偏堆会不合格
+        if lines and self._produce_params().get("attr_choice") == "lowest":
+            values = self._attr_values(lines)
+            if values is not None:
+                labels = ("Vo", "Da", "Vi")
+                index = min(range(3), key=lambda i: values[i])
+                points = {"Vo": TRAIN_VO, "Da": TRAIN_DA, "Vi": TRAIN_VI}
+                return points[labels[index]], labels[index]
         points = {"Vo": TRAIN_VO, "Da": TRAIN_DA, "Vi": TRAIN_VI}
         if lines:
             for line in lines:
