@@ -150,10 +150,26 @@ def build_deck(table: dict, names: list[tuple[str, int]] | None = None):
     for name, count in names or DEFAULT_DECK:
         row = table.get(name) or {}
         cost = int(row.get("cost", 4) or 0)
-        score = card_score(name, table)
-        extra = DEFAULT_BUFFS.get(name, {})
+        spec = {"score": card_score(name, table)}
+        for effect in row.get("effects") or []:
+            kind = effect.get("type")
+            values = [v for v in effect.get("values") or [] if v]
+            value = int(values[0]) if values else 0
+            if not value:
+                continue
+            if kind == "ExamConcentration":
+                spec["focus"] = value
+            elif kind == "ExamLessonBuff":
+                spec["condition"] = value
+            elif kind == "ExamBlock":
+                spec.setdefault("vitality", value)
+            elif kind == "ExamImpression":
+                spec["impression"] = value
+            elif kind == "ExamYaruki":
+                spec["motivation"] = value
+        spec.update(DEFAULT_BUFFS.get(name, {}))
         for index in range(count):
-            deck.append(CardSpec(name=f"{name}#{index}", cost=cost, score=score, **extra))
+            deck.append(CardSpec(name=f"{name}#{index}", cost=cost, **spec))
     return deck
 
 
@@ -192,13 +208,46 @@ def make_policy(params: dict):
     return policy
 
 
+def policy_from_lesson(params_path: str | None = None):
+    """把真机 LessonPolicy 接进模拟器：模拟器局面 → LessonState → 真机策略 → 手牌下标。"""
+    from gkagent.policy.lesson import LessonPolicy
+    from gkagent.vision.lesson import LessonCard, LessonState
+
+    policy_obj = LessonPolicy(params_path=params_path) if params_path else LessonPolicy()
+
+    def policy(sim):
+        cards = []
+        for index, card in enumerate(sim.hand):
+            base = card.name.split("#")[0]
+            cards.append(
+                LessonCard(
+                    index=index,
+                    box=(0, 0, 0, 0),
+                    point=(0, 0),
+                    name=base,
+                    score=card.score or None,
+                    cost=card.cost,
+                    buff=card.score <= 0,
+                    text=master_text(base),
+                )
+            )
+        state = LessonState(cards=tuple(cards), turns_left=sim.turns_left, stamina=sim.stamina)
+        action = policy_obj.decide(state)
+        if action.kind == "card" and action.index is not None:
+            policy_obj.note_play(action.card)
+            return action.index
+        return None
+
+    return policy
+
+
 def evaluate(
     params: dict, table: dict, *, episodes: int = 200, seed: int = 7,
     turns: int = 5, stamina: int = 34, target: int = 250,
 ) -> dict:
     from gkagent.sim.lesson import LessonConfig, LessonSim
 
-    policy = make_policy(params)
+    policy = make_policy(params) if params.get("_sim") else policy_from_lesson()
     deck = build_deck(table)
     scores, grades = [], []
     for episode in range(episodes):
@@ -243,6 +292,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--turns", type=int, default=5)
     parser.add_argument("--stamina", type=int, default=34)
     parser.add_argument("--from-logs", action="store_true", help="用真机日志里的卡组")
+    parser.add_argument("--policy", choices=["sim", "lesson"], default="sim",
+                        help="sim=脚本内简化策略, lesson=真机 LessonPolicy")
     args = parser.parse_args(argv)
 
     table = load_card_table()
