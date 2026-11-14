@@ -32,8 +32,17 @@ IDOLS: dict[str, tuple[float, float, float]] = {
 }
 
 
+STRATEGIES: dict[str, dict] = {
+    "能上课就上课": {"lesson_every": 1, "rest_threshold": 8, "attr_choice": "weight", "outing_below": 16, "min_stamina_to_train": 8},
+    "纯训练": {"lesson_every": 0, "rest_threshold": 8, "attr_choice": "weight", "outing_below": -1, "min_stamina_to_train": 10},
+    "每3周上课": {"lesson_every": 3, "rest_threshold": 8, "attr_choice": "weight", "outing_below": 16, "min_stamina_to_train": 8},
+    "补短板": {"lesson_every": 1, "rest_threshold": 8, "attr_choice": "lowest", "outing_below": 16, "min_stamina_to_train": 8},
+    "多休息": {"lesson_every": 0, "rest_threshold": 14, "attr_choice": "weight", "outing_below": 20, "min_stamina_to_train": 12},
+}
+
+
 def run_idol(task: tuple) -> dict:
-    name, weights, episodes, seed = task
+    name, weights, params_dict, episodes, seed = task
     import sim_produce as sp
 
     from gkagent.sim.lesson import CardSpec
@@ -43,7 +52,7 @@ def run_idol(task: tuple) -> dict:
     pool_raw = sp.build_pool()
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
-    params = StrategyParams(rest_threshold=8, lesson_every=1, attr_choice="weight", outing_below=16, min_stamina_to_train=8)
+    params = StrategyParams(**params_dict)
     config = ProduceConfig(weights=weights, reward_pick="best", support_bonus=1.35)
 
     weekly: dict[int, list[int]] = {}
@@ -73,7 +82,7 @@ def run_idol(task: tuple) -> dict:
     }
 
 
-def draw(results: list[dict]) -> None:
+def draw(results: list[dict], title: str = "不同偶像的培育模拟对照（审查基准权重不同）") -> None:
     from PIL import Image, ImageDraw, ImageFont
 
     width, height = 1500, 720
@@ -101,7 +110,7 @@ def draw(results: list[dict]) -> None:
         draw_obj.text(((x0 + x1) / 2 - 40, y1 + 12), xlabel, fill="#333333", font=font)
         draw_obj.text((x0 - 60, y0 - 34), ylabel, fill="#333333", font=small)
 
-    draw_obj.text((60, 24), "不同偶像的培育模拟对照（审查基准权重不同）", fill="#111111", font=title_font)
+    draw_obj.text((60, 24), title, fill="#111111", font=title_font)
 
     # 折线：每周属性总和
     weeks = sorted({week for row in results for week in row["weekly"]})
@@ -164,9 +173,29 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=int, default=600)
     parser.add_argument("--workers", type=int, default=5)
+    parser.add_argument("--mode", choices=["idols", "strategies"], default="idols",
+                        help="idols=不同角色（权重不同）; strategies=同一角色不同打法")
+    parser.add_argument("--out", default="")
     args = parser.parse_args(argv)
 
-    tasks = [(name, weights, args.episodes, 3000 + index * 97) for index, (name, weights) in enumerate(IDOLS.items())]
+    global OUT
+    OUT = Path(args.out) if args.out else (
+        ROOT / "data" / ("sim_strategies.png" if args.mode == "strategies" else "sim_idols.png")
+    )
+
+    if args.mode == "strategies":
+        base_weights = IDOLS.get("有村麻央(2極)", (0.40, 0.38, 0.22))
+        tasks = [
+            (name, base_weights, params, args.episodes, 4000 + index * 89)
+            for index, (name, params) in enumerate(STRATEGIES.items())
+        ]
+    else:
+        base_params = STRATEGIES["能上课就上课"]
+        tasks = [
+            (name, weights, base_params, args.episodes, 3000 + index * 97)
+            for index, (name, weights) in enumerate(IDOLS.items())
+        ]
+
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         results = list(pool.map(run_idol, tasks))
 
@@ -175,8 +204,9 @@ def main(argv: list[str]) -> int:
             f"{row['name']:16s} weights={row['weights']} 总和={row['mean_total']:>6} "
             f"p10={row['p10']:>6} 考试通过={row['exam_pass_rate']*100:.0f}% 评价={row['grades']}"
         )
-    draw(results)
-    (ROOT / "data" / "sim_idols.json").write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
+    draw(results, "同一角色不同打法对照（有村麻央 感性）" if args.mode == "strategies" else "不同偶像的培育模拟对照（审查基准权重不同）")
+    suffix = "strategies" if args.mode == "strategies" else "idols"
+    (ROOT / "data" / f"sim_{suffix}.json").write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
     print("图已生成:", OUT)
     return 0
 
