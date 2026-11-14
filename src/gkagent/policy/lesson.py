@@ -101,6 +101,17 @@ class LessonPolicy:
         # 2) 性价比最高的牌
         best = self._best_score_card(affordable, values, budget, turns)
         if best is None:
+            # 分数一个都没读到 ≠ 这些牌没用：读不到数字时打最便宜的，别浪费回合（跳课=不涨属性）
+            fallback = self._cheapest_unknown(affordable)
+            if fallback is not None:
+                return LessonAction(
+                    "card",
+                    index=fallback.index,
+                    point=fallback.point,
+                    card=fallback,
+                    expected=0.0,
+                    reason=f"分数没读到，先打最便宜的「{fallback.name or '卡'}」保成长",
+                )
             return LessonAction(
                 "skip",
                 point=state.skip_point,
@@ -182,6 +193,15 @@ class LessonPolicy:
                 f"等效 {buff_value:.1f}，剩余 {turns} 回合）"
             ),
         )
+
+    @staticmethod
+    def _cheapest_unknown(affordable: list[LessonCard]) -> LessonCard | None:
+        """分数没读到的牌里挑最便宜的一张（至少让这回合产生成长）。"""
+        unknown = [card for card in affordable if card.score is None]
+        if not unknown:
+            return None
+        unknown.sort(key=lambda card: (card.cost if card.cost is not None else 9, card.index))
+        return unknown[0]
 
     def _best_score_card(
         self,

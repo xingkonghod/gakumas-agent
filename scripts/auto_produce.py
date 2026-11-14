@@ -461,24 +461,18 @@ def main() -> int:
                     # 选中后右上角显示「体力 X / -Y」：顺手学这张卡的体力费用，
                     # 卡面爱心上的小字 OCR 认不出来也能靠这里补齐。
                     stamina_now, stamina_cost = read_stamina_preview(engine, image)
-                    if stamina_cost is not None and cost_cache.record(pending_name, stamina_cost):
+                    plausible = (
+                        stamina_now is not None
+                        and stamina_cost is not None
+                        and 0 <= stamina_cost <= stamina_now
+                    )
+                    if plausible and cost_cache.record(pending_name, stamina_cost):
                         log_lines.append(
                             f"{step:03d} [cost] {pending_name} 体力消耗={stamina_cost} "
                             f"(当前体力 {stamina_now})"
                         )
-                    if (
-                        stamina_now is not None
-                        and stamina_cost is not None
-                        and stamina_cost > stamina_now
-                    ):
-                        abandoned = True
-                        lesson_pending = None
-                        lesson_policy.reset_turn()
-                        clicked = agent.device.click_force(660, 868)
-                        time.sleep(0.8)
-                        result = f"[lesson] {pending_name} 体力不够({stamina_cost}>{stamina_now})，结束回合"
-                        idle = 0
-                        action_name = "lesson-skip"
+                    # 不再因为"预览读歪"就丢牌：真机出现过把分数 23 当费用、体力 3 当上限的
+                    # 反向读数，导致能打的牌被放弃。费用只在不大于当前体力时才写入缓存。
                 if not abandoned:
                     clicked = agent.device.click_force(*point)
                     time.sleep(0.9)

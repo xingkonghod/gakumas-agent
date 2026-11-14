@@ -203,3 +203,23 @@ def test_reader_policy_beats_old_name_pick_on_audition() -> None:
     assert action.kind == "card"
     assert action.card is not None and action.card.name == "聊天时间"
     assert card_value(action.card, turns_left=state.turns_left) == 84
+
+
+def test_policy_plays_cheapest_when_scores_unreadable() -> None:
+    """分数没读到 ≠ 牌没用：跳课不涨属性，打最便宜的保成长。"""
+    policy = LessonPolicy()
+    state = _state(
+        [_card(0, "聊天时间", None, 6), _card(1, "表现的基础", None, 0)],
+        turns_left=3,
+        stamina=20,
+    )
+    action = policy.decide(state)
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "表现的基础"
+
+
+def test_policy_still_skips_when_scores_are_really_zero() -> None:
+    policy = LessonPolicy()
+    state = _state([_card(0, "元气", 0, 2)], turns_left=3, stamina=20)
+    action = policy.decide(state)
+    assert action.kind == "skip"
