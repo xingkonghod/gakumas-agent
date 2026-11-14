@@ -261,8 +261,12 @@ class ProduceDriver:
                     self.retry_count += 1
                     self._click_line(agent, retry)
                     return TickResult("dialog", "retry")
-                end = self.find_button(lines, ("结束培育",))
-                self._click_line(agent, end) if end else self._click(agent, (185, 1144))
+                # 该结果屏的按钮是 再挑战/下一步（不是 结束培育）：没次数就点下一步继续
+                end = self.find_button(lines, ("结束培育", "下一步"))
+                if end is not None:
+                    self._click_line(agent, end)
+                else:
+                    self._click(agent, (355, 1148))
                 return TickResult("dialog", "end-produce")
             if "再生成" in text and "确认" in text:
                 # 回忆再生成确认：不花票据，取消
