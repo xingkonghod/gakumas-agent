@@ -150,6 +150,7 @@ def run_chunk(task: tuple) -> dict:
         "mean_eval": round(stats.mean(evals), 1),
         "p50_eval": round(sorted(evals)[len(evals) // 2], 1),
         "p90_eval": round(sorted(evals)[int(len(evals) * 0.9)], 1),
+        "p95_eval": round(sorted(evals)[int(len(evals) * 0.95)], 1),
         "cplus_rate": round(sum(1 for e in evals if e >= 4500) / len(evals), 3),
         "grades": dict(grades.most_common()),
         "clear_rate": round(clears / max(lessons, 1), 3),

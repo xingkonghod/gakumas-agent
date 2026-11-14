@@ -84,6 +84,7 @@ def evaluate(task: tuple) -> dict:
         "mean_eval": round(stats.mean(evals), 1),
         "p50_eval": round(sorted(evals)[len(evals) // 2], 1),
         "p90_eval": round(sorted(evals)[int(len(evals) * 0.9)], 1),
+        "p95_eval": round(sorted(evals)[int(len(evals) * 0.95)], 1),
         "cplus_rate": round(sum(1 for value in evals if value >= 4500) / len(evals), 3),
     }
 
@@ -91,8 +92,6 @@ def evaluate(task: tuple) -> dict:
 def evaluate_play(task: tuple) -> dict:
     """固定培育策略，只扫"出牌参数"（真机 LessonPolicy）。"""
     play_params, episodes, seed, deck_raw, pool_raw = task
-    from gkagent.sim.produce import eval_value
-
     import tempfile
     from pathlib import Path as _Path
 
@@ -101,6 +100,7 @@ def evaluate_play(task: tuple) -> dict:
         ProduceConfig,
         ProduceSim,
         StrategyParams,
+        eval_value,
         strategy_from_params,
     )
 
@@ -154,6 +154,7 @@ def evaluate_play(task: tuple) -> dict:
         "mean_eval": round(stats.mean(evals), 1),
         "p50_eval": round(sorted(evals)[len(evals) // 2], 1),
         "p90_eval": round(sorted(evals)[int(len(evals) * 0.9)], 1),
+        "p95_eval": round(sorted(evals)[int(len(evals) * 0.95)], 1),
         "cplus_rate": round(sum(1 for value in evals if value >= 4500) / len(evals), 3),
     }
 
@@ -180,7 +181,7 @@ def run_evolution(args, keys, deck_raw, pool_raw, rng, seeds) -> int:
         ]
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             results = list(executor.map(evaluate, tasks))
-        results.sort(key=lambda row: (row.get("cplus_rate", 0) * 10000 + row.get("p50_eval", 0)), reverse=True)
+        results.sort(key=lambda row: _score(row, args.objective), reverse=True)
         best = results[0]
         curve.append({"generation": generation, "best_mean": best["mean"], "best": best["params"], "avg": round(sum(r["mean"] for r in results) / len(results), 1)})
         print(f"第 {generation} 代: best={best['mean']:.0f} avg={curve[-1]['avg']:.0f} params={best['params']}")
@@ -194,13 +195,20 @@ def run_evolution(args, keys, deck_raw, pool_raw, rng, seeds) -> int:
     print(f"\n最优（第 {best_all['generation']} 代）: mean={best_all['best_mean']} {best_all['best']}")
     if args.write:
         OUT.write_text(
-            json.dumps({"version": 1, "source": "sim_evolve", "produce": best_all["best"],
+            json.dumps({"version": 1, "source": "sim_evolve", "objective": args.objective,
+                        "produce": best_all["best"],
                         "stats": {"best_mean": best_all["best_mean"]}, "curve": curve},
                        ensure_ascii=False, indent=1),
             encoding="utf-8",
         )
         print("已写入", OUT)
     return 0
+
+
+def _score(row: dict, objective: str) -> float:
+    from gkagent.sim.objective import score
+
+    return score(objective, row)
 
 
 def main(argv: list[str]) -> int:
@@ -210,6 +218,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--samples", type=int, default=60, help="随机采样多少组参数")
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--objective", default="cplus", choices=("cplus", "rank", "attr", "exam"),
+                        help="评价口径：cplus=课题达成率 / rank=冲榜P95 / attr=属性 / exam=过本")
     parser.add_argument("--play", action="store_true", help="扫真机出牌参数（培育策略固定）")
     parser.add_argument("--evolve", action="store_true", help="进化式搜索（保留强者+变异，输出学习曲线）")
     parser.add_argument("--generations", type=int, default=8)
@@ -239,7 +249,7 @@ def main(argv: list[str]) -> int:
         ]
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             results_p = list(executor.map(evaluate_play, tasks_p))
-        results_p.sort(key=lambda row: (row.get("cplus_rate", 0) * 10000 + row.get("p50_eval", 0)), reverse=True)
+        results_p.sort(key=lambda row: _score(row, args.objective), reverse=True)
         for row in results_p[:6]:
             print(f"  mean={row['mean']:>7} 考试通过={row['exam_pass']*100:.0f}% {row['params']}")
         spread = results_p[0]["mean"] - results_p[-1]["mean"]
@@ -260,7 +270,7 @@ def main(argv: list[str]) -> int:
         results = list(pool_exec.map(evaluate, tasks))
     elapsed = time.perf_counter() - started
 
-    results.sort(key=lambda row: (row.get("cplus_rate", 0) * 10000 + row.get("p50_eval", 0)), reverse=True)
+    results.sort(key=lambda row: _score(row, args.objective), reverse=True)
     print(f"\n{elapsed:.1f}s，共 {len(results) * args.episodes} 局")
     print("Top-10 参数组合：")
     for row in results[:10]:

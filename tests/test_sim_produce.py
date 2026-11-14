@@ -191,3 +191,25 @@ def test_reward_pool_only_contains_modeled_effects() -> None:
     assert len(pool) < 200, f"池子异常偏大（{len(pool)}），可能混进了未建模的卡"
     for _name, _cost, score, _condition, _focus in pool:
         assert score > 0
+
+
+def test_objective_profiles_differ() -> None:
+    """同一组统计下，不同口径应该给出不同排序（课题求稳 vs 冲榜看尾部）。"""
+    from gkagent.sim.objective import OBJECTIVES, score
+
+    steady = {"cplus_rate": 0.95, "p50_eval": 5200, "p90_eval": 5600, "p95_eval": 5700, "mean_total": 1600, "exams": 2}
+    lucky = {"cplus_rate": 0.60, "p50_eval": 4200, "p90_eval": 6600, "p95_eval": 7800, "mean_total": 1500, "exams": 2}
+    assert score("cplus", steady) > score("cplus", lucky)      # 课题：稳定优先
+    assert score("rank", lucky) > score("rank", steady)        # 冲榜：尾部优先
+    assert score("attr", steady) > score("attr", lucky)
+    assert set(OBJECTIVES) == {"cplus", "rank", "attr", "exam"}
+
+
+def test_objective_unknown_raises() -> None:
+    from gkagent.sim.objective import score
+
+    try:
+        score("nope", {})
+    except KeyError:
+        return
+    raise AssertionError("未知口径应当抛 KeyError")
