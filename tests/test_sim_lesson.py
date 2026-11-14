@@ -348,3 +348,89 @@ def test_depend_scores_before_own_impression_buff() -> None:
 
     assert sim.score == 0
     assert sim.buffs.impression == 5
+
+
+def test_preservation_card_halves_later_scores() -> None:
+    """温存 1 段階：先打温存，后续 9 分牌变成 floor(9 × 0.5) = 4。"""
+    sim = LessonSim(
+        [CardSpec("温存", 0, 0, preservation=1), CardSpec("打分", 2, 9)],
+        _config(turns=2, stamina=10, hand_size=2),
+    )
+
+    sim.step(_index(sim, "温存"))
+    assert sim.score == 0
+    assert sim.stance.stance == "save"
+    assert sim.stance.save_level == 1
+
+    sim.step(_index(sim, "打分"))
+    assert sim.score == 4
+
+
+def test_full_power_point_triggers_triple_next_turn() -> None:
+    """全力值 5+5 攒满 → 回合结束进入「全力」，下一回合打分 ×3。"""
+    sim = LessonSim([CardSpec("垫", 0, 0)], _config(turns=3, stamina=10, hand_size=1))
+    sim.hand = [CardSpec("全力一", 0, 0, full_power_point=5), CardSpec("占位", 0, 0)]
+    sim.deck = [CardSpec("打分", 2, 9), CardSpec("全力二", 0, 0, full_power_point=5)]
+    sim.discard = []
+
+    sim.step(0)  # 全力一：+5，手牌还剩占位
+    assert sim.stance.full_power_point == 5
+    sim.step(0)  # 占位：手牌打空 → 回合结束，5 点不够全力，抽到全力二
+    assert sim.stance.stance == "normal"
+    assert [card.name for card in sim.hand] == ["全力二"]
+
+    sim.step(0)  # 全力二：+5 = 10 → 回合结束进入全力，抽到打分
+    assert sim.stance.stance == "full"
+    assert sim.stance.full_power_point == 0
+    assert [card.name for card in sim.hand] == ["打分"]
+
+    sim.step(0)  # 全力回合：floor(9 × 3.0) = 27
+    assert sim.score == 27
+
+
+def test_card_does_not_benefit_from_its_own_stance_switch() -> None:
+    """9 分 + 温存：本牌先按无指針拿满 9 分，之后才切到温存 0.5×。"""
+    sim = LessonSim(
+        [CardSpec("温存斩", 2, 9, preservation=1), CardSpec("追击", 2, 9)],
+        _config(turns=2, stamina=10, hand_size=2),
+    )
+
+    sim.step(_index(sim, "温存斩"))
+    assert sim.score == 9  # 不是 floor(9 × 0.5)
+    assert sim.stance.save_level == 1
+
+    sim.step(_index(sim, "追击"))
+    assert sim.score == 13  # 9 + floor(9 × 0.5)
+
+
+def test_greedy_policy_prioritizes_stance_cards() -> None:
+    """温存/全力值牌 score=0，也要被基线策略选中，否则指針永远不会被切换。"""
+    sim = LessonSim([CardSpec("垫", 0, 0)], _config(turns=2, stamina=10, hand_size=2))
+    sim.hand = [CardSpec("温存", 0, 0, preservation=1), CardSpec("小分", 2, 2)]
+    sim.deck = []
+    sim.discard = []
+    assert greedy_policy(sim) == 0
+
+    full_power = LessonSim([CardSpec("垫", 0, 0)], _config(turns=2, stamina=10, hand_size=2))
+    full_power.hand = [CardSpec("全力牌", 0, 0, full_power_point=5), CardSpec("小分", 2, 2)]
+    full_power.deck = []
+    full_power.discard = []
+    assert greedy_policy(full_power) == 0
+
+
+def test_depend_exam_review_score_ignores_stance_multiplier() -> None:
+    """好印象依赖分保持保守口径不吃指針倍率：温存下 3 层 × 1000% 仍是 30。"""
+    sim = LessonSim(
+        [
+            CardSpec("温存", 0, 0, preservation=1),
+            CardSpec("依赖", 0, 0, impression_scale=1000),
+            CardSpec("占位", 0, 0),
+        ],
+        _config(turns=2, stamina=10, hand_size=3),
+    )
+    sim.buffs.impression = 3
+
+    sim.step(_index(sim, "温存"))
+    sim.step(_index(sim, "依赖"))
+
+    assert sim.score == 30

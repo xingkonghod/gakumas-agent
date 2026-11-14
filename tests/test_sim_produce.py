@@ -193,6 +193,36 @@ def test_reward_pool_only_contains_modeled_effects() -> None:
         assert score > 0
 
 
+def test_stance_effects_reach_rich_card_spec() -> None:
+    """温存/全力值要能从卡表解析进 rich 卡行，再进 CardSpec；旧 5 元组路径不变。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    assert {"ExamPreservation", "ExamFullPowerPoint"} <= sp.MODELED_EFFECTS
+    # 旧 5 元组承载不了指針字段，保持排除，避免旧脚本把指針卡当纯白值卡
+    assert "ExamPreservation" not in sp.LEGACY_MODELED_EFFECTS
+    assert "ExamFullPowerPoint" not in sp.LEGACY_MODELED_EFFECTS
+
+    preservation = sp._effect_fields(
+        {"effects": [{"type": "ExamPreservation", "values": [2]}]}
+    )
+    assert preservation[6] == 2
+    full_power = sp._effect_fields(
+        {"effects": [{"type": "ExamFullPowerPoint", "values": [4]}]}
+    )
+    assert full_power[7] == 4
+
+    keep = sp._spec_from_row(sp.CardRow("温存", 2, 0, 0, 0, preservation=1))
+    assert keep.preservation == 1
+    assert keep.full_power_point == 0
+    power = sp._spec_from_row(sp.CardRow("全力", 2, 9, 0, 0, full_power_point=5))
+    assert power.full_power_point == 5
+    assert power.preservation == 0
+
+
 def test_objective_profiles_differ() -> None:
     """同一组统计下，不同口径应该给出不同排序（课题求稳 vs 冲榜看尾部）。"""
     from gkagent.sim.objective import OBJECTIVES, score

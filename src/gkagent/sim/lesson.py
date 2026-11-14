@@ -16,6 +16,9 @@
   ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10）。卡表没给出更细的结算
   顺序，这里沿用"本牌不享受自己刚加的 buff"的保守规则：本牌自带的
   ``impression`` 在算完依赖分之后才生效；这部分分数也不吃好调/集中倍率；
+- 非凡指針：分数再乘当前指針倍率（``stance.score_multiplier``）；出牌结算
+  最后应用本牌的指針效果（``preservation`` / ``full_power_point``），所以
+  **本牌不吃自己刚切的倍率**；回合结束调用 ``stance.end_turn`` 结算全力值；
 - 回合结束：好印象按当前层数加分并 -1，好调回合数 -1；
 - 分数向下取整（``math.floor``）；
 - 体力不足以支付牌库里**任何**一张牌时本局提前结束（``done``）。
@@ -32,8 +35,16 @@ from __future__ import annotations
 import math
 import random
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TypeAlias
+
+from gkagent.sim.stance import (
+    StanceState,
+    apply_full_power_point,
+    card_stance_effect,
+    end_turn,
+    score_multiplier,
+)
 
 __all__ = [
     "Action",
@@ -51,17 +62,21 @@ Policy: TypeAlias = Callable[["LessonSim"], Action]
 
 # 防止策略写出死循环（例如全 0 费抽牌卡无限过牌）时的安全阀
 _MAX_STEPS = 10_000
+# greedy_policy 给指針牌（温存/全力值，通常 score=0）的固定效率，避免永远选不到
+_STANCE_CARD_EFFICIENCY = 3.0
 
 
 @dataclass(frozen=True)
 class CardSpec:
     """一张牌的静态数值。
 
-    ``score`` 是卡面打分数值（不含集中/好调）；``condition`` 是这张牌给的
+    ``score`` 是卡面打分数值（不含集中/好调/指針）；``condition`` 是这张牌给的
     好调回合数，``focus`` 是集中层数，``impression`` 是好印象层数，
     ``draw`` 是出牌后额外抽几张。``impression_scale`` 是"依赖好印象的分数"
     倍率（百分比，1000 = 每层 10 分，见 ``ExamLessonDependExamReview``）。
     ``vitality`` / ``motivation`` 分别是元气（盾）和干劲（元气获得量加成）。
+    ``preservation`` 是把指針切到温存的段階（1/2），``full_power_point`` 是
+    全力值增量（攒满 10 点后下一回合进入「全力」）。
     """
 
     name: str
@@ -74,6 +89,8 @@ class CardSpec:
     impression: int = 0
     draw: int = 0
     impression_scale: int = 0
+    preservation: int = 0
+    full_power_point: int = 0
 
 
 @dataclass(frozen=True)
@@ -118,6 +135,8 @@ class LessonSim:
         self.stamina: int = config.stamina
         self.turns_left: int = config.turns
         self.buffs = Buffs()
+        # 非凡指針：温存 / 強気 / 全力 的倍率状态（纯函数模块 stance.py）
+        self.stance = StanceState()
 
         # 元气 / 干劲：课程里没有对手伤害，元气只累积（留给考试模拟用）
         self.vitality: int = 0
@@ -178,6 +197,7 @@ class LessonSim:
         self.stamina -= card.cost
         self.score += self._card_award(card)
         self._apply_card_buffs(card)
+        self._apply_card_stance(card)
         if card.draw > 0:
             self._draw(card.draw)
         self.discard.append(card)
@@ -201,20 +221,36 @@ class LessonSim:
 
     # ------------------------------------------------------------------ 内部
     def _card_award(self, card: CardSpec) -> int:
-        """本牌的得分：``(score + focus) × 好调倍率`` + 好印象依赖分，向下取整。
+        """本牌的得分：``(score + focus) × 好调倍率 × 指針倍率`` + 好印象依赖分，向下取整。
 
-        纯 buff 牌（``score <= 0``）不参与集中/好调加成；但如果有
+        纯 buff 牌（``score <= 0``）不参与集中/好调/指針加成；但如果有
         ``impression_scale``，仍然按**出牌前**的好印象层数结算依赖分：
-        ``int(层数 × impression_scale / 100)``。依赖分不吃好调/集中，
+        ``int(层数 × impression_scale / 100)``。依赖分不吃好调/集中/指針，
         因为卡表没给出这部分是否参与倍率结算，取保守做法。
         """
         award = 0
         if card.score > 0:
             multiplier = 1.5 if self.buffs.condition_turns > 0 else 1.0
-            award = math.floor((card.score + self.buffs.focus) * multiplier)
+            award = math.floor(
+                (card.score + self.buffs.focus) * multiplier * score_multiplier(self.stance)
+            )
         if card.impression_scale > 0 and self.buffs.impression > 0:
             award += int(self.buffs.impression * card.impression_scale / 100)
         return award
+
+    def _apply_card_stance(self, card: CardSpec) -> None:
+        """结算本牌的指針效果（在算分与 buff 之后，所以本牌不吃自己刚切的倍率）。"""
+        if card.full_power_point > 0:
+            self.stance = apply_full_power_point(self.stance, card.full_power_point)
+        if card.preservation > 0:
+            delta = card_stance_effect("ExamPreservation", [card.preservation])
+            if delta["stance"] is not None:
+                # 温存段階只升不降：已在 2 段階时再打 1 段階温存牌保持 2 段階
+                self.stance = replace(
+                    self.stance,
+                    stance=delta["stance"],
+                    save_level=max(self.stance.save_level, int(delta["save_level"])),
+                )
 
     def _apply_card_buffs(self, card: CardSpec) -> None:
         """结算卡面 buff（在算分之后，所以本牌不吃自己刚加的 buff）。"""
@@ -241,6 +277,8 @@ class LessonSim:
         self.discard.extend(self.hand)
         self.hand.clear()
         self.turns_left -= 1
+        # 回合结束结算全力值：攒满 10 点则下一回合进入「全力」
+        self.stance = end_turn(self.stance)
         if self.turns_left > 0:
             self._draw_hand()
 
@@ -270,6 +308,10 @@ def greedy_policy(sim: LessonSim) -> Action:
 
     只按卡面分数算，不评估 buff 收益，也不做体力预算——仅用于验证模拟器
     能跑通、给参数搜索当对照基线。
+
+    指針牌（温存 / 全力值）常常 ``score=0``，纯按卡面分数效率恒为 0，
+    永远不会被选中；这里把这类牌的效率固定按 ``_STANCE_CARD_EFFICIENCY``
+    计，让基线也会打它们（实际收益仍由 LessonSim 的指針结算决定）。
     """
     playable = [index for index in sim.legal_actions() if index is not None]
     if not playable:
@@ -277,6 +319,8 @@ def greedy_policy(sim: LessonSim) -> Action:
 
     def efficiency(index: int) -> tuple[float, float, int, int]:
         card = sim.hand[index]
+        if card.preservation > 0 or card.full_power_point > 0:
+            return (_STANCE_CARD_EFFICIENCY, _STANCE_CARD_EFFICIENCY, -card.cost, -index)
         # 0 费牌按 1 费算，避免"1 分 0 费"霸榜
         return (card.score / max(card.cost, 1), card.score, -card.cost, -index)
 
