@@ -347,6 +347,23 @@ def main() -> int:
                 },
             )
             log_lines.append(f"{step:03d} [fail] FAILED/不合格 已记录 {fail_path}")
+        # 试镜/考试排名结果：把 1st..6th + Pt 写进 exam_results.jsonl
+        if re.search(r"\d(?:st|nd|rd|th)", text) and re.search(r"\d+\s*Pt", text):
+            ranks = []
+            for line in lines:
+                if re.fullmatch(r"\d(?:st|nd|rd|th)", line.text.strip()):
+                    ranks.append((line.text.strip(), line.box))
+            if len(ranks) >= 2:
+                entry = {
+                    "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "episode": episode,
+                    "step": step,
+                    "ranks": [r[0] for r in ranks],
+                    "text": text[:200],
+                }
+                with (ROOT / "data" / "exam_results.jsonl").open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                log_lines.append(f"{step:03d} [exam-rank] {' '.join(r[0] for r in ranks)}")
         # 最终评价画面单独存档（轮转 step_NNN 会覆盖）
         if (
             "最终培育评价" in text
