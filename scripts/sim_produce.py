@@ -66,13 +66,39 @@ def build_deck() -> list[tuple[str, int, int, int, int]]:
     return deck
 
 
+def build_pool() -> list[tuple[str, int, int, int, int]]:
+    """奖励池：卡表里所有能打分的技能卡（分数>0，费用<=8）。"""
+    table = json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
+    pool = []
+    for name, row in table.items():
+        cost = int(row.get("cost") or 0)
+        if cost > 8 or cost < 0:
+            continue
+        score = condition = focus = 0
+        for effect in row.get("effects") or []:
+            kind = effect.get("type")
+            values = [v for v in effect.get("values") or [] if v]
+            value = int(values[0]) if values else 0
+            if kind == "ExamLesson":
+                score = max(score, value)
+            elif kind == "ExamLessonBuff":
+                condition = max(condition, value)
+            elif kind == "ExamConcentration":
+                focus = max(focus, value)
+        if score > 0:
+            pool.append((name, cost, score, condition, focus))
+    return pool
+
+
 def run_chunk(task: tuple) -> dict:
     """子进程：跑一段局数，返回聚合结果。"""
-    strategy_name, episodes, seed, deck_raw = task
+    strategy_name, episodes, seed, deck_raw, pool_raw, reward_pick, support = task
     from gkagent.sim.lesson import CardSpec
-    from gkagent.sim.produce import STRATEGIES, ProduceSim, random_strategy
+    from gkagent.sim.produce import STRATEGIES, ProduceConfig, ProduceSim, random_strategy
 
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
+    pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
+    config = ProduceConfig(reward_pick=reward_pick, support_bonus=support)
     if strategy_name == "random":
         strategy = random_strategy(seed)
     else:
@@ -80,7 +106,8 @@ def run_chunk(task: tuple) -> dict:
 
     totals, grades, clears, exams, lessons = [], Counter(), 0, 0, 0
     for episode in range(episodes):
-        sim = ProduceSim(deck, rng_seed=seed + episode)
+        sim = ProduceSim(deck, config=config, rng_seed=seed + episode)
+        sim.reward_pool = pool
         result = sim.run(strategy)
         totals.append(result.total)
         grades[result.grade] += 1
@@ -104,14 +131,20 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=int, default=20000, help="每种策略的局数")
     parser.add_argument("--workers", type=int, default=0)
-    parser.add_argument("--only", default="train_best,train_lowest,lesson_heavy,mixed,random")
+    parser.add_argument("--only", default="train_best,train_lowest,lesson_heavy,mixed,random,smart")
+    parser.add_argument("--rewards", choices=["best", "random", "none"], default="best")
+    parser.add_argument("--support", type=float, default=1.0)
     args = parser.parse_args(argv)
 
     deck = build_deck()
-    print(f"卡组 {len(deck)} 张: {deck}")
+    pool = build_pool() if args.rewards != "none" else []
+    print(f"卡组 {len(deck)} 张, 奖励池 {len(pool)} 张, 选牌={args.rewards}, 支援加成={args.support}")
     names = [name.strip() for name in args.only.split(",") if name.strip()]
     workers = args.workers or min(8, (len(names)))
-    tasks = [(name, args.episodes, 1234 + index * 7919, deck) for index, name in enumerate(names)]
+    tasks = [
+        (name, args.episodes, 1234 + index * 7919, deck, pool, args.rewards, args.support)
+        for index, name in enumerate(names)
+    ]
 
     started = time.perf_counter()
     with ProcessPoolExecutor(max_workers=workers) as pool:
