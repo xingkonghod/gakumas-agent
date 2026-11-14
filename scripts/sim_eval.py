@@ -74,10 +74,61 @@ SWEEP_GRID = {
 }
 
 
+def deck_from_logs(limit: int = 8) -> list[tuple[str, int]]:
+    """从真机日志里统计实际打出的卡名，作为模拟器卡组（比手拍默认卡组真实）。"""
+    import re
+    from collections import Counter
+
+    counts: Counter[str] = Counter()
+    for path in sorted((ROOT / "data" / "auto").glob("auto_log_*.log")):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for match in re.finditer(r"name-pick (.+?) \(", text):
+            name = match.group(1).strip()
+            if name and "SKIP" not in name:
+                counts[name] += 1
+    if not counts:
+        return DEFAULT_DECK
+    # 每张卡在牌库里通常 1-2 张：按出现次数折算，最多 2 张
+    deck: list[tuple[str, int]] = []
+    for name, _ in counts.most_common(limit):
+        deck.append((name, 1))
+    return deck
+
+
 def load_card_table() -> dict:
     if not CARD_TABLE.exists():
         return {}
     return json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
+
+
+_MASTER_TEXT: dict[str, str] = {}
+
+
+def master_text(name: str) -> str:
+    """卡面中文文本（用于没有数值表时按「打分+N」估分）。"""
+    global _MASTER_TEXT
+    if not _MASTER_TEXT:
+        path = ROOT / "data" / "master" / "produce_cards.json"
+        if path.exists():
+            try:
+                for row in json.loads(path.read_text(encoding="utf-8")):
+                    _MASTER_TEXT[row.get("name", "")] = row.get("text", "")
+            except (OSError, json.JSONDecodeError):
+                _MASTER_TEXT = {}
+    return _MASTER_TEXT.get(name, "")
+
+
+def score_from_text(text: str) -> int:
+    import re
+
+    for pattern in (r"打分[^0-9]{0,6}(\d{1,3})", r"得分[^0-9]{0,6}(\d{1,3})"):
+        match = re.search(pattern, text or "")
+        if match:
+            return int(match.group(1))
+    return 0
 
 
 def card_score(name: str, table: dict) -> int:
@@ -87,7 +138,9 @@ def card_score(name: str, table: dict) -> int:
             values = [v for v in effect.get("values") or [] if v]
             if values:
                 return int(values[0])
-    return DEFAULT_SCORES.get(name, 0)
+    if name in DEFAULT_SCORES:
+        return DEFAULT_SCORES[name]
+    return score_from_text(master_text(name))
 
 
 def build_deck(table: dict, names: list[tuple[str, int]] | None = None):
@@ -189,12 +242,17 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--target", type=int, default=250)
     parser.add_argument("--turns", type=int, default=5)
     parser.add_argument("--stamina", type=int, default=34)
+    parser.add_argument("--from-logs", action="store_true", help="用真机日志里的卡组")
     args = parser.parse_args(argv)
 
     table = load_card_table()
     if not table:
         print("缺少 data/knowledge/card_table.json")
         return 1
+    global DEFAULT_DECK
+    if args.from_logs:
+        DEFAULT_DECK = deck_from_logs()
+        print("日志卡组:", DEFAULT_DECK)
     kwargs = {"turns": args.turns, "stamina": args.stamina, "target": args.target}
     base = evaluate(BASE_PARAMS, table, episodes=args.episodes, **kwargs)
     print("基线:", json.dumps(base, ensure_ascii=False))
