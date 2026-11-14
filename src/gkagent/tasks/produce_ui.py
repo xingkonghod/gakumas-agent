@@ -133,6 +133,15 @@ class ProduceDriver:
         return None
 
     @staticmethod
+    def find_button(lines: list[OcrLine], words: tuple[str, ...]) -> OcrLine | None:
+        """只匹配完全相等的按钮文字（避免点到含关键词的问句/说明）。"""
+        for word in words:
+            for line in lines:
+                if line.text.strip() == word:
+                    return line
+        return None
+
+    @staticmethod
     def _checkbox_bands(image) -> list[tuple[int, int]]:
         """在勾选框列（x 610-655）扫描，返回每行勾选框的 (top, bottom)。"""
         if image is None:
@@ -229,7 +238,9 @@ class ProduceDriver:
                 rest = self.find(lines, "休息")
                 self._click_line(agent, rest) if rest else self._click(agent, (456, 1163))
                 return TickResult("dialog", "rest-confirm")
-            confirm = self.find(lines, "下一步", "确定", "完成")
+            # 按钮文本必须精确匹配：「确定继续吗?」这种问句里也含「确定」，
+            # 用包含匹配会点到问题文字上（实测卡死 12 次）
+            confirm = self.find_button(lines, ("下一步", "确定", "完成", "选择", "OK"))
             if confirm is not None:
                 self._click_line(agent, confirm)
                 return TickResult("dialog", "confirm", detail=confirm.text)
