@@ -482,6 +482,15 @@ class ProduceDriver:
 
         # 6) 已选中行动，点同一点确认（训练预览「能力值上升」/ 授课预览「根据选项」）
         if "能力值上升" in text or "根据选项" in text or "SELECT" in text:
+            # 顺手记录三维（真机标定用：每周一条，反解"课程得分→属性成长"系数）
+            try:
+                values = self._attr_values(lines or [])
+                if values is not None:
+                    from gkagent.data.calibration import record
+
+                    record(values, tag="train-confirm")
+            except Exception:  # noqa: BLE001 - 标定失败不影响培育
+                self._calib_failed = True
             point = self.last_point or TRAIN_DA
             self._click(agent, point)
             return TickResult("action-confirm", "confirm")

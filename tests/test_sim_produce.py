@@ -124,3 +124,27 @@ def test_balanced_beats_skewed_at_same_total() -> None:
     skewed.attrs = [123, 154, 338]        # total 615，偏视觉
     assert balanced.exam(1)["passed"] is True
     assert skewed.exam(1)["passed"] is False
+
+
+def test_calibration_record_dedup_and_delta(tmp_path) -> None:
+    from gkagent.data import calibration
+
+    path = tmp_path / "attrs.jsonl"
+    assert calibration.record([10, 20, 30], path=path) is True
+    assert calibration.record([10, 20, 30], path=path) is False   # 重复不写
+    assert calibration.record([20, 25, 40], path=path) is True
+    summary = calibration.summarize(path)
+    assert summary["records"] == 2
+    assert summary["weeks"] == 1
+    assert summary["deltas"][0]["delta"] == [10, 5, 10]
+    assert summary["deltas"][0]["total"] == 25
+
+
+def test_calibration_estimate_ratio(tmp_path) -> None:
+    from gkagent.data import calibration
+
+    path = tmp_path / "attrs.jsonl"
+    calibration.record([0, 0, 0], path=path)
+    calibration.record([60, 60, 60], path=path)   # 一周增长 180
+    ratio = calibration.estimate_ratio([450], path=path)  # 本周课程得 450
+    assert ratio is not None and abs(ratio - 0.4) < 0.01
