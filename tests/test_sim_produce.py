@@ -105,3 +105,22 @@ def test_grade_thresholds_are_monotonic() -> None:
     grades = [grade_for(total) for total in (200, 600, 800, 1000, 1200, 1500, 1800, 2100)]
     order = ["E", "D", "C", "C+", "B", "B+", "A", "S"]
     assert [order.index(grade) for grade in grades] == sorted(order.index(grade) for grade in grades)
+
+
+def test_real_attribute_vector_fails_final_exam() -> None:
+    """真机那局 170/147/315（偏堆）→ power 201.6，进不了前 3，复现"不合格"。"""
+    sim = _sim()
+    sim.attrs = [170, 147, 315]
+    exam = sim.exam(1)
+    assert exam["passed"] is False
+    assert exam["rank"] >= 4
+
+
+def test_balanced_beats_skewed_at_same_total() -> None:
+    """同样总和，均衡三维比偏堆更容易进前 3（这是"补短板"策略的依据）。"""
+    balanced = _sim()
+    balanced.attrs = [205, 205, 205]      # total 615
+    skewed = _sim()
+    skewed.attrs = [123, 154, 338]        # total 615，偏视觉
+    assert balanced.exam(1)["passed"] is True
+    assert skewed.exam(1)["passed"] is False

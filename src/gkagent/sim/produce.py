@@ -43,7 +43,7 @@ class ProduceConfig:
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     # 考试：6 人里进前 3 才算合格。基准分按真机标定：
     # 实拍期末 1st 589 / 2nd 406 / 3rd 203 / 4th 201 / 5th 195，我们 632 属性 = 6th（不合格）
-    exam_base: tuple[float, ...] = (150.0, 205.0)     # 期中/期末「第 3 名」的实力基准
+    exam_base: tuple[float, ...] = (100.0, 205.0)     # 期中/期末第3名基准（期中真机能过，设为100）
     npc_factors: tuple[float, ...] = (2.9, 2.0, 1.0, 0.99, 0.95)  # 5 个对手相对第 3 名的倍数
     fans_per_clear: int = 800
     remove_weeks: tuple[int, ...] = ()       # 咨询删卡（默认关：占一周去删 1 张，模型里是负收益）
