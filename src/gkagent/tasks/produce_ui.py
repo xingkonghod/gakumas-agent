@@ -146,7 +146,32 @@ class ProduceDriver:
                     return line
         return None
 
-    @staticmethod
+    _REWARD_TABLE = None
+
+    @classmethod
+    def _best_reward_card(cls, lines) -> tuple[int, int] | None:
+        """奖励三选一：OCR 到的卡名查卡表，选 打分/体力 最高那张的落点。"""
+        try:
+            from gkagent.data.card_table import CardTable
+        except Exception:  # noqa: BLE001 - 没有卡表就退回旧逻辑
+            return None
+        if cls._REWARD_TABLE is None:
+            cls._REWARD_TABLE = CardTable()
+        table = cls._REWARD_TABLE
+        best: tuple[float, tuple[int, int]] | None = None
+        for line in lines:
+            name = (line.text or "").strip()
+            if not (2 <= len(name) <= 14):
+                continue
+            value = table.value(name)
+            if value is None or value <= 0:
+                continue
+            x, y, w, h = line.box
+            point = (x + w // 2, max(60, y + h // 2 - 60))  # 卡名在卡牌下缘，向上点到卡身
+            if best is None or value > best[0]:
+                best = (value, point)
+        return best[1] if best else None
+
     def _checkbox_bands(image) -> list[tuple[int, int]]:
         """在勾选框列（x 610-655）扫描，返回每行勾选框的 (top, bottom)。"""
         if image is None:
@@ -503,13 +528,18 @@ class ProduceDriver:
 
         # 4.6) 领取奖励（技能卡或 P 饮料）：先选一张，再点「领取」
         if "请选择要领取" in text:
-            recommend = self.find(lines, "推荐")
-            if recommend is not None:
-                cx, cy = self.center(recommend)
-                # 「推荐」标签在卡牌下缘，点它选不中卡；向上 60px 点到卡身
-                self._click(agent, (cx, max(60, cy - 60)))
+            # 奖励三选一：按卡表「打分/体力」挑最强的那张（这是牌组变强的唯一入口）
+            best = self._best_reward_card(lines)
+            if best is not None:
+                self._click(agent, best)
             else:
-                self._click(agent, (250, 915))  # 三选一的第一张
+                recommend = self.find(lines, "推荐")
+                if recommend is not None:
+                    cx, cy = self.center(recommend)
+                    # 「推荐」标签在卡牌下缘，点它选不中卡；向上 60px 点到卡身
+                    self._click(agent, (cx, max(60, cy - 60)))
+                else:
+                    self._click(agent, (250, 915))  # 三选一的第一张
             claim = self.find(lines, "领取")
             self._click_once(agent, self.center(claim) if claim else (360, 1097))
             self.sleep(0.9)

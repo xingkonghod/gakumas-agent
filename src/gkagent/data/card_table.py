@@ -76,6 +76,26 @@ class CardTable:
             effects=tuple(str(effect.get("type", "")) for effect in row.get("effects") or ()),
         )
 
+    def score_of(self, name: str) -> int | None:
+        """卡面打分数值（ExamLesson 的 v1）；查不到返回 None。"""
+        row = self.get(name)
+        if row is None:
+            return None
+        for effect in row.get("effects") or []:
+            if effect.get("type") == "ExamLesson":
+                values = [v for v in effect.get("values") or [] if v]
+                if values:
+                    return int(values[0])
+        return 0
+
+    def value(self, name: str) -> float | None:
+        """奖励选卡用：打分 / 体力（0 费按 1 费算）。"""
+        score = self.score_of(name)
+        if score is None:
+            return None
+        cost = self.cost(name)
+        return score / max(cost if cost is not None else 1, 1)
+
     @staticmethod
     def looks_conditional(text: str) -> bool:
         return any(word in (text or "") for word in CONDITION_WORDS)

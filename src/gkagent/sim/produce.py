@@ -38,6 +38,7 @@ class ProduceConfig:
     exam_weeks: tuple[int, ...] = (6, 12)
     lesson_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
     support_bonus: float = 1.0      # 支援卡对训练收益的倍率（近似）
+    lesson_gain_ratio: float = 0.6  # 课程得分 → 属性成长（按真机一局 ~632 标定）
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     exam_thresholds: tuple[float, ...] = (0.13, 0.30)  # 期中/期末过关线（属性×权重 归一化后的比例）
     fans_per_clear: int = 800
@@ -198,12 +199,11 @@ class ProduceSim:
         if grade in ("CLEAR", "PERFECT"):
             self.cleared += 1
             self.fans += self.config.fans_per_clear
-            # 课程的属性成长：按审查基准最高的属性给分（近似）
-            best = self.best_attribute()
-            self.attrs[best] += int(30 + score / 20)
-        else:
-            # 没 CLEAR 也有部分成长（真机课程失败也给少量属性）
-            self.attrs[self.best_attribute()] += 6
+        # 课程的属性成长 ≈ 这节课的总得分（游戏里 パラメータ上昇 就是属性增长），
+        # 之前按 30+score/20 估会低估 5-10 倍，已按机制修正。
+        order = sorted(range(3), key=lambda i: self.config.weights[i], reverse=True)
+        target_attr = order[self.lessons % 3]
+        self.attrs[target_attr] += int(score * self.config.lesson_gain_ratio)
         # 课程奖励：真机每节课后都有三选一，所以不管 CLEAR 都给（这才是牌组变强的来源）
         reward = self.pick_reward()
         if reward is not None:
