@@ -243,11 +243,11 @@ def policy_from_lesson(params_path: str | None = None):
 
 def evaluate(
     params: dict, table: dict, *, episodes: int = 200, seed: int = 7,
-    turns: int = 5, stamina: int = 34, target: int = 250,
+    turns: int = 5, stamina: int = 34, target: int = 250, params_path: str | None = None,
 ) -> dict:
     from gkagent.sim.lesson import LessonConfig, LessonSim
 
-    policy = make_policy(params) if params.get("_sim") else policy_from_lesson()
+    policy = make_policy(params) if params.get("_sim") else policy_from_lesson(params_path)
     deck = build_deck(table)
     scores, grades = [], []
     for episode in range(episodes):
@@ -269,6 +269,24 @@ def evaluate(
     }
 
 
+def sweep_lesson_policy(table: dict, *, episodes: int = 100, **kwargs):
+    """扫描"真机 LessonPolicy"的参数：每组参数写临时 json 再评估。"""
+    import tempfile
+
+    keys = list(SWEEP_GRID)
+    results = []
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "policy.json"
+        for combo in itertools.product(*(SWEEP_GRID[key] for key in keys)):
+            params = dict(BASE_PARAMS)
+            params.update(dict(zip(keys, combo)))
+            path.write_text(json.dumps({"version": 1, "lesson": params}, ensure_ascii=False), encoding="utf-8")
+            stats_ = evaluate({**params, "_sim": False}, table, episodes=episodes, params_path=str(path), **kwargs)
+            results.append((stats_["clear_rate"] * 1000 + stats_["mean"], params, stats_))
+    results.sort(key=lambda item: item[0], reverse=True)
+    return results
+
+
 def sweep(table: dict, *, episodes: int = 120, **kwargs) -> list[tuple[float, dict, dict]]:
     keys = list(SWEEP_GRID)
     results = []
@@ -286,6 +304,7 @@ def main(argv: list[str]) -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser()
     parser.add_argument("--sweep", action="store_true")
+    parser.add_argument("--sweep-lesson", action="store_true", help="扫真机 LessonPolicy 的参数")
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--episodes", type=int, default=200)
     parser.add_argument("--target", type=int, default=250)
@@ -307,10 +326,13 @@ def main(argv: list[str]) -> int:
     kwargs = {"turns": args.turns, "stamina": args.stamina, "target": args.target}
     base = evaluate(BASE_PARAMS, table, episodes=args.episodes, **kwargs)
     print("基线:", json.dumps(base, ensure_ascii=False))
-    if not args.sweep:
+    if not (args.sweep or args.sweep_lesson):
         return 0
 
-    results = sweep(table, episodes=max(80, args.episodes // 2), **kwargs)
+    if args.sweep_lesson:
+        results = sweep_lesson_policy(table, episodes=max(60, args.episodes // 3), **kwargs)
+    else:
+        results = sweep(table, episodes=max(80, args.episodes // 2), **kwargs)
     print("\nTop-5 参数组合：")
     for score_key, params, stats_ in results[:5]:
         print(f"  score={score_key:.1f} {stats_} {params}")
