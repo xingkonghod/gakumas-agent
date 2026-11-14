@@ -27,3 +27,8 @@ data/pytest-tmp/
 data/auto_log.txt
 
 data/knowledge/wiki/
+
+data/sim_*.json
+data/*.jsonl
+data/archive/
+data/keep_ep*/
