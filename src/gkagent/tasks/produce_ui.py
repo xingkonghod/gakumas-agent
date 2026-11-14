@@ -248,10 +248,10 @@ class ProduceDriver:
                 # 期末/考试不合格后的重挑战：有免费次数就重打（用户要求：落后就重开），
                 # 没有次数才结束培育。注意不能用「取消」（那是结束培育）。
                 # 每局最多重开 2 次，避免在确认框里来回点
-                # 第二段确认框（消耗再挑战道具）只有 确定/取消：直接确定
+                # 第二段确认框（消耗再挑战道具 / 结束培育确认）只有 确定/取消：点确定
                 confirm = self.find_button(lines, ("确定",))
                 cancel = self.find_button(lines, ("取消",))
-                if confirm is not None and cancel is not None and "消耗再挑战" in text:
+                if confirm is not None and cancel is not None:
                     self._click_line(agent, confirm)
                     return TickResult("dialog", "retry-confirm")
                 retry = self.find_button(lines, ("再挑战",))
