@@ -93,7 +93,7 @@ const ATTR = ["vo","da","vi"];
 let run = RUNS[0], step = 0, timer = null;
 
 function actionLabel(a){
-  return {train:"训练",train_low:"补短板",lesson:"上课",rest:"休息",outing:"外出"}[a] || a;
+  return {train:"训练",train_low:"补短板",lesson:"上课",rest:"休息",outing:"外出",remove:"删卡",exam:"考试"}[a] || a;
 }
 function actionClass(a){ return a==="lesson"?"lesson":(a==="lesson"?"lesson":(a.startsWith("train")?"train":"rest")); }
 function fmtDelta(before, after){

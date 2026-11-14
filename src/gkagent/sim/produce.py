@@ -45,6 +45,8 @@ class ProduceConfig:
     exam_base: tuple[float, ...] = (150.0, 205.0)     # 期中/期末「第 3 名」的实力基准
     npc_factors: tuple[float, ...] = (2.9, 2.0, 1.0, 0.99, 0.95)  # 5 个对手相对第 3 名的倍数
     fans_per_clear: int = 800
+    remove_weeks: tuple[int, ...] = ()       # 咨询删卡（默认关：占一周去删 1 张，模型里是负收益）
+    min_deck_size: int = 8                   # 牌组不低于此张数才删
 
 
 @dataclass
@@ -245,6 +247,23 @@ class ProduceSim:
 
     def step(self, strategy) -> None:
         cfg = self.config
+        # 咨询删卡：把最弱的一张删掉（真机"咨询"就是删牌，能大幅提高循环质量）
+        if self.week in cfg.remove_weeks and len(self.deck) > cfg.min_deck_size:
+            worst = min(range(len(self.deck)), key=lambda i: (self.deck[i].score, self.deck[i].cost))
+            removed = self.deck.pop(worst)
+            self.trace.append(
+                {
+                    "week": self.week,
+                    "action": "remove",
+                    "stamina_before": self.stamina,
+                    "stamina_after": self.stamina,
+                    "attrs_before": list(self.attrs),
+                    "attrs_after": list(self.attrs),
+                    "lesson": {"removed": removed.name.split("#")[0]},
+                }
+            )
+            self.week += 1
+            return
         if self.week in cfg.exam_weeks:
             index = cfg.exam_weeks.index(self.week)
             self.exam(index)
