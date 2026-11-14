@@ -263,6 +263,11 @@ class ProduceDriver:
                 if confirm is not None and cancel is not None:
                     self._click_line(agent, confirm)
                     return TickResult("dialog", "retry-confirm")
+                # 授课/课程「再次挑战」确认（消耗道具重上这节课）：取消，继续培育
+                if "再次挑战" in text:
+                    cancel_btn = self.find_button(lines, ("取消",))
+                    self._click_line(agent, cancel_btn) if cancel_btn else self._click(agent, (210, 1155))
+                    return TickResult("dialog", "cancel-lesson-retry")
                 retry = self.find_button(lines, ("再挑战",))
                 free_available = "免费剩余" in text and re.search(r"免费剩余\s*0", text) is None
                 left_available = re.search(r"剩余\s*[1-9]\d*\s*次", text) is not None
