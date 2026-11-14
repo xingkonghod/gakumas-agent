@@ -90,7 +90,9 @@ def parse_effects_yaml(path: Path) -> dict[str, dict]:
             current = {"id": line[6:].strip()}
             table[current["id"]] = current
             continue
-        if current is None or not line.startswith("  "):
+        # 只读 2 空格缩进的顶层字段；4 空格缩进的 produceDescriptions
+        # 里也有 effectValue1（卡面展示值，常为 0），会覆盖真实数值。
+        if current is None or not line.startswith("  ") or line.startswith("    "):
             continue
         key, _, value = line.strip().partition(": ")
         if key in ("effectType", "effectValue1", "effectValue2", "effectTurn", "chainProduceExamEffectId"):
