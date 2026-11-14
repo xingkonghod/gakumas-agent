@@ -588,16 +588,21 @@ class ProduceDriver:
 
     # ------------------------------------------------------------------ 策略
     def choose_training(self, text: str, lines: list[OcrLine] | None = None) -> tuple[tuple[int, int], str]:
-        """优先跟随游戏「推荐」气泡：气泡所在列就是该练的属性；否则默认 Da（新号 Da 最低）。"""
+        """优先跟随游戏「推荐」气泡：气泡带属性词就用词，只有「推荐」二字就用气泡所在列。"""
+        points = {"Vo": TRAIN_VO, "Da": TRAIN_DA, "Vi": TRAIN_VI}
         if lines:
             for line in lines:
-                if "推荐" in line.text:
-                    cx, _ = self.center(line)
-                    if cx < 265:
-                        return TRAIN_VO, "Vo"
-                    if cx < 440:
-                        return TRAIN_DA, "Da"
-                    return TRAIN_VI, "Vi"
+                if "推荐" not in line.text:
+                    continue
+                for word, label in (("歌唱", "Vo"), ("舞蹈", "Da"), ("视觉", "Vi")):
+                    if word in line.text:
+                        return points[label], label
+                cx, _ = self.center(line)
+                if cx < 265:
+                    return TRAIN_VO, "Vo"
+                if cx < 440:
+                    return TRAIN_DA, "Da"
+                return TRAIN_VI, "Vi"
         for word, point, label in (
             ("歌唱", TRAIN_VO, "Vo"),
             ("舞蹈", TRAIN_DA, "Da"),
