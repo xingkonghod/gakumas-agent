@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import re
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -78,6 +79,7 @@ class ProduceDriver:
     stamina_hint: int | None = field(default=None, init=False)
     retry_count: int = field(default=0, init=False)
     gain_waits: int = field(default=0, init=False)
+    drink_scroll: int = field(default=0, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -331,17 +333,27 @@ class ProduceDriver:
             if need_match:
                 need = int(need_match.group(1))
             if need > 0 and image is not None:
-                # 「获得的饮料」段勾选是灰的（不可选）；按勾选框列扫描出行位置，
+                # 「获得的饮料」段勾选是灰的（不可选)；按勾选框列扫描出行位置，
                 # 只补勾「手持的饮料」下面未勾选的行（行位置和文字行 y 有 20-50px 偏差，不能直接用文字行）
                 hand_header = self.find(lines, "手持的饮料")
                 header_y = hand_header.box[1] if hand_header is not None else 400
+                clicked = False
                 for top, bottom in self._checkbox_bands(image):
                     center = (top + bottom) // 2
                     if center < header_y + 20 or center > 1100:
                         continue
                     if not self._checkbox_checked(image, center):
                         self._click(agent, (632, center))
-                        return TickResult("drink-keep", "check-row")
+                        clicked = True
+                        break
+                if clicked:
+                    return TickResult("drink-keep", "check-row")
+                # 找不到未勾选行：第三瓶可能在列表下方（需要滚动）
+                if self.drink_scroll < 2:
+                    self.drink_scroll += 1
+                    agent.device.swipe(360, 1020, 360, 760)
+                    time.sleep(0.8)
+                    return TickResult("drink-keep", "scroll")
             keep = self.find(lines, "保留")
             self._click_line(agent, keep) if keep else self._click(agent, (360, 1166))
             return TickResult("drink-keep", "keep")
