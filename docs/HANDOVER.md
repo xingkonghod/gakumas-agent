@@ -61,8 +61,20 @@
 | `src/gkagent/vision/lesson.py` | 课程读屏：分数预览菱形 / 爱心体力 / 剩余回合 / 审查基准 / SKIP |
 | `src/gkagent/policy/lesson.py` | 出牌策略：分数÷体力、每回合体力预算、buff 先铺、没牌就 SKIP |
 | `src/gkagent/policy/lesson_pick.py` | 接进 `auto_produce` 的适配层（读不到手牌时回退老路径） |
+| `src/gkagent/knowledge/wiki.py` + `scripts/wiki_ingest.py` | **Wiki 接入**：抓 学マスwiki（EUC-JP）→ 本地缓存 → buff 词典（日文名/说明/出处），合并进 `buffs.json` |
 
 `OcrEngine.line()` 新增"只识别"快路径（实测 10-30ms/个），手牌小数字不再走 2-5s 整屏 OCR。
+
+**Wiki 接入用法**（不需要 API key，直连 seesaawiki 实测 0.7s/页）：
+
+```powershell
+python scripts\wiki_ingest.py            # 命中 data/cache/wiki 缓存（TTL 24h）
+python scripts\wiki_ingest.py --refresh  # 强制重抓
+```
+
+- 抓 3 页：`buffs`（効果一覧）、`mechanics`（レッスン・試験詳細）、`hajime`（定期公演『初』）；
+- 产物：`data/knowledge/wiki/*.txt`（正文，gitignore）、`buffs.json` 合并（人工中文名和权重**不覆盖**）、`wiki_snapshot.json`；
+- 合并规则：按**日文名**对齐；对上的只补 `jp_desc`/出处，新条目以 `cn: []` 追加（中文卡面文本匹配不到，不会影响出牌）。
 
 **验证**：`tests/test_lesson.py` 14 条（含真机帧 `live_lesson.png` / `lesson_now.png`）；
 全量 `pytest` 与 `ruff check src tests` 均通过。真机帧上策略选中「聊天时间 84 分 / 6 体力」——

@@ -25,3 +25,5 @@ data/*.txt
 data/auto/
 data/pytest-tmp/
 data/auto_log.txt
+
+data/knowledge/wiki/

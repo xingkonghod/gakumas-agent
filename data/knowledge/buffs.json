@@ -1,357 +1,658 @@
 {
-  "version": 1,
-  "updated": "2026-11-14",
-  "source": [
-    "https://seesaawiki.jp/gakumasu/dp/%a5%ec%a5%c3%a5%b9%a5%f3%a1%a6%bb%ee%b8%b3%be%dc%ba%d9",
-    "https://wikiwiki.jp/gakumas/%E5%BC%B7%E5%8C%96/%E4%BD%8E%E4%B8%8B%E7%8A%B6%E6%85%8B%E4%B8%80%E8%A6%A7"
-  ],
-  "notes": "cn 用游戏中文 UI 的关键词（用于卡面文本匹配），jp 用于攻略原文匹配；play_order 越小越早打",
-  "buffs": [
-    {
-      "id": "condition",
-      "cn": ["好调"],
-      "jp": ["好調"],
-      "kind": "buff",
-      "scope": "sense",
-      "category": "multiplier",
-      "duration": "turns",
-      "score_mult": 1.5,
-      "play_order": 10,
-      "effect": "打分/参数上升量 +50%，按好调回合数持续，每回合结束 -1",
-      "notes": "有集中时先加集中再乘好调；好调覆盖后续每张牌，越早越赚"
-    },
-    {
-      "id": "perfect_condition",
-      "cn": ["绝好调"],
-      "jp": ["絶好調"],
-      "kind": "buff",
-      "scope": "sense",
-      "category": "multiplier",
-      "duration": "turns",
-      "score_mult": 1.5,
-      "play_order": 11,
-      "effect": "在好调 50% 基础上，每 1 好调回合再 +10% 打分",
-      "notes": "与好调配合时倍率 = 1.5 + 0.1×好调回合数"
-    },
-    {
-      "id": "focus",
-      "cn": ["集中"],
-      "jp": ["集中"],
-      "kind": "buff",
-      "scope": "sense",
-      "category": "flat_stack",
-      "duration": "permanent",
-      "score_flat": 1.0,
-      "play_order": 9,
-      "effect": "每 1 集中给每张打分牌 +1（永久，不吃回合）",
-      "notes": "早期叠集中 = 后面每张牌都白拿 N 分；忽略 '集中强化/集中增加量增加' 的细则时按 +1/点"
-    },
-    {
-      "id": "focus_boost",
-      "cn": ["集中强化", "集中增加量增加"],
-      "jp": ["集中強化", "集中増加量増加"],
-      "kind": "buff",
-      "scope": "sense",
-      "category": "amplifier",
-      "duration": "permanent",
-      "score_flat": 0.2,
-      "play_order": 8,
-      "effect": "集中带来的加成按百分比放大 / 集中获得量增加",
-      "notes": "乘在集中上，集中越高越值"
-    },
-    {
-      "id": "motivation",
-      "cn": ["干劲"],
-      "jp": ["やる気"],
-      "kind": "buff",
-      "scope": "logic",
-      "category": "defense",
-      "duration": "permanent",
-      "score_flat": 0.2,
-      "play_order": 30,
-      "effect": "元气获得量 +N",
-      "notes": "课程里元气只保命不加分，低优先；考试里防干扰才值钱"
-    },
-    {
-      "id": "impression",
-      "cn": ["好印象"],
-      "jp": ["好印象"],
-      "kind": "buff",
-      "scope": "logic",
-      "category": "dot",
-      "duration": "turns",
-      "score_flat": 1.0,
-      "play_order": 12,
-      "effect": "回合结束时 +N 分，回合开始 -1",
-      "notes": "每层每回合 1 分，剩余回合越多越值；适合早期铺"
-    },
-    {
-      "id": "impression_boost",
-      "cn": ["好印象强化"],
-      "jp": ["好印象強化"],
-      "kind": "buff",
-      "scope": "logic",
-      "category": "amplifier",
-      "duration": "permanent",
-      "play_order": 13,
-      "effect": "好印象造成的分数增加百分比",
-      "notes": "好印象层数高时才值钱"
-    },
-    {
-      "id": "vitality",
-      "cn": ["元气"],
-      "jp": ["元気"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "defense",
-      "duration": "consumed",
-      "score_flat": 0.05,
-      "play_order": 40,
-      "effect": "体力减少时先扣元气（护盾）",
-      "notes": "课程里基本不加分；体力吃紧时可当保险，别当主输出"
-    },
-    {
-      "id": "stamina_regen",
-      "cn": ["体力回复", "回复"],
-      "jp": ["体力回復"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "resource",
-      "duration": "instant",
-      "score_flat": 2.0,
-      "play_order": 20,
-      "effect": "回复体力（每点体力 ≈ 一张牌的本钱）",
-      "notes": "折算 1 体力 ≈ 2 分；体力见底时优先"
-    },
-    {
-      "id": "cost_down",
-      "cn": ["消耗体力减少", "体力消耗减少"],
-      "jp": ["消費体力減少", "消費体力削減"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "resource",
-      "duration": "turns",
-      "score_flat": 1.5,
-      "play_order": 15,
-      "effect": "出牌体力消耗减半 / 减少 N",
-      "notes": "省下的体力 = 更多出牌机会"
-    },
-    {
-      "id": "cost_up",
-      "cn": ["消耗体力增加"],
-      "jp": ["消費体力増加"],
-      "kind": "debuff",
-      "scope": "common",
-      "category": "resource",
-      "duration": "turns",
-      "score_flat": -2.0,
-      "play_order": 90,
-      "effect": "出牌体力消耗翻倍",
-      "notes": "尽量用一次性效果清掉，或干脆停手"
-    },
-    {
-      "id": "draw",
-      "cn": ["抽牌", "抽卡", "手牌"],
-      "jp": ["ドロー", "手札"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "utility",
-      "duration": "instant",
-      "score_flat": 3.0,
-      "play_order": 14,
-      "effect": "抽牌 / 检索，改善本回合手牌质量",
-      "notes": "等于多一次选择机会，早期值钱"
-    },
-    {
-      "id": "damage_up",
-      "cn": ["上升量增加", "分数上升量增加"],
-      "jp": ["パラメータ上昇量増加", "スコア上昇量増加"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "amplifier",
-      "duration": "turns",
-      "score_flat": 2.0,
-      "play_order": 16,
-      "effect": "打分/分数上升量按百分比增加（最终分数再乘一次）",
-      "notes": "和好调乘算，叠加时收益爆炸"
-    },
-    {
-      "id": "slump",
-      "cn": ["低迷", "消极"],
-      "jp": ["スランプ"],
-      "kind": "debuff",
-      "scope": "common",
-      "category": "block",
-      "duration": "turns",
-      "score_flat": -8.0,
-      "play_order": 95,
-      "effect": "分数不再增加（最恶心的debuff）",
-      "notes": "有它就别把大牌浪费在它期间"
-    },
-    {
-      "id": "extra_play",
-      "cn": ["使用数追加", "追加使用"],
-      "jp": ["スキルカード使用数追加"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "utility",
-      "duration": "turn",
-      "score_flat": 4.0,
-      "play_order": 17,
-      "effect": "本回合可额外使用 N 张牌",
-      "notes": "等于白给 N 次出牌"
-    },
-    {
-      "id": "extra_turn",
-      "cn": ["回合追加", "剩余回合增加"],
-      "jp": ["ターン追加"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "utility",
-      "duration": "instant",
-      "score_flat": 6.0,
-      "play_order": 5,
-      "effect": "课程剩余回合 +N",
-      "notes": "多一回合 = 多一手牌，极强"
-    },
-    {
-      "id": "fixed_vitality",
-      "cn": ["固定元气"],
-      "jp": ["固定元気"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "defense",
-      "duration": "instant",
-      "score_flat": 0.2,
-      "play_order": 41,
-      "effect": "不受增减益影响地获得元气",
-      "notes": ""
-    },
-    {
-      "id": "vitality_block",
-      "cn": ["元气增加无效"],
-      "jp": ["元気増加無効"],
-      "kind": "debuff",
-      "scope": "common",
-      "category": "block",
-      "duration": "turns",
-      "score_flat": -1.0,
-      "play_order": 92,
-      "effect": "元气不再增加",
-      "notes": "防御体系失效，考试里危险"
-    },
-    {
-      "id": "debuff_immune",
-      "cn": ["低下状态无效", "异常无效"],
-      "jp": ["低下状態無効"],
-      "kind": "buff",
-      "scope": "common",
-      "category": "utility",
-      "duration": "count",
-      "score_flat": 1.0,
-      "play_order": 18,
-      "effect": "N 次不会陷入低下状态",
-      "notes": ""
-    },
-    {
-      "id": "zeal",
-      "cn": ["热情"],
-      "jp": ["熱意"],
-      "kind": "buff",
-      "scope": "anomaly",
-      "category": "flat_stack",
-      "duration": "turn",
-      "score_flat": 1.0,
-      "play_order": 19,
-      "effect": "打分上升量 +1，回合结束归零",
-      "notes": "只在本回合有效，打之前先用"
-    },
-    {
-      "id": "full_power",
-      "cn": ["全力"],
-      "jp": ["全力"],
-      "kind": "buff",
-      "scope": "anomaly",
-      "category": "multiplier",
-      "duration": "stance",
-      "score_mult": 3.0,
-      "play_order": 6,
-      "effect": "方针倍率 ×3",
-      "notes": ""
-    },
-    {
-      "id": "strong",
-      "cn": ["强气"],
-      "jp": ["強気"],
-      "kind": "buff",
-      "scope": "anomaly",
-      "category": "multiplier",
-      "duration": "stance",
-      "score_mult": 2.0,
-      "play_order": 7,
-      "effect": "方针倍率 ×2（二阶段 ×2.5）",
-      "notes": ""
-    },
-    {
-      "id": "save",
-      "cn": ["温存"],
-      "jp": ["温存"],
-      "kind": "buff",
-      "scope": "anomaly",
-      "category": "multiplier",
-      "duration": "stance",
-      "score_mult": 0.5,
-      "play_order": 50,
-      "effect": "方针倍率 ×0.5（二阶段 ×0.25）",
-      "notes": "过渡态，尽快切回全力/强气"
-    },
-    {
-      "id": "full_power_value",
-      "cn": ["全力值"],
-      "jp": ["全力値"],
-      "kind": "buff",
-      "scope": "anomaly",
-      "category": "resource",
-      "duration": "permanent",
-      "score_flat": 0.5,
-      "play_order": 21,
-      "effect": "回合结束 ≥10 时消耗 10 把方针切到全力",
-      "notes": "堆满值 = 下回合全力 ×3"
-    },
-    {
-      "id": "stance_fix",
-      "cn": ["方针固定"],
-      "jp": ["指針固定"],
-      "kind": "debuff",
-      "scope": "anomaly",
-      "category": "block",
-      "duration": "turns",
-      "score_flat": -3.0,
-      "play_order": 93,
-      "effect": "方针和阶段无法改变",
-      "notes": ""
-    },
-    {
-      "id": "revival",
-      "cn": ["重演", "再次使用"],
-      "jp": ["再演"],
-      "kind": "buff",
-      "scope": "anomaly",
-      "category": "utility",
-      "duration": "count",
-      "score_flat": 3.0,
-      "play_order": 22,
-      "effect": "条件满足时自动再用一次卡",
-      "notes": ""
-    }
-  ],
-  "score_weights": {
-    "score": 1.0,
-    "vitality": 0.05,
-    "motivation": 0.2,
-    "heal": 2.0,
-    "draw": 3.0,
-    "condition": 1.5,
-    "focus": 1.0
+ "version": 1,
+ "updated": "2026-11-14",
+ "source": [
+  "https://seesaawiki.jp/gakumasu/dp/%a5%ec%a5%c3%a5%b9%a5%f3%a1%a6%bb%ee%b8%b3%be%dc%ba%d9",
+  "https://wikiwiki.jp/gakumas/%E5%BC%B7%E5%8C%96/%E4%BD%8E%E4%B8%8B%E7%8A%B6%E6%85%8B%E4%B8%80%E8%A6%A7"
+ ],
+ "notes": "cn 用游戏中文 UI 的关键词（用于卡面文本匹配），jp 用于攻略原文匹配；play_order 越小越早打",
+ "buffs": [
+  {
+   "id": "condition",
+   "cn": [
+    "好调"
+   ],
+   "jp": [
+    "好調"
+   ],
+   "kind": "buff",
+   "scope": "sense",
+   "category": "multiplier",
+   "duration": "turns",
+   "score_mult": 1.5,
+   "play_order": 10,
+   "effect": "打分/参数上升量 +50%，按好调回合数持续，每回合结束 -1",
+   "notes": "有集中时先加集中再乘好调；好调覆盖后续每张牌，越早越赚",
+   "jp_desc": "パラメータ上昇量を50％増加。\n\n\n集中と異なり、単位が「ターン」なのでターン開始時に1減少する。 絶好調: 好調によるパラメータ上昇量を、元々の50%増加から更に上乗せして好調のターン数1につき10%増加。\n\n\n本来、好調そのものは1でも100でもパラメータ上昇量1.5倍のまま倍率は固定されているが、絶好調を適用させることで集中と同じく積めば積むほどパラメータを伸ばせるようになる。 \n絶好調が1でも100でもパラメータ上昇量は変わらず、好調が0なら絶好調が0でも100でもパラメータ上昇量は変わらない。 \n好調と同じく、絶好調は単位が「ターン」なのでターン開始時に1減少する。 \n好調効果をN倍適用、については好調・絶好調倍率を参照。 好調増加量増加+N%: 好調の獲得量が多くなる。\n\n\n小数点以下切り上げ。「夜闇の星」などで発動するバフ。 \n本効果を持つスキルカードを獲得した場合もサポートアビリティの「好調効果のスキルカード獲得時、〇〇上昇」が反応する(『完全無欠』など)。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "絶好調",
+    "好調増加量増加+N%"
+   ]
+  },
+  {
+   "id": "perfect_condition",
+   "cn": [
+    "绝好调"
+   ],
+   "jp": [
+    "絶好調"
+   ],
+   "kind": "buff",
+   "scope": "sense",
+   "category": "multiplier",
+   "duration": "turns",
+   "score_mult": 1.5,
+   "play_order": 11,
+   "effect": "在好调 50% 基础上，每 1 好调回合再 +10% 打分",
+   "notes": "与好调配合时倍率 = 1.5 + 0.1×好调回合数"
+  },
+  {
+   "id": "focus",
+   "cn": [
+    "集中"
+   ],
+   "jp": [
+    "集中"
+   ],
+   "kind": "buff",
+   "scope": "sense",
+   "category": "flat_stack",
+   "duration": "permanent",
+   "score_flat": 1.0,
+   "play_order": 9,
+   "effect": "每 1 集中给每张打分牌 +1（永久，不吃回合）",
+   "notes": "早期叠集中 = 后面每张牌都白拿 N 分；忽略 '集中强化/集中增加量增加' 的细则时按 +1/点",
+   "jp_desc": "集中が1増加するごとに、パラメータ上昇量を1増加 集中増加量増加+N%: 集中の増加量が多くなる。\n\n\n小数点以下切り上げ。「あの日の約束」などで発動するバフ。 \n本効果を持つスキルカードを獲得した場合もサポートアビリティの「集中効果のスキルカード獲得時、〇〇上昇」が反応する(『完全無欠』など)。 集中強化N%: 集中によるパラメータ上昇量を増加。\n\n\n例えばパラメータ+6のカードを集中10、集中強化20%がある時に使用するとスコアは\"6+(10×1.2) = 6+12 = 18\"となる。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "集中増加量増加+N%",
+    "集中強化N%"
+   ]
+  },
+  {
+   "id": "focus_boost",
+   "cn": [
+    "集中强化",
+    "集中增加量增加"
+   ],
+   "jp": [
+    "集中強化",
+    "集中増加量増加"
+   ],
+   "kind": "buff",
+   "scope": "sense",
+   "category": "amplifier",
+   "duration": "permanent",
+   "score_flat": 0.2,
+   "play_order": 8,
+   "effect": "集中带来的加成按百分比放大 / 集中获得量增加",
+   "notes": "乘在集中上，集中越高越值"
+  },
+  {
+   "id": "motivation",
+   "cn": [
+    "干劲"
+   ],
+   "jp": [
+    "やる気"
+   ],
+   "kind": "buff",
+   "scope": "logic",
+   "category": "defense",
+   "duration": "permanent",
+   "score_flat": 0.2,
+   "play_order": 30,
+   "effect": "元气获得量 +N",
+   "notes": "课程里元气只保命不加分，低优先；考试里防干扰才值钱",
+   "jp_desc": "元気増加量がやる気の分増える。 やる気増加量増加+N%: やる気の増加量が多くなる。\n\n\n小数点以下切り上げ。「ミラクルヘッド」などで発動するバフ。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "やる気増加量増加+N%"
+   ]
+  },
+  {
+   "id": "impression",
+   "cn": [
+    "好印象"
+   ],
+   "jp": [
+    "好印象"
+   ],
+   "kind": "buff",
+   "scope": "logic",
+   "category": "dot",
+   "duration": "turns",
+   "score_flat": 1.0,
+   "play_order": 12,
+   "effect": "回合结束时 +N 分，回合开始 -1",
+   "notes": "每层每回合 1 分，剩余回合越多越值；适合早期铺",
+   "jp_desc": "ターン終了時、好印象の数だけパラメータ上昇。 ターン開始時、1減少。 好印象増加量増加+N%: 好印象の獲得量が多くなる。\n\n\n小数点以下切り上げ。「星屑センセーション」や「湧き上がる気持ち」で発動するバフ。 \n持続効果にも効果あり(虹色ドリーマーやファンシーチャームなど)。ただし、好印象+Nなどの倍率をともなわない増加のみを対象とし、応援効果や夢色リップなどの倍率で増加するものにはかからない。\n\nかかる例:【L.U.V】姫崎莉波『これでばっちり』…『元気の70％分好印象増加』。加算効果なので効果対象。 \nかからない例:夢色リップ…『ターン開始時、好印象1.1倍』。倍率乗算なので効果対象外。 好印象強化N%: ターン終了時の好印象によるパラメータ上昇量が増加する。\n\n\n似た名前の集中強化は実質的に全体バフとして機能しているが、好印象強化は「みんな大好き」「輝くキミへ」などのバフにはならず、あくまでもターン終了時の好印象によるパラメータ上昇量だけを増加させる。これは集中そのものが「パラメータ上昇量を増加」させるバフ効果であるのに対し、好印象そのものは「ターン終了時、パラメータを上昇」という言わば自動アクティブカード効果であることに起因する。関係性としては、センスにおいてPドリンクの初星水は好調(絶好調)と集中のバフを得られるが、ロジックでは特にバフを得られない、というものに近い。 \n",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "好印象増加量増加+N%",
+    "好印象強化N%",
+    "好印象追加発動"
+   ]
+  },
+  {
+   "id": "impression_boost",
+   "cn": [
+    "好印象强化"
+   ],
+   "jp": [
+    "好印象強化"
+   ],
+   "kind": "buff",
+   "scope": "logic",
+   "category": "amplifier",
+   "duration": "permanent",
+   "play_order": 13,
+   "effect": "好印象造成的分数增加百分比",
+   "notes": "好印象层数高时才值钱"
+  },
+  {
+   "id": "vitality",
+   "cn": [
+    "元气"
+   ],
+   "jp": [
+    "元気"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "defense",
+   "duration": "consumed",
+   "score_flat": 0.05,
+   "play_order": 40,
+   "effect": "体力减少时先扣元气（护盾）",
+   "notes": "课程里基本不加分；体力吃紧时可当保险，别当主输出",
+   "jp_desc": "レッスンや試験で体力のかわりに消費される値です。体力より優先的に消費されます。 ※一部スキルカードでは元気は体力のかわりに消費できません。 ※次のレッスンに元気を持ち越すことはできません。\n\nこちらはゲーム内ヘルプの説明文\nスキルカードやトラブルによる体力減少時、体力のかわりに消費される\n\nこちらは効果の説明文\nやる気、弱気、不安、元気増加無効の影響を受ける。 固定元気: 強化状態や低下状態の影響を受けず元気を増加させる\n\n\n効果の通りで、やる気、弱気、不安、元気増加無効の影響を受けずに固定値で元気を増やす。 元気増加無効: 元気が増加しない\n\n\nただし固定元気は貫通して元気が付与される。 不安: 元気の増加量が33％減少\n\n\n減少量は小数切り捨てなので、たとえばやる気0で考えて「元気+9」は減少量が「9×0.33＝2.97→切り捨てて2」より『元気＋7』となり、 \n\n「元気+3」は「3×0.33＝0.99→切り捨てて0」より『元気＋3』のままになる。 弱気: 弱気が1増加するごとに、元気の増加量が1減少\n\n\nやる気の逆バージョン \n例えば『弱気』が3ついた状態で元気獲得量4の『表現の基本』を使うと4-3で元気獲得1相当のカードを使ったものとして元気が加算される。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "固定元気",
+    "元気増加無効",
+    "不安",
+    "弱気"
+   ]
+  },
+  {
+   "id": "stamina_regen",
+   "cn": [
+    "体力回复",
+    "回复"
+   ],
+   "jp": [
+    "体力回復"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "resource",
+   "duration": "instant",
+   "score_flat": 2.0,
+   "play_order": 20,
+   "effect": "回复体力（每点体力 ≈ 一张牌的本钱）",
+   "notes": "折算 1 体力 ≈ 2 分；体力见底时优先"
+  },
+  {
+   "id": "cost_down",
+   "cn": [
+    "消耗体力减少",
+    "体力消耗减少"
+   ],
+   "jp": [
+    "消費体力減少",
+    "消費体力削減"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "resource",
+   "duration": "turns",
+   "score_flat": 1.5,
+   "play_order": 15,
+   "effect": "出牌体力消耗减半 / 减少 N",
+   "notes": "省下的体力 = 更多出牌机会"
+  },
+  {
+   "id": "cost_up",
+   "cn": [
+    "消耗体力增加"
+   ],
+   "jp": [
+    "消費体力増加"
+   ],
+   "kind": "debuff",
+   "scope": "common",
+   "category": "resource",
+   "duration": "turns",
+   "score_flat": -2.0,
+   "play_order": 90,
+   "effect": "出牌体力消耗翻倍",
+   "notes": "尽量用一次性效果清掉，或干脆停手"
+  },
+  {
+   "id": "draw",
+   "cn": [
+    "抽牌",
+    "抽卡",
+    "手牌"
+   ],
+   "jp": [
+    "ドロー",
+    "手札"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "utility",
+   "duration": "instant",
+   "score_flat": 3.0,
+   "play_order": 14,
+   "effect": "抽牌 / 检索，改善本回合手牌质量",
+   "notes": "等于多一次选择机会，早期值钱"
+  },
+  {
+   "id": "damage_up",
+   "cn": [
+    "上升量增加",
+    "分数上升量增加"
+   ],
+   "jp": [
+    "パラメータ上昇量増加",
+    "スコア上昇量増加"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "amplifier",
+   "duration": "turns",
+   "score_flat": 2.0,
+   "play_order": 16,
+   "effect": "打分/分数上升量按百分比增加（最终分数再乘一次）",
+   "notes": "和好调乘算，叠加时收益爆炸"
+  },
+  {
+   "id": "slump",
+   "cn": [
+    "低迷",
+    "消极"
+   ],
+   "jp": [
+    "スランプ"
+   ],
+   "kind": "debuff",
+   "scope": "common",
+   "category": "block",
+   "duration": "turns",
+   "score_flat": -8.0,
+   "play_order": 95,
+   "effect": "分数不再增加（最恶心的debuff）",
+   "notes": "有它就别把大牌浪费在它期间"
+  },
+  {
+   "id": "extra_play",
+   "cn": [
+    "使用数追加",
+    "追加使用"
+   ],
+   "jp": [
+    "スキルカード使用数追加"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "utility",
+   "duration": "turn",
+   "score_flat": 4.0,
+   "play_order": 17,
+   "effect": "本回合可额外使用 N 张牌",
+   "notes": "等于白给 N 次出牌",
+   "jp_desc": "スキルカードを追加で使用できる。\n\n\n基本的には「好調」などと同じようにターン経過で消失する。 \nバフ・デバフの欄ではなく、手札の左上に表示される。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "extra_turn",
+   "cn": [
+    "回合追加",
+    "剩余回合增加"
+   ],
+   "jp": [
+    "ターン追加"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "utility",
+   "duration": "instant",
+   "score_flat": 6.0,
+   "play_order": 5,
+   "effect": "课程剩余回合 +N",
+   "notes": "多一回合 = 多一手牌，极强",
+   "jp_desc": "レッスンの残りターンが追加\n\n\n追加したターン数は、ターン表示の右下に+nと表示される。追加されるターンの「スコアボーナス対象のパラメータ(ボーカル・ダンス・ビジュアル)」は、元々の最終ターンと同じになる。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "fixed_vitality",
+   "cn": [
+    "固定元气"
+   ],
+   "jp": [
+    "固定元気"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "defense",
+   "duration": "instant",
+   "score_flat": 0.2,
+   "play_order": 41,
+   "effect": "不受增减益影响地获得元气",
+   "notes": ""
+  },
+  {
+   "id": "vitality_block",
+   "cn": [
+    "元气增加无效"
+   ],
+   "jp": [
+    "元気増加無効"
+   ],
+   "kind": "debuff",
+   "scope": "common",
+   "category": "block",
+   "duration": "turns",
+   "score_flat": -1.0,
+   "play_order": 92,
+   "effect": "元气不再增加",
+   "notes": "防御体系失效，考试里危险"
+  },
+  {
+   "id": "debuff_immune",
+   "cn": [
+    "低下状态无效",
+    "异常无效"
+   ],
+   "jp": [
+    "低下状態無効"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "utility",
+   "duration": "count",
+   "score_flat": 1.0,
+   "play_order": 18,
+   "effect": "N 次不会陷入低下状态",
+   "notes": "",
+   "jp_desc": "低下状態にならない\n\n\n低下状態(デバフ)が付与される際、その個数と低下状態無効の回数を差し引くことで無効化する。\n\n一部プランのアイドルへの道ステージ20の2ターン目につく不調19ターンさえ弾く",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "zeal",
+   "cn": [
+    "热情"
+   ],
+   "jp": [
+    "熱意"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "flat_stack",
+   "duration": "turn",
+   "score_flat": 1.0,
+   "play_order": 19,
+   "effect": "打分上升量 +1，回合结束归零",
+   "notes": "只在本回合有效，打之前先用"
+  },
+  {
+   "id": "full_power",
+   "cn": [
+    "全力"
+   ],
+   "jp": [
+    "全力"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "multiplier",
+   "duration": "stance",
+   "score_mult": 3.0,
+   "play_order": 6,
+   "effect": "方针倍率 ×3",
+   "notes": "",
+   "jp_desc": "全力値 \n\n\nターン終了時に、全力値が10以上なら、次のターン開始時に全力値を10消費して、指針を全力に変更。\n\n\n全力 \n\n\n全力に変更時 \nスキルカード使用数追加+1 \n保留にあるスキルカードを手札に移動 \n\n\n全力状態の時 \nパラメータ上昇量を200％増加 \n次のターン開始時に全力を解除 \n全力状態を解除するまで指針は変更できない\n\n\n3種ある指針の一つ、全力。全力は、3種の中で最も特殊な立ち位置の効果。 \n強気以上のパラメータ上昇量だが、全力値を10貯める必要があるため基本的にスキルカード1枚で強気に変更できるのと比べると、複数枚使ってやっと変更できた割には指針変更しても1ターンしか持続しない。そして、全力状態が解除されると無指針になる。 \n一度全力状態になった後は他の指針へ変更が出来ない。 \n全力移行はターン開始時効果の中でも最も早く、効果どころか応援・トラブルの判定よりも早い唯一の存在であり、たとえば3ターン目の応援効果が「指針を変更した回数が1回以上の場合」であっても2ターン目終了時に全力値が10以上あれば間に合う。詳しくはレッスン・試験詳細を参照。 \nまた、ドリンク「厳選初星チャイ」はターン開始時、全力値+1という効果。 前ターン全力値9で終えた場合は、全力値9なので指針変更は起こらず、チャイの効果で全力値10となる(そしてこの次のターンに全力となる)。 \n保留効果",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "全力値増加量増加+N%",
+    "全力強化N%"
+   ]
+  },
+  {
+   "id": "strong",
+   "cn": [
+    "强气"
+   ],
+   "jp": [
+    "強気"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "multiplier",
+   "duration": "stance",
+   "score_mult": 2.0,
+   "play_order": 7,
+   "effect": "方针倍率 ×2（二阶段 ×2.5）",
+   "notes": "",
+   "jp_desc": "指針を強気に変更する \nすでに強気の場合は強気2段階目にする\n\n\n強気1段階目 \nスコア上昇量と消費体力を100%増加\n\n\n強気2段階目 \nスコア上昇量を150%増加 \n消費体力を100%増加 \nスキルカードを使うごとに体力消費1\n\n\n3種ある指針の一つ、強気。強気は、移行効果が発動したタイミングで各種バフ・デバフが付与される。 \n\n具体例として、温存1段階目でスターライト+を使用した場合 \n�．好拭璽薀ぅ箸梁領肋暖颪�温存1段階目の時に支払うため50％軽減され、消費3 \n��強気に変更。 ただちに強気状態となり、温存解除時のバフ＆強気状態のバフデバフが付与される。 \n��スターライトのスコア+18。 温存解除時で熱意+5 強気効果で100％増加しているため、スコア+46の火力となる。\n反対に、強気→温存移行となる時も温存移行の消費体力は強気の消費体力増加状態で支払うことになるため注意。（特にサンフェーデッド広） \n強気2段階目の「スキルカードを使うごとに体力消費1」も同様。強気1→強気2移行となる時は強気1参照なので体力消費1は支払わないが、強気2→温存移行となる時は強気2参照で体力消費1を支払う。 強気強化N%: 強気によるパラメータ上昇量を増加\n\n\n「夏を編んだ影」で発動するバフ。 \n強気状態での「パラメータ上昇量を100％増加(=2倍)」「パラメータ上昇量を150％増加(=",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "強気強化N%"
+   ]
+  },
+  {
+   "id": "save",
+   "cn": [
+    "温存"
+   ],
+   "jp": [
+    "温存"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "multiplier",
+   "duration": "stance",
+   "score_mult": 0.5,
+   "play_order": 50,
+   "effect": "方针倍率 ×0.5（二阶段 ×0.25）",
+   "notes": "过渡态，尽快切回全力/强气",
+   "jp_desc": "指針を温存に変更する \nすでに温存の場合、2段階目になる\n\n\n温存1段階目 \nスコア上昇量と消費体力を50％減少 \n解除されたとき、熱意+5・スキルカード使用数追加+1\n\n\n温存2段階目 \nスコア上昇量と消費体力を75％減少 \n解除されたとき、熱意+8・固定元気+5・スキルカード使用数追加+1\n\n\n3種ある指針の一つ、温存。温存は、温存状態でいる状態でのバフと、温存解除時=他の指針に変更した時に付与されるバフと2種類ある。 \n温存の間はスコア上昇量・消費体力が共に減少する。 \n温存解除時は、上記のバフがかかる。 解除する度に発動するので、同一ターンに温存から強気への変更を繰り返すと、その回数分だけバフを得られる。 熱意: 熱意1につきパラメータ上昇量を1増加 \nターン終了時、熱意を0にする\n\n\nそのターン中のパラメータ増加量がその数値分増える。センスの『集中』と同じように考えて良い。ただし永続型の集中とは異なり、熱意は付与されたターンに効果が消失する。 \n温存の解除時に熱意が付与される。1ターン内に温存→強気を繰り返すと熱意を複数回付与することができる \n付与される熱意の計算式は下記。 熱意 = (熱意追加 + N) × 熱意増加 ※計算後小数点以下切り上げ ※Nは温存１=5,温存２=8,のんびり=10 \n余談だが熱意のアイコンは花火のような柄だが初星学園HR〜十王星南プロデュース",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "熱意",
+    "熱意追加",
+    "熱意増加",
+    "熱意延長",
+    "のんびり"
+   ]
+  },
+  {
+   "id": "full_power_value",
+   "cn": [
+    "全力值"
+   ],
+   "jp": [
+    "全力値"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "resource",
+   "duration": "permanent",
+   "score_flat": 0.5,
+   "play_order": 21,
+   "effect": "回合结束 ≥10 时消耗 10 把方针切到全力",
+   "notes": "堆满值 = 下回合全力 ×3"
+  },
+  {
+   "id": "stance_fix",
+   "cn": [
+    "方针固定"
+   ],
+   "jp": [
+    "指針固定"
+   ],
+   "kind": "debuff",
+   "scope": "anomaly",
+   "category": "block",
+   "duration": "turns",
+   "score_flat": -3.0,
+   "play_order": 93,
+   "effect": "方针和阶段无法改变",
+   "notes": "",
+   "jp_desc": "指針と段階を変更できない \n全力値が10以上の場合でも、効果中は全力にならない \n全力状態の場合は、ターン終了時に全力を解除する \n\n\nアノマリー固有効果。指針の変更、段階のランクアップができない。ただし上記の通り全力の解除は行われる。 \n現状は切磋琢磨でのみ付与される。アノマリー実装後のUIの改善前は報酬選択時のカードアイコンに切磋琢磨の指針固定が表示されず、拾って後悔する育成があった。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "revival",
+   "cn": [
+    "重演",
+    "再次使用"
+   ],
+   "jp": [
+    "再演"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "utility",
+   "duration": "count",
+   "score_flat": 3.0,
+   "play_order": 22,
+   "effect": "条件满足时自动再用一次卡",
+   "notes": "",
+   "jp_desc": "再演は、再演効果を持つスキルカードをレッスン/試験内で初めて使用する時に、持続効果としてそのスキルカードの再演状態が付与される効果です。 再演は「次に使用するスキルカードの効果を複数回発動」の効果の対象にはなりません。\n\nマークが似ていることから分かるとおり再演自体は持続効果である。ただし再演によってスキルカードを再使用すること自体が持続効果なので、再使用されたスキルカードの効果は各自の分類に準ずる。 \nたとえば【ガラクタロード】葛城リーリヤの『わたしを支える言葉』を再演した時の「やる気+3」は直接効果である。 \n \nまた、ここで言う「初めて使用」とは、そのスキルカードの効果を直接指定したものであり「再演効果を持つスキルカード全体」を対象としたものではなく「再演効果を持つスキルカード名」を指定したものでもない。 \nつまり以下のようになる。使用状況再演が付与されるか否か 【複製ナシ・除外から移動ナシ】 手札などから初めて使用付与される 再演による再使用付与されない SSR『国民的アイドル』などによる 効果の再発動付与されない 【複製アリ・除外から移動ナシ】 複製した・されたカードを 手札などから初めて使用 (順不同・2枚目以降を含む)付与される 【複製ナシ・除外から移動アリ】 使用後に除外されてから 戻ってきたものを使用付与されない \n複製したものは別カード扱いとなっているため、アイ",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "jp_dc27982ead",
+   "cn": [],
+   "jp": [
+    "プライド"
+   ],
+   "kind": "buff",
+   "scope": "logic",
+   "category": "multiplier",
+   "duration": "",
+   "score_flat": 0.0,
+   "score_mult": 1.5,
+   "play_order": 25,
+   "effect": "やる気か好印象の最小値に応じて、1ごとに、パラメータ上昇量を2%増加（最大50%）\n\n\n要するに、やる気と好印象を比較した時に小さいほうだけを見て、2倍した数値のパーセント分パラメータ上昇量を増加させる。\n\n小さいほうの数値が25以上であれば最大の50%増加になる。 \n\n \n現状ではロジックの雨夜燕専用効果。 \nプライドによるパラメータ上昇量増加はブーストエキスや応援効果などのパラメータ上昇量増加",
+   "notes": "",
+   "jp_desc": "やる気か好印象の最小値に応じて、1ごとに、パラメータ上昇量を2%増加（最大50%）\n\n\n要するに、やる気と好印象を比較した時に小さいほうだけを見て、2倍した数値のパーセント分パラメータ上昇量を増加させる。\n\n小さいほうの数値が25以上であれば最大の50%増加になる。 \n\n \n現状ではロジックの雨夜燕専用効果。 \nプライドによるパラメータ上昇量増加はブーストエキスや応援効果などのパラメータ上昇量増加と加算の関係。\n\nたとえばプライド50%とブーストエキス30%のパラメータ上昇量増加が重なっている場合、パラメータ上昇量増加80%となる。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "jp_1364e33430",
+   "cn": [],
+   "jp": [
+    "パラメータ上昇量増加・パラメータ上昇量減少"
+   ],
+   "kind": "debuff",
+   "scope": "common",
+   "category": "multiplier",
+   "duration": "",
+   "score_flat": 0.0,
+   "score_mult": 1.2,
+   "play_order": 60,
+   "effect": "上昇するパラメータが数値分上昇する。\n\n\nパーセントで表される。効果は加算が特殊であり、パラメータ上昇量増加が複数並ぶ場合がある。\n\nこれは、同じ効果と満たす条件が[パラ上昇量n％(ターン数)]と合算条件にターン数を含んでいるため。 \n\n \n\n20%(3ターン) と 20%(4ターン)は別の効果扱い(仮にどちらも開始時付与ではない場合どちらも付与ターンは効果減少しない) \n30%(2ターン) と ",
+   "notes": "",
+   "jp_desc": "上昇するパラメータが数値分上昇する。\n\n\nパーセントで表される。効果は加算が特殊であり、パラメータ上昇量増加が複数並ぶ場合がある。\n\nこれは、同じ効果と満たす条件が[パラ上昇量n％(ターン数)]と合算条件にターン数を含んでいるため。 \n\n \n\n20%(3ターン) と 20%(4ターン)は別の効果扱い(仮にどちらも開始時付与ではない場合どちらも付与ターンは効果減少しない) \n30%(2ターン) と 60%(2ターン)は同じ効果扱い(同じ効果であるためゲーム画面上も合算され90％(2ターン)と表示される) \n開始時に付与された場合に合算される場合によって挙動がやや複雑になる。 詳しい解説は永続型共通事項の項で解説している。\n\n別の効果扱いだが、計算面ではそのまま合算され使用される。 仮に10％(永続)と20％(3ターン)と50％(1ターン)がある場合、1ターン目80％、2〜3ターン目30％、4ターン目以降10％となる。 \nまた、同効果かを判別するためにターン数を使用しているため、好調のようにターン数が加算されることはない。 \n\n \n\n文字にすると当たり前であるが、3ターン分パラ上昇30％が付きますよ。 2ターン分パラ上昇20％が付きますよ。 という効果なのに、 合算してしまったら5ターン分パラ上昇50％がつきますよ。とそもそもの効果と違うものとなってしまうため。 \n(好調は、1.5倍に",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+   "wiki_variants": [
+    "スランプ",
+    "不調",
+    "緊張"
+   ]
+  },
+  {
+   "id": "jp_6ae681330f",
+   "cn": [],
+   "jp": [
+    "低下状態回復"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "utility",
+   "duration": "",
+   "score_flat": 0.0,
+   "score_mult": 1.0,
+   "play_order": 25,
+   "effect": "低下状態を回復する\n\n\n既に付与された低下状態(デバフ)を後ろについてる数字の数と同じ種類だけ解除する。\n\nターン数や回数などは考慮せず、低下状態回復1につき1種類の低下状態を丸ごと解除する。 \n\n \n複数の低下状態が付与されている場合は、付与されたのが新しい順に(画面左の下側から順に)解除されていく。",
+   "notes": "",
+   "jp_desc": "低下状態を回復する\n\n\n既に付与された低下状態(デバフ)を後ろについてる数字の数と同じ種類だけ解除する。\n\nターン数や回数などは考慮せず、低下状態回復1につき1種類の低下状態を丸ごと解除する。 \n\n \n複数の低下状態が付与されている場合は、付与されたのが新しい順に(画面左の下側から順に)解除されていく。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "jp_ed932e8e83",
+   "cn": [],
+   "jp": [
+    "スキルカード追加発動"
+   ],
+   "kind": "buff",
+   "scope": "common",
+   "category": "utility",
+   "duration": "",
+   "score_flat": 0.0,
+   "score_mult": 1.0,
+   "play_order": 25,
+   "effect": "スキルカードの効果をもう1回発動\n\n\nこの効果を適用中に使用したスキルカードの効果をもう一度発動する。\n\nスキルカードの効果を再発動するだけであり、スキルカードを再使用しているわけではないため「スキルカードを使用時」などの効果が再度誘発されて発動することはない。 \nスキルカード単位で再発動するため、記載されている順に上から全て発動した後に、再度上から順に発動していく。 \nスキルカードの種類が指定さ",
+   "notes": "",
+   "jp_desc": "スキルカードの効果をもう1回発動\n\n\nこの効果を適用中に使用したスキルカードの効果をもう一度発動する。\n\nスキルカードの効果を再発動するだけであり、スキルカードを再使用しているわけではないため「スキルカードを使用時」などの効果が再度誘発されて発動することはない。 \nスキルカード単位で再発動するため、記載されている順に上から全て発動した後に、再度上から順に発動していく。 \nスキルカードの種類が指定されている場合、指定外のスキルカードを使用しても発動しないため、消失もしない。\n\nターン指定がある場合は「好調」などと同じようにターン経過で消失する。 \n\n \n\n \nこの効果が複数付与されている場合、付与されたのが古い順に(画面左の上側から順に)スキルカード使用1回につき1つずつ適用される。\n\nたとえば「スキルカード追加発動」が5つ付与されている場合、次に使用したスキルカードの効果が5回再発動するのではなく1回だけ再発動し、付与数が4つになる。そして、その次に使用したカード効果が1回再発動し、付与数が3つになる・・・という流れ。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "jp_259ef5bd20",
+   "cn": [],
+   "jp": [
+    "手札減少"
+   ],
+   "kind": "debuff",
+   "scope": "common",
+   "category": "flat_stack",
+   "duration": "",
+   "score_flat": 0.0,
+   "score_mult": 1.0,
+   "play_order": 60,
+   "effect": "手札減少が1増加するごとに、ターン開始時に引くスキルカードが1枚減少\n\n\n複数回に分けて付与された場合は効果が合算され、手札減少3以上になった場合は『ターン開始時に引けるスキルカードが0枚です』と表記され、何も引かない。 \nあくまでもターン開始時に引くスキルカードの枚数が減少するだけなので、効果でスキルカードを引く枚数には影響しない。",
+   "notes": "",
+   "jp_desc": "手札減少が1増加するごとに、ターン開始時に引くスキルカードが1枚減少\n\n\n複数回に分けて付与された場合は効果が合算され、手札減少3以上になった場合は『ターン開始時に引けるスキルカードが0枚です』と表記され、何も引かない。 \nあくまでもターン開始時に引くスキルカードの枚数が減少するだけなので、効果でスキルカードを引く枚数には影響しない。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "jp_3a3b86b6de",
+   "cn": [],
+   "jp": [
+    "スキルカード使用不可"
+   ],
+   "kind": "debuff",
+   "scope": "common",
+   "category": "utility",
+   "duration": "",
+   "score_flat": 0.0,
+   "score_mult": 1.0,
+   "play_order": 60,
+   "effect": "文字通りであるためゲーム内の説明が無い \n主に「アクティブスキルカード」「メンタルスキルカード」といった特定のカードを指定される。",
+   "notes": "",
+   "jp_desc": "文字通りであるためゲーム内の説明が無い \n主に「アクティブスキルカード」「メンタルスキルカード」といった特定のカードを指定される。",
+   "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
   }
+ ],
+ "score_weights": {
+  "score": 1.0,
+  "vitality": 0.05,
+  "motivation": 0.2,
+  "heal": 2.0,
+  "draw": 3.0,
+  "condition": 1.5,
+  "focus": 1.0
+ },
+ "wiki_meta": {
+  "source": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7",
+  "synced": "2026-11-14 22:36:23",
+  "added": 6,
+  "updated": 19,
+  "total": 32
+ }
 }
