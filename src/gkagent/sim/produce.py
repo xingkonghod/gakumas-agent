@@ -34,10 +34,11 @@ class ProduceConfig:
     train_sigma: float = 6.0
     lesson_cost: int = 10
     rest_gain: int = 24
-    outing_weeks: tuple[int, ...] = (3, 8)  # 这几天有外出
+    outing_weeks: tuple[int, ...] = (3, 5, 8, 10)  # 这几周有外出可选
     exam_weeks: tuple[int, ...] = (6, 12)
     lesson_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
-    support_bonus: float = 1.0      # 支援卡对训练收益的倍率（近似）
+    support_levels: tuple[int, ...] = (40, 37, 29)  # 真机支援卡等级
+    support_bonus: float = 1.35     # 训练收益倍率（由支援卡等级折算：1 + (40+37+29)/300）
     lesson_gain_ratio: float = 0.6  # 课程得分 → 属性成长（按真机一局 ~632 标定）
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     # 考试：6 人里进前 3 才算合格。基准分按真机标定：
@@ -152,7 +153,11 @@ class ProduceSim:
 
     def outing(self) -> None:
         self.stamina = min(self.config.stamina_max, self.stamina + self.config.rest_gain)
-        self.log.append(f"W{self.week} outing")
+        reward = self.pick_reward()
+        if reward is not None:
+            self.deck.append(reward)
+            self.reward_picks += 1
+        self.log.append(f"W{self.week} outing" + (f" +card:{reward.name.split('#')[0]}" if reward else ""))
 
     def pick_reward(self) -> CardSpec | None:
         """课程奖励三选一：按 分数/体力 选最强的一张进牌组。"""

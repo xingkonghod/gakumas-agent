@@ -14,12 +14,17 @@
  },
  "produce": {
   "prefer_lesson": true,
-  "rest_threshold": 6,
+  "rest_threshold": 8,
   "reward_pick": "best",
   "lesson_every": 1,
-  "attr_choice": "lowest",
-  "min_stamina_to_train": 10,
-  "outing_below": 20,
-  "source": "sim_search"
+  "attr_choice": "weight",
+  "min_stamina_to_train": 8,
+  "outing_below": 16,
+  "source": "sim_search_round2",
+  "support_levels": [
+   40,
+   37,
+   29
+  ]
  }
 }
