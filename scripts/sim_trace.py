@@ -22,10 +22,10 @@ OUT = ROOT / "docs" / "sim_viewer.html"
 
 
 def build_runs(count: int) -> list[dict]:
+    import sim_produce as sp
+
     from gkagent.sim.lesson import CardSpec
     from gkagent.sim.produce import STRATEGIES, ProduceConfig, ProduceSim
-
-    import sim_produce as sp
 
     deck_raw = sp.build_deck()
     pool_raw = sp.build_pool()
