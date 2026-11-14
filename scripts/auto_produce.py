@@ -296,7 +296,8 @@ def main() -> int:
         # 期末试镜之后进入「结算期」：评分/评价画面常常一闪而过，
         # 每步先连拍几张再动作，确保能抓到最终评价
         if not final_phase and any(
-            word in text for word in ("最终试镜", "最终考试", "最終試", "最終試験")
+            word in text
+            for word in ("最终试镜", "最终考试", "最終試", "最終試験", "合格条件", "需要得分")
         ):
             final_phase = True
             log_lines.append(f"{step:03d} [final] 进入期末结算期，连拍抓评价")
