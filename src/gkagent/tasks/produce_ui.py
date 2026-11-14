@@ -151,7 +151,15 @@ class ProduceDriver:
         cached = getattr(self, "_produce_cfg", None)
         if isinstance(cached, dict):
             return cached
-        defaults = {"prefer_lesson": True, "rest_threshold": 8, "reward_pick": "best"}
+        defaults = {
+            "prefer_lesson": True,
+            "rest_threshold": 8,
+            "reward_pick": "best",
+            "lesson_every": 1,
+            "attr_choice": "weight",
+            "min_stamina_to_train": 10,
+            "outing_below": -1,
+        }
         try:
             import json as _json
             from pathlib import Path as _Path
@@ -159,7 +167,8 @@ class ProduceDriver:
             raw = _json.loads(_Path(r"D:\Games\gakumas-agent\data\knowledge\policy.json").read_text(encoding="utf-8"))
             section = raw.get("produce") or {}
             if isinstance(section, dict):
-                defaults.update({k: v for k, v in section.items() if k in defaults})
+                # 保留 policy.json 里的所有键（之前只保留默认字典里的键，新参数被静默丢弃）
+                defaults.update(section)
         except Exception:  # noqa: BLE001 - 参数文件坏了就用默认值
             self._produce_cfg = defaults
             return defaults

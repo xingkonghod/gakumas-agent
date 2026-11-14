@@ -387,3 +387,13 @@ def test_choose_training_lowest_attribute(tmp_path, monkeypatch) -> None:
     from gkagent.tasks.produce_ui import TRAIN_DA
 
     assert point == TRAIN_DA
+
+
+def test_produce_params_reads_all_keys(monkeypatch) -> None:
+    """policy.json 里的 produce 段必须整段读进来（曾因只保留默认键而丢掉 attr_choice）。"""
+    driver = _driver()
+    params = driver._produce_params()
+    assert params["prefer_lesson"] is True
+    assert "attr_choice" in params
+    assert "lesson_every" in params
+    assert params["rest_threshold"] == 8
