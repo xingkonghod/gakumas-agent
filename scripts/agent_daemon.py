@@ -32,6 +32,17 @@ def build_agent():
     return Agent(device, TemplateMatcher(ROOT / "templates"))
 
 
+def ensure_agent(agent):
+    """句柄变了（游戏重启）就重建，否则沿用缓存。"""
+    from gkagent.device.win32 import find_game_hwnd
+
+    hwnd = find_game_hwnd()
+    old = getattr(getattr(agent, "device", None), "hwnd", None)
+    if agent is None or not hwnd or old != hwnd:
+        return build_agent()
+    return agent
+
+
 def build_produce(ocr: bool = True):
     from gkagent.policy.search import SearchPolicy
     from gkagent.runtime.replay import ReplayDB
@@ -80,8 +91,7 @@ def main() -> None:
         result = {"ok": False}
         try:
             if action in ("click", "force", "home"):
-                if agent is None:
-                    agent = build_agent()
+                agent = ensure_agent(agent)
                 if action == "click":
                     agent.device.click(int(cmd["x"]), int(cmd["y"]))
                 elif action == "force":
@@ -90,8 +100,7 @@ def main() -> None:
                     agent.ensure_home()
                 result = {"ok": True}
             elif action == "produce":
-                if agent is None:
-                    agent = build_agent()
+                agent = ensure_agent(agent)
                 task = build_produce(ocr=bool(cmd.get("ocr", True)))
                 from gkagent.tasks.produce import ProduceStage
 

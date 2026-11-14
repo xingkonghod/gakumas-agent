@@ -3,7 +3,26 @@
 > 目标：按模拟器选出的策略跑一局感性培育，拿到 **C+ 以上评价**，并记录三维用于标定。
 > 前提：模拟器已就绪（`data/knowledge/policy.json` 的 produce 段生效）。
 
-## 0. 开跑前 3 分钟自检
+## 0. 先把游戏开起来（当前是关着的）
+
+```powershell
+# 1) TUN 模式（不是系统代理）；2) 只开一个 DMM；3) DMM → マイゲーム → 点游戏卡片
+Get-Process gakumas, DMMGamePlayer -ErrorAction SilentlyContinue | Select-Object Id, ProcessName
+```
+
+**游戏重启过 → 必须重启 daemon**（它缓存窗口句柄，否则会点空气）：
+
+```powershell
+.venv\Scripts\python.exe scripts\agent_cmd.py quit
+schtasks /Run /TN GDEAgent
+```
+
+## 0.1 开跑前 3 分钟自检
+
+```powershell
+.venv\Scripts\python.exe scripts\check_wiring.py --live    # 配置接线 + 游戏窗口一次过
+```
+
 
 ```powershell
 cd D:\Games\gakumas-agent
