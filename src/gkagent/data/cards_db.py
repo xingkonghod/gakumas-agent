@@ -125,6 +125,27 @@ class CardLibrary:
                 return info
         return None
 
+    def lookup(self, name: str) -> CardInfo | None:
+        """严格查卡：全等优先，其次唯一的子串匹配（至少 3 字）。
+
+        手牌 OCR 只给卡名，``find`` 的双向子串会把「平衡感」撞到别的卡上，
+        导致文本/估值全错；出牌决策必须用这个。
+        """
+        if not name:
+            return None
+        cleaned = name.strip()
+        if not cleaned:
+            return None
+        if cleaned in self.by_name:
+            return self.by_name[cleaned]
+        if len(cleaned) < 3:
+            return None
+        matches = [info for card_name, info in self.by_name.items() if cleaned in card_name]
+        if not matches:
+            return None
+        matches.sort(key=lambda info: (len(info.name), info.id))
+        return matches[0]
+
     def score(self, name: str, text: str = "", cost: float | None = None) -> float:
         info = self.find(name)
         if info is not None and not text:

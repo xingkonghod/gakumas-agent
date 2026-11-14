@@ -43,6 +43,33 @@
 4. **偶像特训自动化**：导航仍不稳（「没有到达偶像界面」）。
 5. **无人值守长跑**：supervisor 批次恢复前先手动单局验证。
 
+### 2026-11-14 晚：出牌大脑 v2（新增，待实机验证）
+
+**问题定位**：老逻辑 `pick_hand_card` 按"卡面文本价值"选牌，把卡牌左上角菱形的
+**分数预览**（例：84）当成了体力费用（`DEFAULT_COST_ROI` 读的就是左上角），
+高分牌被判"付不起"直接跳过；同时完全不看 `剩余回合数 / 审查基准 / 当前分 / SKIP`，
+体力在头两回合烧光，后面回合空转 → 课程 FAILED（`fail_cplus-v9_014.png`：体力 3/34、审查基准 250 只打了几十分）。
+
+**新增模块**
+
+| 文件 | 作用 |
+|---|---|
+| `data/knowledge/mechanics.md` + `buffs.json` | 机制/buff 知识库（好调/集中/干劲/好印象/元气…，含倍率与出牌顺序，来自学マスwiki） |
+| `src/gkagent/data/buffs.py` | 知识库加载与文本命中、出牌顺序 |
+| `src/gkagent/data/card_effects.py` | 卡面文本 → 结构化效果 → 机制加权估值 |
+| `src/gkagent/data/card_costs.py` | 卡名→体力费用缓存（从出牌确认帧的「体力 X / -Y」学习） |
+| `src/gkagent/vision/lesson.py` | 课程读屏：分数预览菱形 / 爱心体力 / 剩余回合 / 审查基准 / SKIP |
+| `src/gkagent/policy/lesson.py` | 出牌策略：分数÷体力、每回合体力预算、buff 先铺、没牌就 SKIP |
+| `src/gkagent/policy/lesson_pick.py` | 接进 `auto_produce` 的适配层（读不到手牌时回退老路径） |
+
+`OcrEngine.line()` 新增"只识别"快路径（实测 10-30ms/个），手牌小数字不再走 2-5s 整屏 OCR。
+
+**验证**：`tests/test_lesson.py` 14 条（含真机帧 `live_lesson.png` / `lesson_now.png`）；
+全量 `pytest` 与 `ruff check src tests` 均通过。真机帧上策略选中「聊天时间 84 分 / 6 体力」——
+老逻辑正是把这张判成 useless 的。
+
+**待办**：实机跑一局验证；卡面爱心体力小字 OCR 仍不稳（靠确认帧学习缓存补）；考试「移动」阶段未接新策略。
+
 **输入方式结论（2026-11-12 实测 + 查 MaaFramework / MaaGakumasu 配置）**：
 
 MaaFramework 的 Win32 输入方式对照（Python binding `MaaWin32InputMethodEnum` 文档）：

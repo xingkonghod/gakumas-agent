@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 import cv2
@@ -23,12 +24,19 @@ class OcrLine:
 
 
 class OcrEngine:
-    def __init__(self, engine=None, scale: float = 2.0, min_score: float = 0.4) -> None:
+    def __init__(
+        self,
+        engine=None,
+        scale: float = 2.0,
+        min_score: float = 0.4,
+        line_engine=None,
+    ) -> None:
         if engine is None:
             from rapidocr_onnxruntime import RapidOCR
 
             engine = RapidOCR()
         self._engine = engine
+        self._line_engine = line_engine
         self.scale = scale
         self.min_score = min_score
 
@@ -76,6 +84,74 @@ class OcrEngine:
             if needle and needle in line.text:
                 return line
         return None
+
+    # ------------------------------------------------------------------ 单行快路径
+    def line(
+        self,
+        image: np.ndarray,
+        roi: tuple[int, int, int, int],
+        *,
+        scale: float = 4.0,
+        min_score: float | None = None,
+        digits_only: bool = False,
+    ) -> OcrLine | None:
+        """已知位置的一小段文字/数字，只跑识别不跑检测（实测 10-30ms）。
+
+        手牌上的分数预览、体力费用、体力/回合数都是固定位置的小数字，
+        走这条路径比整屏 OCR（2-5s）便宜两个数量级。
+
+        ``digits_only`` 为 True 时只返回纯数字（允许 x2 这类倍率由调用方处理）。
+        """
+        x, y, w, h = roi
+        height, width = image.shape[:2]
+        x = max(0, min(x, width - 1))
+        y = max(0, min(y, height - 1))
+        w = max(1, min(w, width - x))
+        h = max(1, min(h, height - y))
+        crop = image[y : y + h, x : x + w]
+        if crop.size == 0:
+            return None
+        if scale and scale != 1.0:
+            crop = cv2.resize(
+                crop, None, fx=float(scale), fy=float(scale), interpolation=cv2.INTER_CUBIC
+            )
+        try:
+            result, _ = self._line_core()(crop)
+        except Exception:  # noqa: BLE001 - 快路径失败就退回整块识别
+            lines = self.read(image, (x, y, w, h))
+            text = " ".join(line.text for line in lines).strip()
+            if not text:
+                return None
+            return OcrLine(text, max((line.score for line in lines), default=0.0), (x, y, w, h))
+
+        best_text = ""
+        best_score = 0.0
+        for entry in result or []:
+            text = str(entry[0]).strip()
+            score = float(entry[1])
+            if score > best_score:
+                best_text, best_score = text, score
+        if min_score is None:
+            min_score = self.min_score
+        if not best_text or best_score < min_score:
+            return None
+        if digits_only and not re.fullmatch(r"\d+", best_text):
+            match = re.search(r"\d+", best_text)
+            if match is None:
+                return None
+            best_text = match.group(0)
+        return OcrLine(best_text, best_score, (x, y, w, h))
+
+    def _line_core(self):
+        """懒加载"只识别"引擎（RapidOCR use_det=False），失败时退回整块引擎。"""
+        if self._line_engine is None:
+            try:
+                from rapidocr_onnxruntime import RapidOCR
+
+                self._line_engine = RapidOCR(use_det=False, use_cls=False)
+            except Exception:  # noqa: BLE001 - 老版本 rapidocr 没有该开关
+                self._line_engine = self._engine
+        return self._line_engine
 
     def text(self, image: np.ndarray, roi: tuple[int, int, int, int] | None = None) -> str:
         return " ".join(line.text for line in self.read(image, roi))

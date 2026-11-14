@@ -27,11 +27,14 @@ sys.path.insert(0, str(ROOT / "src"))
 import cv2
 
 from gkagent.agent import Agent
+from gkagent.data.card_costs import CardCosts
 from gkagent.data.cards_db import CardLibrary
 from gkagent.data.items_db import ItemLibrary
 from gkagent.data.master import MasterData
 from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd
 from gkagent.nav import Navigator
+from gkagent.policy.lesson import LessonPolicy
+from gkagent.policy.lesson_pick import decide_lesson_pick
 from gkagent.policy.ocr_cards import OcrCardPolicy
 from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
@@ -41,6 +44,7 @@ from gkagent.tasks.produce import ProduceTask
 from gkagent.tasks.produce_ui import LESSON_WORDS, ProduceDriver, parse_stamina
 from gkagent.vision.cards import scan_hand
 from gkagent.vision.hand_names import pick_hand_card
+from gkagent.vision.lesson import LessonReader, read_stamina_preview
 from gkagent.vision.matcher import TemplateMatcher
 from gkagent.vision.ocr import OcrEngine
 
@@ -181,6 +185,10 @@ def main() -> int:
     card_lib = CardLibrary(MasterData(ROOT / "data" / "master"))
     task = build_task(episode, engine, card_lib)
     driver = ProduceDriver(ocr=engine)
+    # 出牌"眼睛"和"脑子"：读游戏给的分数预览/体力/回合，按分数÷体力出牌
+    cost_cache = CardCosts()
+    lesson_reader = LessonReader(engine, cards=card_lib, costs=cost_cache)
+    lesson_policy = LessonPolicy(buffs=lesson_reader.buffs)
     # 开局先回主页：上一轮可能停在支援卡/偶像/强化页面，否则前 8 步全是 unknown-tap
     try:
         Navigator(agent, engine).ensure_home()
@@ -451,11 +459,36 @@ def main() -> int:
             # 两段式出牌：第一次点卡只是选中，下一步点同一点确认（不再依赖手牌框是否变化）
             if action_name != "drink" and lesson_pending is not None:
                 point = lesson_pending[0]
-                clicked = agent.device.click_force(*point)
-                time.sleep(0.9)
-                lesson_pending = None
-                result = f"[lesson] confirm card at {point}"
-                idle = 0 if clicked is not False else idle
+                pending_name = lesson_pending[2] if len(lesson_pending) > 2 else ""
+                abandoned = False
+                if pending_name:
+                    # 选中后右上角显示「体力 X / -Y」：顺手学这张卡的体力费用，
+                    # 卡面爱心上的小字 OCR 认不出来也能靠这里补齐。
+                    stamina_now, stamina_cost = read_stamina_preview(engine, image)
+                    if stamina_cost is not None and cost_cache.record(pending_name, stamina_cost):
+                        log_lines.append(
+                            f"{step:03d} [cost] {pending_name} 体力消耗={stamina_cost} "
+                            f"(当前体力 {stamina_now})"
+                        )
+                    if (
+                        stamina_now is not None
+                        and stamina_cost is not None
+                        and stamina_cost > stamina_now
+                    ):
+                        abandoned = True
+                        lesson_pending = None
+                        lesson_policy.reset_turn()
+                        clicked = agent.device.click_force(660, 868)
+                        time.sleep(0.8)
+                        result = f"[lesson] {pending_name} 体力不够({stamina_cost}>{stamina_now})，结束回合"
+                        idle = 0
+                        action_name = "lesson-skip"
+                if not abandoned:
+                    clicked = agent.device.click_force(*point)
+                    time.sleep(0.9)
+                    lesson_pending = None
+                    result = f"[lesson] confirm card at {point}"
+                    idle = 0 if clicked is not False else idle
             elif action_name != "drink":
                 lesson_pending = None
                 # 快路径：手牌上直接读卡名 → 卡库估值，选最值的一张（不逐张点开）
@@ -463,15 +496,31 @@ def main() -> int:
                 if not lines:
                     lines = driver.engine().read(image, (0, 780, 720, 420))
                 costs = [card.cost for card in hand.cards] if hand.cards else None
-                name_pick = pick_hand_card(
-                    lines,
-                    boxes,
-                    card_lib,
+                lesson_skip = False
+                name_pick, lesson_done = decide_lesson_pick(
+                    image,
+                    lesson_reader,
+                    lesson_policy,
                     stamina=stamina,
-                    costs=costs,
-                    attribute=driver.lesson_attribute,
                     exclude=bad_cards,
+                    click=agent.device.click_force,
+                    fallback=lambda lines=lines, boxes=boxes, stamina=stamina, costs=costs: pick_hand_card(
+                        lines,
+                        boxes,
+                        card_lib,
+                        stamina=stamina,
+                        costs=costs,
+                        attribute=driver.lesson_attribute,
+                        exclude=bad_cards,
+                    ),
                 )
+                if lesson_done:
+                    lesson_skip = True
+                    name_pick = None
+                    clicked = True
+                    idle = 0
+                    action_name = "lesson-skip"
+                    result = "[lesson] SKIP 结束回合（剩下的牌不值得体力）"
                 # 同一张卡连点 4 次手牌都没变 → 认为不可用，标记跳过、换一张
                 if name_pick is not None:
                     if name_pick.name == last_pick_name:
@@ -500,14 +549,14 @@ def main() -> int:
                         result = "[pause] 用户正在操作，暂停出牌"
                         idle = 0
                     else:
-                        lesson_pending = (name_pick.point, boxes)
+                        lesson_pending = (name_pick.point, boxes, name_pick.name)
                         result = (
                             f"[lesson] name-pick {name_pick.name} "
                             f"({name_pick.value:.1f}) at {name_pick.point}"
                         )
                         idle = 0
                     action_name = "name-pick"
-                else:
+                elif not lesson_skip:
                     with (ROOT / "data" / "pick_debug.log").open("a", encoding="utf-8") as handle:
                         detail = []
                         for box in boxes:
@@ -552,7 +601,7 @@ def main() -> int:
                             result = "[pause] 用户正在操作，暂停出牌"
                             idle = 0
                         else:
-                            lesson_pending = (play.point, boxes)
+                            lesson_pending = (play.point, boxes, "")
                             result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
                             idle = 0
                     else:
