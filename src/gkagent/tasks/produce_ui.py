@@ -255,6 +255,11 @@ class ProduceDriver:
                 end = self.find_button(lines, ("结束培育",))
                 self._click_line(agent, end) if end else self._click(agent, (185, 1144))
                 return TickResult("dialog", "end-produce")
+            if "再生成" in text and "确认" in text:
+                # 回忆再生成确认：不花票据，取消
+                cancel = self.find_button(lines, ("取消",))
+                self._click_line(agent, cancel) if cancel else self._click(agent, (210, 1155))
+                return TickResult("dialog", "cancel-memory-regen")
             if "休息确认" in text:
                 rest = self.find(lines, "休息")
                 self._click_line(agent, rest) if rest else self._click(agent, (456, 1163))
