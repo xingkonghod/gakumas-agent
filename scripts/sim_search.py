@@ -66,6 +66,51 @@ def evaluate(task: tuple) -> dict:
     }
 
 
+def mutate(params: dict, keys: list[str], rng) -> dict:
+    """随机改 1-2 个参数（在 GRID 里采样）。"""
+    child = dict(params)
+    for _ in range(rng.choice([1, 1, 2])):
+        key = rng.choice(keys)
+        child[key] = rng.choice(GRID[key])
+    return child
+
+
+def run_evolution(args, keys, deck_raw, pool_raw, rng, seeds) -> int:
+    """进化搜索：每代保留 Top-4，其余用变异补齐，记录学习曲线。"""
+    population = [dict(zip(keys, combo)) for combo in seeds[: args.population]]
+    while len(population) < args.population:
+        population.append(dict(zip(keys, rng.choice(seeds))))
+    curve = []
+    for generation in range(1, args.generations + 1):
+        tasks = [
+            (params, args.episodes, 7000 + generation * 100 + index * 37, deck_raw, pool_raw)
+            for index, params in enumerate(population)
+        ]
+        with ProcessPoolExecutor(max_workers=args.workers) as executor:
+            results = list(executor.map(evaluate, tasks))
+        results.sort(key=lambda row: row["mean"], reverse=True)
+        best = results[0]
+        curve.append({"generation": generation, "best_mean": best["mean"], "best": best["params"], "avg": round(sum(r["mean"] for r in results) / len(results), 1)})
+        print(f"第 {generation} 代: best={best['mean']:.0f} avg={curve[-1]['avg']:.0f} params={best['params']}")
+        # 保留 Top-4，其余变异
+        survivors = [dict(row["params"]) for row in results[:4]]
+        population = list(survivors)
+        while len(population) < args.population:
+            parent = rng.choice(survivors)
+            population.append(mutate(parent, keys, rng))
+    best_all = max(curve, key=lambda row: row["best_mean"])
+    print(f"\n最优（第 {best_all['generation']} 代）: mean={best_all['best_mean']} {best_all['best']}")
+    if args.write:
+        OUT.write_text(
+            json.dumps({"version": 1, "source": "sim_evolve", "produce": best_all["best"],
+                        "stats": {"best_mean": best_all["best_mean"]}, "curve": curve},
+                       ensure_ascii=False, indent=1),
+            encoding="utf-8",
+        )
+        print("已写入", OUT)
+    return 0
+
+
 def main(argv: list[str]) -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser()
@@ -73,7 +118,11 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--samples", type=int, default=60, help="随机采样多少组参数")
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--evolve", action="store_true", help="进化式搜索（保留强者+变异，输出学习曲线）")
+    parser.add_argument("--generations", type=int, default=8)
+    parser.add_argument("--population", type=int, default=12)
     args = parser.parse_args(argv)
+
 
     import sim_produce as sp
 
@@ -84,6 +133,11 @@ def main(argv: list[str]) -> int:
     rng = random.Random(7)
     combos = rng.sample(all_combos, min(args.samples, len(all_combos)))
     print(f"搜索空间 {len(all_combos)} 组，本次采样 {len(combos)} 组 x {args.episodes} 局")
+
+    if args.evolve:
+        return run_evolution(
+            args, keys, deck_raw, pool_raw, rng, combos
+        )
 
     tasks = [
         (dict(zip(keys, combo)), args.episodes, 5000 + index * 131, deck_raw, pool_raw)

@@ -1,6 +1,6 @@
 {
  "version": 1,
- "source": "sim_search",
+ "source": "sim_evolve",
  "produce": {
   "rest_threshold": 8,
   "lesson_every": 1,
@@ -9,11 +9,80 @@
   "min_stamina_to_train": 8
  },
  "stats": {
-  "mean": 782.8,
-  "p10": 721,
-  "exams": 1.0,
-  "clear_rate": 0.841,
-  "fail_exam_rate": -748.5,
-  "n": 1500
- }
+  "best_mean": 781.9
+ },
+ "curve": [
+  {
+   "generation": 1,
+   "best_mean": 715.3,
+   "best": {
+    "rest_threshold": 10,
+    "lesson_every": 1,
+    "attr_choice": "weight",
+    "outing_below": -1,
+    "min_stamina_to_train": 10
+   },
+   "avg": 593.8
+  },
+  {
+   "generation": 2,
+   "best_mean": 716.3,
+   "best": {
+    "rest_threshold": 10,
+    "lesson_every": 1,
+    "attr_choice": "weight",
+    "outing_below": -1,
+    "min_stamina_to_train": 10
+   },
+   "avg": 626.3
+  },
+  {
+   "generation": 3,
+   "best_mean": 781.7,
+   "best": {
+    "rest_threshold": 6,
+    "lesson_every": 1,
+    "attr_choice": "lowest",
+    "outing_below": 16,
+    "min_stamina_to_train": 8
+   },
+   "avg": 672.9
+  },
+  {
+   "generation": 4,
+   "best_mean": 781.7,
+   "best": {
+    "rest_threshold": 8,
+    "lesson_every": 1,
+    "attr_choice": "weight",
+    "outing_below": 16,
+    "min_stamina_to_train": 10
+   },
+   "avg": 742.9
+  },
+  {
+   "generation": 5,
+   "best_mean": 781.9,
+   "best": {
+    "rest_threshold": 8,
+    "lesson_every": 1,
+    "attr_choice": "weight",
+    "outing_below": 16,
+    "min_stamina_to_train": 8
+   },
+   "avg": 747.0
+  },
+  {
+   "generation": 6,
+   "best_mean": 781.8,
+   "best": {
+    "rest_threshold": 8,
+    "lesson_every": 1,
+    "attr_choice": "weight",
+    "outing_below": 16,
+    "min_stamina_to_train": 8
+   },
+   "avg": 734.2
+  }
+ ]
 }

@@ -17,10 +17,10 @@
   "rest_threshold": 8,
   "reward_pick": "best",
   "lesson_every": 1,
-  "attr_choice": "lowest",
+  "attr_choice": "weight",
   "min_stamina_to_train": 8,
   "outing_below": 16,
-  "source": "sim_search_calibrated",
+  "source": "sim_evolve_gen5",
   "support_levels": [
    40,
    37,
