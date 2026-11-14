@@ -508,8 +508,13 @@ class ProduceDriver:
             self._click_once(agent, self.center(claim) if claim else (360, 1097))
             self.sleep(0.9)
             return TickResult("card-reward", "pick+claim")
+        # 4.05) "领取完成/已领取以下奖励" 结算弹窗：点关闭，别反复点领取（会死循环）
+        if any(word in text for word in ("领取完成", "已领取以下奖励", "已领取以下报酬")):
+            close = self.find_button(lines, ("关闭", "确定")) or self.find(lines, "关闭")
+            self._click_line(agent, close) if close else self._click(agent, (360, 1160))
+            return TickResult("reward-done", "close")
         if "领取" in text:
-            claim = self.find(lines, "领取")
+            claim = self.find_button(lines, ("领取", "全部领取")) or self.find(lines, "领取")
             self._click_line(agent, claim) if claim else self._click(agent, (360, 1131))
             return TickResult("card-reward", "claim")
 
