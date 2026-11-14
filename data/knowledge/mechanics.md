@@ -60,3 +60,38 @@
 | 好印象 | 好印象 | 回合结束 +N 分，每回合 -1 |
 | 体力消耗 | 消費体力 | 出牌成本 |
 | 全力 / 强气 / 温存 | 全力 / 強気 / 温存 | 非凡系倍率 3 / 2~2.5 / 0.25~0.5 |
+
+## 6. 中文社区经验（B站/NGA 攻略，2026-11 吸收）
+
+### 6.1 buff 叠层什么时候赚（可量化）
+
+> 来源：[《学园偶像大师》卡牌玩法攻略](https://www.9game.cn/xyoxds/10936599.html)、[NGA 育成心得](https://ngabbs.com/read.php?tid=40194613)
+
+- 好印象 N 层在剩 T 回合里的总收益 ≈ N×(T + T-1 + … + 1)；3 层剩 3 回合 = 3+2+1 = 6 分。
+- 拿它和直伤白值比：`层数差 × 剩余轮次 > 当前层数 × 白值` 时才值得先叠。
+- 经验拐点：**5 回合短轴在第 2-3 回合之间**；**10 回合在 6-7 回合**——过了拐点就该打直伤牌。
+- 集中/好调**越早叠越赚**；好调只需要 1 张覆盖爆发回合，第二张远不如集中。
+
+### 6.2 行动牌优先于技能牌
+
+> 同上 + [NGA 手毬 TE 心得](https://ngabbs.com/read.php?tid=40194613)
+
+- 集中/好调要靠**行动牌（A / ActiveSkill）**转化成数值，技能牌（M / MentalSkill）只叠层不打分。
+- 所以"带集中/好调的行动牌" > "纯技能牌"；卡表里 `category` 字段直接可判（`ActiveSkill` / `MentalSkill`）。
+
+### 6.3 中文社区术语
+
+| 中文 | 含义 |
+|---|---|
+| 感性 / 理性 | センス / ロジック（方案） |
+| 集中流 / 好调流 / 删卡流 | 主要打法 |
+| 左右脚、国民至高、存在感 | 感性核心卡黑话（国民的偶像、至高娱乐、存在感） |
+| 再动 / 过牌 / 删卡 | 追加使用、抽牌、删除牌库 |
+
+### 6.4 卡牌数据来源（已接入）
+
+- [vertesan/gakumasu-diff](https://github.com/vertesan/gakumasu-diff) 的 `ProduceCard.yaml`：和游戏 master **同一套 ID**，
+  含 `stamina`（体力费用）、`rarity`、`planType`、`playEffects`。已由 `scripts/build_card_table.py`
+  转成 `data/knowledge/card_table.json`（1724 张卡，中文名 → 费用/稀有度/方案/效果类型），出牌时用它取代 OCR 读费用。
+- [gakumas-tools](https://github.com/gakumas-tools/gakumas-tools)：考试分数计算器/卡牌查询参考。
+- [game8 スキルカード一覧](https://game8.jp/gakuen-idolmaster/609737)：日文卡面文本对照。

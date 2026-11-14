@@ -223,3 +223,36 @@ def test_policy_still_skips_when_scores_are_really_zero() -> None:
     state = _state([_card(0, "元气", 0, 2)], turns_left=3, stamina=20)
     action = policy.decide(state)
     assert action.kind == "skip"
+
+
+def test_card_table_gives_exact_cost() -> None:
+    """费用来自 gakumasu-diff 属性表（按 ID 对齐），不再靠 OCR。"""
+    from gkagent.data.card_table import CardTable
+
+    table = CardTable()
+    if not len(table):
+        import pytest
+
+        pytest.skip("缺少 data/knowledge/card_table.json")
+    assert table.cost("魅力的基础") == 4
+    assert table.cost("聊天时间") == 6
+    assert table.cost("表现的基础") == 0
+    meta = table.meta("元气的问候")
+    assert meta is not None and meta.cost == 0
+    assert CardTable.looks_conditional("好调状态的时候，可以使用")
+    assert not CardTable.looks_conditional("打分+9")
+
+
+def test_reader_cost_comes_from_table() -> None:
+    cv2, reader = _reader()
+    from gkagent.data.card_table import CardTable
+
+    table = CardTable()
+    if not len(table):
+        import pytest
+
+        pytest.skip("缺少 card_table.json")
+    reader.table = table
+    image = cv2.imread(str(FRAMES / "exam_c.png"))
+    cards = {card.name: card for card in reader.read(image, kind="audition").cards}
+    assert cards["猛烈地"].cost == table.cost("猛烈地")

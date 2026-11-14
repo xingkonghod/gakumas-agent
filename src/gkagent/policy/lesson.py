@@ -165,8 +165,14 @@ class LessonPolicy:
         buffs = [card for card in affordable if card.buff]
         if not buffs:
             return None
-        # 便宜的、能进预算的 buff 优先
-        buffs.sort(key=lambda card: (card.cost if card.cost is not None else 9, card.index))
+        # 知识库给每种 buff 定了出牌顺序（好调/集中先铺，元气/干劲后置），同序再比费用
+        buffs.sort(
+            key=lambda card: (
+                self.buffs.play_order(card.text),
+                card.cost if card.cost is not None else 9,
+                card.index,
+            )
+        )
         candidate = None
         for card in buffs:
             cost = card.cost if card.cost is not None else 9
@@ -200,7 +206,14 @@ class LessonPolicy:
         unknown = [card for card in affordable if card.score is None]
         if not unknown:
             return None
-        unknown.sort(key=lambda card: (card.cost if card.cost is not None else 9, card.index))
+        # 有条件的牌最后才用（条件不满足时点不动，白费一步）
+        unknown.sort(
+            key=lambda card: (
+                card.conditional,
+                card.cost if card.cost is not None else 9,
+                card.index,
+            )
+        )
         return unknown[0]
 
     def _best_score_card(

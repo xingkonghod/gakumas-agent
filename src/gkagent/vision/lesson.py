@@ -20,6 +20,7 @@ import numpy as np
 
 from gkagent.data.buffs import BuffLibrary
 from gkagent.data.card_effects import estimate_value, is_buff_text
+from gkagent.data.card_table import CardTable
 from gkagent.data.cards_db import CardLibrary
 from gkagent.vision.cards import scan_hand
 from gkagent.vision.ocr import OcrEngine
@@ -69,6 +70,7 @@ class LessonCard:
     hits: int | None = None
     cost: int | None = None
     buff: bool = False
+    conditional: bool = False
     text: str = ""
 
     @property
@@ -113,11 +115,13 @@ class LessonReader:
         cards: CardLibrary | None = None,
         buffs: BuffLibrary | None = None,
         costs=None,
+        table: CardTable | None = None,
     ) -> None:
         self.engine = engine
         self.cards = cards
         self.buffs = buffs or BuffLibrary.load()
         self.costs = costs
+        self.table = table if table is not None else CardTable()
 
     # ------------------------------------------------------------------ 主入口
     def read(
@@ -236,17 +240,24 @@ class LessonReader:
         cost = _parse_int(cost_line.text if cost_line else "")
         if cost is not None and not 0 <= cost <= 99:
             cost = None
+        # 卡名对上属性表就用真值（OCR 爱心小字 + 确认帧预览都不可靠）
+        if name and self.table is not None:
+            table_cost = self.table.cost(name)
+            if table_cost is not None:
+                cost = int(table_cost)
         if cost is None and name and self.costs is not None:
             cached = self.costs.get(name)
             if cached is not None:
                 cost = int(cached)
         text = ""
         buff = False
+        conditional = False
         if name and self.cards is not None:
             info = self.cards.lookup(name)
             if info is not None:
                 text = info.text
                 buff = is_buff_text(text)
+                conditional = CardTable.looks_conditional(text)
         point = (left + width // 2, top + height // 2)
         return LessonCard(
             index=index,
@@ -257,6 +268,7 @@ class LessonReader:
             hits=hits,
             cost=cost,
             buff=buff,
+            conditional=conditional,
             text=text,
         )
 
