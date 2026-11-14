@@ -176,3 +176,14 @@ def test_choose_action_prefers_lesson_with_strong_attributes() -> None:
     )
     assert result["action"] in ("lesson", "train")
     assert result["ranking"][0]["eval"] >= result["ranking"][-1]["eval"]
+
+
+def test_reward_pool_only_contains_modeled_effects() -> None:
+    """模拟器没建模的效果（好印象/抽牌/全力/温存…）不能进奖励池，否则会被当 0 分卡。"""
+    import sim_produce as sp
+
+    pool = sp.build_pool()
+    assert pool, "奖励池不应为空"
+    assert len(pool) < 200, f"池子异常偏大（{len(pool)}），可能混进了未建模的卡"
+    for _name, _cost, score, _condition, _focus in pool:
+        assert score > 0

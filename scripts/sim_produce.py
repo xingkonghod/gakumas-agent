@@ -22,6 +22,8 @@ ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 
 CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
+# 模拟器（sim/lesson.py）目前只建模这几种效果；其余类型一律不进池
+MODELED_EFFECTS = {"ExamLesson", "ExamBlock", "ExamLessonBuff", "ExamConcentration"}
 
 
 def build_deck() -> list[tuple[str, int, int, int, int]]:
@@ -93,6 +95,11 @@ def build_pool(max_score: int = 40, allow_ssr: bool = False) -> list[tuple[str, 
         if not allow_ssr and rarity in ("Ssr", "Legend"):
             continue
         if score <= 0 or score > max_score:
+            continue
+        # 只收"模拟器能建模"的卡：效果类型必须全在 MODELED_EFFECTS 里，
+        # 否则会被当成 0 分卡（好印象/抽牌/全力/温存等我们还没建模）
+        effect_types = {str(e.get("type") or "") for e in row.get("effects") or []}
+        if not effect_types or not effect_types <= MODELED_EFFECTS:
             continue
         pool.append((name, cost, score, condition, focus))
     return pool
