@@ -316,11 +316,20 @@ def test_read_adds_top_roi_when_bottom_text_is_short() -> None:
 
 def test_retry_dialog_uses_free_retry() -> None:
     agent = FakeAgent()
-    lines = _lines("再挑战确认", "今天免费剩余1次", "剩余3次", "再挑战", "结束培育")
+    lines = _lines("再挑战确认", "不合格", "今天免费剩余1次", "剩余3次", "再挑战", "结束培育")
     result = _driver().decide(agent, lines)
     assert result.screen == "dialog"
     assert result.action == "retry"
-    assert agent.device.clicks[-1] == _center(3)
+    assert agent.device.clicks[-1] == _center(4)
+
+
+def test_passed_result_continues_instead_of_retrying() -> None:
+    agent = FakeAgent()
+    lines = _lines("再挑战", "剩余3次", "下一步", "2nd", "442Pt")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "dialog"
+    assert result.action == "end-produce"
+    assert agent.device.clicks[-1] == _center(2)
 
 
 def test_retry_dialog_ends_when_no_attempts_left() -> None:

@@ -77,6 +77,7 @@ class ProduceDriver:
     toast_waits: int = field(default=0, init=False)
     stamina_hint: int | None = field(default=None, init=False)
     retry_count: int = field(default=0, init=False)
+    gain_waits: int = field(default=0, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -222,11 +223,17 @@ class ProduceDriver:
             retry = self.find_button(lines, ("再挑战",))
             free_available = "免费剩余" in text and re.search(r"免费剩余\s*0", text) is None
             left_available = re.search(r"剩余\s*[1-9]\d*\s*次", text) is not None
-            if retry is not None and (free_available or left_available):
+            # 只有「不合格」才重开；合格的结果屏虽然也有「再挑战」按钮，但点「下一步」继续
+            failed = "不合格" in text or "FAILED" in text
+            if failed and retry is not None and (free_available or left_available) and self.retry_count < 2:
+                self.retry_count += 1
                 self._click_line(agent, retry)
                 return TickResult("dialog", "retry")
-            end = self.find_button(lines, ("结束培育",))
-            self._click_line(agent, end) if end else self._click(agent, (185, 1144))
+            end = self.find_button(lines, ("结束培育", "下一步"))
+            if end is not None:
+                self._click_line(agent, end)
+            else:
+                self._click(agent, (355, 1148))
             return TickResult("dialog", "end-produce")
 
         # 1) 弹窗：取消 + 确定/完成/下一步
@@ -510,10 +517,18 @@ class ProduceDriver:
             return TickResult("button", "完成")
 
         # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续
-        if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")):
-            self._click(agent, (360, 1000))
-            return TickResult("result-tap", "tap")
-        if _GAIN_RE.search(text):
+        # 连续 3 次还在 = 是静态结果页，改点「下一步/确定/关闭」
+        if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")) or _GAIN_RE.search(text):
+            self.gain_waits += 1
+            if self.gain_waits >= 3:
+                self.gain_waits = 0
+                nxt = self.find_button(lines, ("下一步", "确定", "完成", "关闭", "领取"))
+                if nxt is not None:
+                    self._click_line(agent, nxt)
+                    return TickResult("result-tap", "next")
+            else:
+                self._click(agent, (360, 1000))
+                return TickResult("result-tap", "gain")
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "gain")
 
