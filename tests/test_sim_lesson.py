@@ -213,3 +213,138 @@ def test_deck_reshuffles_when_exhausted() -> None:
 
     assert (score, grade) == (9, "CLEAR")  # (1 + 2) × 3 回合
     assert sim.turns_left == 0
+
+
+def test_exam_card_draw_draws_exact_count() -> None:
+    """ExamCardDraw N：出牌后手牌正好 +N，牌库相应减少，打出的牌进弃牌堆。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=1))
+    sim.hand = [CardSpec("抽三", 0, 0, draw=3)]
+    sim.deck = [CardSpec(f"牌库{i}", 0, 1) for i in range(4)]
+    sim.discard = []
+
+    sim.step(0)
+
+    assert len(sim.hand) == 3
+    assert len(sim.deck) == 1
+    assert len(sim.discard) == 1  # 刚打出的「抽三」
+    assert sim.turns_left == 2    # 还有手牌，回合没结束
+
+
+def test_exam_card_draw_refills_from_discard_when_deck_empty() -> None:
+    """牌库抽空时把弃牌堆洗回牌库再继续抽。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=1))
+    sim.hand = [CardSpec("抽二", 0, 0, draw=2)]
+    sim.deck = []
+    sim.discard = [CardSpec("弃一", 0, 1), CardSpec("弃二", 0, 1), CardSpec("弃三", 0, 1)]
+
+    sim.step(0)
+
+    assert len(sim.hand) == 2
+    assert all(card.name.startswith("弃") for card in sim.hand)
+    assert sim.deck  # 3 张弃牌抽 2 张，洗回后还剩 1 张
+    assert len(sim.hand) + len(sim.deck) + len(sim.discard) == 4  # 3 弃牌 + 1 新弃牌
+
+
+def test_exam_review_scores_at_turn_end_then_decays() -> None:
+    """好印象每回合结束先按层数加分、再 -1；3 层连续两回合 → +3、+2。"""
+    sim = LessonSim(
+        [CardSpec("好印象", 0, 0, impression=3), CardSpec("空白", 0, 0)],
+        _config(turns=3, stamina=10, hand_size=2),
+    )
+
+    sim.step(_index(sim, "好印象"))
+    assert sim.score == 0                  # 出牌本身不加分
+    assert sim.buffs.impression == 3
+
+    sim.step(None)                         # 回合结束：+3，层数 3 → 2
+    assert sim.score == 3
+    assert sim.buffs.impression == 2
+
+    sim.step(None)                         # 再一回合结束：+2，层数 2 → 1
+    assert sim.score == 5
+    assert sim.buffs.impression == 1
+
+
+def test_exam_review_stops_scoring_at_zero() -> None:
+    """好印象减到 0 后不再加分，也不会变成负数。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=3, stamina=10, hand_size=0))
+    sim.buffs.impression = 1
+
+    sim.step(None)
+    assert sim.score == 1
+    assert sim.buffs.impression == 0
+
+    sim.step(None)
+    assert sim.score == 1
+    assert sim.buffs.impression == 0
+
+
+def test_depend_exam_review_scores_by_impression_layers() -> None:
+    """5 层 × 1000%（每层 10 分）→ 50 分；卡面本身不加层。"""
+    sim = LessonSim(
+        [CardSpec("200%微笑", 0, 0, impression_scale=1000), CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, hand_size=2),
+    )
+    sim.buffs.impression = 5
+
+    sim.step(_index(sim, "200%微笑"))
+
+    assert sim.score == 50
+    assert sim.buffs.impression == 5
+    assert sim.turns_left == 2
+
+
+def test_depend_exam_review_zero_impression_scores_nothing() -> None:
+    """好印象为 0 时依赖分固定 0（即使倍率很高）。"""
+    sim = LessonSim(
+        [CardSpec("POW", 0, 0, impression_scale=2500), CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, hand_size=2),
+    )
+
+    assert sim.buffs.impression == 0
+    sim.step(_index(sim, "POW"))
+
+    assert sim.score == 0
+    assert sim.buffs.impression == 0
+
+
+def test_depend_exam_review_formula_truncates() -> None:
+    """公式 int(层数 × 倍率 / 100)：6 层 × 1700% = int(102.0) = 102。"""
+    sim = LessonSim(
+        [CardSpec("POW+", 0, 0, impression_scale=1700), CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, hand_size=2),
+    )
+    sim.buffs.impression = 6
+
+    sim.step(_index(sim, "POW+"))
+
+    assert sim.score == 102
+
+
+def test_depend_exam_review_adds_to_base_and_ignores_focus_condition() -> None:
+    """依赖分与卡面白值相加；白值部分吃集中/好调，依赖部分按公式单独算。"""
+    sim = LessonSim(
+        [CardSpec("混合", 2, 9, impression_scale=1000), CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, hand_size=2),
+    )
+    sim.buffs.impression = 3
+    sim.buffs.focus = 2
+    sim.buffs.condition_turns = 2
+
+    sim.step(_index(sim, "混合"))
+
+    # 白值 floor((9 + 2) × 1.5) = 16；依赖 3 层 × 1000% = 30
+    assert sim.score == 46
+
+
+def test_depend_scores_before_own_impression_buff() -> None:
+    """保守顺序：本牌自带的 impression 在依赖分之后结算，所以首出 0 分、层数 +5。"""
+    sim = LessonSim(
+        [CardSpec("200%微笑", 0, 0, impression=5, impression_scale=1000), CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, hand_size=2),
+    )
+
+    sim.step(_index(sim, "200%微笑"))
+
+    assert sim.score == 0
+    assert sim.buffs.impression == 5

@@ -8,6 +8,14 @@
   把弃牌堆洗回牌库（近似真机）；
 - 一回合内可以连续出牌，直到 SKIP；手牌打完则本回合自动结束；
 - 出牌先按**当前** buff 算分，再结算这张卡自带的 buff（本牌不享受自己刚加的 buff）；
+- ``ExamCardDraw``：出牌后立即抽 N 张（``CardSpec.draw``），牌库空则把弃牌堆
+  洗回牌库再抽（刚打出的牌在抽牌之后才进弃牌堆，所以抽不到自己）；
+- ``ExamReview``：叠好印象层数（``CardSpec.impression``）；**回合结束**先按当前
+  层数加分（``score += 层数``），再把层数 -1（最低 0）；
+- ``ExamLessonDependExamReview``：依赖好印象的分数，按出牌**前**的层数算
+  ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10）。卡表没给出更细的结算
+  顺序，这里沿用"本牌不享受自己刚加的 buff"的保守规则：本牌自带的
+  ``impression`` 在算完依赖分之后才生效；这部分分数也不吃好调/集中倍率；
 - 回合结束：好印象按当前层数加分并 -1，好调回合数 -1；
 - 分数向下取整（``math.floor``）；
 - 体力不足以支付牌库里**任何**一张牌时本局提前结束（``done``）。
@@ -51,8 +59,9 @@ class CardSpec:
 
     ``score`` 是卡面打分数值（不含集中/好调）；``condition`` 是这张牌给的
     好调回合数，``focus`` 是集中层数，``impression`` 是好印象层数，
-    ``draw`` 是出牌后额外抽几张。``vitality`` / ``motivation`` 分别是元气
-    （盾）和干劲（元气获得量加成）。
+    ``draw`` 是出牌后额外抽几张。``impression_scale`` 是"依赖好印象的分数"
+    倍率（百分比，1000 = 每层 10 分，见 ``ExamLessonDependExamReview``）。
+    ``vitality`` / ``motivation`` 分别是元气（盾）和干劲（元气获得量加成）。
     """
 
     name: str
@@ -64,6 +73,7 @@ class CardSpec:
     motivation: int = 0
     impression: int = 0
     draw: int = 0
+    impression_scale: int = 0
 
 
 @dataclass(frozen=True)
@@ -191,14 +201,20 @@ class LessonSim:
 
     # ------------------------------------------------------------------ 内部
     def _card_award(self, card: CardSpec) -> int:
-        """本牌的得分：``(score + focus) × 好调倍率``，向下取整。
+        """本牌的得分：``(score + focus) × 好调倍率`` + 好印象依赖分，向下取整。
 
-        纯 buff 牌（``score <= 0``）不参与集中加成，固定 0 分。
+        纯 buff 牌（``score <= 0``）不参与集中/好调加成；但如果有
+        ``impression_scale``，仍然按**出牌前**的好印象层数结算依赖分：
+        ``int(层数 × impression_scale / 100)``。依赖分不吃好调/集中，
+        因为卡表没给出这部分是否参与倍率结算，取保守做法。
         """
-        if card.score <= 0:
-            return 0
-        multiplier = 1.5 if self.buffs.condition_turns > 0 else 1.0
-        return math.floor((card.score + self.buffs.focus) * multiplier)
+        award = 0
+        if card.score > 0:
+            multiplier = 1.5 if self.buffs.condition_turns > 0 else 1.0
+            award = math.floor((card.score + self.buffs.focus) * multiplier)
+        if card.impression_scale > 0 and self.buffs.impression > 0:
+            award += int(self.buffs.impression * card.impression_scale / 100)
+        return award
 
     def _apply_card_buffs(self, card: CardSpec) -> None:
         """结算卡面 buff（在算分之后，所以本牌不吃自己刚加的 buff）。"""
@@ -211,7 +227,11 @@ class LessonSim:
         self.motivation += card.motivation
 
     def _end_turn(self) -> None:
-        """回合结束：结算好印象、衰减好调、弃手牌、抽下一手。"""
+        """回合结束：结算好印象、衰减好调、弃手牌、抽下一手。
+
+        好印象的结算顺序固定为**先加分、再减层**：本回合按完整层数拿分，
+        下一回合才少一层；这样 N 层在剩余 T 回合里的总分是 N+(N-1)+…。
+        """
         if self.buffs.impression > 0:
             self.score += self.buffs.impression
             self.buffs.impression -= 1

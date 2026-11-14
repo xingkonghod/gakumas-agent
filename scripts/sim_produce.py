@@ -17,17 +17,77 @@ import time
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
+from typing import NamedTuple
 
 ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 
 CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
-# 模拟器（sim/lesson.py）目前只建模这几种效果；其余类型一律不进池
-MODELED_EFFECTS = {"ExamLesson", "ExamBlock", "ExamLessonBuff", "ExamConcentration"}
+# 模拟器（sim/lesson.py）真正建模了的效果类型
+MODELED_EFFECTS = {
+    "ExamLesson",
+    "ExamBlock",
+    "ExamLessonBuff",
+    "ExamConcentration",
+    "ExamCardDraw",
+    "ExamReview",
+    "ExamLessonDependExamReview",
+}
+# 其它分析脚本（sim_idols / sim_search / …）还按旧 5 元组解包；在它们迁移前，
+# build_pool() 默认只收完全落在旧集合里的卡，避免把抽牌/好印象卡当成"只有白值"。
+LEGACY_MODELED_EFFECTS = {"ExamLesson", "ExamBlock", "ExamLessonBuff", "ExamConcentration"}
+
+# 旧接口：(name, cost, score, condition, focus)
+LegacyCardRow = tuple[str, int, int, int, int]
 
 
-def build_deck() -> list[tuple[str, int, int, int, int]]:
-    """卡组：(name, cost, score, condition, focus)，数值来自 card_table。"""
+class CardRow(NamedTuple):
+    """build_deck(rich=True) / build_pool(rich=True) 返回的完整卡行。"""
+
+    name: str
+    cost: int
+    score: int
+    condition: int
+    focus: int
+    draw: int = 0
+    impression: int = 0
+    impression_scale: int = 0
+
+
+def _effect_fields(row: dict) -> tuple[int, int, int, int, int, int]:
+    """从卡表一行的 ``effects`` 提取 (score, condition, focus, draw, impression, scale)。
+
+    同类效果取最大值；``ExamReview`` 是好印象层数，``ExamCardDraw`` 是抽牌数，
+    ``ExamLessonDependExamReview`` 是依赖好印象的百分比倍率（1000 = 层数×10）。
+    """
+    score = condition = focus = draw = impression = impression_scale = 0
+    for effect in row.get("effects") or []:
+        kind = effect.get("type")
+        values = [v for v in effect.get("values") or [] if v]
+        value = int(values[0]) if values else 0
+        if not value:
+            continue
+        if kind == "ExamLesson":
+            score = max(score, value)
+        elif kind == "ExamLessonBuff":
+            condition = max(condition, value)
+        elif kind == "ExamConcentration":
+            focus = max(focus, value)
+        elif kind == "ExamCardDraw":
+            draw = max(draw, value)
+        elif kind == "ExamReview":
+            impression = max(impression, value)
+        elif kind == "ExamLessonDependExamReview":
+            impression_scale = max(impression_scale, value)
+    return score, condition, focus, draw, impression, impression_scale
+
+
+def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
+    """卡组：(name, cost, score, condition, focus[, draw, impression, scale])。
+
+    数值来自 card_table。``rich=True`` 返回 ``CardRow``（带抽牌/好印象/依赖
+    倍率），供本脚本自己用；默认返回旧 5 元组，保持其它分析脚本兼容。
+    """
     table = {}
     if CARD_TABLE.exists():
         table = json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
@@ -44,71 +104,93 @@ def build_deck() -> list[tuple[str, int, int, int, int]]:
         "准备运动", "粉丝服务", "聊天时间", "凭势而行", "重新开始", "姿势的基础",
         "今天也早安", "视角的基础", "可爱的举动", "猛烈地",
     ]
-    deck = []
+    deck: list[CardRow] | list[LegacyCardRow] = []
     for name in names:
         row = table.get(name)
         if not row:
             continue
-        score = condition = focus = 0
-        for effect in row.get("effects") or []:
-            kind = effect.get("type")
-            values = [v for v in effect.get("values") or [] if v]
-            value = int(values[0]) if values else 0
-            if kind == "ExamLesson":
-                score = max(score, value)
-            elif kind == "ExamLessonBuff":
-                condition = max(condition, value)
-            elif kind == "ExamConcentration":
-                focus = max(focus, value)
+        score, condition, focus, draw, impression, impression_scale = _effect_fields(row)
         if score == 0 and name in master:
             match = re.search(r"打分[^0-9]{0,8}(\d{1,3})", master[name])
             if match:
                 score = int(match.group(1))
-        deck.append((name, int(row.get("cost", 4)), score, condition, focus))
+        cost = int(row.get("cost", 4))
+        if rich:
+            deck.append(
+                CardRow(name, cost, score, condition, focus, draw, impression, impression_scale)
+            )
+        else:
+            deck.append((name, cost, score, condition, focus))
     return deck
 
 
-def build_pool(max_score: int = 40, allow_ssr: bool = False) -> list[tuple[str, int, int, int, int]]:
+def build_pool(
+    max_score: int = 40,
+    allow_ssr: bool = False,
+    *,
+    rich: bool = False,
+) -> list[CardRow] | list[LegacyCardRow]:
     """奖励池：真机早期能拿到的技能卡。
 
     默认排除 SSR/Legend（本账号支援卡弱、早期拿不到高分彩卡），并限制分数 <= 40；
     否则模拟器会"每节课都拿 155 分彩卡"，课程平均 320 分，和真机 60-180 完全不符。
+
+    ``rich=False`` 时只收旧集合里的效果类型并返回旧 5 元组（其它脚本兼容）；
+    ``rich=True`` 时使用完整 ``MODELED_EFFECTS`` 并返回带 draw/impression 的 CardRow。
     """
     table = json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
-    pool = []
+    modeled = MODELED_EFFECTS if rich else LEGACY_MODELED_EFFECTS
+    pool: list[CardRow] | list[LegacyCardRow] = []
     for name, row in table.items():
         cost = int(row.get("cost") or 0)
         if cost > 8 or cost < 0:
             continue
-        score = condition = focus = 0
-        for effect in row.get("effects") or []:
-            kind = effect.get("type")
-            values = [v for v in effect.get("values") or [] if v]
-            value = int(values[0]) if values else 0
-            if kind == "ExamLesson":
-                score = max(score, value)
-            elif kind == "ExamLessonBuff":
-                condition = max(condition, value)
-            elif kind == "ExamConcentration":
-                focus = max(focus, value)
+        score, condition, focus, draw, impression, impression_scale = _effect_fields(row)
         rarity = str(row.get("rarity") or "")
         if not allow_ssr and rarity in ("Ssr", "Legend"):
             continue
         if score <= 0 or score > max_score:
             continue
-        # 只收"模拟器能建模"的卡：效果类型必须全在 MODELED_EFFECTS 里，
-        # 否则会被当成 0 分卡（好印象/抽牌/全力/温存等我们还没建模）
+        # 只收"模拟器能建模"的卡：效果类型必须全在 modeled 里，
+        # 否则会被当成 0 分卡（全力/温存/状态附魔等还没建模）
         effect_types = {str(e.get("type") or "") for e in row.get("effects") or []}
-        if not effect_types or not effect_types <= MODELED_EFFECTS:
+        if not effect_types or not effect_types <= modeled:
             continue
-        pool.append((name, cost, score, condition, focus))
+        if rich:
+            pool.append(
+                CardRow(name, cost, score, condition, focus, draw, impression, impression_scale)
+            )
+        else:
+            pool.append((name, cost, score, condition, focus))
     return pool
+
+
+def _spec_from_row(row: CardRow | LegacyCardRow):
+    """把 build_deck/build_pool 的行转成 LessonSim 的 CardSpec。
+
+    兼容两种行：rich 的 ``CardRow`` 带抽牌/好印象/依赖倍率；旧 5 元组只有
+    score/condition/focus（其它分析脚本的默认输出）。
+    """
+    from gkagent.sim.lesson import CardSpec
+
+    if isinstance(row, CardRow):
+        return CardSpec(
+            name=row.name,
+            cost=row.cost,
+            score=row.score,
+            condition=row.condition,
+            focus=row.focus,
+            draw=row.draw,
+            impression=row.impression,
+            impression_scale=row.impression_scale,
+        )
+    name, cost, score, condition, focus = row
+    return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)
 
 
 def run_chunk(task: tuple) -> dict:
     """子进程：跑一段局数，返回聚合结果。"""
     strategy_name, episodes, seed, deck_raw, pool_raw, reward_pick, support = task
-    from gkagent.sim.lesson import CardSpec
     from gkagent.sim.produce import (
         STRATEGIES,
         ProduceConfig,
@@ -117,8 +199,8 @@ def run_chunk(task: tuple) -> dict:
         random_strategy,
     )
 
-    deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
-    pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
+    deck = [_spec_from_row(row) for row in deck_raw]
+    pool = [_spec_from_row(row) for row in pool_raw]
     config = ProduceConfig(reward_pick=reward_pick, support_bonus=support)
     if strategy_name == "random":
         strategy = random_strategy(seed)
@@ -169,8 +251,9 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--support", type=float, default=1.0)
     args = parser.parse_args(argv)
 
-    deck = build_deck()
-    pool = build_pool() if args.rewards != "none" else []
+    # rich=True：把抽牌/好印象/依赖倍率带进 CardSpec（默认 5 元组给其它脚本兼容）
+    deck = build_deck(rich=True)
+    pool = build_pool(rich=True) if args.rewards != "none" else []
     print(f"卡组 {len(deck)} 张, 奖励池 {len(pool)} 张, 选牌={args.rewards}, 支援加成={args.support}")
     names = [name.strip() for name in args.only.split(",") if name.strip()]
     workers = args.workers or min(8, (len(names)))
