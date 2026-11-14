@@ -190,10 +190,12 @@ def main() -> int:
     lesson_reader = LessonReader(engine, cards=card_lib, costs=cost_cache)
     lesson_policy = LessonPolicy(buffs=lesson_reader.buffs)
     # 开局先回主页：上一轮可能停在支援卡/偶像/强化页面，否则前 8 步全是 unknown-tap
-    try:
-        Navigator(agent, engine).ensure_home()
-    except Exception:  # noqa: BLE001
-        pass
+    # --skip-home：已经手动摆好在"选择偶像/支援卡"界面时跳过，否则会被拽回主页
+    if "--skip-home" not in sys.argv:
+        try:
+            Navigator(agent, engine).ensure_home()
+        except Exception:  # noqa: BLE001
+            pass
     metrics = MetricsLog(METRICS)
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -320,7 +322,12 @@ def main() -> int:
         if final_phase:
             for burst in range(2):
                 time.sleep(0.7)
-                extra = agent.shot()
+                try:
+                    extra = agent.shot()
+                except RuntimeError:
+                    # 窗口被最小化/黑屏时不值得让整局崩掉，结算帧抓不到就算了
+                    log_lines.append(f"{step:03d} [final] burst 抓帧失败，跳过")
+                    break
                 burst_path = SHOT_DIR / f"final_{episode}_{step:03d}_{burst}.png"
                 cv2.imwrite(str(burst_path), extra)
                 extra_text = driver.text_of(driver.engine().read(extra))
