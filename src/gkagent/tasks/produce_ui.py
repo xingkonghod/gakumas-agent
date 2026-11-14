@@ -74,6 +74,7 @@ class ProduceDriver:
     exam_card_selected: bool = field(default=False, init=False)
     event_pending_y: int | None = field(default=None, init=False)
     lesson_attribute: str | None = field(default=None, init=False)
+    toast_waits: int = field(default=0, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -363,9 +364,22 @@ class ProduceDriver:
 
         # 4.55) 获得 P 点数的提示条会盖住行动按钮，等它消失
         # 注意只认连在一起的「获得P点数」，避免把行动页说明「消耗P点数，可以获得…」误判
+        # 连续等 3 次还在 = 是「结果弹窗」里的获得P点数，点关闭/中央推进
         if "获得P点数" in text or "P点数获得" in text:
+            self.toast_waits += 1
+            if self.toast_waits >= 3:
+                self.toast_waits = 0
+                close = self.find(lines, "关闭")
+                self._click_line(agent, close) if close else self._click(agent, (360, 1215))
+                return TickResult("toast", "dismiss")
             self.sleep(0.6)
             return TickResult("toast", "wait")
+        self.toast_waits = 0
+        # 4.56) True End / 条件成就 达成弹窗：底部 ✕ 关闭
+        if "条件成就" in text or "True End" in text:
+            close = self.find(lines, "关闭")
+            self._click_line(agent, close) if close else self._click(agent, (360, 1215))
+            return TickResult("achievement", "close")
 
         # 4.57) 考试「移动」阶段：先点上方技能卡（y≈500），再点移动（两步交替）
         if "移动" in text:
