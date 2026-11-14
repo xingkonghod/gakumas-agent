@@ -314,13 +314,21 @@ def test_read_adds_top_roi_when_bottom_text_is_short() -> None:
     assert driver.top_roi in ocr.calls
 
 
-def test_retry_confirm_cancels_to_save_stamina() -> None:
+def test_retry_dialog_uses_free_retry() -> None:
     agent = FakeAgent()
-    lines = _lines("再挑战确认", "基础研修", "取消", "再次挑战")
+    lines = _lines("再挑战确认", "今天免费剩余1次", "剩余3次", "再挑战", "结束培育")
     result = _driver().decide(agent, lines)
     assert result.screen == "dialog"
-    assert result.action == "cancel-retry"
-    assert agent.device.clicks[-1] == _center(2)
+    assert result.action == "retry"
+    assert agent.device.clicks[-1] == _center(3)
+
+
+def test_retry_dialog_ends_when_no_attempts_left() -> None:
+    agent = FakeAgent()
+    lines = _lines("再挑战确认", "今天免费剩余0次", "剩余0次", "再挑战", "结束培育")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "dialog"
+    assert result.action == "end-produce"
 
 
 @dataclass
