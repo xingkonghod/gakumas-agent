@@ -248,6 +248,12 @@ class ProduceDriver:
                 # 期末/考试不合格后的重挑战：有免费次数就重打（用户要求：落后就重开），
                 # 没有次数才结束培育。注意不能用「取消」（那是结束培育）。
                 # 每局最多重开 2 次，避免在确认框里来回点
+                # 第二段确认框（消耗再挑战道具）只有 确定/取消：直接确定
+                confirm = self.find_button(lines, ("确定",))
+                cancel = self.find_button(lines, ("取消",))
+                if confirm is not None and cancel is not None and "消耗再挑战" in text:
+                    self._click_line(agent, confirm)
+                    return TickResult("dialog", "retry-confirm")
                 retry = self.find_button(lines, ("再挑战",))
                 free_available = "免费剩余" in text and re.search(r"免费剩余\s*0", text) is None
                 left_available = re.search(r"剩余\s*[1-9]\d*\s*次", text) is not None
@@ -388,7 +394,7 @@ class ProduceDriver:
                 else:
                     self._click(agent, LESSON_ACTION)
                 return TickResult("action", "lesson")
-            point, label = self.choose_training(text)
+            point, label = self.choose_training(text, lines)
             # 训练属性即接下来课程的属性：记下来给手牌加权用（之前没记 → 出牌不看属性 → CLEAR 失败）
             self.lesson_attribute = label
             train_line = self.find(lines, f"{label}") if label in ("Vo", "Da", "Vi") else None
@@ -581,8 +587,17 @@ class ProduceDriver:
         return TickResult("unknown", "no-op", ok=False, detail=text[:60])
 
     # ------------------------------------------------------------------ 策略
-    def choose_training(self, text: str) -> tuple[tuple[int, int], str]:
-        """优先跟随游戏推荐气泡，其次默认 Da（新号 Da 最低）。"""
+    def choose_training(self, text: str, lines: list[OcrLine] | None = None) -> tuple[tuple[int, int], str]:
+        """优先跟随游戏「推荐」气泡：气泡所在列就是该练的属性；否则默认 Da（新号 Da 最低）。"""
+        if lines:
+            for line in lines:
+                if "推荐" in line.text:
+                    cx, _ = self.center(line)
+                    if cx < 265:
+                        return TRAIN_VO, "Vo"
+                    if cx < 440:
+                        return TRAIN_DA, "Da"
+                    return TRAIN_VI, "Vi"
         for word, point, label in (
             ("歌唱", TRAIN_VO, "Vo"),
             ("舞蹈", TRAIN_DA, "Da"),
