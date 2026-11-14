@@ -43,7 +43,13 @@ GRID = {
 def evaluate(task: tuple) -> dict:
     params_dict, episodes, seed, deck_raw, pool_raw = task
     from gkagent.sim.lesson import CardSpec
-    from gkagent.sim.produce import ProduceConfig, ProduceSim, StrategyParams, strategy_from_params
+    from gkagent.sim.produce import (
+        ProduceConfig,
+        ProduceSim,
+        StrategyParams,
+        eval_value,
+        strategy_from_params,
+    )
 
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
@@ -51,13 +57,19 @@ def evaluate(task: tuple) -> dict:
     strategy = strategy_from_params(params)
     config = ProduceConfig(reward_pick="best", support_bonus=1.15)
 
-    totals, grades, exams, clears, lessons = [], [], 0, 0, 0
+    totals, evals, grades, exams, clears, lessons = [], [], [], 0, 0, 0
     for episode in range(episodes):
         sim = ProduceSim(deck, config=config, rng_seed=seed + episode)
         sim.reward_pool = pool
         result = sim.run(strategy)
         totals.append(result.total)
         grades.append(result.grade)
+        rank = 3
+        for row in reversed(sim.trace):
+            if row.get("exam"):
+                rank = row["exam"]["rank"]
+                break
+        evals.append(eval_value(result.total, rank, result.total * 2))
         exams += result.exams_passed
         clears += result.cleared
         lessons += result.lessons
@@ -69,17 +81,28 @@ def evaluate(task: tuple) -> dict:
         "clear_rate": round(clears / max(lessons, 1), 3),
         "fail_exam_rate": round(1 - exams / 2, 3),
         "n": episodes,
+        "mean_eval": round(stats.mean(evals), 1),
+        "p50_eval": round(sorted(evals)[len(evals) // 2], 1),
+        "p90_eval": round(sorted(evals)[int(len(evals) * 0.9)], 1),
+        "cplus_rate": round(sum(1 for value in evals if value >= 4500) / len(evals), 3),
     }
 
 
 def evaluate_play(task: tuple) -> dict:
     """固定培育策略，只扫"出牌参数"（真机 LessonPolicy）。"""
     play_params, episodes, seed, deck_raw, pool_raw = task
+    from gkagent.sim.produce import eval_value
+
     import tempfile
     from pathlib import Path as _Path
 
     from gkagent.sim.lesson import CardSpec
-    from gkagent.sim.produce import ProduceConfig, ProduceSim, StrategyParams, strategy_from_params
+    from gkagent.sim.produce import (
+        ProduceConfig,
+        ProduceSim,
+        StrategyParams,
+        strategy_from_params,
+    )
 
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
@@ -112,7 +135,7 @@ def evaluate_play(task: tuple) -> dict:
                 return action.index
             return None
 
-        totals, exam_pass = [], 0
+        totals, evals, exam_pass = [], [], 0
         for episode in range(episodes):
             sim = ProduceSim(deck, config=config, rng_seed=seed + episode)
             sim.reward_pool = pool
@@ -121,11 +144,17 @@ def evaluate_play(task: tuple) -> dict:
             totals.append(result.total)
             exams = [row["exam"] for row in sim.trace if row["action"] == "exam"]
             exam_pass += sum(1 for exam in exams if exam["passed"])
+            rank = exams[-1]["rank"] if exams else 3
+            evals.append(eval_value(result.total, rank, result.total * 2))
     return {
         "params": play_params,
         "mean": round(sum(totals) / len(totals), 1),
         "exam_pass": round(exam_pass / (episodes * 2), 3),
         "n": episodes,
+        "mean_eval": round(stats.mean(evals), 1),
+        "p50_eval": round(sorted(evals)[len(evals) // 2], 1),
+        "p90_eval": round(sorted(evals)[int(len(evals) * 0.9)], 1),
+        "cplus_rate": round(sum(1 for value in evals if value >= 4500) / len(evals), 3),
     }
 
 
@@ -151,7 +180,7 @@ def run_evolution(args, keys, deck_raw, pool_raw, rng, seeds) -> int:
         ]
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             results = list(executor.map(evaluate, tasks))
-        results.sort(key=lambda row: row["mean"], reverse=True)
+        results.sort(key=lambda row: (row.get("cplus_rate", 0) * 10000 + row.get("p50_eval", 0)), reverse=True)
         best = results[0]
         curve.append({"generation": generation, "best_mean": best["mean"], "best": best["params"], "avg": round(sum(r["mean"] for r in results) / len(results), 1)})
         print(f"第 {generation} 代: best={best['mean']:.0f} avg={curve[-1]['avg']:.0f} params={best['params']}")
@@ -210,7 +239,7 @@ def main(argv: list[str]) -> int:
         ]
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             results_p = list(executor.map(evaluate_play, tasks_p))
-        results_p.sort(key=lambda row: row["mean"], reverse=True)
+        results_p.sort(key=lambda row: (row.get("cplus_rate", 0) * 10000 + row.get("p50_eval", 0)), reverse=True)
         for row in results_p[:6]:
             print(f"  mean={row['mean']:>7} 考试通过={row['exam_pass']*100:.0f}% {row['params']}")
         spread = results_p[0]["mean"] - results_p[-1]["mean"]
@@ -231,13 +260,13 @@ def main(argv: list[str]) -> int:
         results = list(pool_exec.map(evaluate, tasks))
     elapsed = time.perf_counter() - started
 
-    results.sort(key=lambda row: row["mean"], reverse=True)
+    results.sort(key=lambda row: (row.get("cplus_rate", 0) * 10000 + row.get("p50_eval", 0)), reverse=True)
     print(f"\n{elapsed:.1f}s，共 {len(results) * args.episodes} 局")
     print("Top-10 参数组合：")
     for row in results[:10]:
         print(
-            f"  mean={row['mean']:>7} p10={row['p10']:>6} 考试通过={row['exams']}/2 "
-            f"过关率={row['clear_rate']:.2f} {row['params']}"
+            f"  C+率={row.get('cplus_rate', 0)*100:3.0f}% P50={row.get('p50_eval', 0):>6} "
+            f"P90={row.get('p90_eval', 0):>6} {row['params']}"
         )
     best = results[0]
     if args.write:

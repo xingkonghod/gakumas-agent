@@ -109,7 +109,13 @@ def run_chunk(task: tuple) -> dict:
     """子进程：跑一段局数，返回聚合结果。"""
     strategy_name, episodes, seed, deck_raw, pool_raw, reward_pick, support = task
     from gkagent.sim.lesson import CardSpec
-    from gkagent.sim.produce import STRATEGIES, ProduceConfig, ProduceSim, random_strategy
+    from gkagent.sim.produce import (
+        STRATEGIES,
+        ProduceConfig,
+        ProduceSim,
+        eval_value,
+        random_strategy,
+    )
 
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
@@ -119,12 +125,18 @@ def run_chunk(task: tuple) -> dict:
     else:
         strategy = STRATEGIES[strategy_name]
 
-    totals, grades, clears, exams, lessons = [], Counter(), 0, 0, 0
+    totals, evals, grades, clears, exams, lessons = [], [], Counter(), 0, 0, 0
     for episode in range(episodes):
         sim = ProduceSim(deck, config=config, rng_seed=seed + episode)
         sim.reward_pool = pool
         result = sim.run(strategy)
         totals.append(result.total)
+        rank = 3
+        for row in reversed(sim.trace):
+            if row.get("exam"):
+                rank = row["exam"]["rank"]
+                break
+        evals.append(eval_value(result.total, rank, result.total * 2))
         grades[result.grade] += 1
         clears += result.cleared
         exams += result.exams_passed
@@ -134,6 +146,11 @@ def run_chunk(task: tuple) -> dict:
         "n": episodes,
         "mean_total": round(stats.mean(totals), 1),
         "p90_total": round(sorted(totals)[int(len(totals) * 0.9)], 1),
+        # 真正的目标指标：官方评价点（均值/P90）+ C+ 达成率
+        "mean_eval": round(stats.mean(evals), 1),
+        "p50_eval": round(sorted(evals)[len(evals) // 2], 1),
+        "p90_eval": round(sorted(evals)[int(len(evals) * 0.9)], 1),
+        "cplus_rate": round(sum(1 for e in evals if e >= 4500) / len(evals), 3),
         "grades": dict(grades.most_common()),
         "clear_rate": round(clears / max(lessons, 1), 3),
         "lessons_per_run": round(lessons / episodes, 2),
@@ -169,7 +186,7 @@ def main(argv: list[str]) -> int:
     for row in results:
         print(
             f"{row['strategy']:14s} n={row['n']:>7} 总和均值={row['mean_total']:>7} "
-            f"p90={row['p90_total']:>7} 过关率={row['clear_rate']:.2f} "
+            f"评价点均值={row['mean_eval']:>7} P90={row['p90_eval']:>7} C+率={row['cplus_rate']*100:3.0f}% "
             f"上课/局={row['lessons_per_run']:.1f} 考试通过={row['exams_passed']:.1f} "
             f"评价={row['grades']}"
         )
