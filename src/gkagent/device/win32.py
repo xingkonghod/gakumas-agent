@@ -109,6 +109,14 @@ class Win32Device:
                 and float(frame.mean()) > 3.0
             ):
                 return frame
+            # 窗口被拉成横屏（720x1280）时转回竖屏
+            if (
+                frame.ndim == 3
+                and shape[0] == 720
+                and shape[1] in (1279, 1280)
+                and float(frame.mean()) > 3.0
+            ):
+                return frame.transpose(1, 0, 2)
             time.sleep(0.35)
         shape = getattr(frame, "shape", None)
         mean = float(frame.mean()) if frame is not None else -1.0
