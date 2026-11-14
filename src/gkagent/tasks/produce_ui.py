@@ -232,9 +232,17 @@ class ProduceDriver:
                     self.sleep(0.9)
                 return TickResult("dialog", "voice-off")
             if "再挑战" in text:
-                cancel = self.find(lines, "取消")
-                self._click_line(agent, cancel) if cancel else self._click(agent, (175, 1163))
-                return TickResult("dialog", "cancel-retry")
+                # 期末/考试不合格后的重挑战：有免费次数就重打（用户要求：落后就重开），
+                # 没有次数才结束培育。注意不能用「取消」（那是结束培育）。
+                retry = self.find_button(lines, ("再挑战",))
+                free_available = "免费剩余" in text and re.search(r"免费剩余\s*0", text) is None
+                left_available = re.search(r"剩余\s*[1-9]\d*\s*次", text) is not None
+                if retry is not None and (free_available or left_available):
+                    self._click_line(agent, retry)
+                    return TickResult("dialog", "retry")
+                end = self.find_button(lines, ("结束培育",))
+                self._click_line(agent, end) if end else self._click(agent, (185, 1144))
+                return TickResult("dialog", "end-produce")
             if "休息确认" in text:
                 rest = self.find(lines, "休息")
                 self._click_line(agent, rest) if rest else self._click(agent, (456, 1163))

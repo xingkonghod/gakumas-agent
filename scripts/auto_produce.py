@@ -309,26 +309,28 @@ def main() -> int:
                 cv2.imwrite(str(burst_path), extra)
                 extra_text = driver.text_of(driver.engine().read(extra))
                 grade = None
-                for token in ("S+", "S", "A+", "A", "B+", "B", "C+", "C", "D", "E"):
-                    if token in extra_text:
-                        grade = token
-                        break
+                grade_match = re.search(
+                    r"(?:评级|评价|評価|判定)[^A-Za-z0-9]{0,6}([SABCDE][+＋]?)", extra_text
+                )
+                if grade_match:
+                    grade = grade_match.group(1)
                 score_match = re.search(r"(\d{3,6})\s*(?:pt|Pt|PT|分|点)", extra_text)
-                if grade is not None or "评价" in extra_text or "評価" in extra_text:
-                    record = {
-                        "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
-                        "episode": episode,
-                        "step": step,
-                        "grade": grade,
-                        "score": score_match.group(1) if score_match else None,
-                        "text": extra_text[:200],
-                        "screenshot": str(burst_path),
-                    }
-                    with (ROOT / "data" / "final_grades.jsonl").open("a", encoding="utf-8") as handle:
-                        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
-                    log_lines.append(
-                        f"{step:03d} [final] 评价 grade={grade} score={record['score']} {burst_path}"
-                    )
+                if grade is None and "评价" not in extra_text and "評価" not in extra_text:
+                    continue
+                record = {
+                    "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "episode": episode,
+                    "step": step,
+                    "grade": grade,
+                    "score": score_match.group(1) if score_match else None,
+                    "text": extra_text[:200],
+                    "screenshot": str(burst_path),
+                }
+                with (ROOT / "data" / "final_grades.jsonl").open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+                log_lines.append(
+                    f"{step:03d} [final] 评价 grade={grade} score={record['score']} {burst_path}"
+                )
         # 失败画面（课程/考试 FAILED、不合格）：落失败日志 + 截图
         if "FAILED" in text or "不合格" in text:
             fail_path = SHOT_DIR / f"fail_{episode}_{step:03d}.png"
