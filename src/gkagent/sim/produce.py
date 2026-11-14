@@ -37,6 +37,8 @@ class ProduceConfig:
     outing_weeks: tuple[int, ...] = (3, 8)  # 这几天有外出
     exam_weeks: tuple[int, ...] = (6, 12)
     lesson_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
+    support_bonus: float = 1.0      # 支援卡对训练收益的倍率（近似）
+    reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     exam_thresholds: tuple[float, ...] = (0.13, 0.30)  # 期中/期末过关线（属性×权重 归一化后的比例）
     fans_per_clear: int = 800
 
@@ -104,6 +106,10 @@ class ProduceSim:
         self.cleared = 0
         self.exams_passed = 0
         self.log: list[str] = []
+        self.reward_pool: list[CardSpec] = []
+        self.reward_picks = 0
+        self.trace: list[dict] = []       # 每周快照，给前端回放用
+        self.last_lesson: dict | None = None
 
     # ------------------------------------------------------------------ 局面
     @property
@@ -128,7 +134,8 @@ class ProduceSim:
     # ------------------------------------------------------------------ 行动
     def train(self, index: int) -> None:
         self.stamina = max(0, self.stamina - self.config.train_cost)
-        gain = max(1, int(self.rng.gauss(self.config.train_gain, self.config.train_sigma)))
+        base = self.config.train_gain * self.config.support_bonus
+        gain = max(1, int(self.rng.gauss(base, self.config.train_sigma)))
         self.attrs[index] += gain
         self.log.append(f"W{self.week} train{ATTRIBUTES[index]}+{gain}")
 
@@ -140,9 +147,41 @@ class ProduceSim:
         self.stamina = min(self.config.stamina_max, self.stamina + self.config.rest_gain)
         self.log.append(f"W{self.week} outing")
 
+    def pick_reward(self) -> CardSpec | None:
+        """课程奖励三选一：按 分数/体力 选最强的一张进牌组。"""
+        if not self.reward_pool or self.config.reward_pick == "none":
+            return None
+        if self.config.reward_pick == "random":
+            return self.rng.choice(self.reward_pool)
+        best = max(
+            self.reward_pool,
+            key=lambda card: (card.score / max(card.cost, 1), card.score),
+        )
+        return best
+
     def lesson(self) -> None:
         self.stamina = max(0, self.stamina - self.config.lesson_cost)
         target = self.rng.choice(self.config.lesson_targets)
+        plays: list[dict] = []
+
+        def traced_policy(inner):
+            action = lesson_policy(inner)
+            if action is None:
+                plays.append({"skip": True, "turn": inner.turns_left})
+            else:
+                card = inner.hand[action]
+                plays.append(
+                    {
+                        "card": card.name.split("#")[0],
+                        "cost": card.cost,
+                        "base": card.score,
+                        "focus": inner.buffs.focus,
+                        "condition": inner.buffs.condition_turns > 0,
+                        "turn": inner.turns_left,
+                    }
+                )
+            return action
+
         sim = LessonSim(
             self.deck,
             LessonConfig(
@@ -154,7 +193,7 @@ class ProduceSim:
             ),
             rng_seed=self.rng.randrange(1 << 30),
         )
-        score, grade = sim.run(lesson_policy)
+        score, grade = sim.run(traced_policy)
         self.lessons += 1
         if grade in ("CLEAR", "PERFECT"):
             self.cleared += 1
@@ -165,6 +204,18 @@ class ProduceSim:
         else:
             # 没 CLEAR 也有部分成长（真机课程失败也给少量属性）
             self.attrs[self.best_attribute()] += 6
+        # 课程奖励：真机每节课后都有三选一，所以不管 CLEAR 都给（这才是牌组变强的来源）
+        reward = self.pick_reward()
+        if reward is not None:
+            self.deck.append(reward)
+            self.reward_picks += 1
+        self.last_lesson = {
+            "target": target,
+            "score": score,
+            "grade": grade,
+            "plays": plays,
+            "reward": reward.name.split("#")[0] if reward else None,
+        }
         self.log.append(f"W{self.week} lesson target{target} score{score} {grade}")
 
     # ------------------------------------------------------------------ 学期
@@ -184,6 +235,9 @@ class ProduceSim:
             self.week += 1
             return
         action = strategy(self)
+        self.last_lesson = None
+        stamina_before = self.stamina
+        attrs_before = list(self.attrs)
         if action == "train":
             self.train(self.best_attribute())
         elif action == "train_low":
@@ -196,6 +250,17 @@ class ProduceSim:
             self.lesson()
         else:
             self.train(self.best_attribute())
+        self.trace.append(
+            {
+                "week": self.week,
+                "action": action,
+                "stamina_before": stamina_before,
+                "stamina_after": self.stamina,
+                "attrs_before": attrs_before,
+                "attrs_after": list(self.attrs),
+                "lesson": self.last_lesson,
+            }
+        )
         self.week += 1
 
     def run(self, strategy) -> ProduceResult:
