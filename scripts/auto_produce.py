@@ -547,6 +547,10 @@ def main() -> int:
             bad_cards.clear()
             last_pick_name = None
             same_pick_count = 0
+            parsed_stamina = parse_stamina(text)
+            if parsed_stamina is not None:
+                last_stamina = parsed_stamina
+            driver.stamina_hint = last_stamina
             tick = driver.decide(agent, lines, image)
             result = tick.describe()
             screen_name, action_name = tick.screen, tick.action

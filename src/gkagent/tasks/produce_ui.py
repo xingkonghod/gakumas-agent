@@ -75,6 +75,7 @@ class ProduceDriver:
     event_pending_y: int | None = field(default=None, init=False)
     lesson_attribute: str | None = field(default=None, init=False)
     toast_waits: int = field(default=0, init=False)
+    stamina_hint: int | None = field(default=None, init=False)
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -334,7 +335,9 @@ class ProduceDriver:
         # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
         training_hits = sum(1 for word in ("Vo", "Da", "Vi") if word in text)
         stamina = parse_stamina(text)
-        if "休息" in text and stamina is not None and stamina < 12:
+        # 体力不够就别硬练：优先休息（当前帧没读到体力就用上一帧的）
+        effective_stamina = stamina if stamina is not None else self.stamina_hint
+        if "休息" in text and effective_stamina is not None and effective_stamina < 15:
             rest = self.find(lines, "休息")
             self._click_line(agent, rest) if rest else self._click(agent, (640, 860))
             return TickResult("action", "rest")
