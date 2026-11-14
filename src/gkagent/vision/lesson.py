@@ -128,20 +128,15 @@ class LessonReader:
         sx = width / 720.0
         sy = height / 1280.0
         cards = self.read_cards(image, lines=lines)
-        layout = LAYOUTS.get(kind, LAYOUTS["lesson"])
-        turns = self._number(image, layout.get("turns"), 1, 40)
-        score = self._number(image, layout.get("score"), 0, 200000)
-        stamina = self._number(image, layout.get("stamina"), 0, 199)
-        gauge = self._number(image, layout.get("gauge"), 0, 200000)
-        attribute = None
-        multiplier = None
-        if kind == "audition":
-            attribute = self._attribute(image, layout.get("attribute"))
-            multiplier = self._number(image, layout.get("multiplier"), 10, 999)
-            if stamina is None:
-                stamina = self._number(image, LAYOUTS["lesson"].get("stamina"), 0, 199)
-        elif stamina is None:
-            stamina = self._number(image, LAYOUTS["audition"].get("stamina"), 0, 199)
+        # 课程和试镜的数值位置不同（试镜顶部多一排名次），按 kind 优先、另一种兜底
+        order = [kind] if kind in LAYOUTS else []
+        order += [name for name in ("lesson", "audition") if name not in order]
+        turns = self._first_number(image, order, "turns", 1, 40)
+        score = self._first_number(image, order, "score", 0, 200000)
+        stamina = self._first_number(image, order, "stamina", 0, 199)
+        gauge = self._first_number(image, order, "gauge", 0, 200000)
+        attribute = self._first_attribute(image, order)
+        multiplier = self._first_number(image, order, "multiplier", 10, 999)
         notes = []
         if turns is None:
             notes.append("turns-unread")
@@ -254,6 +249,22 @@ class LessonReader:
             return self.engine.line(image, box, digits_only=digits_only)
         except Exception:  # noqa: BLE001 - 快路径不可用时视为没读到
             return None
+
+    def _first_number(self, image, order, key: str, low: int, high: int) -> int | None:
+        for name in order:
+            layout = LAYOUTS.get(name) or {}
+            value = self._number(image, layout.get(key), low, high)
+            if value is not None:
+                return value
+        return None
+
+    def _first_attribute(self, image, order) -> str | None:
+        for name in order:
+            layout = LAYOUTS.get(name) or {}
+            value = self._attribute(image, layout.get("attribute"))
+            if value is not None:
+                return value
+        return None
 
     def _number(self, image, box, low: int, high: int) -> int | None:
         if box is None:

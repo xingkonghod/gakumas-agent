@@ -220,7 +220,7 @@ def main() -> int:
     same_action_count = 0
     lesson_pending: tuple[tuple[int, int], tuple] | None = None
     drink_used = False
-    exam_estimate_done = False
+    # 期末估分（run_exam_estimate）先停用：它要逐张点开手牌，一局多花 10-20s，等速度达标再接回来
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -259,14 +259,8 @@ def main() -> int:
             text = "剩余回合"
             ocr_ms = 0.0
         else:
-            # 快速路径 0：先只读左上角状态条（~6% 面积）。认出「剩余回合/CLEAR/PERFECT」= 课程帧，
-            # 就只补一块手牌区 ROI，省掉整屏底部 OCR（3-5s）。
-            corner_lines = driver.engine().read(image, driver.corner_roi)
-            corner_text = driver.text_of(corner_lines)
-            corner_lesson = any(
-                word in corner_text for word in ("剩余回合", "CLEAR", "PERFECT")
-            )
-            # 快速路径 1：模板命中「跳过回合/体力」→ 课程帧，省掉整屏 OCR（2-5s）
+            # 快速路径 1（先做，~10ms）：模板命中「跳过回合/体力」→ 课程帧。
+            # 课程帧的剩余回合/体力由 LessonReader 的快路径读，这里不再整屏 OCR（省 ~3.7s/步）。
             lesson_fast = (
                 agent.matcher.find("produce_skip_round", image, threshold=0.85) is not None
                 or agent.matcher.find("produce_health", image, threshold=0.70) is not None
@@ -275,28 +269,42 @@ def main() -> int:
             loading_fast = (not lesson_fast) and (
                 agent.matcher.find("produce_loading", image, threshold=0.90) is not None
             )
-            if corner_lesson or lesson_fast:
-                lines = corner_lines + driver.engine().read(image, (0, 780, 720, 420))
-                text = driver.text_of(lines)
-                ocr_ms = (time.perf_counter() - t_ocr) * 1000
-            elif loading_fast:
+            if lesson_fast:
+                corner_lines = []
+                corner_text = ""
+                corner_lesson = True
                 lines = []
-                text = "LOADING"
+                text = "剩余回合"
                 ocr_ms = 0.0
-            elif digest in ocr_cache:
-                lines, text = ocr_cache[digest]
-                ocr_ms = 0.0
-            elif unknown_streak >= 3:
-                # 连续认不出时，用整屏 OCR 兜底一次，排除 ROI 漏读
-                lines = driver.engine().read(image)
-                text = driver.text_of(lines)
-                ocr_ms = (time.perf_counter() - t_ocr) * 1000
             else:
-                lines = driver.read(image, corner_lines=corner_lines)
-                ocr_ms = (time.perf_counter() - t_ocr) * 1000
-                text = driver.text_of(lines)
-                if len(ocr_cache) < 256:
-                    ocr_cache[digest] = (lines, text)
+                # 快速路径 0：先只读左上角状态条（~6% 面积）。认出「剩余回合/CLEAR/PERFECT」= 课程帧
+                corner_lines = driver.engine().read(image, driver.corner_roi)
+                corner_text = driver.text_of(corner_lines)
+                corner_lesson = any(
+                    word in corner_text for word in ("剩余回合", "CLEAR", "PERFECT")
+                )
+                if corner_lesson:
+                    lines = corner_lines
+                    text = corner_text
+                    ocr_ms = (time.perf_counter() - t_ocr) * 1000
+                elif loading_fast:
+                    lines = []
+                    text = "LOADING"
+                    ocr_ms = 0.0
+                elif digest in ocr_cache:
+                    lines, text = ocr_cache[digest]
+                    ocr_ms = 0.0
+                elif unknown_streak >= 3:
+                    # 连续认不出时，用整屏 OCR 兜底一次，排除 ROI 漏读
+                    lines = driver.engine().read(image)
+                    text = driver.text_of(lines)
+                    ocr_ms = (time.perf_counter() - t_ocr) * 1000
+                else:
+                    lines = driver.read(image, corner_lines=corner_lines)
+                    ocr_ms = (time.perf_counter() - t_ocr) * 1000
+                    text = driver.text_of(lines)
+                    if len(ocr_cache) < 256:
+                        ocr_cache[digest] = (lines, text)
 
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
@@ -397,10 +405,8 @@ def main() -> int:
             break
 
         status_text = text
-        if lesson_fast:
-            # 课程 frame 跳过整屏 OCR，但左上角状态条仍需读（体力/最终考试截止）
-            status_lines = driver.engine().read(image, driver.corner_roi)
-            status_text = driver.text_of(status_lines)
+        # 课程帧不再补读左上角状态条：剩余回合/体力由 LessonReader 的快路径读（~20ms）
+        # 原来这里每次多一次整屏 OCR（3.7s/步），一局能省十几分钟。
 
         t_decide = time.perf_counter()
         clicked: bool | None = None
@@ -408,29 +414,19 @@ def main() -> int:
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
             # 课程分支不重置防死循环签名（否则课程卡死永远不触发），交给通用签名计数
-            # 期末前估分：拿当前手牌跑 15 局蒙特卡洛
-            if not exam_estimate_done and ("最终考试" in status_text or "期末考试" in status_text):
-                exam_estimate_done = True
-                estimate = run_exam_estimate(agent, task, driver, image)
-                if estimate is not None:
-                    record = {
-                        "episode": episode,
-                        "step": step,
-                        "estimate": str(estimate),
-                        "mean": round(estimate.mean, 1),
-                        "p10": round(estimate.p10, 1),
-                        "p90": round(estimate.p90, 1),
-                        "ts": time.time(),
-                    }
-                    with (ROOT / "data" / "exam_estimates.jsonl").open("a", encoding="utf-8") as handle:
-                        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
-                    log_lines.append(f"{step:03d} [exam] estimate {estimate}")
             # 体力管理：低于 8 且还有回合，用一次饮料（每节课最多一次）
             stamina = parse_stamina(status_text or text)
             if stamina is not None:
                 last_stamina = stamina
             turns_match = re.search(r"剩余回合数\s*(\d+)", text)
             turns = int(turns_match.group(1)) if turns_match else None
+            # 读一次局面（剩余回合/体力/分数预览/手牌名），后面出牌不再重复 OCR
+            lesson_state = lesson_reader.read(image)
+            if lesson_state.stamina is not None:
+                stamina = lesson_state.stamina
+                last_stamina = stamina
+            if lesson_state.turns_left is not None:
+                turns = lesson_state.turns_left
             if (
                 stamina is not None
                 and stamina <= 8
@@ -491,10 +487,7 @@ def main() -> int:
                     idle = 0 if clicked is not False else idle
             elif action_name != "drink":
                 lesson_pending = None
-                # 快路径：手牌上直接读卡名 → 卡库估值，选最值的一张（不逐张点开）
-                # 课程 fastpath 跳过了整屏 OCR，这里补一块手牌区 ROI（比逐张点开读便宜）
-                if not lines:
-                    lines = driver.engine().read(image, (0, 780, 720, 420))
+                # 出牌：LessonReader 已经 OCR 过手牌区（卡名/预览/费用），这里不再重复整屏 OCR
                 costs = [card.cost for card in hand.cards] if hand.cards else None
                 lesson_skip = False
                 name_pick, lesson_done = decide_lesson_pick(
@@ -504,8 +497,9 @@ def main() -> int:
                     stamina=stamina,
                     exclude=bad_cards,
                     click=agent.device.click_force,
-                    fallback=lambda lines=lines, boxes=boxes, stamina=stamina, costs=costs: pick_hand_card(
-                        lines,
+                    state=lesson_state,
+                    fallback=lambda lines=lines, boxes=boxes, stamina=stamina, costs=costs, image=image: pick_hand_card(
+                        lines if lines else driver.engine().read(image, (0, 780, 720, 420)),
                         boxes,
                         card_lib,
                         stamina=stamina,

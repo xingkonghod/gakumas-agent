@@ -27,15 +27,19 @@ def decide_lesson_pick(
     exclude: set[str] | None = None,
     click: Callable[..., bool] | None = None,
     fallback: Callable[[], HandPick | None] | None = None,
+    state=None,
 ) -> tuple[HandPick | None, bool]:
     """返回 ``(要点的卡, 是否已经处理完这个回合)``。
 
     - ``(HandPick, False)``：点这张卡（两段式的第一段）；
     - ``(None, True)``：已经点了 SKIP，本回合不要再点卡；
     - ``(None, False)``：没读到手牌，交给调用方兜底。
+
+    ``state`` 已经读过时直接传进来，避免同一帧 OCR 两遍。
     """
-    kind = "audition" if _looks_like_audition(image, reader) else "lesson"
-    state = reader.read(image, kind=kind)
+    if state is None:
+        kind = "audition" if _looks_like_audition(image, reader) else "lesson"
+        state = reader.read(image, kind=kind)
     if stamina is not None and state.stamina is None:
         state = _with_stamina(state, stamina)
     if not state.cards:
