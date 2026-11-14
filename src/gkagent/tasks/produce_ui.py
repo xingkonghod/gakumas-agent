@@ -216,6 +216,18 @@ class ProduceDriver:
         if "LOADING" in upper or "加载" in text or "下载" in text or "通信" in text:
             return TickResult("loading", "wait")
 
+        # 0.6) 考试/试镜失败后的「再挑战」确认（不一定带「取消」按钮，先于取消弹窗处理）
+        if "再挑战" in text and ("不合格" in text or "剩余" in text):
+            retry = self.find_button(lines, ("再挑战",))
+            free_available = "免费剩余" in text and re.search(r"免费剩余\s*0", text) is None
+            left_available = re.search(r"剩余\s*[1-9]\d*\s*次", text) is not None
+            if retry is not None and (free_available or left_available):
+                self._click_line(agent, retry)
+                return TickResult("dialog", "retry")
+            end = self.find_button(lines, ("结束培育",))
+            self._click_line(agent, end) if end else self._click(agent, (185, 1144))
+            return TickResult("dialog", "end-produce")
+
         # 1) 弹窗：取消 + 确定/完成/下一步
         if CANCEL_WORD in text:
             # 扭蛋/抽卡确认：和培育无关，一律取消（跑培育时误入过）
