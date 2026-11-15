@@ -46,6 +46,28 @@ LESSON_WORDS = ("剩余回合", "CLEAR", "PERFECT")
 _GAIN_RE = re.compile(r"[+\-]\s*\d+")
 _STAMINA_RE = re.compile(r"(\d{1,3})\s*/\s*(\d{1,3})")
 
+# ---- 属性三维专用 ROI（行动页三颗大属性圆） --------------------------------
+# 真机布局：大数字（如 312）在圆心下方 y≈660-700，小字「/1000」在 y≈720。
+# 整屏 OCR 要么把数值区裁掉、要么读不出「/1000」，所以用三个固定小框单独读大数字。
+# 横向放宽到 190/150/180px：同时覆盖真机 100-210/300-410/500-610 与旧实拍帧
+# 192-269/333-411/478-557（实拍校验见 data/produce_actions.png、data/g5.png）。
+ATTR_ROIS: tuple[tuple[int, int, int, int], ...] = (
+    (90, 655, 190, 70),  # Vo
+    (285, 655, 150, 70),  # Da
+    (465, 655, 180, 70),  # Vi
+)
+ATTR_MAX = 2000  # 合理上限：属性显示为 X/1000，加成分后也不会超过 2000
+# 固定框兜底用的整图 OCR 取数范围：属性大数字/「/1000」小字/百分比都落在这一带，
+# 顶部分数、左上角回合数、底部按钮文字会被排除。
+ATTR_FALLBACK_Y = (600, 800)
+ATTR_FALLBACK_X_SPLIT = (272, 442)  # 左/中/右三列分界（兼容两种真机布局）
+# 三个固定框全空时的廉价闸门：行动页中央有「请选择行动」，别的页面没有。
+# 没有这道闸门就要对每个非行动帧跑 5s 的整图 OCR。
+ATTR_ACTION_TITLE_BOX = (180, 830, 360, 60)
+_ATTR_ACTION_TITLE_WORDS = ("请选择行动", "选择行动", "行动")
+_ATTR_NUMBER_RE = re.compile(r"\d+")
+_ATTR_DENOMINATOR = 1000  # 显示条「X/1000」的分母
+
 # ---- 课程出牌：卡片详情浮层 / 防死循环 -------------------------------------
 # 选牌后游戏会弹出卡牌详情浮层（卡名 / Active / 好调状态的时候，可以使用 / 打分+38）。
 # 浮层存在时再点同一坐标只会开关浮层或反复「不满足使用条件」，牌打不出去。
@@ -58,7 +80,7 @@ CARD_DETAIL_PROBES: tuple[tuple[int, int, int, int], ...] = (
 )
 CARD_DETAIL_NAME_BOX = (140, 585, 440, 45)  # 浮层顶部卡名
 CARD_DETAIL_BLANK = (360, 260)  # 浮层外上方空白：点这里关闭浮层
-LESSON_SKIP_POINT = (660, 868)  # 课程右下「SKIP」
+LESSON_SKIP_POINT = (657, 800)  # 课程右下「SKIP」
 # OCR 会把卡面左下角的「SELECT」标签（及误读）一起读进卡名
 UI_LABEL_WORDS = ("SELECT", "SEECT", "S", "A", "M")
 _UI_LABEL_RE = re.compile(
@@ -245,6 +267,36 @@ def parse_stamina(text: str) -> int | None:
         if maximum <= 60 and current <= maximum:
             return current
     return None
+
+
+def parse_attr_value(text: str | None) -> int | None:
+    """从属性框的 OCR 文本里取一项属性值（Vo/Da/Vi 之一）。
+
+    大数字下方常带「/1000」小字，可能被一起读成 ``312/1000``；斜杠前缀的分母
+    直接剔除。OCR 偶尔把斜杠丢掉、只读成 ``312 1000``，这种 1000 同样按分母
+    处理（优先取另一个数），因此「312 和 1000 同时出现」时返回 312。
+    框里混进图标/百分号时取剩余数字中最大的一个；读不到或不在 0..2000 返回
+    ``None``（调用方不得用 0 顶替）。
+    """
+    if not text:
+        return None
+    values: list[int] = []
+    for match in _ATTR_NUMBER_RE.finditer(text):
+        digits = match.group(0)
+        if not 2 <= len(digits) <= 4:  # 属性是 2-4 位数字，单字符噪声不要
+            continue
+        start = match.start()
+        if start > 0 and text[start - 1] in ("/", "／"):
+            continue  # 「/1000」分母
+        value = int(digits)
+        if 0 <= value <= ATTR_MAX:
+            values.append(value)
+    if not values:
+        return None
+    numerator = [value for value in values if value != _ATTR_DENOMINATOR]
+    if numerator:
+        values = numerator
+    return max(values)
 
 
 def lowest_hand_cost(
@@ -520,6 +572,100 @@ class ProduceDriver:
         if any(key in text for key in self.top_roi_keys) or len(text.strip()) < 6:
             lines = lines + self.engine().read(image, self.top_roi)
         return lines
+
+    def read_attrs(self, image) -> tuple[int, int, int] | None:
+        """读行动页三颗属性圆的大数字 ``(Vo, Da, Vi)``；三个都读到才返回。
+
+        先用三个固定小框走 :meth:`OcrEngine.line` 单行快路径（每个 ~30ms）；
+        固定框偏了（≥2 个读不到、但至少 1 个读到）时退回整图 OCR，按 x 分三列取
+        字高最大的数字——属性大数字比下方「/1000」小字和百分比高，能稳定选中。
+        三个框全空时先用「请选择行动」廉价探针确认是行动页，再跑整图 OCR；非行动
+        页不跑（整图 OCR ~5s，每步都跑会把一步拖慢一倍多，还容易把课程页数字当三维）。
+        读不到一律返回 ``None``，不拿 0 顶替。
+        """
+        report = self.read_attrs_debug(image)
+        if report["attrs"] is not None:
+            return report["attrs"]
+        values = [box["value"] for box in report["boxes"]]
+        missing = sum(value is None for value in values)
+        if missing >= 2 and any(value is not None for value in values):
+            return self._read_attrs_full(image)
+        if missing >= 3 and self._looks_like_action_page(image):
+            return self._read_attrs_full(image)
+        return None
+
+    def _looks_like_action_page(self, image) -> bool:
+        """整图兜底前的廉价闸门：行动页中央有「请选择行动」，课程/剧情/结算页没有。"""
+        if image is None or getattr(image, "shape", None) is None:
+            return False
+        try:
+            line = self.engine().line(image, ATTR_ACTION_TITLE_BOX, digits_only=False)
+        except Exception:  # noqa: BLE001 - 探针失败就不要跑 5s 的整图 OCR
+            return False
+        text = (line.text or "") if line is not None else ""
+        return any(word in text for word in _ATTR_ACTION_TITLE_WORDS)
+
+    def read_attrs_debug(self, image) -> dict:
+        """诊断：逐框返回裁剪位置、OCR 文本和解析值（框偏了还是 OCR 崩了一行定位）。
+
+        返回 ``{"attrs": (vo, da, vi) | None, "boxes": [{"attr", "roi", "text", "value"}, ...]}``。
+        只反映三个固定框的直读结果，不含整图兜底；``text`` 是每个小框的识别文本。
+        """
+        boxes: list[dict] = []
+        if image is None or getattr(image, "shape", None) is None:
+            return {"attrs": None, "boxes": boxes}
+        values: list[int | None] = []
+        for name, roi in zip(("vo", "da", "vi"), ATTR_ROIS):
+            text = ""
+            error = ""
+            try:
+                line = self.engine().line(image, roi, digits_only=False)
+            except Exception as exc:  # noqa: BLE001 - 诊断接口不抛异常
+                error = f"{type(exc).__name__}: {exc}"
+            else:
+                text = (line.text or "") if line is not None else ""
+            value = parse_attr_value(text)
+            values.append(value)
+            row = {"attr": name, "roi": tuple(roi), "text": text, "value": value}
+            if error:
+                row["error"] = error
+            boxes.append(row)
+        attrs = None
+        if all(value is not None for value in values):
+            attrs = (values[0], values[1], values[2])
+        return {"attrs": attrs, "boxes": boxes}
+
+    def _read_attrs_full(self, image) -> tuple[int, int, int] | None:
+        """固定框兜底：整图 OCR，按 x 分左/中/右三列，每列取字高最大的数字。
+
+        真机 UI 在不同宽度/DPI 下位置会漂。全图 OCR 还会读到顶部分数、/1000 分母、
+        下方百分比，所以限定属性行 y 带、再按列取「框最高」的那个：大数字最高，
+        「/1000」小字次之，百分比最矮。三列都取到才算成功。
+        """
+        if image is None or getattr(image, "shape", None) is None:
+            return None
+        try:
+            lines = self.engine().read(image)
+        except Exception:  # noqa: BLE001 - 兜底 OCR 失败就当没读到
+            return None
+        left, right = ATTR_FALLBACK_X_SPLIT
+        columns: list[list[tuple[int, int]]] = [[], [], []]
+        for line in lines:
+            x, y, width, height = line.box
+            if not ATTR_FALLBACK_Y[0] <= y + height // 2 <= ATTR_FALLBACK_Y[1]:
+                continue
+            value = parse_attr_value(line.text)
+            if value is None:
+                continue
+            center_x = x + width // 2
+            index = 0 if center_x < left else 1 if center_x < right else 2
+            columns[index].append((int(height), int(value)))
+        picked: list[int] = []
+        for column in columns:
+            if not column:
+                return None
+            picked.append(max(column)[1])  # 字高优先：属性大数字 > /1000 小字 > 百分比
+        return (picked[0], picked[1], picked[2])
 
     @staticmethod
     def text_of(lines: list[OcrLine]) -> str:
@@ -1291,6 +1437,11 @@ class ProduceDriver:
 
         # 11) 带标点的长文本基本是剧情/对话：点对话框继续
         # 11.0) 先处理「剧情选择项」：底部 2-3 个带问号的选项气泡，点最上面那个
+        # 「回合结束」确认弹窗：点「是」（SKIP 后必出，点不到就永远出不了课程）
+        if "回合结束" in text and "确定" in text:
+            self._click(agent, (500, 1200))
+            return TickResult("dialog", "end-turn-yes")
+
         # 误触打开的「育成目标」面板：立刻点底部 X 关闭，别在里面空转
         if "育成目标" in text and ("亲密度" in text or "编成" in text):
             self._click(agent, (360, 1218))
