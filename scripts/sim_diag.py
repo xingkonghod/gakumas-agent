@@ -55,6 +55,8 @@ MODELED_EFFECTS = {
     "ExamCardDraw",
     "ExamReview",
     "ExamLessonDependExamReview",
+    "ExamFullPowerPoint",
+    "ExamPreservation",
 }
 STARTER_NAMES = (
     "好调", "集中", "魅力的基础", "魅力的基础+", "表现的基础", "表情的基础",
