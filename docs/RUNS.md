@@ -116,3 +116,14 @@
   **最终评价/三维没有采集到**（record_manual 在结算前停止，属已知缺口；下次录制要覆盖结算页）。
 - 结果待用户/lead 补评价点。
 
+### 代码交付：模拟器实时出牌（107a813 功能 + d50009b 修红测试，HEAD=d50009b）
+- src/gkagent/sim/play_choice.py：choose_card_via_sim / plan_pick——每张手牌 rollout
+  「先打这张 + 剩余回合 greedy 打完」，anytime 预算 250ms、8 episodes；空手牌/全出不起/异常 → None（退回规则）。
+- uto_produce.py：sim_play 开关（缺键默认 false）→ 规则先选，sim 有有效选择才覆盖。
+- **离线验收**（真卡表 + lead 审查手牌，剩余 3 回合、体力 8 只够打一张大牌）：
+  在我发现的世界(0分/4费) 期望25.0 / **试行错误+(84分/5费) 期望84.0** / 轻快步伐(25分/4费) 期望25.0
+  → sim 选 **试行错误+**；规则 LessonPolicy 会选 轻快步伐（只按分数÷体力）→ **sim 覆盖规则、且更优**。
+- 测试 507 / 0 fail / 1 skip；
+uff check src tests 全绿。
+- 下一局真机即可验证 sim-pick 分歧率（scripts/sim_pick_report.py <ep>）。
+
