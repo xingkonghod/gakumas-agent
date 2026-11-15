@@ -34,6 +34,7 @@ from gkagent.data.card_costs import CardCosts
 from gkagent.data.cards_db import CardLibrary
 from gkagent.data.items_db import ItemLibrary
 from gkagent.data.master import MasterData
+from gkagent.data.run_record import RunRecorder, action_of
 from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd, user_idle_ms
 from gkagent.nav import Navigator
 from gkagent.policy.lesson import LessonPolicy
@@ -509,6 +510,19 @@ def main() -> int:
     # sim 实时出牌的近似牌库（真机拿不到完整牌组，把见过的手牌并进来，最多 12 张）
     sim_deck: list[CardSpec] = []
     # 期末估分（run_exam_estimate）先停用：它要逐张点开手牌，一局多花 10-20s，等速度达标再接回来
+    # ---- 跑局数据管道（data/runs/<episode>.json）：周/课/考/结算增量落盘 ----------
+    # 每写一条就原子 flush；被超时 kill 也保住已跑完的周，模拟器标定才有真机锚点。
+    recorder = RunRecorder(episode)
+    last_attrs: tuple[int, int, int] | None = None
+    pending_week: dict | None = None
+    pending_action_advanced = False
+    last_recorded_week = 0
+    phase = "mid"  # 行动页看到「最终截止」后置 final，考试记录 kind 用它
+    lesson_active = False
+    last_lesson_score: int | None = None
+    last_exam_signature: str | None = None
+    last_final_signature: tuple | None = None
+    log_lines.append(f"[record] 数据文件 {recorder.path}")
 
     def flush_pending(changed: bool | None) -> None:
         nonlocal pending
@@ -516,6 +530,131 @@ def main() -> int:
             pending.changed = changed
             metrics.write(pending)
             pending = None
+
+    def _log_record(message: str) -> None:
+        log_lines.append(f"[record] {message}")
+
+    def end_lesson() -> int | None:
+        """课程帧消失的瞬间：把本课得分落盘（读不到写 null，不拿属性增量顶替）。
+
+        课程结束时先把周记录以 attrs_after=null 落盘（保住 lesson_score），
+        下一周行动页读到三维后再补写同一 (week, action)，不追加第二条。
+        """
+        nonlocal lesson_active, last_lesson_score
+        if not lesson_active:
+            return last_lesson_score
+        score = last_lesson_score
+        pending = pending_week
+        if pending is None or pending["action"] != "lesson" or not pending_action_advanced:
+            # 没有对应的周行动：宁可丢弃也不把分数记到别的周/别的行动上
+            _log_record(f"课程结束 lesson_score={score}（无对应周行动，丢弃）")
+            lesson_active = False
+            last_lesson_score = None
+            return score
+        # 先把本周记录落下来（attrs 稍后补），再挂 lesson_score：note_lesson
+        # 只补最后一条 lesson，保证上一周缺分记录不会被这一周填错。
+        if not pending.get("recorded"):
+            recorder.note_action(pending["week"], "lesson", None, None)
+            pending["recorded"] = True
+        recorder.note_lesson(score)
+        _log_record(f"课程结束 lesson_score={score}")
+        lesson_active = False
+        last_lesson_score = None
+        return score
+
+    def finalize_week(attrs, stamina, *, why: str) -> dict | None:
+        """在下一个行动页/考试/结算处补全上一周行动的 attrs_after / stamina。"""
+        nonlocal pending_week, pending_action_advanced, last_recorded_week
+        pending = pending_week
+        if pending is None or not pending_action_advanced:
+            return None
+        record = recorder.note_action(pending["week"], pending["action"], attrs, stamina)
+        if pending["week"] is not None:
+            last_recorded_week = pending["week"]
+        _log_record(
+            f"周 {pending['week']} {pending['action']} "
+            f"attrs={list(attrs) if attrs else None} stamina={stamina} ({why})"
+        )
+        pending_week = None
+        pending_action_advanced = False
+        return record
+
+    def start_week_action(action: str, week: int | None, week_phase: str | None) -> None:
+        """行动页点下行动时登记本周行动；同一屏重复点只更新意图，不重复开周。"""
+        nonlocal pending_week, pending_action_advanced, last_recorded_week, phase
+        if week_phase == "final":
+            phase = "final"
+        if pending_week is not None:
+            if pending_week["action"] != action:
+                pending_week["action"] = action
+                pending_week["week"] = week or pending_week["week"]
+            return
+        if week is None:
+            week = last_recorded_week + 1
+        pending_week = {"week": week, "action": action, "recorded": False}
+        pending_action_advanced = False
+        _log_record(f"周行动开始 week={week} action={action}")
+
+    def record_exam(image, text: str) -> None:
+        """考试结算屏：整屏 OCR 解析 1st..6th + Pt，记 kind/rank/score/others。
+
+        同一屏只尝试一次（签名去重）；解析失败只记日志，绝不编造名次/分数。
+        """
+        nonlocal last_exam_signature
+        signature = re.sub(r"\d+", "#", text)[:120]
+        if signature == last_exam_signature:
+            return
+        last_exam_signature = signature
+        result = driver.read_exam_result(image)
+        if result is None:
+            _log_record("考试结算屏未解析出分数行，跳过")
+            return
+        if pending_week is not None:
+            end_lesson()
+            finalize_week(attrs_now, parse_stamina(text), why="exam-result")
+        last_exam = recorder.data["exams"][-1] if recorder.data["exams"] else None
+        if (
+            last_exam is not None
+            and last_exam.get("kind") == phase
+            and last_exam.get("rank") == result.get("rank")
+            and last_exam.get("score") == result.get("score")
+        ):
+            # 同一场考试的结算屏可能停留多步；文本微变时别重复追加
+            _log_record("考试结算屏重复，跳过")
+            return
+        exam = recorder.note_exam(
+            phase, result.get("rank"), result.get("score"), result.get("others")
+        )
+        _log_record(
+            f"{phase} 考试 rank={exam.get('rank')} score={exam.get('score')} "
+            f"others={exam.get('others')}"
+        )
+
+    def record_final(image, text: str) -> None:
+        """最终结算屏：固定小框读 grade/eval_points，三维用最后一次采样。"""
+        nonlocal last_final_signature
+        result = driver.read_final_result(image)
+        if result is None:
+            return
+        signature = (result.get("grade"), result.get("eval_points"))
+        if signature == last_final_signature:
+            return
+        last_final_signature = signature
+        if pending_week is not None:
+            end_lesson()
+            finalize_week(None, None, why="final")
+        final = recorder.note_final(
+            attrs=last_attrs,
+            rank=None,
+            exam_score=None,
+            eval_points=result.get("eval_points"),
+            grade=result.get("grade"),
+        )
+        _log_record(
+            f"最终结算 grade={final.get('grade')} eval_points={final.get('eval_points')} "
+            f"attrs={final.get('attrs')} rank={final.get('rank')} "
+            f"exam_score={final.get('exam_score')}"
+        )
 
     for step in range(1, steps + 1):
         if stop_requested():
@@ -619,6 +758,16 @@ def main() -> int:
                         text = driver.text_of(lines)
                 ocr_ms = (time.perf_counter() - t_ocr) * 1000
 
+        # 课程帧消失 = 本课结束：立刻把 lesson_score 落盘（拿不到分数写 null）。
+        # 放在读三维之前，课程数据在下一周行动页/考试页出现前就已安全写盘。
+        in_lesson_frame = (
+            lesson_pending is not None
+            or lesson_fast
+            or any(word in text for word in LESSON_WORDS)
+        )
+        if lesson_active and not in_lesson_frame:
+            end_lesson()
+
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
             markers.append(text[:40])
@@ -626,9 +775,11 @@ def main() -> int:
         # 每步先连拍几张再动作，确保能抓到最终评价
         # 全程记录三维：固定小框直接读大数字（/1000 小字 OCR 常读不出，整屏正则抓不到）
         t_attrs = time.perf_counter()
+        attrs_now = None
         try:
             attrs_now = driver.read_attrs(image, text_hint=text)
             if attrs_now is not None:
+                last_attrs = attrs_now
                 from gkagent.data.calibration import record as _record_attrs
 
                 _record_attrs(attrs_now, tag="run")
@@ -643,6 +794,10 @@ def main() -> int:
             re.search(r"(?:評価|评价)[^A-Za-z0-9]{0,6}([SABCDE][+\-－]?)", text)
             and re.search(r"(\d{3,6})\s*(?:pt|Pt|PT|点)", text)
         )
+        # 跑局数据：最终结算屏（真机 190647 =「最终培育评价」C+/5577）。
+        # 结算页一闪而过，每步都试一次固定小框读取（两项都读不到会立刻返回）。
+        if looks_final or "最终培育评价" in text or ("最终" in text and "评价" in text):
+            record_final(image, text)
         if not final_phase and looks_final:
             final_phase = True
             burst_count = 0
@@ -699,8 +854,9 @@ def main() -> int:
                 },
             )
             log_lines.append(f"{step:03d} [fail] FAILED/不合格 已记录 {fail_path}")
-        # 试镜/考试排名结果：把 1st..6th + Pt 写进 exam_results.jsonl
+        # 试镜/考试排名结果：把 1st..6th + Pt 写进 exam_results.jsonl；同时跑局记录
         if re.search(r"\d(?:st|nd|rd|th)", text) and re.search(r"\d+\s*Pt", text):
+            record_exam(image, text)
             ranks = []
             for line in lines:
                 if re.fullmatch(r"\d(?:st|nd|rd|th)", line.text.strip()):
@@ -749,18 +905,30 @@ def main() -> int:
         if lesson_fast or any(word in text for word in LESSON_WORDS):
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
+            if pending_week is not None:
+                # 已经离开行动页：上一周行动确实开始执行了
+                pending_action_advanced = True
             # F#17：考试/试镜页顶部有 1st..6th 排名条。考试里 SKIP = 白送回合
             # （ep-sup1 期中 4th/228Pt，1st=597 直接不合格），所以先识别，再把
             # 体力门 / 同屏兜底 / 策略的 SKIP 全部禁掉，强制每回合出一张牌。
             exam_mode = driver.exam_mode(image, lines)
-            # 出牌策略开关（policy.json produce.sim_play，默认 false）：开着才跑模拟器 rollout
-            sim_play = bool(driver._produce_params().get("sim_play"))
             if exam_mode and not exam_seen:
                 exam_seen = True
                 log_lines.append(
                     f"{step:03d} [exam-mode] 顶部排名条命中：考试/试镜，"
                     "本场禁止 SKIP（体力门/同屏兜底/策略）"
                 )
+            if exam_mode and pending_week is not None:
+                # 考试开始前把「考试周之前的最后一个周行动」结掉（期中、期末各一次）：
+                # 考试周没有行动页，不在这里补全会丢最后一周的 attrs/stamina。
+                if lesson_active:
+                    end_lesson()
+                exam_stamina = parse_stamina(text)
+                if exam_stamina is None:
+                    exam_stamina = last_stamina
+                finalize_week(attrs_now, exam_stamina, why="exam-start")
+            # 出牌策略开关（policy.json produce.sim_play，默认 false）：开着才跑模拟器 rollout
+            sim_play = bool(driver._produce_params().get("sim_play"))
             # 课程分支不重置防死循环签名（否则课程卡死永远不触发），交给通用签名计数
             # 体力管理：低于 8 且还有回合，用一次饮料（每节课最多一次）
             stamina = parse_stamina(status_text or text)
@@ -776,6 +944,12 @@ def main() -> int:
                 last_stamina = stamina
             if lesson_state.turns_left is not None:
                 turns = lesson_state.turns_left
+            # 课程帧：记录本课实时总分（右上角），课程结束/CLEAR 时用作 lesson_score。
+            # 考试帧不记（exam_mode=True），考试得分走考试结算屏。
+            if not exam_mode:
+                lesson_active = True
+                if lesson_state.score is not None and lesson_state.score > 0:
+                    last_lesson_score = lesson_state.score
             # 同屏兜底（ep-cplus10：SKIP 点空后同一画面连拍 169 步，25 分钟超时）。
             # 用语义签名而不是像素 digest——角色呼吸/卡面闪光/视频噪点让每帧 hash 都不同。
             turn_signature = lesson_turn_signature(lesson_state)
@@ -1290,6 +1464,19 @@ def main() -> int:
             result = tick.describe()
             screen_name, action_name = tick.screen, tick.action
             clicked = None if screen_name in ("pause", "loading", "blank") else True
+            # ---- 跑局数据：行动页 = 上一周行动结束 + 新一周行动开始 ----------
+            # 这里的 attrs_now 是行动页当前三维（即上一周行动之后的值），
+            # stamina 也从同帧读；读不到写 null，不用上一帧顶替。
+            if tick.screen == "action":
+                if pending_week is not None and pending_action_advanced:
+                    finalize_week(attrs_now, parse_stamina(text), why="next-action")
+                mapped_action = action_of(tick.action)
+                if mapped_action is not None:
+                    week_value, week_phase = driver.read_week(image, text)
+                    start_week_action(mapped_action, week_value, week_phase)
+            elif tick.screen not in ("pause", "loading", "blank"):
+                if pending_week is not None:
+                    pending_action_advanced = True
             if tick.screen == "stuck":
                 # 兜底分支自己判定死循环（F#15）：scenario 同屏点不动 10 次以上，
                 # 直接记 [stuck] 退出本局并返回失败，不再等到 12 次停机/30 分钟超时。
@@ -1387,6 +1574,11 @@ def main() -> int:
             log_lines.append(f"{step:03d} 连续 8 步无可执行动作，停止")
             break
 
+    # 收尾：结算页没认出来时，最后一整周行动也要落盘（字段缺失写 null + note）。
+    # 只在本局正常结束（done）时补；中途超时/急停的当周行动可能没做完，不猜。
+    if done and pending_week is not None and pending_action_advanced:
+        end_lesson()
+        finalize_week(None, None, why="episode-end")
     flush_pending(None)
     ended_at = time.time()
     metrics.write(
@@ -1421,6 +1613,7 @@ def main() -> int:
                 "duration_s": round(ended_at - started_at, 1),
                 "avg_total_ms": summary.get("avg_total_ms"),
                 "changed_rate": summary.get("changed_rate"),
+                "run_record": str(recorder.path),
                 "log": log_lines[-12:],
             },
             ensure_ascii=False,

@@ -19,6 +19,12 @@ from typing import TYPE_CHECKING
 import cv2
 import numpy as np
 
+from gkagent.data.run_record import (
+    parse_eval_points,
+    parse_exam_result,
+    parse_grade,
+    week_from_countdown,
+)
 from gkagent.vision.ocr import OcrEngine, OcrLine
 from gkagent.vision.ocr_cache import SemanticScreenCache
 
@@ -119,6 +125,16 @@ MEMORY_SAVE_LOCAL = (430, 1088)  # 「保存到本地」
 # 考试页顶部有 1st..6th 排名条（真机 data/exam_rank_frame.png：1st 在 x≈240-310、
 # y≈5-40，4th 到 x≈655，5th/6th 被屏幕右缘裁掉）。课程页没有这排字。
 EXAM_RANK_ROI = (228, 0, 492, 48)  # 排名条 1st..4th（720x1280）
+# ---- 跑局数据管道（data/run_record.py）读取 ROI ------------------------------
+# 行动页左上「期中截止 / 最终截止」+ 下面一行「N周」（真机 data/manual/182343）。
+# N 是距离截止的剩周：期中阶段 4周 = 第 2 周；期末阶段 6周 = 第 7 周。
+WEEK_LABEL_ROI = (26, 20, 320, 70)
+WEEK_NUM_ROI = (20, 72, 300, 58)
+# 最终结算屏（真机 data/manual/190647）：标题「最终培育评价」、评价字母在中央
+# 菱形里、评价点是下方大数字。标题框用来挡住「培育记录」等收尾页的误读。
+FINAL_TITLE_ROI = (180, 130, 360, 80)
+FINAL_GRADE_ROI = (200, 350, 320, 300)
+FINAL_EVAL_ROI = (200, 810, 320, 90)
 # 考试页 SKIP 与课程同坐标（真机 step_015 核对：圆形 SKIP 在 (655,800)）。
 EXAM_SKIP_POINT = (655, 800)
 _EXAM_RANK_RE = re.compile(r"[1-6]\s*(?:st|nd|rd|th)\b", re.IGNORECASE)
@@ -1590,6 +1606,75 @@ class ProduceDriver:
             if line is not None and is_exam_rank_text(line.text):
                 return True
         return is_exam_rank_text(self.text_of(lines or []))
+
+    # ------------------------------------------------- 跑局数据（run_record.py）
+    def read_week(self, image, text: str | None = None) -> tuple[int | None, str | None]:
+        """行动页读当前周：左上「期中截止 / 最终截止」+ 下一行「N周」。
+
+        返回 ``(绝对周数, "mid"|"final")``；周数换算见
+        :func:`gkagent.data.run_record.week_from_countdown`。读不到返回 ``None``，
+        调用方按顺序推周数并把缺失记进周记录，不要拿 0 顶替。
+        """
+        if image is None or getattr(image, "shape", None) is None:
+            return None, None
+        label = self._probe_text(image, WEEK_LABEL_ROI)
+        joined = f"{label} {text or ''}"
+        if "最终截止" in joined or "最終" in joined:
+            phase = "final"
+        elif "期中截止" in joined or "期中" in joined:
+            phase = "mid"
+        else:
+            phase = None
+        try:
+            line = self.engine().line(image, WEEK_NUM_ROI, digits_only=False)
+        except Exception:  # noqa: BLE001 - 单行识别失败按读不到处理
+            line = None
+        number_text = (line.text or "") if line is not None else ""
+        return week_from_countdown(number_text, phase), phase
+
+    def read_exam_result(self, image) -> dict | None:
+        """考试结算屏：整屏 OCR 一次，解析 1st..6th + ``Pt`` 行。
+
+        返回 ``{"rank", "score", "others", "note"?}``（``others`` 从高到低，
+        含自己）；只有认出分数行才返回。调用方应先用廉价文本判据
+        （排名序数 + ``Pt``）确认是结算屏，避免每步跑整屏 OCR。
+        """
+        if image is None or getattr(image, "shape", None) is None:
+            return None
+        try:
+            lines = self.engine().read(image)
+        except Exception:  # noqa: BLE001 - OCR 失败就当没读到，不影响跑局
+            return None
+        return parse_exam_result(lines)
+
+    def read_final_result(self, image) -> dict | None:
+        """最终结算屏：固定小框读评价字母和评价点（真机 190647 = C+/5577）。
+
+        只跑两个 ``engine.line``（各 ~30ms），不跑整屏 OCR：评价字母在中央
+        大菱形里、评价点是下方 4-6 位大数字。两项都读不到返回 ``None``。
+        """
+        if image is None or getattr(image, "shape", None) is None:
+            return None
+        # 先用标题闸门确认是「最终培育评价」屏：收尾的「培育记录」页也有粉丝数等
+        # 5 位数字，落在评价点框里会被误读成 eval_points。
+        title = self._probe_text(image, FINAL_TITLE_ROI)
+        if not (("最终" in title and "评价" in title) or "最終" in title):
+            return None
+        grade = None
+        eval_points = None
+        try:
+            line = self.engine().line(image, FINAL_GRADE_ROI, digits_only=False)
+            grade = parse_grade(line.text) if line is not None else None
+        except Exception:  # noqa: BLE001 - 单行识别失败按读不到处理
+            grade = None
+        try:
+            line = self.engine().line(image, FINAL_EVAL_ROI, digits_only=True)
+            eval_points = parse_eval_points(line.text) if line is not None else None
+        except Exception:  # noqa: BLE001 - 单行识别失败按读不到处理
+            eval_points = None
+        if grade is None and eval_points is None:
+            return None
+        return {"grade": grade, "eval_points": eval_points}
 
     # ------------------------------------------------------------------ 主入口
     def tick(self, agent) -> TickResult:
