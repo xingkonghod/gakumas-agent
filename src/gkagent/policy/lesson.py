@@ -63,11 +63,15 @@ class LessonPolicy:
         "min_gain": 1.0,
         # 是否先铺 buff（好调/集中等）
         "buff_first": True,
+        # 前 N 个回合（剩余回合数 ≥ N）buff 牌优先于分数牌：层数类 buff 会滚雪球，
+        # 越早越值钱（2026-11-15 用户打法：先攒倍率，再打分数）
+        "buff_early_turns": 3,
         # 铺 buff 的费用上限 = 本回合预算 × ratio，且不低于 buff_min_budget
         "buff_max_cost_ratio": 1.0,
         "buff_min_budget": 2.0,
         # 场上已有分数 ≥ guard × buff 等效分时，先打分数牌而不是 buff
-        "buff_score_guard": 5.0,
+        # （8 → 12：让 buff 更强势；只有明显更高才压过 buff）
+        "buff_score_guard": 12.0,
         # buff 文本估不出分时的兜底等效分
         "buff_value_fallback": 6.0,
         # 最后一回合按"总分最大"而不是"性价比"选牌
@@ -161,6 +165,10 @@ class LessonPolicy:
                 parsed_float = _as_float(value)
                 if parsed_float is not None:
                     out[key] = parsed_float
+            elif isinstance(default, int):
+                parsed_float = _as_float(value)
+                if parsed_float is not None and parsed_float >= 0:
+                    out[key] = int(parsed_float)
             elif isinstance(default, str):
                 allowed = _ALLOWED_VALUES.get(key, frozenset())
                 if isinstance(value, str) and value in allowed:
@@ -227,6 +235,27 @@ class LessonPolicy:
 
         values = {card.index: self._value(card, turns) for card in affordable}
         budget = self._budget(stamina, turns)
+
+        # 0) 游戏高亮（金框/推荐）无条件优先：机制上就是提示「先把倍率铺起来」
+        highlighted = [card for card in affordable if card.highlight]
+        if highlighted:
+            pick = max(
+                highlighted,
+                key=lambda card: (
+                    card.buff,
+                    values.get(card.index, 0.0),
+                    -(card.cost if card.cost is not None else 9),
+                    -card.index,
+                ),
+            )
+            return LessonAction(
+                "card",
+                index=pick.index,
+                point=pick.point,
+                card=pick,
+                expected=values.get(pick.index, 0.0),
+                reason=f"游戏高亮优先：{pick.name or '卡'}",
+            )
 
         # 1) 先铺 buff
         buff_action = self._maybe_buff(state, affordable, values, budget)
@@ -348,7 +377,11 @@ class LessonPolicy:
         else:
             buff_value = float(self.params["buff_value_fallback"])
         guard = float(self.params["buff_score_guard"])
-        if best_score >= guard * max(buff_value, 1.0) and turn_gain_expected(best_score) > 0:
+        # 早期回合（剩余回合数 ≥ buff_early_turns）buff 优先：层数 buff 越早铺收益越大，
+        # 这时只有「能一击清 CLEAR」的分数牌才压过 buff（turn_gain_expected>0 保留原语义）。
+        early_turns = int(self.params.get("buff_early_turns", 3) or 0)
+        early = turns is not None and turns >= early_turns > 0
+        if not early and best_score >= guard * max(buff_value, 1.0) and turn_gain_expected(best_score) > 0:
             return None
         return LessonAction(
             "card",

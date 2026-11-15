@@ -64,7 +64,9 @@ def _state(cards, **kwargs) -> LessonState:
     return LessonState(cards=tuple(cards), **kwargs)
 
 
-def _card(index: int, name: str, score, cost, *, buff=False, text="") -> LessonCard:
+def _card(
+    index: int, name: str, score, cost, *, buff=False, text="", highlight=False
+) -> LessonCard:
     return LessonCard(
         index=index,
         box=(index * 200, 900, 190, 232),
@@ -74,6 +76,7 @@ def _card(index: int, name: str, score, cost, *, buff=False, text="") -> LessonC
         cost=cost,
         buff=buff,
         text=text,
+        highlight=highlight,
     )
 
 
@@ -137,6 +140,84 @@ def test_policy_plays_cheap_buff_first() -> None:
     policy.note_play(action.card)
     again = policy.decide(state)
     assert again.card is not None and again.card.name == "魅力的基础"
+
+
+def test_policy_buffs_early_even_with_high_score_card() -> None:
+    """用户打法：前几个回合先攒倍率。150 分的牌在剩余 5 回合时也压不过集中。"""
+    policy = LessonPolicy()
+    state = _state(
+        [
+            _card(0, "集中", 0, 3, buff=True, text="集中+3"),
+            _card(1, "高分牌", 150, 5, text="打分+15"),
+        ],
+        turns_left=5,
+        stamina=25,
+    )
+    action = policy.decide(state)
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "集中"
+
+
+def test_policy_last_turn_takes_score_over_buff() -> None:
+    """最后一回合铺 buff 没用，必须打分数牌。"""
+    policy = LessonPolicy()
+    state = _state(
+        [
+            _card(0, "集中", 0, 2, buff=True, text="集中+3"),
+            _card(1, "高分牌", 25, 3, text="打分+25"),
+        ],
+        turns_left=1,
+        stamina=20,
+    )
+    action = policy.decide(state)
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "高分牌"
+
+
+def test_policy_highlighted_card_wins_over_higher_score() -> None:
+    """游戏金框/推荐 = 先铺倍率的提示：高亮牌无条件优先。"""
+    policy = LessonPolicy()
+    state = _state(
+        [
+            _card(0, "普通高分", 80, 4, text="打分+8"),
+            _card(1, "高亮牌", 25, 4, text="好调+2", highlight=True),
+        ],
+        turns_left=5,
+        stamina=20,
+    )
+    action = policy.decide(state)
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "高亮牌"
+
+
+def test_policy_buff_yields_when_unaffordable() -> None:
+    """没体力铺 buff 时让位给付得起的分数牌（不能因为 buff 优先就不出牌）。"""
+    policy = LessonPolicy()
+    state = _state(
+        [
+            _card(0, "贵集中", 0, 8, buff=True, text="集中+3"),
+            _card(1, "分数牌", 25, 3, text="打分+25"),
+        ],
+        turns_left=5,
+        stamina=5,
+    )
+    action = policy.decide(state)
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "分数牌"
+
+
+def test_gold_frame_detects_highlighted_hand_card() -> None:
+    """手牌金框检测：金色竖边 → 高亮；纯色卡面 → 不高亮。"""
+    import numpy as np
+
+    from gkagent.vision.lesson import _gold_frame
+
+    image = np.full((1280, 720, 3), 40, dtype=np.uint8)
+    rect = (100, 900, 190, 232)
+    assert _gold_frame(image, rect) is False
+    image[900:1132, 96:102] = (20, 170, 240)  # BGR 金色（左描边）
+    image[900:1132, 288:294] = (20, 170, 240)  # 右描边
+    assert _gold_frame(image, rect) is True
 
 
 # --------------------------------------------------------------------- 费用缓存

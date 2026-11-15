@@ -7,11 +7,12 @@
   "buff_first": true,
   "buff_max_cost_ratio": 1.0,
   "buff_min_budget": 2.0,
-  "buff_score_guard": 5.0,
+  "buff_score_guard": 12.0,
   "buff_value_fallback": 6.0,
   "last_turn_max_total": true,
   "unknown_score_fallback": "cheapest",
-  "source": "defaults"
+  "source": "defaults",
+  "buff_early_turns": 3
  },
  "produce": {
   "prefer_lesson": true,
@@ -23,14 +24,15 @@
   "outing_below": -1,
   "source": "sim_search_ratio05",
   "support_levels": [
-    10,
-    10,
-    10,
-    20,
-    10,
-    60
+   10,
+   10,
+   10,
+   20,
+   10,
+   60
   ],
-  "sim_choice": false,
-  "lesson_min_stamina": 10
+  "sim_choice": true,
+  "lesson_min_stamina": 10,
+  "sim_play": true
  }
 }

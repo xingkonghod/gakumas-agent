@@ -602,6 +602,30 @@ def greedy_policy(sim: LessonSim) -> Action:
     if not playable:
         return None
 
+    # 前几个回合（剩余回合数 >= 3）先铺层数类 buff：集中/好调/印象/干劲会让后续每张
+    # 牌更强，越早铺越值钱（2026-11-15 用户打法；与真机 LessonPolicy.buff_early_turns 对齐）。
+    if sim.turns_left >= 3:
+        buffs = [
+            index
+            for index in playable
+            if sim.hand[index].focus > 0
+            or sim.hand[index].condition > 0
+            or sim.hand[index].impression > 0
+            or sim.hand[index].motivation > 0
+        ]
+        if buffs:
+            def _buff_key(index: int) -> tuple[float, int, int]:
+                card = sim.hand[index]
+                weight = (
+                    card.focus * 30.0
+                    + card.condition * 40.0
+                    + card.impression * 20.0
+                    + card.motivation * 10.0
+                )
+                return (weight, -card.cost, -index)
+
+            return max(buffs, key=_buff_key)
+
     def efficiency(index: int) -> tuple[float, float, int, int]:
         card = sim.hand[index]
         if card.preservation > 0 or card.full_power_point > 0 or card.strong_level > 0:

@@ -913,3 +913,20 @@ def test_same_seed_reproducible_with_three_cards_and_drinks() -> None:
 
     assert play(11) == play(11)
 
+def test_greedy_prefers_buff_in_early_turns() -> None:
+    """用户打法：前几个回合先铺层数类 buff，再打分数。"""
+    deck = [
+        CardSpec("集中", 2, 0, focus=3),
+        CardSpec("打分", 2, 25),
+        CardSpec("打分B", 2, 25),
+    ]
+    sim = LessonSim(deck, _config(turns=5, stamina=20, clear=1), rng_seed=3)
+    assert greedy_policy(sim) == _index(sim, "集中")
+
+
+def test_greedy_takes_score_on_last_turn() -> None:
+    """最后一回合铺 buff 没收益，必须打分数牌。"""
+    deck = [CardSpec("集中", 2, 0, focus=3), CardSpec("打分", 2, 25)]
+    sim = LessonSim(deck, _config(turns=1, stamina=10, clear=1), rng_seed=1)
+    assert greedy_policy(sim) == _index(sim, "打分")
+

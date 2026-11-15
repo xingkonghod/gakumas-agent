@@ -80,12 +80,43 @@ class LessonCard:
     score_unread: bool = False
     # 这张牌上一回合宝石没读到、卡表知道它有分：下一回合进手牌时优先重读宝石
     recheck: bool = False
+    # 游戏高亮（金框/推荐）：机制提示「先铺倍率」，策略里无条件优先（2026-11-15 用户打法）
+    highlight: bool = False
 
     @property
     def total_score(self) -> float:
         if self.score is None:
             return 0.0
         return float(self.score) * float(self.hits or 1)
+
+
+def _gold_frame(image, rect: tuple[int, int, int, int]) -> bool:
+    """手牌是否带游戏高亮的金色边框（推荐牌会闪金边，用来先铺 buff）。
+
+    只看卡框左右各 ~8px 的竖条里金色像素占比；卡面本身的金色花纹不在这两列，
+    不会误判。没有图像/尺寸异常一律 False（策略退回普通规则）。
+    """
+    if image is None or getattr(image, "ndim", 0) != 3 or image.shape[2] < 3:
+        return False
+    left, top, width, height = (int(value) for value in rect)
+    x0 = max(0, left - 4)
+    x1 = min(image.shape[1], left + width + 4)
+    y0 = max(0, top)
+    y1 = min(image.shape[0], top + height)
+    patch = image[y0:y1, x0:x1]
+    if patch.size == 0 or patch.shape[0] < 24:
+        return False
+    blue = patch[:, :, 0].astype(int)
+    green = patch[:, :, 1].astype(int)
+    red = patch[:, :, 2].astype(int)
+    gold = (red >= 180) & (green >= 120) & (green <= 235) & (blue <= 110) & ((red - blue) >= 90)
+    columns = gold.sum(axis=0)
+    edge_width = min(8, max(2, patch.shape[1] // 10))
+    if edge_width <= 0:
+        return False
+    edge = np.concatenate([columns[:edge_width], columns[-edge_width:]])
+    ratio = float(edge.mean()) / float(max(patch.shape[0], 1))
+    return ratio >= 0.25
 
 
 @dataclass(frozen=True)
@@ -316,6 +347,7 @@ class LessonReader:
             score_estimated=score_estimated,
             score_unread=score_unread,
             recheck=recheck,
+            highlight=_gold_frame(image, rect),
         )
 
     def _score_line(self, image, box, *, retry: bool = False):
