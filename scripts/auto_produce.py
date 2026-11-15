@@ -464,6 +464,16 @@ def main() -> int:
             markers.append(text[:40])
         # 期末试镜之后进入「结算期」：评分/评价画面常常一闪而过，
         # 每步先连拍几张再动作，确保能抓到最终评价
+        # 全程记录三维：屏幕上出现三个 X/1000 就记一条（去重）
+        try:
+            triples = re.findall(r"(\d{1,4})\s*/\s*1000", text)
+            if len(triples) >= 3:
+                from gkagent.data.calibration import record as _record_attrs
+
+                _record_attrs([int(value) for value in triples[:3]], tag="run")
+        except Exception:  # noqa: BLE001 - 标定失败不影响培育
+            pass
+
         # 只有同时出现「评价字母 + 3位以上分数」才算真结算；
         # 只匹配「合否条件」会在考试介绍页误触发，导致每步连拍空转。
         looks_final = bool(
