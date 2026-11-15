@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
+
+import pytest
 
 from gkagent.tasks import produce_ui
 from gkagent.tasks.produce_ui import ProduceDriver
 from gkagent.vision.ocr import OcrLine
+
+DATA = Path(__file__).resolve().parents[1] / "data"
 
 
 @dataclass
@@ -309,7 +314,7 @@ def test_lesson_with_stamina_below_lowest_cost_skips_at_once() -> None:
     gate = lesson_stamina_gate(LessonState(stamina=0, turns_left=6, cards=cards))
     assert gate is not None
     point, reason = gate
-    assert point == LESSON_SKIP_POINT == (660, 868)
+    assert point == LESSON_SKIP_POINT == (657, 800)
     assert "体力 0" in reason and "最低手牌费用 1" in reason
     # 体力够最低费用就不 SKIP（能打得出牌）
     assert lesson_stamina_gate(LessonState(stamina=2, turns_left=6, cards=cards)) is None
@@ -550,7 +555,7 @@ def test_three_same_point_failures_click_skip() -> None:
         guard.confirm_clicked()
         actions.append(guard.observe(True))
     assert [action for action, _point in actions] == ["close", "close", "skip"]
-    assert actions[-1][1] == LESSON_SKIP_POINT == (660, 868)
+    assert actions[-1][1] == LESSON_SKIP_POINT == (657, 800)
     assert point in guard.failed_points
     assert "流行词" in guard.failed_names
 
@@ -660,3 +665,185 @@ def test_lesson_hand_signature_ignores_select_label_and_raise() -> None:
     # 真正出牌后总分/手牌至少变一项
     played = LessonState(score=159, turns_left=4, cards=(_card("即兴表演", (360, 1013)),))
     assert lesson_hand_signature(played) != lesson_hand_signature(before)
+
+
+# ------------------------------------------------------- 三维专用 ROI（read_attrs）
+class _StubAttrOcr:
+    """只实现 read_attrs 用到的 line()/read()：按小框返回预置文本，可记调用。"""
+
+    def __init__(
+        self,
+        texts: dict[tuple[int, int, int, int], str] | None = None,
+        *,
+        full_lines: list[OcrLine] | None = None,
+    ) -> None:
+        self.texts = {tuple(roi): text for roi, text in (texts or {}).items()}
+        self.full_lines = list(full_lines or [])
+        self.line_calls: list[tuple[int, int, int, int]] = []
+        self.read_calls = 0
+
+    def line(self, image, roi, **_kwargs) -> OcrLine | None:
+        self.line_calls.append(tuple(roi))
+        text = self.texts.get(tuple(roi))
+        return None if text is None else OcrLine(text, 0.99, tuple(roi))
+
+    def read(self, image, roi=None) -> list[OcrLine]:
+        self.read_calls += 1
+        return list(self.full_lines)
+
+
+def _attr_image():
+    import numpy as np
+
+    return np.zeros((1280, 720, 3), dtype=np.uint8)
+
+
+def _attr_ocr(values: tuple[str | None, str | None, str | None], **kwargs) -> _StubAttrOcr:
+    texts = {
+        roi: text
+        for roi, text in zip(produce_ui.ATTR_ROIS, values)
+        if text is not None
+    }
+    return _StubAttrOcr(texts, **kwargs)
+
+
+def test_read_attrs_reads_three_fixed_boxes() -> None:
+    ocr = _attr_ocr(("312", "215", "351"))
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) == (312, 215, 351)
+    assert ocr.line_calls == list(produce_ui.ATTR_ROIS)
+    assert ocr.read_calls == 0
+
+
+def test_read_attrs_returns_none_when_a_box_is_missing() -> None:
+    ocr = _attr_ocr(("312", None, "351"))
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) is None
+    # 只缺一个框不跑整图兜底（全图 OCR ~5s，不能每步都跑）
+    assert ocr.read_calls == 0
+
+
+def test_read_attrs_prefers_value_over_1000_denominator() -> None:
+    # 真机小框里常同时读到「312」和分母「1000」（OCR 可能连斜杠一起丢）
+    ocr = _attr_ocr(("312 1000", "215/1000", "/1000 351"))
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) == (312, 215, 351)
+
+
+def test_read_attrs_rejects_out_of_range_number() -> None:
+    ocr = _attr_ocr(("2500", "215", "351"))
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) is None
+    assert ocr.read_calls == 0
+
+
+def test_read_attrs_falls_back_to_full_ocr_when_two_boxes_miss() -> None:
+    full_lines = [
+        OcrLine("473", 0.99, (606, 44, 74, 37)),  # 顶部分数：不在属性行
+        OcrLine("130", 0.99, (192, 683, 77, 36)),
+        OcrLine("1000", 0.99, (188, 718, 67, 26)),  # 分母：字高比大数字矮
+        OcrLine("100", 0.99, (333, 682, 78, 36)),
+        OcrLine("131", 0.99, (478, 680, 79, 39)),
+        OcrLine("19.5%", 0.90, (455, 751, 87, 23)),
+        OcrLine("16.4%", 0.90, (311, 754, 86, 20)),
+    ]
+    ocr = _attr_ocr(("130", None, None), full_lines=full_lines)
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) == (130, 100, 131)
+    assert ocr.read_calls == 1
+
+
+def test_read_attrs_skips_full_ocr_when_all_boxes_blank() -> None:
+    full_lines = [OcrLine("130", 0.99, (192, 683, 77, 36))]
+    ocr = _attr_ocr((None, None, None), full_lines=full_lines)
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) is None
+    # 非行动页每步都会失败：这里绝不能触发整图 OCR
+    assert ocr.read_calls == 0
+
+
+def test_read_attrs_full_fallback_when_all_boxes_blank_on_action_page() -> None:
+    """UI 彻底漂移（三个固定框全空）时，用「请选择行动」确认是行动页再整图兜底。"""
+    full_lines = [
+        OcrLine("130", 0.99, (192, 683, 77, 36)),
+        OcrLine("1000", 0.99, (188, 718, 67, 26)),
+        OcrLine("100", 0.99, (333, 682, 78, 36)),
+        OcrLine("131", 0.99, (478, 680, 79, 39)),
+        OcrLine("19.5%", 0.90, (455, 751, 87, 23)),
+    ]
+    ocr = _StubAttrOcr(
+        {produce_ui.ATTR_ACTION_TITLE_BOX: "请选择行动"},
+        full_lines=full_lines,
+    )
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) == (130, 100, 131)
+    assert ocr.read_calls == 1
+
+
+def test_read_attrs_debug_reports_each_box_text() -> None:
+    ocr = _attr_ocr(("312", None, "351/1000"))
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    report = driver.read_attrs_debug(_attr_image())
+    assert report["attrs"] is None
+    assert [box["attr"] for box in report["boxes"]] == ["vo", "da", "vi"]
+    assert [box["roi"] for box in report["boxes"]] == list(produce_ui.ATTR_ROIS)
+    assert [box["text"] for box in report["boxes"]] == ["312", "", "351/1000"]
+    assert [box["value"] for box in report["boxes"]] == [312, None, 351]
+    assert ocr.read_calls == 0
+
+
+def test_read_attrs_reads_drawn_attribute_numbers() -> None:
+    """构图：三块大数字画进三个 ROI，真 OCR 应读出 (312, 215, 351)。"""
+    pytest.importorskip("rapidocr_onnxruntime")
+    import cv2
+    import numpy as np
+
+    image = np.full((1280, 720, 3), 40, dtype=np.uint8)
+    for roi, value in zip(produce_ui.ATTR_ROIS, ("312", "215", "351")):
+        x, y, width, height = roi
+        size = cv2.getTextSize(value, cv2.FONT_HERSHEY_SIMPLEX, 2.0, 4)[0]
+        org = (x + (width - size[0]) // 2, y + (height + size[1]) // 2)
+        cv2.putText(
+            image, value, org, cv2.FONT_HERSHEY_SIMPLEX, 2.0, (255, 255, 255), 4, cv2.LINE_AA
+        )
+    assert ProduceDriver(sleep=lambda _seconds: None).read_attrs(image) == (312, 215, 351)
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("produce_actions.png", (130, 100, 131)),
+        ("g5.png", (178, 215, 280)),
+    ],
+)
+def test_read_attrs_on_real_action_frame(name: str, expected: tuple[int, int, int]) -> None:
+    """实拍回归：真机行动页的三个大属性数字（/1000 小字上方）。"""
+    pytest.importorskip("rapidocr_onnxruntime")
+    import cv2
+
+    path = DATA / name
+    if not path.exists():
+        pytest.skip(f"缺少实拍帧 {path}")
+    image = cv2.imread(str(path))
+    assert image is not None
+    assert ProduceDriver(sleep=lambda _seconds: None).read_attrs(image) == expected
+
+
+def test_read_attrs_step_047_real_frame_when_action_page() -> None:
+    """step_NNN.png 每个 episode 都从 001 重写，可能已被课程页覆盖。
+
+    能读出三维就校验范围；读不到（不是行动页/被真机运行覆写）就 skip。
+    不在测试里硬编码某次真机的 312/215/351——那张图没有留底。
+    """
+    pytest.importorskip("rapidocr_onnxruntime")
+    import cv2
+
+    path = DATA / "auto" / "step_047.png"
+    if not path.exists():
+        pytest.skip("缺少实拍帧 data/auto/step_047.png")
+    image = cv2.imread(str(path))
+    assert image is not None
+    attrs = ProduceDriver(sleep=lambda _seconds: None).read_attrs(image)
+    if attrs is None:
+        pytest.skip("step_047 当前不是行动页（data/auto 正被真机运行持续覆写）")
+    assert all(0 <= value <= produce_ui.ATTR_MAX for value in attrs)
