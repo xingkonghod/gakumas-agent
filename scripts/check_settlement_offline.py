@@ -8,8 +8,9 @@
 - ``data/settlement_photo_select.png``：培育结束后的「回忆照片选择」页
   （请选择要作为回忆的照片 / 保存到本地 / 保存到相册）。这是 data/new_account.png
   在 16:22 时的内容，16:26 被别的截图覆盖，故另存一份做 golden。
-- ``data/auto/step_055.png``：培育记录详情弹窗（标题含「定期公演『初』 Regular」），
-  ep-cplus13 最后 11 步 ``[scenario] regular`` 就停在这屏。
+- ``data/record_modal_frame.png``：培育记录详情弹窗（标题含「定期公演『初』 Regular」），
+  ep-cplus13 最后 11 步 ``[scenario] regular`` 就停在这屏。原始截图是
+  ``data/auto/step_055.png``，但真机跑局每步都会覆写它，所以留档一份。
 
 退出码 0 = 全部识别为结算/收尾画面，且不再走 ``[scenario]``；1 = 仍有误判。
 """
@@ -32,7 +33,7 @@ from gkagent.vision.ocr import OcrEngine
 # (相对路径, 允许的识别结果, 期望动作)
 CASES: tuple[tuple[str, tuple[str, ...], str | None], ...] = (
     ("data/settlement_photo_select.png", ("settlement",), "save-memory"),
-    ("data/auto/step_055.png", ("record", "settlement"), "close"),
+    ("data/record_modal_frame.png", ("record", "settlement"), "close"),
 )
 
 
@@ -52,11 +53,14 @@ class FakeAgent:
     device: FakeDevice = field(default_factory=FakeDevice)
 
 
-def _check(path: Path, allowed: tuple[str, ...], action: str | None, engine: OcrEngine) -> bool:
+def _check(
+    path: Path, allowed: tuple[str, ...], action: str | None, engine: OcrEngine
+) -> bool | None:
+    """返回 True/False；截图不在（data/*.png 不入库）返回 None = 跳过。"""
     image = cv2.imread(str(path))
     if image is None:
-        print(f"[SKIP] 读不到图片：{path}")
-        return False
+        print(f"[SKIP] 读不到图片（data/*.png 不入库，需要真机留档）：{path}\n")
+        return None
     driver = ProduceDriver(ocr=engine, sleep=lambda _seconds: None)
     # 与真机同一条取词路径：底部 ROI（按钮区）+ 左上角状态条 + 按需顶部
     lines = driver.read(image)
@@ -87,18 +91,24 @@ def _check(path: Path, allowed: tuple[str, ...], action: str | None, engine: Ocr
 def main(argv: list[str]) -> int:
     engine = OcrEngine()
     if argv:
-        cases = tuple(
-            (arg, ("settlement", "record", "dialog"), None) for arg in argv
-        )
+        cases = tuple((arg, ("settlement", "record", "dialog"), None) for arg in argv)
     else:
         cases = CASES
     results: list[bool] = []
+    skipped = 0
     for rel, allowed, action in cases:
         path = Path(rel)
         if not path.is_absolute():
             path = ROOT / path
-        results.append(_check(path, allowed, action, engine))
-    print(f"汇总：{sum(results)}/{len(results)} 张截图按预期识别，且没有一张走 [scenario]")
+        checked = _check(path, allowed, action, engine)
+        if checked is None:
+            skipped += 1
+        else:
+            results.append(checked)
+    print(
+        f"汇总：{sum(results)}/{len(results)} 张截图按预期识别，且没有一张走 [scenario]"
+        + (f"（{skipped} 张缺图跳过）" if skipped else "")
+    )
     return 0 if all(results) else 1
 
 
