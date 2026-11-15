@@ -48,6 +48,8 @@ from gkagent.tasks.produce_ui import (
     LessonPlayGuard,
     ProduceDriver,
     clean_card_name,
+    has_selected_ui,
+    lesson_hand_signature,
     parse_stamina,
     pick_lesson_card,
 )
@@ -344,6 +346,7 @@ def main() -> int:
     same_pick_count = 0
     # 课程出牌防死循环：详情浮层挡路时关浮层换牌，同一坐标 3 次没推进就 SKIP
     lesson_guard = LessonPlayGuard()
+    lesson_sig_before_pick: tuple | None = None
     action_key: tuple[str, str] | None = None
     action_streak = 0
     final_phase = False
@@ -586,36 +589,41 @@ def main() -> int:
                 last_stamina = stamina
             if lesson_state.turns_left is not None:
                 turns = lesson_state.turns_left
-            if (
-                stamina is not None
-                and stamina <= 8
-                and not drink_used
-                and (turns is None or turns > 1)
-                and lesson_pending is None
-            ):
-                drink_used = True
-                agent.device.click_force(75, 1182)
-                time.sleep(1.0)
-                shot2 = agent.shot()
-                lines2 = driver.read(shot2)
-                use = driver.find(lines2, "使用")
-                if use is not None:
-                    agent.device.click_force(*driver.center(use))
-                time.sleep(0.8)
-                result = f"[lesson] drink at stamina={stamina}"
-                clicked = True
-                action_name = "drink"
-                hand = scan_hand(image)
-                boxes = tuple(tuple(card.box) for card in hand.cards)
-                lesson_pending = None
-            else:
-                hand = scan_hand(image)
-                boxes = tuple(tuple(card.box) for card in hand.cards)
-            # 两段式出牌：第一次点卡只是选中，下一步点同一点确认（不再依赖手牌框是否变化）
-            if action_name != "drink" and lesson_pending is not None:
-                point = lesson_pending[0]
-                pending_name = lesson_pending[2] if len(lesson_pending) > 2 else ""
-                abandoned = False
+            # 卡片详情浮层状态机：浮层开着时点同一坐标只会开关浮层/反复「不满足使用条件」。
+            # pick=正常选牌；confirm=同一点确认一次；close=点空白关浮层换牌；skip=3 次没推进。
+            # 浮层识别：小框单行 OCR（「打分+/Active/可以使用」）+ 选牌过程中「读到 SELECT」兜底。
+            # 「读到 SELECT」只在分数/手牌完全没变（还没出牌）时才算浮层，避免出牌动画里误判。
+            was_awaiting = lesson_guard.awaiting_confirm
+            sig_changed = True
+            if lesson_sig_before_pick is not None:
+                sig_changed = lesson_hand_signature(lesson_state) != lesson_sig_before_pick
+            selection_active = lesson_guard.pending_point is not None or was_awaiting
+            overlay_open = driver.card_detail_open(image) or (
+                selection_active and has_selected_ui(lesson_state.cards) and not sig_changed
+            )
+            progressed = True
+            if was_awaiting and not overlay_open and lesson_sig_before_pick is not None:
+                # 浮层关掉不等于出牌成功：分数/手牌完全没变说明这一下只是开关浮层
+                progressed = sig_changed
+            guard_action, guard_point = lesson_guard.observe(
+                overlay_open, progressed=progressed
+            )
+            guard_done = guard_action != "pick"
+            failure = lesson_guard.take_failure()
+            if failure is not None:
+                failed_point, failed_name = failure
+                if failed_point is not None and not failed_name:
+                    failed_name = driver.card_detail_name(image)
+                if failed_name:
+                    bad_cards.add(failed_name)
+                bad_cards.update(lesson_guard.failed_names)
+                lesson_policy.reset_turn()
+                log_lines.append(
+                    f"{step:03d} [lesson] {failed_name or '这张牌'} 确认后分数/手牌没变"
+                    "或浮层仍在，判为打不出去，换一张"
+                )
+            if guard_action == "confirm" and guard_point is not None:
+                pending_name = lesson_guard.pending_name
                 if pending_name:
                     # 选中后右上角显示「体力 X / -Y」：顺手学这张卡的体力费用，
                     # 卡面爱心上的小字 OCR 认不出来也能靠这里补齐。
@@ -632,15 +640,94 @@ def main() -> int:
                         )
                     # 不再因为"预览读歪"就丢牌：真机出现过把分数 23 当费用、体力 3 当上限的
                     # 反向读数，导致能打的牌被放弃。费用只在不大于当前体力时才写入缓存。
-                if not abandoned:
-                    clicked = agent.device.click_force(*point)
-                    time.sleep(0.9)
+                # 两段式的第二击：同一坐标只点这一次，间隔由循环 sleep(0.9) 保证 >0.4s
+                clicked = agent.device.click_force(*guard_point)
+                time.sleep(0.9)
+                if clicked is False:
+                    result = "[pause] 用户正在操作，暂停出牌"
+                    idle = 0
+                else:
+                    lesson_guard.confirm_clicked()
                     lesson_pending = None
-                    result = f"[lesson] confirm card at {point}"
-                    idle = 0 if clicked is not False else idle
-            elif action_name != "drink":
+                    action_name = "lesson-confirm"
+                    result = f"[lesson] confirm card at {guard_point}"
+                    idle = 0
+            elif guard_action == "close" and guard_point is not None:
+                clicked = agent.device.click_force(*guard_point)
+                time.sleep(0.6)
+                if clicked is False:
+                    result = "[pause] 用户正在操作，暂停出牌"
+                    idle = 0
+                else:
+                    lesson_guard.close_sent()
+                    lesson_pending = None
+                    lesson_sig_before_pick = None
+                    action_name = "lesson-close-overlay"
+                    result = f"[lesson] 卡片详情浮层挡路，点空白 {guard_point} 关闭后重选"
+                    idle = 0
+            elif guard_action == "skip" and guard_point is not None:
+                clicked = agent.device.click_force(*guard_point)
+                time.sleep(0.9)
+                if clicked is False:
+                    result = "[pause] 用户正在操作，暂停出牌"
+                    idle = 0
+                else:
+                    lesson_guard.reset_turn()
+                    lesson_policy.reset_turn()
+                    lesson_pending = None
+                    lesson_sig_before_pick = None
+                    # 新回合条件会变（好调/集中等），上一回合打不出去的牌重新参与选择
+                    bad_cards.clear()
+                    last_pick_name = None
+                    same_pick_count = 0
+                    action_name = "lesson-skip"
+                    result = (
+                        f"[lesson] 同一坐标连续 {lesson_guard.skip_after} 次未推进，"
+                        f"点 SKIP {guard_point}"
+                    )
+                    idle = 0
+            elif guard_action == "wait":
+                lesson_pending = None
+                lesson_sig_before_pick = None
+                action_name = "lesson-wait"
+                result = "[lesson] 选牌点击已生效，等下一帧"
+                idle = 0
+            if (
+                stamina is not None
+                and stamina <= 8
+                and not drink_used
+                and (turns is None or turns > 1)
+                and lesson_pending is None
+                and not guard_done
+            ):
+                drink_used = True
+                agent.device.click_force(75, 1182)
+                time.sleep(1.0)
+                shot2 = agent.shot()
+                lines2 = driver.read(shot2)
+                use = driver.find(lines2, "使用")
+                if use is not None:
+                    agent.device.click_force(*driver.center(use))
+                time.sleep(0.8)
+                result = f"[lesson] drink at stamina={stamina}"
+                clicked = True
+                action_name = "drink"
+                hand = scan_hand(image)
+                boxes = tuple(tuple(card.box) for card in hand.cards)
+                lesson_pending = None
+            elif not guard_done:
+                hand = scan_hand(image)
+                boxes = tuple(tuple(card.box) for card in hand.cards)
+            # 两段式出牌的确认/关闭已由上面的 LessonPlayGuard 分流，这里只负责选牌。
+            if action_name != "drink" and not guard_done:
                 lesson_pending = None
                 # 出牌：LessonReader 已经 OCR 过手牌区（卡名/预览/费用），这里不再重复整屏 OCR
+                # 卡名清洗 + 剔除已确认打不出去的牌；脏名清空后仍按分数/费用参与选择
+                state_clean = driver.clean_lesson_state(
+                    lesson_state,
+                    exclude_names=bad_cards,
+                    exclude_points=lesson_guard.failed_points,
+                )
                 costs = [card.cost for card in hand.cards] if hand.cards else None
                 lesson_skip = False
                 name_pick, lesson_done = decide_lesson_pick(
@@ -650,7 +737,7 @@ def main() -> int:
                     stamina=stamina,
                     exclude=bad_cards,
                     click=agent.device.click_force,
-                    state=lesson_state,
+                    state=state_clean,
                     fallback=lambda lines=lines, boxes=boxes, stamina=stamina, costs=costs, image=image: pick_hand_card(
                         lines if lines else driver.engine().read(image, (0, 780, 720, 420)),
                         boxes,
@@ -666,8 +753,46 @@ def main() -> int:
                     name_pick = None
                     clicked = True
                     idle = 0
+                    lesson_guard.reset_turn()
+                    lesson_sig_before_pick = None
+                    bad_cards.clear()
+                    last_pick_name = None
+                    same_pick_count = 0
                     action_name = "lesson-skip"
                     result = "[lesson] SKIP 结束回合（剩下的牌不值得体力）"
+                if name_pick is not None:
+                    # 卡名只剩 SELECT/SEECT/S/A/M 时不能沿用脏名字：按分数/费用重选
+                    cleaned_name = clean_card_name(name_pick.name)
+                    if not cleaned_name:
+                        fallback_card = pick_lesson_card(
+                            state_clean.cards,
+                            stamina=stamina,
+                            exclude_points=lesson_guard.failed_points,
+                        )
+                        if fallback_card is not None:
+                            name_pick = HandPick(
+                                point=fallback_card.point,
+                                index=fallback_card.index,
+                                name=clean_card_name(fallback_card.name)
+                                or f"card{fallback_card.index}",
+                                value=float(fallback_card.total_score or name_pick.value),
+                            )
+                        else:
+                            name_pick = HandPick(
+                                point=name_pick.point,
+                                index=name_pick.index,
+                                name=f"card{name_pick.index}",
+                                value=name_pick.value,
+                            )
+                    elif cleaned_name != name_pick.name:
+                        name_pick = HandPick(
+                            point=name_pick.point,
+                            index=name_pick.index,
+                            name=cleaned_name,
+                            value=name_pick.value,
+                        )
+                    if tuple(name_pick.point) in lesson_guard.failed_points:
+                        name_pick = None
                 # 同一张卡连点 4 次手牌都没变 → 认为不可用，标记跳过、换一张
                 if name_pick is not None:
                     if name_pick.name == last_pick_name:
@@ -697,6 +822,8 @@ def main() -> int:
                         idle = 0
                     else:
                         lesson_pending = (name_pick.point, boxes, name_pick.name)
+                        lesson_guard.picked(name_pick.point, name_pick.name)
+                        lesson_sig_before_pick = lesson_hand_signature(lesson_state)
                         result = (
                             f"[lesson] name-pick {name_pick.name} "
                             f"({name_pick.value:.1f}) at {name_pick.point}"
@@ -740,7 +867,27 @@ def main() -> int:
                         )
                     screen = task.observe(agent, image)
                     play = task.decide_card(agent, image, screen=screen, stamina=stamina)
-                    if play is not None:
+                    if play is not None and tuple(play.point) in lesson_guard.failed_points:
+                        play = None  # 这张已确认打不出去（浮层关掉后重选）
+                    if play is None and lesson_guard.failed_points:
+                        # 剩下的牌都确认打不出去：别在卡片详情浮层里空转，SKIP 结束回合
+                        clicked = agent.device.click_force(*LESSON_SKIP_POINT)
+                        time.sleep(0.9)
+                        if clicked is False:
+                            result = "[pause] 用户正在操作，暂停出牌"
+                            idle = 0
+                        else:
+                            lesson_guard.reset_turn()
+                            lesson_policy.reset_turn()
+                            lesson_pending = None
+                            lesson_sig_before_pick = None
+                            bad_cards.clear()
+                            last_pick_name = None
+                            same_pick_count = 0
+                            action_name = "lesson-skip"
+                            result = "[lesson] 剩余牌都确认打不出去，点 SKIP 结束回合"
+                            idle = 0
+                    elif play is not None:
                         task._record(image, play)
                         clicked = agent.device.click_force(*play.point)
                         time.sleep(0.9)
@@ -749,6 +896,8 @@ def main() -> int:
                             idle = 0
                         else:
                             lesson_pending = (play.point, boxes, "")
+                            lesson_guard.picked(play.point, "")
+                            lesson_sig_before_pick = lesson_hand_signature(lesson_state)
                             result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
                             idle = 0
                     else:
@@ -762,6 +911,8 @@ def main() -> int:
             bad_cards.clear()
             last_pick_name = None
             same_pick_count = 0
+            lesson_guard.reset()
+            lesson_sig_before_pick = None
             parsed_stamina = parse_stamina(text)
             if parsed_stamina is not None:
                 last_stamina = parsed_stamina

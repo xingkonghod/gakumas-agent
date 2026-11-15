@@ -10,13 +10,18 @@ from __future__ import annotations
 
 import re
 import time
-from collections.abc import Callable
-from dataclasses import dataclass, field
+import unicodedata
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass, field, replace
+from typing import TYPE_CHECKING
 
 import cv2
 import numpy as np
 
 from gkagent.vision.ocr import OcrEngine, OcrLine
+
+if TYPE_CHECKING:
+    from gkagent.vision.lesson import LessonCard, LessonState
 
 # ---- 固定落点（720x1280；实测） -------------------------------------------
 PRODUCE_ENTRY = (359, 1006)  # 主页「プロデュース」
@@ -39,6 +44,192 @@ CANCEL_WORD = "取消"
 LESSON_WORDS = ("剩余回合", "CLEAR", "PERFECT")
 _GAIN_RE = re.compile(r"[+\-]\s*\d+")
 _STAMINA_RE = re.compile(r"(\d{1,3})\s*/\s*(\d{1,3})")
+
+# ---- 课程出牌：卡片详情浮层 / 防死循环 -------------------------------------
+# 选牌后游戏会弹出卡牌详情浮层（卡名 / Active / 好调状态的时候，可以使用 / 打分+38）。
+# 浮层存在时再点同一坐标只会开关浮层或反复「不满足使用条件」，牌打不出去。
+# 这组小框走 OcrEngine.line 的单行快路径（~30ms/个），比整块 OCR（数秒）便宜两个数量级。
+CARD_DETAIL_PROBES: tuple[tuple[int, int, int, int], ...] = (
+    (140, 618, 440, 40),  # 状态行：Active / Mental / 不满足使用条件
+    (140, 658, 440, 38),  # 条件行：好调状态的时候，可以使用
+    (140, 696, 440, 42),  # 效果行：打分+38 / 元气+4
+    (140, 734, 440, 42),  # 第二条效果行
+)
+CARD_DETAIL_NAME_BOX = (140, 585, 440, 45)  # 浮层顶部卡名
+CARD_DETAIL_BLANK = (360, 260)  # 浮层外上方空白：点这里关闭浮层
+LESSON_SKIP_POINT = (660, 868)  # 课程右下「SKIP」
+# OCR 会把卡面左下角的「SELECT」标签（及误读）一起读进卡名
+UI_LABEL_WORDS = ("SELECT", "SEECT", "S", "A", "M")
+_UI_LABEL_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?:SELECT|SEECT|S|A|M)(?![A-Za-z0-9])",
+    re.IGNORECASE,
+)
+_DETAIL_EFFECT_RE = re.compile(
+    r"(?:打分|元气|体力|好调|集中|指針|やる気|元気|好調|集中|指針)\s*[+＋]"
+)
+_DETAIL_EN_WORDS = ("active", "mental", "support", "trouble")
+
+
+def clean_card_name(text: str | None) -> str:
+    """剔除 OCR 混进卡名的 UI 标签（SELECT/SEECT/单独的 S/A/M），返回真正卡名。
+
+    清洗后可能为空（整行只读到标签）：调用方应改用分数/费用选牌，不能沿用脏名字。
+    """
+    if not text:
+        return ""
+    value = unicodedata.normalize("NFKC", str(text))
+    value = _UI_LABEL_RE.sub(" ", value)
+    value = re.sub(r"[\s\u3000]+", " ", value).strip()
+    return value.strip("·・-—_|/\\")
+
+
+def is_card_detail_text(text: str) -> bool:
+    """这段 OCR 文本是否来自卡片详情浮层。"""
+    value = unicodedata.normalize("NFKC", text or "").strip()
+    if not value:
+        return False
+    if "不满足使用条件" in value or "可以使用" in value:
+        return True
+    lowered = value.lower()
+    if any(word in lowered for word in _DETAIL_EN_WORDS):
+        return True
+    return _DETAIL_EFFECT_RE.search(value) is not None
+
+
+def has_card_detail_overlay(lines: Iterable[OcrLine] | str | None) -> bool:
+    """扫描 OCR 行：出现「打分+/Active/可以使用」或手牌区上方大块文本 = 详情浮层。
+
+    除了明确关键词，还兜底「浮层区（y 540-850）出现两条以上长文本」：详情效果文本
+    不一定含关键词（例如「考试·舞台中仅限1次」），但正常课程帧这个区域是空的。
+    """
+    if not lines:
+        return False
+    if isinstance(lines, str):
+        return is_card_detail_text(lines)
+    texts: list[str] = []
+    block: list[tuple[int, int]] = []
+    for line in lines:
+        text = (getattr(line, "text", "") or "").strip()
+        if not text:
+            continue
+        texts.append(text)
+        _x, y, width, _height = getattr(line, "box", (0, 0, 0, 0))
+        if 540 <= int(y) <= 850 and int(width) >= 120 and len(text) >= 6:
+            block.append((int(width), len(text)))
+    if any(is_card_detail_text(text) for text in texts):
+        return True
+    return len(block) >= 2 or any(width >= 240 and size >= 10 for width, size in block)
+
+
+def has_selected_ui(cards: Iterable[LessonCard]) -> bool:
+    """手牌里是否有「选中态」标签（卡名被读成 SELECT/SEECT/S/A/M 等）。
+
+    这是浮层检测的免费兜底：选中卡片的卡名框会读到左下角 SELECT 标签，
+    即使详情浮层的文字那几行 OCR 恰好失败，也能判定「当前有牌被选中」。
+    """
+    for card in cards:
+        raw = (card.name or "").strip()
+        if raw and clean_card_name(raw) != raw:
+            return True
+    return False
+
+
+def overlay_card_name(lines: Iterable[OcrLine] | None) -> str:
+    """从详情浮层 OCR 行里取真正的卡名（优先浮层顶部最短的一行）。"""
+    candidates: list[tuple[int, int, str]] = []
+    for line in lines or []:
+        raw = (line.text or "").strip()
+        if not raw:
+            continue
+        name = clean_card_name(raw)
+        if not name or is_card_detail_text(raw):
+            continue
+        _x, y, _width, _height = line.box
+        if not 540 <= int(y) <= 700:
+            continue
+        if any(ch.isdigit() for ch in name):
+            continue
+        if any(mark in name for mark in ("，", ",", "。", "、", "+", "＋")):
+            continue
+        if not 2 <= len(name) <= 12:
+            continue
+        candidates.append((len(name), -int(y), name))
+    if not candidates:
+        return ""
+    return min(candidates)[2]
+
+
+def clean_lesson_state(
+    state: LessonState,
+    *,
+    exclude_names: Iterable[str] = (),
+    exclude_points: Iterable[tuple[int, int]] = (),
+) -> LessonState:
+    """清洗卡名，并剔除已确认打不出去/被点过的牌（按名字或坐标）。"""
+    names = set(exclude_names)
+    points = {tuple(point) for point in exclude_points}
+    cards: list[LessonCard] = []
+    for card in state.cards:
+        if tuple(card.point) in points:
+            continue
+        name = clean_card_name(card.name)
+        if name and name in names:
+            continue
+        cards.append(replace(card, name=name))
+    return replace(state, cards=tuple(cards))
+
+
+def lesson_hand_signature(state: LessonState) -> tuple:
+    """手牌/分数签名：确认点击后用它判断这一下到底有没有推进。
+
+    只比「剩余回合 + 总分 + 手牌（序号/分数预览）」：选中态会把卡抬高、卡名框读到
+    SELECT、费用框读不到，这些都不算推进；真正出牌后分数或牌序至少变一项。
+    """
+    cards = tuple(
+        sorted(
+            (int(card.index), int(card.score) if card.score is not None else -1)
+            for card in state.cards
+        )
+    )
+    return (state.turns_left, state.score, cards)
+
+
+def pick_lesson_card(
+    cards: Sequence[LessonCard],
+    *,
+    stamina: int | None = None,
+    exclude_names: Iterable[str] = (),
+    exclude_points: Iterable[tuple[int, int]] = (),
+) -> LessonCard | None:
+    """按界面分数/体力费用选牌（卡名清洗后为空也照样可参与）。
+
+    收益 = 分数预览（含次数）÷ 体力费用；没有分数时退化为按费用最便宜。
+    """
+    names = set(exclude_names)
+    points = {tuple(point) for point in exclude_points}
+    best: LessonCard | None = None
+    best_key: tuple[float, float, int] | None = None
+    for card in cards:
+        if tuple(card.point) in points:
+            continue
+        name = clean_card_name(card.name)
+        if name and name in names:
+            continue
+        cost = card.cost if card.cost is not None else 3
+        if stamina is not None and cost > stamina:
+            continue
+        score = float(card.total_score)
+        key = (
+            score / max(int(cost), 1) if score > 0 else -1.0,
+            score,
+            -int(cost),
+        )
+        if best_key is None or key > best_key:
+            best_key = key
+            best = card
+    if best is None:
+        return None
+    return replace(best, name=clean_card_name(best.name))
 
 
 def parse_stamina(text: str) -> int | None:
@@ -64,6 +255,144 @@ class TickResult:
     def describe(self) -> str:
         text = f"[{self.screen}] {self.action}"
         return f"{text} {self.detail}".strip()
+
+
+@dataclass
+class LessonPlayGuard:
+    """课程出牌防死循环状态机（与截图/点击解耦，真机与单测共用）。
+
+    每帧把「卡片详情浮层是否还开着」喂给 :meth:`observe`，返回下一步动作：
+
+    - ``("pick", None)``：没有浮层，正常选一张牌点**一次**；
+    - ``("confirm", point)``：浮层是刚选牌的详情，点同一点确认**一次**；
+    - ``("close", CARD_DETAIL_BLANK)``：浮层挡路（残留浮层，或确认后仍开着），
+      点浮层外空白关闭，**绝不重复点同一坐标**；
+    - ``("skip", LESSON_SKIP_POINT)``：同一坐标连续 3 次没推进，点 SKIP 兜底；
+    - ``("wait", None)``：第一次点击已经生效（没有浮层），等下一帧。
+
+    确认失败（点完浮层还在，或浮层关了但分数/手牌没变）会把这张牌的坐标/名字记进
+    ``failed_points``/``failed_names``，下次选牌换一张；换完仍不行时最终走到 SKIP。
+    """
+
+    skip_after: int = 3
+    pending_point: tuple[int, int] | None = field(default=None, init=False)
+    pending_name: str = field(default="", init=False)
+    awaiting_confirm: bool = field(default=False, init=False)
+    last_confirm_point: tuple[int, int] | None = field(default=None, init=False)
+    last_confirm_name: str = field(default="", init=False)
+    last_failed_point: tuple[int, int] | None = field(default=None, init=False)
+    last_failed_name: str = field(default="", init=False)
+    failed_names: set[str] = field(default_factory=set, init=False)
+    failed_points: set[tuple[int, int]] = field(default_factory=set, init=False)
+    same_point_failures: int = field(default=0, init=False)
+    stale_closes: int = field(default=0, init=False)
+    failure_pending: bool = field(default=False, init=False)
+
+    def picked(self, point: tuple[int, int], name: str = "") -> None:
+        """已点了一张牌（第一击），等下一帧看浮层是否出现。"""
+        self.pending_point = (int(point[0]), int(point[1]))
+        self.pending_name = clean_card_name(name)
+        self.awaiting_confirm = False
+
+    def confirm_clicked(self) -> None:
+        """确认点击已发出：下一帧浮层还在 = 这张牌打不出去。"""
+        if self.pending_point is None:
+            return
+        self.awaiting_confirm = True
+        self.last_confirm_point = self.pending_point
+        self.last_confirm_name = self.pending_name
+        self.pending_point = None
+        self.pending_name = ""
+
+    def close_sent(self) -> None:
+        """空白点击成功：累计连续关浮层次数，连续 3 次关不掉就 SKIP。"""
+        self.stale_closes += 1
+
+    def observe(
+        self, overlay_open: bool, *, progressed: bool = True
+    ) -> tuple[str, tuple[int, int] | None]:
+        if self.pending_point is not None:
+            if overlay_open:
+                return ("confirm", self.pending_point)
+            # 第一击已经直接生效（没有浮层）：不要再点第二下
+            self._progress()
+            return ("wait", None)
+
+        if self.awaiting_confirm:
+            # 确认后浮层还开着，或浮层关了但分数/手牌完全没变 = 同一坐标没推进
+            if overlay_open or not progressed:
+                if self._register_failure():
+                    return ("skip", LESSON_SKIP_POINT)
+                # 没有浮层就不用再点空白，直接换一张；浮层还在先关掉它
+                return ("close", CARD_DETAIL_BLANK) if overlay_open else ("pick", None)
+            # 确认生效：浮层已关、手牌/分数已变，等一帧让动画稳定后再选
+            self._progress()
+            return ("wait", None)
+
+        if overlay_open:
+            if self.stale_closes >= max(int(self.skip_after), 1):
+                return ("skip", LESSON_SKIP_POINT)
+            return ("close", CARD_DETAIL_BLANK)
+        self.stale_closes = 0
+        return ("pick", None)
+
+    def _register_failure(self) -> bool:
+        """记一次「同一坐标没推进」，返回是否已经连续 3 次该 SKIP。"""
+        point = self.last_confirm_point
+        name = self.last_confirm_name
+        self.awaiting_confirm = False
+        self.last_confirm_point = None
+        self.last_confirm_name = ""
+        if point is not None:
+            if point == self.last_failed_point:
+                self.same_point_failures += 1
+            else:
+                self.last_failed_point = point
+                self.same_point_failures = 1
+            self.failed_points.add(point)
+        self.last_failed_name = name
+        self.failure_pending = True
+        if name:
+            self.failed_names.add(name)
+        return self.same_point_failures >= max(int(self.skip_after), 1)
+
+    def take_failure(self) -> tuple[tuple[int, int] | None, str] | None:
+        """取走一次「确认后没推进」的通知（调用方负责记日志/拉黑卡名）。"""
+        if not self.failure_pending:
+            return None
+        self.failure_pending = False
+        return (self.last_failed_point, self.last_failed_name)
+
+    def reset(self) -> None:
+        """离开课程/换回合：清空所有防死循环计数。"""
+        self.pending_point = None
+        self.pending_name = ""
+        self.awaiting_confirm = False
+        self.last_confirm_point = None
+        self.last_confirm_name = ""
+        self.last_failed_point = None
+        self.last_failed_name = ""
+        self.failed_names.clear()
+        self.failed_points.clear()
+        self.same_point_failures = 0
+        self.stale_closes = 0
+        self.failure_pending = False
+
+    def reset_turn(self) -> None:
+        """本回合已用 SKIP 结束：计数清零，下一回合重新开始。"""
+        self.reset()
+
+    def _progress(self) -> None:
+        self.pending_point = None
+        self.pending_name = ""
+        self.awaiting_confirm = False
+        self.last_confirm_point = None
+        self.last_confirm_name = ""
+        self.last_failed_point = None
+        self.last_failed_name = ""
+        self.same_point_failures = 0
+        self.stale_closes = 0
+        self.failure_pending = False
 
 
 @dataclass
@@ -297,6 +626,33 @@ class ProduceDriver:
 
     def _click_line(self, agent, line: OcrLine) -> None:
         self._click(agent, self.center(line))
+
+    # ------------------------------------------------- 课程出牌浮层
+    def card_detail_open(self, image, lines: Iterable[OcrLine] | None = None) -> bool:
+        """当前帧是否有卡片详情浮层。
+
+        有小图时用固定小框走单行快路径（~30-60ms）；没有图才退回整行文本判断。
+        """
+        if image is not None and getattr(image, "shape", None) is not None:
+            for box in CARD_DETAIL_PROBES:
+                try:
+                    line = self.engine().line(image, box, digits_only=False)
+                except Exception:  # noqa: BLE001, S112 - 单行识别失败就当这一行没读到
+                    continue
+                if line is not None and is_card_detail_text(line.text):
+                    return True
+            return False
+        return has_card_detail_overlay(lines)
+
+    def card_detail_name(self, image) -> str:
+        """浮层顶部卡名（清洗掉 SELECT 等标签）；读不到返回空串。"""
+        if image is None:
+            return ""
+        try:
+            line = self.engine().line(image, CARD_DETAIL_NAME_BOX, digits_only=False)
+        except Exception:  # noqa: BLE001 - 卡名读不到不阻断出牌
+            return ""
+        return clean_card_name(line.text) if line is not None else ""
 
     # ------------------------------------------------------------------ 主入口
     def tick(self, agent) -> TickResult:

@@ -397,3 +397,181 @@ def test_produce_params_reads_all_keys(monkeypatch) -> None:
     assert "attr_choice" in params
     assert "lesson_every" in params
     assert params["rest_threshold"] == 8
+
+
+# ---- 卡片详情浮层死循环 / SELECT 标签污染卡名 --------------------------------
+def test_clean_card_name_strips_ui_labels() -> None:
+    from gkagent.tasks.produce_ui import clean_card_name
+
+    # OCR 把卡面左下角「SELECT」标签粘进卡名；单独标签行也要清成空名
+    assert clean_card_name("流行词SELECT") == "流行词"
+    assert clean_card_name("流行词 SELECT") == "流行词"
+    assert clean_card_name("流行词  SEECT") == "流行词"
+    for label in ("SELECT", "SEECT", "S", "A", "M", "select"):
+        assert clean_card_name(label) == ""
+    # 正常卡名 / 含字母但不是 UI 标签的名字不能被误伤
+    assert clean_card_name("即兴表演") == "即兴表演"
+    assert clean_card_name("SSR") == "SSR"
+
+
+def test_real_detail_ocr_card_name_is_not_select() -> None:
+    from gkagent.tasks.produce_ui import (
+        clean_card_name,
+        has_card_detail_overlay,
+        overlay_card_name,
+    )
+    from gkagent.vision.ocr import OcrLine
+
+    # 真机截图（step_030）同一帧的 OCR：浮层 + 卡名 + SELECT 标签
+    lines = [
+        OcrLine("流行词", 0.99, (316, 597, 87, 32)),
+        OcrLine("好调状态的时候，可以使用", 1.0, (164, 669, 281, 24)),
+        OcrLine("打分+38", 1.0, (163, 705, 92, 24)),
+        OcrLine("SELECT", 1.0, (101, 1108, 84, 22)),
+    ]
+    assert has_card_detail_overlay(lines)
+    assert overlay_card_name(lines) == "流行词"
+    # 即使 OCR 把标签和卡名连成一行，也不能留下 SELECT
+    assert clean_card_name("流行词SELECT") == "流行词"
+
+
+def test_detail_overlay_does_not_repeat_same_card_point() -> None:
+    from gkagent.tasks.produce_ui import CARD_DETAIL_BLANK, LessonPlayGuard
+
+    guard = LessonPlayGuard()
+    card_point = (123, 1008)
+    guard.picked(card_point, "流行词")
+    # 浮层刚弹出：允许点同一点确认一次
+    assert guard.observe(True) == ("confirm", card_point)
+    guard.confirm_clicked()
+    # 确认后浮层还在：不能再点同一坐标，改点浮层外空白关闭、下一帧重新选牌
+    action, point = guard.observe(True)
+    assert action == "close"
+    assert point == CARD_DETAIL_BLANK
+    assert point != card_point
+    guard.close_sent()
+    assert guard.observe(False) == ("pick", None)
+
+
+def test_three_same_point_failures_click_skip() -> None:
+    from gkagent.tasks.produce_ui import LESSON_SKIP_POINT, LessonPlayGuard
+
+    guard = LessonPlayGuard()
+    point = (123, 1008)
+    actions = []
+    for _ in range(3):
+        guard.picked(point, "流行词")
+        assert guard.observe(True) == ("confirm", point)
+        guard.confirm_clicked()
+        actions.append(guard.observe(True))
+    assert [action for action, _point in actions] == ["close", "close", "skip"]
+    assert actions[-1][1] == LESSON_SKIP_POINT == (660, 868)
+    assert point in guard.failed_points
+    assert "流行词" in guard.failed_names
+
+
+def test_dirty_card_name_falls_back_to_score_and_cost() -> None:
+    from gkagent.tasks.produce_ui import clean_lesson_state, pick_lesson_card
+    from gkagent.vision.lesson import LessonCard, LessonState
+
+    cards = (
+        LessonCard(
+            index=0,
+            box=(55, 895, 160, 185),
+            point=(135, 987),
+            name="SELECT",
+            score=39,
+            cost=3,
+        ),
+        LessonCard(
+            index=1,
+            box=(280, 895, 160, 185),
+            point=(360, 987),
+            name="即兴表演",
+            score=6,
+            cost=3,
+        ),
+    )
+    state = LessonState(cards=cards)
+    cleaned = clean_lesson_state(state)
+    assert cleaned.cards[0].name == ""  # 脏名清洗后为空，不再沿用 SELECT
+    assert cleaned.cards[1].name == "即兴表演"
+    # 空名不等于没牌：按分数/费用重新选（39/3 > 6/3），不按脏名字
+    pick = pick_lesson_card(cleaned.cards, stamina=19)
+    assert pick is not None
+    assert pick.point == (135, 987)
+    assert pick.name == ""
+    # 这张已确认打不出去 → 按分数/费用换下一张
+    pick = pick_lesson_card(cleaned.cards, stamina=19, exclude_points={(135, 987)})
+    assert pick is not None
+    assert pick.point == (360, 987)
+    assert pick.name == "即兴表演"
+
+
+def test_selected_card_ui_label_detected_without_popup_ocr() -> None:
+    from gkagent.tasks.produce_ui import has_selected_ui
+    from gkagent.vision.lesson import LessonCard
+
+    def _card(name: str) -> LessonCard:
+        return LessonCard(index=0, box=(55, 895, 160, 185), point=(135, 987), name=name)
+
+    assert has_selected_ui((_card("SELECT"),))
+    assert has_selected_ui((_card("流行词SEECT"),))
+    assert not has_selected_ui((_card("流行词"), _card("即兴表演")))
+
+
+def test_confirm_click_without_hand_change_is_not_progress() -> None:
+    from gkagent.tasks.produce_ui import LessonPlayGuard
+
+    guard = LessonPlayGuard()
+    point = (123, 1008)
+    guard.picked(point, "流行词")
+    assert guard.observe(True) == ("confirm", point)
+    guard.confirm_clicked()
+    # 第二击只把浮层关掉、分数/手牌没变：不能当成推进，也不许再点同一坐标
+    action, next_point = guard.observe(False, progressed=False)
+    assert action == "pick"
+    assert next_point is None
+    assert point in guard.failed_points
+    assert "流行词" in guard.failed_names
+
+
+def test_driver_card_detail_probe_and_name() -> None:
+    import numpy as np
+
+    from gkagent.tasks.produce_ui import CARD_DETAIL_NAME_BOX, ProduceDriver
+    from gkagent.vision.ocr import OcrLine
+
+    class FakeLineOcr:
+        def line(self, image, roi, *, digits_only=False):
+            if roi == CARD_DETAIL_NAME_BOX:
+                return OcrLine("流行词SELECT", 0.95, roi)
+            return OcrLine("打分+38", 0.95, roi)
+
+    image = np.zeros((1280, 720, 3), dtype=np.uint8)
+    driver = ProduceDriver(ocr=FakeLineOcr(), sleep=lambda _seconds: None)
+    assert driver.card_detail_open(image) is True
+    assert driver.card_detail_name(image) == "流行词"
+
+
+def test_lesson_hand_signature_ignores_select_label_and_raise() -> None:
+    from gkagent.tasks.produce_ui import lesson_hand_signature
+    from gkagent.vision.lesson import LessonCard, LessonState
+
+    def _card(name: str, point: tuple[int, int]) -> LessonCard:
+        return LessonCard(
+            index=0,
+            box=(point[0] - 80, point[1] - 90, 160, 185),
+            point=point,
+            name=name,
+            score=39,
+            cost=3,
+        )
+
+    before = LessonState(score=120, turns_left=4, cards=(_card("流行词", (135, 1013)),))
+    # 选中态：卡被抬高 + 卡名框读到 SELECT；这不算出牌推进
+    selected = LessonState(score=120, turns_left=4, cards=(_card("SELECT", (135, 988)),))
+    assert lesson_hand_signature(before) == lesson_hand_signature(selected)
+    # 真正出牌后总分/手牌至少变一项
+    played = LessonState(score=159, turns_left=4, cards=(_card("即兴表演", (360, 1013)),))
+    assert lesson_hand_signature(played) != lesson_hand_signature(before)
