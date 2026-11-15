@@ -5,12 +5,27 @@
 建模（有意简化，只保留对"属性成长"有影响的量）：
 - 一周一个行动：训练(某属性) / 上课 / 休息 / 外出
 - 训练：属性 +N(随机)，体力 -cost；支持卡加成用倍率近似
-- 上课：跑课程模拟器(LessonSim)，CLEAR 则按课程的属性给成长 + 抽卡奖励
+- 上课：跑课程模拟器(LessonSim)，CLEAR 则按课程的属性给成长 + 抽卡奖励；
+  课程内部已建模：每回合 3 张手牌、体力、元气（ExamBlock）优先抵牌费、
+  SKIP 换手牌、饮料（LessonSim.use_drink，每回合 1 瓶）
 - 休息：体力 +24；外出：体力 +24 且不消耗周数（近似）
 - 期中/期末：按"属性×审查基准权重"和一个门槛比较，估算名次
 - 最终评价：用三维总和映射到 S/A/B/C/E（回归到真机观测：总和 ~630 = E/不合格）
 
 只依赖 `gkagent.sim.lesson`，不依赖真机、不联网、可多进程。
+
+**未建模（真机有、本层没有；影响已写明）：**
+
+- P 道具 / 角色被动（真机部分角色每回合开始触发加分、元气、集中等）：不进课程
+  与属性。影响：依赖 P 道具的卡组成长/得分被低估；
+- 饮料/道具的配装与使用：``LessonSim`` 已支持 ``DrinkSpec`` + ``use_drink``，
+  但 ``ProduceSim`` 没有饮料配置，``lesson_policy`` 也不会主动喝。影响：培育级
+  模拟默认无饮料收益；要测饮料需直接构造 ``LessonConfig.drinks``；
+- 支援卡技能（技能卡追加、事件卡、P 饮料获得等）：只按 ``support_bonus`` 的
+  训练倍率近似。影响：支援卡越强、模拟越低估；
+- 课程奖励三选一之外的奖励（P 道具、饮料、金钱/粉丝商店）：只看技能卡；
+- 考试中对手伤害、元气挡伤害、追击等考试专属规则：考试只按三维加权比大小；
+- 体力上限成长、课程/训练的具体随机分布：用固定参数 + 高斯近似。
 """
 
 from __future__ import annotations
@@ -172,12 +187,22 @@ class ProduceSim:
         return self.stamina >= cost
 
     # ------------------------------------------------------------------ 行动
-    def train(self, index: int) -> None:
-        self.stamina = max(0, self.stamina - self.config.train_cost)
+    def train(self, index: int) -> bool:
+        """训练：属性 +N、体力 -cost；体力不足则**不发生**并返回 False。
+
+        真机体力不够时训练不成立（不是扣成负数），所以这里先查体力再扣，
+        只有成功的训练才给属性。
+        """
+        cost = self.config.train_cost
+        if self.stamina < cost:
+            self.log.append(f"W{self.week} train{ATTRIBUTES[index]} failed stamina{self.stamina}<{cost}")
+            return False
+        self.stamina = max(0, self.stamina - cost)
         base = self.config.train_gain * self.config.support_bonus
         gain = max(1, int(self.rng.gauss(base, self.config.train_sigma)))
         self.attrs[index] += gain
         self.log.append(f"W{self.week} train{ATTRIBUTES[index]}+{gain}")
+        return True
 
     def rest(self) -> None:
         self.stamina = min(self.config.stamina_max, self.stamina + self.config.rest_gain)
@@ -203,8 +228,27 @@ class ProduceSim:
         )
         return best
 
-    def lesson(self) -> None:
-        self.stamina = max(0, self.stamina - self.config.lesson_cost)
+    def lesson(self) -> bool:
+        """上课：跑课程模拟器；体力不足时**打不出牌**，返回 False。
+
+        真机在体力不足时进课只能一直 SKIP（不会把体力扣成负数）。这里直接
+        判定失败：不跑课程、不加属性、不拿奖励，只记一次失败课（grade=FAILED），
+        让调用方/策略知道该休息。
+        """
+        cost = self.config.lesson_cost
+        if self.stamina < cost:
+            self.lessons += 1
+            self.last_lesson = {
+                "target": None,
+                "score": 0,
+                "grade": "FAILED",
+                "plays": [],
+                "reward": None,
+                "reason": f"stamina {self.stamina} < {cost}",
+            }
+            self.log.append(f"W{self.week} lesson failed stamina{self.stamina}<{cost}")
+            return False
+        self.stamina = max(0, self.stamina - cost)
         # 审查基准随进度抬升：前半段偏易，后半段偏难
         stage = min(len(self.config.lesson_targets) - 1, (self.week - 1) * len(self.config.lesson_targets) // max(self.config.weeks, 1))
         target = self.config.lesson_targets[stage]
@@ -264,8 +308,11 @@ class ProduceSim:
             "grade": grade,
             "plays": plays,
             "reward": reward.name.split("#")[0] if reward else None,
+            # 这节课里是否用过 SKIP（真机 SKIP 会弃掉剩余手牌、不回复体力）
+            "skipped": any(row.get("skipped") for row in sim.trace),
         }
         self.log.append(f"W{self.week} lesson target{target} score{score} {grade}")
+        return True
 
     # ------------------------------------------------------------------ 学期
     def exam(self, index: int) -> dict:
@@ -326,29 +373,31 @@ class ProduceSim:
         self.last_lesson = None
         stamina_before = self.stamina
         attrs_before = list(self.attrs)
+        ok = True
         if action == "train":
-            self.train(self.best_attribute())
+            ok = self.train(self.best_attribute())
         elif action == "train_low":
-            self.train(self.lagging_attribute())
+            ok = self.train(self.lagging_attribute())
         elif action == "rest":
             self.rest()
         elif action == "outing":
             self.outing()
         elif action == "lesson":
-            self.lesson()
+            ok = self.lesson()
         else:
-            self.train(self.best_attribute())
-        self.trace.append(
-            {
-                "week": self.week,
-                "action": action,
-                "stamina_before": stamina_before,
-                "stamina_after": self.stamina,
-                "attrs_before": attrs_before,
-                "attrs_after": list(self.attrs),
-                "lesson": self.last_lesson,
-            }
-        )
+            ok = self.train(self.best_attribute())
+        row = {
+            "week": self.week,
+            "action": action,
+            "stamina_before": stamina_before,
+            "stamina_after": self.stamina,
+            "attrs_before": attrs_before,
+            "attrs_after": list(self.attrs),
+            "lesson": self.last_lesson,
+        }
+        if not ok:
+            row["failed"] = True
+        self.trace.append(row)
         self.week += 1
 
     def run(self, strategy) -> ProduceResult:
@@ -378,6 +427,7 @@ class StrategyParams:
 
     rest_threshold: int = 10        # 体力低于此 → 休息
     lesson_every: int = 1           # 每 N 周上一次课（1 = 能上就上）
+    lesson_min_stamina: int = 12    # 体力低于此不上课（真机 0 体力进课打不出牌）
     attr_choice: str = "weight"     # weight=练权重最高 / lowest=补短板 / rotate=轮转
     outing_below: int = -1          # 体力低于此且本周有外出 → 先外出（-1 关闭）
     min_stamina_to_train: int = 10  # 低于此不硬练
@@ -393,6 +443,10 @@ def strategy_from_params(params: StrategyParams):
         if params.outing_below >= 0 and state.stamina < params.outing_below and state.week in cfg.outing_weeks:
             return "outing"
         if params.lesson_every > 0 and state.week % params.lesson_every == 0:
+            # 体力门：真机 0 体力进课一张牌都打不出，只能 SKIP 白送回合。
+            # 不够 lesson_min_stamina 就改休息，等下周有体力再上课。
+            if state.stamina < params.lesson_min_stamina:
+                return "rest"
             return "lesson"
         if state.stamina < params.min_stamina_to_train:
             return "rest"

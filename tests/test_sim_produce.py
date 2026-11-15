@@ -76,6 +76,67 @@ def test_strategy_rests_below_threshold() -> None:
     assert strategy(sim) == "rest"
 
 
+def test_strategy_rests_instead_of_lesson_when_stamina_below_gate() -> None:
+    """体力 5 + lesson_min_stamina=12：即使轮到上课周也改休息（真机事故回归）。"""
+    sim = _sim()
+    sim.week = 1
+    sim.stamina = 5
+    strategy = strategy_from_params(
+        StrategyParams(rest_threshold=0, lesson_every=1, lesson_min_stamina=12)
+    )
+    assert strategy(sim) == "rest"
+
+    # 体力 20 达标 → 正常上课
+    sim.stamina = 20
+    assert strategy(sim) == "lesson"
+
+
+def test_strategy_does_not_train_when_stamina_insufficient() -> None:
+    """体力低于 min_stamina_to_train 时不出训练，改休息；直接调 train() 也不发生。"""
+    sim = _sim()
+    sim.week = 2
+    sim.stamina = 5
+    strategy = strategy_from_params(
+        StrategyParams(rest_threshold=0, lesson_every=0, min_stamina_to_train=12)
+    )
+    assert strategy(sim) == "rest"
+
+    before = list(sim.attrs)
+    assert sim.train(sim.best_attribute()) is False
+    assert sim.attrs == before
+    assert sim.stamina >= 0
+
+
+def test_stamina_never_goes_negative_on_failed_lesson() -> None:
+    """体力不足时上课打不出牌：返回失败标记、不加属性、体力绝不扣成负数。"""
+    sim = _sim()
+    sim.stamina = 5
+    before = list(sim.attrs)
+    assert sim.lesson() is False
+    assert sim.last_lesson is not None
+    assert sim.last_lesson["grade"] == "FAILED"
+    assert sim.attrs == before
+    assert sim.stamina >= 0
+
+    # 连续失败也不累计负体力
+    assert sim.lesson() is False
+    assert sim.stamina >= 0
+
+
+def test_search_grid_covers_lesson_stamina_gate() -> None:
+    """搜索空间必须包含体力门，否则重跑也找不到新的 lesson_min_stamina。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_search as ss
+
+    assert "lesson_min_stamina" in ss.GRID
+    values = ss.GRID["lesson_min_stamina"]
+    assert 12 in values
+    assert all(isinstance(value, int) for value in values)
+
+
 def test_strategy_lessons_on_cadence() -> None:
     sim = _sim()
     sim.week = 3
@@ -172,11 +233,13 @@ def test_choose_action_prefers_lesson_with_strong_attributes() -> None:
     from gkagent.sim.produce import ProduceConfig
 
     deck = [CardSpec(name=f"c{i}", cost=3, score=12) for i in range(8)]
+    # 从满体力开始：上课后仍够下周再上课，lesson 严格优于先休息。
+    # （体力 30 时新体力门会让 lesson 先手与 rest 打平，不再是 lesson 独优。）
     result = choose_action(
-        deck, random_pool(3), attrs=[900, 880, 860], stamina=30, week=9,
+        deck, random_pool(3), attrs=[900, 880, 860], stamina=35, week=9,
         config=ProduceConfig(), actions=("train", "rest", "lesson"), episodes=6,
     )
-    assert result["action"] in ("lesson", "train")
+    assert result["action"] == "lesson"
     assert result["ranking"][0]["eval"] >= result["ranking"][-1]["eval"]
 
 
@@ -432,3 +495,24 @@ def test_objective_unknown_raises() -> None:
     except KeyError:
         return
     raise AssertionError("未知口径应当抛 KeyError")
+
+
+def test_exam_block_reaches_rich_card_spec_as_vitality() -> None:
+    """ExamBlock 的元气值要解析成 CardSpec.vitality（课程里优先抵牌费）。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    fields = sp._effect_fields({"effects": [{"type": "ExamBlock", "values": [4]}]})
+    assert fields[13] == 4
+
+    spec = sp._spec_from_row(sp.CardRow("表现的基础", 0, 0, 0, 0, vitality=4))
+    assert spec.vitality == 4
+
+    rich_deck = {row.name: row for row in sp.build_deck(rich=True)}
+    assert rich_deck["表现的基础"].vitality == 4
+    assert "视角的基础" in rich_deck
+    assert rich_deck["视角的基础"].vitality == 1
+

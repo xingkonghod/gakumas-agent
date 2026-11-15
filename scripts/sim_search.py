@@ -4,7 +4,7 @@
     python scripts/sim_search.py --episodes 1500 --samples 60
     python scripts/sim_search.py --write          # 最优参数写 data/knowledge/policy_sim.json
 
-搜索空间（StrategyParams）：休息阈值 / 上课节奏 / 练哪个属性 / 外出门槛 / 硬练下限。
+搜索空间（StrategyParams）：休息阈值 / 上课节奏 / 上课体力门 / 练哪个属性 / 外出门槛 / 硬练下限。
 """
 
 from __future__ import annotations
@@ -34,6 +34,9 @@ PLAY_GRID = {
 GRID = {
     "rest_threshold": [6, 8, 10, 12, 14],
     "lesson_every": [1, 2, 3],
+    # 上课体力门：真机 0 体力进课一张牌都打不出，只白送回合。
+    # 8 是低于课程消耗(10)的反例，10/12/14 是安全区，让搜索自己选。
+    "lesson_min_stamina": [8, 10, 12, 14],
     "attr_choice": ["weight", "lowest"],
     "outing_below": [-1, 16, 20],
     "min_stamina_to_train": [8, 10, 12],
@@ -79,7 +82,7 @@ def evaluate(task: tuple) -> dict:
         "p10": round(sorted(totals)[max(0, len(totals) // 10)], 1),
         "exams": round(exams / episodes, 2),
         "clear_rate": round(clears / max(lessons, 1), 3),
-        "fail_exam_rate": round(1 - exams / 2, 3),
+        "fail_exam_rate": round(1 - exams / episodes / 2, 3),
         "n": episodes,
         "mean_eval": round(stats.mean(evals), 1),
         "p50_eval": round(sorted(evals)[len(evals) // 2], 1),
@@ -113,8 +116,8 @@ def evaluate_play(task: tuple) -> dict:
     deck = _to_specs(deck_raw)
     pool = _to_specs(pool_raw)
     config = ProduceConfig(reward_pick="best", support_bonus=1.35)
-    strategy = strategy_from_params(StrategyParams(rest_threshold=8, lesson_every=1, attr_choice="weight",
-                                                   outing_below=16, min_stamina_to_train=8))
+    strategy = strategy_from_params(StrategyParams(rest_threshold=8, lesson_every=1, lesson_min_stamina=12,
+                                                   attr_choice="weight", outing_below=16, min_stamina_to_train=8))
 
     with tempfile.TemporaryDirectory() as tmp:
         path = _Path(tmp) / "policy.json"
@@ -240,7 +243,16 @@ def main(argv: list[str]) -> int:
     keys = list(GRID)
     all_combos = list(itertools.product(*(GRID[key] for key in keys)))
     rng = random.Random(7)
-    warm = (8, 1, "weight", 16, 8)  # 已知好参数（rest=8/每周上课/按权重/外出16/下限8）
+    # 已知好参数（rest=8/每周上课/体力门12/按权重/外出16/下限8）
+    warm_params = {
+        "rest_threshold": 8,
+        "lesson_every": 1,
+        "lesson_min_stamina": 12,
+        "attr_choice": "weight",
+        "outing_below": 16,
+        "min_stamina_to_train": 8,
+    }
+    warm = tuple(warm_params[key] for key in keys)
     combos = [warm] + [combo for combo in rng.sample(all_combos, min(args.samples, len(all_combos))) if combo != warm]
     print(f"搜索空间 {len(all_combos)} 组，本次采样 {len(combos)} 组 x {args.episodes} 局")
 

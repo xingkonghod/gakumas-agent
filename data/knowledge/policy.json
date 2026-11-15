@@ -27,6 +27,7 @@
    37,
    29
   ],
-  "sim_choice": false
+  "sim_choice": false,
+  "lesson_min_stamina": 10
  }
 }
