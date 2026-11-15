@@ -92,55 +92,135 @@ class CardTable:
     # 能滚雪球的 buff 类效果（打法知识库：感性先铺集中/好调）
     COMBO_EFFECTS = ("ExamLessonBuff", "ExamConcentration", "ExamParameterBuff")
 
-    # 纯 buff / 功能牌按效果类型给等效白值（8-15）：集中/好调/温存高，纯元气中等。
-    # 旧公式 score/cost 对 score=0 的 buff 卡恒为 0，奖励界面永远跳过它们
-    # （真机：换盾攒 buff 的牌和 SSR 卡被白值更高的普通卡挤掉）。
-    BUFF_EFFECT_VALUES: ClassVar[dict[str, float]] = {
-        "ExamPreservation": 14.0,  # 温存：跨回合保留 buff
-        "ExamConcentration": 13.0,  # 集中：每层放大后续所有打分
-        "ExamLessonBuff": 12.0,  # 好调/干劲：覆盖本回合后续牌
-        "ExamPrerequisite": 12.0,  # 前提：攒够层数才解锁强效果
-        "ExamParameterBuff": 11.0,  # 参数上升
-        "ExamFullPowerPoint": 10.0,  # 全力点（攒满打一发大的）
-        "ExamReview": 10.0,  # 好印象
-        "ExamCardDraw": 9.0,  # 抽牌/过牌
-        "ExamBlock": 8.0,  # 纯元气（保命，不加分）
-        "ExamStaminaRecoverFix": 8.0,
-        "ExamStaminaConsumptionDown": 8.0,
+    # ---- 奖励选卡估值 ------------------------------------------------------
+    # 先按效果类型定档（不看稀有度），稀有度只在最后加成：
+    #   层数类（集中/好调/温存/全力/印象…）：12-15
+    #   功能类（抽牌/可出牌次数/参数上升…）：10-13
+    #   生存类（元气/回体力…）：8-10
+    #   纯白值：score / cost
+    # 旧公式对 SSR 只 +3，9 分/3 费的 SSR 技能卡只有 6.0，输给所有纯 buff 卡。
+    STACK_EFFECT_VALUES: ClassVar[dict[str, float]] = {
+        "ExamConcentration": 15.0,  # 集中（強気変更）
+        "ExamPreservation": 15.0,  # 温存
+        "ExamOverPreservation": 15.0,
+        "ExamLessonBuff": 14.0,  # 好调
+        "ExamLessonBuffAdditive": 14.0,
+        "ExamLessonBuffAdditiveFix": 14.0,
+        "ExamLessonBuffDependParameterBuff": 14.0,
+        "ExamLessonBuffMultiple": 14.0,
+        "ExamMultipleLessonBuffLesson": 14.0,
+        "ExamLessonAddMultipleLessonBuff": 14.0,
+        "ExamPrerequisite": 14.0,  # 前提：攒够层数才解锁强效果
+        "ExamFullPowerPoint": 13.0,  # 全力
+        "ExamFullPowerPointAdditive": 13.0,
+        "ExamReview": 13.0,  # 好印象
+        "ExamReviewAdditive": 13.0,
+        "ExamReviewCountAdd": 13.0,
+        "ExamReviewDependReviewConsumptionSum": 13.0,
+        "ExamReviewMultiple": 13.0,
+        "ExamReviewPerSearchCount": 13.0,
+        "ExamReviewValueMultiple": 13.0,
+        "ExamEnthusiasticAdditive": 13.0,
+        "ExamEnthusiasticMultiple": 13.0,
+        "ExamCardPlayAggressive": 13.0,  # 干劲（出牌叠层）
+        "ExamAggressiveAdditive": 13.0,
+        "ExamAggressiveAdditiveFix": 13.0,
+        "ExamAggressiveValueMultiple": 13.0,
+        "ExamAddGrowEffect": 13.0,  # 成长
+        "ExamStatusEnchant": 12.0,  # 状态附魔（效果在内层）
+        "ExamStatusEnchantEncore": 12.0,
     }
-    # SSR 的强度很大程度来自技能连带，卡表模型只能这样近似（Legend 同档）
-    RARE_RARITIES = ("ssr", "legend")
+    FUNCTION_EFFECT_VALUES: ClassVar[dict[str, float]] = {
+        "ExamParameterBuff": 13.0,  # 参数上升
+        "ExamParameterBuffAdditive": 13.0,
+        "ExamParameterBuffMultiplePerTurn": 13.0,
+        "ExamExtraTurn": 13.0,  # 额外回合（多打一轮）
+        "ExamCardDraw": 12.0,  # 抽牌
+        "ExamHandGraveCountCardDraw": 12.0,
+        "ExamCardSearchEffectPlayCountBuff": 12.0,
+        "ExamPlayableValueAdd": 12.0,  # 可出牌次数 +1
+        "ExamCardCreateId": 11.0,  # 生成/检索卡（手牌资源）
+        "ExamCardCreateSearch": 11.0,
+        "ExamForcePlayCardSearch": 11.0,
+        "ExamForcePlayCardSearchWithCost": 11.0,
+        "ExamLessonAddMultipleParameterBuff": 12.0,  # 打点 + 参数上升
+    }
+    SUSTAIN_EFFECT_VALUES: ClassVar[dict[str, float]] = {
+        "ExamBlock": 9.0,  # 元气（保命，不加分）
+        "ExamBlockAddMultipleAggressive": 9.0,
+        "ExamBlockDependBlockConsumptionSum": 9.0,
+        "ExamBlockFix": 9.0,
+        "ExamBlockPerUseCardCount": 9.0,
+        "ExamBlockRestriction": 8.0,
+        "ExamStaminaRecoverFix": 9.0,  # 回体力
+        "ExamStaminaRecoverMultiple": 9.0,
+        "ExamStaminaConsumptionDown": 8.0,
+        "ExamStaminaConsumptionDownFix": 8.0,
+        "ExamStaminaReduce": 8.0,
+        "ExamAntiDebuff": 9.0,
+        "ExamDebuffRecover": 9.0,
+    }
+    # 各档上限：层数 15 / 功能 13 / 生存 10；多种效果每种 +0.5，封顶当前档位
+    STACK_TIER_CAP = 15.0
+    FUNCTION_TIER_CAP = 13.0
+    SUSTAIN_TIER_CAP = 10.0
+    # 稀有度加成：SSR/Legend +5，SR +2，R/N 0。SSR 技能卡的强效果常写在
+    # 卡表建模不到的地方（条件追加打点/连携），固定 +3 会把它压到所有 buff 卡下面。
+    RARITY_BONUS: ClassVar[dict[str, float]] = {"ssr": 5.0, "legend": 5.0, "sr": 2.0}
+    COMBO_BONUS = 2.0  # 滚雪球价值：约等于多 2 点性价比
+    SCORE_CHAIN_BONUS = 1.0  # 多段/条件追加打点：不是纯白值，额外给 1.0
+
+    @classmethod
+    def _effect_base(cls, effects: set[str]) -> float:
+        """按效果类型定档；没有可估的 buff/功能/生存效果时返回 0。"""
+        tiers = (
+            (cls.STACK_EFFECT_VALUES, cls.STACK_TIER_CAP),
+            (cls.FUNCTION_EFFECT_VALUES, cls.FUNCTION_TIER_CAP),
+            (cls.SUSTAIN_EFFECT_VALUES, cls.SUSTAIN_TIER_CAP),
+        )
+        matched = [
+            (values[effect], cap)
+            for values, cap in tiers
+            for effect in effects
+            if effect in values
+        ]
+        if not matched:
+            return 0.0
+        best, cap = max(matched)
+        # 多个效果有协同（如好调 + 抽牌 + 出牌次数），但等效值不超过当前档位上限
+        return min(cap, best + 0.5 * (len(matched) - 1))
+
+    @staticmethod
+    def _has_score_chain(row: dict) -> bool:
+        """同一张卡有多段/条件追加打点（count>1 或多个 ExamLesson 效果）。"""
+        lessons = [e for e in row.get("effects") or [] if e.get("type") == "ExamLesson"]
+        return len(lessons) > 1 or any(int(e.get("count") or 1) > 1 for e in lessons)
 
     def value(self, name: str) -> float | None:
         """奖励选卡估值（只用于排序，不要求精确）。
 
         分档：
-        - 白值卡：``score / cost``；
-        - 纯 buff 卡（score=0）：按效果类型给 8-15 的等效值；多种 buff 取最高，
-          额外种类每种 +0.5，封顶 15（集中/好调/温存高，纯元气中等）；
-        - SSR/Legend 稀有度 +3；
-        - 已有 combo 加分保留（+2）。
+        - 先按效果类型定档（不看稀有度）：层数类 12-15、功能类 10-13、
+          生存类 8-10；纯白值卡走 ``score / cost``；
+        - 多种效果取最高档并小幅叠加；
+        - 已有 combo 加分保留（+2）；多段打点再 +1；
+        - 最后加稀有度：SSR/Legend +5、SR +2、R/N 0。
         """
         score = self.score_of(name)
         if score is None:
             return None
-        cost = self.cost(name)
-        base = score / max(cost if cost is not None else 1, 1)
         row = self.get(name) or {}
         effects = {str(effect.get("type", "")) for effect in row.get("effects") or []}
-        if score <= 0:
-            buff_values = sorted(
-                (self.BUFF_EFFECT_VALUES[t] for t in effects if t in self.BUFF_EFFECT_VALUES),
-                reverse=True,
-            )
-            if buff_values:
-                # 多个 buff 有协同，但等效值不超过 15
-                base = min(15.0, buff_values[0] + 0.5 * (len(buff_values) - 1))
+        cost = self.cost(name)
+        white = score / max(cost if cost is not None else 1, 1)
+        effect_base = self._effect_base(effects)
+        base = max(white, effect_base) if score > 0 else effect_base
         if effects & set(self.COMBO_EFFECTS):
-            base += 2.0  # 滚雪球价值：约等于多 2 点性价比
-        if str(row.get("rarity") or "").strip().lower() in self.RARE_RARITIES:
-            base += 3.0  # SSR/Legend：技能连带强度，模型里只能这样近似
-        return base
+            base += self.COMBO_BONUS
+        if score > 0 and self._has_score_chain(row):
+            base += self.SCORE_CHAIN_BONUS
+        rarity = str(row.get("rarity") or "").strip().lower()
+        return base + self.RARITY_BONUS.get(rarity, 0.0)
 
     @staticmethod
     def looks_conditional(text: str) -> bool:

@@ -213,13 +213,13 @@ def test_reward_recommend_marker_beats_card_table_value() -> None:
     from gkagent.tasks.produce_ui import ProduceDriver
 
     high_value = OcrLine("聊天时间", 0.95, (40, 850, 120, 30))
-    low_value = OcrLine("兼职者+", 0.95, (300, 850, 120, 30))
+    low_value = OcrLine("魅力的基础", 0.95, (300, 850, 120, 30))
     recommend = OcrLine("推荐", 0.95, (330, 960, 60, 28))
     picked = ProduceDriver._best_reward_card([high_value, low_value, recommend])
     assert picked is not None
     # 点第二张（推荐卡）的卡身，而不是白值更高的第一张
     assert picked[0] >= 300
-    # 没有推荐标记时才按估值：白值更高的「聊天时间」胜出
+    # 没有推荐标记时才按估值：白值更高的「聊天时间」(4.5) 胜过「魅力的基础」(2.25)
     fallback = ProduceDriver._best_reward_card([high_value, low_value])
     assert fallback is not None
     assert fallback[0] < 300

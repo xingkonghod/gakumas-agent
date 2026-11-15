@@ -120,30 +120,152 @@ def test_numeric_coverage_above_80_percent() -> None:
     assert with_inner / len(cards) > 0.95
 
 
-# ---- 奖励选卡分档估值（buff / SSR / combo） --------------------------------
+# ---- 奖励选卡分档估值（效果定档 / 稀有度加成） -----------------------------
+def _fake_card(
+    *,
+    cost: int,
+    rarity: str,
+    score: int | None = None,
+    effects: tuple[str, ...] = (),
+) -> dict:
+    """构造最小卡表行：score>0 时插入 ExamLesson，effects 为效果类型。"""
+    rows = [{"type": effect, "values": [1], "turn": 0} for effect in effects]
+    if score is not None:
+        rows.insert(0, {"type": "ExamLesson", "values": [score], "turn": 0})
+    return {
+        "cost": cost,
+        "rarity": rarity,
+        "plan": "Common",
+        "category": "ActiveSkill",
+        "effects": rows,
+    }
+
+
+def _write_table(tmp_path: Path, cards: dict[str, dict]):
+    from gkagent.data.card_table import CardTable
+
+    path = tmp_path / "card_table.json"
+    path.write_text(json.dumps({"cards": cards}, ensure_ascii=False), encoding="utf-8")
+    return CardTable(path)
+
+
 def test_pure_buff_card_outvalues_low_score_white_card() -> None:
     """score=0 的纯 buff 牌不再恒为 0：按效果类型给 8-15 的等效值。"""
     from gkagent.data.card_table import CardTable
 
     table = CardTable()
     buff = table.value("一决胜负+")  # ExamLessonBuff，score=0
-    white = table.value("兼职者+")  # ExamLesson 6 / cost 6 = 1.0
+    white = table.value("聊天时间")  # ExamLesson 27 / cost 6 = 4.5，纯白值
     assert buff is not None and white is not None
     assert buff >= 8.0  # 纯 buff 8-15 档
     assert buff > white
 
 
-def test_ssr_outranks_sr_with_same_score_and_cost() -> None:
-    """同白值（9 分 / 3 费）的 SSR 比 SR 高 3：真机 SSR 强度来自技能连带。"""
+def test_ssr_skill_card_is_not_undervalued() -> None:
+    """再进一步+（SSR 9 分/3 费）≥ 9.0：3.0 白值 + 5 SSR + 1.0 多段打点。"""
     from gkagent.data.card_table import CardTable
 
     table = CardTable()
-    assert table.score_of("再进一步+") == table.score_of("时令的味道+++") == 9
-    assert table.cost("再进一步+") == table.cost("时令的味道+++") == 3
-    ssr = table.value("再进一步+")
-    sr = table.value("时令的味道+++")
+    assert table.score_of("再进一步+") == 9
+    assert table.cost("再进一步+") == 3
+    value = table.value("再进一步+")
+    assert value is not None
+    assert value >= 9.0
+
+
+def test_sr_buff_card_value_is_not_reduced() -> None:
+    """一决胜负+（SR 纯 buff）改档后不降：旧值 14.5，目标 ≥ 14。"""
+    from gkagent.data.card_table import CardTable
+
+    table = CardTable()
+    value = table.value("一决胜负+")
+    assert value is not None
+    assert value >= 14.5
+
+
+def test_nt_concentration_card_keeps_high_value() -> None:
+    """打招呼的基础（N，集中）仍应留在 ≥ 14 的高档。"""
+    from gkagent.data.card_table import CardTable
+
+    table = CardTable()
+    value = table.value("打招呼的基础")
+    assert value is not None
+    assert value >= 14.0
+
+
+def test_ssr_buff_card_gets_effect_tier_and_rarity_premium(tmp_path: Path) -> None:
+    """假想「SSR + buff」：效果档 12-15 再加 SSR +5，必须 ≥ 16。"""
+    table = _write_table(
+        tmp_path,
+        {
+            "假SSR好调": _fake_card(cost=1, rarity="Ssr", effects=("ExamLessonBuff",)),
+            "假SR好调": _fake_card(cost=1, rarity="Sr", effects=("ExamLessonBuff",)),
+        },
+    )
+    ssr = table.value("假SSR好调")
+    sr = table.value("假SR好调")
     assert ssr is not None and sr is not None
-    assert ssr == sr + 3.0
+    assert ssr >= 16.0
+    assert ssr > sr
+
+
+def test_ssr_pure_white_low_score_not_below_sr(tmp_path: Path) -> None:
+    """假想「SSR 纯白值低分」：同白值下不能低于 SR。"""
+    table = _write_table(
+        tmp_path,
+        {
+            "假SSR白值": _fake_card(cost=6, rarity="Ssr", score=6),
+            "假SR白值": _fake_card(cost=6, rarity="Sr", score=6),
+        },
+    )
+    ssr = table.value("假SSR白值")
+    sr = table.value("假SR白值")
+    assert ssr is not None and sr is not None
+    assert ssr > sr
+    assert ssr - sr == 3.0  # 稀有度 +5 vs +2
+
+
+def test_rarity_bonus_is_tiered(tmp_path: Path) -> None:
+    """稀有度加成：SSR/Legend +5、SR +2、R/N 0（同白值 3 分/3 费）。"""
+    cards = {
+        "假N": _fake_card(cost=3, rarity="N", score=3),
+        "假R": _fake_card(cost=3, rarity="R", score=3),
+        "假SR": _fake_card(cost=3, rarity="Sr", score=3),
+        "假SSR": _fake_card(cost=3, rarity="Ssr", score=3),
+        "假Legend": _fake_card(cost=3, rarity="Legend", score=3),
+    }
+    table = _write_table(tmp_path, cards)
+    n = table.value("假N")
+    r = table.value("假R")
+    sr = table.value("假SR")
+    ssr = table.value("假SSR")
+    legend = table.value("假Legend")
+    assert n is not None and r is not None and sr is not None
+    assert ssr is not None and legend is not None
+    assert n == r == 1.0
+    assert sr - r == 2.0
+    assert ssr - r == 5.0
+    assert legend - r == 5.0
+
+
+def test_effect_tiers_rank_stack_above_function_above_sustain(tmp_path: Path) -> None:
+    """效果定档：层数类 12-15 > 功能类 10-13 > 生存类 8-10。"""
+    table = _write_table(
+        tmp_path,
+        {
+            "假集中": _fake_card(cost=1, rarity="N", effects=("ExamConcentration",)),
+            "假抽牌": _fake_card(cost=1, rarity="N", effects=("ExamCardDraw",)),
+            "假元气": _fake_card(cost=1, rarity="N", effects=("ExamBlock",)),
+        },
+    )
+    stack = table.value("假集中")
+    function = table.value("假抽牌")
+    sustain = table.value("假元气")
+    assert stack is not None and function is not None and sustain is not None
+    assert stack >= 12.0
+    assert function >= 10.0
+    assert sustain >= 8.0
+    assert stack > function > sustain
 
 
 def test_buff_effect_tiers_rank_concentration_above_vitality() -> None:
@@ -151,7 +273,7 @@ def test_buff_effect_tiers_rank_concentration_above_vitality() -> None:
     from gkagent.data.card_table import CardTable
 
     table = CardTable()
-    vitality = table.value("表现的基础+")  # ExamBlock 纯元气 = 8
+    vitality = table.value("表现的基础+")  # ExamBlock 纯元气 = 9
     concentration = table.value("打招呼的基础")  # ExamConcentration 集中
     preservation = table.value("临场应对的基础++")  # ExamPreservation 温存
     assert vitality is not None and concentration is not None and preservation is not None
