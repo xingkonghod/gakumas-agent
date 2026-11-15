@@ -102,6 +102,27 @@ def test_focus_adds_flat_score_to_later_cards_only() -> None:
     assert sim.buffs.focus == 2  # 集中是永久的
 
 
+def test_strong_level_switches_stance_and_multiplies_later_cards() -> None:
+    """ExamConcentration 解析出的 strong_level 切到強気：本牌不吃自己刚切的倍率。"""
+    level1 = LessonSim(
+        [CardSpec("强气变更", 0, 0, strong_level=1), CardSpec("打分", 2, 10)],
+        _config(turns=2, stamina=10),
+    )
+    level1.step(_index(level1, "强气变更"))
+    assert level1.stance.stance == "strong1"
+    assert level1.score == 0  # 纯指針牌自己没分
+    level1.step(_index(level1, "打分"))
+    assert level1.score == 20  # 10 × 2.0
+
+    level2 = LessonSim(
+        [CardSpec("强气2段階", 0, 0, strong_level=2), CardSpec("打分", 2, 10)],
+        _config(turns=2, stamina=10),
+    )
+    level2.step(_index(level2, "强气2段階"))
+    level2.step(_index(level2, "打分"))
+    assert level2.score == 25  # 10 × 2.5
+
+
 def test_unaffordable_card_not_in_legal_actions() -> None:
     """体力 3 时，4 费牌不合法，2 费牌仍合法；硬出会报错。"""
     sim = LessonSim(

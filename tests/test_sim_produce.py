@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from gkagent.sim.lesson import CardSpec
+import json
+
+from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim
 from gkagent.sim.produce import (
     ProduceConfig,
     ProduceSim,
@@ -259,8 +261,8 @@ def test_playable_value_add_reaches_rich_card_spec() -> None:
     assert sp._spec_from_row(extra_row).extra_play == extra_row.extra_play
 
 
-def test_block_and_parameter_buff_reach_rich_card_spec() -> None:
-    """ExamLessonDependBlock / ExamParameterBuff* 解析成新字段，并透传进 CardSpec。"""
+def test_block_and_condition_reach_rich_card_spec() -> None:
+    """ExamLessonDependBlock → block_scale；ExamParameterBuff* → 好调回合数（condition）。"""
     import sys
     from pathlib import Path
 
@@ -282,21 +284,25 @@ def test_block_and_parameter_buff_reach_rich_card_spec() -> None:
     assert block[9] == 3200
     assert block[10] == 0 and block[11] == 1
 
-    # 卡表里 ExamParameterBuff 的 values 为空，只有 turn 记持续回合 → 用 1500‰ 兜底
+    # 卡表里 ExamParameterBuff 的 values 为空、turn 才是持续回合；卡面是「好调 N 回合」，
+    # 不是 1500‰ 的审查基准加成（旧实现兜底后会把这张牌自己的分 ×1.5，导致分数虚高）。
     single = sp._effect_fields(
         {"effects": [{"type": "ExamParameterBuff", "values": [], "turn": 3}]}
     )
-    assert single[10] == sp.PARAMETER_BUFF_DEFAULT == 1500
-    assert single[11] == 1  # 非 MultiplePerTurn 只作用于本牌
+    assert single[1] == 3       # condition = 好调 3 回合
+    assert single[10] == 0      # 不再兜底 1500‰
+    assert single[11] == 1
 
     multi = sp._effect_fields(
-        {"effects": [{"type": "ExamParameterBuffMultiplePerTurn", "values": [], "turn": 3}]}
+        {"effects": [{"type": "ExamParameterBuffMultiplePerTurn", "values": [], "turn": 2}]}
     )
-    assert multi[10] == 1500
-    assert multi[11] == 3  # 本回合内持续
+    assert multi[1] == 2        # 绝好调也按好调回合数建模（保守近似）
+    assert multi[10] == 0
+    assert multi[11] == 1
 
     explicit = sp._effect_fields({"effects": [{"type": "ExamParameterBuff", "values": [1200]}]})
-    assert explicit[10] == 1200  # 有 values 时按 values[0]（千分比）
+    assert explicit[10] == 1200  # 只有显式 values[0] 才当审查基准加成（千分比）
+    assert explicit[1] == 0
 
     spec = sp._spec_from_row(
         sp.CardRow(
@@ -312,12 +318,82 @@ def test_block_and_parameter_buff_reach_rich_card_spec() -> None:
     )
     assert (spec.block_scale, spec.parameter_buff, spec.parameter_buff_turns) == (1000, 1500, 2)
 
-    # rich 奖励池里要能出现吃审查基准加成的卡，且能穿过 _spec_from_row
+    # rich 池里不应再有"卡表空 values 却吃 1500‰"的卡；好调卡改为 condition > 0
     rich_pool = sp.build_pool(rich=True)
-    buffed = [row for row in rich_pool if row.parameter_buff > 0]
-    assert buffed, "rich 池里应有带审查基准加成的卡"
-    row = buffed[0]
-    assert sp._spec_from_row(row).parameter_buff == row.parameter_buff > 0
+    assert not [row for row in rich_pool if row.parameter_buff > 0]
+    conditioned = [row for row in rich_pool if row.condition > 0]
+    assert conditioned, "rich 池里应有带好调回合数的卡"
+    row = conditioned[0]
+    assert sp._spec_from_row(row).condition == row.condition > 0
+
+
+def test_lesson_buff_is_focus_and_concentration_is_stance() -> None:
+    """用真实卡表锁定目标语义：ExamLessonBuff=集中、ExamConcentration=指針変更（強気）。
+
+    证据（data/master/produce_cards.json 卡面文本）：
+    - 准备运动「打分+6 / 集中+2」→ ExamLessonBuff [2]
+    - 平衡感「集中+3」→ ExamLessonBuff [3]
+    - 打招呼的基础「强气变更」→ ExamConcentration [1]
+    """
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    table = json.loads(sp.CARD_TABLE.read_text(encoding="utf-8"))["cards"]
+
+    warmup = sp._effect_fields(table["准备运动"])
+    assert warmup[2] == 2, "准备运动的「集中+2」必须解析成 focus=2"
+    assert warmup[1] == 0, "准备运动不应被解析成好调（condition）"
+
+    balance = sp._effect_fields(table["平衡感"])
+    assert balance[2] == 3, "平衡感的「集中+3」必须解析成 focus=3"
+    assert balance[1] == 0
+
+    greeting = sp._effect_fields(table["打招呼的基础"])
+    assert greeting[12] == 1, "打招呼的基础「强气变更」必须解析成強気 1 段階"
+    assert greeting[2] == 0, "指針変更不是集中，不能塞进 focus"
+
+    deck = {row.name: row for row in sp.build_deck(rich=True)}
+    assert "准备运动" in deck
+    warmup_spec = sp._spec_from_row(deck["准备运动"])
+    assert (warmup_spec.score, warmup_spec.focus, warmup_spec.condition) == (6, 2, 0)
+
+    stance_row = sp._spec_from_row(sp.CardRow("強気", 0, 0, 0, 0, strong_level=1))
+    assert stance_row.strong_level == 1
+
+
+def test_parameter_buff_condition_only_helps_later_cards() -> None:
+    """好调卡的 N 回合走 condition：本牌不吃自己刚加的 ×1.5，后续牌才吃。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    fields = sp._effect_fields(
+        {"effects": [{"type": "ExamParameterBuff", "values": [], "turn": 3}]}
+    )
+    assert fields[1] == 3 and fields[10] == 0
+    buff = sp._spec_from_row(sp.CardRow("好调卡", 0, 10, fields[1], 0))
+    assert (buff.score, buff.condition, buff.parameter_buff) == (10, 3, 0)
+
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        LessonConfig(turns=2, stamina=10, target_clear=1, hand_size=3),
+        rng_seed=0,
+    )
+    sim.hand = [buff, CardSpec("打分", 0, 10), CardSpec("占位", 0, 0)]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)  # 本牌 10 分，不吃自己刚给的好调（旧实现会 ×1.5 → 15）
+    assert sim.score == 10
+    assert sim.buffs.condition_turns == 3
+
+    sim.step(0)  # 后续牌好调 ×1.5：10 + 15
+    assert sim.score == 25
 
 
 def test_legacy_pool_still_excludes_new_types() -> None:

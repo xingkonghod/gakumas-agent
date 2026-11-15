@@ -174,10 +174,14 @@ def main(argv: list[str]) -> int:
         resolved = resolve_effects(entry.get("playEffectIds") or [], effect_table)
         if resolved:
             effects = [{"type": item["type"], "values": [v for v in (item["v1"], item["v2"]) if v], "turn": item["turn"]} for item in resolved]
+        # 有些卡（祝福+：stamina=0 / forceStamina=4）的体力费用只写在 forceStamina，
+        # 只读 stamina 会把它们变成 0 费高分卡；两者都存在时取较大值。
+        stamina = int(entry.get("stamina") or 0)
+        force_stamina = int(entry.get("forceStamina") or 0)
         table[name] = {
             "id": key[0],
             "upgrade": key[1],
-            "cost": int(entry.get("stamina") or 0),
+            "cost": max(stamina, force_stamina),
             "rarity": (entry.get("rarity") or "").replace("ProduceCardRarity_", ""),
             "plan": (entry.get("planType") or "").replace("ProducePlanType_", ""),
             "category": (entry.get("category") or "").replace("ProduceCardCategory_", ""),

@@ -173,6 +173,10 @@ def card_stance_effect(effect_type: str, values: list[int]) -> dict:
       "full_power_point": 0}``。这里没有当前状态，所以是"设为"而不是
       "叠加"；真机在温存中再用温存牌会升到 2 段階，调用方可以在应用时取
       ``max(current.save_level, delta["save_level"])`` 做保守近似。
+    - ``ExamConcentration``：卡面「強気変更」；``values[0]`` 是**变更到的
+      強気段階**（1/2，卡表里 1 = 1 段階、2 = 2 段階）。返回
+      ``{"stance": "strong1"/"strong2", "save_level": 0,
+      "full_power_point": 0}``。未知段階按 no-op 处理。
     - ``ExamFullPowerPoint``：``values[0]`` 是全力值**增量**。
       返回 ``{"stance": None, "save_level": 0,
       "full_power_point": <增量>}``；``stance=None`` 表示不改指針。
@@ -200,6 +204,15 @@ def card_stance_effect(effect_type: str, values: list[int]) -> dict:
         return {
             "stance": Stance.SAVE,
             "save_level": value,
+            "full_power_point": 0,
+        }
+
+    if kind == "ExamConcentration":
+        if value not in (1, MAX_STANCE_LEVEL):
+            return dict(_NO_STANCE_CHANGE)
+        return {
+            "stance": Stance.STRONG1 if value == 1 else Stance.STRONG2,
+            "save_level": 0,
             "full_power_point": 0,
         }
 

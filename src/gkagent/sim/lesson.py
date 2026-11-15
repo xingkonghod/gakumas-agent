@@ -22,13 +22,18 @@
 - ``ExamLessonDependBlock``：依赖元气（盾）层数的分数，与好印象依赖分**同构**：
   按出牌**前**的元气层数算 ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10），
   同样不吃好调/集中/指針倍率，本牌自带的 ``vitality`` 在算完之后才生效；
-- ``ExamParameterBuff`` / ``ExamParameterBuffMultiplePerTurn``：审查基准加成，
-  近似成"本次打分额外乘 ``parameter_buff/1000`` 倍"（1500 = ×1.5）。本牌自带
-  的加成叠在**本牌最终分**（白值 + 依赖分）上；``parameter_buff_turns > 1`` 时
-  在本回合内持续，同一回合后续牌也吃（``turn_parameter_buff``），回合结束清零；
+- ``parameter_buff``：审查基准加成，近似成"本次打分额外乘
+  ``parameter_buff/1000`` 倍"（1500 = ×1.5）。本牌自带的加成叠在**本牌最终分**
+  （白值 + 依赖分）上；``parameter_buff_turns > 1`` 时在本回合内持续，同一回合
+  后续牌也吃（``turn_parameter_buff``），回合结束清零。注意：卡表里
+  ``ExamParameterBuff*`` 的真实语义是「好调/绝好调 N 回合」，解析方
+  （``scripts/sim_produce.py``）现在把它映射成 ``condition``；``parameter_buff``
+  只由显式数值（``values[0]``）驱动，不再有默认 ×1.5 兜底；
 - 非凡指針：分数再乘当前指針倍率（``stance.score_multiplier``）；出牌结算
-  最后应用本牌的指針效果（``preservation`` / ``full_power_point``），所以
-  **本牌不吃自己刚切的倍率**；回合结束调用 ``stance.end_turn`` 结算全力值；
+  最后应用本牌的指針效果（``strong_level`` / ``preservation`` /
+  ``full_power_point``），所以**本牌不吃自己刚切的倍率**；``ExamConcentration``
+  是卡面「強気変更」，解析成 ``strong_level``（1/2 段階）；
+  回合结束调用 ``stance.end_turn`` 结算全力值；
 - 回合结束：好印象按当前层数加分并 -1，好调回合数 -1；
 - 分数向下取整（``math.floor``）；
 - 体力不足以支付牌库里**任何**一张牌时本局提前结束（``done``）。
@@ -89,13 +94,14 @@ class CardSpec:
     ``draw`` 是出牌后额外抽几张。``impression_scale`` 是"依赖好印象的分数"
     倍率（百分比，1000 = 每层 10 分，见 ``ExamLessonDependExamReview``）。
     ``vitality`` / ``motivation`` 分别是元气（盾）和干劲（元气获得量加成）。
-    ``preservation`` 是把指針切到温存的段階（1/2），``full_power_point`` 是
-    全力值增量（攒满 10 点后下一回合进入「全力」）。``extra_play`` 是
-    ``ExamPlayableValueAdd``：出牌后本回合额外可出牌次数 +N（默认 0）。
-    ``block_scale`` 是"依赖元气的分数"倍率（百分比，1000 = 每层元气 10 分，
-    见 ``ExamLessonDependBlock``）；``parameter_buff`` 是审查基准加成的千分比
-    （1500 = ×1.5，见 ``ExamParameterBuff``），``parameter_buff_turns > 1``
-    表示该加成在本回合内持续（``ExamParameterBuffMultiplePerTurn``）。
+    ``strong_level`` 是 ``ExamConcentration``（卡面「強気変更」）变更到的
+    強気段階（1/2），``preservation`` 是把指針切到温存的段階（1/2），
+    ``full_power_point`` 是全力值增量（攒满 10 点后下一回合进入「全力」）。
+    ``extra_play`` 是 ``ExamPlayableValueAdd``：出牌后本回合额外可出牌次数 +N
+    （默认 0）。``block_scale`` 是"依赖元气的分数"倍率（百分比，1000 = 每层元气
+    10 分，见 ``ExamLessonDependBlock``）；``parameter_buff`` 是审查基准加成的
+    千分比（1500 = ×1.5），``parameter_buff_turns > 1`` 表示该加成在本回合内
+    持续（``ExamParameterBuffMultiplePerTurn``）。
     """
 
     name: str
@@ -114,6 +120,8 @@ class CardSpec:
     block_scale: int = 0
     parameter_buff: int = 0
     parameter_buff_turns: int = 1
+    # ExamConcentration（卡面「強気変更」）的段階：1/2；0 = 不改指針
+    strong_level: int = 0
 
 
 @dataclass(frozen=True)
@@ -298,9 +306,25 @@ class LessonSim:
         return award
 
     def _apply_card_stance(self, card: CardSpec) -> None:
-        """结算本牌的指針效果（在算分与 buff 之后，所以本牌不吃自己刚切的倍率）。"""
+        """结算本牌的指針效果（在算分与 buff 之后，所以本牌不吃自己刚切的倍率）。
+
+        ``ExamConcentration`` 是卡面「強気変更」：``strong_level`` 1/2 → 切到
+        強気 1/2 段階。``ExamPreservation`` 是「温存変更」：沿用原有逻辑。
+        极少数同时带两种指針效果的卡（如「倾注我的一生」一项是下回合延迟变更），
+        数据里没有延迟信息：按"温存收尾"处理，保持接入 ExamConcentration 之前
+        的行为，不额外猜延迟结算。
+        """
         if card.full_power_point > 0:
             self.stance = apply_full_power_point(self.stance, card.full_power_point)
+        if card.strong_level > 0:
+            delta = card_stance_effect("ExamConcentration", [card.strong_level])
+            if delta["stance"] is not None:
+                self.stance = replace(
+                    self.stance,
+                    stance=delta["stance"],
+                    strong_level=card.strong_level,
+                    save_level=0,
+                )
         if card.preservation > 0:
             delta = card_stance_effect("ExamPreservation", [card.preservation])
             if delta["stance"] is not None:
@@ -308,6 +332,7 @@ class LessonSim:
                 self.stance = replace(
                     self.stance,
                     stance=delta["stance"],
+                    strong_level=0,
                     save_level=max(self.stance.save_level, int(delta["save_level"])),
                 )
 
@@ -373,7 +398,7 @@ def greedy_policy(sim: LessonSim) -> Action:
     只按卡面分数算，不评估 buff 收益，也不做体力预算——仅用于验证模拟器
     能跑通、给参数搜索当对照基线。
 
-    指針牌（温存 / 全力值）常常 ``score=0``，纯按卡面分数效率恒为 0，
+    指針牌（温存 / 強気 / 全力值）常常 ``score=0``，纯按卡面分数效率恒为 0，
     永远不会被选中；这里把这类牌的效率固定按 ``_STANCE_CARD_EFFICIENCY``
     计，让基线也会打它们（实际收益仍由 LessonSim 的指針结算决定）。
     「可出牌次数 +N」牌同理，固定按 ``_EXTRA_PLAY_CARD_EFFICIENCY`` 计，
@@ -388,7 +413,7 @@ def greedy_policy(sim: LessonSim) -> Action:
 
     def efficiency(index: int) -> tuple[float, float, int, int]:
         card = sim.hand[index]
-        if card.preservation > 0 or card.full_power_point > 0:
+        if card.preservation > 0 or card.full_power_point > 0 or card.strong_level > 0:
             return (_STANCE_CARD_EFFICIENCY, _STANCE_CARD_EFFICIENCY, -card.cost, -index)
         if card.extra_play > 0:
             return (

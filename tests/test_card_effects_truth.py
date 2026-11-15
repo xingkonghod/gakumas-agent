@@ -3,9 +3,11 @@
 覆盖 8 张高频卡：
 
 - 截图核对真值（用户给定）：魅力的基础 4 费/9 分、聊天时间 6 费/27 分、
-  表现的基础 0 费/元气 4、最高的星 3 分 × 2 段、准备运动 6 分 + 好调 2；
+  表现的基础 0 费/元气 4、最高的星 3 分 × 2 段、准备运动 6 分 + 集中 2；
 - 强化版沿用 ``tests/test_card_values.py`` 已锁定的同源 master 值：
-  魅力的基础+ 14 分、聊天时间+ 38 分、表现的基础+ 元气 7。
+  魅力的基础+ 14 分、聊天时间+ 38 分、表现的基础+ 元气 7；
+- 本次效果映射修正（2026-11-15）：ExamLessonBuff=集中、ExamConcentration=指針変更、
+  ExamParameterBuff=好调 N 回合（turn）、forceStamina 计入费用。
 
 注意：这是"抓数据错"的测试，不是宽松的冒烟测试——
 如果数值与真值不符，断言失败并把卡表实际值打进消息；
@@ -165,7 +167,7 @@ def test_highest_star_is_two_hits_of_three() -> None:
     )
 
 
-# ---------------------------------------------------------------------- 准备运动：打分 + 好调 buff
+# ---------------------------------------------------------------------- 准备运动：打分 + 集中 buff
 def test_warmup_score_is_six() -> None:
     name = "准备运动"
     row = require_card(load_cards(), name)
@@ -176,12 +178,66 @@ def test_warmup_score_is_six() -> None:
     )
 
 
-def test_warmup_condition_buff_is_two() -> None:
+def test_warmup_focus_buff_is_two() -> None:
+    """准备运动卡面是「集中+2」；ExamLessonBuff 只是解包名，语义=集中。"""
     name = "准备运动"
     row = require_card(load_cards(), name)
     effect = require_effect(row, name, "ExamLessonBuff")
-    values = require_values(effect, f"{name} 的 ExamLessonBuff（好调）")
+    values = require_values(effect, f"{name} 的 ExamLessonBuff（集中）")
     assert values == [2], (
-        f"{name} 好调 buff 与真值不符：期望 [2]，卡表实际 {values!r}；"
+        f"{name} 集中 buff 与真值不符：期望 [2]，卡表实际 {values!r}；"
+        f"完整 effect={effect!r}"
+    )
+
+
+# ---------------------------------------------------------------------- 本次映射修正的真值
+def test_balance_focus_buff_is_three() -> None:
+    """平衡感卡面是「集中+3」，同样走 ExamLessonBuff（不是好调）。"""
+    name = "平衡感"
+    row = require_card(load_cards(), name)
+    effect = require_effect(row, name, "ExamLessonBuff")
+    values = require_values(effect, f"{name} 的 ExamLessonBuff（集中）")
+    assert values == [3], (
+        f"{name} 集中层数与真值不符：期望 [3]，卡表实际 {values!r}；"
+        f"完整 effect={effect!r}"
+    )
+
+
+def test_greeting_is_stance_change() -> None:
+    """打招呼的基础卡面是「强气变更」；ExamConcentration 的 values[0]=1 是強気 1 段階。"""
+    name = "打招呼的基础"
+    row = require_card(load_cards(), name)
+    effect = require_effect(row, name, "ExamConcentration")
+    values = require_values(effect, f"{name} 的 ExamConcentration（指針変更）")
+    assert values == [1], (
+        f"{name} 指針段階与真值不符：期望 [1]，卡表实际 {values!r}；"
+        f"完整 effect={effect!r}"
+    )
+
+
+def test_force_stamina_is_included_in_cost() -> None:
+    """祝福+ / 元气的问候 卡面写「体力消耗 4」，YAML 里只写 forceStamina=4。"""
+    cards = load_cards()
+    for name in ("祝福+", "元气的问候"):
+        row = require_card(cards, name)
+        actual = require_field(row, name, "cost")
+        assert actual == 4, (
+            f"{name} cost 与卡面「体力消耗 4」不符：卡表实际 {actual!r}（{CARD_TABLE}）"
+        )
+    # 祝福+ 卡面：体力消耗 4 / 打分 +40 / 好调 1 回合
+    row = require_card(cards, "祝福+")
+    assert require_values(require_effect(row, "祝福+", "ExamLesson"), "祝福+ 的 ExamLesson") == [40]
+
+
+def test_parameter_buff_card_data_is_condition_turns() -> None:
+    """不会让出第一 卡面是「好调 3 回合」；ExamParameterBuff 没有 values，只有 turn。"""
+    name = "不会让出第一"
+    row = require_card(load_cards(), name)
+    effect = require_effect(row, name, "ExamParameterBuff")
+    assert effect.get("values") == [], (
+        f"{name} 的 ExamParameterBuff 不应有数值（否则会被误读成千分比加成）：{effect!r}"
+    )
+    assert effect.get("turn") == 3, (
+        f"{name} 好调持续回合与真值不符：期望 3，卡表实际 {effect.get('turn')!r}；"
         f"完整 effect={effect!r}"
     )

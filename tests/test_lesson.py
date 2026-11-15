@@ -238,7 +238,8 @@ def test_card_table_gives_exact_cost() -> None:
     assert table.cost("聊天时间") == 6
     assert table.cost("表现的基础") == 0
     meta = table.meta("元气的问候")
-    assert meta is not None and meta.cost == 0
+    # 卡面写「体力消耗 4」；YAML 的 stamina=0、forceStamina=4，费用取两者较大值。
+    assert meta is not None and meta.cost == 4
     assert CardTable.looks_conditional("好调状态的时候，可以使用")
     assert not CardTable.looks_conditional("打分+9")
 

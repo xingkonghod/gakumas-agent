@@ -39,14 +39,23 @@ MODELED_EFFECTS = {
     "ExamParameterBuff",
     "ExamParameterBuffMultiplePerTurn",
 }
-# 卡表里 ExamParameterBuff* 的 values 都是空的（好调/绝好调本身固定 +50%），
-# 只有 turn 记持续回合；这里按 1500‰（×1.5）兜底，否则这两类效果恒为 0。
-PARAMETER_BUFF_DEFAULT = 1500
+# 卡表里的效果名和卡面语义容易对反，以下以游戏 master 的卡面文本（卡名 + 效果）为准：
+#   准备运动「打分+6 / 集中+2」     -> ExamLessonBuff [2]       = 集中
+#   平衡感「集中+3」                -> ExamLessonBuff [3]       = 集中
+#   打招呼的基础「强气变更」        -> ExamConcentration [1]    = 指針変更（強気 1 段階）
+#   不会让出第一「好调 3 回合」     -> ExamParameterBuff turn 3 = 好调 3 回合
+#   光之夜「绝好调 2 回合」         -> ExamParameterBuffMultiplePerTurn turn 2
+#   祝福+「体力消耗 4 / 打分+40 / 好调 1 回合」
+#                                 -> forceStamina 4 + ExamParameterBuff turn 1
+# 所以 ExamLessonBuff 给 focus（集中层数）、ExamConcentration 给 strong_level
+# （強気段階）、ExamParameterBuff* 给 condition（好调回合数）。不写死 1500‰ 的
+# "审查基准加成"兜底：那些 effects 的 values 本来就是空的，兜底会把好调卡变成 ×1.5。
 # 其它分析脚本（sim_idols / sim_search / …）还按旧 5 元组解包；在它们迁移前，
 # build_pool() 默认只收完全落在旧集合里的卡，避免把抽牌/好印象卡当成"只有白值"。
-# 温存/全力值/可出牌次数/元气依赖分/审查基准加成同样只能由 rich CardRow 承载，
+# 温存/全力值/可出牌次数/元气依赖分/好调回合数同样只能由 rich CardRow 承载，
 # 所以只加进 MODELED_EFFECTS：旧 5 元组塞不下这些字段，硬加进来会被旧脚本当成纯白值卡。
-LEGACY_MODELED_EFFECTS = {"ExamLesson", "ExamBlock", "ExamLessonBuff", "ExamConcentration"}
+# ExamConcentration 现在承载強気段階，旧 5 元组也表达不了，故从旧集合移除。
+LEGACY_MODELED_EFFECTS = {"ExamLesson", "ExamBlock", "ExamLessonBuff"}
 
 # 旧接口：(name, cost, score, condition, focus)
 LegacyCardRow = tuple[str, int, int, int, int]
@@ -69,30 +78,37 @@ class CardRow(NamedTuple):
     block_scale: int = 0
     parameter_buff: int = 0
     parameter_buff_turns: int = 1
+    strong_level: int = 0
 
 
 def _effect_fields(
     row: dict,
-) -> tuple[int, int, int, int, int, int, int, int, int, int, int, int]:
+) -> tuple[int, int, int, int, int, int, int, int, int, int, int, int, int]:
     """从卡表一行的 ``effects`` 提取可喂给 ``CardSpec`` 的字段。
 
     返回 ``(score, condition, focus, draw, impression, scale, preservation,
     full_power_point, extra_play, block_scale, parameter_buff,
-    parameter_buff_turns)``。同类效果取最大值；
-    ``ExamReview`` 是好印象层数，``ExamCardDraw`` 是抽牌数，
-    ``ExamLessonDependExamReview`` 是依赖好印象的百分比倍率（1000 = 层数×10），
-    ``ExamLessonDependBlock`` 是依赖元气的百分比倍率（同构），
-    ``ExamPreservation`` 是温存段階（1/2），``ExamFullPowerPoint`` 是全力值增量，
-    ``ExamPlayableValueAdd`` 是本回合可出牌次数增量（卡表里通常没有 values，
-    用 ``count`` 表示 +1/+2）。
-    ``ExamParameterBuff`` 是审查基准加成（‰，1500 = ×1.5）；卡表没有 values 时
-    按 ``PARAMETER_BUFF_DEFAULT`` 兜底。``ExamParameterBuffMultiplePerTurn``
-    同倍率，但持续到本回合结束（``parameter_buff_turns > 1``），后续牌也吃。
+    parameter_buff_turns, strong_level)``。同类效果取最大值。
+
+    字段语义以游戏 master 卡面文本为准，effect 名容易误读：
+
+    - ``ExamLesson`` = 打分；``ExamLessonBuff`` = **集中**层数（→ ``focus``）；
+    - ``ExamConcentration`` = **指針変更（強気）**段階 1/2（→ ``strong_level``）；
+    - ``ExamParameterBuff*`` = **好调/绝好调 N 回合**（→ ``condition = turn``），
+      不是审查基准加成；卡表里它们的 ``values`` 是空的，所以 ``parameter_buff``
+      只认显式 ``values[0]``（千分比），没有默认 1500‰ 兜底；
+    - ``ExamReview`` 是好印象层数，``ExamCardDraw`` 是抽牌数，
+      ``ExamLessonDependExamReview`` 是依赖好印象的百分比倍率（1000 = 层数×10），
+      ``ExamLessonDependBlock`` 是依赖元气的百分比倍率（同构），
+      ``ExamPreservation`` 是温存段階（1/2），``ExamFullPowerPoint`` 是全力值增量，
+      ``ExamPlayableValueAdd`` 是本回合可出牌次数增量（卡表里通常没有 values，
+      用 ``count`` 表示 +1/+2）。
     """
     score = condition = focus = draw = impression = impression_scale = 0
     preservation = full_power_point = extra_play = 0
     block_scale = parameter_buff = 0
     parameter_buff_turns = 1
+    strong_level = 0
     for effect in row.get("effects") or []:
         kind = effect.get("type")
         values = [v for v in effect.get("values") or [] if v]
@@ -101,21 +117,26 @@ def _effect_fields(
             extra_play = max(extra_play, value or int(effect.get("count") or 1))
             continue
         if kind in ("ExamParameterBuff", "ExamParameterBuffMultiplePerTurn"):
-            parameter_buff = max(parameter_buff, value or PARAMETER_BUFF_DEFAULT)
-            if kind == "ExamParameterBuffMultiplePerTurn":
-                # 卡表用 turn 记持续回合；本模型只要 >1 就表示"整回合持续"
-                parameter_buff_turns = max(
-                    parameter_buff_turns, int(effect.get("turn") or 0) or 2
-                )
+            # 卡面是「好调 N 回合 / 绝好调 N 回合」（祝福+、不会让出第一…），
+            # 不是 1500‰ 的审查基准加成。turn 才是持续回合数。
+            turn = int(effect.get("turn") or 0)
+            if turn > 0:
+                condition = max(condition, turn)
+            parameter_buff = max(parameter_buff, value)
+            if kind == "ExamParameterBuffMultiplePerTurn" and parameter_buff > 0:
+                # 显式数值时才保留"整回合持续"语义；卡表实际 values 为空 → 不生效。
+                parameter_buff_turns = max(parameter_buff_turns, turn or 2)
             continue
         if not value:
             continue
         if kind == "ExamLesson":
             score = max(score, value)
         elif kind == "ExamLessonBuff":
-            condition = max(condition, value)
-        elif kind == "ExamConcentration":
+            # 卡面是「集中+2/+3」（准备运动/平衡感），不是好调。
             focus = max(focus, value)
+        elif kind == "ExamConcentration":
+            # 卡面是「強気変更」（打招呼的基础），values[0] 是 1/2 段階；不是集中。
+            strong_level = max(strong_level, value)
         elif kind == "ExamCardDraw":
             draw = max(draw, value)
         elif kind == "ExamReview":
@@ -141,6 +162,7 @@ def _effect_fields(
         block_scale,
         parameter_buff,
         parameter_buff_turns,
+        strong_level,
     )
 
 
@@ -185,6 +207,7 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
             block_scale,
             parameter_buff,
             parameter_buff_turns,
+            strong_level,
         ) = _effect_fields(row)
         if score == 0 and name in master:
             match = re.search(r"打分[^0-9]{0,8}(\d{1,3})", master[name])
@@ -208,6 +231,7 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
                     block_scale,
                     parameter_buff,
                     parameter_buff_turns,
+                    strong_level,
                 )
             )
         else:
@@ -228,8 +252,8 @@ def build_pool(
 
     ``rich=False`` 时只收旧集合里的效果类型并返回旧 5 元组（其它脚本兼容）；
     ``rich=True`` 时使用完整 ``MODELED_EFFECTS``（含温存/全力值/可出牌次数/
-    元气依赖分/审查基准加成）并返回带 draw/impression/preservation/
-    full_power_point/extra_play/block_scale/parameter_buff 的 CardRow。
+    元气依赖分/好调回合数）并返回带 draw/impression/preservation/
+    full_power_point/extra_play/block_scale/parameter_buff/strong_level 的 CardRow。
     """
     table = json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
     modeled = MODELED_EFFECTS if rich else LEGACY_MODELED_EFFECTS
@@ -251,6 +275,7 @@ def build_pool(
             block_scale,
             parameter_buff,
             parameter_buff_turns,
+            strong_level,
         ) = _effect_fields(row)
         rarity = str(row.get("rarity") or "")
         if not allow_ssr and rarity in ("Ssr", "Legend"):
@@ -279,6 +304,7 @@ def build_pool(
                     block_scale,
                     parameter_buff,
                     parameter_buff_turns,
+                    strong_level,
                 )
             )
         else:
@@ -290,7 +316,7 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
     """把 build_deck/build_pool 的行转成 LessonSim 的 CardSpec。
 
     兼容两种行：rich 的 ``CardRow`` 带抽牌/好印象/依赖倍率/指針/可出牌次数/
-    元气依赖分/审查基准加成字段；旧 5 元组只有 score/condition/focus
+    元气依赖分/好调回合数/強気段階字段；旧 5 元组只有 score/condition/focus
     （其它分析脚本的默认输出）。
     """
     from gkagent.sim.lesson import CardSpec
@@ -311,6 +337,7 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
             block_scale=row.block_scale,
             parameter_buff=row.parameter_buff,
             parameter_buff_turns=row.parameter_buff_turns,
+            strong_level=row.strong_level,
         )
     name, cost, score, condition, focus = row
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)

@@ -121,6 +121,30 @@ def test_card_stance_effect_preservation_sets_save_stage() -> None:
     assert score_multiplier(StanceState(stance=Stance.SAVE, save_level=2)) == 0.25
 
 
+def test_card_stance_effect_concentration_sets_strong_stage() -> None:
+    """ExamConcentration（卡面「強気変更」）的 values[0] 是強気段階 1/2，不是集中层数。"""
+    level1 = card_stance_effect("ExamConcentration", [1])
+    assert level1 == {
+        "stance": Stance.STRONG1,
+        "save_level": 0,
+        "full_power_point": 0,
+    }
+    assert score_multiplier(StanceState(stance=Stance.STRONG1)) == 2.0
+
+    level2 = card_stance_effect("ExamConcentration", [2])
+    assert level2 == {
+        "stance": Stance.STRONG2,
+        "save_level": 0,
+        "full_power_point": 0,
+    }
+    assert score_multiplier(StanceState(stance=Stance.STRONG2)) == 2.5
+
+    noop = {"stance": None, "save_level": 0, "full_power_point": 0}
+    assert card_stance_effect("ExamConcentration", []) == noop
+    assert card_stance_effect("ExamConcentration", [0]) == noop
+    assert card_stance_effect("ExamConcentration", [3]) == noop
+
+
 def test_card_stance_effect_full_power_point_is_additive() -> None:
     """ExamFullPowerPoint 的 values[0] 是全力值增量，不改变指針。"""
     delta = card_stance_effect("ExamFullPowerPoint", [3])

@@ -278,7 +278,7 @@
 },
 "POW！": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -295,7 +295,7 @@
 },
 "POW！+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -312,7 +312,7 @@
 },
 "POW！++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -329,7 +329,7 @@
 },
 "POW！+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -646,7 +646,7 @@
 },
 "下次，绝对要！": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
@@ -668,7 +668,7 @@
 },
 "下次，绝对要！+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
@@ -690,7 +690,7 @@
 },
 "下次，绝对要！++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
@@ -712,7 +712,7 @@
 },
 "下次，绝对要！+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -822,7 +822,7 @@
 },
 "不断扩展的世界": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -868,7 +868,7 @@
 },
 "不断扩展的世界+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -914,7 +914,7 @@
 },
 "不断扩展的世界++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -960,7 +960,7 @@
 },
 "不断扩展的世界+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -3006,7 +3006,7 @@
 },
 "传达到！": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -3025,7 +3025,7 @@
 },
 "传达到！+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -3044,7 +3044,7 @@
 },
 "传达到！++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -3063,7 +3063,7 @@
 },
 "传达到！+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -3306,7 +3306,7 @@
 },
 "你带给我的梦想": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 7,
 "effects": [
 {
 "turn": 0,
@@ -3337,7 +3337,7 @@
 },
 "你带给我的梦想+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -3368,7 +3368,7 @@
 },
 "你带给我的梦想++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -3399,7 +3399,7 @@
 },
 "你带给我的梦想+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -4062,7 +4062,7 @@
 },
 "偶像宣言": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "count": 1,
@@ -4169,7 +4169,7 @@
 },
 "像姐姐一样的感觉": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 4,
@@ -4208,7 +4208,7 @@
 },
 "像姐姐一样的感觉+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 6,
@@ -4247,7 +4247,7 @@
 },
 "像姐姐一样的感觉++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 6,
@@ -4286,7 +4286,7 @@
 },
 "像姐姐一样的感觉+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 6,
@@ -4325,7 +4325,7 @@
 },
 "元气满满": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -4356,7 +4356,7 @@
 },
 "元气满满+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -4387,7 +4387,7 @@
 },
 "元气满满++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -4418,7 +4418,7 @@
 },
 "元气满满+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -4449,7 +4449,7 @@
 },
 "元气的问候": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -4466,7 +4466,7 @@
 },
 "元气的问候+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -4483,7 +4483,7 @@
 },
 "元气的问候++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -4500,7 +4500,7 @@
 },
 "元气的问候+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -7552,7 +7552,7 @@
 },
 "初次的对象": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -7584,7 +7584,7 @@
 },
 "初次的对象+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -7616,7 +7616,7 @@
 },
 "初次的对象++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -7648,7 +7648,7 @@
 },
 "初次的对象+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -7780,7 +7780,7 @@
 },
 "初次的思念": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -7805,7 +7805,7 @@
 },
 "初次的思念+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -7830,7 +7830,7 @@
 },
 "初次的思念++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -7855,7 +7855,7 @@
 },
 "初次的思念+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -7880,7 +7880,7 @@
 },
 "初次的未来": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -7897,7 +7897,7 @@
 },
 "初次的未来+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -7914,7 +7914,7 @@
 },
 "初次的未来++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -7931,7 +7931,7 @@
 },
 "初次的未来+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -9192,7 +9192,7 @@
 },
 "午后微风": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -9217,7 +9217,7 @@
 },
 "午后微风+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -9242,7 +9242,7 @@
 },
 "午后微风++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -9267,7 +9267,7 @@
 },
 "午后微风+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -10254,7 +10254,7 @@
 },
 "只属于我的回忆": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -10309,7 +10309,7 @@
 },
 "只属于我的回忆+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -10364,7 +10364,7 @@
 },
 "只属于我的回忆++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -10419,7 +10419,7 @@
 },
 "只属于我的回忆+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -12507,7 +12507,7 @@
 },
 "夏日夜晚的烟花棒": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -12546,7 +12546,7 @@
 },
 "夏日夜晚的烟花棒+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -12585,7 +12585,7 @@
 },
 "夏日夜晚的烟花棒++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -12624,7 +12624,7 @@
 },
 "夏日夜晚的烟花棒+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -12967,7 +12967,7 @@
 },
 "大小姐的华丽舞台": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -12998,7 +12998,7 @@
 },
 "大小姐的华丽舞台+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -13029,7 +13029,7 @@
 },
 "大小姐的华丽舞台++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -13060,7 +13060,7 @@
 },
 "大小姐的华丽舞台+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -13277,7 +13277,7 @@
 },
 "天赋才能": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 3,
@@ -13317,7 +13317,7 @@
 },
 "天赋才能+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 4,
@@ -13357,7 +13357,7 @@
 },
 "天赋才能++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 4,
@@ -13397,7 +13397,7 @@
 },
 "天赋才能+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 4,
@@ -13437,7 +13437,7 @@
 },
 "奇迹的魔法": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -13463,7 +13463,7 @@
 },
 "奇迹的魔法+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -13489,7 +13489,7 @@
 },
 "奇迹的魔法++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -13515,7 +13515,7 @@
 },
 "奇迹的魔法+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -14113,7 +14113,7 @@
 },
 "姐姐，参战！": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -14152,7 +14152,7 @@
 },
 "姐姐，参战！+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -14191,7 +14191,7 @@
 },
 "姐姐，参战！++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -14230,7 +14230,7 @@
 },
 "姐姐，参战！+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -15466,7 +15466,7 @@
 },
 "小水洼蹦跳": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -15489,7 +15489,7 @@
 },
 "小水洼蹦跳+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -15512,7 +15512,7 @@
 },
 "小水洼蹦跳++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -15535,7 +15535,7 @@
 },
 "小水洼蹦跳+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -18381,7 +18381,7 @@
 },
 "微热愁绪": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 7,
 "effects": [
 {
 "turn": 0,
@@ -18419,7 +18419,7 @@
 },
 "微热愁绪+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -18457,7 +18457,7 @@
 },
 "微热愁绪++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -18495,7 +18495,7 @@
 },
 "微热愁绪+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19101,7 +19101,7 @@
 },
 "心形信号": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19119,7 +19119,7 @@
 },
 "心形信号+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19137,7 +19137,7 @@
 },
 "心形信号++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19155,7 +19155,7 @@
 },
 "心形信号+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19437,7 +19437,7 @@
 },
 "心神合一": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19484,7 +19484,7 @@
 },
 "心神合一+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19531,7 +19531,7 @@
 },
 "心神合一++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -19578,7 +19578,7 @@
 },
 "心神合一+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -20275,7 +20275,7 @@
 },
 "悠哉闲谈": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -20299,7 +20299,7 @@
 },
 "悠哉闲谈+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -20323,7 +20323,7 @@
 },
 "悠哉闲谈++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -20347,7 +20347,7 @@
 },
 "悠哉闲谈+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -20605,7 +20605,7 @@
 },
 "情人节大作战！": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -20644,7 +20644,7 @@
 },
 "情人节大作战！+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -20683,7 +20683,7 @@
 },
 "情人节大作战！++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -20722,7 +20722,7 @@
 },
 "情人节大作战！+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -20861,7 +20861,7 @@
 },
 "想要实现的梦想": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -20885,7 +20885,7 @@
 },
 "想要实现的梦想+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -20909,7 +20909,7 @@
 },
 "想要实现的梦想++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -20933,7 +20933,7 @@
 },
 "想要实现的梦想+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -21673,7 +21673,7 @@
 },
 "感谢的话语": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -21697,7 +21697,7 @@
 },
 "感谢的话语+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -21721,7 +21721,7 @@
 },
 "感谢的话语++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -21745,7 +21745,7 @@
 },
 "感谢的话语+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -21949,7 +21949,7 @@
 },
 "憧憬的偶像": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -21995,7 +21995,7 @@
 },
 "憧憬的偶像+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -22041,7 +22041,7 @@
 },
 "憧憬的偶像++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -22087,7 +22087,7 @@
 },
 "憧憬的偶像+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -22808,7 +22808,7 @@
 },
 "我不再踌躇": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "enchant": "enchant-p_card-01-ido-3_134-enc01",
@@ -22834,7 +22834,7 @@
 },
 "我不再踌躇+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "enchant": "enchant-p_card-01-ido-3_134-enc01",
@@ -22860,7 +22860,7 @@
 },
 "我不再踌躇++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "enchant": "enchant-p_card-01-ido-3_134-enc02",
@@ -22886,7 +22886,7 @@
 },
 "我不再踌躇+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "enchant": "enchant-p_card-01-ido-3_134-enc02",
@@ -23568,7 +23568,7 @@
 },
 "打倒姐姐": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -23592,7 +23592,7 @@
 },
 "打倒姐姐+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -23616,7 +23616,7 @@
 },
 "打倒姐姐++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -23640,7 +23640,7 @@
 },
 "打倒姐姐+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -23821,7 +23821,7 @@
 },
 "执念夹爪": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -23845,7 +23845,7 @@
 },
 "执念夹爪+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -23869,7 +23869,7 @@
 },
 "执念夹爪++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -23893,7 +23893,7 @@
 },
 "执念夹爪+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -26005,7 +26005,7 @@
 },
 "无法抑制的心意": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -26035,7 +26035,7 @@
 },
 "无法抑制的心意+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -26065,7 +26065,7 @@
 },
 "无法抑制的心意++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -26095,7 +26095,7 @@
 },
 "无法抑制的心意+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -27745,7 +27745,7 @@
 },
 "朝着光照的方向": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -27782,7 +27782,7 @@
 },
 "朝着光照的方向+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -27819,7 +27819,7 @@
 },
 "朝着光照的方向++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -27856,7 +27856,7 @@
 },
 "朝着光照的方向+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -27893,7 +27893,7 @@
 },
 "未完成的大才": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -27911,7 +27911,7 @@
 },
 "未完成的大才+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -27929,7 +27929,7 @@
 },
 "未完成的大才++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -27947,7 +27947,7 @@
 },
 "未完成的大才+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -29656,7 +29656,7 @@
 },
 "清爽一刻": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -29688,7 +29688,7 @@
 },
 "清爽一刻+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -29720,7 +29720,7 @@
 },
 "清爽一刻++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -29752,7 +29752,7 @@
 },
 "清爽一刻+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -31056,7 +31056,7 @@
 },
 "点缀魔法": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -31087,7 +31087,7 @@
 },
 "点缀魔法+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -31118,7 +31118,7 @@
 },
 "点缀魔法++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -31149,7 +31149,7 @@
 },
 "点缀魔法+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -32603,7 +32603,7 @@
 },
 "用捞金鱼一决胜负": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -32633,7 +32633,7 @@
 },
 "用捞金鱼一决胜负+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -32663,7 +32663,7 @@
 },
 "用捞金鱼一决胜负++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -32693,7 +32693,7 @@
 },
 "用捞金鱼一决胜负+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -32811,7 +32811,7 @@
 },
 "留宿特训": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -32828,7 +32828,7 @@
 },
 "留宿特训+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -32859,7 +32859,7 @@
 },
 "留宿特训++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -32897,7 +32897,7 @@
 },
 "留宿特训+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -32935,7 +32935,7 @@
 },
 "白日梦": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -32968,7 +32968,7 @@
 },
 "白日梦+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -33001,7 +33001,7 @@
 },
 "白日梦++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -33034,7 +33034,7 @@
 },
 "白日梦+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -33940,7 +33940,7 @@
 },
 "眼神交流的基础": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -33958,7 +33958,7 @@
 },
 "眼神交流的基础+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -33976,7 +33976,7 @@
 },
 "眼神交流的基础++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -34245,7 +34245,7 @@
 },
 "祝福": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -34267,7 +34267,7 @@
 },
 "祝福+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -34289,7 +34289,7 @@
 },
 "祝福++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -34311,7 +34311,7 @@
 },
 "祝福+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -36486,7 +36486,7 @@
 },
 "细节是关键": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -36510,7 +36510,7 @@
 },
 "细节是关键+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -36534,7 +36534,7 @@
 },
 "细节是关键++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -36558,7 +36558,7 @@
 },
 "细节是关键+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -37229,7 +37229,7 @@
 },
 "聚光灯": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -37279,7 +37279,7 @@
 },
 "聚光灯+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -37329,7 +37329,7 @@
 },
 "聚光灯++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -37379,7 +37379,7 @@
 },
 "聚光灯+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -38403,7 +38403,7 @@
 },
 "自我肯定感爆棚↑↑": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "enchant": "enchant-p_card-01-ido-3_139-enc01",
@@ -38428,7 +38428,7 @@
 },
 "自我肯定感爆棚↑↑+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -38460,7 +38460,7 @@
 },
 "自我肯定感爆棚↑↑++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -38492,7 +38492,7 @@
 },
 "自我肯定感爆棚↑↑+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -39693,7 +39693,7 @@
 },
 "苦战手工": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -39724,7 +39724,7 @@
 },
 "苦战手工+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -39755,7 +39755,7 @@
 },
 "苦战手工++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -39786,7 +39786,7 @@
 },
 "苦战手工+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -40529,7 +40529,7 @@
 },
 "表演家": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -40553,7 +40553,7 @@
 },
 "表演家+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -40577,7 +40577,7 @@
 },
 "表演家++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -40601,7 +40601,7 @@
 },
 "表演家+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -41506,7 +41506,7 @@
 },
 "觉悟": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -41535,7 +41535,7 @@
 },
 "觉悟+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -41564,7 +41564,7 @@
 },
 "觉悟++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "turn": 0,
@@ -41593,7 +41593,7 @@
 },
 "觉悟+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -43119,7 +43119,7 @@
 },
 "超大的饭团": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -43137,7 +43137,7 @@
 },
 "超大的饭团+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -43155,7 +43155,7 @@
 },
 "超大的饭团++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -43173,7 +43173,7 @@
 },
 "超大的饭团+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -43325,7 +43325,7 @@
 },
 "超越我吧（翔）": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -43356,7 +43356,7 @@
 },
 "超越我吧（翔）+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -43387,7 +43387,7 @@
 },
 "超越我吧（翔）++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -43418,7 +43418,7 @@
 },
 "超越我吧（翔）+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 1,
 "effects": [
 {
 "turn": 0,
@@ -44100,7 +44100,7 @@
 },
 "踮起脚尖的魔法": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "enchant": "enchant-p_card-02-act-3_186-enc01",
@@ -44139,7 +44139,7 @@
 },
 "踮起脚尖的魔法+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "enchant": "enchant-p_card-02-act-3_186-enc01",
@@ -44178,7 +44178,7 @@
 },
 "踮起脚尖的魔法++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "enchant": "enchant-p_card-02-act-3_186-enc01",
@@ -44217,7 +44217,7 @@
 },
 "踮起脚尖的魔法+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 2,
 "effects": [
 {
 "enchant": "enchant-p_card-02-act-3_186-enc01",
@@ -44384,7 +44384,7 @@
 },
 "转换心情": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "turn": 0,
@@ -44401,7 +44401,7 @@
 },
 "转换心情+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -44418,7 +44418,7 @@
 },
 "转换心情++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -44435,7 +44435,7 @@
 },
 "转换心情+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -46549,7 +46549,7 @@
 },
 "那一天，在这里": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
@@ -46571,7 +46571,7 @@
 },
 "那一天，在这里+": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -46593,7 +46593,7 @@
 },
 "那一天，在这里++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "turn": 0,
@@ -46622,7 +46622,7 @@
 },
 "那一天，在这里+++": {
 "category": "MentalSkill",
-"cost": 0,
+"cost": 3,
 "effects": [
 {
 "turn": 0,
@@ -46782,7 +46782,7 @@
 },
 "那本书，有趣吗？": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 5,
 "effects": [
 {
 "trigger": "e_trigger-exam_card_play-review_up-3",
@@ -46814,7 +46814,7 @@
 },
 "那本书，有趣吗？+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "trigger": "e_trigger-exam_card_play-review_up-3",
@@ -46846,7 +46846,7 @@
 },
 "那本书，有趣吗？++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "trigger": "e_trigger-exam_card_play-review_up-3",
@@ -46878,7 +46878,7 @@
 },
 "那本书，有趣吗？+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 4,
 "effects": [
 {
 "trigger": "e_trigger-exam_card_play-review_up-3",
@@ -48688,7 +48688,7 @@
 },
 "飞溅的水花": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
@@ -48720,7 +48720,7 @@
 },
 "飞溅的水花+": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
@@ -48752,7 +48752,7 @@
 },
 "飞溅的水花++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
@@ -48784,7 +48784,7 @@
 },
 "飞溅的水花+++": {
 "category": "ActiveSkill",
-"cost": 0,
+"cost": 6,
 "effects": [
 {
 "turn": 0,
