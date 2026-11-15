@@ -85,10 +85,6 @@ class ProduceConfig:
     weights: tuple[float, float, float] = (0.40, 0.33, 0.27)  # 审查基准比例
     train_cost: int = 10
     train_gain: int = 75
-    # 训练收益随周数成长（用户实测：前期 CLEAR≈40，后期≈165）；
-    # 给了 train_gain_start/end 就按周数线性插值，否则用 train_gain 常数。
-    train_gain_start: float | None = 40.0   # 官方排期：早期 CLEAR≈40
-    train_gain_end: float | None = 165.0    # 追い込み：CLEAR=165
     train_sigma: float = 6.0
     lesson_cost: int = 10
     rest_gain: int = 24
@@ -97,7 +93,7 @@ class ProduceConfig:
     lesson_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
     support_levels: tuple[int, ...] = (10, 10, 10, 20, 10, 60)  # 真机实测支援卡等级
     support_bonus: float = 1.2      # 训练收益倍率：均值 Lv20 / SR 档（旧 1.35 假设 Lv40）
-    lesson_gain_ratio: float = 0.25  # 课程得分→属性；机制 1:1，但模拟牌组强 2 倍，取 0.5
+    lesson_gain_ratio: float = 0.5  # 课程得分→属性；机制 1:1，但模拟牌组强 2 倍，取 0.5
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     # 考试：6 人里进前 3 才算合格。基准分按真机标定：
     # 实拍期末 1st 589 / 2nd 406 / 3rd 203 / 4th 201 / 5th 195，我们 632 属性 = 6th（不合格）
@@ -235,16 +231,6 @@ class ProduceSim:
         return self.stamina >= cost
 
     # ------------------------------------------------------------------ 行动
-    def _train_gain_at(self, week: int) -> float:
-        """训练收益随周数线性增长（用户实测 40 → 165）；未配置则用常数 train_gain。"""
-        start = self.config.train_gain_start
-        end = self.config.train_gain_end
-        if start is None or end is None:
-            return float(self.config.train_gain)
-        weeks = max(int(self.config.weeks), 1)
-        ratio = min(max((week - 1) / max(weeks - 1, 1), 0.0), 1.0)
-        return float(start) + (float(end) - float(start)) * ratio
-
     def train(self, index: int) -> bool:
         """训练：属性 +N、体力 -cost；体力不足则**不发生**并返回 False。
 
@@ -256,7 +242,7 @@ class ProduceSim:
             self.log.append(f"W{self.week} train{ATTRIBUTES[index]} failed stamina{self.stamina}<{cost}")
             return False
         self.stamina = max(0, self.stamina - cost)
-        base = self._train_gain_at(self.week) * self.config.support_bonus
+        base = self.config.train_gain * self.config.support_bonus
         gain = max(1, int(self.rng.gauss(base, self.config.train_sigma)))
         self.attrs[index] += gain
         self.log.append(f"W{self.week} train{ATTRIBUTES[index]}+{gain}")
