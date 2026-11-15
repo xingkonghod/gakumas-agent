@@ -247,10 +247,13 @@ def test_unknown_score_fallback_skip(tmp_path: Path) -> None:
 def test_buff_score_guard_controls_opening_buff(tmp_path: Path) -> None:
     buff_card = _card(0, "好调", 0, 2, buff=True, text="好调+2")
     score_card = _card(1, "魅力的基础", 9, 5, text="打分+9")
-    state = _state([buff_card, score_card], turns_left=4, stamina=20)
-    assert _policy_without_file(tmp_path).decide(state).card.name == "好调"
+    # 早期回合（剩余 ≥ buff_early_turns=3）：buff 优先，这是用户打法「先攒倍率」
+    early = _state([buff_card, score_card], turns_left=4, stamina=20)
+    assert _policy_without_file(tmp_path).decide(early).card.name == "好调"
 
-    # guard 调到 0：只要分数牌有收益就先打分，不再铺 buff
+    # 非早期回合（剩余 2 < buff_early_turns）：guard 才会压过 buff。
+    # guard 调到 0：只要分数牌有收益就先打分，不再铺 buff。
+    state = _state([buff_card, score_card], turns_left=2, stamina=20)
     path = tmp_path / "no_guard.json"
     _write_policy(path, {"buff_score_guard": 0.0})
     action = LessonPolicy(params_path=path).decide(state)
