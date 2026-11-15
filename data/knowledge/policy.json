@@ -16,11 +16,11 @@
  },
  "produce": {
   "prefer_lesson": true,
-  "rest_threshold": 10,
+  "rest_threshold": 6,
   "reward_pick": "best",
   "lesson_every": 1,
   "attr_choice": "weight",
-  "min_stamina_to_train": 12,
+  "min_stamina_to_train": 6,
   "outing_below": -1,
   "source": "sim_search_ratio05",
   "support_levels": [
@@ -32,7 +32,7 @@
    60
   ],
   "sim_choice": false,
-  "lesson_min_stamina": 10,
+  "lesson_min_stamina": 8,
   "sim_play": false,
   "audition_coefficient": 4.11
  }
