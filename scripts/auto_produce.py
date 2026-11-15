@@ -1083,6 +1083,7 @@ def main() -> int:
                                 else (lesson_state.stamina or 0)
                             ),
                             deck=sim_deck or None,
+                            kind="audition" if exam_mode else "lesson",
                         )
                         sim_best = next(
                             (item for item in sim_estimates if item.index == sim_index), None
