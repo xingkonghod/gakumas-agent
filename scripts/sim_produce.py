@@ -253,7 +253,7 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
 
 
 def build_pool(
-    max_score: int = 40,
+    max_score: int = 60,
     allow_ssr: bool = False,
     *,
     rich: bool = False,

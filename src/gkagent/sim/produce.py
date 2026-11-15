@@ -75,7 +75,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim
+from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim, greedy_policy
 
 ATTRIBUTES = ("Vo", "Da", "Vi")
 
@@ -461,7 +461,21 @@ class ProduceSim:
             self.exams_passed += 1
             self.fans += 3000
         # 考试/舞台得分：沿用“终试 ≈ 2×三维总和”的 proxy，再乘属性倍率（411%）
-        exam_score = int(sum(self.attrs) * 2 * self.config.audition_coefficient)
+        # 真实考试：用当前牌组跑 12 回合（每张牌得分 × 属性倍率 411%），
+        # 而不是 ``2 × 三维 × 倍率`` 的粗估——后者把真机 5992 低估成 3588。
+        exam_sim = LessonSim(
+            list(self.deck),
+            LessonConfig(
+                turns=12,
+                stamina=self.config.stamina_max,
+                target_clear=0,
+                hand_size=3,
+                attribute_coefficient=self.config.audition_coefficient,
+            ),
+            rng_seed=self.rng.randrange(1_000_000),
+        )
+        exam_sim.run(greedy_policy)
+        exam_score = int(exam_sim.score)
         self.last_exam = {
             "rank": rank,
             "power": round(power, 1),
