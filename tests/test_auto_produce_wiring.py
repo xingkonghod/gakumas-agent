@@ -58,3 +58,24 @@ def test_script_imports_resolve() -> None:
             if not hasattr(produce_ui, alias.name):
                 missing.append(alias.name)
     assert not missing, f"auto_produce 从 produce_ui 导入了不存在的名字: {missing}"
+
+
+def test_auto_produce_reads_attrs_via_fixed_roi() -> None:
+    """三维必须每步走 driver.read_attrs(image)（固定小框），别再整屏正则找 X/1000。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "driver"
+        and node.func.attr == "read_attrs"
+    ]
+    assert calls, "auto_produce 每步必须调用 driver.read_attrs(image) 记录三维"
+    assert any(
+        call.args and isinstance(call.args[0], ast.Name) and call.args[0].id == "image"
+        for call in calls
+    ), "read_attrs 必须用当步截图 image，而不是旧的 OCR 文本"
+    assert 're.findall(r"(\\d{1,4})\\s*/\\s*1000"' not in source

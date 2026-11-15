@@ -465,13 +465,13 @@ def main() -> int:
             markers.append(text[:40])
         # 期末试镜之后进入「结算期」：评分/评价画面常常一闪而过，
         # 每步先连拍几张再动作，确保能抓到最终评价
-        # 全程记录三维：屏幕上出现三个 X/1000 就记一条（去重）
+        # 全程记录三维：固定小框直接读大数字（/1000 小字 OCR 常读不出，整屏正则抓不到）
         try:
-            triples = re.findall(r"(\d{1,4})\s*/\s*1000", text)
-            if len(triples) >= 3:
+            attrs_now = driver.read_attrs(image)
+            if attrs_now is not None:
                 from gkagent.data.calibration import record as _record_attrs
 
-                _record_attrs([int(value) for value in triples[:3]], tag="run")
+                _record_attrs(attrs_now, tag="run")
         except Exception:  # noqa: BLE001 - 标定失败不影响培育
             pass
 
