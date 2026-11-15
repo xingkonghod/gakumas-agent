@@ -372,6 +372,9 @@ class LessonPolicy:
             (values.get(card.index, 0.0) for card in affordable if not card.buff),
             default=0.0,
         )
+        # 手里没有能打分的牌时，铺 buff 完全无效（打了也吃不到倍率）——2026-11-15 用户实测反馈
+        if best_score <= 0.0:
+            return None
         if candidate.text:
             buff_value = estimate_value(candidate.text, turns_left=turns).score
         else:
