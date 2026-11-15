@@ -31,9 +31,9 @@
    10,
    60
   ],
-  "sim_choice": true,
+  "sim_choice": false,
   "lesson_min_stamina": 10,
-  "sim_play": true,
+  "sim_play": false,
   "audition_coefficient": 4.11
  }
 }
