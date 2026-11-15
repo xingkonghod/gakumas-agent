@@ -53,10 +53,16 @@ class FakeDevice:
         self.clock = clock
         self.input = input_state
         self.calls: list[tuple[int, int, float, bool]] = []
+        self.swipes: list[tuple[int, int, int, int, int]] = []
 
     def click(self, x, y, delay: float = 0.35, respect_user: bool = True) -> bool:
         self.calls.append((x, y, delay, respect_user))
         # SendMessageWithCursorPos 会移动/还原光标，Windows 视为一次输入
+        self.input.mark_input()
+        return True
+
+    def swipe(self, x1, y1, x2, y2, duration_ms: int = 300) -> bool:
+        self.swipes.append((x1, y1, x2, y2, duration_ms))
         self.input.mark_input()
         return True
 
@@ -92,18 +98,18 @@ def test_bot_own_click_is_not_user_input() -> None:
 
 
 def test_real_user_input_still_pauses() -> None:
-    """bot 点击完成 0.7s 后用户又动鼠标：超出排除窗口，必须继续暂停。"""
+    """bot 点击完成 3s 后用户又动鼠标：超出排除窗口，必须继续暂停。"""
     ap = _auto_produce()
     clock = FakeClock()
     input_state = FakeInput(clock)
-    input_state.last_input_ts = clock.now - 0.5  # bot 点击过程中的注入
+    input_state.last_input_ts = clock.now - 2.5  # bot 点击过程中的注入
     sleeps: list[float] = []
     gate = _gate(ap, clock, input_state, sleeps)
     device = FakeDevice(clock, input_state)
     ap.SelfInputClickGuard(device, gate).install()
 
     gate.note_self_input()  # 假设刚点完
-    clock.advance(0.7)
+    clock.advance(3.2)  # 超出 bot 自身 3s 排除窗口
     input_state.mark_input()  # 真实用户输入
     clock.advance(0.05)
     assert input_state.idle_ms() == 50
@@ -118,43 +124,136 @@ def test_real_user_input_still_pauses() -> None:
     assert gate.user_operating() is False
 
 
-def test_pause_gate_forces_continue_after_30s_without_screen_change() -> None:
-    """连续判定用户在操作但画面 30s 没变 → 兜底放行，不再无限暂停。"""
+def test_queued_cursor_input_within_3s_after_click_is_still_self() -> None:
+    """真机 ep-sup1：MAA「还原光标」的输入晚于 note_self_input 落盘，3s 内都算 bot 自己。
+
+    旧窗口 0.6s：奖励屏领奖（连点多次）后下一步必然误判 `[pause] user-active`，
+    实测 3 次、每次 8.5-30.2s 空转。这里模拟"点击后 2.5s 才落盘的注入输入"。
+    """
     ap = _auto_produce()
     clock = FakeClock()
-    gate = ap.PauseGate(idle_ms=lambda: 100, clock=clock, sleep=lambda _s: None)
+    input_state = FakeInput(clock)
+    gate = _gate(ap, clock, input_state)
+    device = FakeDevice(clock, input_state)
+    ap.SelfInputClickGuard(device, gate).install()
+
+    assert device.click_force(360, 1000) is True
+    clock.advance(2.5)
+    input_state.mark_input()  # 排队中的光标还原输入（晚于记账落盘）
+    clock.advance(0.05)
+    assert input_state.idle_ms() == 50
+    assert gate.user_operating() is False  # 3s 窗口内 → bot 自己
+    assert device.click_force(360, 1000) is True
+
+    # 距 bot 点击超过 3s 之后的输入才算用户操作
+    clock.advance(3.6)
+    input_state.mark_input()
+    clock.advance(0.05)
+    assert gate.user_operating() is True
+    assert device.click_force(360, 1000) is False
+
+
+def test_same_digest_passes_through_instead_of_waiting_30s() -> None:
+    """F#11 兜底：判定"用户在操作"但画面 digest 与上一步完全相同 → 直接放行。
+
+    真机 ep-cplus13 在结算页连刷 `[pause] user-active`，旧实现要等 30s 才强制继续，
+    结果是整局空转停机；真实用户操作一定伴随画面变化（翻页/选牌/换镜头），
+    所以"画面一模一样"只可能是 bot 自己注入的光标移动被算成用户输入。
+    """
+    ap = _auto_produce()
+    gate = ap.PauseGate(idle_ms=lambda: 100, clock=lambda: 0.0, sleep=lambda _s: None)
 
     assert gate.user_operating() is True
-    assert gate.observe("same-frame") is False  # 开始计时
-    clock.advance(29.0)
-    assert gate.observe("same-frame") is False  # 还不到 30s
-    clock.advance(1.5)
-    assert gate.observe("same-frame") is True  # 30.5s 无变化 → 强制继续
-    assert gate.forced_continues == 1
-
-    # 放行后重新计时，不会每一步都刷"强制继续"
-    clock.advance(5.0)
-    assert gate.observe("same-frame") is False
+    assert gate.observe("same-frame") is False  # 第一步没有"上一步"可比，先暂停
+    assert gate.last_reason == "user-operating"
+    assert gate.observe("same-frame") is True  # 同一画面 → 直接放行
+    assert gate.same_digest_passes == 1
+    assert gate.last_reason == "same-digest"
+    # 放行后每步继续放行（画面仍然没变），不会退回空转
+    assert gate.observe("same-frame") is True
+    assert gate.same_digest_passes == 2
 
 
-def test_screen_change_resets_force_timer() -> None:
-    """用户真的在玩（画面在变）时计时清零，不会 30s 后误放行。"""
+def test_screen_change_keeps_pause_and_resets_digest_pass() -> None:
+    """画面真的在变（用户翻页/选牌）时继续保持暂停；换屏不能触发"直接放行"。"""
     ap = _auto_produce()
-    clock = FakeClock()
-    gate = ap.PauseGate(idle_ms=lambda: 100, clock=clock, sleep=lambda _s: None)
+    gate = ap.PauseGate(idle_ms=lambda: 100, clock=lambda: 0.0, sleep=lambda _s: None)
 
     assert gate.observe("frame-A") is False
-    clock.advance(20.0)
-    assert gate.observe("frame-B") is False  # 画面变了 → 重新计时
-    clock.advance(20.0)
-    assert gate.observe("frame-B") is False  # 连续没变只有 20s
-    clock.advance(10.5)
-    assert gate.observe("frame-B") is True
-    assert gate.forced_continues == 1
+    assert gate.observe("frame-B") is False  # 换屏 → 仍判用户操作，不抢点击
+    assert gate.last_reason == "user-operating"
+    assert gate.observe("frame-C") is False
+    assert gate.same_digest_passes == 0
+
+
+def test_same_digest_pass_lets_the_click_through() -> None:
+    """放行那一步的点击必须真的执行（否则"放行"没有意义）。"""
+    ap = _auto_produce()
+    clock = FakeClock()
+    input_state = FakeInput(clock)
+    gate = _gate(ap, clock, input_state)
+    device = FakeDevice(clock, input_state)
+    guard = ap.SelfInputClickGuard(device, gate).install()
+
+    input_state.mark_input()  # bot 自己注入的光标移动被当成"用户刚有输入"
+    assert gate.user_operating() is True
+    assert gate.observe("frame-A") is False  # 第一步：暂停
+    guard.force = gate.observe("frame-A")  # 第二步：同一画面 → 放行
+    assert guard.force is True
+    assert device.click_force(360, 1000) is True
+    assert len(device.calls) == 1
+    assert gate.same_digest_passes == 1
+
+
+def test_guard_takes_over_click_and_click_force_and_swipe() -> None:
+    """F#11 真因之一：只有 click_force 走门，device.click / device.swipe 仍走原生。
+
+    ProduceTask/Navigator 用 ``device.click(...)``（自带 respect_user 门），滚动用
+    ``device.swipe(...)``；这两条路径不记账，下一步就误判"用户正在操作"。install()
+    必须把三个入口都换成 guard 的绑定方法（不是把 click_force 缓存成局部引用）。
+    """
+    ap = _auto_produce()
+    clock = FakeClock()
+    input_state = FakeInput(clock)
+    gate = _gate(ap, clock, input_state)
+    device = FakeDevice(clock, input_state)
+    guard = ap.SelfInputClickGuard(device, gate).install()
+
+    assert device.click.__self__ is guard
+    assert device.click_force.__self__ is guard
+    assert device.swipe.__self__ is guard
+
+    assert device.click(360, 1000) is True
+    assert device.click_force(360, 1000) is True
+    assert device.swipe(360, 1020, 360, 760) is True
+    assert len(device.calls) == 2
+    assert device.swipes == [(360, 1020, 360, 760, 300)]
+    # 三次注入都记成 bot 自己：紧接着的一步不会被误判成用户操作
+    clock.advance(0.05)
+    assert input_state.idle_ms() == 50
+    assert gate.user_operating() is False
+
+
+def test_swipe_respects_pause_gate() -> None:
+    """真实用户操作时滑动也不能抢（滚动饮料列表会移动光标）。"""
+    ap = _auto_produce()
+    clock = FakeClock()
+    input_state = FakeInput(clock)
+    sleeps: list[float] = []
+    gate = _gate(ap, clock, input_state, sleeps)
+    device = FakeDevice(clock, input_state)
+    ap.SelfInputClickGuard(device, gate).install()
+
+    clock.advance(0.7)
+    input_state.mark_input()  # 真实用户输入（已超出 bot 自身 0.6s 窗口）
+    assert gate.user_operating() is True
+    assert device.swipe(360, 1020, 360, 760) is False
+    assert device.swipes == []
+    assert sleeps == [gate.refusal_backoff_s]
 
 
 def test_force_flag_lets_click_through_then_self_input_clears_it() -> None:
-    """30s 兜底放行的那一步点击照常执行，点击后立刻记账，不会下一步又判用户操作。"""
+    """放行的那一步点击照常执行，点击后立刻记账，不会下一步又判用户操作。"""
     ap = _auto_produce()
     clock = FakeClock()
     input_state = FakeInput(clock)

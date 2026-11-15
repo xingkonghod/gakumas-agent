@@ -80,6 +80,7 @@ def test_auto_produce_reads_attrs_via_fixed_roi() -> None:
     ), "read_attrs 必须用当步截图 image，而不是旧的 OCR 文本"
     assert 're.findall(r"(\\d{1,4})\\s*/\\s*1000"' not in source
 
+
 def test_lesson_stall_guard_wired() -> None:
     """同一屏 5 步强制 SKIP / 10 步 [stuck] 退出必须真的接在课程分支上。
 
@@ -120,3 +121,32 @@ def test_lesson_skip_uses_guard_once_per_turn() -> None:
     assert "skip_sent(turn_signature)" in source, "SKIP 后没记本回合签名"
 
 
+def test_window_precheck_wired_before_every_step() -> None:
+    """F#9：每步决策/截图之前必须 ensure_window，且日志串固定（真机复盘靠它）。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    assert "def ensure_window(" in source, "没实现窗口前置检查"
+    assert "window_state = ensure_window(hwnd)" in source, "主循环没调用 ensure_window"
+    assert "[window] 已恢复（之前最小化/尺寸不对）" in source, "窗口恢复没打固定日志"
+    assert 'window_state == "failed"' in source, "恢复失败没走等待/退出分支"
+    assert "WINDOW_RESTORE_FAIL_LIMIT" in source, "恢复失败没有止损上限（会无限等待）"
+    # 先恢复窗口再截图：不能等 capture 抛错后才补救（那时已经空转很多步）
+    assert source.index("window_state = ensure_window(hwnd)") < source.index("image = agent.shot()")
+
+
+def test_pause_gate_same_digest_fallback_wired() -> None:
+    """F#11：暂停门触发时，画面 digest 与上一步相同必须直接放行。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    assert "pause_gate.observe(digest)" in source, "每步没喂画面 digest"
+    assert "click_guard.force = force_continue" in source, "放行标记没传到点击门"
+    assert "画面与上一步相同（bot 自身输入/卡住），直接放行" in source, "没打放行日志"
+    assert "device.swipe = self.swipe" in source, "swipe 没接进暂停门（会移动光标误判用户操作）"
+    assert "device.click = self.click" in source, "device.click 没接进暂停门"
+
+
+def test_scenario_stuck_tick_exits_episode_as_failure() -> None:
+    """F#15：兜底分支返回 stuck 时主循环必须记 [stuck] 并返回失败，不能空转到超时。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    assert 'tick.screen == "stuck"' in source, "主循环没处理 driver 的 stuck 结论"
+    assert "[stuck]" in source, "stuck 时没记 [stuck] 日志"
+    assert '"scenario-stall"' in source, "stuck 时没写失败记录"
+    assert "stuck_exit = True" in source and "return 1 if stuck_exit" in source

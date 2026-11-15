@@ -14,12 +14,14 @@
 
 from __future__ import annotations
 
+import ctypes
 import json
 import re
 import subprocess
 import sys
 import time
 from collections.abc import Callable
+from ctypes import wintypes
 from pathlib import Path
 
 ROOT = Path(r"D:\Games\gakumas-agent")
@@ -94,12 +96,95 @@ PRODUCE_MARKERS = (
 )
 HOME_MARKERS = ("亲密度", "活动经费", "商店", "扭蛋")
 
-# 暂停门参数：0.6s 内叠在 bot 点击之后的输入算 bot 自己；判定用户在操作但画面
-# 连续 30s 没变，就记日志强制继续，避免点击门互相打架导致无限空转。
-SELF_INPUT_EXCLUDE_S = 0.6
+# 暂停门参数：点击注入的光标移动/还原会被 GetLastInputInfo 当成"用户输入"，而且真机
+# 实测**还原输入会晚于 note_self_input 落盘**，0.6s 窗口不够（ep-sup1 奖励屏连点后
+# 3 次误触发，每次卡 8-30s）。窗口放到 3s：bot 点完 3s 内的输入都算自己的。
+# 如果"判定有人在操作"但画面 digest 与上一步完全相同，也直接放行（bot 自身卡住）。
+SELF_INPUT_EXCLUDE_S = 3.0
 USER_IDLE_GATE_MS = 800
-PAUSE_FORCE_CONTINUE_S = 30.0
 PAUSE_REFUSAL_BACKOFF_S = 1.0
+
+# ---- 窗口前置检查（F#9）：每步开始前确保能截图/点击 -------------------------
+# 真机正确 client 尺寸就是 540x960；720x1280 是截图内部缩放后的尺寸（F#10），
+# 把窗口改成 720x1280 会多出 1 行（shape=(1281,720,3)），所以只恢复 540x960。
+PRODUCE_CLIENT_SIZE = (540, 960)
+SW_RESTORE = 9
+SWP_NOMOVE = 0x0002
+SWP_NOZORDER = 0x0004
+SWP_NOACTIVATE = 0x0010
+WINDOW_RESTORE_ATTEMPTS = 3
+WINDOW_RESTORE_FAIL_LIMIT = 5
+
+
+def client_size(hwnd: int, user32=None) -> tuple[int, int]:
+    """当前窗口 client 尺寸；拿不到返回 ``(0, 0)``（调用方按异常处理）。"""
+    api = USER32 if user32 is None else user32
+    rect = wintypes.RECT()
+    if not api.GetClientRect(int(hwnd), ctypes.byref(rect)):
+        return (0, 0)
+    return int(rect.right), int(rect.bottom)
+
+
+def window_frame(hwnd: int, user32=None) -> tuple[int, int]:
+    """窗口边框+标题栏占的宽/高：``SetWindowPos`` 设的是外框，client 要减掉这一圈。"""
+    api = USER32 if user32 is None else user32
+    window = wintypes.RECT()
+    client = wintypes.RECT()
+    if not api.GetWindowRect(int(hwnd), ctypes.byref(window)):
+        return (0, 0)
+    if not api.GetClientRect(int(hwnd), ctypes.byref(client)):
+        return (0, 0)
+    frame_w = (window.right - window.left) - (client.right - client.left)
+    frame_h = (window.bottom - window.top) - (client.bottom - client.top)
+    return (max(int(frame_w), 0), max(int(frame_h), 0))
+
+
+def ensure_window(
+    hwnd: int,
+    *,
+    user32=None,
+    sleep: Callable[[float], None] = time.sleep,
+    attempts: int = WINDOW_RESTORE_ATTEMPTS,
+) -> str:
+    """每步前置：窗口最小化 → 还原；client 不是 540x960 → 用 SetWindowPos 改回来。
+
+    F#9：窗口被最小化后所有点击都落到不存在的地方，之前只在截图失败（RuntimeError）
+    后才补救，已经空转 12 次。这里在**决策/点击之前**检查，异常先恢复再继续。
+
+    返回 ``"ok"``（本来就正常）/ ``"restored"``（发生过恢复且现在正常）/
+    ``"failed"``（多次尝试后仍最小化或尺寸不对，调用方应等待而不是继续点击）。
+    """
+    api = USER32 if user32 is None else user32
+    target_w, target_h = PRODUCE_CLIENT_SIZE
+    changed = False
+    for _ in range(max(1, int(attempts))):
+        if int(api.IsIconic(int(hwnd))):
+            api.ShowWindow(int(hwnd), SW_RESTORE)
+            changed = True
+            sleep(0.4)
+            if int(api.IsIconic(int(hwnd))):
+                continue  # 还原失败：重试，别把"还是最小化"当成正常
+        width, height = client_size(hwnd, user32=api)
+        if (width, height) == (target_w, target_h):
+            return "restored" if changed else "ok"
+        if width <= 0 or height <= 0:
+            sleep(0.4)
+            continue
+        frame_w, frame_h = window_frame(hwnd, user32=api)
+        api.SetWindowPos(
+            int(hwnd),
+            0,
+            0,
+            0,
+            target_w + frame_w,
+            target_h + frame_h,
+            SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE,
+        )
+        changed = True
+        sleep(0.4)
+    if int(api.IsIconic(int(hwnd))) or client_size(hwnd, user32=api) != (target_w, target_h):
+        return "failed"
+    return "restored" if changed else "ok"
 
 
 class PauseGate:
@@ -110,9 +195,17 @@ class PauseGate:
     ``user_idle_ms()`` 就只剩几百毫秒，于是误判"用户正在操作"，出牌暂停空转。
 
     这里在每次 bot 自己点击后记录 ``self_last_input_ts``；如果最后一次输入发生在该
-    时间戳之后 ``self_exclude_s`` 的窗口内（点击注入的光标移动/还原可能略晚于记账），
-    就认为那是 bot 自己的输入，不算用户操作。``last_input_ts <= self_last_input_ts +
-    0.6s`` 正是这个窗口。
+    时间戳之后 ``self_exclude_s`` 的窗口内（真机实测光标还原的输入会晚于记账落盘，
+    0.6s 不够，所以默认 3.0s），就认为那是 bot 自己的输入，不算用户操作。
+    ``last_input_ts <= self_last_input_ts + 3.0s`` 正是这个窗口。
+
+    记时间戳分两次（点击前 + 点击后）：MAA 的点击消息是排队的，注入输入可能落在
+    ``post_click().wait()`` 返回之后，点击前先记一次能把这段"在途输入"也盖住。
+
+    最后一道兜底（F#11）：如果仍判定"用户在操作"，但画面 digest 与上一步**完全
+    相同**，那就不是用户在玩（真实操作会翻页/选牌/换镜头），而是 bot 自己卡住 →
+    直接放行。真机 ep-cplus13 在结算页连刷 5 次 ``[pause] user-active`` 后停机，
+    就是缺这道兜底。
     """
 
     def __init__(
@@ -122,7 +215,6 @@ class PauseGate:
         sleep: Callable[[float], None] = time.sleep,
         gate_ms: int = USER_IDLE_GATE_MS,
         self_exclude_s: float = SELF_INPUT_EXCLUDE_S,
-        force_continue_s: float = PAUSE_FORCE_CONTINUE_S,
         refusal_backoff_s: float = PAUSE_REFUSAL_BACKOFF_S,
     ) -> None:
         self.idle_ms = idle_ms
@@ -130,12 +222,13 @@ class PauseGate:
         self.sleep = sleep
         self.gate_ms = int(gate_ms)
         self.self_exclude_s = float(self_exclude_s)
-        self.force_continue_s = float(force_continue_s)
         self.refusal_backoff_s = float(refusal_backoff_s)
         self.self_last_input_ts: float | None = None
-        self._operating_since: float | None = None
-        self._operating_digest: str | None = None
-        self.forced_continues = 0
+        self._last_digest: str | None = None
+        # 统计：暂停门生效次数 / 因"同一画面"直接放行次数（真机复盘用）
+        self.pause_hits = 0
+        self.same_digest_passes = 0
+        self.last_reason = ""
 
     def note_self_input(self, at: float | None = None) -> None:
         """记录一次 bot 自己点击完成的时间（点击返回后调用）。"""
@@ -154,26 +247,28 @@ class PauseGate:
         return True
 
     def observe(self, digest: str | None) -> bool:
-        """每步开头登记画面；返回是否要强制继续（用户操作判定 ≥30s 且画面没变）。
+        """每步开头登记画面；返回是否要无视暂停门继续点击。
 
-        真实用户操作时画面通常会变（选牌/翻页/剧情），计时清零；只有"判定有人在
-        操作但画面一直不动"才视为暂停门卡死，记日志后放行。
+        F#11 兜底：判定"用户在操作"、但这一帧 digest 与上一步**完全相同**时，不可能
+        是真的有人在玩（真实操作会翻页/选牌/换镜头），更像 bot 自己上一次点击注入的
+        光标移动被算成了用户输入，或者画面已经僵住。此时直接放行，避免像 ep-cplus13
+        那样连刷 ``[pause] user-active`` 空转到停机。
+
+        画面只要有变化就保持暂停（用户可能正在操作），返回 ``False``。
         """
+        previous = self._last_digest
+        self._last_digest = digest
         if not self.user_operating():
-            self._operating_since = None
-            self._operating_digest = None
+            self.last_reason = ""
             return False
-        now = self.clock()
-        if self._operating_since is None or digest != self._operating_digest:
-            self._operating_since = now
-            self._operating_digest = digest
-            return False
-        if now - self._operating_since < self.force_continue_s:
-            return False
-        # 放行后重新计时：下一次再卡 30s 才再次强制，避免每步都重复打日志
-        self._operating_since = now
-        self.forced_continues += 1
-        return True
+        self.pause_hits += 1
+        if digest is not None and previous is not None and digest == previous:
+            # 与上一步同一画面：判定为 bot 自身输入/画面僵住 → 直接放行
+            self.same_digest_passes += 1
+            self.last_reason = "same-digest"
+            return True
+        self.last_reason = "user-operating"
+        return False
 
     def guarded_click(
         self,
@@ -185,36 +280,70 @@ class PauseGate:
     ) -> bool:
         """带暂停门的点击：真实用户操作时不点（退避后返回 False）。
 
-        ``force=True`` 是 30s 无变化兜底：无视暂停门继续执行。点击完成后立刻记录
-        ``self_last_input_ts``，让下一步把这次注入从"用户输入"里排除。
+        ``force=True`` 是 ``observe`` 判定"同一画面/bot 自身输入"后的放行：无视暂停门
+        继续执行。点击**前后各记一次** ``self_last_input_ts``（真机实测光标还原的输入
+        会晚于点击返回落盘，只记点击后仍会漏），让下一步把这次注入从"用户输入"里排除。
         """
         if not force and self.user_operating():
             self.sleep(self.refusal_backoff_s)
             return False
+        self.note_self_input()  # 先记：盖住排队中的注入（光标移动到目标的输入）
         result = click_fn(int(x), int(y), delay=delay, respect_user=False)
-        self.note_self_input()
+        self.note_self_input()  # 再记：盖住点击过程中的光标还原输入
         return result is not False
 
 
 class SelfInputClickGuard:
-    """把暂停门装到设备上：覆盖 ``click_force``，绕开设备内置的 user_idle 等待。
+    """把暂停门装到设备上：接管 ``click`` / ``click_force`` / ``swipe`` 三个入口。
 
     ``Win32Device.click`` 自带的 respect_user 门只读 ``GetLastInputInfo``，分不清
-    bot 自己注入的输入，还会先空等 1.2s 才返回 False。出牌循环里的点击（包括
-    ProduceDriver 内部的 ``getattr(device, "click_force")``）统一走这里：点击前由
-    ``PauseGate`` 判断、点击后记账。
+    bot 自己注入的输入，还会先空等 1.2s 才返回 False。只覆盖 ``click_force`` 不够：
+    ``ProduceTask``/``Navigator`` 走的是 ``device.click(...)``，``device.swipe(...)``
+    也会移动光标刷新 ``GetLastInputInfo``——这些路径都会让下一步误判"用户正在操作"，
+    也就是 F#11 在真机上仍然复现的原因。install() 把三个入口全部接管，并保存**原始
+    方法**（调用时从 ``self._raw_click`` 取，不做局部缓存，避免补丁被旧引用绕过）。
     """
 
     def __init__(self, device, gate: PauseGate) -> None:
         self.device = device
         self.gate = gate
         self.force = False
+        self._raw_click: Callable[..., bool] | None = None
+        self._raw_swipe: Callable[..., object] | None = None
 
-    def click(self, x: int, y: int, delay: float = 0.4) -> bool:
-        return self.gate.guarded_click(self.device.click, x, y, delay=delay, force=self.force)
+    def click(self, x: int, y: int, delay: float = 0.4, respect_user: bool = False) -> bool:
+        """暂停门点击入口；``respect_user`` 只为兼容旧调用签名，统一由 PauseGate 判断。"""
+        raw = self._raw_click
+        if raw is None:
+            raise RuntimeError("SelfInputClickGuard not installed; call install() first")
+        return self.gate.guarded_click(raw, x, y, delay=delay, force=self.force)
+
+    def swipe(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        duration_ms: int = 300,
+    ) -> bool:
+        """滑动也走暂停门，并把这次注入记成 bot 自身输入（否则下一步又误判用户操作）。"""
+        if self._raw_swipe is None:
+            raise RuntimeError("SelfInputClickGuard not installed; call install() first")
+        if not self.force and self.gate.user_operating():
+            self.gate.sleep(self.gate.refusal_backoff_s)
+            return False
+        result = self._raw_swipe(int(x1), int(y1), int(x2), int(y2), int(duration_ms))
+        self.gate.note_self_input()
+        return result is not False
 
     def install(self) -> SelfInputClickGuard:
-        self.device.click_force = self.click
+        device = self.device
+        self._raw_click = device.click
+        self._raw_swipe = getattr(device, "swipe", None)
+        device.click = self.click
+        device.click_force = self.click
+        if self._raw_swipe is not None:
+            device.swipe = self.swipe
         return self
 
 
@@ -371,6 +500,8 @@ def main() -> int:
     same_action_count = 0
     lesson_pending: tuple[tuple[int, int], tuple] | None = None
     drink_used = False
+    # 窗口前置检查（F#9）：连续恢复失败就停，不带着"点击全落空"的状态空转到超时
+    window_fail_streak = 0
     # 期末估分（run_exam_estimate）先停用：它要逐张点开手牌，一局多花 10-20s，等速度达标再接回来
 
     def flush_pending(changed: bool | None) -> None:
@@ -384,6 +515,27 @@ def main() -> int:
         if stop_requested():
             log_lines.append(f"{step:03d} [stop] 急停触发")
             break
+        # F#9：窗口最小化/尺寸被改后，点击全部落到不存在的地方（真机空转 12 次才发现）。
+        # 每步决策之前先校验并恢复；恢复不了就等待，绝不带着坏窗口继续点。
+        window_state = ensure_window(hwnd)
+        if window_state == "restored":
+            window_fail_streak = 0
+            log_lines.append(f"{step:03d} [window] 已恢复（之前最小化/尺寸不对）")
+        elif window_state == "failed":
+            window_fail_streak += 1
+            log_lines.append(
+                f"{step:03d} [window] 恢复失败（最小化/尺寸不对），等待后重试"
+                f"（{window_fail_streak}/{WINDOW_RESTORE_FAIL_LIMIT}）"
+            )
+            time.sleep(1.5)
+            if window_fail_streak >= WINDOW_RESTORE_FAIL_LIMIT:
+                log_lines.append(
+                    f"{step:03d} [window] 连续 {window_fail_streak} 步恢复不了窗口，停止"
+                )
+                break
+            continue
+        else:
+            window_fail_streak = 0
         try:
             t_start = time.perf_counter()
             image = agent.shot()
@@ -397,14 +549,13 @@ def main() -> int:
         flush_pending(prev_digest is not None and digest != prev_digest)
         prev_digest = digest
         cv2.imwrite(str(SHOT_DIR / f"step_{step:03d}.png"), image)
-        # 暂停门兜底：连续判定"用户在操作"但画面一直没变，30s 后记日志强制继续，
-        # 避免 bot 自身输入造成的误判把出牌无限暂停（本步起点击放行）。
+        # 暂停门兜底（F#11）：判定"用户在操作"但画面 digest 与上一步完全一样 →
+        # bot 自身输入/画面僵住，直接放行（本步起点击无视暂停门），不再空转。
         force_continue = pause_gate.observe(digest)
         click_guard.force = force_continue
         if force_continue:
             log_lines.append(
-                f"{step:03d} [pause] 用户操作判定连续 {pause_gate.force_continue_s:.0f}s "
-                "且画面未变化，强制继续（忽略暂停门）"
+                f"{step:03d} [pause] 画面与上一步相同（bot 自身输入/卡住），直接放行"
             )
 
         t_ocr = time.perf_counter()
@@ -1008,6 +1159,24 @@ def main() -> int:
             result = tick.describe()
             screen_name, action_name = tick.screen, tick.action
             clicked = None if screen_name in ("pause", "loading", "blank") else True
+            if tick.screen == "stuck":
+                # 兜底分支自己判定死循环（F#15）：scenario 同屏点不动 10 次以上，
+                # 直接记 [stuck] 退出本局并返回失败，不再等到 12 次停机/30 分钟超时。
+                detail = tick.detail or result
+                log_lines.append(f"{step:03d} [stuck] {detail}")
+                log_failure(
+                    episode,
+                    step,
+                    "scenario-stall",
+                    detail,
+                    {
+                        "attribute": driver.lesson_attribute,
+                        "stamina": last_stamina,
+                        "screen": tick.screen,
+                    },
+                )
+                stuck_exit = True
+                break
             if tick.screen == "pause":
                 pause_streak += 1
                 # 用户在操作时逐步拉长退避，避免每 2s 空烧一步
