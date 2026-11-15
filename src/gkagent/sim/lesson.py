@@ -1,15 +1,29 @@
 """无画面课程模拟器：只做数值推演，不渲染、不截图。
 
-用来在离线环境里快速跑课程，为出牌参数（体力预算 / buff 优先级 / 跳过阈值）
-做扫描和自对弈。模型按 ``data/knowledge/mechanics.md`` 的课程规则做简化：
+用来在离线环境里快速跑课程，为出牌参数（体力预算 / buff 优先级 / 跳过阈值 /
+饮料使用）做扫描和自对弈。模型按真机课程界面（720x1280 截图已确认）与
+``data/knowledge/mechanics.md`` 的课程规则做简化：
 
-- 一节课 ``turns`` 回合，体力**整节课共享、回合间不回复**；
-- 每回合从洗好的牌库抽 ``hand_size`` 张；打出的牌进弃牌堆，牌库抽空后
-  把弃牌堆洗回牌库（近似真机）；
+- 一节课 ``turns`` 回合，体力**整节课共享、回合间不回复**；真机开局满体力，
+  所以 ``LessonConfig.stamina_max`` 默认取初始体力；
+- 每回合从洗好的牌库抽 ``hand_size`` 张，**默认 3 张（与真机一致）**；打出的牌
+  进弃牌堆，牌库抽空后把弃牌堆洗回牌库（近似真机）；每回合补满 3 张；
 - 一回合内可以连续出牌，直到 SKIP；手牌打完则本回合自动结束；
 - 每回合基础可出牌次数 ``plays_per_turn``（默认 3，与标准手牌数一致），本回合
   出牌数达到上限后只能 SKIP；``ExamPlayableValueAdd``（``CardSpec.extra_play``）
   在本回合内追加 +N 次，回合结束清零；
+- **元气（盾）**：``ExamBlock`` 产生的元气（``CardSpec.vitality``）**优先抵挡
+  出牌体力消耗**——出牌时先扣元气、不够再扣体力（真机语义）。``stamina +
+  vitality`` 付不起的牌不合法；依赖元气的分数按**支付牌费前**的元气层数算；
+- **SKIP**：结束本回合，手牌进弃牌堆并抽下一手，**本回合剩余牌不回复体力**；
+  每次回合末都记进 ``LessonSim.trace``（``skipped=True``；手牌自然打空为
+  ``skipped=False``）；
+- **饮料**：``LessonConfig.drinks`` 注入 ``DrinkSpec``（真机底部 3 个饮料槽），
+  ``use_drink(index)`` 喝一瓶，**每回合最多 1 瓶**（真机限制），每瓶按 ``uses``
+  计次、用掉即消耗（``uses=1`` 默认一次性）。效果支持 ``stamina``（回复体力，
+  不超过 ``stamina_max``）/ ``focus``（集中 +N）/ ``condition``（好调 N 回合）/
+  ``score``（直接加 N 分，不吃倍率）。``DrinkSpec.cost`` 默认 0：真机饮料不耗
+  体力，字段保留给自定义饮料；
 - 出牌先按**当前** buff 算分，再结算这张卡自带的 buff（本牌不享受自己刚加的 buff）；
 - ``ExamCardDraw``：出牌后立即抽 N 张（``CardSpec.draw``），牌库空则把弃牌堆
   洗回牌库再抽（刚打出的牌在抽牌之后才进弃牌堆，所以抽不到自己）；
@@ -20,8 +34,9 @@
   顺序，这里沿用"本牌不享受自己刚加的 buff"的保守规则：本牌自带的
   ``impression`` 在算完依赖分之后才生效；这部分分数也不吃好调/集中倍率；
 - ``ExamLessonDependBlock``：依赖元气（盾）层数的分数，与好印象依赖分**同构**：
-  按出牌**前**的元气层数算 ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10），
-  同样不吃好调/集中/指針倍率，本牌自带的 ``vitality`` 在算完之后才生效；
+  按出牌**前**（也就是支付牌费前）的元气层数算
+  ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10），同样不吃好调/集中/指針
+  倍率，本牌自带的 ``vitality`` 在算完之后才生效；
 - ``parameter_buff``：审查基准加成，近似成"本次打分额外乘
   ``parameter_buff/1000`` 倍"（1500 = ×1.5）。本牌自带的加成叠在**本牌最终分**
   （白值 + 依赖分）上；``parameter_buff_turns > 1`` 时在本回合内持续，同一回合
@@ -36,13 +51,31 @@
   回合结束调用 ``stance.end_turn`` 结算全力值；
 - 回合结束：好印象按当前层数加分并 -1，好调回合数 -1；
 - 分数向下取整（``math.floor``）；
-- 体力不足以支付牌库里**任何**一张牌时本局提前结束（``done``）。
+- 体力+元气不足以支付牌库里**任何**一张牌、且没有剩余回复饮料时本局提前结束
+  （``done``）。真机其实可以继续空回合/喝饮料，这里保留"提前结束"简化。
 
 数值注入：卡面数值直接写在 ``CardSpec`` 的 ``score`` / ``condition`` 等字段里。
 读 ``card_table.json`` 的一方把解析出的数值填进 ``CardSpec`` 即可，不需要改卡表。
 
+**未建模（真机有、这里没有；写明影响，避免把简化当成结论）：**
+
+- P 道具 / 角色被动（真机每回合开始触发加分、元气、集中等）：不进课程数值。
+  影响：带强力 P 道具的卡组得分被低估；
+- 饮料槽位（3 槽）与培育前的饮料配装/获得流程：只按 ``LessonConfig.drinks``
+  注入，槽位取舍与商店/事件获得不在模型内；``ProduceSim`` 也尚未配置饮料，
+  所以培育级模拟默认没有饮料收益；
+- 元气挡伤害：课程没有对手伤害来源，元气只用于抵牌费与依赖分。影响：考试里
+  "用盾吃伤害"的场景未建模；
+- 饮料/卡牌的其余效果：强化卡牌、生成卡牌、抽牌、回合追加、消耗体力增减、
+  干劲、好印象/元气的更多来源等 20+ 种饮料效果没有对应字段（配置时直接报错，
+  不会静默当成无用饮料）；好调与绝好调都按 ``condition`` 的 ×1.5 近似；
+- 卡牌强化（训练中强化）、偶像固有卡生成、牌序记忆（真机可查看牌堆顺序）：
+  影响：强化后的数值和记牌优势不体现；
+- 考试专属规则（追击、回合限制、对手行动）：课程模拟器不覆盖。
+
 接口约定：``legal_actions()`` / ``step(action)`` 里的 ``Action`` 是
-**手牌下标（int）或 None**，``None`` 表示 SKIP（结束本回合）。
+**手牌下标（int）或 None**，``None`` 表示 SKIP（结束本回合）；饮料是独立接口
+``legal_drinks()`` / ``use_drink(index)``，不混进 ``Action``。
 """
 
 from __future__ import annotations
@@ -62,9 +95,12 @@ from gkagent.sim.stance import (
 )
 
 __all__ = [
+    "DRINKS_PER_TURN",
+    "DRINK_EFFECTS",
     "Action",
     "Buffs",
     "CardSpec",
+    "DrinkSpec",
     "LessonConfig",
     "LessonSim",
     "Policy",
@@ -74,6 +110,11 @@ __all__ = [
 # 一个合法动作：手牌下标，或 None = SKIP（结束本回合）
 Action: TypeAlias = int | None
 Policy: TypeAlias = Callable[["LessonSim"], Action]
+
+# 饮料支持的效果类型（真机饮料的其余 20+ 种效果都未建模，配置时由 DrinkSpec 报错）
+DRINK_EFFECTS: tuple[str, ...] = ("stamina", "focus", "condition", "score")
+# 真机每回合最多喝 1 瓶（不是每个饮料槽 1 瓶）
+DRINKS_PER_TURN = 1
 
 # 防止策略写出死循环（例如全 0 费抽牌卡无限过牌）时的安全阀
 _MAX_STEPS = 10_000
@@ -125,16 +166,56 @@ class CardSpec:
 
 
 @dataclass(frozen=True)
+class DrinkSpec:
+    """一瓶饮料（真机底部 3 个饮料槽，每回合最多喝 1 瓶）。
+
+    ``cost`` 是喝这瓶饮料需要支付的体力；真机饮料不耗体力，通常填 0，
+    字段保留给自定义/特殊饮料。``effect_type`` 只支持 ``DRINK_EFFECTS``：
+
+    - ``stamina``：回复 ``value`` 点体力（不超过 ``LessonConfig.stamina_max``）；
+    - ``focus``：集中 +``value``；
+    - ``condition``：好调 +``value`` 回合；
+    - ``score``：直接加 ``value`` 分（不吃好调/集中/指針/审查基准倍率）。
+
+    ``uses`` 是这瓶饮料的可使用次数；真机是一次性消耗，默认 1。用完后该槽位
+    不可再用（``LessonSim.drink_uses`` 会记 0）。
+    """
+
+    name: str
+    cost: int
+    effect_type: str
+    value: int
+    uses: int = 1
+
+    def __post_init__(self) -> None:
+        if self.effect_type not in DRINK_EFFECTS:
+            raise ValueError(
+                f"未建模的饮料效果 {self.effect_type!r}：只支持 {DRINK_EFFECTS}"
+            )
+        if self.cost < 0:
+            raise ValueError(f"饮料体力消耗不能为负：{self.cost}")
+        if self.value <= 0:
+            raise ValueError(f"饮料效果数值必须为正：{self.value}")
+        if self.uses < 1:
+            raise ValueError(f"饮料使用次数必须 >= 1：{self.uses}")
+
+
+@dataclass(frozen=True)
 class LessonConfig:
-    """一节课的配置：回合数、初始体力、审查基准、每回合手牌数、每回合出牌上限。"""
+    """一节课的配置：回合数、初始体力、审查基准、每回合手牌数、出牌上限、饮料。"""
 
     turns: int
     stamina: int
     target_clear: int
     target_perfect: int | None = None
+    # 真机每回合手里 3 张牌
     hand_size: int = 3
     # 每回合基础可出牌次数（默认 3 = 标准手牌数）；ExamPlayableValueAdd 在此之上追加
     plays_per_turn: int = 3
+    # 饮料槽（真机 3 个）；默认空 = 旧行为
+    drinks: tuple[DrinkSpec, ...] = ()
+    # 体力上限；None = 初始体力（真机课程开局满体力）。饮料回复不会超过它
+    stamina_max: int | None = None
 
 
 @dataclass
@@ -166,6 +247,10 @@ class LessonSim:
 
         self.score: int = 0
         self.stamina: int = config.stamina
+        # 真机课程开局满体力：没显式给上限时按初始体力当上限
+        self.stamina_max: int = (
+            config.stamina_max if config.stamina_max is not None else config.stamina
+        )
         self.turns_left: int = config.turns
         self.buffs = Buffs()
         # 本回合已出牌数 / 本回合额外可出牌次数（ExamPlayableValueAdd），换手牌时清零
@@ -175,13 +260,19 @@ class LessonSim:
         # 非凡指針：温存 / 強気 / 全力 的倍率状态（纯函数模块 stance.py）
         self.stance = StanceState()
 
-        # 元气 / 干劲：课程里没有对手伤害，元气只累积（留给考试模拟用）
+        # 元气 / 干劲：元气（ExamBlock）优先抵牌费，也能喂依赖元气的分数
         self.vitality: int = 0
         self.motivation: int = 0
         # 本回合内持续的审查基准加成（ExamParameterBuffMultiplePerTurn），回合结束清零
         self.turn_parameter_buff: int = 0
 
-        # 牌库会无限洗回，所以"体力付不起任何牌"是永久性的终端条件
+        # 饮料：每瓶剩余次数（用掉即消耗），每回合最多喝 1 瓶
+        self.drink_uses: list[int] = [drink.uses for drink in config.drinks]
+        self.drinks_used_this_turn: int = 0
+        # 回合级 trace：每次回合结束记一行（含 skipped），便于回放 SKIP 行为
+        self.trace: list[dict] = []
+
+        # 牌库会无限洗回，所以"体力+元气付不起任何牌"是永久性的终端条件
         self._min_cost = min((card.cost for card in self.deck), default=0)
 
         self._draw_hand()
@@ -189,8 +280,16 @@ class LessonSim:
     # ------------------------------------------------------------------ 状态
     @property
     def done(self) -> bool:
-        """回合用尽，或体力已经付不起牌库里任何一张牌。"""
-        return self.turns_left <= 0 or self.stamina < self._min_cost
+        """回合用尽，或体力+元气付不起任何牌、且没有剩余回复饮料。
+
+        真机里面临"这回合一张牌都打不出"时还能喝体力饮料继续；所以只要槽里
+        还有未消耗的 ``stamina`` 饮料，就不提前判负（策略仍可选择 SKIP）。
+        """
+        if self.turns_left <= 0:
+            return True
+        if self.stamina + self.vitality >= self._min_cost:
+            return False
+        return not self._has_unused_stamina_drink()
 
     @property
     def result(self) -> str:
@@ -204,30 +303,85 @@ class LessonSim:
     def legal_actions(self) -> list[Action]:
         """当前能出的手牌下标 + SKIP（None，固定在最后）。
 
-        本回合出牌数达到 ``plays_per_turn + extra_plays`` 后只剩 SKIP。
+        体力+元气够付牌费就合法；本回合出牌数达到
+        ``plays_per_turn + extra_plays`` 后只剩 SKIP。
         """
         if self.done:
             return []
         if self.plays_this_turn >= self.plays_per_turn + self.extra_plays:
             return [None]
         actions: list[Action] = [
-            index for index, card in enumerate(self.hand) if card.cost <= self.stamina
+            index
+            for index, card in enumerate(self.hand)
+            if card.cost <= self.stamina + self.vitality
         ]
         actions.append(None)
         return actions
 
+    def legal_drinks(self) -> list[int]:
+        """当前能喝的饮料下标（未用完、体力够付 ``cost``、本回合还没喝过）。
+
+        真机限制每回合 1 瓶；``DrinkSpec`` 的 ``uses`` 用完后该下标不再出现。
+        """
+        if self.done or self.drinks_used_this_turn >= DRINKS_PER_TURN:
+            return []
+        return [
+            index
+            for index, (drink, uses) in enumerate(
+                zip(self.config.drinks, self.drink_uses)
+            )
+            if uses > 0 and drink.cost <= self.stamina
+        ]
+
     # ------------------------------------------------------------------ 一步
+    def use_drink(self, index: int) -> None:
+        """喝一瓶饮料（``index`` 是 ``LessonConfig.drinks`` 的下标）。
+
+        - 每回合最多 1 瓶（``DRINKS_PER_TURN``），喝过再喝报 ``ValueError``；
+        - 按 ``DrinkSpec.uses`` 消耗次数，用完后该槽位不可再用；
+        - ``stamina`` 回复不超过 ``stamina_max``；``score`` 直接加分，不吃倍率。
+        """
+        if self.done:
+            raise RuntimeError("本局已经结束，不能再喝饮料")
+        if isinstance(index, bool) or not isinstance(index, int):
+            raise TypeError(f"饮料下标必须是 int：{index!r}")
+        if not 0 <= index < len(self.config.drinks):
+            raise ValueError(f"饮料下标越界：{index}")
+        if self.drinks_used_this_turn >= DRINKS_PER_TURN:
+            raise ValueError(
+                f"本回合已经喝过饮料（每回合最多 {DRINKS_PER_TURN} 瓶）"
+            )
+        drink = self.config.drinks[index]
+        if self.drink_uses[index] <= 0:
+            raise ValueError(f"饮料已经用完：{drink.name}")
+        if drink.cost > self.stamina:
+            raise ValueError(
+                f"体力不足：喝「{drink.name}」需要 {drink.cost}，当前 {self.stamina}"
+            )
+
+        self.stamina -= drink.cost
+        if drink.effect_type == "stamina":
+            self.stamina = min(self.stamina_max, self.stamina + drink.value)
+        elif drink.effect_type == "focus":
+            self.buffs.focus += drink.value
+        elif drink.effect_type == "condition":
+            self.buffs.condition_turns += drink.value
+        else:  # score（DrinkSpec 已在构造时校验，这里只剩 score）
+            self.score += drink.value
+        self.drink_uses[index] -= 1
+        self.drinks_used_this_turn += 1
+
     def step(self, action: Action) -> None:
         """执行一个动作。
 
-        - 传手牌下标：出牌 → 扣体力 → 算分 → 结算本牌 buff → 抽牌；
-          手牌打完则自动结束本回合。
-        - 传 ``None``：SKIP，直接结束本回合。
+        - 传手牌下标：出牌 → 算分 → 付牌费（**先扣元气、再扣体力**）→
+          结算本牌 buff → 抽牌；手牌打完则自动结束本回合。
+        - 传 ``None``：SKIP，结束本回合（剩余手牌弃掉、不回复体力）。
         """
         if self.done:
             raise RuntimeError("本局已经结束，不能再 step")
         if action is None:
-            self._end_turn()
+            self._end_turn(skipped=True)
             return
         if isinstance(action, bool) or not isinstance(action, int):
             raise TypeError(f"action 必须是手牌下标或 None：{action!r}")
@@ -239,13 +393,18 @@ class LessonSim:
                 f"{self.plays_per_turn + self.extra_plays}（先 SKIP 结束本回合）"
             )
         card = self.hand[action]
-        if card.cost > self.stamina:
-            raise ValueError(f"体力不足：{card.name} 需要 {card.cost}，当前 {self.stamina}")
+        if card.cost > self.stamina + self.vitality:
+            raise ValueError(
+                f"体力不足：{card.name} 需要 {card.cost}，当前体力 {self.stamina} "
+                f"+ 元气 {self.vitality}"
+            )
 
         self.hand.pop(action)
-        self.stamina -= card.cost
         self.plays_this_turn += 1
-        self.score += self._card_award(card)
+        # 依赖元气的分数按支付牌费前的层数算，所以先算分再付费用
+        award = self._card_award(card)
+        self.score += award
+        self._pay_card_cost(card)
         self._apply_card_buffs(card)
         self._apply_card_stance(card)
         # 本牌结算后追加本回合可出牌次数（本牌本身仍占一次）
@@ -255,12 +414,12 @@ class LessonSim:
             self._draw(card.draw)
         self.discard.append(card)
 
-        # 体力见底：本局提前结束（不再结算回合末）
+        # 体力+元气见底：本局提前结束（不再结算回合末）
         if self.done:
             return
         # 手牌打空：本回合自然结束
         if not self.hand:
-            self._end_turn()
+            self._end_turn(skipped=False)
 
     def run(self, policy: Policy) -> tuple[int, str]:
         """跑完整一局，返回 ``(score, grade)``。"""
@@ -280,7 +439,8 @@ class LessonSim:
         纯 buff 牌（``score <= 0``）不参与集中/好调/指針加成；但如果有
         ``impression_scale`` / ``block_scale``，仍然按**出牌前**的好印象 /
         元气层数结算依赖分：``int(层数 × 倍率 / 100)``。依赖分不吃好调/集中/指針，
-        因为卡表没给出这部分是否参与倍率结算，取保守做法。
+        因为卡表没给出这部分是否参与倍率结算，取保守做法。元气依赖分用的是
+        **支付本牌牌费之前**的元气层数（盾还没被这张牌花掉）。
 
         ``parameter_buff``（含本回合遗留的 ``turn_parameter_buff``）在**最终分**
         上叠加倍率 ``int(最终分 × 加成 / 1000)``；1000 = ×1.0（不加不减），
@@ -342,15 +502,33 @@ class LessonSim:
         self.buffs.focus += card.focus
         self.buffs.impression += card.impression
         if card.vitality > 0:
-            # 干劲提升元气获得量（课程里元气只累积，没有消耗方）
+            # 干劲提升元气获得量；元气优先用于抵牌费（真机语义）
             self.vitality += card.vitality + self.motivation
         self.motivation += card.motivation
 
-    def _end_turn(self) -> None:
-        """回合结束：结算好印象、衰减好调、弃手牌、抽下一手。
+    def _pay_card_cost(self, card: CardSpec) -> None:
+        """支付牌费：**先扣元气（盾）、不够再扣体力**（真机语义）。"""
+        remaining = card.cost
+        absorbed = min(self.vitality, remaining)
+        self.vitality -= absorbed
+        remaining -= absorbed
+        self.stamina -= remaining
+
+    def _has_unused_stamina_drink(self) -> bool:
+        """槽里还有没消耗的回复饮料（真机可以下一回合喝它继续打牌）。"""
+        return any(
+            uses > 0 and drink.effect_type == "stamina"
+            for drink, uses in zip(self.config.drinks, self.drink_uses)
+        )
+
+    def _end_turn(self, *, skipped: bool) -> None:
+        """回合结束：结算好印象、衰减好调、记录 trace、弃手牌、抽下一手。
 
         好印象的结算顺序固定为**先加分、再减层**：本回合按完整层数拿分，
         下一回合才少一层；这样 N 层在剩余 T 回合里的总分是 N+(N-1)+…。
+
+        SKIP（``skipped=True``）与手牌自然打空走同一条结算路径：剩余手牌
+        直接进弃牌堆，**不回复体力**，下一回合补满 ``hand_size`` 张。
         """
         if self.buffs.impression > 0:
             self.score += self.buffs.impression
@@ -359,6 +537,18 @@ class LessonSim:
             self.buffs.condition_turns -= 1
         # 审查基准加成只在本回合内持续
         self.turn_parameter_buff = 0
+        self.trace.append(
+            {
+                "turn": self.config.turns - self.turns_left + 1,
+                "turns_left": self.turns_left,
+                "skipped": skipped,
+                "score": self.score,
+                "stamina": self.stamina,
+                "vitality": self.vitality,
+                "plays": self.plays_this_turn,
+                "drinks": self.drinks_used_this_turn,
+            }
+        )
 
         self.discard.extend(self.hand)
         self.hand.clear()
@@ -369,9 +559,10 @@ class LessonSim:
             self._draw_hand()
 
     def _draw_hand(self) -> None:
-        # 新手牌 = 新回合：本回合出牌数与额外次数从 0 重新计
+        # 新手牌 = 新回合：本回合出牌数、额外次数、已喝饮料数从 0 重新计
         self.plays_this_turn = 0
         self.extra_plays = 0
+        self.drinks_used_this_turn = 0
         self.hand.clear()
         self._draw(self.config.hand_size)
 

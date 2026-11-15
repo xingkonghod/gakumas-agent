@@ -52,9 +52,11 @@ MODELED_EFFECTS = {
 # "审查基准加成"兜底：那些 effects 的 values 本来就是空的，兜底会把好调卡变成 ×1.5。
 # 其它分析脚本（sim_idols / sim_search / …）还按旧 5 元组解包；在它们迁移前，
 # build_pool() 默认只收完全落在旧集合里的卡，避免把抽牌/好印象卡当成"只有白值"。
-# 温存/全力值/可出牌次数/元气依赖分/好调回合数同样只能由 rich CardRow 承载，
+# 温存/全力值/可出牌次数/元气依赖分/好调回合数/元气同样只能由 rich CardRow 承载，
 # 所以只加进 MODELED_EFFECTS：旧 5 元组塞不下这些字段，硬加进来会被旧脚本当成纯白值卡。
 # ExamConcentration 现在承载強気段階，旧 5 元组也表达不了，故从旧集合移除。
+# 注意：LEGACY_MODELED_EFFECTS 仍含 ExamBlock（旧行为：旧 5 元组不承载元气），
+# 只有 rich=True 的 CardRow 才会把 ExamBlock 的 values 映射到 CardSpec.vitality。
 LEGACY_MODELED_EFFECTS = {"ExamLesson", "ExamBlock", "ExamLessonBuff"}
 
 # 旧接口：(name, cost, score, condition, focus)
@@ -79,21 +81,25 @@ class CardRow(NamedTuple):
     parameter_buff: int = 0
     parameter_buff_turns: int = 1
     strong_level: int = 0
+    # ExamBlock：出牌获得的元气（盾）。课程里优先抵牌费，也喂依赖元气的分数
+    vitality: int = 0
 
 
 def _effect_fields(
     row: dict,
-) -> tuple[int, int, int, int, int, int, int, int, int, int, int, int, int]:
+) -> tuple[int, int, int, int, int, int, int, int, int, int, int, int, int, int]:
     """从卡表一行的 ``effects`` 提取可喂给 ``CardSpec`` 的字段。
 
     返回 ``(score, condition, focus, draw, impression, scale, preservation,
     full_power_point, extra_play, block_scale, parameter_buff,
-    parameter_buff_turns, strong_level)``。同类效果取最大值。
+    parameter_buff_turns, strong_level, vitality)``。同类效果取最大值。
+    （``vitality`` 放在最后，保持旧索引不变。）
 
     字段语义以游戏 master 卡面文本为准，effect 名容易误读：
 
     - ``ExamLesson`` = 打分；``ExamLessonBuff`` = **集中**层数（→ ``focus``）；
     - ``ExamConcentration`` = **指針変更（強気）**段階 1/2（→ ``strong_level``）；
+    - ``ExamBlock`` = **元气（盾）**获得量（→ ``vitality``）；
     - ``ExamParameterBuff*`` = **好调/绝好调 N 回合**（→ ``condition = turn``），
       不是审查基准加成；卡表里它们的 ``values`` 是空的，所以 ``parameter_buff``
       只认显式 ``values[0]``（千分比），没有默认 1500‰ 兜底；
@@ -109,6 +115,7 @@ def _effect_fields(
     block_scale = parameter_buff = 0
     parameter_buff_turns = 1
     strong_level = 0
+    vitality = 0
     for effect in row.get("effects") or []:
         kind = effect.get("type")
         values = [v for v in effect.get("values") or [] if v]
@@ -137,6 +144,9 @@ def _effect_fields(
         elif kind == "ExamConcentration":
             # 卡面是「強気変更」（打招呼的基础），values[0] 是 1/2 段階；不是集中。
             strong_level = max(strong_level, value)
+        elif kind == "ExamBlock":
+            # 元气（盾）：课程里先扣元气再扣体力；没有伤害来源，所以不是"挡伤害"
+            vitality = max(vitality, value)
         elif kind == "ExamCardDraw":
             draw = max(draw, value)
         elif kind == "ExamReview":
@@ -163,14 +173,15 @@ def _effect_fields(
         parameter_buff,
         parameter_buff_turns,
         strong_level,
+        vitality,
     )
 
 
 def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
-    """卡组：(name, cost, score, condition, focus[, draw, impression, scale, ...])。
+    """卡组：(name, cost, score, condition, focus[, draw, impression, ...])。
 
     数值来自 card_table。``rich=True`` 返回 ``CardRow``（带抽牌/好印象/依赖
-    倍率/温存/全力值/可出牌次数），供本脚本自己用；默认返回旧 5 元组，
+    倍率/温存/全力值/可出牌次数/元气），供本脚本自己用；默认返回旧 5 元组，
     保持其它分析脚本兼容。
     """
     table = {}
@@ -208,6 +219,7 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
             parameter_buff,
             parameter_buff_turns,
             strong_level,
+            vitality,
         ) = _effect_fields(row)
         if score == 0 and name in master:
             match = re.search(r"打分[^0-9]{0,8}(\d{1,3})", master[name])
@@ -232,6 +244,7 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
                     parameter_buff,
                     parameter_buff_turns,
                     strong_level,
+                    vitality,
                 )
             )
         else:
@@ -252,8 +265,9 @@ def build_pool(
 
     ``rich=False`` 时只收旧集合里的效果类型并返回旧 5 元组（其它脚本兼容）；
     ``rich=True`` 时使用完整 ``MODELED_EFFECTS``（含温存/全力值/可出牌次数/
-    元气依赖分/好调回合数）并返回带 draw/impression/preservation/
-    full_power_point/extra_play/block_scale/parameter_buff/strong_level 的 CardRow。
+    元气依赖分/好调回合数/元气）并返回带 draw/impression/preservation/
+    full_power_point/extra_play/block_scale/parameter_buff/strong_level/vitality
+    的 CardRow。
     """
     table = json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
     modeled = MODELED_EFFECTS if rich else LEGACY_MODELED_EFFECTS
@@ -276,6 +290,7 @@ def build_pool(
             parameter_buff,
             parameter_buff_turns,
             strong_level,
+            vitality,
         ) = _effect_fields(row)
         rarity = str(row.get("rarity") or "")
         if not allow_ssr and rarity in ("Ssr", "Legend"):
@@ -305,6 +320,7 @@ def build_pool(
                     parameter_buff,
                     parameter_buff_turns,
                     strong_level,
+                    vitality,
                 )
             )
         else:
@@ -316,7 +332,7 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
     """把 build_deck/build_pool 的行转成 LessonSim 的 CardSpec。
 
     兼容两种行：rich 的 ``CardRow`` 带抽牌/好印象/依赖倍率/指針/可出牌次数/
-    元气依赖分/好调回合数/強気段階字段；旧 5 元组只有 score/condition/focus
+    元气依赖分/好调回合数/強気段階/元气字段；旧 5 元组只有 score/condition/focus
     （其它分析脚本的默认输出）。
     """
     from gkagent.sim.lesson import CardSpec
@@ -338,6 +354,7 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
             parameter_buff=row.parameter_buff,
             parameter_buff_turns=row.parameter_buff_turns,
             strong_level=row.strong_level,
+            vitality=row.vitality,
         )
     name, cost, score, condition, focus = row
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)

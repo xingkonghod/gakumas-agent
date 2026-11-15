@@ -1,4 +1,4 @@
-﻿"""培育（produce）级模拟器：从开培育到最终评价，纯数值、无画面。
+"""培育（produce）级模拟器：从开培育到最终评价，纯数值、无画面。
 
 用途：在几十万局里比较**训练/休息/上课/外出**的行动策略，看哪种能把三维属性推得更高。
 
@@ -308,7 +308,8 @@ class ProduceSim:
             "grade": grade,
             "plays": plays,
             "reward": reward.name.split("#")[0] if reward else None,
-            # 这节课里是否用过 SKIP（真机 SKIP 会弃掉剩余手牌、不回复体力）
+            # 课程逐回合 trace（SKIP 会记 skipped=True，剩余手牌弃掉且不回复体力）
+            "turns": [dict(row) for row in sim.trace],
             "skipped": any(row.get("skipped") for row in sim.trace),
         }
         self.log.append(f"W{self.week} lesson target{target} score{score} {grade}")

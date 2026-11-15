@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim, greedy_policy
+from gkagent.sim.lesson import (
+    DRINKS_PER_TURN,
+    CardSpec,
+    DrinkSpec,
+    LessonConfig,
+    LessonSim,
+    greedy_policy,
+)
 
 
 def _index(sim: LessonSim, name: str) -> int:
@@ -22,6 +29,8 @@ def _config(
     clear: int = 1,
     perfect: int | None = None,
     hand_size: int = 3,
+    drinks: tuple[DrinkSpec, ...] = (),
+    stamina_max: int | None = None,
 ) -> LessonConfig:
     return LessonConfig(
         turns=turns,
@@ -29,6 +38,8 @@ def _config(
         target_clear=clear,
         target_perfect=perfect,
         hand_size=hand_size,
+        drinks=drinks,
+        stamina_max=stamina_max,
     )
 
 
@@ -679,3 +690,226 @@ def test_greedy_policy_prioritizes_dependent_cards() -> None:
     buff.deck = []
     buff.discard = []
     assert greedy_policy(buff) == 0
+
+
+# ---------------------------------------------------------------- 3 张手牌 / SKIP
+def test_default_hand_size_is_three_and_refills_each_turn() -> None:
+    """默认每回合 3 张（真机手牌数）：第一回合 3 张，SKIP 后补满 3 张且不重复。"""
+    assert LessonConfig(turns=2, stamina=10, target_clear=1).hand_size == 3
+
+    deck = [CardSpec(f"牌{i}", 0, 0) for i in range(6)]
+    sim = LessonSim(deck, _config(turns=2, stamina=10, clear=1))
+    first = [card.name for card in sim.hand]
+    assert len(first) == 3
+    assert len(set(first)) == 3
+
+    sim.step(None)
+    second = [card.name for card in sim.hand]
+    assert len(second) == 3
+    assert set(first).isdisjoint(second)
+    assert len(sim.hand) + len(sim.deck) + len(sim.discard) == 6
+
+
+def test_three_card_hand_reshuffles_discard_when_deck_empty() -> None:
+    """3 张手牌 + 只剩 1 张牌库：换手牌时把弃牌堆洗回牌库，正好补满 3 张。"""
+    deck = [CardSpec(f"牌{i}", 0, 0) for i in range(4)]
+    sim = LessonSim(deck, _config(turns=3, stamina=10, clear=1))
+    assert len(sim.hand) == 3
+    assert len(sim.deck) == 1
+
+    sim.step(None)  # 弃 3 张 → 摸掉牌库 1 张 → 洗回弃牌堆再摸 2 张
+
+    assert len(sim.hand) == 3
+    assert len(sim.deck) == 1
+    assert len(sim.discard) == 0
+    assert len(sim.hand) + len(sim.deck) + len(sim.discard) == 4
+
+
+def test_skip_discards_hand_without_healing_stamina_and_records_trace() -> None:
+    """SKIP：剩余手牌直接进弃牌堆、不回复体力，trace 记 `skipped=True`。"""
+    deck = [CardSpec(f"牌{i}", 0, 0) for i in range(6)]
+    sim = LessonSim(deck, _config(turns=2, stamina=10))
+    first = [card.name for card in sim.hand]
+    sim.stamina = 7  # 模拟已经打掉 3 点体力
+
+    sim.step(None)
+
+    assert sim.stamina == 7  # 剩余 3 张牌不回体力
+    assert len(sim.hand) == 3
+    assert set(first).isdisjoint(card.name for card in sim.hand)
+    assert sim.trace[-1]["skipped"] is True
+    assert sim.trace[-1]["turns_left"] == 2
+    assert sim.turns_left == 1
+
+
+def test_hand_exhaustion_auto_ends_turn_without_skip_flag() -> None:
+    """手牌打空是自然结束回合，不是 SKIP：trace 记 `skipped=False`。"""
+    sim = LessonSim([CardSpec("零费", 0, 1)], _config(turns=2, stamina=10, hand_size=1))
+
+    sim.step(0)
+
+    assert sim.trace[-1]["skipped"] is False
+    assert sim.trace[-1]["plays"] == 1
+    assert sim.turns_left == 1
+
+
+# ------------------------------------------------------------------- 元气挡体力
+def test_vitality_absorbs_card_cost_before_stamina() -> None:
+    """出牌先扣元气、再扣体力：4 费牌在 3 体力 + 5 元气下把元气扣到 1。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=3))
+    sim.hand = [CardSpec("四费", 4, 9), CardSpec("二费", 2, 5)]
+    sim.deck = []
+    sim.discard = []
+    sim.vitality = 5
+
+    assert 0 in sim.legal_actions()  # 3 体力 + 5 元气 >= 4
+    sim.step(0)
+    assert (sim.score, sim.stamina, sim.vitality) == (9, 3, 1)
+
+    sim.step(0)  # 2 费：1 元气 + 1 体力
+    assert (sim.score, sim.stamina, sim.vitality) == (14, 2, 0)
+
+
+def test_vitality_pays_card_cost_when_stamina_is_zero() -> None:
+    """体力 0 但元气足够时牌仍合法，且完全不动体力。"""
+    sim = LessonSim([CardSpec("两费", 2, 5)], _config(turns=1, stamina=2))
+    assert sim.done is False
+    sim.stamina = 0
+    sim.vitality = 3
+
+    assert sim.done is False  # 元气还能付牌费
+    assert sim.legal_actions() == [0, None]
+    sim.step(0)
+
+    assert sim.score == 5
+    assert sim.stamina == 0
+    assert sim.vitality == 1
+
+
+# ----------------------------------------------------------------------- 饮料
+def test_drink_restores_stamina_up_to_max() -> None:
+    """体力饮料回复体力、不超过 stamina_max；每回合限 1 瓶但下一回合可再喝。"""
+    drinks = (DrinkSpec("恢复饮料", 0, "stamina", 6, uses=2),)
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        _config(turns=3, stamina=10, drinks=drinks, stamina_max=12),
+    )
+    sim.stamina = 5
+
+    sim.use_drink(0)
+    assert sim.stamina == 11
+    sim.step(None)  # 换回合：每回合饮料次数重置，体力不自动回复
+
+    assert sim.stamina == 11
+    sim.use_drink(0)
+    assert sim.stamina == 12  # 封顶，不是 17
+
+
+def test_drink_adds_focus_to_later_cards() -> None:
+    """集中饮料 +3：本回合后续 9 分牌变 12。"""
+    drinks = (DrinkSpec("冰咖啡", 0, "focus", 3),)
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, drinks=drinks))
+    sim.hand = [CardSpec("打分", 0, 9), CardSpec("占位", 0, 0)]
+    sim.deck = []
+    sim.discard = []
+
+    sim.use_drink(0)
+    assert sim.buffs.focus == 3
+    sim.step(0)
+    assert sim.score == 12
+
+
+def test_drink_condition_and_score_effects() -> None:
+    """好调饮料 +3 回合让 10 分牌 ×1.5；分数饮料直接加分、不吃倍率。"""
+    condition_sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, drinks=(DrinkSpec("维生素饮料", 0, "condition", 3),)),
+    )
+    condition_sim.hand = [CardSpec("打分", 0, 10), CardSpec("占位", 0, 0)]
+    condition_sim.deck = []
+    condition_sim.discard = []
+    condition_sim.use_drink(0)
+    assert condition_sim.buffs.condition_turns == 3
+    condition_sim.step(0)
+    assert condition_sim.score == 15
+
+    score_sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, drinks=(DrinkSpec("初星水", 0, "score", 10),)),
+    )
+    score_sim.use_drink(0)
+    assert score_sim.score == 10
+
+
+def test_only_one_drink_per_turn_and_consumed_after_use() -> None:
+    """每回合限 1 瓶；uses=1 的饮料用掉后不能再用，下一回合才能喝别的。"""
+    drinks = (DrinkSpec("A", 0, "focus", 1), DrinkSpec("B", 0, "focus", 1))
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=3, stamina=10, drinks=drinks))
+
+    assert sim.legal_drinks() == [0, 1]
+    sim.use_drink(0)
+    assert sim.drinks_used_this_turn == DRINKS_PER_TURN
+    assert sim.legal_drinks() == []
+    with pytest.raises(ValueError, match="每回合最多"):
+        sim.use_drink(1)
+    assert sim.drink_uses == [0, 1]
+
+    sim.step(None)  # 新回合
+    assert sim.legal_drinks() == [1]
+    with pytest.raises(ValueError, match="用完"):
+        sim.use_drink(0)
+    sim.use_drink(1)
+    assert sim.buffs.focus == 2
+
+
+def test_drink_cost_is_paid_before_effect() -> None:
+    """带体力消耗的饮料先扣 cost 再结算效果（真机饮料 cost=0，字段留给自定义）。"""
+    drinks = (DrinkSpec("付费饮料", 2, "stamina", 5),)
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, drinks=drinks, stamina_max=20),
+    )
+
+    sim.use_drink(0)
+
+    assert sim.stamina == 13  # 10 - 2 + 5
+
+
+def test_unknown_drink_effect_is_rejected() -> None:
+    """未建模的饮料效果直接报错，不能静默变成无效饮料。"""
+    with pytest.raises(ValueError, match="未建模"):
+        DrinkSpec("乌龙茶", 0, "vitality", 7)
+
+
+def test_same_seed_reproducible_with_three_cards_and_drinks() -> None:
+    """3 张手牌 + 饮料 + SKIP：同 seed 的手牌序列、饮料序列、分数、trace 全一致。"""
+
+    def play(seed: int) -> tuple[list, list, int, list]:
+        deck = [
+            CardSpec("打分A", 2, 9),
+            CardSpec("打分B", 3, 12),
+            CardSpec("集中", 0, 0, focus=2),
+            CardSpec("元气", 1, 0, vitality=4),
+            CardSpec("好调", 0, 0, condition=2),
+            CardSpec("抽牌", 0, 3, draw=1),
+            CardSpec("大牌", 4, 20),
+        ]
+        drinks = (DrinkSpec("咖啡", 0, "focus", 2), DrinkSpec("水", 0, "stamina", 5, uses=2))
+        sim = LessonSim(
+            deck,
+            _config(turns=4, stamina=16, clear=20, drinks=drinks),
+            rng_seed=seed,
+        )
+        hands: list[tuple[str, ...]] = []
+        drunk: list[int] = []
+        while not sim.done:
+            hands.append(tuple(card.name for card in sim.hand))
+            legal = sim.legal_drinks()
+            if legal:
+                sim.use_drink(legal[0])
+                drunk.append(legal[0])
+            sim.step(greedy_policy(sim))
+        return hands, drunk, sim.score, [dict(row) for row in sim.trace]
+
+    assert play(11) == play(11)
+

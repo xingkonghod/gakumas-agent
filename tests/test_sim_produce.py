@@ -516,3 +516,17 @@ def test_exam_block_reaches_rich_card_spec_as_vitality() -> None:
     assert "视角的基础" in rich_deck
     assert rich_deck["视角的基础"].vitality == 1
 
+
+def test_lesson_trace_contains_per_turn_skip_flags() -> None:
+    """培育 trace 里带课程的逐回合 trace：每行都有 skipped，汇总字段与之一致。"""
+    sim = _sim()
+    sim.step(lambda _state: "lesson")
+    row = sim.trace[-1]
+    assert row["action"] == "lesson"
+    detail = row["lesson"]
+    assert detail is not None
+    turns = detail["turns"]
+    assert turns
+    assert all(isinstance(turn["skipped"], bool) for turn in turns)
+    assert detail["skipped"] == any(turn["skipped"] for turn in turns)
+
