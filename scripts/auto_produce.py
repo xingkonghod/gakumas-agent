@@ -1090,16 +1090,29 @@ def main() -> int:
                             (item for item in sim_estimates if item.index == sim_index), None
                         )
                         if sim_best is not None and sim_best.point is not None:
+                            # 量纲：sim_best.expected 是模拟器口径（含 buff/审查加成后的期望总分），
+                            # 不能和屏幕上的「打分」直接比较，只用于排序；所以两边都同时打印
+                            # 「屏幕分」（卡面宝石/DPS 预览）和「模拟口径期望/规则估值」。
+                            screen_by_point = {
+                                tuple(card.point): float(card.total_score)
+                                for card in state_clean.cards
+                            }
+                            rule_screen = (
+                                screen_by_point.get(tuple(name_pick.point), 0.0)
+                                if name_pick is not None
+                                else None
+                            )
                             rule_label = (
-                                f"{name_pick.name}({name_pick.value:.0f}分)"
+                                f"{name_pick.name}(屏幕 {rule_screen:.0f}分、"
+                                f"规则估值 {name_pick.value:.1f})"
                                 if name_pick is not None
                                 else "无"
                             )
                             if name_pick is None or sim_best.point != name_pick.point:
                                 log_lines.append(
                                     f"{step:03d} [lesson] sim-pick {sim_best.name} "
-                                    f"({sim_best.score:.0f}分/{sim_best.cost}费) "
-                                    f"期望 {sim_best.expected:.1f} vs 规则选 {rule_label}"
+                                    f"(屏幕 {sim_best.score:.0f}分/{sim_best.cost}费、"
+                                    f"模拟口径期望 {sim_best.expected:.1f}) vs 规则选 {rule_label}"
                                 )
                                 name_pick = HandPick(
                                     point=sim_best.point,
@@ -1110,7 +1123,8 @@ def main() -> int:
                             else:
                                 log_lines.append(
                                     f"{step:03d} [lesson] sim-pick 与规则一致 {sim_best.name} "
-                                    f"(期望 {sim_best.expected:.1f})"
+                                    f"(屏幕 {sim_best.score:.0f}分、模拟口径期望 "
+                                    f"{sim_best.expected:.1f}、规则估值 {name_pick.value:.1f})"
                                 )
                         # 近似牌库：真机拿不到完整牌组，把见过的手牌并进来（最多 12 张）
                         for item in sim_estimates:
