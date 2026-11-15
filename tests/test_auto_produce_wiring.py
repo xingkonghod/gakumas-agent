@@ -1,4 +1,4 @@
-"""接线静态检查：auto_produce.py 里对 ProduceDriver 的每次方法调用都必须真实存在。
+﻿"""接线静态检查：auto_produce.py 里对 ProduceDriver 的每次方法调用都必须真实存在。
 
 背景：2026-11-15 连续踩了三次同类坑——
   * policy.json 的 produce 段只保留默认键，attr_choice 被静默丢弃；
@@ -164,3 +164,18 @@ def test_exam_mode_wired_and_disables_every_skip() -> None:
     assert "force_skip = stall_action == \"force-skip\" and not exam_mode" in source, (
         "同屏兜底强制 SKIP 没被考试模式拦住"
     )
+
+
+def test_sim_play_switch_wired() -> None:
+    """sim 实时出牌开关：默认关闭走规则；开启后 rollout 覆盖但 None/异常必须退回规则。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    assert 'driver._produce_params().get("sim_play")' in source, "没读 policy.json 的 sim_play 开关"
+    assert "plan_pick(" in source, "出牌分支没接模拟器 rollout"
+    assert "[lesson] sim-pick" in source, "sim 选牌没打日志（真机复盘要对比规则选择）"
+    assert "if sim_best is not None and sim_best.point is not None" in source, (
+        "模拟器返回 None/异常时必须保留规则选择（不能把出牌搞退化）"
+    )
+    policy = (ROOT / "data" / "knowledge" / "policy.json").read_text(encoding="utf-8")
+    assert '"sim_play"' in policy, "policy.json 没加 sim_play 键"
+    # 代码里缺键时按 false 处理（bool(...get(...))），默认不跑模拟器
+    assert 'bool(driver._produce_params().get("sim_play"))' in source

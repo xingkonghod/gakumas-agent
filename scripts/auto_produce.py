@@ -43,6 +43,8 @@ from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
 from gkagent.runtime.replay import ReplayDB
 from gkagent.sim.exam_estimate import SimCard, estimate_score
+from gkagent.sim.lesson import CardSpec
+from gkagent.sim.play_choice import MAX_APPROX_DECK, plan_pick
 from gkagent.tasks.produce import ProduceTask
 from gkagent.tasks.produce_ui import (
     LESSON_SKIP_POINT,
@@ -505,6 +507,8 @@ def main() -> int:
     window_fail_streak = 0
     # 考试/试镜模式（F#17）：本局是否已进入过考试（只打一次 [exam-mode] 进入日志）
     exam_seen = False
+    # sim 实时出牌的近似牌库（真机拿不到完整牌组，把见过的手牌并进来，最多 12 张）
+    sim_deck: list[CardSpec] = []
     # 期末估分（run_exam_estimate）先停用：它要逐张点开手牌，一局多花 10-20s，等速度达标再接回来
 
     def flush_pending(changed: bool | None) -> None:
@@ -751,6 +755,8 @@ def main() -> int:
             # （ep-sup1 期中 4th/228Pt，1st=597 直接不合格），所以先识别，再把
             # 体力门 / 同屏兜底 / 策略的 SKIP 全部禁掉，强制每回合出一张牌。
             exam_mode = driver.exam_mode(image, lines)
+            # 出牌策略开关（policy.json produce.sim_play，默认 false）：开着才跑模拟器 rollout
+            sim_play = bool(driver._produce_params().get("sim_play"))
             if exam_mode and not exam_seen:
                 exam_seen = True
                 log_lines.append(
@@ -1059,6 +1065,61 @@ def main() -> int:
                         )
                     if tuple(name_pick.point) in lesson_guard.failed_points:
                         name_pick = None
+                # sim 实时出牌（policy.json produce.sim_play，默认 false）：
+                # 对每张手牌 rollout「打这张 + 剩余回合 greedy 打完」，期望分最高者覆盖规则选择；
+                # 模拟器返回 None/异常时保留规则结果，绝不让出牌退化。
+                if sim_play and not lesson_skip and state_clean.cards:
+                    sim_candidates = [
+                        card
+                        for card in state_clean.cards
+                        if card.name not in bad_cards
+                        and tuple(card.point) not in lesson_guard.failed_points
+                    ]
+                    if sim_candidates:
+                        sim_index, sim_estimates = plan_pick(
+                            sim_candidates,
+                            turns_left=max(int(turns or lesson_state.turns_left or 3), 1),
+                            stamina=int(
+                                stamina
+                                if stamina is not None
+                                else (lesson_state.stamina or 0)
+                            ),
+                            deck=sim_deck or None,
+                        )
+                        sim_best = next(
+                            (item for item in sim_estimates if item.index == sim_index), None
+                        )
+                        if sim_best is not None and sim_best.point is not None:
+                            rule_label = (
+                                f"{name_pick.name}({name_pick.value:.0f}分)"
+                                if name_pick is not None
+                                else "无"
+                            )
+                            if name_pick is None or sim_best.point != name_pick.point:
+                                log_lines.append(
+                                    f"{step:03d} [lesson] sim-pick {sim_best.name} "
+                                    f"({sim_best.score:.0f}分/{sim_best.cost}费) "
+                                    f"期望 {sim_best.expected:.1f} vs 规则选 {rule_label}"
+                                )
+                                name_pick = HandPick(
+                                    point=sim_best.point,
+                                    index=sim_best.index,
+                                    name=sim_best.name,
+                                    value=sim_best.expected,
+                                )
+                            else:
+                                log_lines.append(
+                                    f"{step:03d} [lesson] sim-pick 与规则一致 {sim_best.name} "
+                                    f"(期望 {sim_best.expected:.1f})"
+                                )
+                        # 近似牌库：真机拿不到完整牌组，把见过的手牌并进来（最多 12 张）
+                        for item in sim_estimates:
+                            if len(sim_deck) < MAX_APPROX_DECK and all(
+                                item.name != spec.name for spec in sim_deck
+                            ):
+                                sim_deck.append(
+                                    CardSpec(name=item.name, cost=item.cost, score=item.score)
+                                )
                 # 同一张卡连点 4 次手牌都没变 → 认为不可用，标记跳过、换一张
                 if name_pick is not None:
                     if name_pick.name == last_pick_name:
