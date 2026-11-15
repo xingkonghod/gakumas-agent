@@ -14,17 +14,32 @@
 
 只依赖 `gkagent.sim.lesson`，不依赖真机、不联网、可多进程。
 
-**校准锚点（2026-11-15 真机实测，唯一可信基准）：**
+**双源口径（2026-11-15 夜间，当前默认）：**
+
+- ``data/knowledge/official.json``（``scripts/wiki_formula_ingest.py`` 生成）
+  提供 16 周プロ排期：week1 授業 CLEAR 40 + PERFECT 25，后期授業 110/40，
+  训练 40→165，追い込み 90/165；考试在 week 7/16。
+- ``schedule_source="official"``（默认）时，训练/上课的周收益直接取官方排期：
+  ``train_clear`` / ``clear+perfect``。缺失时退回 ``train_gain=75`` 与
+  ``lesson_gain_ratio=0.5`` 旧常数（``schedule_source="constants"`` 可强制旧口径）。
+- 300 局（seed 9000，真机卡组/奖励池）：默认策略 三维 990 / 评价点 P50 4747；
+  按官方行动排期 三维 966 / 评价点 P50 4666。真机第二局 971 / 5992。
+- 评价点仍差 ~22%：真机 5992 那局的终试得分/顺位没有采集；在 total≈970、
+  rank=3 时，``2×total×4.11`` 的考试 proxy 加官方分段公式上限约 4830。
+  这不是再调一个常数能解决的，详见 ``docs/WIKI_DUAL_SOURCE.md``。
+
+**旧口径校准（2026-11-15 白天，现仅作 fallback 历史依据）：**
 
 - 玩家手动打完一局：**评价 C / 4135 评价点 / 三维约 1000-1200**
   （有村麻央，支援卡 Lv10/10/10/20/10/60，起始三维 209/85/75）；
 - 扫描 ``lesson_gain_ratio``：1.00 → 三维 2219 / 评价点 7309；0.60 → 1330 / 4739；
   **0.50 → 1108 / 4097（与真机 4135 误差 0.9%）**；0.40 → 886 / 3454；
-- 所以默认取 **0.5**：机制上课程得分 1:1 转属性（1.0 是对的），但模拟器"奖励选最强"
+- 旧默认取 **0.5**：机制上课程得分 1:1 转属性（1.0 是对的），但模拟器"奖励选最强"
   后的牌组约为真机牌组的 **2 倍强**（模拟课程均分 ~245，真机只有 90-120），
   1.0 会把总分放大约 2 倍；0.5 是吸收"牌组强度差"后的有效系数；
 - 支援卡加成同步改成 **1.2**：真机 6 张卡均值 Lv20（Lv10/10/10/20/10/60）属 SR 档，
-  旧的 1.35 假设 Lv40，会把训练收益再抬高一档。
+  旧的 1.35 假设 Lv40，会把训练收益再抬高一档。official 模式下排期收益已是
+  最终值，不再乘 support_bonus；该倍率只用于 constants fallback。
 
 **考试属性倍率（2026-11-15 19:06 真机 C+/5577 反推）：**
 
@@ -54,32 +69,52 @@
 
 from __future__ import annotations
 
+import json
 import random
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
 from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim
 
 ATTRIBUTES = ("Vo", "Da", "Vi")
 
+# 官方排期/公式（scripts/wiki_formula_ingest.py 生成）。
+OFFICIAL_PATH = Path(__file__).resolve().parents[3] / "data" / "knowledge" / "official.json"
+
+
+@lru_cache(maxsize=4)
+def load_official_schedule(path: str | None = None) -> dict:
+    """读 official.json；缺失/损坏时返回空 dict（调用方退回旧常数）。"""
+    target = Path(path) if path else OFFICIAL_PATH
+    try:
+        raw = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
 
 @dataclass(frozen=True)
 class ProduceConfig:
-    """一局培育的数值配置（默认值 = 真机实测校准后的口径）。
+    """一局培育的数值配置（默认值 = 官方排期 + 真机实测校准后的口径）。
 
-    校准依据：真机手动一局 **评价 C / 4135 评价点 / 三维约 1000-1200**
+    校准依据：16 周プロ官方排期 + 真机第二局 **C+ / 5992 评价点 / 三维 971**
     （起始 209/85/75，支援卡 Lv10/10/10/20/10/60）。
 
-    - ``lesson_gain_ratio=0.5``：机制值本是 1.0（课程得分 1:1 转属性），但模拟器
-      奖励选牌后的牌组强度约为真机的 2 倍（课程均分 ~245 vs 真机 90-120），
-      1.0 会把总分放大约 2 倍；0.5 时模拟三维 1108 / 评价点 4097，与真机 4135
-      误差 0.9%（扫描 1.0/0.6/0.5/0.4 见模块 docstring）。
-    - ``support_bonus=1.2``：真机支援卡均值 Lv20、SR 档 → 1.2；旧默认 1.35
-      是"假设 Lv40"的口径，训练/课程收益会偏高。
+    - ``schedule_source="official"``：训练/上课周收益从 ``official.json`` 的
+      ``schedule`` 取；缺失才退回 ``train_gain`` / ``lesson_gain_ratio`` 旧常数。
+      官方排期下 300 局默认策略三维 ~990、评价点 P50 ~4747（真机 971/5992）。
+    - ``weeks=16`` / ``exam_weeks=(7, 16)``：真机那局是 16 周プロ，旧默认
+      12 周（exam 6/12）少 4 个行动周，是旧模拟 620 vs 真机 971 的主因之一。
+    - ``lesson_gain_ratio=0.5``：旧口径 fallback 的课程得分→属性系数；official
+      模式不使用（课程收益直接取 CLEAR+PERFECT）。
+    - ``support_bonus=1.2``：真机支援卡均值 Lv20、SR 档 → 1.2；official 排期
+      收益已是最终值，不再乘该倍率。
     - ``audition_coefficient=4.11``：考试/舞台的属性倍率（屏幕「歌唱 411%」），
       真机实测值；课程里倍率 1.0（课程得分/评价校准不受影响）。
     """
 
-    weeks: int = 12
+    weeks: int = 16
     stamina_max: int = 35
     start_stamina: int = 35
     weights: tuple[float, float, float] = (0.40, 0.33, 0.27)  # 审查基准比例
@@ -88,12 +123,15 @@ class ProduceConfig:
     train_sigma: float = 6.0
     lesson_cost: int = 10
     rest_gain: int = 24
-    outing_weeks: tuple[int, ...] = (3, 5, 8, 10)  # 这几周有外出可选
-    exam_weeks: tuple[int, ...] = (6, 12)
+    outing_weeks: tuple[int, ...] = (3, 5, 8, 14)  # 官方排期的空周（可外出）
+    exam_weeks: tuple[int, ...] = (7, 16)          # 16 周プロ：期中 7 / 期末 16
     lesson_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
     support_levels: tuple[int, ...] = (10, 10, 10, 20, 10, 60)  # 真机实测支援卡等级
     support_bonus: float = 1.2      # 训练收益倍率：均值 Lv20 / SR 档（旧 1.35 假设 Lv40）
-    lesson_gain_ratio: float = 0.5  # 课程得分→属性；机制 1:1，但模拟牌组强 2 倍，取 0.5
+    lesson_gain_ratio: float = 0.5  # 旧口径：课程得分→属性；official 模式改用官方排期
+    # official：按 data/knowledge/official.json 的逐周收益；constants：退回旧常数
+    schedule_source: str = "official"
+    schedule_path: str | None = None  # 测试/离线可注入另一份 official.json
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     # 考试：6 人里进前 3 才算合格。基准分按真机标定：
     # 实拍期末 1st 589 / 2nd 406 / 3rd 203 / 4th 201 / 5th 195，我们 632 属性 = 6th（不合格）
@@ -209,6 +247,17 @@ class ProduceSim:
         self.lesson_policy_fn = lesson_policy  # 可注入真机 LessonPolicy 适配器
         self.last_lesson: dict | None = None
         self.last_exam: dict | None = None
+        self._official = (
+            load_official_schedule(self.config.schedule_path)
+            if self.config.schedule_source == "official"
+            else {}
+        )
+        self._schedule_by_week: dict[int, dict] = {}
+        for row in self._official.get("schedule") or ():
+            try:
+                self._schedule_by_week[int(row["week"])] = row
+            except (KeyError, TypeError, ValueError):
+                continue
 
     # ------------------------------------------------------------------ 局面
     @property
@@ -231,6 +280,29 @@ class ProduceSim:
         return self.stamina >= cost
 
     # ------------------------------------------------------------------ 行动
+    def official_entry(self, week: int | None = None) -> dict | None:
+        """当前周（或指定周）的官方排期行；非 official 模式返回 None。"""
+        if self.config.schedule_source != "official":
+            return None
+        return self._schedule_by_week.get(self.week if week is None else week)
+
+    def _train_base(self) -> tuple[float, bool]:
+        """训练基础收益；第二项表示是否来自 official 排期（是则不再乘支援倍率）。"""
+        entry = self.official_entry()
+        if entry is not None and entry.get("train_clear") is not None:
+            return float(entry["train_clear"]), True
+        return float(self.config.train_gain), False
+
+    def _official_lesson_gain(self) -> int | None:
+        """官方排期里的课程收益 = CLEAR + PERFECT；缺失时返回 None。"""
+        entry = self.official_entry()
+        if entry is None:
+            return None
+        try:
+            return int(entry.get("clear") or 0) + int(entry.get("perfect") or 0)
+        except (TypeError, ValueError):
+            return None
+
     def train(self, index: int) -> bool:
         """训练：属性 +N、体力 -cost；体力不足则**不发生**并返回 False。
 
@@ -242,7 +314,9 @@ class ProduceSim:
             self.log.append(f"W{self.week} train{ATTRIBUTES[index]} failed stamina{self.stamina}<{cost}")
             return False
         self.stamina = max(0, self.stamina - cost)
-        base = self.config.train_gain * self.config.support_bonus
+        base, from_official = self._train_base()
+        if not from_official:
+            base *= self.config.support_bonus
         gain = max(1, int(self.rng.gauss(base, self.config.train_sigma)))
         self.attrs[index] += gain
         self.log.append(f"W{self.week} train{ATTRIBUTES[index]}+{gain}")
@@ -334,13 +408,20 @@ class ProduceSim:
         if grade in ("CLEAR", "PERFECT"):
             self.cleared += 1
             self.fans += self.config.fans_per_clear
-        # 课程的属性成长 ≈ 这节课的总得分（游戏里 パラメータ上昇 就是属性增长），
-        # 之前按 30+score/20 估会低估 5-10 倍，已按机制修正。
+        # 课程的属性成长：official 模式直接用官方排期的 (CLEAR + PERFECT)，
+        # 它已经把课程内得分/好调倍率折算成了最终属性；旧口径才用 score×ratio。
         order = sorted(range(3), key=lambda i: self.config.weights[i], reverse=True)
         target_attr = order[self.lessons % 3]
-        # 支援卡也提升课程成长（真机支援卡给属性加成/技能卡；这里只建模属性加成那一路）
-        support_factor = 0.85 + 0.15 * self.config.support_bonus
-        self.attrs[target_attr] += int(score * self.config.lesson_gain_ratio * support_factor)
+        official_gain = self._official_lesson_gain()
+        if official_gain is not None:
+            gain = official_gain
+            gain_source = "official"
+        else:
+            # 支援卡也提升课程成长（真机支援卡给属性加成/技能卡；这里只建模属性加成那一路）
+            support_factor = 0.85 + 0.15 * self.config.support_bonus
+            gain = int(score * self.config.lesson_gain_ratio * support_factor)
+            gain_source = "constants"
+        self.attrs[target_attr] += gain
         # 课程奖励：真机每节课后都有三选一，所以不管 CLEAR 都给（这才是牌组变强的来源）
         reward = self.pick_reward()
         if reward is not None:
@@ -352,11 +433,13 @@ class ProduceSim:
             "grade": grade,
             "plays": plays,
             "reward": reward.name.split("#")[0] if reward else None,
+            "attr_gain": gain,
+            "gain_source": gain_source,
             # 课程逐回合 trace（SKIP 会记 skipped=True，剩余手牌弃掉且不回复体力）
             "turns": [dict(row) for row in sim.trace],
             "skipped": any(row.get("skipped") for row in sim.trace),
         }
-        self.log.append(f"W{self.week} lesson target{target} score{score} {grade}")
+        self.log.append(f"W{self.week} lesson target{target} score{score} {grade} +{gain}")
         return True
 
     # ------------------------------------------------------------------ 学期
@@ -559,6 +642,23 @@ def strategy_mixed(state: ProduceSim) -> str:
     return "lesson" if state.week % 4 == 0 else "train"
 
 
+def strategy_official(state: ProduceSim) -> str:
+    """按 official.json 的逐周排期行动；体力不足则休息。
+
+    这是「按官方排期跑 300 局」用的策略：排期里的空周休息、考试周由 step()
+    自动处理；普通周按 action（lesson/train）走。
+    """
+    entry = state.official_entry()
+    if entry is None:
+        return "rest"
+    action = entry.get("action")
+    if action == "lesson":
+        return "lesson" if state.stamina >= state.config.lesson_cost else "rest"
+    if action == "train":
+        return "train" if state.stamina >= state.config.train_cost else "rest"
+    return "rest"
+
+
 STRATEGIES = {
     "train_best": strategy_train_best,
     # 别名：对比实验（训练 vs 上课）里用 pure_train 表示"只训练、体力不够就休息"
@@ -567,6 +667,7 @@ STRATEGIES = {
     "lesson_heavy": strategy_lesson_heavy,
     "mixed": strategy_mixed,
     "smart": strategy_smart,
+    "official": strategy_official,
 }
 
 

@@ -44,12 +44,20 @@ WIKI_SOURCES: dict[str, dict[str, str]] = {
         "title": "定期公演『初』",
         "use": "考试回合分配/合格线",
     },
+    # leafierlemon 的育成模拟器是 UTF-8 静态页；表格是 div.table/div.tr，
+    # 用 parse_schedule_rows() 读逐周行动和「上昇量ベース」。
+    "schedule": {
+        "url": "https://leafierlemon.github.io/idolmaster_gakuen_score_calculator/simulator.html",
+        "title": "学マス育成シミュレーター（プロ）",
+        "use": "逐周排期/课程基础值（CLEAR/PERFECT 的公开来源）",
+        "charset": "utf-8",
+    },
 }
 
 USER_AGENT = "Mozilla/5.0 (compatible; gde-wiki-ingest/1.0)"
 
 
-def _response_charset(headers) -> str:
+def _response_charset(headers, default: str = "euc-jp") -> str:
     """响应头 → charset。兼容 http.client.HTTPMessage 和测试用的 dict。"""
     getter = getattr(headers, "get_content_charset", None)
     if callable(getter):
@@ -60,7 +68,7 @@ def _response_charset(headers) -> str:
     if hasattr(headers, "get"):
         content_type = str(headers.get("Content-Type") or "")
     match = re.search(r"charset=([\w-]+)", content_type, re.IGNORECASE)
-    return match.group(1) if match else "euc-jp"
+    return match.group(1) if match else default
 
 
 @dataclass(frozen=True)
@@ -117,7 +125,7 @@ class WikiClient:
         request = urllib.request.Request(source["url"], headers={"User-Agent": USER_AGENT})
         with self.opener(request, timeout=self.timeout) as response:
             raw = response.read()
-            charset = _response_charset(response.headers)
+            charset = _response_charset(response.headers, source.get("charset", "euc-jp"))
         text = raw.decode(charset, "replace")
         html_path.write_text(text, encoding="utf-8")
         meta = {
@@ -209,6 +217,68 @@ def parse_tables(fragment: str) -> list[tuple[tuple[str, ...], ...]]:
         if rows:
             tables.append(tuple(rows))
     return tables
+
+
+def _schedule_action(label: str) -> str:
+    """排期表「内容」列 → 模拟器动作名。
+
+    ``授業`` 是知识课（模拟器的 lesson），``レッスン``/``追い込み`` 是训练
+    （模拟器的 train）；考试/空周只是占位，给策略留出休息周。
+    """
+    if label.startswith("授業"):
+        return "lesson"
+    if "追い込み" in label or "レッスン" in label:
+        return "train"
+    if "試験" in label:
+        return "exam"
+    return "free"
+
+
+def parse_schedule_rows(html: str) -> list[dict]:
+    """解析 leafierlemon 育成模拟器的逐周排期（div.table/div.tr，不是 ``<table>``）。
+
+    返回 ``[{"week": 1, "label": "レッスン", "action": "train", "base": [60],
+    "special": False}, ...]``。``base`` 是页面「上昇量ベース」列里的原始数字：
+    レッスン行是 SP/通常的上限，授業行是三个可选属性值，追い込み行是 CLEAR/PERFECT。
+    具体口径由调用方（``scripts/wiki_formula_ingest.py``）按官方公式解释。
+    """
+    marker = 'id="schedule"'
+    start = html.find(marker)
+    if start < 0:
+        return []
+    open_start = html.rfind("<div", 0, start)
+    next_table = html.find('<div class="table"', start + len(marker))
+    chunk = html[open_start : next_table if next_table > 0 else len(html)]
+    rows: list[dict] = []
+    for raw in re.split(r'<div class="tr">', chunk)[1:]:
+        week_match = re.search(r'<div class="td week">\s*(\d+)\s*</div>', raw)
+        if week_match is None:
+            week_match = re.search(r'<div class="td">\s*(\d+)\s*</div>', raw)
+        if week_match is None:
+            continue
+        tail = raw[week_match.end() :]
+        content_match = re.search(r'<div class="td">(.*?)</div>', tail, re.DOTALL)
+        label = plain_text(content_match.group(1)) if content_match else ""
+        base_match = re.search(
+            r'<div class="td base">(.*?)(?=<div class="td inc")', raw, re.DOTALL
+        )
+        base: list[int] = []
+        if base_match is not None:
+            for match in re.finditer(
+                r'(?:value="(\d+)"|class="radio[^"]*"[^>]*>\s*(\d+)\s*<)',
+                base_match.group(1),
+            ):
+                base.append(int(match.group(1) or match.group(2)))
+        rows.append(
+            {
+                "week": int(week_match.group(1)),
+                "label": label,
+                "action": _schedule_action(label),
+                "base": base,
+                "special": "追い込み" in label,
+            }
+        )
+    return rows
 
 
 # ---------------------------------------------------------------------- 抽取

@@ -10,6 +10,7 @@ from gkagent.knowledge.wiki import (
     describe_sources,
     extract_buffs,
     merge_buffs,
+    parse_schedule_rows,
     parse_sections,
     parse_tables,
     plain_text,
@@ -122,9 +123,50 @@ def test_merge_is_idempotent() -> None:
 def test_sources_are_https_and_described() -> None:
     for key in ("buffs", "mechanics", "hajime"):
         assert WIKI_SOURCES[key]["url"].startswith("https://seesaawiki.jp/")
+    assert WIKI_SOURCES["schedule"]["url"].startswith("https://leafierlemon.github.io/")
     described = describe_sources()
     assert set(described) == set(WIKI_SOURCES)
     assert all(item["title"] and item["use"] for item in described.values())
+
+
+def test_parse_schedule_rows_reads_div_table() -> None:
+    """leafierlemon 用 div.table/div.tr（不是 <table>），也要能读出周/动作/基础值。"""
+    fixture = """
+    <div class="table" id="schedule">
+      <div class="tr h"><div class="td week">週目</div><div class="td">内容</div></div>
+      <div class="tr">
+        <div class="td week">1</div><div class="td">レッスン</div>
+        <div class="td base"><div class="inner_row">
+          <input type="number" class="radio custom_base checked" value="60"/>
+        </div></div>
+        <div class="td inc"></div>
+      </div>
+      <div class="tr">
+        <div class="td">2</div><div class="td">授業</div>
+        <div class="td base"><div class="inner_row">
+          <div class="radio checked" data-bonus="fix">40</div>
+          <div class="radio" data-bonus="fix">30</div>
+          <div class="radio" data-bonus="fix">15</div>
+        </div></div>
+        <div class="td inc"></div>
+      </div>
+      <div class="tr">
+        <div class="td week">3</div><div class="td">追い込み</div>
+        <div class="td base"><div class="inner_row">
+          <div class="radio checked" data-bonus="fix">165</div>
+          <div class="radio" data-bonus="fix">145</div>
+        </div></div>
+        <div class="td inc"></div>
+      </div>
+    </div>
+    """
+    rows = parse_schedule_rows(fixture)
+    assert [row["week"] for row in rows] == [1, 2, 3]
+    assert [row["action"] for row in rows] == ["train", "lesson", "train"]
+    assert rows[0]["base"] == [60]
+    assert rows[1]["base"] == [40, 30, 15]
+    assert rows[2]["special"] is True
+    assert rows[2]["base"] == [165, 145]
 
 
 def test_fetch_uses_cache(tmp_path) -> None:

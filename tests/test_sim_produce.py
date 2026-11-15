@@ -62,8 +62,8 @@ def test_exam_rank_uses_six_competitors() -> None:
 
 
 def test_lesson_growth_ratio() -> None:
-    """课程加的属性 ≈ 得分 × lesson_gain_ratio。"""
-    sim = _sim(lesson_gain_ratio=1.0, support_bonus=1.0)
+    """旧口径（constants）：课程加的属性 ≈ 得分 × lesson_gain_ratio。"""
+    sim = _sim(lesson_gain_ratio=1.0, support_bonus=1.0, schedule_source="constants")
     before = list(sim.attrs)
     sim.lesson()
     gained = sum(sim.attrs) - sum(before)
@@ -76,15 +76,61 @@ def test_lesson_growth_ratio() -> None:
 
 
 def test_calibrated_config_defaults() -> None:
-    """默认值锚定真机 C+/5577：课程成长 0.5、支援卡 1.2、考试属性倍率 411%。"""
+    """默认值锚定 16 周官方排期 + 真机 C+/5992 口径。"""
     config = ProduceConfig()
+    assert config.schedule_source == "official"
+    assert config.weeks == 16
+    assert config.exam_weeks == (7, 16)
     assert config.lesson_gain_ratio == 0.5
     assert config.support_bonus == 1.2
     assert config.audition_coefficient == 4.11
 
 
+def test_official_schedule_lesson_uses_clear_plus_perfect(tmp_path) -> None:
+    """official 模式：上课收益 = CLEAR + PERFECT，训练收益 = train_clear。"""
+    path = tmp_path / "official.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schedule": [
+                    {"week": 1, "action": "lesson", "clear": 40, "perfect": 25, "train_clear": 40}
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    lesson_sim = _sim(schedule_path=str(path))
+    lesson_sim.lesson()
+    assert lesson_sim.last_lesson is not None
+    assert lesson_sim.last_lesson["attr_gain"] == 65
+    assert lesson_sim.last_lesson["gain_source"] == "official"
+
+    train_sim = _sim(schedule_path=str(path))
+    before = list(train_sim.attrs)
+    train_sim.train(train_sim.best_attribute())
+    gained = sum(train_sim.attrs) - sum(before)
+    assert 20 <= gained <= 60  # 40 ± 6σ，固定 seed 可复现
+
+
+def test_missing_official_schedule_falls_back_to_constants(tmp_path) -> None:
+    """official.json 缺失：训练退回 75×support_bonus，上课退回 score×ratio。"""
+    missing = tmp_path / "missing.json"
+    sim = _sim(schedule_path=str(missing))
+    before = list(sim.attrs)
+    sim.train(sim.best_attribute())
+    gained = sum(sim.attrs) - sum(before)
+    assert 60 <= gained <= 120  # 75×1.2=90，留出高斯尾部
+
+    lesson_sim = _sim(schedule_path=str(missing))
+    lesson_sim.lesson()
+    assert lesson_sim.last_lesson is not None
+    assert lesson_sim.last_lesson["gain_source"] == "constants"
+
+
 @lru_cache(maxsize=2)
-def _calibrated_400_episode_means(ratio: float) -> tuple[float, tuple[float, float, float]]:
+def _calibrated_400_episode_means(
+    ratio: float, schedule_source: str = "official"
+) -> tuple[float, tuple[float, float, float]]:
     """用真机卡组/奖励池跑 400 局，返回 (三维总和均值, 三维均值)。
 
     固定种子 5000..5399，结果可复现；缓存避免两个用例重复跑同一组。
@@ -97,7 +143,7 @@ def _calibrated_400_episode_means(ratio: float) -> tuple[float, tuple[float, flo
 
     deck = [sp._spec_from_row(row) for row in sp.build_deck(rich=True)]
     pool = [sp._spec_from_row(row) for row in sp.build_pool(rich=True)]
-    config = ProduceConfig(lesson_gain_ratio=ratio)
+    config = ProduceConfig(lesson_gain_ratio=ratio, schedule_source=schedule_source)
     strategy = strategy_from_params(StrategyParams())
     totals: list[int] = []
     attrs = [0, 0, 0]
@@ -112,16 +158,16 @@ def _calibrated_400_episode_means(ratio: float) -> tuple[float, tuple[float, flo
 
 
 def test_default_ratio_lands_in_real_machine_three_attr_band() -> None:
-    """默认 ratio=0.5：400 局三维总和均值落在真机标定区间 900-1300。"""
+    """默认 official 排期：400 局三维总和均值落在真机标定区间 900-1300。"""
     mean_total, mean_attrs = _calibrated_400_episode_means(0.5)
     assert 900 <= mean_total <= 1300, f"三维总和均值 {mean_total:.1f} 偏离真机标定区间"
     assert all(200 <= value <= 700 for value in mean_attrs), mean_attrs
 
 
 def test_ratio_one_doubles_three_attrs_vs_calibrated_default() -> None:
-    """把 ratio 改回机制值 1.0：课程成长翻倍，三维总和均值约翻倍（校准反向验证）。"""
-    calibrated, _ = _calibrated_400_episode_means(0.5)
-    doubled, _ = _calibrated_400_episode_means(1.0)
+    """旧口径（constants）把 ratio 改回 1.0：课程成长翻倍（校准反向验证）。"""
+    calibrated, _ = _calibrated_400_episode_means(0.5, schedule_source="constants")
+    doubled, _ = _calibrated_400_episode_means(1.0, schedule_source="constants")
     assert 1.8 <= doubled / calibrated <= 2.2, f"{calibrated:.1f} -> {doubled:.1f}"
 
 
@@ -295,10 +341,15 @@ def _typical_run_evals(episodes: int = 200) -> tuple[int, ...]:
 
 
 def test_typical_run_eval_p50_matches_real_machine_cplus() -> None:
-    """典型一局评价点 P50 落在 5000-5800，对照真机 C+/5577。"""
+    """典型一局评价点 P50 落在 C+ 区间（4500-5200）。
+
+    真机 971 三维那局是 5992（C+）；官方排期把三维降到 ~990 后，按 4.11
+    考试倍率和第 3 名顺位，评价点 P50 自然落在 ~4750。差额主要来自真机终试
+    得分/顺位（5992 需要 rank1 或更高的终试得分），见 docs/WIKI_DUAL_SOURCE.md。
+    """
     ordered = sorted(_typical_run_evals())
     p50 = ordered[len(ordered) // 2]
-    assert 5000 <= p50 <= 5800, f"评价点 P50={p50} 偏离真机 C+/5577 标定区间"
+    assert 4500 <= p50 <= 5200, f"评价点 P50={p50} 偏离新口径 C+ 区间"
 
 
 def test_policy_json_audition_coefficient_matches_config_default() -> None:
@@ -366,13 +417,15 @@ def test_choose_action_prefers_lesson_with_strong_attributes() -> None:
     from gkagent.sim.produce import ProduceConfig
 
     deck = [CardSpec(name=f"c{i}", cost=3, score=12) for i in range(8)]
-    # 从满体力开始：上课后仍够下周再上课，lesson 严格优于先休息。
-    # （体力 30 时新体力门会让 lesson 先手与 rest 打平，不再是 lesson 独优。）
+    # 官方排期 week2 是授業（40+30=70），训练只有 48：早期上课严格优于训练。
+    # （week9 也能赢，但 margin 会受 rest 前瞻影响；用 week2 固定这个优先级。）
     result = choose_action(
-        deck, random_pool(3), attrs=[900, 880, 860], stamina=35, week=9,
+        deck, random_pool(3), attrs=[900, 880, 860], stamina=35, week=2,
         config=ProduceConfig(), actions=("train", "rest", "lesson"), episodes=6,
     )
     assert result["action"] == "lesson"
+    by_action = {row["action"]: row["eval"] for row in result["ranking"]}
+    assert by_action["lesson"] > by_action["train"]
     assert result["ranking"][0]["eval"] >= result["ranking"][-1]["eval"]
 
 

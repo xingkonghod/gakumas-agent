@@ -1,0 +1,234 @@
+{
+  "generated_at": "2026-11-15 20:59:38",
+  "inputs": {
+    "official": "data\\knowledge\\official.json",
+    "runs": [
+      "data\\runs\\ep-rule1.json"
+    ]
+  },
+  "parameters": [
+    {
+      "name": "weeks",
+      "value": 16,
+      "source": "official",
+      "evidence": "leafierlemon 16 周プロ排期（data/knowledge/official.json）"
+    },
+    {
+      "name": "exam_weeks",
+      "value": [
+        7,
+        16
+      ],
+      "source": "official",
+      "evidence": "排期第 7/16 周：中間試験/最終試験"
+    },
+    {
+      "name": "class_gain_week1",
+      "value": [
+        40,
+        25
+      ],
+      "source": "official",
+      "evidence": "用户已查证 week1 授業 40 CLEAR + 25 PERFECT；页面 week2 为 40/30/15"
+    },
+    {
+      "name": "class_gain_late",
+      "value": [
+        110,
+        40
+      ],
+      "source": "official",
+      "evidence": "leafierlemon 后期授業 110/40；用于评价/排期锚点"
+    },
+    {
+      "name": "class_gain_fallback_curve",
+      "value": [
+        65,
+        125
+      ],
+      "source": "assumed",
+      "evidence": "非授業周（训练周/空周）默认策略仍可能选上课：65→125 线性插值"
+    },
+    {
+      "name": "train_gain_curve",
+      "value": [
+        40,
+        165
+      ],
+      "source": "real",
+      "evidence": "真机实测训练 40→165；165 同时是最终追い込み CLEAR"
+    },
+    {
+      "name": "special_gain",
+      "value": {
+        "week6": [
+          90,
+          90
+        ],
+        "week15": [
+          165,
+          145
+        ]
+      },
+      "source": "official",
+      "evidence": "leafierlemon 追い込み行 CLEAR/PERFECT"
+    },
+    {
+      "name": "lesson_gain_formula",
+      "value": "(clear+perfect)*(1+lesson_bonus)*condition",
+      "source": "official",
+      "evidence": "seesaawiki レッスン中パラメータ上昇値（好調倍率×上昇量增加）"
+    },
+    {
+      "name": "condition_multiplier",
+      "value": "1.5+0.1*condition_turns",
+      "source": "official",
+      "evidence": "seesaawiki 好調・絶好調倍率：1.5+0.1×好調ターン数"
+    },
+    {
+      "name": "eval_formula",
+      "value": "rank_points+2.3*total+score_conversion",
+      "source": "official",
+      "evidence": "官方评价点公式：順位点+2.3×三维+终试分段（未在缓存 mechanics 页解析到）"
+    },
+    {
+      "name": "audition_coefficient",
+      "value": 4.11,
+      "source": "real",
+      "evidence": "真机 C+/5577 反推「歌唱 411%」；5992 那局的终试得分未采集"
+    },
+    {
+      "name": "support_bonus",
+      "value": 1.2,
+      "source": "real",
+      "evidence": "支援卡 Lv10/10/10/20/10/60 的均值/SR 档折算 1.2"
+    },
+    {
+      "name": "lesson_gain_ratio",
+      "value": 0.5,
+      "source": "assumed",
+      "evidence": "旧口径 fallback；schedule_source=official 时不参与课程收益"
+    },
+    {
+      "name": "stamina_max/train_cost/lesson_cost/rest_gain",
+      "value": [
+        35,
+        10,
+        10,
+        24
+      ],
+      "source": "assumed",
+      "evidence": "模拟器手工设定，未用真机逐周体力/行动验证"
+    },
+    {
+      "name": "exam_base/npc_factors",
+      "value": [
+        [
+          85.0,
+          205.0
+        ],
+        [
+          2.9,
+          2.0,
+          1.0,
+          0.99,
+          0.95
+        ]
+      ],
+      "source": "assumed",
+      "evidence": "真机单局截图反推（1-2 样本），不是官方公式"
+    },
+    {
+      "name": "start_attrs",
+      "value": [
+        0,
+        0,
+        0
+      ],
+      "source": "assumed",
+      "evidence": "模拟从 0 起跑；真机起始 209/85/75=369。真机 final total=971 含起始值，模拟 total 只含成长，口径不同"
+    },
+    {
+      "name": "official_source",
+      "value": {
+        "schedule": "leafierlemon",
+        "formulas": "seesaawiki",
+        "eval": "official_prompt"
+      },
+      "source": "official",
+      "evidence": "official.json 的 source 字段；抓取失败时 schedule 会标 manual"
+    }
+  ],
+  "real_runs": {
+    "count": 1,
+    "runs": [
+      {
+        "episode": "ep-rule1",
+        "file": "data\\runs\\ep-rule1.json",
+        "attrs": [
+          365,
+          234,
+          372
+        ],
+        "total": 971,
+        "eval_points": 5992,
+        "grade": "C+"
+      }
+    ],
+    "mean_total": 971,
+    "mean_eval": 5992
+  },
+  "simulation": {
+    "official": {
+      "strategy": "official",
+      "episodes": 300,
+      "mean_total": 966.4,
+      "p50_total": 967,
+      "min_total": 927,
+      "max_total": 1006,
+      "mean_eval": 4663.4,
+      "p50_eval": 4666,
+      "weekly_action_mix": {
+        "train": 6.0,
+        "lesson": 3.0,
+        "rest": 5.0,
+        "exam": 2.0
+      },
+      "seed": 9000
+    },
+    "default_strategy": {
+      "strategy": "default",
+      "episodes": 300,
+      "mean_total": 990,
+      "p50_total": 990,
+      "min_total": 990,
+      "max_total": 990,
+      "mean_eval": 4747,
+      "p50_eval": 4747,
+      "weekly_action_mix": {
+        "lesson": 10.0,
+        "rest": 4.0,
+        "exam": 2.0
+      },
+      "seed": 9000
+    }
+  },
+  "comparisons": {
+    "official_total_delta_pct": -0.5,
+    "official_eval_delta_pct": -22.1
+  },
+  "assumed_parameters": [
+    "class_gain_fallback_curve",
+    "lesson_gain_ratio",
+    "stamina_max/train_cost/lesson_cost/rest_gain",
+    "exam_base/npc_factors",
+    "start_attrs"
+  ],
+  "diagnosis": [
+    "三维：模拟 966.4 vs 真机 971 (-0.5%)；评价点：模拟 P50 4666 vs 真机 5992 (-22.1%)。",
+    "评价点差额的结构性原因：真机 971 三维那局是 5992，而当前考试 proxy exam_score=2×total×4.11；在 total≈970、rank=3 时官方公式上限约 4830。rank1 在当前 NPC 基准下也不可能（第 1 名 594.5 > 满属性理论上限 ~388），所以 5992 等价于终试原始得分≈16700（4.11 系数下）。真实局终试得分/顺位没有采集，这是剩余最大未知量。",
+    "口径差异：真机 971 是 final total（含起始 209/85/75=369），模拟 total 从 0 起跑、只含成长。若按「成长」对齐，真机成长约 602，而模拟 ~970；本轮按用户给定目标（final total 971）对齐，起始属性未建模。",
+    "周数分配：模拟默认策略在 16 周里做 10 次课 + 4 次休息 + 2 次考试；官方行动排期是 3 次课 + 6 次训练 + 5 次休息 + 2 次考试（体力门导致部分训练周变休息）。两者 total 都在目标附近，但「8 次课 + 4 次训练」的真机动作组合没有被强制复现。",
+    "仍 assumed 的参数：起始三维、体力/费用、npc 基准与倍率、非授课周课程收益曲线、lesson_gain_ratio（official 模式不用）。这些需要真机逐周记录或更多跑局才能收紧。"
+  ]
+}
