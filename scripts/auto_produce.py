@@ -203,6 +203,7 @@ def main() -> int:
     idle = 0
     pause_streak = 0
     last_stamina: int | None = None
+    burst_count = 0
     bad_cards: set[str] = set()
     last_pick_name: str | None = None
     same_pick_count = 0
@@ -313,13 +314,17 @@ def main() -> int:
             markers.append(text[:40])
         # 期末试镜之后进入「结算期」：评分/评价画面常常一闪而过，
         # 每步先连拍几张再动作，确保能抓到最终评价
-        if not final_phase and any(
-            word in text
-            for word in ("最终试镜", "最终考试", "最終試", "最終試験", "合格条件", "需要得分")
-        ):
+        # 只有同时出现「评价字母 + 3位以上分数」才算真结算；
+        # 只匹配「合否条件」会在考试介绍页误触发，导致每步连拍空转。
+        looks_final = bool(
+            re.search(r"(?:評価|评价)[^A-Za-z0-9]{0,6}([SABCDE][+\-－]?)", text)
+            and re.search(r"(\d{3,6})\s*(?:pt|Pt|PT|点)", text)
+        )
+        if not final_phase and looks_final:
             final_phase = True
-            log_lines.append(f"{step:03d} [final] 进入期末结算期，连拍抓评价")
-        if final_phase:
+            burst_count = 0
+            log_lines.append(f"{step:03d} [final] 检测到最终评价，进入连拍模式")
+        if final_phase and burst_count < 6:
             for burst in range(2):
                 time.sleep(0.7)
                 try:
@@ -328,6 +333,7 @@ def main() -> int:
                     # 窗口被最小化/黑屏时不值得让整局崩掉，结算帧抓不到就算了
                     log_lines.append(f"{step:03d} [final] burst 抓帧失败，跳过")
                     break
+                burst_count += 1
                 burst_path = SHOT_DIR / f"final_{episode}_{step:03d}_{burst}.png"
                 cv2.imwrite(str(burst_path), extra)
                 extra_text = driver.text_of(driver.engine().read(extra))

@@ -736,6 +736,11 @@ class ProduceDriver:
 
         # 11) 带标点的长文本基本是剧情/对话：点对话框继续
         # 11.0) 先处理「剧情选择项」：底部 2-3 个带问号的选项气泡，点最上面那个
+        # 误触打开的「育成目标」面板：立刻点底部 X 关闭，别在里面空转
+        if "育成目标" in text and ("亲密度" in text or "编成" in text):
+            self._click(agent, (360, 1218))
+            return TickResult("panel", "close")
+
         choices = [
             line
             for line in lines
