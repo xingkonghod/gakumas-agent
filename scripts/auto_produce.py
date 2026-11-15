@@ -47,11 +47,13 @@ from gkagent.tasks.produce_ui import (
     LESSON_WORDS,
     LessonPlayGuard,
     ProduceDriver,
+    SameScreenGuard,
     clean_card_name,
     clean_lesson_state,
     has_selected_ui,
     lesson_hand_signature,
     lesson_stamina_gate,
+    lesson_turn_signature,
     parse_stamina,
     pick_lesson_card,
 )
@@ -348,11 +350,15 @@ def main() -> int:
     same_pick_count = 0
     # 课程出牌防死循环：详情浮层挡路时关浮层换牌，同一坐标 3 次没推进就 SKIP
     lesson_guard = LessonPlayGuard()
+    # 同屏兜底：课程状态连续 5 步没变 → 强制 SKIP；连续 10 步 → 记 [stuck] 退出本局。
+    # 像素 digest 不能用（角色呼吸/卡面闪光/视频噪点每帧都变），喂语义签名。
+    same_screen = SameScreenGuard()
     lesson_sig_before_pick: tuple | None = None
     action_key: tuple[str, str] | None = None
     action_streak = 0
     final_phase = False
     done = False
+    stuck_exit = False
     seen_produce = False
     produce_end_seen = False
     started_at = time.time()
@@ -601,9 +607,46 @@ def main() -> int:
                 last_stamina = stamina
             if lesson_state.turns_left is not None:
                 turns = lesson_state.turns_left
-            # 体力门：体力 < 最低手牌费用 → 一张牌都打不出。立刻按 SKIP 结束本回合，
-            # 不要一回合一点地磨（真机 0 体力进课程后连按 SKIP 白送回合）。
-            stamina_gate = lesson_stamina_gate(lesson_state, stamina=stamina)
+            # 同屏兜底（ep-cplus10：SKIP 点空后同一画面连拍 169 步，25 分钟超时）。
+            # 用语义签名而不是像素 digest——角色呼吸/卡面闪光/视频噪点让每帧 hash 都不同。
+            turn_signature = lesson_turn_signature(lesson_state)
+            stall_action = same_screen.observe(turn_signature)
+            if stall_action == "stuck":
+                detail = (
+                    f"课程同一屏连续 {same_screen.repeats} 步无变化："
+                    f"{lesson_state.summary()}，SKIP 也推不动，退出本局"
+                )
+                log_lines.append(f"{step:03d} [stuck] {detail}")
+                log_failure(
+                    episode,
+                    step,
+                    "lesson-stuck",
+                    detail,
+                    {
+                        "attribute": driver.lesson_attribute,
+                        "stamina": last_stamina,
+                        "turns": turns,
+                    },
+                )
+                stuck_exit = True
+                break
+            force_skip = stall_action == "force-skip"
+            if force_skip:
+                log_lines.append(
+                    f"{step:03d} [lesson] 同一屏连续 {same_screen.repeats} 步无变化，"
+                    f"强制 SKIP 结束回合"
+                )
+            # 体力门：体力 0 / 体力 < 最低手牌费用 → 一张牌都打不出。立刻按 SKIP
+            # 结束本回合，不要一回合一点地磨（真机 0 体力进课程后连按 SKIP 白送回合）。
+            # 体力读不到时用上一帧兜底，绝不假设充足。
+            stamina_gate = lesson_stamina_gate(
+                lesson_state, stamina=stamina, last_stamina=last_stamina
+            )
+            if stamina_gate is None and force_skip:
+                stamina_gate = (
+                    lesson_state.skip_point or LESSON_SKIP_POINT,
+                    f"同一屏连续 {same_screen.repeats} 步无变化，强制 SKIP",
+                )
             # 卡片详情浮层状态机：浮层开着时点同一坐标只会开关浮层/反复「不满足使用条件」。
             # pick=正常选牌；confirm=同一点确认一次；close=点空白关浮层换牌；skip=3 次没推进。
             # 浮层识别：小框单行 OCR（「打分+/Active/可以使用」）+ 选牌过程中「读到 SELECT」兜底。
@@ -639,23 +682,33 @@ def main() -> int:
                 )
             if stamina_gate is not None:
                 skip_point, skip_reason = stamina_gate
-                clicked = agent.device.click_force(*skip_point)
-                time.sleep(0.9)
                 guard_done = True
-                if clicked is False:
-                    result = "[pause] 用户正在操作，暂停出牌"
+                if lesson_guard.skip_done(turn_signature) and not force_skip:
+                    # 本回合已经点过 SKIP、画面却没推进：同一回合不再重复点，
+                    # 交给同屏兜底（5 步强制 / 10 步退出），避免每 7 秒一次的连点。
+                    action_name = "lesson-skip-wait"
+                    result = (
+                        "[lesson] 本回合已 SKIP 过且画面未推进，不重复点"
+                        f"（同屏 {same_screen.repeats}/{same_screen.exit_after}）"
+                    )
                     idle = 0
                 else:
-                    lesson_guard.reset_turn()
-                    lesson_policy.reset_turn()
-                    lesson_pending = None
-                    lesson_sig_before_pick = None
-                    bad_cards.clear()
-                    last_pick_name = None
-                    same_pick_count = 0
-                    action_name = "lesson-skip"
-                    result = f"[lesson] {skip_reason}，直接 SKIP"
-                    idle = 0
+                    clicked = agent.device.click_force(*skip_point)
+                    time.sleep(0.9)
+                    if clicked is False:
+                        result = "[pause] 用户正在操作，暂停出牌"
+                        idle = 0
+                    else:
+                        lesson_guard.skip_sent(turn_signature)
+                        lesson_policy.reset_turn()
+                        lesson_pending = None
+                        lesson_sig_before_pick = None
+                        bad_cards.clear()
+                        last_pick_name = None
+                        same_pick_count = 0
+                        action_name = "lesson-skip"
+                        result = f"[lesson] {skip_reason}，直接 SKIP"
+                        idle = 0
             elif guard_action == "confirm" and guard_point is not None:
                 pending_name = lesson_guard.pending_name
                 if pending_name:
@@ -1064,6 +1117,7 @@ def main() -> int:
                 "episode": episode,
                 "steps": len(log_lines),
                 "done": done,
+                "stuck": stuck_exit,
                 "duration_s": round(ended_at - started_at, 1),
                 "avg_total_ms": summary.get("avg_total_ms"),
                 "changed_rate": summary.get("changed_rate"),
@@ -1072,7 +1126,8 @@ def main() -> int:
             ensure_ascii=False,
         )
     )
-    return 0 if done or len(log_lines) >= steps else 1
+    # 卡死退出（同一屏 10 步无变化）也算失败，哪怕步数刚好用完
+    return 1 if stuck_exit else (0 if done or len(log_lines) >= steps else 1)
 
 
 if __name__ == "__main__":

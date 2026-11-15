@@ -79,3 +79,44 @@ def test_auto_produce_reads_attrs_via_fixed_roi() -> None:
         for call in calls
     ), "read_attrs 必须用当步截图 image，而不是旧的 OCR 文本"
     assert 're.findall(r"(\\d{1,4})\\s*/\\s*1000"' not in source
+
+def test_lesson_stall_guard_wired() -> None:
+    """同一屏 5 步强制 SKIP / 10 步 [stuck] 退出必须真的接在课程分支上。
+
+    真机 ep-cplus10：SKIP 点空后同一画面连拍 169 步直到 25 分钟超时；
+    像素 digest 每帧都变，只有 lesson_turn_signature 语义签名能判"没推进"。
+    """
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    assert "SameScreenGuard()" in source, "没接同屏兜底状态机"
+    assert "same_screen.observe(" in source, "每步没喂同屏状态"
+    assert "lesson_turn_signature(" in source, "同屏签名必须用语义状态而不是像素 digest"
+    assert '== "force-skip"' in source, "5 步无变化没走强制 SKIP"
+    assert '== "stuck"' in source and "[stuck]" in source, "10 步无变化没记 [stuck]"
+    assert "stuck_exit = True" in source and "return 1 if stuck_exit" in source, (
+        "卡死退出必须返回失败（不能算 done）"
+    )
+
+
+def test_lesson_stamina_gate_gets_last_stamina_fallback() -> None:
+    """体力门必须拿到 last_stamina 兜底：本帧读不到体力时不能假设充足。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "lesson_stamina_gate"
+    ]
+    assert calls, "auto_produce 必须在课程分支调用 lesson_stamina_gate"
+    keywords = {keyword.arg for call in calls for keyword in call.keywords}
+    assert "last_stamina" in keywords, "体力门没传上一帧体力兜底（会退化成假设体力充足）"
+
+
+def test_lesson_skip_uses_guard_once_per_turn() -> None:
+    """体力门点 SKIP 前必须查 skip_done/点后 skip_sent：同回合不能每步重复点。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    assert "skip_done(turn_signature)" in source, "SKIP 前没查本回合是否已点过"
+    assert "skip_sent(turn_signature)" in source, "SKIP 后没记本回合签名"
+
+

@@ -320,6 +320,175 @@ def test_lesson_with_stamina_below_lowest_cost_skips_at_once() -> None:
     assert lesson_stamina_gate(LessonState(stamina=2, turns_left=6, cards=cards)) is None
 
 
+def _gate_cards(*costs: int | None):
+    from gkagent.vision.lesson import LessonCard
+
+    return tuple(
+        LessonCard(
+            index=index,
+            box=(55 + index * 180, 895, 160, 185),
+            point=(135 + index * 180, 987),
+            name=f"卡{index}",
+            score=10 + index,
+            cost=cost,
+        )
+        for index, cost in enumerate(costs)
+    )
+
+
+def test_zero_stamina_lesson_skips_even_without_hand() -> None:
+    """体力 0 + 手牌一张都没读到：也必须 SKIP（之前 lowest=None → 体力门不触发）。"""
+    from gkagent.tasks.produce_ui import LESSON_SKIP_POINT, lesson_stamina_gate
+    from gkagent.vision.lesson import LessonState
+
+    gate = lesson_stamina_gate(LessonState(stamina=0, turns_left=6, cards=()))
+    assert gate is not None
+    assert gate[0] == LESSON_SKIP_POINT
+    assert "体力 0" in gate[1]
+
+
+def test_zero_stamina_lesson_skips_when_all_costs_unread() -> None:
+    """体力 0 + 手牌费用全读不到（cost=None）：照样 SKIP，不能等 OCR 读出费用。"""
+    from gkagent.tasks.produce_ui import LESSON_SKIP_POINT, lesson_stamina_gate
+    from gkagent.vision.lesson import LessonState
+
+    cards = _gate_cards(None, None, None)
+    gate = lesson_stamina_gate(LessonState(stamina=0, turns_left=6, cards=cards))
+    assert gate is not None
+    assert gate[0] == LESSON_SKIP_POINT
+    # 本帧体力没读到，但上一帧读到 0：同样必须 SKIP（不能把"没读到"当充足）
+    gate = lesson_stamina_gate(
+        LessonState(stamina=None, turns_left=6, cards=cards), last_stamina=0
+    )
+    assert gate is not None
+    assert gate[0] == LESSON_SKIP_POINT
+
+
+def test_lesson_gate_never_assumes_unknown_stamina_is_enough() -> None:
+    """体力三处都读不到：不假设充足——费用也读不到就 SKIP；全是 0 费牌才放行。"""
+    from gkagent.tasks.produce_ui import LESSON_SKIP_POINT, lesson_stamina_gate
+    from gkagent.vision.lesson import LessonState
+
+    unknown = lesson_stamina_gate(
+        LessonState(stamina=None, turns_left=6, cards=_gate_cards(4, 1, 4)),
+        stamina=None,
+        last_stamina=None,
+    )
+    assert unknown is not None
+    assert unknown[0] == LESSON_SKIP_POINT
+    assert "不假设充足" in unknown[1]
+
+    # 0 费牌 0 体力也能打：体力未知但费用明确为 0 时不白送回合
+    free = lesson_stamina_gate(
+        LessonState(stamina=None, turns_left=6, cards=_gate_cards(0, 0)),
+        last_stamina=None,
+    )
+    assert free is None
+
+
+def test_lesson_skip_is_once_per_turn() -> None:
+    """体力门 SKIP 每回合只点一次：签名为 (剩余回合/分数/体力/手牌) 的语义状态。"""
+    from gkagent.tasks.produce_ui import LessonPlayGuard
+
+    guard = LessonPlayGuard()
+    sig = (6, 473, 0, (6, 473, ((0, 29), (1, 0), (2, 24))))
+    assert guard.skip_done(sig) is False
+    guard.skip_sent(sig)
+    assert guard.skip_done(sig) is True
+    assert guard.skip_clicks == 1
+    # 回合推进后签名变化：允许下一回合再 SKIP
+    assert guard.skip_done((5, 473, 2, (5, 473, ((0, 19), (1, 24), (2, 12))))) is False
+    guard.reset()
+    assert guard.skip_done(sig) is False
+    assert guard.skip_clicks == 0
+
+
+def test_same_screen_guard_forces_skip_at_five() -> None:
+    """同一屏连续 5 步无变化 → 强制 SKIP；之后不重复强制，交给退出兜底。"""
+    from gkagent.tasks.produce_ui import SameScreenGuard
+
+    guard = SameScreenGuard()
+    digest = (6, 473, 0, (6, 473, ((0, 29), (1, 0), (2, 24))))
+    assert [guard.observe(digest) for _ in range(4)] == [None, None, None, None]
+    assert guard.observe(digest) == "force-skip"
+    assert guard.forced_skips == 1
+    # 第 6~9 步仍然同屏：不再重复强制（避免每步都点），只等第 10 步退出
+    assert [guard.observe(digest) for _ in range(4)] == [None, None, None, None]
+    assert guard.forced_skips == 1
+
+
+def test_same_screen_guard_exits_at_ten() -> None:
+    """同一屏连续 10 步无变化 → ``stuck``，调用方记 [stuck] 退出本局（返回失败）。"""
+    from gkagent.tasks.produce_ui import SameScreenGuard
+
+    guard = SameScreenGuard()
+    digest = (6, 473, 0, (6, 473, ((0, 29), (1, 0), (2, 24))))
+    results = [guard.observe(digest) for _ in range(10)]
+    assert results[4] == "force-skip"
+    assert results[:9].count("stuck") == 0
+    assert results[9] == "stuck"
+    assert guard.stuck_exits == 1
+    # 画面变化（新回合/新分数）会重置计数，不会把正常出牌误判成卡死
+    guard.observe(("new", 5, 480, 2, ()))
+    assert guard.repeats == 1
+    assert guard.observe(("new", 5, 480, 2, ())) is None
+
+
+def test_stuck_lesson_ten_ticks_skips_once_then_forces_then_exits() -> None:
+    """复刻 auto_produce 课程分支：0 体力同屏连喂 10 步。
+
+    期望：第 1 步体力门点一次 SKIP；同回合不再重复点；第 5 步强制再点一次；
+    第 10 步 ``stuck``（调用方记 [stuck] 退出本局，不再空转到超时）。
+    """
+    from gkagent.tasks.produce_ui import (
+        LessonPlayGuard,
+        SameScreenGuard,
+        lesson_stamina_gate,
+        lesson_turn_signature,
+    )
+    from gkagent.vision.lesson import LessonState
+
+    state = LessonState(stamina=0, turns_left=6, score=473, cards=_gate_cards(4, 1, 4))
+    same = SameScreenGuard()
+    guard = LessonPlayGuard()
+    skip_steps: list[int] = []
+    outcome: str | None = None
+    for step in range(1, 11):
+        signature = lesson_turn_signature(state)
+        outcome = same.observe(signature)
+        if outcome == "stuck":
+            break
+        gate = lesson_stamina_gate(state, last_stamina=0)
+        if gate is not None and (outcome == "force-skip" or not guard.skip_done(signature)):
+            skip_steps.append(step)
+            guard.skip_sent(signature)
+    assert skip_steps == [1, 5], "每回合只点一次，只有同屏 5 步兜底才允许补一次"
+    assert outcome == "stuck"
+    assert same.stuck_exits == 1
+
+
+def test_turn_end_dialog_clicks_yes_not_question_text() -> None:
+    """SKIP 后的「回合结束」确认框：点「是」，不能被问句里的「确定」抢走。
+
+    ep-cplus11 实测：通用按钮匹配先命中「确定要结束回合吗？」的问句文字，
+    点了 13 步都没结束回合。这个弹窗必须排在通用「确定」匹配之前。
+    """
+    agent = FakeAgent()
+    lines = _lines(
+        "回合结束",
+        "尚可使用技能卡",
+        "确定要结束回合吗？",
+        "下次起不再显示",
+        "否",
+        "是",
+    )
+    result = _driver().decide(agent, lines)
+    assert result.screen == "dialog"
+    assert result.action == "end-turn-yes"
+    assert agent.device.clicks[-1] == _center(5)  # 「是」按钮，不是问句
+    assert agent.device.clicks[-1] != _center(2)
+
+
 def test_action_preview_confirms_at_last_point() -> None:
     driver = _driver()
     agent = FakeAgent()

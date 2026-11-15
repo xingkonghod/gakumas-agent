@@ -80,7 +80,8 @@ CARD_DETAIL_PROBES: tuple[tuple[int, int, int, int], ...] = (
 )
 CARD_DETAIL_NAME_BOX = (140, 585, 440, 45)  # 浮层顶部卡名
 CARD_DETAIL_BLANK = (360, 260)  # 浮层外上方空白：点这里关闭浮层
-LESSON_SKIP_POINT = (657, 800)  # 课程右下「SKIP」
+LESSON_SKIP_POINT = (657, 800)  # 课程右下「SKIP」（点的是圆形箭头图标，不是 SKIP 文字）
+TURN_END_YES = (502, 1155)  # SKIP 后「回合结束」确认框的「是」（左边「否」在 x≈130）
 # OCR 会把卡面左下角的「SELECT」标签（及误读）一起读进卡名
 UI_LABEL_WORDS = ("SELECT", "SEECT", "S", "A", "M")
 _UI_LABEL_RE = re.compile(
@@ -314,22 +315,98 @@ def lesson_stamina_gate(
     state: LessonState,
     *,
     stamina: int | None = None,
+    last_stamina: int | None = None,
     default_cost: int = DEFAULT_HAND_COST,
 ) -> tuple[tuple[int, int], str] | None:
-    """课程体力门：体力 < 最低手牌费用（一张牌都打不出）→ ``(SKIP 落点, 原因)``。
+    """课程体力门：体力不足/读不到 → ``(SKIP 落点, 原因)``，必须结束本回合。
 
-    真机事故：体力 0 时 bot 进了课程，手牌最低 1 费一张都打不出，却一回合一点地
-    连按 SKIP 白送回合。这里在出牌前直接判定，命中就立刻按 SKIP 结束本回合。
-    ``stamina``：``LessonState`` 没读到时用调用方从状态条读到的体力兜底。
+    真机事故（ep-cplus10）：体力 0 时 bot 进了课程，手牌最低 1 费一张牌都打不出，
+    却在课程页每步空转 25 分钟。判定顺序固定为：
+
+    1. 体力来源：``state.stamina`` → 调用方状态条 ``stamina`` → 上一帧 ``last_stamina``；
+    2. **体力 0：无条件 SKIP**——不看手牌、不看费用读没读到（读不到也要结束回合）；
+    3. 体力 > 0：最低手牌费用 > 体力 → SKIP；
+    4. 三处都读不到体力：**不假设充足**。手牌费用也全读不到（或没有手牌）时 SKIP；
+       只有所有手牌费用都明确为 0 才放行（0 费牌 0 体力也打得出）。
+
+    ``state.cards`` 为空通常是 OCR 掉帧（详情浮层/转场）；此时体力也读不到就 SKIP
+    是保守但安全的：白送一回合 < 空转到超时。
     """
-    current = state.stamina if state.stamina is not None else stamina
+    current = state.stamina
     if current is None:
-        return None
-    lowest = lowest_hand_cost(state.cards, default_cost=default_cost)
-    if lowest is None or current >= lowest:
-        return None
+        current = stamina
+    if current is None:
+        current = last_stamina
     point = state.skip_point or LESSON_SKIP_POINT
-    return point, f"体力 {int(current)} < 最低手牌费用 {lowest}，一张牌都打不出"
+    lowest = lowest_hand_cost(state.cards, default_cost=default_cost)
+    if current is not None:
+        current = max(int(current), 0)
+        if current == 0:
+            detail = "体力 0，一张牌都打不出，直接 SKIP"
+            if lowest is not None:
+                detail = f"体力 0 < 最低手牌费用 {lowest}，一张牌都打不出，直接 SKIP"
+            return point, detail
+    if current is None:
+        if state.cards and all(card.cost == 0 for card in state.cards):
+            return None
+        return point, "体力读不到，不假设充足，直接 SKIP"
+    if lowest is None:
+        return None
+    if current < lowest:
+        return point, f"体力 {current} < 最低手牌费用 {lowest}，一张牌都打不出"
+    return None
+
+
+def lesson_turn_signature(state: LessonState) -> tuple:
+    """课程「这一回合」的语义签名：一模一样的回合/分数/体力/手牌 = 画面没推进。
+
+    不能用像素 digest：真机帧有角色呼吸、卡面闪光和视频噪点，实测 step_150~169
+    逐帧全图/任一 ROI 的 hash 都不同，只有游戏状态（剩余回合/分数/体力/手牌）稳定。
+    """
+    return (
+        state.turns_left,
+        state.score,
+        state.stamina,
+        lesson_hand_signature(state),
+    )
+
+
+@dataclass
+class SameScreenGuard:
+    """同一屏连续无变化的兜底：5 步强制 SKIP，10 步判定卡死退出本局。
+
+    与截图/点击解耦，真机与单测共用。``observe`` 每步喂一次**语义** digest
+    （课程用 :func:`lesson_turn_signature`，不要用每帧都变的像素 hash）：
+
+    - 第 ``force_skip_after`` 次（默认 5）返回 ``"force-skip"``：调用方无条件点 SKIP；
+    - 第 ``exit_after`` 次（默认 10）返回 ``"stuck"``：调用方记 ``[stuck]`` 并退出本局；
+    - 画面一旦变化（digest 不同）计数重置，返回 ``None``。
+    """
+
+    force_skip_after: int = 5
+    exit_after: int = 10
+    digest: tuple | None = None
+    repeats: int = 0
+    forced_skips: int = 0
+    stuck_exits: int = 0
+
+    def observe(self, digest: tuple) -> str | None:
+        if digest == self.digest:
+            self.repeats += 1
+        else:
+            self.digest = digest
+            self.repeats = 1
+        if self.repeats >= max(int(self.exit_after), 2):
+            self.stuck_exits += 1
+            return "stuck"
+        if self.repeats == max(int(self.force_skip_after), 1):
+            self.forced_skips += 1
+            return "force-skip"
+        return None
+
+    def reset(self) -> None:
+        self.digest = None
+        self.repeats = 0
 
 
 def choose_action_kind(
@@ -411,6 +488,9 @@ class LessonPlayGuard:
     same_point_failures: int = field(default=0, init=False)
     stale_closes: int = field(default=0, init=False)
     failure_pending: bool = field(default=False, init=False)
+    # 体力门 SKIP 的「每回合只点一次」记忆：签名 = lesson_turn_signature(state)。
+    last_skip_signature: tuple | None = field(default=None, init=False)
+    skip_clicks: int = field(default=0, init=False)
 
     def picked(self, point: tuple[int, int], name: str = "") -> None:
         """已点了一张牌（第一击），等下一帧看浮层是否出现。"""
@@ -431,6 +511,22 @@ class LessonPlayGuard:
     def close_sent(self) -> None:
         """空白点击成功：累计连续关浮层次数，连续 3 次关不掉就 SKIP。"""
         self.stale_closes += 1
+
+    def skip_done(self, signature: tuple | None) -> bool:
+        """这个回合签名（剩余回合/分数/体力/手牌）是不是已经点过 SKIP 了。
+
+        体力 0 时每步都会命中体力门；画面没推进（SKIP 点击无效/还在确认框）时
+        签名不变——此时不能再点，否则就是每 7 秒一次的连点。签名一变（回合推进）
+        自动放行下一回合的 SKIP。
+        """
+        return signature is not None and signature == self.last_skip_signature
+
+    def skip_sent(self, signature: tuple | None) -> None:
+        """记下「本回合已点 SKIP」：清出牌状态，但保留签名记忆与累计次数。"""
+        clicks = self.skip_clicks
+        self.reset()
+        self.last_skip_signature = signature
+        self.skip_clicks = clicks + 1
 
     def observe(
         self, overlay_open: bool, *, progressed: bool = True
@@ -501,6 +597,8 @@ class LessonPlayGuard:
         self.same_point_failures = 0
         self.stale_closes = 0
         self.failure_pending = False
+        self.last_skip_signature = None
+        self.skip_clicks = 0
 
     def reset_turn(self) -> None:
         """本回合已用 SKIP 结束：计数清零，下一回合重新开始。"""
@@ -1064,6 +1162,19 @@ class ProduceDriver:
                 self._click_line(agent, confirm)
                 return TickResult("dialog", "confirm", detail=confirm.text)
 
+        # 1.5) 「回合结束」确认框（SKIP 后必出）：必须先于所有通用「确定」匹配。
+        # 之前放在通用按钮匹配之后，问句「确定要结束回合吗？」里的「确定」会先被
+        # find("确定") 命中，点到问句文字上 → SKIP 永远确认不了（ep-cplus11 卡了 13 步）。
+        if "结束回合" in text and (
+            "尚可使用技能卡" in text or "确定要结束回合" in text or "下次起不再显示" in text
+        ):
+            yes = self.find_button(lines, ("是",))
+            if yes is not None:
+                self._click_line(agent, yes)
+            else:
+                self._click(agent, TURN_END_YES)
+            return TickResult("dialog", "end-turn-yes")
+
         # 2) 培育页：定期公演 + 难度
         if "定期公演" in text or ("培育" in text and "研修" in text):
             self.support_auto_done = False
@@ -1437,11 +1548,6 @@ class ProduceDriver:
 
         # 11) 带标点的长文本基本是剧情/对话：点对话框继续
         # 11.0) 先处理「剧情选择项」：底部 2-3 个带问号的选项气泡，点最上面那个
-        # 「回合结束」确认弹窗：点「是」（SKIP 后必出，点不到就永远出不了课程）
-        if "回合结束" in text and "确定" in text:
-            self._click(agent, (500, 1200))
-            return TickResult("dialog", "end-turn-yes")
-
         # 误触打开的「育成目标」面板：立刻点底部 X 关闭，别在里面空转
         if "育成目标" in text and ("亲密度" in text or "编成" in text):
             self._click(agent, (360, 1218))
