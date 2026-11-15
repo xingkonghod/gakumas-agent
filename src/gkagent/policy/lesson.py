@@ -74,6 +74,9 @@ class LessonPolicy:
         "last_turn_max_total": True,
         # 分数完全没读到时：cheapest=打最便宜的保成长，skip=跳过
         "unknown_score_fallback": "cheapest",
+        # 分数是卡表兜底估出来的（屏幕宝石没读到）时按这个系数轻微降权：
+        # 不把它当 0 分卡跳过，但也别完全信任估值。
+        "estimated_score_weight": 0.9,
     }
 
     def __init__(
@@ -247,6 +250,7 @@ class LessonPolicy:
 
         card, value = best
         efficiency = value / max(card.cost or 3, 1)
+        estimate_note = "（卡表估）" if card.score_estimated else ""
         return LessonAction(
             "card",
             index=card.index,
@@ -254,7 +258,8 @@ class LessonPolicy:
             card=card,
             expected=value,
             reason=(
-                f"{card.name or '卡'} 分数{int(value)} / 体力{card.cost if card.cost is not None else '?'}"
+                f"{card.name or '卡'} 分数{int(value)}{estimate_note} / "
+                f"体力{card.cost if card.cost is not None else '?'}"
                 f"（性价比 {efficiency:.1f}，预算 {budget:.0f}）"
             ),
         )
@@ -267,6 +272,11 @@ class LessonPolicy:
         value = card_value(card, turns_left=turns)
         if value <= 0 and card.text:
             value = estimate_value(card.text, turns_left=turns).score
+        if card.score_estimated:
+            # 屏幕宝石没读到、按卡表兜底的分数：轻微降权，别完全信任；
+            # 但降权不能把本来够 min_gain 的牌压到门槛下（否则又变成"跳过"）。
+            weight = float(self.params["estimated_score_weight"])
+            value = max(value * weight, min(value, float(self.params["min_gain"])))
         return value
 
     def _budget(self, stamina: int | None, turns: int | None) -> float:
@@ -342,7 +352,11 @@ class LessonPolicy:
     @staticmethod
     def _cheapest_unknown(affordable: list[LessonCard]) -> LessonCard | None:
         """分数没读到的牌里挑最便宜的一张（至少让这回合产生成长）。"""
-        unknown = [card for card in affordable if card.score is None]
+        unknown = [
+            card
+            for card in affordable
+            if card.score is None or card.score_unread
+        ]
         if not unknown:
             return None
         # 有条件的牌最后才用（条件不满足时点不动，白费一步）

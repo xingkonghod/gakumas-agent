@@ -32,6 +32,8 @@ CARD_HEIGHT = 232
 # 手牌那一排的固定上沿（720x1280）：课程/试镜都是 y≈892，选中态会抬高 ~25px
 CARD_TOP = 892
 SKIP_POINT = (660, 868)
+# 分数宝石上一回合没读到、下一回合重读时额外放宽的像素（宝石偶尔被边框/选中态切到）
+SCORE_RETRY_PADS = (8, 14)
 
 # 两种界面布局（课程 / 试镜）。位置按 720x1280 实拍标定。
 LAYOUTS: dict[str, dict[str, tuple[int, int, int, int] | None]] = {
@@ -72,6 +74,12 @@ class LessonCard:
     buff: bool = False
     conditional: bool = False
     text: str = ""
+    # 分数宝石没读到时用卡表 ``score_of`` 兜底的值：真值只能算"估"，策略要轻微降权
+    score_estimated: bool = False
+    # 屏幕分数和卡表都没读出来：score 记 0，但策略应把它当"未知"而不是"真的 0 分"
+    score_unread: bool = False
+    # 这张牌上一回合宝石没读到、卡表知道它有分：下一回合进手牌时优先重读宝石
+    recheck: bool = False
 
     @property
     def total_score(self) -> float:
@@ -122,6 +130,13 @@ class LessonReader:
         self.buffs = buffs or BuffLibrary.load()
         self.costs = costs
         self.table = table if table is not None else CardTable()
+        # 卡名 → 上一回合分数宝石没读到。下次读到同一张牌时优先重读那颗宝石。
+        self._recheck: set[str] = set()
+
+    @property
+    def pending_recheck(self) -> tuple[str, ...]:
+        """待重读分数宝石的卡名（日志/测试用；真正重读在 ``read_card`` 里做）。"""
+        return tuple(sorted(self._recheck))
 
     # ------------------------------------------------------------------ 主入口
     def read(
@@ -231,29 +246,57 @@ class LessonReader:
         score_box = (left + 2, top - 26, 116, 62)
         cost_box = (left + 134, top + 154, 78, 52)
         name_box = (left + 8, top + 196, width - 16, 34)
-        score_line = self._safe_line(image, score_box)
         cost_line = self._safe_line(image, cost_box)
         if not name:
             name_out = self._safe_line(image, name_box, digits_only=False)
             name = name_out.text if name_out is not None else ""
+        # 查表用清洗后的名字（SELECT/SEECT 是选中态标签，不是卡名）；
+        # LessonCard.name 保持原文，produce_ui 靠它判断"当前有牌被选中"。
+        lookup_name = _clean_lookup_name(name)
+        score_line = self._score_line(
+            image, score_box, retry=bool(lookup_name) and lookup_name in self._recheck
+        )
         score, hits = _parse_score(score_line.text if score_line else "")
+        score_estimated = False
+        score_unread = False
+        recheck = False
+        if score is None or score <= 0:
+            table_score = self._table_score(lookup_name)
+            if table_score is not None and table_score > 0:
+                # 宝石没读到、卡表知道这张牌打多少：先按卡表估，下一回合重读宝石
+                score = int(table_score)
+                score_estimated = True
+                recheck = True
+                if lookup_name:
+                    self._recheck.add(lookup_name)
+            else:
+                # 卡表也查不到：不编造分数，保持 0；但标成"没读到"，
+                # 策略按未知处理（打最便宜的保成长），不会当成 0 分卡跳过，
+                # 也不会当成高分。
+                score = 0
+                score_unread = table_score is None
+                if lookup_name:
+                    self._recheck.discard(lookup_name)
+        elif lookup_name:
+            # 这一回合宝石读到了正数，说明上一回合的重读请求已完成
+            self._recheck.discard(lookup_name)
         cost = _parse_int(cost_line.text if cost_line else "")
         if cost is not None and not 0 <= cost <= 99:
             cost = None
         # 卡名对上属性表就用真值（OCR 爱心小字 + 确认帧预览都不可靠）
-        if name and self.table is not None:
-            table_cost = self.table.cost(name)
+        if lookup_name and self.table is not None:
+            table_cost = self.table.cost(lookup_name)
             if table_cost is not None:
                 cost = int(table_cost)
-        if cost is None and name and self.costs is not None:
-            cached = self.costs.get(name)
+        if cost is None and lookup_name and self.costs is not None:
+            cached = self.costs.get(lookup_name)
             if cached is not None:
                 cost = int(cached)
         text = ""
         buff = False
         conditional = False
-        if name and self.cards is not None:
-            info = self.cards.lookup(name)
+        if lookup_name and self.cards is not None:
+            info = self.cards.lookup(lookup_name)
             if info is not None:
                 text = info.text
                 buff = is_buff_text(text)
@@ -270,7 +313,28 @@ class LessonReader:
             buff=buff,
             conditional=conditional,
             text=text,
+            score_estimated=score_estimated,
+            score_unread=score_unread,
+            recheck=recheck,
         )
+
+    def _score_line(self, image, box, *, retry: bool = False):
+        """分数宝石：先读原框；待重读的牌再放宽几个框，读到正数就收工。"""
+        line = self._safe_line(image, box)
+        if not retry or _parse_score(line.text if line else "")[0]:
+            return line
+        x, y, w, h = box
+        for pad in SCORE_RETRY_PADS:
+            retried = self._safe_line(image, (x - pad, y - pad, w + pad * 2, h + pad * 2))
+            if _parse_score(retried.text if retried else "")[0]:
+                return retried
+        return line
+
+    def _table_score(self, name: str) -> int | None:
+        """按（清洗后的）卡名查卡表打分；查不到返回 None。"""
+        if not name or self.table is None:
+            return None
+        return self.table.score_of(name)
 
     def _name_lines(self, image: np.ndarray, lines=None) -> list[tuple[str, tuple[int, int, int, int]]]:
         """卡名一行一张：按 x 聚类，返回 [(name, box)]。"""
@@ -367,6 +431,19 @@ def _parse_score(text: str) -> tuple[int | None, int | None]:
         return score, hits
     number = _parse_int(cleaned)
     return (number, 1) if number is not None else (None, None)
+
+
+def _clean_lookup_name(name: str) -> str:
+    """查表用的卡名：剔除 OCR 混进卡名的 SELECT/SEECT 等 UI 标签。
+
+    ``tasks.produce_ui`` 依赖 vision 层，这里延迟导入避免顶层循环依赖；
+    ``LessonCard.name`` 保留原始文本（选中态检测要靠它）。
+    """
+    if not name:
+        return ""
+    from gkagent.tasks.produce_ui import clean_card_name
+
+    return clean_card_name(name)
 
 
 def read_stamina_preview(
