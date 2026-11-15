@@ -19,6 +19,24 @@ schtasks /Run /TN GDEAgent
 
 ## 0.1 开跑前 3 分钟自检
 
+### 起跑前检查清单（每次必做，2026-11-15 踩过双进程互抢窗口）
+
+1. **没有别的 auto_produce 在跑**：
+   ```powershell
+   Get-CimInstance Win32_Process -Filter "Name='python.exe'" |
+     Where-Object { $_.CommandLine -like '*auto_produce*' } |
+     Select-Object ProcessId, CommandLine
+   ```
+   有就等它结束，**一局只能一个进程**（两个进程会同时点同一窗口、同目录 step_NNN 互相覆盖）。
+2. **清急停标记**：`Remove-Item data\STOP -ErrorAction SilentlyContinue`。
+3. **窗口正常**：`agent_cmd.py shell --command "...data\restore_win.py"`，输出
+   `client 540x960 iconic=False`；**不要改成 720x1280**（会截 720x999 直接崩，F#10）。
+4. **daemon 在线**：`schtasks /Query /TN GDEAgent` 应为 Running；
+   `agent_cmd.py quit` + `schtasks /Run /TN GDEAgent` 可重启（游戏重启后必须重启 daemon，否则句柄失效）。
+5. **上次的局已收尾**：`data/agent_result.json` 里没有未完成的 ep；`data/auto/step_*.png` 最新时间戳距今 >10s。
+6. **记录开始时间**：`Get-Date -Format HH:mm:ss`，写进 `docs/RUNS.md`（每局要能回答"这局用了多少分钟、每个阶段多久"，
+   用 `scripts/episode_report.py <ep>` 生成阶段分解）。
+
 ```powershell
 .venv\Scripts\python.exe scripts\check_wiring.py --live    # 配置接线 + 游戏窗口一次过
 ```
@@ -37,6 +55,14 @@ Get-ScheduledTask -TaskName GDEAgent | Select-Object State
 
 - **不要最小化游戏窗口**（会黑屏、截帧失败，整局会崩）。
 - 清理停止标记：`Remove-Item data\STOP -ErrorAction SilentlyContinue`。
+
+## 0.2 考试不合格：先「再挑战」，不要结束培育
+
+- 最终审查没考好时，结果页左下是 再挑战（旁边显示「今天免费剩余1次」/再挑战票据 361 张）。
+- 点 再挑战 会弹第二段 **再挑战确认**（消耗再挑战道具，重新挑战考试吗？）——这屏只有
+  取消 / 确定，**点确定**重打（6405b46 起 bot 会自动点确定，日志 [dialog] retry-confirm）。
+- 券用完后才走正常结束流程；结束培育直接判负，所以有券必须重打。
+- 再挑战会重新抽技能卡顺序和对手行动，考试表现可能完全不同；建议重打时开 sim_play。
 
 ## 1. 起一局
 
