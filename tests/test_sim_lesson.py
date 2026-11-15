@@ -434,3 +434,109 @@ def test_depend_exam_review_score_ignores_stance_multiplier() -> None:
     sim.step(_index(sim, "依赖"))
 
     assert sim.score == 30
+
+
+# --------------------------------------------------------------------- 可出牌次数
+def test_extra_play_card_allows_one_more_play_this_turn() -> None:
+    """+1 次数牌结算后本回合上限 3+1：能多出 1 张，用尽后只剩 SKIP。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    sim.hand = [
+        CardSpec("次数+1", 0, 0, extra_play=1),
+        CardSpec("打1", 0, 1),
+        CardSpec("打2", 0, 1),
+        CardSpec("打3", 0, 1),
+        CardSpec("打4", 0, 1),
+    ]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)  # 次数+1：本牌占 1 次，同时追加 1 次
+    assert sim.plays_this_turn == 1
+    assert sim.extra_plays == 1
+
+    for _ in range(3):
+        sim.step(0)
+    assert sim.plays_this_turn == 4
+    assert sim.score == 3
+    assert len(sim.hand) == 1  # 还剩一张，但次数已经用尽
+    assert sim.legal_actions() == [None]
+    with pytest.raises(ValueError, match="次数已用尽"):
+        sim.step(0)
+
+
+def test_card_without_extra_play_does_not_extend_limit() -> None:
+    """extra_play=0 的牌不追加次数：手牌再多，本回合也只能出 plays_per_turn 张。"""
+    assert CardSpec("普通", 0, 1).extra_play == 0
+
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    sim.hand = [CardSpec(f"打{i}", 0, 1) for i in range(4)]
+    sim.deck = []
+    sim.discard = []
+
+    for _ in range(3):
+        sim.step(0)
+
+    assert sim.extra_plays == 0
+    assert sim.plays_this_turn == 3
+    assert sim.score == 3
+    assert len(sim.hand) == 1
+    assert sim.legal_actions() == [None]
+
+
+def test_extra_play_cards_stack() -> None:
+    """两张 +1 次数牌叠加：本回合上限变成 3+2，可以连出 5 张。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    sim.hand = [
+        CardSpec("次数+1a", 0, 0, extra_play=1),
+        CardSpec("次数+1b", 0, 0, extra_play=1),
+        CardSpec("打1", 0, 1),
+        CardSpec("打2", 0, 1),
+        CardSpec("打3", 0, 1),
+        CardSpec("打4", 0, 1),
+    ]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)
+    sim.step(0)
+    assert sim.extra_plays == 2
+
+    for _ in range(3):
+        sim.step(0)
+
+    assert sim.plays_this_turn == 5
+    assert sim.score == 3
+    assert len(sim.hand) == 1
+    assert sim.legal_actions() == [None]
+
+
+def test_extra_plays_reset_at_turn_start() -> None:
+    """额外次数只在当回合有效：SKIP 换手牌后 plays_this_turn / extra_plays 归零。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    sim.hand = [
+        CardSpec("次数+1", 0, 0, extra_play=1),
+        CardSpec("打", 0, 1),
+        CardSpec("占位二", 0, 0),
+    ]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)
+    sim.step(0)
+    assert sim.extra_plays == 1
+
+    sim.step(None)  # SKIP 结束本回合，抽下一手
+
+    assert sim.turns_left == 1
+    assert sim.plays_this_turn == 0
+    assert sim.extra_plays == 0
+
+
+def test_greedy_policy_prioritizes_extra_play_cards() -> None:
+    """score=0 的加次数牌也要被基线策略选中，否则策略永远吃不到额外出牌。"""
+    sim = LessonSim([CardSpec("垫", 0, 0)], _config(turns=2, stamina=10, hand_size=2))
+    sim.hand = [CardSpec("次数+1", 0, 0, extra_play=1), CardSpec("小分", 2, 2)]
+    sim.deck = []
+    sim.discard = []
+
+    assert greedy_policy(sim) == 0

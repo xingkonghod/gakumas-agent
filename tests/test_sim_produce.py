@@ -223,6 +223,42 @@ def test_stance_effects_reach_rich_card_spec() -> None:
     assert power.preservation == 0
 
 
+def test_playable_value_add_reaches_rich_card_spec() -> None:
+    """ExamPlayableValueAdd 从卡表 count 解析成 extra_play，再透传进 CardSpec。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    assert "ExamPlayableValueAdd" in sp.MODELED_EFFECTS
+    # 旧 5 元组承载不了 extra_play，保持排除，避免旧脚本丢效果后当成纯白值卡
+    assert "ExamPlayableValueAdd" not in sp.LEGACY_MODELED_EFFECTS
+
+    # 卡表里这条效果通常没有 values，用 count 表示 +1/+2
+    count_one = sp._effect_fields(
+        {"effects": [{"type": "ExamPlayableValueAdd", "values": [], "count": 1}]}
+    )
+    assert count_one[-1] == 1
+    count_two = sp._effect_fields(
+        {"effects": [{"type": "ExamPlayableValueAdd", "values": [], "count": 2}]}
+    )
+    assert count_two[-1] == 2
+    explicit = sp._effect_fields(
+        {"effects": [{"type": "ExamPlayableValueAdd", "values": [1]}]}
+    )
+    assert explicit[-1] == 1
+
+    spec = sp._spec_from_row(sp.CardRow("加次数", 0, 0, 0, 0, extra_play=2))
+    assert spec.extra_play == 2
+
+    # rich 奖励池里至少要出现一张带额外出牌的卡，且能穿过 _spec_from_row
+    rich_pool = sp.build_pool(rich=True)
+    assert any(row.extra_play > 0 for row in rich_pool)
+    extra_row = next(row for row in rich_pool if row.extra_play > 0)
+    assert sp._spec_from_row(extra_row).extra_play == extra_row.extra_play
+
+
 def test_objective_profiles_differ() -> None:
     """同一组统计下，不同口径应该给出不同排序（课题求稳 vs 冲榜看尾部）。"""
     from gkagent.sim.objective import OBJECTIVES, score

@@ -7,6 +7,9 @@
 - 每回合从洗好的牌库抽 ``hand_size`` 张；打出的牌进弃牌堆，牌库抽空后
   把弃牌堆洗回牌库（近似真机）；
 - 一回合内可以连续出牌，直到 SKIP；手牌打完则本回合自动结束；
+- 每回合基础可出牌次数 ``plays_per_turn``（默认 3，与标准手牌数一致），本回合
+  出牌数达到上限后只能 SKIP；``ExamPlayableValueAdd``（``CardSpec.extra_play``）
+  在本回合内追加 +N 次，回合结束清零；
 - 出牌先按**当前** buff 算分，再结算这张卡自带的 buff（本牌不享受自己刚加的 buff）；
 - ``ExamCardDraw``：出牌后立即抽 N 张（``CardSpec.draw``），牌库空则把弃牌堆
   洗回牌库再抽（刚打出的牌在抽牌之后才进弃牌堆，所以抽不到自己）；
@@ -64,6 +67,8 @@ Policy: TypeAlias = Callable[["LessonSim"], Action]
 _MAX_STEPS = 10_000
 # greedy_policy 给指針牌（温存/全力值，通常 score=0）的固定效率，避免永远选不到
 _STANCE_CARD_EFFICIENCY = 3.0
+# greedy_policy 给「本回合可出牌次数 +N」牌（通常 score=0）的固定效率
+_EXTRA_PLAY_CARD_EFFICIENCY = 3.0
 
 
 @dataclass(frozen=True)
@@ -76,7 +81,8 @@ class CardSpec:
     倍率（百分比，1000 = 每层 10 分，见 ``ExamLessonDependExamReview``）。
     ``vitality`` / ``motivation`` 分别是元气（盾）和干劲（元气获得量加成）。
     ``preservation`` 是把指針切到温存的段階（1/2），``full_power_point`` 是
-    全力值增量（攒满 10 点后下一回合进入「全力」）。
+    全力值增量（攒满 10 点后下一回合进入「全力」）。``extra_play`` 是
+    ``ExamPlayableValueAdd``：出牌后本回合额外可出牌次数 +N（默认 0）。
     """
 
     name: str
@@ -91,17 +97,20 @@ class CardSpec:
     impression_scale: int = 0
     preservation: int = 0
     full_power_point: int = 0
+    extra_play: int = 0
 
 
 @dataclass(frozen=True)
 class LessonConfig:
-    """一节课的配置：回合数、初始体力、审查基准、每回合手牌数。"""
+    """一节课的配置：回合数、初始体力、审查基准、每回合手牌数、每回合出牌上限。"""
 
     turns: int
     stamina: int
     target_clear: int
     target_perfect: int | None = None
     hand_size: int = 3
+    # 每回合基础可出牌次数（默认 3 = 标准手牌数）；ExamPlayableValueAdd 在此之上追加
+    plays_per_turn: int = 3
 
 
 @dataclass
@@ -135,6 +144,10 @@ class LessonSim:
         self.stamina: int = config.stamina
         self.turns_left: int = config.turns
         self.buffs = Buffs()
+        # 本回合已出牌数 / 本回合额外可出牌次数（ExamPlayableValueAdd），换手牌时清零
+        self.plays_per_turn: int = config.plays_per_turn
+        self.plays_this_turn: int = 0
+        self.extra_plays: int = 0
         # 非凡指針：温存 / 強気 / 全力 的倍率状态（纯函数模块 stance.py）
         self.stance = StanceState()
 
@@ -163,9 +176,14 @@ class LessonSim:
         return "FAILED"
 
     def legal_actions(self) -> list[Action]:
-        """当前能出的手牌下标 + SKIP（None，固定在最后）。"""
+        """当前能出的手牌下标 + SKIP（None，固定在最后）。
+
+        本回合出牌数达到 ``plays_per_turn + extra_plays`` 后只剩 SKIP。
+        """
         if self.done:
             return []
+        if self.plays_this_turn >= self.plays_per_turn + self.extra_plays:
+            return [None]
         actions: list[Action] = [
             index for index, card in enumerate(self.hand) if card.cost <= self.stamina
         ]
@@ -189,15 +207,24 @@ class LessonSim:
             raise TypeError(f"action 必须是手牌下标或 None：{action!r}")
         if not 0 <= action < len(self.hand):
             raise ValueError(f"手牌下标越界：{action}")
+        if self.plays_this_turn >= self.plays_per_turn + self.extra_plays:
+            raise ValueError(
+                f"本回合出牌次数已用尽：{self.plays_this_turn}/"
+                f"{self.plays_per_turn + self.extra_plays}（先 SKIP 结束本回合）"
+            )
         card = self.hand[action]
         if card.cost > self.stamina:
             raise ValueError(f"体力不足：{card.name} 需要 {card.cost}，当前 {self.stamina}")
 
         self.hand.pop(action)
         self.stamina -= card.cost
+        self.plays_this_turn += 1
         self.score += self._card_award(card)
         self._apply_card_buffs(card)
         self._apply_card_stance(card)
+        # 本牌结算后追加本回合可出牌次数（本牌本身仍占一次）
+        if card.extra_play > 0:
+            self.extra_plays += card.extra_play
         if card.draw > 0:
             self._draw(card.draw)
         self.discard.append(card)
@@ -283,6 +310,9 @@ class LessonSim:
             self._draw_hand()
 
     def _draw_hand(self) -> None:
+        # 新手牌 = 新回合：本回合出牌数与额外次数从 0 重新计
+        self.plays_this_turn = 0
+        self.extra_plays = 0
         self.hand.clear()
         self._draw(self.config.hand_size)
 
@@ -312,6 +342,8 @@ def greedy_policy(sim: LessonSim) -> Action:
     指針牌（温存 / 全力值）常常 ``score=0``，纯按卡面分数效率恒为 0，
     永远不会被选中；这里把这类牌的效率固定按 ``_STANCE_CARD_EFFICIENCY``
     计，让基线也会打它们（实际收益仍由 LessonSim 的指針结算决定）。
+    「可出牌次数 +N」牌同理，固定按 ``_EXTRA_PLAY_CARD_EFFICIENCY`` 计，
+    否则 score=0 的加次数牌永远不会被选中。
     """
     playable = [index for index in sim.legal_actions() if index is not None]
     if not playable:
@@ -321,6 +353,13 @@ def greedy_policy(sim: LessonSim) -> Action:
         card = sim.hand[index]
         if card.preservation > 0 or card.full_power_point > 0:
             return (_STANCE_CARD_EFFICIENCY, _STANCE_CARD_EFFICIENCY, -card.cost, -index)
+        if card.extra_play > 0:
+            return (
+                _EXTRA_PLAY_CARD_EFFICIENCY,
+                _EXTRA_PLAY_CARD_EFFICIENCY,
+                -card.cost,
+                -index,
+            )
         # 0 费牌按 1 费算，避免"1 分 0 费"霸榜
         return (card.score / max(card.cost, 1), card.score, -card.cost, -index)
 
