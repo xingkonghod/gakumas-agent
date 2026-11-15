@@ -45,6 +45,20 @@ def user_idle_ms() -> int:
     return (KERNEL32.GetTickCount() - int(info.dwTime)) & 0xFFFFFFFF
 
 
+
+
+def _normalize_rows(frame):
+    """将缩放取整带来的 1279/1281 行统一成 1280。"""
+    import numpy as np
+
+    rows = frame.shape[0]
+    if rows == 1280:
+        return frame
+    if rows > 1280:
+        return frame[:1280]
+    pad = np.repeat(frame[-1:], 1280 - rows, axis=0)
+    return np.vstack([frame, pad])
+
 class Win32Device:
     def __init__(
         self,
@@ -107,19 +121,19 @@ class Win32Device:
             shape = getattr(frame, "shape", ())
             if (
                 frame.ndim == 3
-                and shape[0] in (1279, 1280)
+                and shape[0] in (1279, 1280, 1281)
                 and shape[1] == 720
                 and float(frame.mean()) > 3.0
             ):
-                return frame
+                return _normalize_rows(frame)
             # 窗口被拉成横屏（720x1280）时转回竖屏
             if (
                 frame.ndim == 3
                 and shape[0] == 720
-                and shape[1] in (1279, 1280)
+                and shape[1] in (1279, 1280, 1281)
                 and float(frame.mean()) > 3.0
             ):
-                return frame.transpose(1, 0, 2)
+                return _normalize_rows(frame.transpose(1, 0, 2))
             time.sleep(0.35)
         shape = getattr(frame, "shape", None)
         mean = float(frame.mean()) if frame is not None else -1.0
