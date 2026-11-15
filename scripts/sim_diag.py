@@ -7,7 +7,8 @@
     data/sim_diag.png   （左：三种策略的评价点分布；右：输局死因柱状图）
 
 口径：
-- 评价点使用官方公式 ``eval_value(total, rank, total*2)``（从 ``gkagent.sim.produce`` 导入）；
+- 评价点使用官方公式 ``eval_value(total, rank, result.exam_score)``（考试得分已乘
+  属性倍率 411%，从 ``gkagent.sim.produce`` 导入）；
   P50/P90 用最近秩（与 ``scripts/sim_produce.py`` 一致），打榜看尾巴，所以 P90 单独画竖线。
 - 输局 = 期末 rank>3 或 官方评价点 < 4500（C+）。
 - 死因可多因：课程均分<120 / 牌组没成长 / 属性够但名次不够 / 体力长期<8；
@@ -224,7 +225,7 @@ def longest_low_stamina(trace: list[dict], threshold: int = 8) -> tuple[int, int
 def evaluate_run(sim: ProduceSim, result, deck_size: int) -> dict:
     rank = final_rank(sim.trace)
     total = result.total
-    points = eval_value(total, rank, total * 2)
+    points = eval_value(total, rank, getattr(result, "exam_score", total * 2))
     lesson_scores = [
         int(row["lesson"]["score"])
         for row in sim.trace
@@ -388,7 +389,7 @@ def draw_chart(
     draw.text((50, 22), "培育模拟诊断：评价点分布 + 失败归因", fill="#111111", font=title_font)
     draw.text(
         (50, 60),
-        f"每策略 {results[0]['n']} 局  |  官方评价点 = eval_value(三维总和, 期末名次, 总和×2)  "
+        f"每策略 {results[0]['n']} 局  |  官方评价点 = eval_value(三维总和, 期末名次, 考试得分×4.11)  "
         f"|  支援加成 {SUPPORT_BONUS}  |  奖励选最强  |  {CONFIG.weeks} 周  "
         f"|  左图 {BIN_WIDTH} 点/箱",
         fill="#555555",
@@ -582,7 +583,7 @@ def draw_chart(
 
     draw.text(
         (50, 912),
-        "输局 = 期末 rank>3 或 eval_value(total, rank, total×2) < 4500（C+）；"
+        "输局 = 期末 rank>3 或 eval_value(total, rank, exam_score) < 4500（C+）；"
         "P50/P90 为最近秩，P90 是打榜看的尾部。",
         fill="#777777",
         font=small_font,

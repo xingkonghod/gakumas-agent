@@ -7,7 +7,9 @@
 
 from __future__ import annotations
 
-from gkagent.sim.lesson import CardSpec
+import pytest
+
+from gkagent.sim.lesson import CardSpec, LessonConfig
 from gkagent.sim.play_choice import (
     CardEstimate,
     best_index,
@@ -159,3 +161,32 @@ def test_best_index_ties_by_score_then_index() -> None:
     ]
     assert best_index(estimates) == 1
     assert best_index([]) is None
+
+
+def test_audition_kind_scales_expected_by_411_percent() -> None:
+    """考试/舞台 rollout 用属性倍率 411%；不传 kind 的课程口径仍是 1.0。"""
+    hand = [_card(0, "轻快步伐", cost=0, score=100)]
+    lesson = estimate_hand(
+        hand, turns_left=1, stamina=4, deck=[], episodes=1, table=TABLE
+    )[0]
+    audition = estimate_hand(
+        hand, turns_left=1, stamina=4, deck=[], episodes=1, table=TABLE, kind="audition"
+    )[0]
+
+    assert lesson.expected == 100
+    assert audition.expected == 411
+    assert audition.expected == pytest.approx(lesson.expected * 4.11)
+    # 显式 config 优先：调用方自己写了 1.0 就按课程算，不被 kind 覆盖
+    course_config = LessonConfig(turns=1, stamina=4, target_clear=1, attribute_coefficient=1.0)
+    forced = estimate_hand(
+        hand, turns_left=1, stamina=4, deck=[], config=course_config, episodes=1, table=TABLE,
+        kind="audition",
+    )[0]
+    assert forced.expected == 100
+    # 选择链路也接受 kind（单张牌时无论如何都选它）
+    assert (
+        choose_card_via_sim(
+            hand, turns_left=1, stamina=4, deck=[], table=TABLE, kind="audition"
+        )
+        == 0
+    )

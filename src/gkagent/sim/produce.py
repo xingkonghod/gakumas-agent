@@ -26,6 +26,18 @@
 - 支援卡加成同步改成 **1.2**：真机 6 张卡均值 Lv20（Lv10/10/10/20/10/60）属 SR 档，
   旧的 1.35 假设 Lv40，会把训练收益再抬高一档。
 
+**考试属性倍率（2026-11-15 19:06 真机 C+/5577 反推）：**
+
+- 真机手动那局：**C+ / 5577 评价点**，考试原始得分约 **1.7 万**；按卡面公式
+  37 分 + 集中 10 + 好调 × 屏幕「歌唱 411%」≈ 290 分/张——考试里每张牌都吃
+  属性倍率，而课程里倍率 ≈ 1.0；
+- 旧模拟器的终试得分 proxy 是 ``2 × 三维总和``（典型局 ~2480），完全没乘属性
+  倍率，所以官方评价公式算出 ~4092（C），与真机 5577（C+）差一个档；
+- 新增 ``audition_coefficient = 4.11``：``exam()`` 里
+  ``终试得分 ≈ 2 × 三维总和 × 4.11``（典型局三维 1245 → ~10200 分），再喂给
+  ``eval_value`` / ``exam_score_points``，典型局评价点回到 ~5600，与真机 5577
+  对齐；课程仍用 1.0，课程分数不受影响。
+
 **未建模（真机有、本层没有；影响已写明）：**
 
 - P 道具 / 角色被动（真机部分角色每回合开始触发加分、元气、集中等）：不进课程
@@ -63,6 +75,8 @@ class ProduceConfig:
       误差 0.9%（扫描 1.0/0.6/0.5/0.4 见模块 docstring）。
     - ``support_bonus=1.2``：真机支援卡均值 Lv20、SR 档 → 1.2；旧默认 1.35
       是"假设 Lv40"的口径，训练/课程收益会偏高。
+    - ``audition_coefficient=4.11``：考试/舞台的属性倍率（屏幕「歌唱 411%」），
+      真机实测值；课程里倍率 1.0（课程得分/评价校准不受影响）。
     """
 
     weeks: int = 12
@@ -88,6 +102,9 @@ class ProduceConfig:
     fans_per_clear: int = 800
     remove_weeks: tuple[int, ...] = ()       # 咨询删卡（默认关：占一周去删 1 张，模型里是负收益）
     min_deck_size: int = 8                   # 牌组不低于此张数才删
+    # 考试/舞台属性倍率（真机屏幕「歌唱 411%」= 4.11，实测校准 C+/5577）。
+    # 课程里倍率 ≈ 1.0：LessonConfig 默认 1.0，课程得分不受影响。
+    audition_coefficient: float = 4.11
 
 
 @dataclass
@@ -98,6 +115,8 @@ class ProduceResult:
     cleared: int
     exams_passed: int
     grade: str
+    # 终试原始得分（已乘考试属性倍率），喂 eval_value / exam_score_points 用
+    exam_score: int = 0
 
     @property
     def total(self) -> int:
@@ -342,7 +361,14 @@ class ProduceSim:
 
     # ------------------------------------------------------------------ 学期
     def exam(self, index: int) -> dict:
-        """6 人考试：属性加权 = 实力，和第 3 名基准比，进前 3 才合格。"""
+        """6 人考试：属性加权 = 实力，和第 3 名基准比，进前 3 才合格。
+
+        终试得分 = ``2 × 三维总和 × audition_coefficient``：考试/舞台里每张牌的
+        分数都吃屏幕上的属性倍率（「歌唱 411%」= 4.11），课程里倍率 ≈ 1.0。
+        旧口径的 ``2 × 三维总和`` 只是"终试得分 ≈ 2×属性"的 proxy；乘上倍率后
+        再喂 ``eval_value`` / ``exam_score_points``，典型局评价点才落回真机 C+/5577
+        的区间。
+        """
         power = self.weighted()
         base = self.config.exam_base[min(index, len(self.config.exam_base) - 1)]
         opponents = [base * factor for factor in self.config.npc_factors]
@@ -351,13 +377,25 @@ class ProduceSim:
         if passed:
             self.exams_passed += 1
             self.fans += 3000
+        # 考试/舞台得分：沿用“终试 ≈ 2×三维总和”的 proxy，再乘属性倍率（411%）
+        exam_score = int(sum(self.attrs) * 2 * self.config.audition_coefficient)
         self.last_exam = {
             "rank": rank,
             "power": round(power, 1),
             "passed": passed,
             "npc": [round(value, 1) for value in opponents],
+            # 终试原始得分（已乘考试属性倍率）：官方评价公式的输入
+            "score": exam_score,
         }
         return self.last_exam
+
+    def last_exam_score(self) -> int:
+        """最近一次考试的原始得分（已乘属性倍率）；没有考试记录时用同一 proxy 兜底。"""
+        for row in reversed(self.trace):
+            exam = row.get("exam") or {}
+            if "score" in exam:
+                return int(exam["score"])
+        return int(sum(self.attrs) * 2 * self.config.audition_coefficient)
 
     def step(self, strategy) -> None:
         cfg = self.config
@@ -435,7 +473,8 @@ class ProduceSim:
                 last_rank = row["exam"]["rank"]
                 break
         total = sum(self.attrs)
-        exam_score = total * 2  # 近似：终试得分 ≈ 2×三维总和
+        # 终试得分：考试/舞台吃属性倍率（默认 4.11），课程仍是 1.0
+        exam_score = self.last_exam_score()
         return ProduceResult(
             attrs=tuple(self.attrs),
             fans=self.fans,
@@ -443,6 +482,7 @@ class ProduceSim:
             cleared=self.cleared,
             exams_passed=self.exams_passed,
             grade=grade_for(total, last_rank, exam_score),
+            exam_score=exam_score,
         )
 
 

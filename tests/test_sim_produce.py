@@ -10,6 +10,7 @@ from gkagent.sim.produce import (
     ProduceConfig,
     ProduceSim,
     StrategyParams,
+    eval_value,
     grade_for,
     strategy_from_params,
 )
@@ -40,7 +41,11 @@ def test_full_run_records_one_trace_row_per_week() -> None:
     assert len(sim.trace) == sim.config.weeks
     assert all("week" in row and "action" in row for row in sim.trace)
     assert result.attrs == tuple(sim.attrs)
-    assert result.grade == grade_for(sum(sim.attrs))
+    last_exam = next(row["exam"] for row in reversed(sim.trace) if row.get("exam"))
+    assert result.exam_score == last_exam["score"]
+    assert result.grade == grade_for(
+        sum(sim.attrs), last_exam["rank"], result.exam_score
+    )
 
 
 def test_exam_rank_uses_six_competitors() -> None:
@@ -71,10 +76,11 @@ def test_lesson_growth_ratio() -> None:
 
 
 def test_calibrated_config_defaults() -> None:
-    """默认值锚定真机 C/4135：课程成长 0.5、支援卡均值 Lv20 → 1.2。"""
+    """默认值锚定真机 C+/5577：课程成长 0.5、支援卡 1.2、考试属性倍率 411%。"""
     config = ProduceConfig()
     assert config.lesson_gain_ratio == 0.5
     assert config.support_bonus == 1.2
+    assert config.audition_coefficient == 4.11
 
 
 @lru_cache(maxsize=2)
@@ -227,6 +233,83 @@ def test_real_attribute_vector_fails_final_exam() -> None:
     exam = sim.exam(1)
     assert exam["passed"] is False
     assert exam["rank"] >= 4
+
+
+def test_exam_score_uses_audition_coefficient() -> None:
+    """考试得分 = 2×三维总和×411%；课程倍率 1.0 时退回旧的 2×总和 proxy。"""
+    attrs = [450, 400, 392]  # total 1242，典型局
+    calibrated = _sim(audition_coefficient=4.11)
+    calibrated.attrs = attrs
+    exam = calibrated.exam(1)
+    assert exam["score"] == int(sum(attrs) * 2 * 4.11) == 10209
+    # 课程里属性倍率 1.0：课程得分/旧 proxy 不受影响
+    legacy = _sim(audition_coefficient=1.0)
+    legacy.attrs = attrs
+    assert legacy.exam(1)["score"] == sum(attrs) * 2 == 2484
+
+
+def test_eval_points_rise_with_audition_coefficient() -> None:
+    """属性倍率 0.9 / 1.0 / 4.11 三档：考试得分与官方评价点都单调上升。"""
+    # total 1210 / power 409.2 → 期末第 3 名（对照真机 5577 那局的 C+ 门槛）
+    attrs = [450, 400, 360]
+    total = sum(attrs)
+    rows = []
+    for coefficient in (0.9, 1.0, 4.11):
+        sim = _sim(audition_coefficient=coefficient)
+        sim.attrs = attrs
+        exam = sim.exam(1)
+        rows.append((exam["score"], eval_value(total, exam["rank"], exam["score"])))
+    scores = [row[0] for row in rows]
+    points = [row[1] for row in rows]
+    assert scores == sorted(scores) and len(set(scores)) == 3
+    assert points == sorted(points) and len(set(points)) == 3
+    # 真机那局：旧口径 C（<4500），411% 后 C+（>=4500）
+    assert points[1] < 4500 <= points[2]
+
+
+@lru_cache(maxsize=1)
+def _typical_run_evals(episodes: int = 200) -> tuple[int, ...]:
+    """典型一局（默认策略 + 真机卡组/奖励池）的官方评价点，固定 seed 可复现。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    deck = [sp._spec_from_row(row) for row in sp.build_deck(rich=True)]
+    pool = [sp._spec_from_row(row) for row in sp.build_pool(rich=True)]
+    config = ProduceConfig()
+    strategy = strategy_from_params(StrategyParams())
+    evals: list[int] = []
+    for episode in range(episodes):
+        sim = ProduceSim(deck, config=config, rng_seed=7000 + episode)
+        sim.reward_pool = pool
+        result = sim.run(strategy)
+        rank = 3
+        for row in reversed(sim.trace):
+            if row.get("exam"):
+                rank = row["exam"]["rank"]
+                break
+        evals.append(eval_value(result.total, rank, result.exam_score))
+    return tuple(evals)
+
+
+def test_typical_run_eval_p50_matches_real_machine_cplus() -> None:
+    """典型一局评价点 P50 落在 5000-5800，对照真机 C+/5577。"""
+    ordered = sorted(_typical_run_evals())
+    p50 = ordered[len(ordered) // 2]
+    assert 5000 <= p50 <= 5800, f"评价点 P50={p50} 偏离真机 C+/5577 标定区间"
+
+
+def test_policy_json_audition_coefficient_matches_config_default() -> None:
+    """policy.json 的 produce.audition_coefficient 与代码默认值一致（不丢键/不漂移）。"""
+    import json
+    from pathlib import Path
+
+    policy_path = Path(__file__).resolve().parents[1] / "data" / "knowledge" / "policy.json"
+    raw = json.loads(policy_path.read_text(encoding="utf-8"))
+    assert raw["produce"]["audition_coefficient"] == 4.11
+    assert raw["produce"]["audition_coefficient"] == ProduceConfig().audition_coefficient
 
 
 def test_balanced_beats_skewed_at_same_total() -> None:

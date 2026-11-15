@@ -9,6 +9,12 @@ anytime：总预算 ``time_budget_ms`` 用完就返回当前最优；第一轮�
 
 任何异常/空手牌/一张都出不起都返回 ``None``——调用方必须退回 ``LessonPolicy``，
 不能让出牌因此退化。开关与日志样例见 ``scripts/auto_produce.py``。
+
+**考试/舞台**：真机考试里每张牌的分数都吃屏幕上的属性倍率
+（「歌唱 411%」= 4.11），课程里 ≈ 1.0。调用方已知当前是考试/舞台时传
+``kind="audition"``：rollout 的 ``LessonConfig.attribute_coefficient`` 会设成
+4.11，期望分与选择按考试口径算；不传 / ``kind="lesson"`` 仍按课程 1.0
+（旧调用方行为不变）。``config`` 显式传入时以 config 为准。
 """
 
 from __future__ import annotations
@@ -18,7 +24,13 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim, greedy_policy
+from gkagent.sim.lesson import (
+    AUDITION_ATTRIBUTE_COEFFICIENT,
+    CardSpec,
+    LessonConfig,
+    LessonSim,
+    greedy_policy,
+)
 
 if TYPE_CHECKING:
     from gkagent.data.card_table import CardTable
@@ -29,6 +41,8 @@ DEFAULT_TIME_BUDGET_MS = 250
 DEFAULT_HAND_SIZE = 3
 # 近似牌库上限：真机拿不到完整牌组，只把战斗里见过的手牌并进来估后续抽牌
 MAX_APPROX_DECK = 12
+# 被当成考试/舞台的 kind 取值：这些场景的分数吃屏幕属性倍率（411%）
+AUDITION_KINDS = frozenset({"audition", "exam", "stage"})
 
 
 @dataclass(frozen=True)
@@ -179,14 +193,30 @@ def specs_from_hand(
     return result
 
 
-def _sim_config(turns_left: int, stamina: int, config: LessonConfig | None) -> LessonConfig:
+def _sim_config(
+    turns_left: int,
+    stamina: int,
+    config: LessonConfig | None,
+    *,
+    kind: str | None = None,
+) -> LessonConfig:
+    """构造 rollout 配置：课程 1.0；``kind`` 是考试/舞台时用 411% 属性倍率。
+
+    显式传入 ``config`` 时以它为准（调用方可以自己设 ``attribute_coefficient``）。
+    """
     if config is not None:
         return config
+    coefficient = (
+        AUDITION_ATTRIBUTE_COEFFICIENT
+        if kind is not None and kind.lower() in AUDITION_KINDS
+        else 1.0
+    )
     return LessonConfig(
         turns=max(int(turns_left), 1),
         stamina=max(int(stamina), 0),
         target_clear=1,  # 只比较总分，不关心 CLEAR/PERFECT 档位
         hand_size=DEFAULT_HAND_SIZE,
+        attribute_coefficient=coefficient,
     )
 
 
@@ -259,8 +289,12 @@ def estimate_hand(
     time_budget_ms: int = DEFAULT_TIME_BUDGET_MS,
     table: CardTable | None = None,
     clock: Callable[[], float] = time.perf_counter,
+    kind: str | None = None,
 ) -> list[CardEstimate]:
-    """对每张手牌 rollout，返回可打出的牌的期望分（按手牌顺序，只含打得出的牌）。"""
+    """对每张手牌 rollout，返回可打出的牌的期望分（按手牌顺序，只含打得出的牌）。
+
+    ``kind="audition"``（考试/舞台）时 rollout 用属性倍率 4.11；默认课程 1.0。
+    """
     try:
         play_cards = specs_from_hand(hand, table=table)
     except Exception:  # noqa: BLE001 - 读牌失败不能把出牌搞崩
@@ -269,7 +303,7 @@ def estimate_hand(
         return []
     stamina = max(int(stamina), 0)
     turns_left = max(int(turns_left), 1)
-    config = _sim_config(turns_left, stamina, config)
+    config = _sim_config(turns_left, stamina, config, kind=kind)
     playable = [card for card in play_cards if card.cost <= stamina]
     if not playable:
         return []
@@ -341,11 +375,12 @@ def choose_card_via_sim(
     time_budget_ms: int = DEFAULT_TIME_BUDGET_MS,
     table: CardTable | None = None,
     clock: Callable[[], float] = time.perf_counter,
+    kind: str | None = None,
 ) -> int | None:
     """对每张手牌 rollout（打这张 + 剩余回合 greedily 打完），返回期望最高的下标。
 
     空手牌/一张都出不起/异常 → ``None``（调用方退回 ``LessonPolicy``）。
-    超预算 anytime 返回当前最优。
+    超预算 anytime 返回当前最优。``kind="audition"`` 时按考试属性倍率（411%）算。
     """
     index, _estimates = plan_pick(
         hand,
@@ -357,6 +392,7 @@ def choose_card_via_sim(
         time_budget_ms=time_budget_ms,
         table=table,
         clock=clock,
+        kind=kind,
     )
     return index
 
@@ -372,10 +408,12 @@ def plan_pick(
     time_budget_ms: int = DEFAULT_TIME_BUDGET_MS,
     table: CardTable | None = None,
     clock: Callable[[], float] = time.perf_counter,
+    kind: str | None = None,
 ) -> tuple[int | None, list[CardEstimate]]:
     """一次 rollout 同时拿到「选择下标 + 每张牌期望分」，供真机日志对比规则选择。
 
     ``choose_card_via_sim`` 是它的薄封装；任何异常都返回 ``(None, [])``。
+    ``kind="audition"`` 时 rollout 走考试属性倍率（411%），默认课程 1.0。
     """
     try:
         estimates = estimate_hand(
@@ -388,6 +426,7 @@ def plan_pick(
             time_budget_ms=time_budget_ms,
             table=table,
             clock=clock,
+            kind=kind,
         )
     except Exception:  # noqa: BLE001 - 模拟器异常绝不能让出牌退化
         return None, []

@@ -37,6 +37,12 @@
   按出牌**前**（也就是支付牌费前）的元气层数算
   ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10），同样不吃好调/集中/指針
   倍率，本牌自带的 ``vitality`` 在算完之后才生效；
+- **属性倍率**（``LessonConfig.attribute_coefficient``）：真机课程里约 1.0，
+  考试/舞台里是屏幕上显示的「歌唱 411%」这类倍率（411% = 4.11）。只乘
+  ``(卡面分 + 集中) × 好调 × 指針`` 这一段白值，**好印象/元气依赖分不吃**
+  （保守口径，卡表没给出依赖分是否参与倍率）。倍率 ≠ 1.0 时按真机**显示值**
+  四舍五入：37 分 + 集中 10 + 好调 → 47 × 1.5 × 4.11 = 289.755 → 290
+  （真机实测约 290；课程倍率 1.0 仍沿用 ``floor``，保持既有校准）；
 - ``parameter_buff``：审查基准加成，近似成"本次打分额外乘
   ``parameter_buff/1000`` 倍"（1500 = ×1.5）。本牌自带的加成叠在**本牌最终分**
   （白值 + 依赖分）上；``parameter_buff_turns > 1`` 时在本回合内持续，同一回合
@@ -95,6 +101,7 @@ from gkagent.sim.stance import (
 )
 
 __all__ = [
+    "AUDITION_ATTRIBUTE_COEFFICIENT",
     "DRINKS_PER_TURN",
     "DRINK_EFFECTS",
     "Action",
@@ -115,6 +122,9 @@ Policy: TypeAlias = Callable[["LessonSim"], Action]
 DRINK_EFFECTS: tuple[str, ...] = ("stamina", "focus", "condition", "score")
 # 真机每回合最多喝 1 瓶（不是每个饮料槽 1 瓶）
 DRINKS_PER_TURN = 1
+# 考试/舞台屏幕显示的属性倍率（「歌唱 411%」= 4.11）真机实测默认值；
+# 课程里属性倍率 ≈ 1.0，所以 LessonConfig 默认仍是 1.0。
+AUDITION_ATTRIBUTE_COEFFICIENT = 4.11
 
 # 防止策略写出死循环（例如全 0 费抽牌卡无限过牌）时的安全阀
 _MAX_STEPS = 10_000
@@ -216,6 +226,8 @@ class LessonConfig:
     drinks: tuple[DrinkSpec, ...] = ()
     # 体力上限；None = 初始体力（真机课程开局满体力）。饮料回复不会超过它
     stamina_max: int | None = None
+    # 属性倍率：考试/舞台屏幕上的「歌唱 411%」= 4.11；课程 ≈ 1.0（默认）
+    attribute_coefficient: float = 1.0
 
 
 @dataclass
@@ -433,14 +445,18 @@ class LessonSim:
 
     # ------------------------------------------------------------------ 内部
     def _card_award(self, card: CardSpec) -> int:
-        """本牌的得分：``(score + focus) × 好调倍率 × 指針倍率`` + 好印象依赖分 + 元气依赖分，
-        最后再乘审查基准加成，逐段向下取整。
+        """本牌的得分：``(score + focus) × 好调倍率 × 属性倍率 × 指針倍率``
+        + 好印象依赖分 + 元气依赖分，最后再乘审查基准加成，逐段向下取整。
 
-        纯 buff 牌（``score <= 0``）不参与集中/好调/指針加成；但如果有
+        纯 buff 牌（``score <= 0``）不参与集中/好调/指針/属性倍率加成；但如果有
         ``impression_scale`` / ``block_scale``，仍然按**出牌前**的好印象 /
-        元气层数结算依赖分：``int(层数 × 倍率 / 100)``。依赖分不吃好调/集中/指針，
-        因为卡表没给出这部分是否参与倍率结算，取保守做法。元气依赖分用的是
+        元气层数结算依赖分：``int(层数 × 倍率 / 100)``。依赖分不吃好调/集中/指針/
+        属性倍率，因为卡表没给出这部分是否参与倍率结算，取保守做法。元气依赖分用的是
         **支付本牌牌费之前**的元气层数（盾还没被这张牌花掉）。
+
+        ``attribute_coefficient`` 是考试/舞台的属性倍率（411% = 4.11）：课程 1.0
+        时沿用 ``floor``（既有校准不变）；倍率 ≠ 1.0 时按真机屏幕显示值四舍五入
+        （37 + 集中 10 + 好调 → 47 × 1.5 × 4.11 = 289.755 → 290）。
 
         ``parameter_buff``（含本回合遗留的 ``turn_parameter_buff``）在**最终分**
         上叠加倍率 ``int(最终分 × 加成 / 1000)``；1000 = ×1.0（不加不减），
@@ -451,9 +467,14 @@ class LessonSim:
         award = 0
         if card.score > 0:
             multiplier = 1.5 if self.buffs.condition_turns > 0 else 1.0
-            award = math.floor(
-                (card.score + self.buffs.focus) * multiplier * score_multiplier(self.stance)
-            )
+            raw = (card.score + self.buffs.focus) * multiplier * score_multiplier(self.stance)
+            coefficient = self.config.attribute_coefficient
+            if coefficient == 1.0:
+                award = math.floor(raw)
+            else:
+                # 考试/舞台：属性倍率乘进白值；真机显示值四舍五入
+                # （37+集中10 好调 411% = 289.755 → 290）
+                award = math.floor(raw * coefficient + 0.5)
         if card.impression_scale > 0 and self.buffs.impression > 0:
             award += int(self.buffs.impression * card.impression_scale / 100)
         if card.block_scale > 0 and self.vitality > 0:

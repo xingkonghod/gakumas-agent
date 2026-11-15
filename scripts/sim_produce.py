@@ -362,7 +362,7 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
 
 def run_chunk(task: tuple) -> dict:
     """子进程：跑一段局数，返回聚合结果。"""
-    strategy_name, episodes, seed, deck_raw, pool_raw, reward_pick, support = task
+    strategy_name, episodes, seed, deck_raw, pool_raw, reward_pick, support, audition = task
     from gkagent.sim.produce import (
         STRATEGIES,
         ProduceConfig,
@@ -373,7 +373,11 @@ def run_chunk(task: tuple) -> dict:
 
     deck = [_spec_from_row(row) for row in deck_raw]
     pool = [_spec_from_row(row) for row in pool_raw]
-    config = ProduceConfig(reward_pick=reward_pick, support_bonus=support)
+    config = ProduceConfig(
+        reward_pick=reward_pick,
+        support_bonus=support,
+        audition_coefficient=audition,
+    )
     if strategy_name == "random":
         strategy = random_strategy(seed)
     else:
@@ -390,7 +394,8 @@ def run_chunk(task: tuple) -> dict:
             if row.get("exam"):
                 rank = row["exam"]["rank"]
                 break
-        evals.append(eval_value(result.total, rank, result.total * 2))
+        # 终试得分已乘考试属性倍率（result.exam_score），再喂官方评价公式
+        evals.append(eval_value(result.total, rank, result.exam_score))
         grades[result.grade] += 1
         clears += result.cleared
         exams += result.exams_passed
@@ -422,16 +427,31 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--rewards", choices=["best", "random", "none"], default="best")
     parser.add_argument("--support", type=float, default=1.2,
                         help="训练/课程收益倍率（默认 1.2 = 真机支援卡均值 Lv20 校准值）")
+    parser.add_argument("--audition-coefficient", type=float, default=4.11,
+                        help="考试/舞台属性倍率（默认 4.11 = 真机屏幕「歌唱 411%%」；"
+                             "课程仍 1.0，传 1.0 可复现改前口径）")
     args = parser.parse_args(argv)
 
     # rich=True：把抽牌/好印象/依赖倍率带进 CardSpec（默认 5 元组给其它脚本兼容）
     deck = build_deck(rich=True)
     pool = build_pool(rich=True) if args.rewards != "none" else []
-    print(f"卡组 {len(deck)} 张, 奖励池 {len(pool)} 张, 选牌={args.rewards}, 支援加成={args.support}")
+    print(
+        f"卡组 {len(deck)} 张, 奖励池 {len(pool)} 张, 选牌={args.rewards}, "
+        f"支援加成={args.support}, 考试属性倍率={args.audition_coefficient}"
+    )
     names = [name.strip() for name in args.only.split(",") if name.strip()]
     workers = args.workers or min(8, (len(names)))
     tasks = [
-        (name, args.episodes, 1234 + index * 7919, deck, pool, args.rewards, args.support)
+        (
+            name,
+            args.episodes,
+            1234 + index * 7919,
+            deck,
+            pool,
+            args.rewards,
+            args.support,
+            args.audition_coefficient,
+        )
         for index, name in enumerate(names)
     ]
 
@@ -443,7 +463,8 @@ def main(argv: list[str]) -> int:
     for row in results:
         print(
             f"{row['strategy']:14s} n={row['n']:>7} 总和均值={row['mean_total']:>7} "
-            f"评价点均值={row['mean_eval']:>7} P90={row['p90_eval']:>7} C+率={row['cplus_rate']*100:3.0f}% "
+            f"评价点均值={row['mean_eval']:>7} P50={row['p50_eval']:>7} "
+            f"P90={row['p90_eval']:>7} C+率={row['cplus_rate']*100:3.0f}% "
             f"上课/局={row['lessons_per_run']:.1f} 考试通过={row['exams_passed']:.1f} "
             f"评价={row['grades']}"
         )

@@ -31,6 +31,7 @@ def _config(
     hand_size: int = 3,
     drinks: tuple[DrinkSpec, ...] = (),
     stamina_max: int | None = None,
+    attribute_coefficient: float = 1.0,
 ) -> LessonConfig:
     return LessonConfig(
         turns=turns,
@@ -40,6 +41,7 @@ def _config(
         hand_size=hand_size,
         drinks=drinks,
         stamina_max=stamina_max,
+        attribute_coefficient=attribute_coefficient,
     )
 
 
@@ -95,6 +97,76 @@ def test_condition_multiplies_by_1_5_and_rounds_down() -> None:
     assert sim.stamina == 6
     # 本回合结束：好调 -1，剩余 1 回合仍可在下一回合生效
     assert sim.buffs.condition_turns == 1
+
+
+def test_audition_attribute_coefficient_matches_real_machine_card() -> None:
+    """真机实测：37 分 + 集中 10 + 好调 + 屏幕 411% ≈ 290 分。"""
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        _config(turns=1, stamina=10, attribute_coefficient=4.11),
+    )
+    sim.hand = [CardSpec("37分牌", 0, 37)]
+    sim.deck = []
+    sim.discard = []
+    sim.buffs.focus = 10
+    sim.buffs.condition_turns = 2
+
+    sim.step(0)
+
+    # 47 × 1.5 × 4.11 = 289.755：考试/舞台按真机显示值四舍五入 = 290
+    assert sim.score == 290
+
+
+def test_lesson_default_attribute_coefficient_is_one() -> None:
+    """课程默认倍率 1.0：同样的牌 floor(47×1.5)=70，不吃考试倍率。"""
+    assert (
+        LessonConfig(turns=1, stamina=10, target_clear=1).attribute_coefficient == 1.0
+    )
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=1, stamina=10))
+    sim.hand = [CardSpec("37分牌", 0, 37)]
+    sim.deck = []
+    sim.discard = []
+    sim.buffs.focus = 10
+    sim.buffs.condition_turns = 2
+
+    sim.step(0)
+
+    assert sim.score == 70
+
+
+def test_explicit_coefficient_one_matches_course_default() -> None:
+    """显式 ``attribute_coefficient=1.0`` 与默认完全一致：课程分数不受新字段影响。"""
+    deck = [CardSpec(f"牌{i}", 0, i + 1, draw=1) for i in range(5)]
+
+    def play(config: LessonConfig) -> tuple[int, list[dict]]:
+        sim = LessonSim(deck, config, rng_seed=5)
+        score, _grade = sim.run(greedy_policy)
+        return score, [dict(row) for row in sim.trace]
+
+    assert play(_config(turns=3, stamina=10)) == play(
+        _config(turns=3, stamina=10, attribute_coefficient=1.0)
+    )
+
+
+def test_dependent_scores_ignore_attribute_coefficient() -> None:
+    """好印象/元气依赖分不吃考试属性倍率（保持保守口径）。"""
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        _config(turns=2, stamina=10, hand_size=2, attribute_coefficient=4.11),
+    )
+    sim.hand = [
+        CardSpec("依赖", 0, 0, impression_scale=1000, block_scale=1000),
+        CardSpec("占位二", 0, 0),
+    ]
+    sim.deck = []
+    sim.discard = []
+    sim.buffs.impression = 3
+    sim.vitality = 4
+
+    sim.step(0)
+
+    # 30（好印象）+ 40（元气）；若误乘 4.11 会变成 287
+    assert sim.score == 70
 
 
 def test_focus_adds_flat_score_to_later_cards_only() -> None:

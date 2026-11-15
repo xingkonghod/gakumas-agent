@@ -702,6 +702,8 @@ def test_produce_params_reads_all_keys(monkeypatch) -> None:
     # 值必须来自 policy.json，而不是代码默认值（校准后 rest_threshold 已从 8 调到 10）
     assert params["rest_threshold"] == produce["rest_threshold"]
     assert params["lesson_min_stamina"] == produce["lesson_min_stamina"]
+    # 考试属性倍率（411%）也随 produce 段整段读入
+    assert params["audition_coefficient"] == produce["audition_coefficient"] == 4.11
     assert set(produce) - {"source", "support_levels"} <= set(params)
 
 

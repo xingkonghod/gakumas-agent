@@ -74,7 +74,7 @@ def evaluate(task: tuple) -> dict:
             if row.get("exam"):
                 rank = row["exam"]["rank"]
                 break
-        evals.append(eval_value(result.total, rank, result.total * 2))
+        evals.append(eval_value(result.total, rank, result.exam_score))
         exams += result.exams_passed
         clears += result.cleared
         lessons += result.lessons
@@ -157,7 +157,7 @@ def evaluate_play(task: tuple) -> dict:
             exams = [row["exam"] for row in sim.trace if row["action"] == "exam"]
             exam_pass += sum(1 for exam in exams if exam["passed"])
             rank = exams[-1]["rank"] if exams else 3
-            evals.append(eval_value(result.total, rank, result.total * 2))
+            evals.append(eval_value(result.total, rank, result.exam_score))
     return {
         "params": play_params,
         "mean": round(sum(totals) / len(totals), 1),

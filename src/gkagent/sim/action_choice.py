@@ -87,7 +87,8 @@ def _rollout(
             if row.get("exam"):
                 rank = row["exam"]["rank"]
                 break
-        values.append(eval_value(total, rank, total * 2))
+        # 终试得分从 sim 里取（已乘考试属性倍率），课程/考试口径与 produce.run 一致
+        values.append(eval_value(total, rank, sim.last_exam_score()))
     return sum(values) / len(values)
 
 
