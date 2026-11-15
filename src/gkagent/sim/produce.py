@@ -642,6 +642,31 @@ def strategy_mixed(state: ProduceSim) -> str:
     return "lesson" if state.week % 4 == 0 else "train"
 
 
+def strategy_optimal(state: ProduceSim) -> str:
+    """逐周择优：比较该周「上课收益(CLEAR+PERFECT)」与「训练收益(train_clear)」，取大的。
+
+    依据官方排期（data/knowledge/official.json）：
+    - 前期上课更赚（W1-5：65-75 vs 训练 40-73）
+    - 中后期训练反超（W6-14：82-148 vs 上课 75-130）
+    - 追い込み周（W15）上课暴涨（96+25 与 train 165）仍按数值比较
+    """
+    entry = state.official_entry()
+    if entry is None:
+        return "rest"
+    lesson_gain = int(entry.get("clear") or 0) + int(entry.get("perfect") or 0)
+    train_gain = int(entry.get("train_clear") or 0)
+    prefer_lesson = lesson_gain >= train_gain
+    if prefer_lesson and state.stamina >= state.config.lesson_cost:
+        return "lesson"
+    if not prefer_lesson and state.stamina >= state.config.train_cost:
+        return "train"
+    if state.stamina >= state.config.train_cost:
+        return "train"
+    if state.stamina >= state.config.lesson_cost:
+        return "lesson"
+    return "rest"
+
+
 def strategy_official(state: ProduceSim) -> str:
     """按 official.json 的逐周排期行动；体力不足则休息。
 
