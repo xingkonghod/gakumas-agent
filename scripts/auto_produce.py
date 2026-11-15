@@ -48,6 +48,7 @@ from gkagent.tasks.produce_ui import (
     LessonPlayGuard,
     ProduceDriver,
     clean_card_name,
+    clean_lesson_state,
     has_selected_ui,
     lesson_hand_signature,
     parse_stamina,
@@ -723,7 +724,7 @@ def main() -> int:
                 lesson_pending = None
                 # 出牌：LessonReader 已经 OCR 过手牌区（卡名/预览/费用），这里不再重复整屏 OCR
                 # 卡名清洗 + 剔除已确认打不出去的牌；脏名清空后仍按分数/费用参与选择
-                state_clean = driver.clean_lesson_state(
+                state_clean = clean_lesson_state(
                     lesson_state,
                     exclude_names=bad_cards,
                     exclude_points=lesson_guard.failed_points,
