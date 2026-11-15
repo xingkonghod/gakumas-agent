@@ -110,6 +110,9 @@
 
 ### 用户手动局（18:10 起，lead 的 record_manual.py 只读录制）
 - supervisor 进入**只读记录模式**：不起进程、不建 STOP、不改读屏/点击代码，只补 RUNS.md。
-- 录制产物：data/manual/session.jsonl（每 15s 截图+三维）、ttribute_log.jsonl(tag=manual)。
-- 结果待用户打完补记。
+- 录制产物：data/manual/session.jsonl（每 15s 截图+三维）、ttribute_log.jsonl。
+- 18:09:02-18:10:48 录制到最终审查（4th，屏幕分 2054/1417 等），之后进入 NOW LOADING，录制停止。
+- 18:14 游戏停在「选择偶像」界面、True End条件 1/3 —— 说明这一局培育已经打完并结算过；
+  **最终评价/三维没有采集到**（record_manual 在结算前停止，属已知缺口；下次录制要覆盖结算页）。
+- 结果待用户/lead 补评价点。
 
