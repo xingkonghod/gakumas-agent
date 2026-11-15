@@ -14,6 +14,18 @@
 
 只依赖 `gkagent.sim.lesson`，不依赖真机、不联网、可多进程。
 
+**校准锚点（2026-11-15 真机实测，唯一可信基准）：**
+
+- 玩家手动打完一局：**评价 C / 4135 评价点 / 三维约 1000-1200**
+  （有村麻央，支援卡 Lv10/10/10/20/10/60，起始三维 209/85/75）；
+- 扫描 ``lesson_gain_ratio``：1.00 → 三维 2219 / 评价点 7309；0.60 → 1330 / 4739；
+  **0.50 → 1108 / 4097（与真机 4135 误差 0.9%）**；0.40 → 886 / 3454；
+- 所以默认取 **0.5**：机制上课程得分 1:1 转属性（1.0 是对的），但模拟器"奖励选最强"
+  后的牌组约为真机牌组的 **2 倍强**（模拟课程均分 ~245，真机只有 90-120），
+  1.0 会把总分放大约 2 倍；0.5 是吸收"牌组强度差"后的有效系数；
+- 支援卡加成同步改成 **1.2**：真机 6 张卡均值 Lv20（Lv10/10/10/20/10/60）属 SR 档，
+  旧的 1.35 假设 Lv40，会把训练收益再抬高一档。
+
 **未建模（真机有、本层没有；影响已写明）：**
 
 - P 道具 / 角色被动（真机部分角色每回合开始触发加分、元气、集中等）：不进课程
@@ -40,6 +52,19 @@ ATTRIBUTES = ("Vo", "Da", "Vi")
 
 @dataclass(frozen=True)
 class ProduceConfig:
+    """一局培育的数值配置（默认值 = 真机实测校准后的口径）。
+
+    校准依据：真机手动一局 **评价 C / 4135 评价点 / 三维约 1000-1200**
+    （起始 209/85/75，支援卡 Lv10/10/10/20/10/60）。
+
+    - ``lesson_gain_ratio=0.5``：机制值本是 1.0（课程得分 1:1 转属性），但模拟器
+      奖励选牌后的牌组强度约为真机的 2 倍（课程均分 ~245 vs 真机 90-120），
+      1.0 会把总分放大约 2 倍；0.5 时模拟三维 1108 / 评价点 4097，与真机 4135
+      误差 0.9%（扫描 1.0/0.6/0.5/0.4 见模块 docstring）。
+    - ``support_bonus=1.2``：真机支援卡均值 Lv20、SR 档 → 1.2；旧默认 1.35
+      是"假设 Lv40"的口径，训练/课程收益会偏高。
+    """
+
     weeks: int = 12
     stamina_max: int = 35
     start_stamina: int = 35
@@ -52,9 +77,9 @@ class ProduceConfig:
     outing_weeks: tuple[int, ...] = (3, 5, 8, 10)  # 这几周有外出可选
     exam_weeks: tuple[int, ...] = (6, 12)
     lesson_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
-    support_levels: tuple[int, ...] = (40, 37, 29)  # 真机支援卡等级
-    support_bonus: float = 1.35     # 训练收益倍率（由支援卡等级折算：1 + (40+37+29)/300）
-    lesson_gain_ratio: float = 1.0  # 课程得分 → 属性成长（机制上就是 1:1；0.4 是"弱牌组"补偿，见 SIMULATOR.md §9）
+    support_levels: tuple[int, ...] = (10, 10, 10, 20, 10, 60)  # 真机实测支援卡等级
+    support_bonus: float = 1.2      # 训练收益倍率：均值 Lv20 / SR 档（旧 1.35 假设 Lv40）
+    lesson_gain_ratio: float = 0.5  # 课程得分→属性；机制 1:1，但模拟牌组强 2 倍，取 0.5
     reward_pick: str = "best"       # best=选最强卡 / random=随机 / none=不拿
     # 考试：6 人里进前 3 才算合格。基准分按真机标定：
     # 实拍期末 1st 589 / 2nd 406 / 3rd 203 / 4th 201 / 5th 195，我们 632 属性 = 6th（不合格）
@@ -496,6 +521,8 @@ def strategy_mixed(state: ProduceSim) -> str:
 
 STRATEGIES = {
     "train_best": strategy_train_best,
+    # 别名：对比实验（训练 vs 上课）里用 pure_train 表示"只训练、体力不够就休息"
+    "pure_train": strategy_train_best,
     "train_lowest": strategy_train_lowest,
     "lesson_heavy": strategy_lesson_heavy,
     "mixed": strategy_mixed,

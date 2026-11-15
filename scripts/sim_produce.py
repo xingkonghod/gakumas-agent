@@ -420,7 +420,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--workers", type=int, default=0)
     parser.add_argument("--only", default="train_best,train_lowest,lesson_heavy,mixed,random,smart")
     parser.add_argument("--rewards", choices=["best", "random", "none"], default="best")
-    parser.add_argument("--support", type=float, default=1.0)
+    parser.add_argument("--support", type=float, default=1.2,
+                        help="训练/课程收益倍率（默认 1.2 = 真机支援卡均值 Lv20 校准值）")
     args = parser.parse_args(argv)
 
     # rich=True：把抽牌/好印象/依赖倍率带进 CardSpec（默认 5 元组给其它脚本兼容）

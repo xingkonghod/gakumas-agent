@@ -10,16 +10,16 @@
   "min_stamina_to_train": 12
  },
  "stats": {
-  "mean": 2059.3,
-  "p10": 1808,
+  "mean": 1242.0,
+  "p10": 1110,
   "exams": 2.0,
-  "clear_rate": 0.872,
+  "clear_rate": 0.954,
   "fail_exam_rate": 0.0,
-  "n": 600,
-  "mean_eval": 7572.0,
-  "p50_eval": 7667,
-  "p90_eval": 8421,
-  "p95_eval": 8734,
-  "cplus_rate": 1.0
+  "n": 800,
+  "mean_eval": 4264.3,
+  "p50_eval": 4092,
+  "p90_eval": 4909,
+  "p95_eval": 5025,
+  "cplus_rate": 0.403
  }
 }

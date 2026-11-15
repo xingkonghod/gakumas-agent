@@ -58,7 +58,9 @@ def evaluate(task: tuple) -> dict:
     pool = _to_specs(pool_raw)
     params = StrategyParams(**params_dict)
     strategy = strategy_from_params(params)
-    config = ProduceConfig(reward_pick="best", support_bonus=1.15)
+    # 不覆盖 calibration 默认值：lesson_gain_ratio=0.5 / support_bonus=1.2
+    # （真机 C/4135 反推，见 ProduceConfig docstring）
+    config = ProduceConfig(reward_pick="best")
 
     totals, evals, grades, exams, clears, lessons = [], [], [], 0, 0, 0
     for episode in range(episodes):
@@ -115,7 +117,8 @@ def evaluate_play(task: tuple) -> dict:
 
     deck = _to_specs(deck_raw)
     pool = _to_specs(pool_raw)
-    config = ProduceConfig(reward_pick="best", support_bonus=1.35)
+    # 用校准后的默认值（ratio=0.5 / support=1.2），不要在这里改单卡收益口径
+    config = ProduceConfig(reward_pick="best")
     strategy = strategy_from_params(StrategyParams(rest_threshold=8, lesson_every=1, lesson_min_stamina=12,
                                                    attr_choice="weight", outing_below=16, min_stamina_to_train=8))
 

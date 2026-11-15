@@ -54,7 +54,7 @@ def run_idol(task: tuple) -> dict:
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
     params = StrategyParams(**params_dict)
-    config = ProduceConfig(weights=weights, reward_pick="best", support_bonus=1.35)
+    config = ProduceConfig(weights=weights, reward_pick="best", support_bonus=1.2)
 
     weekly: dict[int, list[int]] = {}
     finals, exam_pass, grades = [], 0, {}

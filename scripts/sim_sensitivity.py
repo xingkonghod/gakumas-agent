@@ -1,7 +1,8 @@
-"""敏感性分析：课程成长系数从 0.2 扫到 0.8，看"纯训练 vs 能上课就上课"谁更强。
+"""敏感性分析：课程成长系数从 0.2 扫到 1.0，看"纯训练 vs 能上课就上课"谁更强。
 
-背景：真实只拿到两个标定点（W5=361、W12=632），所以 `lesson_gain_ratio` 是不确定的；
-这张图用来看"结论在什么系数下成立"，避免把一次拟合当真理。
+背景：真机锚点只有"评价 C / 4135 评价点 / 三维约 1000-1200"，`lesson_gain_ratio`
+的机制值是 1.0，但模拟牌组比真机强约 2 倍，所以校准默认值取 0.5；这张图用来看
+"结论在什么系数下成立"，避免把一次拟合当真理。
 
 用法：python scripts/sim_sensitivity.py --episodes 400
 产物：data/sim_sensitivity.png
@@ -10,6 +11,7 @@
 from __future__ import annotations
 
 import argparse
+import itertools
 import statistics as st
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -19,8 +21,8 @@ ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-RATIOS = (0.20, 0.40, 0.60, 0.80, 0.90, 1.00)
-CALIBRATED = 1.00
+RATIOS = (0.20, 0.40, 0.50, 0.60, 0.80, 0.90, 1.00)
+CALIBRATED = 0.50
 
 VARIANTS = {
     "纯训练": {
@@ -37,7 +39,9 @@ COLORS = {"纯训练": "#3fa7d6", "能上课就上课": "#e0556b"}
 
 def run_cell(task: tuple) -> dict:
     ratio, name, params_dict, episodes, seed = task
+
     import sim_produce as sp
+
     from gkagent.sim.lesson import CardSpec
     from gkagent.sim.produce import ProduceConfig, ProduceSim, StrategyParams, strategy_from_params
 
@@ -49,7 +53,7 @@ def run_cell(task: tuple) -> dict:
         weights=(0.40, 0.38, 0.22),
         lesson_gain_ratio=ratio,
         reward_pick="best",
-        support_bonus=1.35,
+        support_bonus=1.2,
     )
     strategy = strategy_from_params(StrategyParams(**params_dict))
     totals, exam_pass = [], 0
@@ -118,12 +122,12 @@ def draw(rows: list[dict]) -> None:
     index = RATIOS.index(CALIBRATED)
     x = x0 + (x1 - x0) * index / (len(RATIOS) - 1)
     canvas.line([(x, y0), (x, y1)], fill="#999999", width=2)
-    canvas.text((x + 8, y0 + 6), "机制值 1.00", fill="#777777", font=small)
+    canvas.text((x + 8, y0 + 6), "校准值 0.50（真机 C/4135 反推）", fill="#777777", font=small)
 
     # 交叉点
     by_name = {name: {row["ratio"]: row["mean"] for row in rows if row["name"] == name} for name in VARIANTS}
     names = list(VARIANTS)
-    for left, right in zip(RATIOS, RATIOS[1:]):
+    for left, right in itertools.pairwise(RATIOS):
         diff_left = by_name[names[0]][left] - by_name[names[1]][left]
         diff_right = by_name[names[0]][right] - by_name[names[1]][right]
         if diff_left * diff_right <= 0:

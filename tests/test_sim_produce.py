@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 
 from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim
 from gkagent.sim.produce import (
@@ -67,6 +68,55 @@ def test_lesson_growth_ratio() -> None:
     assert gained >= 0
     if detail["score"] > 0:
         assert abs(gained - detail["score"]) <= 3
+
+
+def test_calibrated_config_defaults() -> None:
+    """默认值锚定真机 C/4135：课程成长 0.5、支援卡均值 Lv20 → 1.2。"""
+    config = ProduceConfig()
+    assert config.lesson_gain_ratio == 0.5
+    assert config.support_bonus == 1.2
+
+
+@lru_cache(maxsize=2)
+def _calibrated_400_episode_means(ratio: float) -> tuple[float, tuple[float, float, float]]:
+    """用真机卡组/奖励池跑 400 局，返回 (三维总和均值, 三维均值)。
+
+    固定种子 5000..5399，结果可复现；缓存避免两个用例重复跑同一组。
+    """
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    deck = [sp._spec_from_row(row) for row in sp.build_deck(rich=True)]
+    pool = [sp._spec_from_row(row) for row in sp.build_pool(rich=True)]
+    config = ProduceConfig(lesson_gain_ratio=ratio)
+    strategy = strategy_from_params(StrategyParams())
+    totals: list[int] = []
+    attrs = [0, 0, 0]
+    for episode in range(400):
+        sim = ProduceSim(deck, config=config, rng_seed=5000 + episode)
+        sim.reward_pool = pool
+        result = sim.run(strategy)
+        totals.append(result.total)
+        for index, value in enumerate(result.attrs):
+            attrs[index] += value
+    return sum(totals) / len(totals), tuple(value / len(totals) for value in attrs)
+
+
+def test_default_ratio_lands_in_real_machine_three_attr_band() -> None:
+    """默认 ratio=0.5：400 局三维总和均值落在真机标定区间 900-1300。"""
+    mean_total, mean_attrs = _calibrated_400_episode_means(0.5)
+    assert 900 <= mean_total <= 1300, f"三维总和均值 {mean_total:.1f} 偏离真机标定区间"
+    assert all(200 <= value <= 700 for value in mean_attrs), mean_attrs
+
+
+def test_ratio_one_doubles_three_attrs_vs_calibrated_default() -> None:
+    """把 ratio 改回机制值 1.0：课程成长翻倍，三维总和均值约翻倍（校准反向验证）。"""
+    calibrated, _ = _calibrated_400_episode_means(0.5)
+    doubled, _ = _calibrated_400_episode_means(1.0)
+    assert 1.8 <= doubled / calibrated <= 2.2, f"{calibrated:.1f} -> {doubled:.1f}"
 
 
 def test_strategy_rests_below_threshold() -> None:

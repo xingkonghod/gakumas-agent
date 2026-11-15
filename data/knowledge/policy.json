@@ -15,17 +15,20 @@
  },
  "produce": {
   "prefer_lesson": true,
-  "rest_threshold": 8,
+  "rest_threshold": 10,
   "reward_pick": "best",
   "lesson_every": 1,
   "attr_choice": "weight",
-  "min_stamina_to_train": 8,
-  "outing_below": 16,
-  "source": "sim_evolve_gen5",
+  "min_stamina_to_train": 12,
+  "outing_below": -1,
+  "source": "sim_search_ratio05",
   "support_levels": [
-   40,
-   37,
-   29
+    10,
+    10,
+    10,
+    20,
+    10,
+    60
   ],
   "sim_choice": false,
   "lesson_min_stamina": 10

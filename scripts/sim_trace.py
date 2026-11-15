@@ -36,7 +36,7 @@ def build_runs(count: int) -> list[dict]:
     runs = []
     for index in range(count):
         name = strategies[index % len(strategies)]
-        config = ProduceConfig(reward_pick="best", support_bonus=1.15)
+        config = ProduceConfig(reward_pick="best", support_bonus=1.2)
         sim = ProduceSim(deck, config=config, rng_seed=1000 + index)
         sim.reward_pool = pool
         if name == "searched":

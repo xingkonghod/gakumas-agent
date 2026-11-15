@@ -650,12 +650,19 @@ def test_choose_training_lowest_attribute(tmp_path, monkeypatch) -> None:
 
 def test_produce_params_reads_all_keys(monkeypatch) -> None:
     """policy.json 里的 produce 段必须整段读进来（曾因只保留默认键而丢掉 attr_choice）。"""
+    import json
+
     driver = _driver()
     params = driver._produce_params()
+    raw = json.loads((DATA / "knowledge" / "policy.json").read_text(encoding="utf-8"))
+    produce = raw["produce"]
     assert params["prefer_lesson"] is True
     assert "attr_choice" in params
     assert "lesson_every" in params
-    assert params["rest_threshold"] == 8
+    # 值必须来自 policy.json，而不是代码默认值（校准后 rest_threshold 已从 8 调到 10）
+    assert params["rest_threshold"] == produce["rest_threshold"]
+    assert params["lesson_min_stamina"] == produce["lesson_min_stamina"]
+    assert set(produce) - {"source", "support_levels"} <= set(params)
 
 
 # ---- 卡片详情浮层死循环 / SELECT 标签污染卡名 --------------------------------

@@ -64,7 +64,7 @@ STARTER_NAMES = (
     "今天也早安", "视角的基础", "可爱的举动", "猛烈地",
 )
 
-SUPPORT_BONUS = 1.35
+SUPPORT_BONUS = 1.2
 CONFIG = ProduceConfig(reward_pick="best", support_bonus=SUPPORT_BONUS)
 BIN_WIDTH = 200
 
