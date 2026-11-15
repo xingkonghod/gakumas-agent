@@ -51,6 +51,7 @@ from gkagent.tasks.produce_ui import (
     clean_lesson_state,
     has_selected_ui,
     lesson_hand_signature,
+    lesson_stamina_gate,
     parse_stamina,
     pick_lesson_card,
 )
@@ -600,6 +601,9 @@ def main() -> int:
                 last_stamina = stamina
             if lesson_state.turns_left is not None:
                 turns = lesson_state.turns_left
+            # 体力门：体力 < 最低手牌费用 → 一张牌都打不出。立刻按 SKIP 结束本回合，
+            # 不要一回合一点地磨（真机 0 体力进课程后连按 SKIP 白送回合）。
+            stamina_gate = lesson_stamina_gate(lesson_state, stamina=stamina)
             # 卡片详情浮层状态机：浮层开着时点同一坐标只会开关浮层/反复「不满足使用条件」。
             # pick=正常选牌；confirm=同一点确认一次；close=点空白关浮层换牌；skip=3 次没推进。
             # 浮层识别：小框单行 OCR（「打分+/Active/可以使用」）+ 选牌过程中「读到 SELECT」兜底。
@@ -633,7 +637,26 @@ def main() -> int:
                     f"{step:03d} [lesson] {failed_name or '这张牌'} 确认后分数/手牌没变"
                     "或浮层仍在，判为打不出去，换一张"
                 )
-            if guard_action == "confirm" and guard_point is not None:
+            if stamina_gate is not None:
+                skip_point, skip_reason = stamina_gate
+                clicked = agent.device.click_force(*skip_point)
+                time.sleep(0.9)
+                guard_done = True
+                if clicked is False:
+                    result = "[pause] 用户正在操作，暂停出牌"
+                    idle = 0
+                else:
+                    lesson_guard.reset_turn()
+                    lesson_policy.reset_turn()
+                    lesson_pending = None
+                    lesson_sig_before_pick = None
+                    bad_cards.clear()
+                    last_pick_name = None
+                    same_pick_count = 0
+                    action_name = "lesson-skip"
+                    result = f"[lesson] {skip_reason}，直接 SKIP"
+                    idle = 0
+            elif guard_action == "confirm" and guard_point is not None:
                 pending_name = lesson_guard.pending_name
                 if pending_name:
                     # 选中后右上角显示「体力 X / -Y」：顺手学这张卡的体力费用，

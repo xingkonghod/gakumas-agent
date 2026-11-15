@@ -203,6 +203,38 @@ def test_card_reward_picks_recommended_then_claims() -> None:
     assert agent.device.clicks[-1] == _center(2)
 
 
+def test_reward_recommend_marker_beats_card_table_value() -> None:
+    """奖励界面：游戏标「推荐」的卡优先级最高，哪怕它的白值不如另一张。"""
+    from gkagent.tasks.produce_ui import ProduceDriver
+
+    high_value = OcrLine("聊天时间", 0.95, (40, 850, 120, 30))
+    low_value = OcrLine("兼职者+", 0.95, (300, 850, 120, 30))
+    recommend = OcrLine("推荐", 0.95, (330, 960, 60, 28))
+    picked = ProduceDriver._best_reward_card([high_value, low_value, recommend])
+    assert picked is not None
+    # 点第二张（推荐卡）的卡身，而不是白值更高的第一张
+    assert picked[0] >= 300
+    # 没有推荐标记时才按估值：白值更高的「聊天时间」胜出
+    fallback = ProduceDriver._best_reward_card([high_value, low_value])
+    assert fallback is not None
+    assert fallback[0] < 300
+
+
+def test_reward_gold_card_frame_detected_as_fallback() -> None:
+    """OCR 读不到「推荐」时，用金色卡框（闪黄光）兜底选卡。"""
+    import cv2
+    import numpy as np
+
+    from gkagent.tasks.produce_ui import ProduceDriver
+
+    image = np.zeros((1280, 720, 3), dtype=np.uint8)
+    cv2.rectangle(image, (430, 850), (560, 960), (0, 200, 255), 3)  # BGR 金色卡框
+    point = ProduceDriver._gold_reward_point(image)
+    assert point is not None
+    assert 430 < point[0] < 560
+    assert 830 < point[1] < 980
+
+
 def test_blank_transition_is_wait_not_stuck() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, [])
@@ -228,6 +260,59 @@ def test_action_screen_rests_when_stamina_low() -> None:
     result = _driver().decide(agent, lines)
     assert result.screen == "action"
     assert result.action == "rest"
+
+
+def test_action_screen_never_lessons_below_lesson_threshold() -> None:
+    """体力 10 < 12：有「授课」也不进课程，优先休息（0 体力进课只会连按 SKIP）。"""
+    agent = FakeAgent()
+    lines = _lines("请选择行动", "10/35", "授课", "活动奖励", "休息")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "action"
+    assert result.action == "rest"
+    # 点的是「休息」（索引 4），不是「授课」（索引 2）
+    assert agent.device.clicks[-1] == _center(4)
+
+
+def test_action_screen_below_train_threshold_never_trains() -> None:
+    """体力 6 < 8 且没有休息按钮：训练/授课都不点，等恢复（只休息）。"""
+    agent = FakeAgent()
+    lines = _lines("请选择行动", "6/35", "授课", "Vo.训练", "Da.训练", "Vi.训练")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "action"
+    assert result.action == "stamina-wait"
+    assert agent.device.clicks == []
+
+
+def test_lesson_with_stamina_below_lowest_cost_skips_at_once() -> None:
+    """课程中体力 0 < 最低手牌费用 1：立刻 SKIP，不要一回合一点地磨。"""
+    from gkagent.tasks.produce_ui import LESSON_SKIP_POINT, lesson_stamina_gate
+    from gkagent.vision.lesson import LessonCard, LessonState
+
+    cards = (
+        LessonCard(
+            index=0,
+            box=(55, 895, 160, 185),
+            point=(135, 987),
+            name="聊天时间",
+            score=39,
+            cost=1,
+        ),
+        LessonCard(
+            index=1,
+            box=(280, 895, 160, 185),
+            point=(360, 987),
+            name="魅力的基础",
+            score=9,
+            cost=2,
+        ),
+    )
+    gate = lesson_stamina_gate(LessonState(stamina=0, turns_left=6, cards=cards))
+    assert gate is not None
+    point, reason = gate
+    assert point == LESSON_SKIP_POINT == (660, 868)
+    assert "体力 0" in reason and "最低手牌费用 1" in reason
+    # 体力够最低费用就不 SKIP（能打得出牌）
+    assert lesson_stamina_gate(LessonState(stamina=2, turns_left=6, cards=cards)) is None
 
 
 def test_action_preview_confirms_at_last_point() -> None:

@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import itertools
 import re
 import time
 import unicodedata
@@ -68,6 +69,11 @@ _DETAIL_EFFECT_RE = re.compile(
     r"(?:打分|元气|体力|好调|集中|指針|やる気|元気|好調|集中|指針)\s*[+＋]"
 )
 _DETAIL_EN_WORDS = ("active", "mental", "support", "trouble")
+
+# ---- 体力门（真机事故：体力 0 进课程，手牌最低 1 费一张都打不出，连按 SKIP 白送回合） ----
+DEFAULT_REST_THRESHOLD = 8  # 体力 < 8：连训练都不练，只休息
+DEFAULT_LESSON_THRESHOLD = 12  # 体力 < 12：绝不选「授课/课程」，优先休息
+DEFAULT_HAND_COST = 3  # 手牌费用完全读不到时的兜底（与 pick_lesson_card 一致）
 
 
 def clean_card_name(text: str | None) -> str:
@@ -239,6 +245,72 @@ def parse_stamina(text: str) -> int | None:
         if maximum <= 60 and current <= maximum:
             return current
     return None
+
+
+def lowest_hand_cost(
+    cards: Iterable[LessonCard], *, default_cost: int = DEFAULT_HAND_COST
+) -> int | None:
+    """手牌里最低的体力费用；没有手牌返回 None，费用全读不到时按 ``default_cost``。"""
+    cards = list(cards)
+    if not cards:
+        return None
+    costs = [int(card.cost) for card in cards if card.cost is not None and int(card.cost) >= 0]
+    return min(costs) if costs else int(default_cost)
+
+
+def lesson_stamina_gate(
+    state: LessonState,
+    *,
+    stamina: int | None = None,
+    default_cost: int = DEFAULT_HAND_COST,
+) -> tuple[tuple[int, int], str] | None:
+    """课程体力门：体力 < 最低手牌费用（一张牌都打不出）→ ``(SKIP 落点, 原因)``。
+
+    真机事故：体力 0 时 bot 进了课程，手牌最低 1 费一张都打不出，却一回合一点地
+    连按 SKIP 白送回合。这里在出牌前直接判定，命中就立刻按 SKIP 结束本回合。
+    ``stamina``：``LessonState`` 没读到时用调用方从状态条读到的体力兜底。
+    """
+    current = state.stamina if state.stamina is not None else stamina
+    if current is None:
+        return None
+    lowest = lowest_hand_cost(state.cards, default_cost=default_cost)
+    if lowest is None or current >= lowest:
+        return None
+    point = state.skip_point or LESSON_SKIP_POINT
+    return point, f"体力 {int(current)} < 最低手牌费用 {lowest}，一张牌都打不出"
+
+
+def choose_action_kind(
+    *,
+    stamina: int | None,
+    has_rest: bool,
+    has_lesson: bool,
+    has_training: bool,
+    rest_threshold: int = DEFAULT_REST_THRESHOLD,
+    lesson_threshold: int = DEFAULT_LESSON_THRESHOLD,
+) -> str:
+    """选择行动时的体力门，返回 ``"rest"`` / ``"lesson"`` / ``"train"`` / ``"wait"``。
+
+    - 体力 < ``rest_threshold``（默认 8）：不训练也不上课，只休息；没有休息按钮则等待；
+    - 体力 < ``lesson_threshold``（默认 12）：绝不进课程，有休息先休息，否则训练；
+    - 体力读不到（None）时保持旧逻辑：课程优先。
+    """
+    if stamina is not None:
+        if stamina < rest_threshold:
+            return "rest" if has_rest else "wait"
+        if stamina < lesson_threshold:
+            if has_rest:
+                return "rest"
+            if has_training:
+                return "train"
+            return "wait"
+    if has_lesson:
+        return "lesson"
+    if has_training:
+        return "train"
+    if has_rest:
+        return "rest"
+    return "wait"
 
 
 class UserBusy(Exception):
@@ -475,8 +547,18 @@ class ProduceDriver:
                     return line
         return None
 
-    def _simulator_action(self, agent, image, lines, text):
-        """调模拟器选行动：候选=当前界面能点的，比较期望评价点。"""
+    def _simulator_action(
+        self,
+        agent,
+        image,
+        lines,
+        text,
+        stamina: int | None = None,
+        *,
+        rest_threshold: int = DEFAULT_REST_THRESHOLD,
+        lesson_threshold: int = DEFAULT_LESSON_THRESHOLD,
+    ):
+        """调模拟器选行动：候选=当前界面能点的，比较期望评价点（体力门之后再放宽候选）。"""
         values = self._attr_values(lines or [])
         if values is None:
             return None  # 三维读不到就不冒险，交回原逻辑
@@ -489,15 +571,18 @@ class ProduceDriver:
             if deck_raw:
                 deck = deck_raw
             candidates = ["train", "train_low", "rest"]
-            if "授课" in text:
+            # 体力门：<12 不给课程候选；<8 连训练候选都不给，只准休息
+            if "授课" in text and (stamina is None or stamina >= lesson_threshold):
                 candidates.append("lesson")
             if "外出" in text:
                 candidates.append("outing")
+            if stamina is not None and stamina < rest_threshold:
+                candidates = ["rest"]
             result = choose_action(
                 deck,
                 getattr(self, "_sim_pool", None),
                 attrs=list(values),
-                stamina=self.stamina_hint or 30,
+                stamina=stamina if stamina is not None else 30,
                 week=getattr(self, "_sim_week", 1),
                 actions=tuple(candidates),
                 episodes=10,
@@ -530,7 +615,8 @@ class ProduceDriver:
             return cached
         defaults = {
             "prefer_lesson": True,
-            "rest_threshold": 8,
+            "rest_threshold": DEFAULT_REST_THRESHOLD,
+            "lesson_threshold": DEFAULT_LESSON_THRESHOLD,
             "reward_pick": "best",
             "lesson_every": 1,
             "attr_choice": "weight",
@@ -553,30 +639,106 @@ class ProduceDriver:
         return defaults
 
     _REWARD_TABLE = None
+    RECOMMEND_WORDS = ("推荐", "おすすめ", "お勧め")
 
     @classmethod
-    def _best_reward_card(cls, lines) -> tuple[int, int] | None:
-        """奖励三选一：OCR 到的卡名查卡表，选 打分/体力 最高那张的落点。"""
+    def _reward_table(cls):
         try:
             from gkagent.data.card_table import CardTable
-        except Exception:  # noqa: BLE001 - 没有卡表就退回旧逻辑
+        except Exception:  # noqa: BLE001 - 没有卡表就只认推荐标记
             return None
         if cls._REWARD_TABLE is None:
             cls._REWARD_TABLE = CardTable()
-        table = cls._REWARD_TABLE
-        best: tuple[float, tuple[int, int]] | None = None
-        for line in lines:
-            name = (line.text or "").strip()
-            if not (2 <= len(name) <= 14):
-                continue
-            value = table.value(name)
-            if value is None or value <= 0:
-                continue
-            x, y, w, h = line.box
-            point = (x + w // 2, max(60, y + h // 2 - 60))  # 卡名在卡牌下缘，向上点到卡身
-            if best is None or value > best[0]:
-                best = (value, point)
-        return best[1] if best else None
+        return cls._REWARD_TABLE
+
+    @staticmethod
+    def _reward_point(line: OcrLine) -> tuple[int, int]:
+        """奖励卡落点：OCR 框（卡名/推荐标签）在卡牌下缘，向上 60px 点到卡身。"""
+        x, y, w, h = line.box
+        return (x + w // 2, max(60, y + h // 2 - 60))
+
+    @classmethod
+    def _best_reward_card(cls, lines, image=None) -> tuple[int, int] | None:
+        """奖励选卡：推荐标记（OCR「推荐」/ 金色卡框发光）> 分档估值 > 第一张。
+
+        真机问题：奖励界面有 buff 卡/SSR 卡（游戏闪黄光并标「推荐」）时，旧逻辑
+        只按打分/体力选，结果选了白值更高的普通卡。现在推荐标记优先级最高。
+        """
+        table = cls._reward_table()
+        valued: list[tuple[float, tuple[int, int], int]] = []
+        if table is not None:
+            for line in lines:
+                name = (line.text or "").strip()
+                if not (2 <= len(name) <= 14):
+                    continue
+                value = table.value(name)
+                if value is None or value <= 0:
+                    continue
+                point = cls._reward_point(line)
+                valued.append((value, point, line.box[0] + line.box[2] // 2))
+        # 1) 游戏「推荐」标签（绿底）：优先级最高，哪怕白值不如别的卡
+        recommended = [
+            (cls._reward_point(line), line.box[0] + line.box[2] // 2)
+            for line in lines
+            if any(word in (line.text or "") for word in cls.RECOMMEND_WORDS)
+        ]
+        if recommended:
+            best: tuple[float, tuple[int, int]] | None = None
+            for point, center_x in recommended:
+                # 同一张卡的卡名行按 x 就近匹配，在推荐卡里再挑估值最高的那张
+                value = max(
+                    (value for value, _point, card_x in valued if abs(card_x - center_x) <= 140),
+                    default=0.0,
+                )
+                if best is None or value > best[0]:
+                    best = (value, point)
+            if best is not None:
+                return best[1]
+        # 2) OCR 没读到「推荐」时，用金色卡框/发光兜底（SSR 卡框）
+        glow = cls._gold_reward_point(image)
+        if glow is not None:
+            return glow
+        # 3) 识别不到推荐标记：按分档估值挑最强
+        if not valued:
+            return None
+        return max(valued, key=lambda item: item[0])[1]
+
+    @staticmethod
+    def _gold_reward_point(image) -> tuple[int, int] | None:
+        """奖励卡「闪黄光」：卡身带里找成对的金色竖边，返回卡身中心。
+
+        只认 100-190px 宽的一对竖边（一张卡的左右卡框），单条金色描边
+        （卡面特效）不算，避免把普通卡误判成推荐。OCR 读不到「推荐」时才用。
+        """
+        if image is None or getattr(image, "ndim", 0) < 3 or image.shape[2] < 3:
+            return None
+        height, width = image.shape[:2]
+        if width < 200 or height < 400:
+            return None
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        hue, sat, brightness = cv2.split(hsv)
+        top, bottom = int(height * 0.65), int(height * 0.76)
+        left, right = int(width * 0.06), int(width * 0.96)
+        gold = (hue >= 15) & (hue <= 40) & (sat >= 120) & (brightness >= 170)
+        band = gold[top:bottom, left:right]
+        if band.size == 0:
+            return None
+        columns = band.sum(axis=0)
+        threshold = max(8, band.shape[0] // 3)
+        peaks = [index for index, count in enumerate(columns) if count >= threshold]
+        if not peaks:
+            return None
+        groups: list[list[int]] = [[peaks[0]]]
+        for index in peaks[1:]:
+            if index - groups[-1][-1] <= 12:
+                groups[-1].append(index)
+            else:
+                groups.append([index])
+        centers = [left + round(sum(group) / len(group)) for group in groups]
+        for first, second in itertools.pairwise(centers):
+            if 100 <= second - first <= 190:
+                return ((first + second) // 2, (top + bottom) // 2)
+        return None
 
     def _checkbox_bands(image) -> list[tuple[int, int]]:
         """在勾选框列（x 610-655）扫描，返回每行勾选框的 (top, bottom)。"""
@@ -855,14 +1017,21 @@ class ProduceDriver:
         # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
         training_hits = sum(1 for word in ("Vo", "Da", "Vi") if word in text)
         stamina = parse_stamina(text)
-        # 体力不够就别硬练：优先休息（当前帧没读到体力就用上一帧的）
         params = self._produce_params()
-        rest_threshold = int(params.get("rest_threshold", 8))
+        rest_threshold = int(params.get("rest_threshold", DEFAULT_REST_THRESHOLD))
+        lesson_threshold = int(params.get("lesson_threshold", DEFAULT_LESSON_THRESHOLD))
+        # 体力不够就别硬练：优先休息（当前帧没读到体力就用上一帧的）
         effective_stamina = stamina if stamina is not None else self.stamina_hint
-        if "休息" in text and effective_stamina is not None and effective_stamina < rest_threshold:
-            rest = self.find(lines, "休息")
-            self._click_line(agent, rest) if rest else self._click(agent, (640, 860))
-            return TickResult("action", "rest")
+        has_rest = "休息" in text
+        has_lesson = "授课" in text
+        has_training = training_hits >= 1 or "训练" in text
+        on_action_screen = (
+            "请选择行动" in text
+            or (training_hits >= 2 and "训练" in text)
+            or ("授课" in text and "活动奖励" in text)
+            or (has_rest and (has_lesson or has_training))
+        )
+        # 外出/咨询不耗体力（外出还回体力），体力再低也能选，放在体力门之前
         if "外出" in text and "咨询" in text:
             self._click(agent, (450, 1027))
             return TickResult("action", "consult")
@@ -870,19 +1039,50 @@ class ProduceDriver:
             # 外出（耗 P 回体力）+ 授课 的二选一：选外出回体力
             self._click(agent, (268, 1010))
             return TickResult("action", "go-out")
-        if (
-            "请选择行动" in text
-            or (training_hits >= 2 and "训练" in text)
-            or ("授课" in text and "活动奖励" in text)
-        ):
+        if on_action_screen:
+            # 体力门（真机事故）：体力 0 进了课程，手牌最低 1 费一张都打不出，
+            # bot 却一回合一点连按 SKIP 白送回合。这里先按体力剔掉课程/训练。
+            action_kind = choose_action_kind(
+                stamina=effective_stamina,
+                has_rest=has_rest,
+                has_lesson=has_lesson,
+                has_training=has_training,
+                rest_threshold=rest_threshold,
+                lesson_threshold=lesson_threshold,
+            )
+            if effective_stamina is not None and action_kind == "rest":
+                rest = self.find_button(lines, ("休息",)) or self.find(lines, "休息")
+                self._click_line(agent, rest) if rest else self._click(agent, (640, 860))
+                return TickResult("action", "rest")
+            if effective_stamina is not None and action_kind == "wait":
+                # 没有任何安全的行动（体力 <8 又没休息）：等恢复，绝不点授课/训练
+                self.sleep(0.8)
+                return TickResult(
+                    "action",
+                    "stamina-wait",
+                    ok=False,
+                    detail=f"体力 {effective_stamina} 不足（<{rest_threshold}），只休息",
+                )
             # 模拟器选行动（默认关）：对候选行动做 rollout 比评价点，再映射到界面按钮
             if params.get("sim_choice") and image is not None:
-                sim_pick = self._simulator_action(agent, image, lines, text)
+                sim_pick = self._simulator_action(
+                    agent,
+                    image,
+                    lines,
+                    text,
+                    effective_stamina,
+                    rest_threshold=rest_threshold,
+                    lesson_threshold=lesson_threshold,
+                )
                 if sim_pick is not None:
                     return sim_pick
 
             # 模拟器结论：课程（得分×0.6 转属性）明显强于训练，能上课就上课
-            if "授课" in text and (training_hits == 0 or params.get("prefer_lesson", True)):
+            if (
+                action_kind == "lesson"
+                and "授课" in text
+                and (training_hits == 0 or params.get("prefer_lesson", True))
+            ):
                 lesson_line = self.find(lines, "授课")
                 if lesson_line is not None:
                     self._click_line(agent, lesson_line)
@@ -977,10 +1177,9 @@ class ProduceDriver:
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "settle")
 
-        # 4.6) 领取奖励（技能卡或 P 饮料）：先选一张，再点「领取」
+        # 4.6) 领取奖励（技能卡或 P 饮料）：推荐卡优先，其次分档估值最强，再点「领取」
         if "请选择要领取" in text:
-            # 奖励三选一：按卡表「打分/体力」挑最强的那张（这是牌组变强的唯一入口）
-            best = self._best_reward_card(lines)
+            best = self._best_reward_card(lines, image)
             if best is not None:
                 self._click(agent, best)
             else:

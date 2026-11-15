@@ -118,3 +118,42 @@ def test_numeric_coverage_above_80_percent() -> None:
         if any(e["values"] or e.get("inner") for e in row["effects"])
     )
     assert with_inner / len(cards) > 0.95
+
+
+# ---- 奖励选卡分档估值（buff / SSR / combo） --------------------------------
+def test_pure_buff_card_outvalues_low_score_white_card() -> None:
+    """score=0 的纯 buff 牌不再恒为 0：按效果类型给 8-15 的等效值。"""
+    from gkagent.data.card_table import CardTable
+
+    table = CardTable()
+    buff = table.value("一决胜负+")  # ExamLessonBuff，score=0
+    white = table.value("兼职者+")  # ExamLesson 6 / cost 6 = 1.0
+    assert buff is not None and white is not None
+    assert buff >= 8.0  # 纯 buff 8-15 档
+    assert buff > white
+
+
+def test_ssr_outranks_sr_with_same_score_and_cost() -> None:
+    """同白值（9 分 / 3 费）的 SSR 比 SR 高 3：真机 SSR 强度来自技能连带。"""
+    from gkagent.data.card_table import CardTable
+
+    table = CardTable()
+    assert table.score_of("再进一步+") == table.score_of("时令的味道+++") == 9
+    assert table.cost("再进一步+") == table.cost("时令的味道+++") == 3
+    ssr = table.value("再进一步+")
+    sr = table.value("时令的味道+++")
+    assert ssr is not None and sr is not None
+    assert ssr == sr + 3.0
+
+
+def test_buff_effect_tiers_rank_concentration_above_vitality() -> None:
+    """纯 buff 按效果类型分档：集中/温存 > 纯元气。"""
+    from gkagent.data.card_table import CardTable
+
+    table = CardTable()
+    vitality = table.value("表现的基础+")  # ExamBlock 纯元气 = 8
+    concentration = table.value("打招呼的基础")  # ExamConcentration 集中
+    preservation = table.value("临场应对的基础++")  # ExamPreservation 温存
+    assert vitality is not None and concentration is not None and preservation is not None
+    assert concentration > vitality
+    assert preservation > vitality
