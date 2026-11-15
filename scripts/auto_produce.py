@@ -19,6 +19,7 @@ import re
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(r"D:\Games\gakumas-agent")
@@ -31,7 +32,7 @@ from gkagent.data.card_costs import CardCosts
 from gkagent.data.cards_db import CardLibrary
 from gkagent.data.items_db import ItemLibrary
 from gkagent.data.master import MasterData
-from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd
+from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd, user_idle_ms
 from gkagent.nav import Navigator
 from gkagent.policy.lesson import LessonPolicy
 from gkagent.policy.lesson_pick import decide_lesson_pick
@@ -41,9 +42,17 @@ from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
 from gkagent.runtime.replay import ReplayDB
 from gkagent.sim.exam_estimate import SimCard, estimate_score
 from gkagent.tasks.produce import ProduceTask
-from gkagent.tasks.produce_ui import LESSON_WORDS, ProduceDriver, parse_stamina
+from gkagent.tasks.produce_ui import (
+    LESSON_SKIP_POINT,
+    LESSON_WORDS,
+    LessonPlayGuard,
+    ProduceDriver,
+    clean_card_name,
+    parse_stamina,
+    pick_lesson_card,
+)
 from gkagent.vision.cards import scan_hand
-from gkagent.vision.hand_names import pick_hand_card
+from gkagent.vision.hand_names import HandPick, pick_hand_card
 from gkagent.vision.lesson import LessonReader, read_stamina_preview
 from gkagent.vision.matcher import TemplateMatcher
 from gkagent.vision.ocr import OcrEngine
@@ -78,6 +87,129 @@ PRODUCE_MARKERS = (
     "剩余回合数",
 )
 HOME_MARKERS = ("亲密度", "活动经费", "商店", "扭蛋")
+
+# 暂停门参数：0.6s 内叠在 bot 点击之后的输入算 bot 自己；判定用户在操作但画面
+# 连续 30s 没变，就记日志强制继续，避免点击门互相打架导致无限空转。
+SELF_INPUT_EXCLUDE_S = 0.6
+USER_IDLE_GATE_MS = 800
+PAUSE_FORCE_CONTINUE_S = 30.0
+PAUSE_REFUSAL_BACKOFF_S = 1.0
+
+
+class PauseGate:
+    """暂停门：判断"用户是否真的在操作"，并排除 bot 自己注入的输入。
+
+    背景：点击走 SendMessageWithCursorPos（光标移到目标→发消息→还原），Windows 的
+    ``GetLastInputInfo`` 会把这类注入算成"用户刚有输入"；下一次点击前的
+    ``user_idle_ms()`` 就只剩几百毫秒，于是误判"用户正在操作"，出牌暂停空转。
+
+    这里在每次 bot 自己点击后记录 ``self_last_input_ts``；如果最后一次输入发生在该
+    时间戳之后 ``self_exclude_s`` 的窗口内（点击注入的光标移动/还原可能略晚于记账），
+    就认为那是 bot 自己的输入，不算用户操作。``last_input_ts <= self_last_input_ts +
+    0.6s`` 正是这个窗口。
+    """
+
+    def __init__(
+        self,
+        idle_ms: Callable[[], int] = user_idle_ms,
+        clock: Callable[[], float] = time.monotonic,
+        sleep: Callable[[float], None] = time.sleep,
+        gate_ms: int = USER_IDLE_GATE_MS,
+        self_exclude_s: float = SELF_INPUT_EXCLUDE_S,
+        force_continue_s: float = PAUSE_FORCE_CONTINUE_S,
+        refusal_backoff_s: float = PAUSE_REFUSAL_BACKOFF_S,
+    ) -> None:
+        self.idle_ms = idle_ms
+        self.clock = clock
+        self.sleep = sleep
+        self.gate_ms = int(gate_ms)
+        self.self_exclude_s = float(self_exclude_s)
+        self.force_continue_s = float(force_continue_s)
+        self.refusal_backoff_s = float(refusal_backoff_s)
+        self.self_last_input_ts: float | None = None
+        self._operating_since: float | None = None
+        self._operating_digest: str | None = None
+        self.forced_continues = 0
+
+    def note_self_input(self, at: float | None = None) -> None:
+        """记录一次 bot 自己点击完成的时间（点击返回后调用）。"""
+        self.self_last_input_ts = self.clock() if at is None else float(at)
+
+    def user_operating(self) -> bool:
+        """最近 gate_ms 内有输入，且该输入不是 bot 自己注入的 → 用户正在操作。"""
+        idle = int(self.idle_ms())
+        if idle >= self.gate_ms:
+            return False
+        if self.self_last_input_ts is not None:
+            # 最后一次输入发生的时间戳（系统 tick 换算到 monotonic 轴）
+            last_input_ts = self.clock() - idle / 1000.0
+            if last_input_ts <= self.self_last_input_ts + self.self_exclude_s:
+                return False
+        return True
+
+    def observe(self, digest: str | None) -> bool:
+        """每步开头登记画面；返回是否要强制继续（用户操作判定 ≥30s 且画面没变）。
+
+        真实用户操作时画面通常会变（选牌/翻页/剧情），计时清零；只有"判定有人在
+        操作但画面一直不动"才视为暂停门卡死，记日志后放行。
+        """
+        if not self.user_operating():
+            self._operating_since = None
+            self._operating_digest = None
+            return False
+        now = self.clock()
+        if self._operating_since is None or digest != self._operating_digest:
+            self._operating_since = now
+            self._operating_digest = digest
+            return False
+        if now - self._operating_since < self.force_continue_s:
+            return False
+        # 放行后重新计时：下一次再卡 30s 才再次强制，避免每步都重复打日志
+        self._operating_since = now
+        self.forced_continues += 1
+        return True
+
+    def guarded_click(
+        self,
+        click_fn: Callable[..., bool],
+        x: int,
+        y: int,
+        delay: float = 0.4,
+        force: bool = False,
+    ) -> bool:
+        """带暂停门的点击：真实用户操作时不点（退避后返回 False）。
+
+        ``force=True`` 是 30s 无变化兜底：无视暂停门继续执行。点击完成后立刻记录
+        ``self_last_input_ts``，让下一步把这次注入从"用户输入"里排除。
+        """
+        if not force and self.user_operating():
+            self.sleep(self.refusal_backoff_s)
+            return False
+        result = click_fn(int(x), int(y), delay=delay, respect_user=False)
+        self.note_self_input()
+        return result is not False
+
+
+class SelfInputClickGuard:
+    """把暂停门装到设备上：覆盖 ``click_force``，绕开设备内置的 user_idle 等待。
+
+    ``Win32Device.click`` 自带的 respect_user 门只读 ``GetLastInputInfo``，分不清
+    bot 自己注入的输入，还会先空等 1.2s 才返回 False。出牌循环里的点击（包括
+    ProduceDriver 内部的 ``getattr(device, "click_force")``）统一走这里：点击前由
+    ``PauseGate`` 判断、点击后记账。
+    """
+
+    def __init__(self, device, gate: PauseGate) -> None:
+        self.device = device
+        self.gate = gate
+        self.force = False
+
+    def click(self, x: int, y: int, delay: float = 0.4) -> bool:
+        return self.gate.guarded_click(self.device.click, x, y, delay=delay, force=self.force)
+
+    def install(self) -> SelfInputClickGuard:
+        self.device.click_force = self.click
+        return self
 
 
 def build_task(episode: str, engine: OcrEngine, card_library: CardLibrary | None = None) -> ProduceTask:
@@ -181,6 +313,9 @@ def main() -> int:
         print("no game window", file=sys.stderr)
         return 2
     agent = Agent(Win32Device(hwnd).connect(), TemplateMatcher(ROOT / "templates"))
+    # 暂停门：排除 bot 自己点击注入的"用户输入"；点击统一走 click_force 补丁
+    pause_gate = PauseGate()
+    click_guard = SelfInputClickGuard(agent.device, pause_gate).install()
     engine = OcrEngine()
     card_lib = CardLibrary(MasterData(ROOT / "data" / "master"))
     task = build_task(episode, engine, card_lib)
@@ -207,6 +342,8 @@ def main() -> int:
     bad_cards: set[str] = set()
     last_pick_name: str | None = None
     same_pick_count = 0
+    # 课程出牌防死循环：详情浮层挡路时关浮层换牌，同一坐标 3 次没推进就 SKIP
+    lesson_guard = LessonPlayGuard()
     action_key: tuple[str, str] | None = None
     action_streak = 0
     final_phase = False
@@ -249,6 +386,15 @@ def main() -> int:
         flush_pending(prev_digest is not None and digest != prev_digest)
         prev_digest = digest
         cv2.imwrite(str(SHOT_DIR / f"step_{step:03d}.png"), image)
+        # 暂停门兜底：连续判定"用户在操作"但画面一直没变，30s 后记日志强制继续，
+        # 避免 bot 自身输入造成的误判把出牌无限暂停（本步起点击放行）。
+        force_continue = pause_gate.observe(digest)
+        click_guard.force = force_continue
+        if force_continue:
+            log_lines.append(
+                f"{step:03d} [pause] 用户操作判定连续 {pause_gate.force_continue_s:.0f}s "
+                "且画面未变化，强制继续（忽略暂停门）"
+            )
 
         t_ocr = time.perf_counter()
         if lesson_pending is not None:
