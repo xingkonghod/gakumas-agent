@@ -28,6 +28,7 @@ def decide_lesson_pick(
     click: Callable[..., bool] | None = None,
     fallback: Callable[[], HandPick | None] | None = None,
     state=None,
+    allow_skip: bool = True,
 ) -> tuple[HandPick | None, bool]:
     """返回 ``(要点的卡, 是否已经处理完这个回合)``。
 
@@ -36,6 +37,8 @@ def decide_lesson_pick(
     - ``(None, False)``：没读到手牌，交给调用方兜底。
 
     ``state`` 已经读过时直接传进来，避免同一帧 OCR 两遍。
+    ``allow_skip=False``（考试/试镜，F#17）：策略不许 SKIP、这里也绝不点 SKIP，
+    改由兜底逻辑挑一张能打的牌。
     """
     if state is None:
         kind = "audition" if _looks_like_audition(image, reader) else "lesson"
@@ -45,7 +48,7 @@ def decide_lesson_pick(
     if not state.cards:
         return (fallback() if fallback is not None else None), False
 
-    action = policy.decide(state)
+    action = policy.decide(state, allow_skip=allow_skip)
     if action.kind == "card" and action.point is not None and action.card is not None:
         card = action.card
         if exclude and card.name in exclude:
@@ -56,6 +59,9 @@ def decide_lesson_pick(
             False,
         )
     if action.kind == "skip" and action.point is not None and click is not None:
+        if not allow_skip:
+            # 考试：策略不该返回 skip（decide 已禁），这里再兜一层，绝不点 SKIP
+            return (fallback() if fallback is not None else None), False
         clicked = click(*action.point)
         policy.reset_turn()
         return None, bool(clicked is not False)

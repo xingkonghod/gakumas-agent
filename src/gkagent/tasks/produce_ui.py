@@ -93,6 +93,13 @@ PRODUCE_RECORD_CLOSE = (360, 1197)
 MEMORY_FIRST_PHOTO = (116, 575)  # 照片网格第一张（左上，点一下确保选中）
 MEMORY_SAVE_ALBUM = (614, 1088)  # 「保存到相册」
 MEMORY_SAVE_LOCAL = (430, 1088)  # 「保存到本地」
+# ---- 考试/试镜模式（F#17） ---------------------------------------------------
+# 考试页顶部有 1st..6th 排名条（真机 data/exam_rank_frame.png：1st 在 x≈240-310、
+# y≈5-40，4th 到 x≈655，5th/6th 被屏幕右缘裁掉）。课程页没有这排字。
+EXAM_RANK_ROI = (228, 0, 492, 48)  # 排名条 1st..4th（720x1280）
+# 考试页 SKIP 与课程同坐标（真机 step_015 核对：圆形 SKIP 在 (655,800)）。
+EXAM_SKIP_POINT = (655, 800)
+_EXAM_RANK_RE = re.compile(r"[1-6]\s*(?:st|nd|rd|th)\b", re.IGNORECASE)
 # 兜底降级用的「屏幕中央下方」（行动页/结算页通用的推进点）
 SETTLE_CENTER_TAP = (360, 1000)
 # OCR 会把卡面左下角的「SELECT」标签（及误读）一起读进卡名
@@ -327,6 +334,16 @@ def is_memory_photo_screen(text: str | None) -> bool:
     return "保存到相册" in value or "保存到本地" in value
 
 
+def is_exam_rank_text(text: str | None) -> bool:
+    """这段 OCR 文本是否是考试/试镜页顶部的排名条（``1st``/``2nd``…/``4th``）。
+
+    F#17：考试页被当成课程，体力门/「剩下牌不值得」/同屏兜底轮番按 SKIP，白送回合
+    （ep-sup1 期中 4th、228Pt，1st=597 直接不合格）。考试里 SKIP 没有任何收益，
+    所以先用这条廉价判据识别考试，再把所有 SKIP 路径禁掉。
+    """
+    return _EXAM_RANK_RE.search(_screen_text(text)) is not None
+
+
 def is_settlement_screen(text: str | None) -> bool:
     """培育结束后的结算/收尾画面（评价页 / 回忆照片选择 / 培育记录 / SNS 投稿）。
 
@@ -394,6 +411,7 @@ def lesson_stamina_gate(
     stamina: int | None = None,
     last_stamina: int | None = None,
     default_cost: int = DEFAULT_HAND_COST,
+    exam: bool = False,
 ) -> tuple[tuple[int, int], str] | None:
     """课程体力门：体力不足/读不到 → ``(SKIP 落点, 原因)``，必须结束本回合。
 
@@ -408,7 +426,12 @@ def lesson_stamina_gate(
 
     ``state.cards`` 为空通常是 OCR 掉帧（详情浮层/转场）；此时体力也读不到就 SKIP
     是保守但安全的：白送一回合 < 空转到超时。
+
+    ``exam=True``（考试/试镜）：**永远不 SKIP**。考试每回合都得打牌，SKIP 等于白送
+    回合（F#17 真机期中 4th/228Pt 直接不合格）；打不出去交给换牌/关浮层处理。
     """
+    if exam:
+        return None
     current = state.stamina
     if current is None:
         current = stamina
@@ -606,8 +629,9 @@ class LessonPlayGuard:
         self.skip_clicks = clicks + 1
 
     def observe(
-        self, overlay_open: bool, *, progressed: bool = True
+        self, overlay_open: bool, *, progressed: bool = True, allow_skip: bool = True
     ) -> tuple[str, tuple[int, int] | None]:
+        """``allow_skip=False``（考试/试镜）：同一坐标没推进也不 SKIP，改成换牌/关浮层。"""
         if self.pending_point is not None:
             if overlay_open:
                 return ("confirm", self.pending_point)
@@ -618,7 +642,8 @@ class LessonPlayGuard:
         if self.awaiting_confirm:
             # 确认后浮层还开着，或浮层关了但分数/手牌完全没变 = 同一坐标没推进
             if overlay_open or not progressed:
-                if self._register_failure():
+                failed = self._register_failure()
+                if failed and allow_skip:
                     return ("skip", LESSON_SKIP_POINT)
                 # 没有浮层就不用再点空白，直接换一张；浮层还在先关掉它
                 return ("close", CARD_DETAIL_BLANK) if overlay_open else ("pick", None)
@@ -628,7 +653,11 @@ class LessonPlayGuard:
 
         if overlay_open:
             if self.stale_closes >= max(int(self.skip_after), 1):
-                return ("skip", LESSON_SKIP_POINT)
+                if allow_skip:
+                    return ("skip", LESSON_SKIP_POINT)
+                # 考试：不许 SKIP，重置关浮层计数并换一张牌（点另一张会替换浮层）
+                self.stale_closes = 0
+                return ("pick", None)
             return ("close", CARD_DETAIL_BLANK)
         self.stale_closes = 0
         return ("pick", None)
@@ -1258,6 +1287,22 @@ class ProduceDriver:
         except Exception:  # noqa: BLE001 - 卡名读不到不阻断出牌
             return ""
         return clean_card_name(line.text) if line is not None else ""
+
+    # ------------------------------------------------- 考试/试镜模式（F#17）
+    def exam_mode(self, image=None, lines: list[OcrLine] | None = None) -> bool:
+        """当前帧是不是考试/试镜页（顶部排名条 ``1st``..``6th``）。
+
+        有截图时只读排名条那个小框（~30ms 单行快路径），读不到再退回整行文本判断；
+        判据是廉价且唯一的：课程页/编成页都没有 ``1st/2nd/...``。
+        """
+        if image is not None and getattr(image, "shape", None) is not None:
+            try:
+                line = self.engine().line(image, EXAM_RANK_ROI, digits_only=False)
+            except Exception:  # noqa: BLE001 - 探针失败就走文本兜底
+                line = None
+            if line is not None and is_exam_rank_text(line.text):
+                return True
+        return is_exam_rank_text(self.text_of(lines or []))
 
     # ------------------------------------------------------------------ 主入口
     def tick(self, agent) -> TickResult:

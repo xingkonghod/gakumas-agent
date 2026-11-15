@@ -47,6 +47,7 @@ from gkagent.tasks.produce import ProduceTask
 from gkagent.tasks.produce_ui import (
     LESSON_SKIP_POINT,
     LESSON_WORDS,
+    SETTLE_CENTER_TAP,
     LessonPlayGuard,
     ProduceDriver,
     SameScreenGuard,
@@ -502,6 +503,8 @@ def main() -> int:
     drink_used = False
     # 窗口前置检查（F#9）：连续恢复失败就停，不带着"点击全落空"的状态空转到超时
     window_fail_streak = 0
+    # 考试/试镜模式（F#17）：本局是否已进入过考试（只打一次 [exam-mode] 进入日志）
+    exam_seen = False
     # 期末估分（run_exam_estimate）先停用：它要逐张点开手牌，一局多花 10-20s，等速度达标再接回来
 
     def flush_pending(changed: bool | None) -> None:
@@ -744,6 +747,16 @@ def main() -> int:
         if lesson_fast or any(word in text for word in LESSON_WORDS):
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
+            # F#17：考试/试镜页顶部有 1st..6th 排名条。考试里 SKIP = 白送回合
+            # （ep-sup1 期中 4th/228Pt，1st=597 直接不合格），所以先识别，再把
+            # 体力门 / 同屏兜底 / 策略的 SKIP 全部禁掉，强制每回合出一张牌。
+            exam_mode = driver.exam_mode(image, lines)
+            if exam_mode and not exam_seen:
+                exam_seen = True
+                log_lines.append(
+                    f"{step:03d} [exam-mode] 顶部排名条命中：考试/试镜，"
+                    "本场禁止 SKIP（体力门/同屏兜底/策略）"
+                )
             # 课程分支不重置防死循环签名（否则课程卡死永远不触发），交给通用签名计数
             # 体力管理：低于 8 且还有回合，用一次饮料（每节课最多一次）
             stamina = parse_stamina(status_text or text)
@@ -751,8 +764,9 @@ def main() -> int:
                 last_stamina = stamina
             turns_match = re.search(r"剩余回合数\s*(\d+)", text)
             turns = int(turns_match.group(1)) if turns_match else None
-            # 读一次局面（剩余回合/体力/分数预览/手牌名），后面出牌不再重复 OCR
-            lesson_state = lesson_reader.read(image)
+            # 读一次局面（剩余回合/体力/分数预览/手牌名），后面出牌不再重复 OCR。
+            # 考试页顶部多了排名条，数值位置和课程不同（vision.lesson.LAYOUTS），必须传 kind。
+            lesson_state = lesson_reader.read(image, kind="audition" if exam_mode else "lesson")
             if lesson_state.stamina is not None:
                 stamina = lesson_state.stamina
                 last_stamina = stamina
@@ -781,8 +795,13 @@ def main() -> int:
                 )
                 stuck_exit = True
                 break
-            force_skip = stall_action == "force-skip"
-            if force_skip:
+            force_skip = stall_action == "force-skip" and not exam_mode
+            if stall_action == "force-skip" and exam_mode:
+                log_lines.append(
+                    f"{step:03d} [exam-mode] 同屏 {same_screen.repeats} 步无变化，"
+                    "但考试禁止 SKIP，继续出牌"
+                )
+            elif force_skip:
                 log_lines.append(
                     f"{step:03d} [lesson] 同一屏连续 {same_screen.repeats} 步无变化，"
                     f"强制 SKIP 结束回合"
@@ -790,8 +809,16 @@ def main() -> int:
             # 体力门：体力 0 / 体力 < 最低手牌费用 → 一张牌都打不出。立刻按 SKIP
             # 结束本回合，不要一回合一点地磨（真机 0 体力进课程后连按 SKIP 白送回合）。
             # 体力读不到时用上一帧兜底，绝不假设充足。
-            stamina_gate = lesson_stamina_gate(
-                lesson_state, stamina=stamina, last_stamina=last_stamina
+            # 考试模式例外：SKIP 等于白送回合，永远不放行体力门（F#17）。
+            stamina_gate = (
+                None
+                if exam_mode
+                else lesson_stamina_gate(
+                    lesson_state,
+                    stamina=stamina,
+                    last_stamina=last_stamina,
+                    exam=exam_mode,
+                )
             )
             if stamina_gate is None and force_skip:
                 stamina_gate = (
@@ -815,7 +842,7 @@ def main() -> int:
                 # 浮层关掉不等于出牌成功：分数/手牌完全没变说明这一下只是开关浮层
                 progressed = sig_changed
             guard_action, guard_point = lesson_guard.observe(
-                overlay_open, progressed=progressed
+                overlay_open, progressed=progressed, allow_skip=not exam_mode
             )
             guard_done = guard_action != "pick"
             failure = lesson_guard.take_failure()
@@ -976,6 +1003,7 @@ def main() -> int:
                     exclude=bad_cards,
                     click=agent.device.click_force,
                     state=state_clean,
+                    allow_skip=not exam_mode,
                     fallback=lambda lines=lines, boxes=boxes, stamina=stamina, costs=costs, image=image: pick_hand_card(
                         lines if lines else driver.engine().read(image, (0, 780, 720, 420)),
                         boxes,
@@ -1107,7 +1135,7 @@ def main() -> int:
                     play = task.decide_card(agent, image, screen=screen, stamina=stamina)
                     if play is not None and tuple(play.point) in lesson_guard.failed_points:
                         play = None  # 这张已确认打不出去（浮层关掉后重选）
-                    if play is None and lesson_guard.failed_points:
+                    if play is None and lesson_guard.failed_points and not exam_mode:
                         # 剩下的牌都确认打不出去：别在卡片详情浮层里空转，SKIP 结束回合
                         clicked = agent.device.click_force(*LESSON_SKIP_POINT)
                         time.sleep(0.9)
@@ -1125,6 +1153,32 @@ def main() -> int:
                             action_name = "lesson-skip"
                             result = "[lesson] 剩余牌都确认打不出去，点 SKIP 结束回合"
                             idle = 0
+                    elif play is None and exam_mode:
+                        # 考试：绝不能 SKIP。换一张还没确认打不出去的牌硬出（分数没读到也点）；
+                        # 全都被确认打不出去时点中央推进（关浮层/等下一帧），仍不 SKIP。
+                        exam_card = pick_lesson_card(
+                            state_clean.cards,
+                            stamina=stamina,
+                            exclude_names=bad_cards,
+                            exclude_points=lesson_guard.failed_points,
+                        )
+                        point = exam_card.point if exam_card is not None else SETTLE_CENTER_TAP
+                        clicked = agent.device.click_force(*point)
+                        time.sleep(0.9)
+                        if clicked is False:
+                            result = "[pause] 用户正在操作，暂停出牌"
+                            idle = 0
+                        elif exam_card is not None:
+                            lesson_pending = (point, boxes, exam_card.name)
+                            lesson_guard.picked(point, exam_card.name)
+                            lesson_sig_before_pick = lesson_hand_signature(lesson_state)
+                            action_name = "exam-card"
+                            result = f"[exam-mode] 换牌再出 {exam_card.name or 'card'} at {point}"
+                            idle = 0
+                        else:
+                            action_name = "exam-tap"
+                            result = "[exam-mode] 没有可点的牌，点中央推进（绝不 SKIP）"
+                            idle += 1
                     elif play is not None:
                         task._record(image, play)
                         clicked = agent.device.click_force(*play.point)
@@ -1143,6 +1197,9 @@ def main() -> int:
                         time.sleep(0.9)
                         result = "[lesson] 无可用决策，点击中位卡兜底"
                         idle += 1
+            # 考试模式给每一步打标记，真机日志里一眼能看出"这步在考试里做了什么"
+            if exam_mode and not result.startswith("[exam-mode]"):
+                result = f"[exam-mode] {result}"
         else:
             lesson_pending = None
             drink_used = False

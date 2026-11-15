@@ -150,3 +150,17 @@ def test_scenario_stuck_tick_exits_episode_as_failure() -> None:
     assert "[stuck]" in source, "stuck 时没记 [stuck] 日志"
     assert '"scenario-stall"' in source, "stuck 时没写失败记录"
     assert "stuck_exit = True" in source and "return 1 if stuck_exit" in source
+
+
+def test_exam_mode_wired_and_disables_every_skip() -> None:
+    """F#17：考试模式必须先识别排名条，再禁掉体力门/同屏/策略/浮层四处 SKIP。"""
+    source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
+    assert "driver.exam_mode(image, lines)" in source, "没识别考试模式（顶部排名条）"
+    assert "[exam-mode]" in source, "考试模式没打 [exam-mode] 日志标记"
+    assert 'kind="audition" if exam_mode' in source, "考试页没用试镜布局读剩余回合/体力"
+    assert "exam=exam_mode" in source, "体力门没传考试标记"
+    assert "allow_skip=not exam_mode" in source, "策略/浮层状态机没禁 SKIP"
+    assert "and not exam_mode" in source, "「剩余牌打不出去」的 SKIP 没被考试模式拦住"
+    assert "force_skip = stall_action == \"force-skip\" and not exam_mode" in source, (
+        "同屏兜底强制 SKIP 没被考试模式拦住"
+    )

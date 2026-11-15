@@ -194,7 +194,13 @@ class LessonPolicy:
         if card is not None and card.buff:
             self._buff_played_this_turn = True
 
-    def decide(self, state: LessonState) -> LessonAction:
+    def decide(self, state: LessonState, *, allow_skip: bool = True) -> LessonAction:
+        """``allow_skip=False``（考试/试镜）：绝不返回 ``skip``，必须每回合出一张牌。
+
+        F#17：考试页被当成课程时，体力门/「剩下的牌都不值体力」会连续 SKIP 白送回合
+        （真机期中 4th/228Pt 直接不合格）。考试里 SKIP 没有任何收益，所以禁掉三个
+        SKIP 出口，退化为「硬打一张最值的」/「等下一帧交给兜底选牌」。
+        """
         self._sync_turn(state.turns_left)
         cards = [card for card in state.cards if card.name or card.score is not None]
         if not cards:
@@ -208,6 +214,11 @@ class LessonPolicy:
             if stamina is None or card.cost is None or card.cost <= stamina
         ]
         if not affordable:
+            if not allow_skip:
+                # 考试：没有付得起的牌也不 SKIP，交给调用方兜底换牌/等下一帧
+                return LessonAction(
+                    "wait", reason=f"考试模式：没有付得起的牌（体力 {stamina}），不 SKIP"
+                )
             return LessonAction(
                 "skip",
                 point=state.skip_point,
@@ -225,7 +236,7 @@ class LessonPolicy:
         # 2) 性价比最高的牌
         best = self._best_score_card(affordable, values, budget, turns)
         if best is None:
-            if self.params["unknown_score_fallback"] == "skip":
+            if self.params["unknown_score_fallback"] == "skip" and allow_skip:
                 return LessonAction(
                     "skip",
                     point=state.skip_point,
@@ -242,6 +253,8 @@ class LessonPolicy:
                     expected=0.0,
                     reason=f"分数没读到，先打最便宜的「{fallback.name or '卡'}」保成长",
                 )
+            if not allow_skip:
+                return self._must_play(affordable, values, "考试不允许 SKIP，硬打一张")
             return LessonAction(
                 "skip",
                 point=state.skip_point,
@@ -347,6 +360,29 @@ class LessonPolicy:
                 f"先上 buff：{candidate.name or '卡'}（体力 {candidate.cost}，"
                 f"等效 {buff_value:.1f}，剩余 {turns} 回合）"
             ),
+        )
+
+    @staticmethod
+    def _must_play(
+        affordable: list[LessonCard], values: dict[int, float], reason: str
+    ) -> LessonAction:
+        """考试模式：即使收益低于门槛也硬打一张（分数最高、其次最便宜）。"""
+        if not affordable:
+            return LessonAction("wait", reason=reason)
+        card = max(
+            affordable,
+            key=lambda item: (
+                values.get(item.index, 0.0),
+                -(item.cost if item.cost is not None else 9),
+            ),
+        )
+        return LessonAction(
+            "card",
+            index=card.index,
+            point=card.point,
+            card=card,
+            expected=values.get(card.index, 0.0),
+            reason=f"{reason}：{card.name or '卡'}",
         )
 
     @staticmethod
