@@ -498,7 +498,6 @@ def main() -> int:
     pending: StepRecord | None = None
     markers: list[str] = []
     unknown_streak = 0
-    ocr_cache: dict[str, tuple[list, str]] = {}
     last_signature: tuple[str, str, str] | None = None
     same_action_count = 0
     lesson_pending: tuple[tuple[int, int], tuple] | None = None
@@ -595,34 +594,30 @@ def main() -> int:
                 text = "剩余回合"
                 ocr_ms = 0.0
             else:
-                # 快速路径 0：先只读左上角状态条（~6% 面积）。认出「剩余回合/CLEAR/PERFECT」= 课程帧
-                corner_lines = driver.engine().read(image, driver.corner_roi)
-                corner_text = driver.text_of(corner_lines)
-                corner_lesson = any(
-                    word in corner_text for word in ("剩余回合", "CLEAR", "PERFECT")
-                )
-                if corner_lesson:
-                    lines = corner_lines
-                    text = corner_text
-                    ocr_ms = (time.perf_counter() - t_ocr) * 1000
-                elif loading_fast:
+                if loading_fast:
+                    # 模板已经命中加载帧：连左上角状态条都不用读。
+                    corner_lines = []
+                    corner_text = ""
+                    corner_lesson = False
                     lines = []
                     text = "LOADING"
-                    ocr_ms = 0.0
-                elif digest in ocr_cache:
-                    lines, text = ocr_cache[digest]
-                    ocr_ms = 0.0
-                elif unknown_streak >= 3:
-                    # 连续认不出时，用整屏 OCR 兜底一次，排除 ROI 漏读
-                    lines = driver.engine().read(image)
-                    text = driver.text_of(lines)
-                    ocr_ms = (time.perf_counter() - t_ocr) * 1000
                 else:
-                    lines = driver.read(image, corner_lines=corner_lines)
-                    ocr_ms = (time.perf_counter() - t_ocr) * 1000
-                    text = driver.text_of(lines)
-                    if len(ocr_cache) < 256:
-                        ocr_cache[digest] = (lines, text)
+                    # 快速路径 0：先只读左上角状态条（~6% 面积）。认出「剩余回合/CLEAR/PERFECT」= 课程帧
+                    corner_lines = driver.engine().read(image, driver.corner_roi)
+                    corner_text = driver.text_of(corner_lines)
+                    corner_lesson = any(
+                        word in corner_text for word in ("剩余回合", "CLEAR", "PERFECT")
+                    )
+                    if corner_lesson:
+                        lines = corner_lines
+                        text = corner_text
+                    else:
+                        # 常用屏走固定小框分区识别（加载/剧情/事件/行动/训练/外出/领奖）；
+                        # 只有认不出的屏才整屏 OCR。旧实现每步都对底部 60% + 顶部做检测，
+                        # 真机 6-14s/步里 80% 耗在这里。
+                        lines = driver.read_fast(image)
+                        text = driver.text_of(lines)
+                ocr_ms = (time.perf_counter() - t_ocr) * 1000
 
         if any(word in text for word in PRODUCE_MARKERS):
             seen_produce = True
@@ -630,14 +625,17 @@ def main() -> int:
         # 期末试镜之后进入「结算期」：评分/评价画面常常一闪而过，
         # 每步先连拍几张再动作，确保能抓到最终评价
         # 全程记录三维：固定小框直接读大数字（/1000 小字 OCR 常读不出，整屏正则抓不到）
+        t_attrs = time.perf_counter()
         try:
-            attrs_now = driver.read_attrs(image)
+            attrs_now = driver.read_attrs(image, text_hint=text)
             if attrs_now is not None:
                 from gkagent.data.calibration import record as _record_attrs
 
                 _record_attrs(attrs_now, tag="run")
         except Exception:  # noqa: BLE001 - 标定失败不影响培育
             pass
+        finally:
+            ocr_ms += (time.perf_counter() - t_attrs) * 1000
 
         # 只有同时出现「评价字母 + 3位以上分数」才算真结算；
         # 只匹配「合否条件」会在考试介绍页误触发，导致每步连拍空转。

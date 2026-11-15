@@ -20,6 +20,7 @@ import cv2
 import numpy as np
 
 from gkagent.vision.ocr import OcrEngine, OcrLine
+from gkagent.vision.ocr_cache import SemanticScreenCache
 
 if TYPE_CHECKING:
     from gkagent.vision.lesson import LessonCard, LessonState
@@ -67,6 +68,27 @@ ATTR_ACTION_TITLE_BOX = (180, 830, 360, 60)
 _ATTR_ACTION_TITLE_WORDS = ("请选择行动", "选择行动", "行动")
 _ATTR_NUMBER_RE = re.compile(r"\d+")
 _ATTR_DENOMINATOR = 1000  # 显示条「X/1000」的分母
+# 只有这些屏才可能出现三颗属性圆（行动页/训练页/外出咨询页）。课程、剧情、加载、
+# 结算页都没有——用文本提示先筛掉，省掉每步 3 次单行 OCR。
+_ATTR_PAGE_WORDS = (
+    "请选择行动",
+    "授课",
+    "休息",
+    "训练",
+    "外出",
+    "咨询",
+    "活动奖励",
+    "Vo",
+    "Da",
+    "Vi",
+)
+
+
+def _might_show_attributes(text: str | None) -> bool:
+    """文本里是否可能出现行动页的三维圆；空文本按"不确定"处理（继续读）。"""
+    if not text:
+        return True
+    return any(word in text for word in _ATTR_PAGE_WORDS)
 
 # ---- 课程出牌：卡片详情浮层 / 防死循环 -------------------------------------
 # 选牌后游戏会弹出卡牌详情浮层（卡名 / Active / 好调状态的时候，可以使用 / 打分+38）。
@@ -112,6 +134,47 @@ _DETAIL_EFFECT_RE = re.compile(
     r"(?:打分|元气|体力|好调|集中|指針|やる気|元気|好調|集中|指針)\s*[+＋]"
 )
 _DETAIL_EN_WORDS = ("active", "mental", "support", "trouble")
+
+# ---- 快速读屏（省掉整屏检测） ------------------------------------------------
+# 常用屏（加载/剧情/事件选项/行动/训练/外出咨询/领奖）的文字都在固定位置。
+# 这里每个框只跑 line() 的"只识别"快路径（缓存命中的话连识别都不跑），
+# 比"整屏检测 + 逐行识别"便宜一个数量级。检测框只用于确认"这屏是不是它"；
+# 任何一项关键文字读不出来就退回整屏 read()，不拿猜测去点击。
+FAST_STATUS_BOX = (26, 20, 320, 70)  # 剩余回合数 / 期中截止
+FAST_ACTION_TITLE_BOX = (180, 830, 360, 60)  # 请选择行动
+FAST_RECOMMEND_BOX = (420, 195, 300, 35)  # 推荐歌唱训练
+FAST_TRAIN_LABEL_BOXES: tuple[tuple[int, int, int, int], ...] = (
+    (95, 1040, 150, 60),  # Vo.训练
+    (290, 1040, 150, 60),  # Da.训练
+    (490, 1040, 150, 60),  # Vi.训练
+)
+FAST_LESSON_BOX = (285, 1055, 150, 60)  # 授课
+FAST_REST_BOX = (605, 865, 95, 35)  # 休息
+FAST_OUTING_BOX = (125, 1095, 130, 50)  # 外出
+FAST_CONSULT_BOX = (300, 1095, 120, 50)  # 咨询
+FAST_ACTIVITY_BOX = (465, 1095, 150, 50)  # 活动奖励
+FAST_STAMINA_BOX = (310, 55, 110, 45)  # 24/35
+FAST_P_BOX = (315, 105, 110, 45)  # P 41（P 点）
+FAST_LOADING_BOX = (20, 1185, 220, 55)  # 正在下载数据
+FAST_LOADING_EN_BOX = (540, 1175, 170, 55)  # NOW LOADING... / 快进
+FAST_EVENT_FAST_BOX = (545, 1165, 170, 65)  # 快进（文字实际位置略高，兜底再读一次）
+FAST_EVENT_ROW_BOXES: tuple[tuple[int, int, int, int], ...] = (
+    (70, 690, 590, 90),
+    (70, 790, 590, 90),
+    (70, 890, 590, 90),
+)
+FAST_REWARD_TITLE_BOX = (200, 600, 400, 60)  # 请选择要领取的技能卡。
+FAST_REWARD_RECOMMEND_BOX = (300, 945, 140, 55)  # 推荐标签
+FAST_REWARD_CLAIM_BOX = (300, 1070, 130, 55)  # 领取
+FAST_BUTTON_BOXES: tuple[tuple[int, int, int, int], ...] = (
+    (250, 1080, 220, 100),  # 中下：确定/下一步/领取/完成
+    (50, 1080, 200, 100),  # 左下：取消/否
+    (470, 1080, 200, 100),  # 右下：关闭/保存
+)
+_FAST_ACTION_WORDS = ("授课", "休息", "外出", "咨询", "活动奖励", "训练")
+_EVENT_ROW_COST_RE = re.compile(r"\s*[-−一]\s*\d{1,2}\s*$")
+_EVENT_ROW_LABEL_RE = re.compile(r"^[A-Za-z0-9]{1,3}\s+")
+_FAST_STATIC_CACHE_WORDS = ("快进", "SKIP", "LOADING", "加载", "正在下载")
 
 # ---- 体力门（真机事故：体力 0 进课程，手牌最低 1 费一张都打不出，连按 SKIP 白送回合） ----
 DEFAULT_REST_THRESHOLD = 8  # 体力 < 8：连训练都不练，只休息
@@ -760,12 +823,21 @@ class ProduceDriver:
         "请选择行动",
         "选择",
     )
+    # 整屏 OCR 结果的语义缓存：只对"文字重复=状态重复"的静态屏启用
+    # （加载/剧情/结算等待），避免像素 digest 被角色呼吸打穿。
+    screen_cache: SemanticScreenCache | None = None
+    _frame_lines: list[OcrLine] | None = field(default=None, init=False, repr=False)
+    _frame_text: str = field(default="", init=False, repr=False)
+    _frame_attrs: tuple[int, int, int] | None = field(default=None, init=False, repr=False)
+    _attrs_image: object | None = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if self.sleep is None:
             import time
 
             self.sleep = time.sleep
+        if self.screen_cache is None:
+            self.screen_cache = SemanticScreenCache()
 
     # ------------------------------------------------------------------ 工具
     def engine(self) -> OcrEngine:
@@ -789,19 +861,234 @@ class ProduceDriver:
             lines = lines + self.engine().read(image, self.top_roi)
         return lines
 
-    def read_attrs(self, image) -> tuple[int, int, int] | None:
+    # ------------------------------------------------------------ 快速读屏
+    def _probe_text(self, image, roi: tuple[int, int, int, int]) -> str:
+        """固定小框单行识别；异常/读不到返回空串（快速路径据此决定是否退回整屏）。"""
+        try:
+            line = self.engine().line(image, roi, digits_only=False)
+        except Exception:  # noqa: BLE001 - 探针失败就退回整屏 OCR
+            return ""
+        return line.text.strip() if line is not None and line.text else ""
+
+    @staticmethod
+    def _clean_event_row(text: str) -> str:
+        """事件选项行：去掉 OCR 混进来的体力花费（``-8``）和卡面角标（``2A``）。"""
+        value = unicodedata.normalize("NFKC", text or "").strip()
+        value = _EVENT_ROW_COST_RE.sub("", value).strip()
+        value = _EVENT_ROW_LABEL_RE.sub("", value).strip()
+        value = value.strip(" ·・-—_|")
+        if not 2 <= len(value) <= 20:
+            return ""
+        if any(ch.isdigit() for ch in value):
+            return ""
+        return value
+
+    def _loading_probe(self, image) -> list[OcrLine] | None:
+        text = self._probe_text(image, FAST_LOADING_BOX)
+        english = self._probe_text(image, FAST_LOADING_EN_BOX)
+        if "下载" in text or "加载" in text or "通信" in text:
+            return [OcrLine("LOADING", 0.9, FAST_LOADING_BOX)]
+        if "NOW" in english.upper() or "LOADING" in english.upper():
+            return [OcrLine("LOADING", 0.9, FAST_LOADING_EN_BOX)]
+        return None
+
+    def _event_probe(self, image) -> tuple[list[OcrLine] | None, str]:
+        """事件/剧情快速读：快进按钮 + 3 个选项行。返回 ``(lines, fast_text)``。
+
+        只在"快进"出现在固定按钮框里才识别选项；选项行不足 2 条时返回
+        ``(None, fast_text)``，交给调用方退回整屏 OCR——绝不直接点快进把
+        需要选奖/选项的事件跳过去。
+        """
+        fast_text = self._probe_text(image, FAST_LOADING_EN_BOX)
+        if "快进" not in fast_text:
+            fast_text = self._probe_text(image, FAST_EVENT_FAST_BOX)
+        if "快进" not in fast_text:
+            return (None, fast_text)
+        rows: list[OcrLine] = []
+        for roi in FAST_EVENT_ROW_BOXES:
+            text = self._clean_event_row(self._probe_text(image, roi))
+            if text:
+                rows.append(OcrLine(text, 0.9, roi))
+        if len(rows) < 2:
+            return (None, fast_text)
+        return ([OcrLine("快进", 0.9, FAST_LOADING_EN_BOX), *rows], fast_text)
+
+    def _action_probe(self, image) -> list[OcrLine] | None:
+        """行动/训练/外出咨询页：固定小框拼出 decide 需要的行；读不全返回 None。
+
+        页面识别（真机实测）：
+        * 三颗属性圆读齐 → 是行动/训练/外出类页面（课程页没有这三个圆）；
+        * 再读「请选择行动/授课/休息/外出/咨询/活动奖励/Vo·Da·Vi 训练」；
+        * 至少命中一个可点行动才返回，否则返回 None 让调用方整屏 OCR。
+        """
+        report = self.read_attrs_debug(image)
+        attrs = report["attrs"]
+        if attrs is None:
+            return None
+        lines: list[OcrLine] = [
+            OcrLine(f"{value}/1000", 0.9, roi)
+            for value, roi in zip(attrs, ATTR_ROIS, strict=False)
+        ]
+        status = self._probe_text(image, FAST_STATUS_BOX)
+        if status:
+            lines.append(OcrLine(status, 0.9, FAST_STATUS_BOX))
+        stamina = self._probe_text(image, FAST_STAMINA_BOX)
+        if stamina:
+            lines.append(OcrLine(stamina, 0.9, FAST_STAMINA_BOX))
+        p_points = self._probe_text(image, FAST_P_BOX)
+        if "P" in p_points.upper() or p_points.isdigit():
+            lines.append(OcrLine(p_points, 0.9, FAST_P_BOX))
+        action_title = self._probe_text(image, FAST_ACTION_TITLE_BOX)
+        if "请选择行动" in action_title:
+            lines.append(OcrLine("请选择行动", 0.9, FAST_ACTION_TITLE_BOX))
+
+        recommend = self._probe_text(image, FAST_RECOMMEND_BOX)
+        if "推荐" in recommend:
+            lines.append(OcrLine(recommend, 0.9, FAST_RECOMMEND_BOX))
+        controls: list[str] = []
+        for roi in FAST_TRAIN_LABEL_BOXES:
+            text = self._probe_text(image, roi)
+            if text:
+                lines.append(OcrLine(text, 0.9, roi))
+                controls.append(text)
+        for roi in (
+            FAST_LESSON_BOX,
+            FAST_REST_BOX,
+            FAST_OUTING_BOX,
+            FAST_CONSULT_BOX,
+            FAST_ACTIVITY_BOX,
+        ):
+            text = self._probe_text(image, roi)
+            if not text:
+                continue
+            if any(word in text for word in _FAST_ACTION_WORDS) or text in ("Vo", "Da", "Vi"):
+                lines.append(OcrLine(text, 0.9, roi))
+                controls.append(text)
+        if not controls:
+            return None
+        # 体力低又没读到休息：可能休息按钮被动画遮住/位置漂了，必须回整屏确认，
+        # 不能因为探针没看到就继续训练（真机体力门事故就是这么来的）。
+        parsed_stamina = parse_stamina(stamina)
+        if (
+            parsed_stamina is not None
+            and parsed_stamina < DEFAULT_REST_THRESHOLD
+            and not any("休息" in text for text in controls)
+        ):
+            return None
+        self._frame_attrs = attrs
+        self._attrs_image = image
+        return lines
+
+    def _reward_probe(self, image) -> list[OcrLine] | None:
+        """领奖页快速读：标题 + 推荐标签 + 领取。推荐标签读不到就退回整屏。"""
+        title = self._probe_text(image, FAST_REWARD_TITLE_BOX)
+        if "请选择要领取" not in title:
+            return None
+        claim = self._probe_text(image, FAST_REWARD_CLAIM_BOX)
+        if "领取" not in claim:
+            return None
+        recommend = self._probe_text(image, FAST_REWARD_RECOMMEND_BOX)
+        if "推荐" not in recommend:
+            # 没读到推荐标签时，整屏 OCR 会按卡名/分档估值挑更强的卡；
+            # 这里不能直接点第一张，正确性优先于速度。
+            return None
+        return [
+            OcrLine(title, 0.9, FAST_REWARD_TITLE_BOX),
+            OcrLine(recommend, 0.9, FAST_REWARD_RECOMMEND_BOX),
+            OcrLine(claim, 0.9, FAST_REWARD_CLAIM_BOX),
+        ]
+
+    def read_fast(self, image) -> list[OcrLine]:
+        """常用屏快速读屏：分区固定小框，能确定屏幕类型就不再整屏 OCR。
+
+        判定顺序（真机实测布局）：
+        1. 加载页：左下「正在下载数据」/右下「NOW LOADING...」；
+        2. 事件/课程类型选择：右下「快进」+ 3 条选项行；
+        3. 行动/训练/外出咨询页：三颗属性圆 + 授课/休息/训练/外出/咨询/活动奖励；
+        4. 领奖页：标题「请选择要领取的技能卡。」+ 推荐 + 领取；
+        5. 以上都不成立 → 整屏 OCR 兜底（结果/结算/对话等低频屏）。
+
+        任何一条关键文字读不到都退回整屏 OCR；快速路径只减少 OCR 区域，
+        不改变 ``decide`` 的输入语义（文本和可点框位置都保留）。
+        """
+        if image is None or getattr(image, "shape", None) is None:
+            return self.read(image)
+        self._frame_lines = None
+        self._frame_text = ""
+        self._frame_attrs = None
+        self._attrs_image = None
+
+        loading = self._loading_probe(image)
+        if loading is not None:
+            return self._remember_frame(loading)
+
+        event_lines, fast_text = self._event_probe(image)
+        if event_lines is not None:
+            return self._remember_frame(event_lines)
+
+        status = self._probe_text(image, FAST_STATUS_BOX)
+        if any(word in status for word in ("期中", "剩余回合", "授课", "请选择行动")):
+            action_lines = self._action_probe(image)
+            if action_lines is not None:
+                return self._remember_frame(action_lines)
+
+        reward_lines = self._reward_probe(image)
+        if reward_lines is not None:
+            return self._remember_frame(reward_lines)
+
+        # 整屏兜底：加载/剧情这类"文字重复=状态重复"的屏按语义指纹缓存，
+        # 下次同样的按钮/标题直接复用行列表，不再检测+识别。
+        probe_key = " ".join(part for part in (status, fast_text) if part).strip()
+        if probe_key and any(word in probe_key for word in _FAST_STATIC_CACHE_WORDS):
+            cached = self.screen_cache.get(probe_key) if self.screen_cache is not None else None
+            if cached is not None:
+                return self._remember_frame(cached)
+        lines = self.engine().read(image)
+        return self._remember_frame(lines, cache_key=probe_key)
+
+    def _remember_frame(
+        self,
+        lines: list[OcrLine],
+        *,
+        cache_key: str | None = None,
+    ) -> list[OcrLine]:
+        self._frame_lines = lines
+        self._frame_text = self.text_of(lines)
+        if (
+            cache_key
+            and self.screen_cache is not None
+            and any(word in cache_key for word in _FAST_STATIC_CACHE_WORDS)
+        ):
+            self.screen_cache.put(cache_key, lines)
+        return lines
+
+    def read_attrs(
+        self,
+        image,
+        *,
+        allow_full: bool = False,
+        text_hint: str | None = None,
+    ) -> tuple[int, int, int] | None:
         """读行动页三颗属性圆的大数字 ``(Vo, Da, Vi)``；三个都读到才返回。
 
-        先用三个固定小框走 :meth:`OcrEngine.line` 单行快路径（每个 ~30ms）；
-        固定框偏了（≥2 个读不到、但至少 1 个读到）时退回整图 OCR，按 x 分三列取
-        字高最大的数字——属性大数字比下方「/1000」小字和百分比高，能稳定选中。
-        三个框全空时先用「请选择行动」廉价探针确认是行动页，再跑整图 OCR；非行动
-        页不跑（整图 OCR ~5s，每步都跑会把一步拖慢一倍多，还容易把课程页数字当三维）。
-        读不到一律返回 ``None``，不拿 0 顶替。
+        先用三个固定小框走 :meth:`OcrEngine.line` 单行快路径（每个 ~30ms）。
+        ``allow_full=False``（默认）时**绝不跑整图 OCR**：固定框偏了就读不到，
+        交给调用方按未知处理。整图兜底只在 ``allow_full=True`` 且「请选择行动」
+        廉价探针确认是行动页时才允许——整图 OCR 在真机要 5-15s，一步跑一次
+        就能把整局拖慢一倍。
+
+        ``text_hint``：调用方已经读到的屏幕文本。非行动页直接返回 None，
+        连三个小框都不读；行动页/未知页才继续。
         """
+        if text_hint is not None and not _might_show_attributes(text_hint):
+            return None
+        if self._attrs_image is image and self._frame_attrs is not None:
+            return self._frame_attrs
         report = self.read_attrs_debug(image)
         if report["attrs"] is not None:
             return report["attrs"]
+        if not allow_full:
+            return None
         values = [box["value"] for box in report["boxes"]]
         missing = sum(value is None for value in values)
         if missing >= 2 and any(value is not None for value in values):
@@ -1696,6 +1983,9 @@ class ProduceDriver:
             ("活动奖励" in text or "授课" in text)
             and "请选择行动" not in text
             and "领取" not in text
+            # 事件/课程类型选择页顶部也有「授课」标签，右下是「快进」：必须先走
+            # 下面的选项行分支，不能在这里点屏幕中央把事件跳过去。
+            and "快进" not in text
         ):
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "settle")

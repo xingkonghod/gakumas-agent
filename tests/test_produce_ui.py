@@ -965,7 +965,7 @@ def test_read_attrs_falls_back_to_full_ocr_when_two_boxes_miss() -> None:
     ]
     ocr = _attr_ocr(("130", None, None), full_lines=full_lines)
     driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
-    assert driver.read_attrs(_attr_image()) == (130, 100, 131)
+    assert driver.read_attrs(_attr_image(), allow_full=True) == (130, 100, 131)
     assert ocr.read_calls == 1
 
 
@@ -992,7 +992,7 @@ def test_read_attrs_full_fallback_when_all_boxes_blank_on_action_page() -> None:
         full_lines=full_lines,
     )
     driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
-    assert driver.read_attrs(_attr_image()) == (130, 100, 131)
+    assert driver.read_attrs(_attr_image(), allow_full=True) == (130, 100, 131)
     assert ocr.read_calls == 1
 
 
