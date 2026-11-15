@@ -19,6 +19,13 @@
   ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10）。卡表没给出更细的结算
   顺序，这里沿用"本牌不享受自己刚加的 buff"的保守规则：本牌自带的
   ``impression`` 在算完依赖分之后才生效；这部分分数也不吃好调/集中倍率；
+- ``ExamLessonDependBlock``：依赖元气（盾）层数的分数，与好印象依赖分**同构**：
+  按出牌**前**的元气层数算 ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10），
+  同样不吃好调/集中/指針倍率，本牌自带的 ``vitality`` 在算完之后才生效；
+- ``ExamParameterBuff`` / ``ExamParameterBuffMultiplePerTurn``：审查基准加成，
+  近似成"本次打分额外乘 ``parameter_buff/1000`` 倍"（1500 = ×1.5）。本牌自带
+  的加成叠在**本牌最终分**（白值 + 依赖分）上；``parameter_buff_turns > 1`` 时
+  在本回合内持续，同一回合后续牌也吃（``turn_parameter_buff``），回合结束清零；
 - 非凡指針：分数再乘当前指針倍率（``stance.score_multiplier``）；出牌结算
   最后应用本牌的指針效果（``preservation`` / ``full_power_point``），所以
   **本牌不吃自己刚切的倍率**；回合结束调用 ``stance.end_turn`` 结算全力值；
@@ -69,6 +76,8 @@ _MAX_STEPS = 10_000
 _STANCE_CARD_EFFICIENCY = 3.0
 # greedy_policy 给「本回合可出牌次数 +N」牌（通常 score=0）的固定效率
 _EXTRA_PLAY_CARD_EFFICIENCY = 3.0
+# greedy_policy 给「依赖元气分 / 审查基准加成」牌（常常 score=0）的固定效率
+_DEPENDENT_CARD_EFFICIENCY = 3.0
 
 
 @dataclass(frozen=True)
@@ -83,6 +92,10 @@ class CardSpec:
     ``preservation`` 是把指針切到温存的段階（1/2），``full_power_point`` 是
     全力值增量（攒满 10 点后下一回合进入「全力」）。``extra_play`` 是
     ``ExamPlayableValueAdd``：出牌后本回合额外可出牌次数 +N（默认 0）。
+    ``block_scale`` 是"依赖元气的分数"倍率（百分比，1000 = 每层元气 10 分，
+    见 ``ExamLessonDependBlock``）；``parameter_buff`` 是审查基准加成的千分比
+    （1500 = ×1.5，见 ``ExamParameterBuff``），``parameter_buff_turns > 1``
+    表示该加成在本回合内持续（``ExamParameterBuffMultiplePerTurn``）。
     """
 
     name: str
@@ -98,6 +111,9 @@ class CardSpec:
     preservation: int = 0
     full_power_point: int = 0
     extra_play: int = 0
+    block_scale: int = 0
+    parameter_buff: int = 0
+    parameter_buff_turns: int = 1
 
 
 @dataclass(frozen=True)
@@ -154,6 +170,8 @@ class LessonSim:
         # 元气 / 干劲：课程里没有对手伤害，元气只累积（留给考试模拟用）
         self.vitality: int = 0
         self.motivation: int = 0
+        # 本回合内持续的审查基准加成（ExamParameterBuffMultiplePerTurn），回合结束清零
+        self.turn_parameter_buff: int = 0
 
         # 牌库会无限洗回，所以"体力付不起任何牌"是永久性的终端条件
         self._min_cost = min((card.cost for card in self.deck), default=0)
@@ -248,12 +266,19 @@ class LessonSim:
 
     # ------------------------------------------------------------------ 内部
     def _card_award(self, card: CardSpec) -> int:
-        """本牌的得分：``(score + focus) × 好调倍率 × 指針倍率`` + 好印象依赖分，向下取整。
+        """本牌的得分：``(score + focus) × 好调倍率 × 指針倍率`` + 好印象依赖分 + 元气依赖分，
+        最后再乘审查基准加成，逐段向下取整。
 
         纯 buff 牌（``score <= 0``）不参与集中/好调/指針加成；但如果有
-        ``impression_scale``，仍然按**出牌前**的好印象层数结算依赖分：
-        ``int(层数 × impression_scale / 100)``。依赖分不吃好调/集中/指針，
+        ``impression_scale`` / ``block_scale``，仍然按**出牌前**的好印象 /
+        元气层数结算依赖分：``int(层数 × 倍率 / 100)``。依赖分不吃好调/集中/指針，
         因为卡表没给出这部分是否参与倍率结算，取保守做法。
+
+        ``parameter_buff``（含本回合遗留的 ``turn_parameter_buff``）在**最终分**
+        上叠加倍率 ``int(最终分 × 加成 / 1000)``；1000 = ×1.0（不加不减），
+        1500 = ×1.5。两者同一口径，取较大者只乘一次。
+        ``parameter_buff_turns > 1`` 时把加成记进 ``turn_parameter_buff``，供本回合
+        后续牌继续吃（回合结束清零）。
         """
         award = 0
         if card.score > 0:
@@ -263,6 +288,13 @@ class LessonSim:
             )
         if card.impression_scale > 0 and self.buffs.impression > 0:
             award += int(self.buffs.impression * card.impression_scale / 100)
+        if card.block_scale > 0 and self.vitality > 0:
+            award += int(self.vitality * card.block_scale / 100)
+        parameter_buff = max(card.parameter_buff, self.turn_parameter_buff)
+        if parameter_buff > 0 and award > 0:
+            award = int(award * parameter_buff / 1000)
+        if card.parameter_buff > 0 and card.parameter_buff_turns > 1:
+            self.turn_parameter_buff = max(self.turn_parameter_buff, card.parameter_buff)
         return award
 
     def _apply_card_stance(self, card: CardSpec) -> None:
@@ -300,6 +332,8 @@ class LessonSim:
             self.buffs.impression -= 1
         if self.buffs.condition_turns > 0:
             self.buffs.condition_turns -= 1
+        # 审查基准加成只在本回合内持续
+        self.turn_parameter_buff = 0
 
         self.discard.extend(self.hand)
         self.hand.clear()
@@ -344,6 +378,9 @@ def greedy_policy(sim: LessonSim) -> Action:
     计，让基线也会打它们（实际收益仍由 LessonSim 的指針结算决定）。
     「可出牌次数 +N」牌同理，固定按 ``_EXTRA_PLAY_CARD_EFFICIENCY`` 计，
     否则 score=0 的加次数牌永远不会被选中。
+    「依赖元气分（``block_scale``）/ 审查基准加成（``parameter_buff``）」的牌
+    也常常 ``score=0``，同样给固定效率 ``_DEPENDENT_CARD_EFFICIENCY``，
+    避免这类牌永远轮不到；已经有白值的牌仍按白值效率排序。
     """
     playable = [index for index in sim.legal_actions() if index is not None]
     if not playable:
@@ -357,6 +394,13 @@ def greedy_policy(sim: LessonSim) -> Action:
             return (
                 _EXTRA_PLAY_CARD_EFFICIENCY,
                 _EXTRA_PLAY_CARD_EFFICIENCY,
+                -card.cost,
+                -index,
+            )
+        if card.score <= 0 and (card.block_scale > 0 or card.parameter_buff > 0):
+            return (
+                _DEPENDENT_CARD_EFFICIENCY,
+                _DEPENDENT_CARD_EFFICIENCY,
                 -card.cost,
                 -index,
             )

@@ -239,15 +239,15 @@ def test_playable_value_add_reaches_rich_card_spec() -> None:
     count_one = sp._effect_fields(
         {"effects": [{"type": "ExamPlayableValueAdd", "values": [], "count": 1}]}
     )
-    assert count_one[-1] == 1
+    assert count_one[8] == 1
     count_two = sp._effect_fields(
         {"effects": [{"type": "ExamPlayableValueAdd", "values": [], "count": 2}]}
     )
-    assert count_two[-1] == 2
+    assert count_two[8] == 2
     explicit = sp._effect_fields(
         {"effects": [{"type": "ExamPlayableValueAdd", "values": [1]}]}
     )
-    assert explicit[-1] == 1
+    assert explicit[8] == 1
 
     spec = sp._spec_from_row(sp.CardRow("加次数", 0, 0, 0, 0, extra_play=2))
     assert spec.extra_play == 2
@@ -257,6 +257,83 @@ def test_playable_value_add_reaches_rich_card_spec() -> None:
     assert any(row.extra_play > 0 for row in rich_pool)
     extra_row = next(row for row in rich_pool if row.extra_play > 0)
     assert sp._spec_from_row(extra_row).extra_play == extra_row.extra_play
+
+
+def test_block_and_parameter_buff_reach_rich_card_spec() -> None:
+    """ExamLessonDependBlock / ExamParameterBuff* 解析成新字段，并透传进 CardSpec。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    new_types = {
+        "ExamLessonDependBlock",
+        "ExamParameterBuff",
+        "ExamParameterBuffMultiplePerTurn",
+    }
+    assert new_types <= sp.MODELED_EFFECTS
+    # 旧 5 元组承载不了这些字段，保持排除，避免旧脚本丢效果后当成纯白值卡
+    assert not (new_types & sp.LEGACY_MODELED_EFFECTS)
+
+    block = sp._effect_fields(
+        {"effects": [{"type": "ExamLessonDependBlock", "values": [3200, 1000]}]}
+    )
+    assert block[9] == 3200
+    assert block[10] == 0 and block[11] == 1
+
+    # 卡表里 ExamParameterBuff 的 values 为空，只有 turn 记持续回合 → 用 1500‰ 兜底
+    single = sp._effect_fields(
+        {"effects": [{"type": "ExamParameterBuff", "values": [], "turn": 3}]}
+    )
+    assert single[10] == sp.PARAMETER_BUFF_DEFAULT == 1500
+    assert single[11] == 1  # 非 MultiplePerTurn 只作用于本牌
+
+    multi = sp._effect_fields(
+        {"effects": [{"type": "ExamParameterBuffMultiplePerTurn", "values": [], "turn": 3}]}
+    )
+    assert multi[10] == 1500
+    assert multi[11] == 3  # 本回合内持续
+
+    explicit = sp._effect_fields({"effects": [{"type": "ExamParameterBuff", "values": [1200]}]})
+    assert explicit[10] == 1200  # 有 values 时按 values[0]（千分比）
+
+    spec = sp._spec_from_row(
+        sp.CardRow(
+            "依赖+加成",
+            0,
+            0,
+            0,
+            0,
+            block_scale=1000,
+            parameter_buff=1500,
+            parameter_buff_turns=2,
+        )
+    )
+    assert (spec.block_scale, spec.parameter_buff, spec.parameter_buff_turns) == (1000, 1500, 2)
+
+    # rich 奖励池里要能出现吃审查基准加成的卡，且能穿过 _spec_from_row
+    rich_pool = sp.build_pool(rich=True)
+    buffed = [row for row in rich_pool if row.parameter_buff > 0]
+    assert buffed, "rich 池里应有带审查基准加成的卡"
+    row = buffed[0]
+    assert sp._spec_from_row(row).parameter_buff == row.parameter_buff > 0
+
+
+def test_legacy_pool_still_excludes_new_types() -> None:
+    """旧 5 元组池子口径不变：仍只收 4 类基础效果，不因新建模而混入新卡。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    legacy = sp.build_pool()
+    assert legacy
+    for _name, _cost, score, _condition, _focus in legacy:
+        assert score > 0
+    # 新类型都不在旧集合里，旧池子张数应明显少于 rich 池
+    assert len(legacy) < len(sp.build_pool(rich=True))
 
 
 def test_objective_profiles_differ() -> None:

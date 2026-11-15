@@ -540,3 +540,121 @@ def test_greedy_policy_prioritizes_extra_play_cards() -> None:
     sim.discard = []
 
     assert greedy_policy(sim) == 0
+
+
+# ------------------------------------------------------------- 元气依赖分 / 审查基准加成
+def _block_award(layers: int, scale: int = 1000) -> int:
+    """在指定元气层数下打一张纯依赖分牌，只返回这张牌拿到的分。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=1))
+    sim.hand = [CardSpec("依赖元气", 0, 0, block_scale=scale)]
+    sim.deck = []
+    sim.discard = []
+    sim.vitality = layers
+    sim.step(0)
+    return sim.score
+
+
+def test_depend_block_scores_linearly_by_vitality_layers() -> None:
+    """元气依赖分与层数线性：每层 ×10 分（1000‰），1/3/6 层 → 10/30/60。"""
+    assert [_block_award(1), _block_award(3), _block_award(6)] == [10, 30, 60]
+
+
+def test_depend_block_zero_vitality_scores_nothing() -> None:
+    """元气为 0 层时依赖分固定 0，即使倍率很高。"""
+    assert _block_award(0, scale=2500) == 0
+
+
+def test_depend_block_formula_truncates_and_ignores_buffs() -> None:
+    """int(层数 × 倍率 / 100) 逐段取整；依赖分不吃好调/集中/指針倍率。"""
+    sim = LessonSim(
+        [
+            CardSpec("温存", 0, 0, preservation=1),
+            CardSpec("混合", 2, 9, block_scale=700),
+            CardSpec("占位", 0, 0),
+        ],
+        _config(turns=2, stamina=10, hand_size=3),
+    )
+    sim.vitality = 3
+    sim.buffs.focus = 2
+    sim.buffs.condition_turns = 2
+
+    sim.step(_index(sim, "温存"))
+    sim.step(_index(sim, "混合"))
+
+    # 白值 floor((9 + 2) × 1.5 × 0.5) = 8；依赖分 int(3 × 700 / 100) = 21（不吃倍率）
+    assert sim.score == 29
+
+
+def test_parameter_buff_multiplies_final_score() -> None:
+    """1500‰ = ×1.5：10 分牌变 floor(10 × 1.5) = 15；1000‰ 保持原分。"""
+    buffed = LessonSim(
+        [CardSpec("加成", 0, 10, parameter_buff=1500)],
+        _config(turns=1, stamina=10, clear=15),
+    )
+    buffed.step(0)
+    assert buffed.score == 15
+    assert buffed.result == "CLEAR"
+
+    neutral = LessonSim(
+        [CardSpec("无加成", 0, 10, parameter_buff=1000)],
+        _config(turns=1, stamina=10),
+    )
+    neutral.step(0)
+    assert neutral.score == 10
+
+
+def test_parameter_buff_multiple_per_turn_affects_later_cards() -> None:
+    """MultiplePerTurn 在本回合内持续：后续两张牌都吃 ×1.5。"""
+    sim = LessonSim([CardSpec("垫", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    sim.hand = [
+        CardSpec("审查加成", 0, 0, parameter_buff=1500, parameter_buff_turns=2),
+        CardSpec("打1", 0, 10),
+        CardSpec("打2", 0, 10),
+    ]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)  # 纯加成牌自身 0 分，但把 1500‰ 记进本回合
+    assert sim.score == 0
+    assert sim.turn_parameter_buff == 1500
+
+    sim.step(0)  # 10 × 1.5 = 15
+    assert sim.score == 15
+    sim.step(0)  # 后续牌继续吃：15 + 15 = 30
+    assert sim.score == 30
+
+
+def test_parameter_buff_turn_state_resets_at_turn_end() -> None:
+    """回合结束清零 ``turn_parameter_buff``，下一回合的牌不再吃旧加成。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=2))
+    sim.hand = [
+        CardSpec("审查加成", 0, 0, parameter_buff=1500, parameter_buff_turns=2),
+        CardSpec("垫", 0, 0),
+    ]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)
+    assert sim.turn_parameter_buff == 1500
+
+    sim.step(None)  # SKIP 结束回合
+    assert sim.turn_parameter_buff == 0
+
+    sim.hand = [CardSpec("新打", 0, 10)]
+    sim.step(0)
+    assert sim.score == 10  # 不是 floor(10 × 1.5)
+
+
+def test_greedy_policy_prioritizes_dependent_cards() -> None:
+    """score=0 的元气依赖牌/审查加成牌也要被基线策略选中。"""
+    block = LessonSim([CardSpec("垫", 0, 0)], _config(turns=2, stamina=10, hand_size=2))
+    block.hand = [CardSpec("依赖元气", 0, 0, block_scale=1000), CardSpec("小分", 2, 2)]
+    block.deck = []
+    block.discard = []
+    assert greedy_policy(block) == 0
+
+    buff = LessonSim([CardSpec("垫", 0, 0)], _config(turns=2, stamina=10, hand_size=2))
+    buff.hand = [CardSpec("审查加成", 0, 0, parameter_buff=1500), CardSpec("小分", 2, 2)]
+    buff.deck = []
+    buff.discard = []
+    assert greedy_policy(buff) == 0
