@@ -17,6 +17,73 @@ from pathlib import Path
 ROOT = Path(r"D:\Games\gakumas-agent")
 METRICS = ROOT / "data" / "metrics.jsonl"
 
+# 阶段归类：回答「这局每个阶段用了多久」。screen 是 ProduceDriver 的 TickResult.screen。
+STAGE_BY_SCREEN = {
+    "setup-idol": "开局编成",
+    "setup-support": "开局编成",
+    "setup-memory": "开局编成",
+    "setup-confirm": "开局编成",
+    "scenario": "开局编成",
+    "story": "剧情事件",
+    "event-choice": "剧情事件",
+    "lesson": "课程",
+    "action": "行动选择",
+    "action-confirm": "行动选择",
+    "drink": "行动选择",
+    "drink-keep": "行动选择",
+    "card-reward": "奖励领取",
+    "result-tap": "奖励领取",
+    "toast": "奖励领取",
+    "reward-page": "奖励领取",
+    "memory": "奖励领取",
+    "shop": "奖励领取",
+    "exam": "考试",
+    "final": "结算",
+    "home": "结算",
+    "record": "结算",
+    "pause": "等待/卡顿",
+    "blank": "等待/卡顿",
+    "loading": "等待/卡顿",
+    "unknown": "等待/卡顿",
+    "unknown-tap": "等待/卡顿",
+    "button": "等待/卡顿",
+}
+
+
+def stage_of(screen: str) -> str:
+    return STAGE_BY_SCREEN.get(screen, "其他")
+
+
+def print_stage_timings(steps: list[dict], slow_ms: float = 15000.0) -> None:
+    """按阶段汇总耗时 + 每 10 步耗时 + 慢步清单。"""
+    stages: dict[str, list[float]] = defaultdict(list)
+    for row in steps:
+        stages[stage_of(str(row.get("screen")))].append(float(row.get("total_ms") or 0))
+    total_ms = sum(sum(values) for values in stages.values())
+    print("\n阶段耗时（按步累加，秒 / 占比 / 步数）:")
+    for stage, values in sorted(stages.items(), key=lambda kv: -sum(kv[1])):
+        seconds = sum(values) / 1000
+        share = seconds / (total_ms / 1000) * 100 if total_ms else 0
+        print(f"  {stage:8s} {seconds:7.1f}s  {share:5.1f}%  {len(values):3d} 步  "
+              f"{sum(values)/len(values)/1000:.1f}s/步")
+
+    print("\n每 10 步墙钟（从该步 total_ms 累计）:")
+    buckets: list[float] = []
+    for index, row in enumerate(steps, start=1):
+        buckets.append(float(row.get("total_ms") or 0))
+        if index % 10 == 0 or index == len(steps):
+            seconds = sum(buckets) / 1000
+            print(f"  {index - len(buckets) + 1:3d}-{index:3d}: {seconds:6.1f}s "
+                  f"({seconds / len(buckets):.1f}s/步)")
+            buckets = []
+
+    slow = [(int(row.get("step") or 0), str(row.get("screen")), float(row.get("total_ms") or 0))
+            for row in steps if float(row.get("total_ms") or 0) >= slow_ms]
+    print(f"\n慢步（≥{slow_ms/1000:.0f}s）: {len(slow)} 步")
+    for step, screen, ms in slow:
+        print(f"  step {step:3d} {screen:12s} {ms/1000:5.1f}s")
+
+
 
 def load_rows(path: Path) -> list[dict]:
     if not path.exists():
@@ -65,6 +132,8 @@ def main(argv: list[str]) -> int:
         duration = float(wraps[-1].get("ended_at") or 0) - float(wraps[-1].get("started_at") or 0)
         share = sum(lesson_ms) / 1000 / duration if duration else 0
         print(f"\n课程占比: {share*100:.0f}% 的时间花在 {len(lesson_ms)} 个课程步上")
+
+    print_stage_timings(steps)
 
     paused = sum(1 for row in steps if row.get("clicked") is False)
     print(f"暂停让步（你在操作）: {paused} 步")

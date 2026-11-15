@@ -192,6 +192,46 @@ def test_scenario_page_clicks_regular() -> None:
     assert agent.device.clicks[-1] == produce_ui.REGULAR_DIFFICULTY
 
 
+def test_produce_record_popup_closes_with_x() -> None:
+    """F#15：培育记录详情弹窗同样含「定期公演」，必须先识别并点底部 X 关闭。
+
+    真机 ep-cplus13：这屏被当成培育页，每步点一次难度按钮、画面不动，12 次停机。
+    """
+    agent = FakeAgent()
+    lines = _lines("培育记录", "定期公演「初」", "编成支援卡", "最终持有P道具")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "record"
+    assert result.action == "close"
+    assert agent.device.clicks[-1] == produce_ui.PRODUCE_RECORD_CLOSE
+
+
+def test_scenario_branch_falls_back_to_close_after_three_stalls() -> None:
+    """F#15 兜底：没有「培育记录」字样但同段文本连续 3 次命中 scenario → 点 X 降级。"""
+    agent = FakeAgent()
+    driver = _driver()
+    lines = _lines("定期公演「初」", "Regular", "2026/11/15")
+    for _ in range(2):
+        assert driver.decide(agent, lines).screen == "scenario"
+    result = driver.decide(agent, lines)
+    assert result.screen == "record"
+    assert result.action == "close-fallback"
+    assert agent.device.clicks[-1] == produce_ui.PRODUCE_RECORD_CLOSE
+
+
+def test_retry_confirm_dialog_clicks_ok() -> None:
+    """考试不合格 → 点「再挑战」→ 第二段「再挑战确认」只有 取消/确定，必须点确定。
+
+    真机 ep-sup1 step 179-188：这屏没有「再挑战」按钮，旧逻辑落到 end-produce 点
+    (355,1148) 空点，10 次后停机（把一局可以直接重打的考试白白判负）。
+    """
+    agent = FakeAgent()
+    lines = _lines("再挑战确认", "消耗再挑战道具，重新挑战考试吗？", "今天免费剩余1次", "取消", "确定")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "dialog"
+    assert result.action == "retry-confirm"
+    assert agent.device.clicks[-1] == _center(4)
+
+
 def test_action_screen_needs_all_three_training_buttons() -> None:
     agent = FakeAgent()
     result = _driver().decide(agent, _lines("推荐", "Da.训练", "审查基准"))
@@ -1023,3 +1063,113 @@ def test_read_attrs_step_047_real_frame_when_action_page() -> None:
     if attrs is None:
         pytest.skip("step_047 当前不是行动页（data/auto 正被真机运行持续覆写）")
     assert all(0 <= value <= produce_ui.ATTR_MAX for value in attrs)
+
+# ---- F#15：结算/收尾画面（评价 → 回忆照片选择 → 培育记录 → 主页） ----------
+def test_settlement_keywords_recognised() -> None:
+    """结算类关键词必须命中；行动页的「请选择行动」不能被误判成结算页。"""
+    assert produce_ui.is_memory_photo_screen("请选择要作为回忆的照片")
+    assert produce_ui.is_memory_photo_screen("保存到本地 保存到相册")
+    assert produce_ui.is_settlement_screen("请选择要作为回忆的照片")
+    assert produce_ui.is_settlement_screen("保存到本地 保存到相册")
+    assert produce_ui.is_settlement_screen("评价 下一步")
+    assert produce_ui.is_settlement_screen("培育结算 确定")
+    assert produce_ui.is_settlement_screen("SNS 投稿")
+    assert produce_ui.is_record_screen("培育记录 编成支援卡/回忆 最终持有P道具")
+
+    # 行动页/编成页/空文本都不是结算页（「请选择」单独出现不算）
+    assert not produce_ui.is_settlement_screen("请选择行动 授课 活动奖励 休息")
+    assert not produce_ui.is_settlement_screen("请选择偶像 下一步")
+    assert not produce_ui.is_settlement_screen("")
+    assert not produce_ui.is_memory_photo_screen("请选择行动 授课")
+    assert not produce_ui.is_record_screen("选择支援卡 自动 下一步")
+
+
+def test_memory_photo_screen_selects_first_photo_then_saves() -> None:
+    """回忆照片选择页：先选第一张照片，再点「保存到相册」（不点顶部说明文字）。"""
+    agent = FakeAgent()
+    lines = _lines("请选择要作为回忆的照片", "自动拍摄", "保存到本地", "保存到相册")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "settlement"
+    assert result.action == "save-memory"
+    assert agent.device.clicks == [
+        produce_ui.MEMORY_FIRST_PHOTO,
+        _center(3),  # 「保存到相册」文字行中心
+    ]
+
+
+def test_memory_photo_page_is_not_unknown_tap() -> None:
+    """真机 OCR（data/settlement_photo_select.png）只有按钮文字也要认出来，不能走 unknown-tap。"""
+    agent = FakeAgent()
+    lines = _lines("取消", "日", "回忆", "保存到本地", "保存到相册")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "settlement"
+    assert result.action == "save-memory"
+    assert result.screen != "unknown-tap"
+
+
+def test_real_record_ocr_text_never_enters_scenario() -> None:
+    """真机 step_055 的 OCR 文本（含「定期公演」）必须以 record/close 收尾，绝不走 scenario。"""
+    agent = FakeAgent()
+    lines = _lines(
+        "支援卡",
+        "编成支援卡/回忆",
+        "最终持有P道具",
+        "培育记录",
+        "定期公演『初』",
+        "Regular",
+    )
+    result = _driver().decide(agent, lines)
+    assert result.screen == "record"
+    assert result.action == "close"
+    assert agent.device.clicks[-1] == produce_ui.PRODUCE_RECORD_CLOSE
+    assert result.screen != "scenario"
+
+
+def test_scenario_stalls_degrade_to_center_then_stuck() -> None:
+    """F#15：同屏 5 次 → 改点 (360,1000)；再 5 次 → 返回 stuck 退出（不再空转到超时）。"""
+    agent = FakeAgent()
+    driver = _driver()
+    lines = _lines("培育", "定期公演「初」", "研修")
+    for _ in range(driver.scenario_degrade_after):
+        result = driver.decide(agent, lines)
+        assert result.screen == "scenario"
+        assert agent.device.clicks[-1] == produce_ui.REGULAR_DIFFICULTY
+    for _ in range(driver.scenario_exit_after - driver.scenario_degrade_after):
+        result = driver.decide(agent, lines)
+        assert result.screen == "scenario-fallback"
+        assert agent.device.clicks[-1] == (360, 1000)
+    stuck = driver.decide(agent, lines)
+    assert stuck.screen == "stuck"
+    assert stuck.ok is False
+    assert "scenario-loop" in stuck.describe()
+
+
+def test_scenario_streak_resets_when_leaving_produce_page() -> None:
+    """离开培育页（主页/剧情）后计数必须清零，避免几十分钟后误判 stuck。"""
+    agent = FakeAgent()
+    driver = _driver()
+    lines = _lines("培育", "定期公演「初」", "研修")
+    for _ in range(3):
+        driver.decide(agent, lines)
+    driver.decide(agent, _lines("亲密度", "活动经费", "主页", "商店"))  # 回主页
+    assert driver.scenario_streak == 0
+    result = driver.decide(agent, lines)
+    assert result.screen == "scenario"  # 重新从第 1 次算起
+
+
+def test_settlement_streak_degrades_then_exits() -> None:
+    """结算页连续点不动也要有退出条件（F#15 教训：进入模式必须有退出）。"""
+    agent = FakeAgent()
+    driver = _driver()
+    lines = _lines("请选择要作为回忆的照片", "保存到本地", "保存到相册")
+    for _ in range(driver.settlement_degrade_after):
+        result = driver.decide(agent, lines)
+        assert result.screen == "settlement"
+        assert result.action == "save-memory"
+    for _ in range(driver.settlement_exit_after - driver.settlement_degrade_after):
+        result = driver.decide(agent, lines)
+        assert result.action == "tap-center"
+        assert agent.device.clicks[-1] == (360, 1000)
+    stuck = driver.decide(agent, lines)
+    assert stuck.screen == "stuck"
+    assert stuck.ok is False

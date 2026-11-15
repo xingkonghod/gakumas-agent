@@ -82,6 +82,19 @@ CARD_DETAIL_NAME_BOX = (140, 585, 440, 45)  # 浮层顶部卡名
 CARD_DETAIL_BLANK = (360, 260)  # 浮层外上方空白：点这里关闭浮层
 LESSON_SKIP_POINT = (657, 800)  # 课程右下「SKIP」（点的是圆形箭头图标，不是 SKIP 文字）
 TURN_END_YES = (502, 1155)  # SKIP 后「回合结束」确认框的「是」（左边「否」在 x≈130）
+# 培育记录详情弹窗底部的圆形 X（OCR 读不出这个图标，只能固定坐标；真机截图核对：
+# data/auto/step_055.png，720x1280 下圆心约 (360,1197)）
+PRODUCE_RECORD_CLOSE = (360, 1197)
+# ---- 培育结束后的结算/收尾画面（F#15） -------------------------------------
+# 真机顺序：评价页 → 回忆照片选择页 → 培育记录详情 → 主页。
+# 回忆照片选择页（data/settlement_photo_select.png，720x1280，真机截图）：
+#   「请选择要作为回忆的照片」+ 3 列照片网格（第一张在左上，默认带橙框）
+#   + 底部「保存到本地」「保存到相册」（「保存到相册」在右下）。
+MEMORY_FIRST_PHOTO = (116, 575)  # 照片网格第一张（左上，点一下确保选中）
+MEMORY_SAVE_ALBUM = (614, 1088)  # 「保存到相册」
+MEMORY_SAVE_LOCAL = (430, 1088)  # 「保存到本地」
+# 兜底降级用的「屏幕中央下方」（行动页/结算页通用的推进点）
+SETTLE_CENTER_TAP = (360, 1000)
 # OCR 会把卡面左下角的「SELECT」标签（及误读）一起读进卡名
 UI_LABEL_WORDS = ("SELECT", "SEECT", "S", "A", "M")
 _UI_LABEL_RE = re.compile(
@@ -268,6 +281,70 @@ def parse_stamina(text: str) -> int | None:
         if maximum <= 60 and current <= maximum:
             return current
     return None
+
+
+# ---- 画面分类（培育结束后的结算/收尾，F#15） --------------------------------
+def _screen_text(text: str | None) -> str:
+    """OCR 文本归一化：全角转半角、压缩空白，避免关键词匹配被空格/全角拆开。"""
+    if not text:
+        return ""
+    value = unicodedata.normalize("NFKC", str(text))
+    return re.sub(r"[\s\u3000]+", " ", value).strip()
+
+
+def is_produce_page(text: str | None) -> bool:
+    """培育页（定期公演 + 难度选择）的特征文本。
+
+    注意：培育记录详情弹窗的标题里也有「定期公演」，所以它不能单独作为"真培育页"
+    判据——调用方需要先用 :func:`is_record_screen` / :func:`is_settlement_screen`
+    把这些收尾画面排除掉。
+    """
+    value = _screen_text(text)
+    return "定期公演" in value or ("培育" in value and "研修" in value)
+
+
+def is_record_screen(text: str | None) -> bool:
+    """培育记录详情弹窗：顶部「培育记录」+ 编成支援卡/回忆 + 最终持有P道具。
+
+    真机 ep-cplus13 的 step_055：这一屏标题含「定期公演『初』 Regular」，被当成培育页
+    每步点难度按钮，画面不动，12 次后停机。
+    """
+    value = _screen_text(text)
+    if not value:
+        return False
+    if "培育记录" in value or "育成记录" in value:
+        return True
+    return "编成支援卡" in value or "最终持有P道具" in value
+
+
+def is_memory_photo_screen(text: str | None) -> bool:
+    """回忆照片选择页：「请选择要作为回忆的照片」+「保存到本地/保存到相册」。"""
+    value = _screen_text(text)
+    if not value:
+        return False
+    if "回忆的照片" in value or "作为回忆" in value or "回忆照片" in value:
+        return True
+    return "保存到相册" in value or "保存到本地" in value
+
+
+def is_settlement_screen(text: str | None) -> bool:
+    """培育结束后的结算/收尾画面（评价页 / 回忆照片选择 / 培育记录 / SNS 投稿）。
+
+    「请选择」单独不能算（行动页也有「请选择行动」），必须带保存/投稿/结算语境；
+    评价页则要求同时出现「评价/结算」和推进按钮（下一步/确定/完成/保存）。
+    """
+    value = _screen_text(text)
+    if not value:
+        return False
+    if is_record_screen(value) or is_memory_photo_screen(value):
+        return True
+    if "SNS" in value.upper() and any(word in value for word in ("投稿", "保存", "分享", "确认")):
+        return True
+    if "结算" in value and any(word in value for word in ("保存", "下一步", "确定", "完成")):
+        return True
+    return "评价" in value and any(
+        word in value for word in ("保存", "下一步", "确定", "完成", "SNS", "投稿")
+    )
 
 
 def parse_attr_value(text: str | None) -> int | None:
@@ -631,6 +708,18 @@ class ProduceDriver:
     retry_count: int = field(default=0, init=False)
     gain_waits: int = field(default=0, init=False)
     drink_scroll: int = field(default=0, init=False)
+    # 「定期公演」兜底分支的连续计数：结算/培育记录页也含「定期公演」，点难度按钮空转
+    scenario_sig: str | None = field(default=None, init=False)
+    scenario_streak: int = field(default=0, init=False)
+    # 结算/收尾画面（回忆照片选择、培育记录、评价页）的连续计数，防止点不动空转
+    settle_sig: str | None = field(default=None, init=False)
+    settle_streak: int = field(default=0, init=False)
+    # 降级阈值（真机 ep-cplus13：同一屏空点 12 次后停机，这里必须更早换策略/退出）
+    scenario_record_close_after: int = 3  # 记录页特征文本：第 3 次先点底部 X
+    scenario_degrade_after: int = 5  # 第 6 次起改点屏幕中央下方
+    scenario_exit_after: int = 10  # 第 11 次起返回 stuck，退出本局（失败）
+    settlement_degrade_after: int = 4  # 结算页同屏 4 次 → 点屏幕中央下方
+    settlement_exit_after: int = 8  # 结算页同屏 8 次 → stuck 退出本局
     bottom_roi: tuple[int, int, int, int] = (0, 470, 720, 809)
     corner_roi: tuple[int, int, int, int] = (0, 0, 470, 160)
     top_roi: tuple[int, int, int, int] = (0, 0, 720, 190)
@@ -1033,6 +1122,116 @@ class ProduceDriver:
     def _click_line(self, agent, line: OcrLine) -> None:
         self._click(agent, self.center(line))
 
+    # ------------------------------------------------- 结算/收尾画面（F#15）
+    @staticmethod
+    def _frame_signature(text: str) -> str:
+        """同屏判定签名：数字全部归一化（P/体力/日期每帧都在变），取前 120 字。"""
+        return re.sub(r"\d+", "#", text)[:120]
+
+    def _settlement_action(self, agent, lines: list[OcrLine], text: str) -> TickResult | None:
+        """培育结束后的结算/收尾画面 → 下一步动作；不是这类画面返回 ``None``。
+
+        真机顺序：评价页 → 回忆照片选择（请选择要作为回忆的照片 / 保存到本地 /
+        保存到相册）→ 培育记录详情（标题含「定期公演」，底部圆形 X）→ 主页。
+        旧逻辑把「培育记录」当培育页每步点难度按钮（12 次停机），把照片页当未知弹窗
+        点空白。这里给每类画面明确按钮，并带同屏降级：连续 4 次点不动改点屏幕中央，
+        8 次仍不动就返回 ``stuck`` 退出本局，绝不空转到超时。
+        """
+        if not is_settlement_screen(text):
+            self.settle_sig = None
+            self.settle_streak = 0
+            return None
+        signature = self._frame_signature(text)
+        if signature == self.settle_sig:
+            self.settle_streak += 1
+        else:
+            self.settle_sig = signature
+            self.settle_streak = 1
+        streak = self.settle_streak
+        if streak > self.settlement_exit_after:
+            return TickResult(
+                "stuck",
+                "settlement-loop",
+                ok=False,
+                detail=f"结算页连续 {streak} 次点不动，退出本局",
+            )
+        if streak > self.settlement_degrade_after:
+            self._click(agent, SETTLE_CENTER_TAP)
+            return TickResult("settlement", "tap-center", detail=f"结算页同屏 {streak} 次")
+        if is_record_screen(text):
+            # 「培育记录」详情：底部圆形 X 关闭（OCR 读不出图标，只能固定坐标）
+            close = self.find_button(lines, ("关闭",))
+            if close is not None:
+                self._click_line(agent, close)
+            else:
+                self._click(agent, PRODUCE_RECORD_CLOSE)
+            return TickResult("record", "close")
+        if is_memory_photo_screen(text):
+            # 回忆照片选择：先选第一张（默认已带橙框），再点「保存到相册」。
+            # 注意别点顶部提示条「将这张照片保存到相册」——那是说明文字，不是按钮。
+            self._click(agent, MEMORY_FIRST_PHOTO)
+            save = self.find_button(lines, ("保存到相册",)) or self.find_button(
+                lines, ("保存到本地",)
+            )
+            if save is not None:
+                self._click_line(agent, save)
+            else:
+                self._click(agent, MEMORY_SAVE_ALBUM)
+            return TickResult("settlement", "save-memory")
+        button = self.find_button(
+            lines, ("保存到相册", "保存到本地", "下一步", "确定", "完成", "关闭")
+        )
+        if button is not None:
+            self._click_line(agent, button)
+            return TickResult("settlement", f"tap-{button.text}")
+        self._click(agent, SETTLE_CENTER_TAP)
+        return TickResult("settlement", "tap-center")
+
+    @staticmethod
+    def _looks_like_record_title(text: str) -> bool:
+        """疑似培育记录/结算页的标题行（真培育页不会同时出现 Regular/日期/Pt 这些）。"""
+        value = _screen_text(text)
+        if "Regular" in value or "レギュラー" in value or "Pt" in value:
+            return True
+        return re.search(r"20\d\d[/年]", value) is not None
+
+    def _scenario_step(self, agent, text: str) -> TickResult:
+        """培育页点难度按钮；同一屏点不动就逐级降级，最后返回 ``stuck`` 退出本局。
+
+        F#15 真机 ep-cplus13：结算后停在「培育记录」详情（标题含「定期公演」），这里
+        每步点难度按钮但画面只在文本上微变，12 次后停机。三级降级：
+
+        1. 同一屏前 5 次：点「レギュラー/Regular」（正常培育页一次就推进）；
+        2. 第 6-10 次：改点屏幕中央下方 ``(360, 1000)``（可能是被遮挡/换页了）；
+        3. 第 11 次起：返回 ``stuck``，主循环记 ``[stuck]`` 并退出本局（返回失败）。
+
+        带记录页特征（Regular/日期/Pt）的同屏文本在第 3 次先点一次底部 X（真机
+        培育记录弹窗布局），但不重置计数，仍然会走到第 11 次的 stuck 退出。
+        """
+        self.support_auto_done = False
+        signature = self._frame_signature(text)
+        if signature == self.scenario_sig:
+            self.scenario_streak += 1
+        else:
+            self.scenario_sig = signature
+            self.scenario_streak = 1
+        streak = self.scenario_streak
+        if streak > self.scenario_exit_after:
+            return TickResult(
+                "stuck",
+                "scenario-loop",
+                ok=False,
+                detail=f"同一屏 scenario 连续 {streak} 次点不动（培育记录/结算页误判），退出本局",
+            )
+        if streak > self.scenario_degrade_after:
+            self._click(agent, SETTLE_CENTER_TAP)
+            return TickResult("scenario-fallback", "tap-center", detail=f"同屏 {streak} 次")
+        if streak == self.scenario_record_close_after and self._looks_like_record_title(text):
+            self._click(agent, PRODUCE_RECORD_CLOSE)
+            return TickResult("record", "close-fallback")
+        self._click(agent, REGULAR_DIFFICULTY)
+        return TickResult("scenario", "regular")
+
     # ------------------------------------------------- 课程出牌浮层
     def card_detail_open(self, image, lines: Iterable[OcrLine] | None = None) -> bool:
         """当前帧是否有卡片详情浮层。
@@ -1089,6 +1288,15 @@ class ProduceDriver:
             retry = self.find_button(lines, ("再挑战",))
             free_available = "免费剩余" in text and re.search(r"免费剩余\s*0", text) is None
             left_available = re.search(r"剩余\s*[1-9]\d*\s*次", text) is not None
+            # 再挑战确认弹窗（点过「再挑战」后的第二段）：「消耗再挑战道具，重新挑战
+            # 考试吗？」+ 取消/确定。这屏**没有**「再挑战」按钮，只有 确定/取消；
+            # 旧逻辑找不到 retry 就落到 end-produce 点 (355,1148) 空点 10 次：
+            # ep-sup1 step 179-188 就是这么停机的。点确定 = 消耗票据重打，正是我们要的。
+            retry_confirm = self.find_button(lines, ("确定",))
+            cancel_btn = self.find_button(lines, ("取消",))
+            if retry_confirm is not None and cancel_btn is not None:
+                self._click_line(agent, retry_confirm)
+                return TickResult("dialog", "retry-confirm")
             # 只有「不合格」才重开；合格的结果屏虽然也有「再挑战」按钮，但点「下一步」继续
             failed = "不合格" in text or "FAILED" in text
             if failed and retry is not None and (free_available or left_available) and self.retry_count < 2:
@@ -1101,6 +1309,18 @@ class ProduceDriver:
             else:
                 self._click(agent, (355, 1148))
             return TickResult("dialog", "end-produce")
+
+        # 0.7) 结算/收尾画面（F#15）：培育结束后的评价页 / 回忆照片选择 / 培育记录详情。
+        # 必须先于 #2 的「定期公演」分支——培育记录弹窗标题也含「定期公演」，旧顺序会在
+        # 那里每步点难度按钮空转 12 次停机（真机 ep-cplus13 第 58 步）。
+        settle = self._settlement_action(agent, lines, text)
+        if settle is not None:
+            return settle
+        # scenario 兜底计数只在培育页上累计；一旦离开培育页（主页/课程/剧情）就清零，
+        # 避免几天后莫名其妙退出。
+        if not is_produce_page(text):
+            self.scenario_sig = None
+            self.scenario_streak = 0
 
         # 1) 弹窗：取消 + 确定/完成/下一步
         if CANCEL_WORD in text:
@@ -1175,11 +1395,12 @@ class ProduceDriver:
                 self._click(agent, TURN_END_YES)
             return TickResult("dialog", "end-turn-yes")
 
-        # 2) 培育页：定期公演 + 难度
-        if "定期公演" in text or ("培育" in text and "研修" in text):
-            self.support_auto_done = False
-            self._click(agent, REGULAR_DIFFICULTY)
-            return TickResult("scenario", "regular")
+        # 1.75) 培育记录详情弹窗在 0.7) 的 _settlement_action 里统一处理（返回
+        # TickResult("record", "close")），这里不再重复匹配。
+
+        # 2) 培育页：定期公演 + 难度（带同屏降级：5 次改点中央，11 次 stuck 退出）
+        if is_produce_page(text):
+            return self._scenario_step(agent, text)
 
         # 3) 开始前编成四步
         if "选择偶像" in text:
