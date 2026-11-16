@@ -72,12 +72,68 @@
   所以培育级模拟默认没有饮料收益；
 - 元气挡伤害：课程没有对手伤害来源，元气只用于抵牌费与依赖分。影响：考试里
   "用盾吃伤害"的场景未建模；
-- 饮料/卡牌的其余效果：强化卡牌、生成卡牌、抽牌、回合追加、消耗体力增减、
-  干劲、好印象/元气的更多来源等 20+ 种饮料效果没有对应字段（配置时直接报错，
+- 饮料/卡牌的其余效果：强化卡牌（``ExamCardUpgrade``）、消耗体力增减、
+  回合追加、好印象/元气的更多来源等 20+ 种效果没有对应字段（配置时直接报错，
   不会静默当成无用饮料）；好调与绝好调都按 ``condition`` 的 ×1.5 近似；
 - 卡牌强化（训练中强化）、偶像固有卡生成、牌序记忆（真机可查看牌堆顺序）：
   影响：强化后的数值和记牌优势不体现；
 - 考试专属规则（追击、回合限制、对手行动）：课程模拟器不覆盖。
+
+**2026-11-16 新卡池：16 种新效果的建模口径**（这些效果以前在 ``LessonSim`` 里
+恒为 0，奖励池因此把整类卡挡在外面）：
+
+精确建模（8 种，字段都在 ``CardSpec`` 里，默认 0 = 旧行为）：
+
+- ``ExamStaminaRecoverFix`` → ``stamina_recover``：出牌结算（算分/付牌费/结算
+  buff）后固定回复 ``values[0]`` 点体力，封顶 ``stamina_max``；
+- ``ExamLessonFullPowerPoint`` → ``full_power_scale``：按**出牌前**的全力值
+  ``int(全力值 × full_power_scale / 1000)`` 加进本牌得分（卡表 values 是千分比：
+  1000 = 卡面「累计全力值的 100%」；**不**沿用 ``block_scale`` 的 /100，否则
+  会把 100% 读成 1000%）。本牌自带的全力值增量不参与本牌折算。卡表里双值的
+  该效果是 ``[固定打分, 折算千分比]``，解析时固定打分进 ``score``、末位进折算倍率；
+- ``ExamStatusEnchantEncore`` → ``encore``：本牌直接效果执行两次——打分/元气/
+  好调/集中/干劲/好印象/抽牌/全力值/可出牌次数/体力回复各 ×2；倍率类字段
+  （``*_scale`` / ``*_multiple`` / ``parameter_buff``）不翻倍（避免把百分比
+  乘方）；牌费只付一次；
+- ``ExamReviewMultiple`` → ``review_multiple`` / ``review_multiple_turns``：
+  好印象强化。回合结束结算好印象时，分数按
+  ``int(层数 × (1000 + review_multiple) / 1000)`` 放大（卡表 values 是千分比：
+  2000 = 卡面「+200%」= ×3）；``turn=-1`` 为永久；
+- ``ExamParameterBuffAdditiveFix`` → ``condition_additive`` /
+  ``condition_additive_turns``：获得好调时额外 +N 回合（加算；本牌自带的
+  好调也享受，因为真机是"下个回合"的延迟好调被追加）；``turn=-1`` 为永久；
+- ``ExamFullPowerLessonMultipleAdditive`` → ``full_power_lesson_multiple`` /
+  ``..._turns``：全力强化，放大 ``ExamLessonFullPowerPoint`` 折算出的分数
+  （``int(分 × (1000 + 值) / 1000)``，卡表 100 = 卡面 +10%）；
+- ``ExamEnthusiasticTurnAdd`` → 解析进 ``condition``：好调回合数 +``values[0]``
+  （模拟器没有独立的「热意」资源，按任务口径并进好调回合数）；
+- ``ExamAddGrowEffect`` → ``grow_score``：成长。同一张牌第 k 次使用（k 从 1 起）
+  时按 ``score × (1 + (k-1) × grow_score / 100)`` 计分，计数器按牌对象记在
+  ``LessonSim.card_uses``。**数据缺口**：卡表里该效果的 ``values`` 为空
+  （成长量在未下载的 ``ProduceCardGrowEffect`` 表里），所以真实卡现在
+  ``grow_score=0``、不涨分；字段和机制留给有数据时直接填。
+
+近似建模（8 种，误差方向逐条写明，不假装精确）：
+
+- ``ExamForcePlayCardSearch`` → ``draw += 1``（至少 1 张）：真机是"检索并**免费
+  强制打出**"，这里只算摸到 1 张、仍要付牌费且受每回合出牌数限制。**低估**；
+  如果本牌同时有"可出牌次数追加"，模拟器不再额外加抽牌（资源收益已由次数
+  表达，也避免 0 费检索+加次数牌无限过牌）；
+- ``ExamCardCreateId`` → ``draw += 1``：真机生成指定卡（位置可控、通常比 1 张
+  抽牌值钱）；这里只算 +1 手牌。**低估**；
+- ``ExamCardMove`` → ``draw += 1``：真机把保留/弃牌中的卡移回手牌（可能一次
+  移多张）；这里只算 +1 手牌。**低估**；
+- ``ExamStatusEnchant`` → 递归展开 ``inner``，内层效果**本回合立刻结算**：
+  真机是把状态附魔挂到卡上、满足条件/延迟触发；提前兑现通常**高估当回合
+  分数**（内层若是回合末/最终回合才结算，长期触发次数可能被低估）；
+- ``ExamEffectTimer`` → 无字段，被它标记的延迟效果**本回合立刻生效**：
+  提前拿到收益，通常**高估当回合**；若延迟后能吃到更多 buff 则方向不定；
+- ``ExamEffectTimerEndTurn`` → 同 ``ExamEffectTimer``，回合结束触发改为立刻；
+- ``ExamAntiDebuff`` → no-op：课程没有低下状态来源，模型内收益恒 0；
+  若考试/干扰引入 debuff，则**低估**其价值；
+- ``ExamCardPlayAggressive`` → ``motivation``（干劲永久叠层）：元气获得量
+  +N；真机可能是限时/按次数，这里按永久，长期战斗**高估**元气收益
+  （课程里元气只抵牌费，对分数影响小）。
 
 接口约定：``legal_actions()`` / ``step(action)`` 里的 ``Action`` 是
 **手牌下标（int）或 None**，``None`` 表示 SKIP（结束本回合）；饮料是独立接口
@@ -134,6 +190,20 @@ _STANCE_CARD_EFFICIENCY = 3.0
 _EXTRA_PLAY_CARD_EFFICIENCY = 3.0
 # greedy_policy 给「依赖元气分 / 审查基准加成」牌（常常 score=0）的固定效率
 _DEPENDENT_CARD_EFFICIENCY = 3.0
+# 持续类 buff 的回合数哨兵：-1 = 永久（卡表 turn=-1）
+_PERMANENT = -1
+
+
+def _merge_buff_turns(current: int, new: int) -> int:
+    """合并同一种持续 buff 的剩余回合：任一为永久则永久，否则取更长的。"""
+    if current == _PERMANENT or new == _PERMANENT:
+        return _PERMANENT
+    return max(current, new)
+
+
+def _tick_buff_turns(turns: int) -> int:
+    """回合结束把持续 buff 剩余回合 -1；0 / 永久（-1）保持不变。"""
+    return turns - 1 if turns > 0 else turns
 
 
 @dataclass(frozen=True)
@@ -153,6 +223,26 @@ class CardSpec:
     10 分，见 ``ExamLessonDependBlock``）；``parameter_buff`` 是审查基准加成的
     千分比（1500 = ×1.5），``parameter_buff_turns > 1`` 表示该加成在本回合内
     持续（``ExamParameterBuffMultiplePerTurn``）。
+
+    2026-11-16 新卡池补的字段（全部默认 0/False = 旧行为，旧调用不用改）：
+
+    - ``stamina_recover``：``ExamStaminaRecoverFix`` 的固定体力回复，封顶
+      ``LessonConfig.stamina_max``；
+    - ``full_power_scale``：``ExamLessonFullPowerPoint`` 的折算倍率（千分比，
+      1000 = 卡面 100%），``int(出牌前全力值 × 该值 / 1000)`` 加进本牌得分；
+    - ``encore``：``ExamStatusEnchantEncore`` 再演，本牌直接效果执行两次
+      （打分/抽牌/集中等 ×2，倍率类字段不翻倍，牌费只付一次）；
+    - ``review_multiple`` / ``review_multiple_turns``：``ExamReviewMultiple``
+      好印象强化（千分比，2000 = 卡面 +200%）；-1 回合数 = 永久；
+    - ``condition_additive`` / ``condition_additive_turns``：
+      ``ExamParameterBuffAdditiveFix`` 好调增加量追加（获得好调时额外 +N 回合）；
+    - ``full_power_lesson_multiple`` / ``..._turns``：
+      ``ExamFullPowerLessonMultipleAdditive`` 全力强化（千分比，100 = +10%），
+      放大上面 ``full_power_scale`` 折算出的分数；
+    - ``grow_score``：``ExamAddGrowEffect`` 成长百分比。同一张牌第 k 次使用时
+      按 ``score × (1 + (k-1) × grow_score/100)`` 计分；卡表该效果 ``values``
+      为空（成长量在未下载的 ProduceCardGrowEffect 表里），所以真实卡现在
+      恒为 0，机制留给有数据时使用。
     """
 
     name: str
@@ -173,6 +263,24 @@ class CardSpec:
     parameter_buff_turns: int = 1
     # ExamConcentration（卡面「強気変更」）的段階：1/2；0 = 不改指針
     strong_level: int = 0
+    # ---- 2026-11-16 新卡池：16 种新效果的落地字段（默认值保持旧行为）----
+    # ExamStaminaRecoverFix：出牌结算后固定回复体力，封顶 LessonConfig.stamina_max
+    stamina_recover: int = 0
+    # ExamLessonFullPowerPoint：按出牌前累计全力值折算打分（千分比，1000 = 100%）
+    full_power_scale: int = 0
+    # ExamStatusEnchantEncore：再演，本牌直接效果执行两次
+    encore: bool = False
+    # ExamReviewMultiple：好印象强化（千分比，2000 = 卡面 +200% → ×3）
+    review_multiple: int = 0
+    review_multiple_turns: int = 0
+    # ExamParameterBuffAdditiveFix：好调增加量追加（获得好调时额外 +N 回合）
+    condition_additive: int = 0
+    condition_additive_turns: int = 0
+    # ExamFullPowerLessonMultipleAdditive：全力强化（千分比，100 = 卡面 +10%）
+    full_power_lesson_multiple: int = 0
+    full_power_lesson_multiple_turns: int = 0
+    # ExamAddGrowEffect：成长（第 k 次使用按 1 + (k-1)×grow_score/100 计分）
+    grow_score: int = 0
 
 
 @dataclass(frozen=True)
@@ -237,6 +345,13 @@ class Buffs:
     condition_turns: int = 0  # 好调剩余回合
     focus: int = 0  # 集中层数（永久）
     impression: int = 0  # 好印象层数（回合结束加分后 -1）
+    # 2026-11-16 新效果带来的持续倍率/加算；turns = 0 未激活、-1 永久
+    condition_additive: int = 0  # 好调增加量追加（ExamParameterBuffAdditiveFix）
+    condition_additive_turns: int = 0
+    review_multiple: int = 0  # 好印象强化千分比（ExamReviewMultiple）
+    review_multiple_turns: int = 0
+    full_power_lesson_multiple: int = 0  # 全力强化千分比（ExamFullPowerLessonMultipleAdditive）
+    full_power_lesson_multiple_turns: int = 0
 
 
 class LessonSim:
@@ -281,6 +396,8 @@ class LessonSim:
         # 饮料：每瓶剩余次数（用掉即消耗），每回合最多喝 1 瓶
         self.drink_uses: list[int] = [drink.uses for drink in config.drinks]
         self.drinks_used_this_turn: int = 0
+        # ExamAddGrowEffect 的 per-card 使用计数器（按牌对象 id，同一张牌用几次涨几次）
+        self.card_uses: dict[int, int] = {}
         # 回合级 trace：每次回合结束记一行（含 skipped），便于回放 SKIP 行为
         self.trace: list[dict] = []
 
@@ -413,17 +530,28 @@ class LessonSim:
 
         self.hand.pop(action)
         self.plays_this_turn += 1
+        # 再演（ExamStatusEnchantEncore）：本牌直接效果执行两次；牌费只付一次，
+        # 成长计数器仍按"打出这张牌一次"计。倍率类字段不翻倍（避免百分比乘方）。
+        effect_card = self._encore_card(card) if card.encore else card
+        uses = self.card_uses.get(id(card), 0)
         # 依赖元气的分数按支付牌费前的层数算，所以先算分再付费用
-        award = self._card_award(card)
+        award = self._card_award(effect_card, uses=uses)
         self.score += award
         self._pay_card_cost(card)
-        self._apply_card_buffs(card)
-        self._apply_card_stance(card)
+        # ExamStaminaRecoverFix：付完牌费后固定回体力，封顶 stamina_max
+        if effect_card.stamina_recover > 0:
+            self.stamina = min(
+                self.stamina_max, self.stamina + effect_card.stamina_recover
+            )
+        self._apply_card_buffs(effect_card)
+        self._apply_card_stance(effect_card)
         # 本牌结算后追加本回合可出牌次数（本牌本身仍占一次）
-        if card.extra_play > 0:
-            self.extra_plays += card.extra_play
-        if card.draw > 0:
-            self._draw(card.draw)
+        if effect_card.extra_play > 0:
+            self.extra_plays += effect_card.extra_play
+        if effect_card.draw > 0:
+            self._draw(effect_card.draw)
+        # 成长计数器要等本牌算完分再 +1，保证第 k 次使用吃 (k-1) 层成长
+        self.card_uses[id(card)] = uses + 1
         self.discard.append(card)
 
         # 体力+元气见底：本局提前结束（不再结算回合末）
@@ -444,15 +572,53 @@ class LessonSim:
         return self.score, self.result
 
     # ------------------------------------------------------------------ 内部
-    def _card_award(self, card: CardSpec) -> int:
+    @staticmethod
+    def _encore_card(card: CardSpec) -> CardSpec:
+        """再演（``ExamStatusEnchantEncore``）：返回"效果执行两次"的等效牌。
+
+        只翻倍**直接效果**的数值（打分/元气/好调/集中/干劲/好印象/抽牌/全力值/
+        可出牌次数/体力回复）；``block_scale`` / ``impression_scale`` /
+        ``full_power_scale`` / ``parameter_buff`` / ``*_multiple`` 这类百分比
+        倍率不翻倍——把百分比乘方会把误差放大一个量级。牌费与成长计数器仍按
+        原牌结算一次（真机再演是"自动再用一次"，不再付牌费）。
+        """
+        return replace(
+            card,
+            score=card.score * 2,
+            vitality=card.vitality * 2,
+            condition=card.condition * 2,
+            focus=card.focus * 2,
+            motivation=card.motivation * 2,
+            impression=card.impression * 2,
+            draw=card.draw * 2,
+            full_power_point=card.full_power_point * 2,
+            extra_play=card.extra_play * 2,
+            stamina_recover=card.stamina_recover * 2,
+        )
+
+    def _card_award(self, card: CardSpec, *, uses: int = 0) -> int:
         """本牌的得分：``(score + focus) × 好调倍率 × 属性倍率 × 指針倍率``
-        + 好印象依赖分 + 元气依赖分，最后再乘审查基准加成，逐段向下取整。
+        + 好印象依赖分 + 元气依赖分 + 全力值折算分，最后再乘审查基准加成，
+        逐段向下取整。
 
         纯 buff 牌（``score <= 0``）不参与集中/好调/指針/属性倍率加成；但如果有
-        ``impression_scale`` / ``block_scale``，仍然按**出牌前**的好印象 /
-        元气层数结算依赖分：``int(层数 × 倍率 / 100)``。依赖分不吃好调/集中/指針/
-        属性倍率，因为卡表没给出这部分是否参与倍率结算，取保守做法。元气依赖分用的是
-        **支付本牌牌费之前**的元气层数（盾还没被这张牌花掉）。
+        ``impression_scale`` / ``block_scale`` / ``full_power_scale``，仍然按
+        **出牌前**的好印象 / 元气层数 / 全力值结算依赖分：
+        ``int(层数 × 倍率 / 100)``（``full_power_scale`` 是千分比，按 /1000）。
+        依赖分不吃好调/集中/指針/属性倍率，因为卡表没给出这部分是否参与倍率
+        结算，取保守做法。元气依赖分用的是**支付本牌牌费之前**的元气层数（盾还没
+        被这张牌花掉）；全力值折算同样用本牌结算前的全力值（本牌自带的
+        ``full_power_point`` 在算分之后才生效）。
+
+        ``ExamAddGrowEffect``（成长）按 ``uses`` 层数放大本牌白值：
+        ``score × (1 + uses × grow_score / 100)``，``uses`` 是这张牌**之前**
+        已经打出的次数（第 1 次不吃成长）。倍率类分数（依赖分/折算分）不参与
+        成长，因为卡面写的是"打分值增加"。
+
+        ``ExamFullPowerLessonMultipleAdditive``（全力强化）只放大
+        ``full_power_scale`` 折算出的那一段：``int(分 × (1000 + 加成) / 1000)``；
+        本牌自带的加成对自身也生效（卡面是"先强化再结算"），持续回合由
+        ``_apply_card_buffs`` 记进 ``Buffs``。
 
         ``attribute_coefficient`` 是考试/舞台的属性倍率（411% = 4.11）：课程 1.0
         时沿用 ``floor``（既有校准不变）；倍率 ≠ 1.0 时按真机屏幕显示值四舍五入
@@ -465,9 +631,12 @@ class LessonSim:
         后续牌继续吃（回合结束清零）。
         """
         award = 0
-        if card.score > 0:
+        base_score = card.score
+        if base_score > 0 and card.grow_score > 0 and uses > 0:
+            base_score = base_score * (100 + uses * card.grow_score) / 100
+        if base_score > 0:
             multiplier = 1.5 if self.buffs.condition_turns > 0 else 1.0
-            raw = (card.score + self.buffs.focus) * multiplier * score_multiplier(self.stance)
+            raw = (base_score + self.buffs.focus) * multiplier * score_multiplier(self.stance)
             coefficient = self.config.attribute_coefficient
             if coefficient == 1.0:
                 award = math.floor(raw)
@@ -479,6 +648,17 @@ class LessonSim:
             award += int(self.buffs.impression * card.impression_scale / 100)
         if card.block_scale > 0 and self.vitality > 0:
             award += int(self.vitality * card.block_scale / 100)
+        if card.full_power_scale > 0 and self.stance.full_power_point > 0:
+            # 卡表 values 是千分比（1000 = 卡面 100%：ProduceExamEffect
+            # e_effect-exam_lesson_full_power_point-...-1000-01 可证），所以 /1000。
+            # 不沿用 block_scale 的 /100：那会把"累计全力值的 100%"读成 1000%。
+            power_score = int(self.stance.full_power_point * card.full_power_scale / 1000)
+            full_power_multiple = max(
+                card.full_power_lesson_multiple, self.buffs.full_power_lesson_multiple
+            )
+            if full_power_multiple > 0:
+                power_score = int(power_score * (1000 + full_power_multiple) / 1000)
+            award += power_score
         parameter_buff = max(card.parameter_buff, self.turn_parameter_buff)
         if parameter_buff > 0 and award > 0:
             award = int(award * parameter_buff / 1000)
@@ -518,8 +698,47 @@ class LessonSim:
                 )
 
     def _apply_card_buffs(self, card: CardSpec) -> None:
-        """结算卡面 buff（在算分之后，所以本牌不吃自己刚加的 buff）。"""
-        self.buffs.condition_turns += card.condition
+        """结算卡面 buff（在算分之后，所以本牌不吃自己刚加的 buff）。
+
+        - ``ExamReviewMultiple`` / ``ExamParameterBuffAdditiveFix`` /
+          ``ExamFullPowerLessonMultipleAdditive`` 是**持续倍率/加算**：登记进
+          ``Buffs`` 并记剩余回合（卡表 ``turn=-1`` = 永久）。好调加算在本牌
+          自带的 ``condition`` 之前登记，所以同一张牌"好调增加量追加 +N"会
+          作用到它自己给的好调（卡面这两项常在同一张牌上：先追加、下回合给
+          好调；本模拟器把延迟好调也近似成本回合给，见模块 docstring）；
+        - 好调回合数 = ``condition`` + 当前生效的 ``condition_additive``；
+        - 元气获得量 = ``vitality + motivation``；``motivation`` 来自
+          ``ExamCardPlayAggressive``（近似为永久干劲，见模块 docstring）。
+        """
+        if card.condition_additive > 0:
+            self.buffs.condition_additive = max(
+                self.buffs.condition_additive, card.condition_additive
+            )
+            self.buffs.condition_additive_turns = _merge_buff_turns(
+                self.buffs.condition_additive_turns,
+                card.condition_additive_turns if card.condition_additive_turns else 1,
+            )
+        if card.review_multiple > 0:
+            self.buffs.review_multiple = max(self.buffs.review_multiple, card.review_multiple)
+            self.buffs.review_multiple_turns = _merge_buff_turns(
+                self.buffs.review_multiple_turns,
+                card.review_multiple_turns if card.review_multiple_turns else 1,
+            )
+        if card.full_power_lesson_multiple > 0:
+            self.buffs.full_power_lesson_multiple = max(
+                self.buffs.full_power_lesson_multiple, card.full_power_lesson_multiple
+            )
+            self.buffs.full_power_lesson_multiple_turns = _merge_buff_turns(
+                self.buffs.full_power_lesson_multiple_turns,
+                card.full_power_lesson_multiple_turns
+                if card.full_power_lesson_multiple_turns
+                else 1,
+            )
+
+        condition_gain = card.condition
+        if condition_gain > 0 and self.buffs.condition_additive > 0:
+            condition_gain += self.buffs.condition_additive
+        self.buffs.condition_turns += condition_gain
         self.buffs.focus += card.focus
         self.buffs.impression += card.impression
         if card.vitality > 0:
@@ -543,19 +762,41 @@ class LessonSim:
         )
 
     def _end_turn(self, *, skipped: bool) -> None:
-        """回合结束：结算好印象、衰减好调、记录 trace、弃手牌、抽下一手。
+        """回合结束：结算好印象、衰减好调/持续 buff、记录 trace、弃手牌、抽下一手。
 
         好印象的结算顺序固定为**先加分、再减层**：本回合按完整层数拿分，
         下一回合才少一层；这样 N 层在剩余 T 回合里的总分是 N+(N-1)+…。
+        ``ExamReviewMultiple``（好印象强化）在这里放大本回合的好印象结算分。
 
         SKIP（``skipped=True``）与手牌自然打空走同一条结算路径：剩余手牌
         直接进弃牌堆，**不回复体力**，下一回合补满 ``hand_size`` 张。
         """
         if self.buffs.impression > 0:
-            self.score += self.buffs.impression
+            # ExamReviewMultiple（好印象强化）：放大回合末的好印象结算分。
+            # 卡表 values 是千分比（2000 = 卡面 +200%），所以 ×(1000+值)/1000。
+            impression_score = self.buffs.impression
+            if self.buffs.review_multiple > 0:
+                impression_score = int(
+                    impression_score * (1000 + self.buffs.review_multiple) / 1000
+                )
+            self.score += impression_score
             self.buffs.impression -= 1
         if self.buffs.condition_turns > 0:
             self.buffs.condition_turns -= 1
+        # 持续类 buff 剩余回合 -1；到 0 后同时清掉倍率，永久（-1）保持
+        self.buffs.condition_additive_turns = _tick_buff_turns(
+            self.buffs.condition_additive_turns
+        )
+        if self.buffs.condition_additive_turns == 0:
+            self.buffs.condition_additive = 0
+        self.buffs.review_multiple_turns = _tick_buff_turns(self.buffs.review_multiple_turns)
+        if self.buffs.review_multiple_turns == 0:
+            self.buffs.review_multiple = 0
+        self.buffs.full_power_lesson_multiple_turns = _tick_buff_turns(
+            self.buffs.full_power_lesson_multiple_turns
+        )
+        if self.buffs.full_power_lesson_multiple_turns == 0:
+            self.buffs.full_power_lesson_multiple = 0
         # 审查基准加成只在本回合内持续
         self.turn_parameter_buff = 0
         self.trace.append(
@@ -618,6 +859,7 @@ def greedy_policy(sim: LessonSim) -> Action:
     「依赖元气分（``block_scale``）/ 审查基准加成（``parameter_buff``）」的牌
     也常常 ``score=0``，同样给固定效率 ``_DEPENDENT_CARD_EFFICIENCY``，
     避免这类牌永远轮不到；已经有白值的牌仍按白值效率排序。
+    ``full_power_scale``（全力值折算分）也是 ``score=0`` 也能得分的牌，按同一档处理。
     """
     playable = [index for index in sim.legal_actions() if index is not None]
     if not playable:
@@ -658,7 +900,12 @@ def greedy_policy(sim: LessonSim) -> Action:
                 -card.cost,
                 -index,
             )
-        if card.score <= 0 and (card.block_scale > 0 or card.parameter_buff > 0):
+        if card.score <= 0 and (
+            card.block_scale > 0
+            or card.parameter_buff > 0
+            or card.full_power_scale > 0
+            or card.review_multiple > 0
+        ):
             return (
                 _DEPENDENT_CARD_EFFICIENCY,
                 _DEPENDENT_CARD_EFFICIENCY,

@@ -23,7 +23,11 @@ ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 
 CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
-# 模拟器（sim/lesson.py）真正建模了的效果类型
+# 模拟器（sim/lesson.py）真正建模了的效果类型。
+# 2026-11-16：新卡池 16 种效果接入后从 13 种扩到 29 种；其中 8 种精确建模
+# （体力回复/全力折算/再演/好印象强化/好调加算/全力强化/热意延长/成长），
+# 8 种保守近似（检索/生成/移动→抽 1；延迟→立刻；附魔外层展开内层；低下无效
+# 与课程无关；出牌干劲→motivation）。近似口径与误差方向见 sim/lesson.py 模块 docstring。
 MODELED_EFFECTS = {
     "ExamLesson",
     "ExamBlock",
@@ -38,6 +42,23 @@ MODELED_EFFECTS = {
     "ExamLessonDependBlock",
     "ExamParameterBuff",
     "ExamParameterBuffMultiplePerTurn",
+    # ---- 2026-11-16 新卡池：16 种新效果 ----
+    "ExamLessonFullPowerPoint",
+    "ExamStatusEnchantEncore",
+    "ExamForcePlayCardSearch",
+    "ExamStaminaRecoverFix",
+    "ExamStatusEnchant",
+    "ExamCardMove",
+    "ExamEffectTimer",
+    "ExamAddGrowEffect",
+    "ExamCardCreateId",
+    "ExamEffectTimerEndTurn",
+    "ExamEnthusiasticTurnAdd",
+    "ExamParameterBuffAdditiveFix",
+    "ExamFullPowerLessonMultipleAdditive",
+    "ExamAntiDebuff",
+    "ExamReviewMultiple",
+    "ExamCardPlayAggressive",
 }
 # 卡表里的效果名和卡面语义容易对反，以下以游戏 master 的卡面文本（卡名 + 效果）为准：
 #   准备运动「打分+6 / 集中+2」     -> ExamLessonBuff [2]       = 集中
@@ -83,17 +104,67 @@ class CardRow(NamedTuple):
     strong_level: int = 0
     # ExamBlock：出牌获得的元气（盾）。课程里优先抵牌费，也喂依赖元气的分数
     vitality: int = 0
+    # ---- 2026-11-16 新卡池 16 种效果（字段顺序与 _effect_fields 返回值一致）----
+    stamina_recover: int = 0          # ExamStaminaRecoverFix
+    full_power_scale: int = 0         # ExamLessonFullPowerPoint
+    encore: int = 0                   # ExamStatusEnchantEncore（1 = 本牌效果两次）
+    review_multiple: int = 0          # ExamReviewMultiple（千分比）
+    review_multiple_turns: int = 0    # -1 = 永久
+    condition_additive: int = 0       # ExamParameterBuffAdditiveFix
+    condition_additive_turns: int = 0
+    full_power_lesson_multiple: int = 0  # ExamFullPowerLessonMultipleAdditive（千分比）
+    full_power_lesson_multiple_turns: int = 0
+    grow_score: int = 0               # ExamAddGrowEffect（卡表 values 常为空）
+    motivation: int = 0               # ExamCardPlayAggressive（近似成干劲层数）
 
 
-def _effect_fields(
-    row: dict,
-) -> tuple[int, int, int, int, int, int, int, int, int, int, int, int, int, int]:
+def _buff_turns(effect: dict) -> int:
+    """持续类效果的剩余回合：``turn < 0`` = 永久（-1），否则至少 1 回合。"""
+    turn = int(effect.get("turn") or 0)
+    return -1 if turn < 0 else max(1, turn)
+
+
+def _merge_turns(current: int, new: int) -> int:
+    """合并同一种持续效果的回合：任一永久则永久，否则取更长。"""
+    if current < 0 or new < 0:
+        return -1
+    return max(current, new)
+
+
+def _effect_fields(row: dict) -> tuple[int, ...]:
     """从卡表一行的 ``effects`` 提取可喂给 ``CardSpec`` 的字段。
 
-    返回 ``(score, condition, focus, draw, impression, scale, preservation,
-    full_power_point, extra_play, block_scale, parameter_buff,
-    parameter_buff_turns, strong_level, vitality)``。同类效果取最大值。
-    （``vitality`` 放在最后，保持旧索引不变。）
+    返回 25 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
+
+    =====  ============================================================
+    索引   字段
+    =====  ============================================================
+    0      ``score``（ExamLesson）
+    1      ``condition``（好调回合数；ExamParameterBuff* 的 turn + 热意延长）
+    2      ``focus``（ExamLessonBuff = 集中）
+    3      ``draw``（ExamCardDraw；检索/生成/移动近似 +1）
+    4      ``impression``（ExamReview 好印象层数）
+    5      ``impression_scale``（ExamLessonDependExamReview 千分比）
+    6      ``preservation``（ExamPreservation 温存段階）
+    7      ``full_power_point``（ExamFullPowerPoint 全力值增量）
+    8      ``extra_play``（ExamPlayableValueAdd 的 count）
+    9      ``block_scale``（ExamLessonDependBlock 千分比）
+    10     ``parameter_buff``（显式千分比，通常 0）
+    11     ``parameter_buff_turns``
+    12     ``strong_level``（ExamConcentration 強気段階）
+    13     ``vitality``（ExamBlock 元气）
+    14     ``stamina_recover``（ExamStaminaRecoverFix）
+    15     ``full_power_scale``（ExamLessonFullPowerPoint 折算千分比）
+    16     ``encore``（ExamStatusEnchantEncore，1 = 本牌效果两次）
+    17     ``review_multiple``（ExamReviewMultiple 千分比）
+    18     ``review_multiple_turns``
+    19     ``condition_additive``（ExamParameterBuffAdditiveFix）
+    20     ``condition_additive_turns``
+    21     ``full_power_lesson_multiple``（ExamFullPowerLessonMultipleAdditive 千分比）
+    22     ``full_power_lesson_multiple_turns``
+    23     ``grow_score``（ExamAddGrowEffect；卡表 values 为空 → 0）
+    24     ``motivation``（ExamCardPlayAggressive，近似成干劲层数）
+    =====  ============================================================
 
     字段语义以游戏 master 卡面文本为准，effect 名容易误读：
 
@@ -109,6 +180,24 @@ def _effect_fields(
       ``ExamPreservation`` 是温存段階（1/2），``ExamFullPowerPoint`` 是全力值增量，
       ``ExamPlayableValueAdd`` 是本回合可出牌次数增量（卡表里通常没有 values，
       用 ``count`` 表示 +1/+2）。
+
+    2026-11-16 新增 16 种（精确 8 / 近似 8，误差方向见 ``sim/lesson.py``）：
+
+    - 精确：``ExamStaminaRecoverFix``、``ExamLessonFullPowerPoint``、
+      ``ExamStatusEnchantEncore``、``ExamReviewMultiple``、
+      ``ExamParameterBuffAdditiveFix``、``ExamFullPowerLessonMultipleAdditive``、
+      ``ExamEnthusiasticTurnAdd``、``ExamAddGrowEffect``；
+    - 近似：``ExamForcePlayCardSearch`` / ``ExamCardCreateId`` / ``ExamCardMove``
+      → ``draw = max(draw, 1)``（真机是免费检索/生成/移回手牌，这里只算 +1 抽牌，
+      **低估**；若本牌同时有 ``ExamPlayableValueAdd`` 则不再加抽牌——资源收益
+      已由次数表达，也避免 0 费循环无限过牌）；``ExamStatusEnchant`` → 递归展开
+      内层、本回合立刻结算（**通常高估当回合**）；``ExamEffectTimer`` /
+      ``ExamEffectTimerEndTurn`` → 无字段，被延迟的效果本回合立刻生效
+      （**通常高估当回合**）；``ExamAntiDebuff`` → no-op（课程没有低下状态，
+      模型内恒 0）；``ExamCardPlayAggressive`` → ``motivation``（近似永久干劲，
+      长期**高估**）；
+    - ``ExamLessonFullPowerPoint`` 的双值形态是 ``[固定打分, 折算千分比]``：
+      固定打分并入 ``score``，末位作为 ``full_power_scale``（同理单值直接是倍率）。
     """
     score = condition = focus = draw = impression = impression_scale = 0
     preservation = full_power_point = extra_play = 0
@@ -116,49 +205,127 @@ def _effect_fields(
     parameter_buff_turns = 1
     strong_level = 0
     vitality = 0
-    for effect in row.get("effects") or []:
-        kind = effect.get("type")
-        values = [v for v in effect.get("values") or [] if v]
-        value = int(values[0]) if values else 0
-        if kind == "ExamPlayableValueAdd":
-            extra_play = max(extra_play, value or int(effect.get("count") or 1))
-            continue
-        if kind in ("ExamParameterBuff", "ExamParameterBuffMultiplePerTurn"):
-            # 卡面是「好调 N 回合 / 绝好调 N 回合」（祝福+、不会让出第一…），
-            # 不是 1500‰ 的审查基准加成。turn 才是持续回合数。
-            turn = int(effect.get("turn") or 0)
-            if turn > 0:
-                condition = max(condition, turn)
-            parameter_buff = max(parameter_buff, value)
-            if kind == "ExamParameterBuffMultiplePerTurn" and parameter_buff > 0:
-                # 显式数值时才保留"整回合持续"语义；卡表实际 values 为空 → 不生效。
-                parameter_buff_turns = max(parameter_buff_turns, turn or 2)
-            continue
-        if not value:
-            continue
-        if kind == "ExamLesson":
-            score = max(score, value)
-        elif kind == "ExamLessonBuff":
-            # 卡面是「集中+2/+3」（准备运动/平衡感），不是好调。
-            focus = max(focus, value)
-        elif kind == "ExamConcentration":
-            # 卡面是「強気変更」（打招呼的基础），values[0] 是 1/2 段階；不是集中。
-            strong_level = max(strong_level, value)
-        elif kind == "ExamBlock":
-            # 元气（盾）：课程里先扣元气再扣体力；没有伤害来源，所以不是"挡伤害"
-            vitality = max(vitality, value)
-        elif kind == "ExamCardDraw":
-            draw = max(draw, value)
-        elif kind == "ExamReview":
-            impression = max(impression, value)
-        elif kind == "ExamLessonDependExamReview":
-            impression_scale = max(impression_scale, value)
-        elif kind == "ExamLessonDependBlock":
-            block_scale = max(block_scale, value)
-        elif kind == "ExamPreservation":
-            preservation = max(preservation, value)
-        elif kind == "ExamFullPowerPoint":
-            full_power_point = max(full_power_point, value)
+    stamina_recover = full_power_scale = encore = 0
+    review_multiple = review_multiple_turns = 0
+    condition_additive = condition_additive_turns = 0
+    full_power_lesson_multiple = full_power_lesson_multiple_turns = 0
+    grow_score = motivation = 0
+    approx_draw = 0
+
+    def absorb(effects: list[dict]) -> None:
+        nonlocal score, condition, focus, draw, impression, impression_scale
+        nonlocal preservation, full_power_point, extra_play, block_scale
+        nonlocal parameter_buff, parameter_buff_turns, strong_level, vitality
+        nonlocal stamina_recover, full_power_scale, encore, review_multiple
+        nonlocal review_multiple_turns, condition_additive, condition_additive_turns
+        nonlocal full_power_lesson_multiple, full_power_lesson_multiple_turns
+        nonlocal grow_score, motivation, approx_draw
+        for effect in effects or []:
+            kind = effect.get("type")
+            values = [v for v in effect.get("values") or [] if v]
+            value = int(values[0]) if values else 0
+
+            # ---- 2026-11-16 新效果：元效果/近似 ----
+            if kind == "ExamStatusEnchant":
+                # 状态附魔外层：内层效果本回合立刻结算（近似，见 lesson.py）
+                absorb(effect.get("inner") or [])
+                continue
+            if kind == "ExamStatusEnchantEncore":
+                encore = 1
+                continue
+            if kind in ("ExamForcePlayCardSearch", "ExamCardCreateId", "ExamCardMove"):
+                # 检索/生成/移回手牌 → 至少 +1 抽牌（低估，见 docstring）；
+                # 若本牌同时有"可出牌次数追加"，资源收益已由次数表达，不再加抽牌
+                # （否则 0 费循环会在 LessonSim 里无限过牌）。
+                approx_draw = 1
+                continue
+            if kind in ("ExamEffectTimer", "ExamEffectTimerEndTurn", "ExamAntiDebuff"):
+                # 延迟标记/低下无效：课程里按"立刻生效"或 no-op 处理
+                continue
+            if kind == "ExamAddGrowEffect":
+                grow_score = max(grow_score, value)
+                continue
+            if kind == "ExamStaminaRecoverFix":
+                stamina_recover = max(stamina_recover, value)
+                continue
+            if kind == "ExamLessonFullPowerPoint":
+                if len(values) >= 2:
+                    # 双值：[固定打分, 折算千分比]（如 传递勇气的启明星 [20, 6500]）
+                    score = max(score, int(values[0]))
+                    full_power_scale = max(full_power_scale, int(values[-1]))
+                else:
+                    full_power_scale = max(full_power_scale, value)
+                continue
+            if kind == "ExamReviewMultiple":
+                review_multiple = max(review_multiple, value)
+                review_multiple_turns = _merge_turns(
+                    review_multiple_turns, _buff_turns(effect)
+                )
+                continue
+            if kind == "ExamParameterBuffAdditiveFix":
+                condition_additive = max(condition_additive, value)
+                condition_additive_turns = _merge_turns(
+                    condition_additive_turns, _buff_turns(effect)
+                )
+                continue
+            if kind == "ExamFullPowerLessonMultipleAdditive":
+                full_power_lesson_multiple = max(full_power_lesson_multiple, value)
+                full_power_lesson_multiple_turns = _merge_turns(
+                    full_power_lesson_multiple_turns, _buff_turns(effect)
+                )
+                continue
+            if kind == "ExamEnthusiasticTurnAdd":
+                # 热意延长：模拟器没有独立热意资源，按任务口径并进好调回合数
+                condition += value
+                continue
+            if kind == "ExamCardPlayAggressive":
+                motivation = max(motivation, value)
+                continue
+
+            # ---- 旧 13 类（行为保持不变）----
+            if kind == "ExamPlayableValueAdd":
+                extra_play = max(extra_play, value or int(effect.get("count") or 1))
+                continue
+            if kind in ("ExamParameterBuff", "ExamParameterBuffMultiplePerTurn"):
+                # 卡面是「好调 N 回合 / 绝好调 N 回合」（祝福+、不会让出第一…），
+                # 不是 1500‰ 的审查基准加成。turn 才是持续回合数。
+                turn = int(effect.get("turn") or 0)
+                if turn > 0:
+                    condition = max(condition, turn)
+                parameter_buff = max(parameter_buff, value)
+                if kind == "ExamParameterBuffMultiplePerTurn" and parameter_buff > 0:
+                    # 显式数值时才保留"整回合持续"语义；卡表实际 values 为空 → 不生效。
+                    parameter_buff_turns = max(parameter_buff_turns, turn or 2)
+                continue
+            if not value:
+                continue
+            if kind == "ExamLesson":
+                score = max(score, value)
+            elif kind == "ExamLessonBuff":
+                # 卡面是「集中+2/+3」（准备运动/平衡感），不是好调。
+                focus = max(focus, value)
+            elif kind == "ExamConcentration":
+                # 卡面是「強気変更」（打招呼的基础），values[0] 是 1/2 段階；不是集中。
+                strong_level = max(strong_level, value)
+            elif kind == "ExamBlock":
+                # 元气（盾）：课程里先扣元气再扣体力；没有伤害来源，所以不是"挡伤害"
+                vitality = max(vitality, value)
+            elif kind == "ExamCardDraw":
+                draw = max(draw, value)
+            elif kind == "ExamReview":
+                impression = max(impression, value)
+            elif kind == "ExamLessonDependExamReview":
+                impression_scale = max(impression_scale, value)
+            elif kind == "ExamLessonDependBlock":
+                block_scale = max(block_scale, value)
+            elif kind == "ExamPreservation":
+                preservation = max(preservation, value)
+            elif kind == "ExamFullPowerPoint":
+                full_power_point = max(full_power_point, value)
+
+    absorb(list(row.get("effects") or []))
+    if approx_draw and extra_play == 0:
+        draw = max(draw, 1)
     return (
         score,
         condition,
@@ -174,6 +341,17 @@ def _effect_fields(
         parameter_buff_turns,
         strong_level,
         vitality,
+        stamina_recover,
+        full_power_scale,
+        encore,
+        review_multiple,
+        review_multiple_turns,
+        condition_additive,
+        condition_additive_turns,
+        full_power_lesson_multiple,
+        full_power_lesson_multiple_turns,
+        grow_score,
+        motivation,
     )
 
 
@@ -205,51 +383,24 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
         row = table.get(name)
         if not row:
             continue
-        (
-            score,
-            condition,
-            focus,
-            draw,
-            impression,
-            impression_scale,
-            preservation,
-            full_power_point,
-            extra_play,
-            block_scale,
-            parameter_buff,
-            parameter_buff_turns,
-            strong_level,
-            vitality,
-        ) = _effect_fields(row)
+        fields = _effect_fields(row)
+        score = fields[0]
         if score == 0 and name in master:
             match = re.search(r"打分[^0-9]{0,8}(\d{1,3})", master[name])
             if match:
                 score = int(match.group(1))
+                fields = (score, *fields[1:])
         cost = int(row.get("cost", 4))
         if rich:
-            deck.append(
-                CardRow(
-                    name,
-                    cost,
-                    score,
-                    condition,
-                    focus,
-                    draw,
-                    impression,
-                    impression_scale,
-                    preservation,
-                    full_power_point,
-                    extra_play,
-                    block_scale,
-                    parameter_buff,
-                    parameter_buff_turns,
-                    strong_level,
-                    vitality,
-                )
-            )
+            deck.append(_rich_row(name, cost, fields))
         else:
-            deck.append((name, cost, score, condition, focus))
+            deck.append((name, cost, score, fields[1], fields[2]))
     return deck
+
+
+def _rich_row(name: str, cost: int, fields: tuple[int, ...]) -> CardRow:
+    """把 ``_effect_fields`` 的 25 元组按顺序转成 rich ``CardRow``。"""
+    return CardRow(name, cost, *fields)
 
 
 def build_pool(
@@ -264,10 +415,11 @@ def build_pool(
     否则模拟器会"每节课都拿 155 分彩卡"，课程平均 320 分，和真机 60-180 完全不符。
 
     ``rich=False`` 时只收旧集合里的效果类型并返回旧 5 元组（其它脚本兼容）；
-    ``rich=True`` 时使用完整 ``MODELED_EFFECTS``（含温存/全力值/可出牌次数/
-    元气依赖分/好调回合数/元气）并返回带 draw/impression/preservation/
-    full_power_point/extra_play/block_scale/parameter_buff/strong_level/vitality
-    的 CardRow。
+    ``rich=True`` 时使用完整 ``MODELED_EFFECTS``（2026-11-16 起 29 种：含温存/
+    全力值/可出牌次数/元气依赖分/好调回合数/元气，以及新卡池 16 种）并返回
+    带 draw/impression/preservation/full_power_point/extra_play/block_scale/
+    parameter_buff/strong_level/vitality/stamina_recover/full_power_scale/... 的
+    CardRow。
     """
     table = json.loads(CARD_TABLE.read_text(encoding="utf-8")).get("cards", {})
     modeled = MODELED_EFFECTS if rich else LEGACY_MODELED_EFFECTS
@@ -276,22 +428,8 @@ def build_pool(
         cost = int(row.get("cost") or 0)
         if cost > 8 or cost < 0:
             continue
-        (
-            score,
-            condition,
-            focus,
-            draw,
-            impression,
-            impression_scale,
-            preservation,
-            full_power_point,
-            extra_play,
-            block_scale,
-            parameter_buff,
-            parameter_buff_turns,
-            strong_level,
-            vitality,
-        ) = _effect_fields(row)
+        fields = _effect_fields(row)
+        score = fields[0]
         rarity = str(row.get("rarity") or "")
         if not allow_ssr and rarity in ("Ssr", "Legend"):
             continue
@@ -303,28 +441,9 @@ def build_pool(
         if not effect_types or not effect_types <= modeled:
             continue
         if rich:
-            pool.append(
-                CardRow(
-                    name,
-                    cost,
-                    score,
-                    condition,
-                    focus,
-                    draw,
-                    impression,
-                    impression_scale,
-                    preservation,
-                    full_power_point,
-                    extra_play,
-                    block_scale,
-                    parameter_buff,
-                    parameter_buff_turns,
-                    strong_level,
-                    vitality,
-                )
-            )
+            pool.append(_rich_row(name, cost, fields))
         else:
-            pool.append((name, cost, score, condition, focus))
+            pool.append((name, cost, score, fields[1], fields[2]))
     return pool
 
 
@@ -355,6 +474,17 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
             parameter_buff_turns=row.parameter_buff_turns,
             strong_level=row.strong_level,
             vitality=row.vitality,
+            stamina_recover=row.stamina_recover,
+            full_power_scale=row.full_power_scale,
+            encore=bool(row.encore),
+            review_multiple=row.review_multiple,
+            review_multiple_turns=row.review_multiple_turns,
+            condition_additive=row.condition_additive,
+            condition_additive_turns=row.condition_additive_turns,
+            full_power_lesson_multiple=row.full_power_lesson_multiple,
+            full_power_lesson_multiple_turns=row.full_power_lesson_multiple_turns,
+            grow_score=row.grow_score,
+            motivation=row.motivation,
         )
     name, cost, score, condition, focus = row
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)

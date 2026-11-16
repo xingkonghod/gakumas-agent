@@ -1002,3 +1002,157 @@ def test_greedy_takes_score_on_last_turn() -> None:
     sim = LessonSim(deck, _config(turns=1, stamina=10, clear=1), rng_seed=1)
     assert greedy_policy(sim) == _index(sim, "打分")
 
+
+# ------------------------------------------- 2026-11-16 新卡池：精确建模的 8 种效果
+def test_stamina_recover_fix_heals_after_cost_and_caps_at_max() -> None:
+    """ExamStaminaRecoverFix：付完牌费后固定回体力，封顶 stamina_max。"""
+    sim = LessonSim(
+        [CardSpec("回复", 4, 5, stamina_recover=8)],
+        _config(turns=2, stamina=5, stamina_max=12),
+    )
+    sim.step(0)
+
+    assert (sim.score, sim.stamina) == (5, 9)  # 5 - 4 + 8
+    assert sim.done is False  # 回复后还付得起 4 费牌，不提前结束
+
+    capped = LessonSim(
+        [CardSpec("回复大", 0, 1, stamina_recover=6)],
+        _config(turns=1, stamina=10, stamina_max=12),
+    )
+    capped.step(0)
+    assert capped.stamina == 12  # 10 + 6 封顶 12，不是 16
+
+
+def test_lesson_full_power_point_adds_scaled_score_before_own_gain() -> None:
+    """ExamLessonFullPowerPoint：按出牌前全力值 × 千分比/1000 加进本牌得分。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=1))
+    sim.hand = [CardSpec("全力斩", 2, 10, full_power_scale=2000, full_power_point=5)]
+    sim.deck = []
+    sim.discard = []
+    sim.stance.full_power_point = 4
+
+    sim.step(0)
+
+    # 白值 10 + int(4 × 2000 / 1000) = 18；本牌自带的 +5 在算分之后才生效
+    assert sim.score == 18
+    assert sim.stance.full_power_point == 9
+
+    no_power = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=1))
+    no_power.hand = [CardSpec("全力斩", 0, 10, full_power_scale=2000)]
+    no_power.deck = []
+    no_power.discard = []
+    no_power.step(0)
+    assert no_power.score == 10  # 全力值 0 时折算分固定 0
+
+
+def test_status_enchant_encore_doubles_direct_effects() -> None:
+    """ExamStatusEnchantEncore：本牌直接效果执行两次（打分/抽牌/集中…），牌费一次。"""
+    sim = LessonSim(
+        [CardSpec("再演", 2, 10, draw=1, focus=2, encore=True)],
+        _config(turns=2, stamina=10, hand_size=1),
+    )
+    sim.step(0)
+
+    assert sim.score == 20  # 10 × 2
+    assert sim.buffs.focus == 4  # 2 × 2
+    assert sim.stamina == 8  # 2 费只付一次
+
+    draw = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=1))
+    draw.hand = [CardSpec("再演抽", 0, 0, draw=1, encore=True)]
+    draw.deck = [CardSpec("牌库一", 0, 1), CardSpec("牌库二", 0, 1)]
+    draw.discard = []
+    draw.step(0)
+    assert len(draw.hand) == 2  # draw 1 × 2
+
+
+def test_review_multiple_boosts_end_of_turn_impression_score() -> None:
+    """ExamReviewMultiple：好印象强化放大回合末结算分，到期后恢复。"""
+    sim = LessonSim(
+        [CardSpec("好印象强化", 0, 0, review_multiple=2000, review_multiple_turns=1)],
+        _config(turns=2, stamina=10, hand_size=1),
+    )
+    sim.buffs.impression = 5
+
+    sim.step(0)  # 5 层 × (1000+2000)/1000 = 15
+    assert sim.score == 15
+    assert sim.buffs.impression == 4
+    assert sim.buffs.review_multiple == 0  # 1 回合后到期清零
+
+    sim.step(None)  # 下一回合按 4 层原值结算
+    assert sim.score == 19
+
+
+def test_condition_additive_fix_adds_turns_to_condition_gain() -> None:
+    """ExamParameterBuffAdditiveFix：获得好调时额外 +N 回合。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=2))
+    sim.hand = [
+        CardSpec("好调追加", 0, 0, condition_additive=2, condition_additive_turns=2),
+        CardSpec("好调", 0, 0, condition=3),
+    ]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)
+    assert sim.buffs.condition_additive == 2
+    sim.step(0)  # (3 + 2) = 5，回合结束 -1 → 4
+    assert sim.buffs.condition_turns == 4
+    assert sim.buffs.condition_additive_turns == 1
+
+    same = LessonSim(
+        [
+            CardSpec(
+                "好调+追加", 0, 0, condition=3, condition_additive=2, condition_additive_turns=1
+            )
+        ],
+        _config(turns=2, stamina=10, hand_size=1),
+    )
+    same.step(0)
+    assert same.buffs.condition_turns == 4  # 同一张牌：先追加再结算 (3+2)-1
+
+
+def test_full_power_lesson_multiple_boosts_full_power_conversion() -> None:
+    """ExamFullPowerLessonMultipleAdditive：只放大全力值折算出的那一段分。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=1))
+    sim.hand = [
+        CardSpec("全力强化斩", 0, 0, full_power_scale=2000, full_power_lesson_multiple=100)
+    ]
+    sim.deck = []
+    sim.discard = []
+    sim.stance.full_power_point = 5
+
+    sim.step(0)
+
+    # 5 × 2000/1000 = 10；卡面 +10%（千分比 100）→ int(10 × 1100/1000) = 11
+    assert sim.score == 11
+
+
+def test_grow_effect_increases_score_with_use_count() -> None:
+    """ExamAddGrowEffect：同一张牌第 k 次使用时按 1+(k-1)×grow_score/100 计分。"""
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=3, stamina=10, hand_size=1))
+    sim.hand = [CardSpec("成长牌", 0, 10, grow_score=50)]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)
+    assert sim.score == 10  # 第 1 次：不吃成长
+    sim.step(0)
+    assert sim.score == 25  # 第 2 次：10 × 1.5 = 15
+    sim.step(0)
+    assert sim.score == 45  # 第 3 次：10 × 2.0 = 20
+
+
+def test_grow_counter_is_per_card_instance() -> None:
+    """成长计数器按牌对象记：两张同名牌各用一次都还是第 1 次。"""
+    first = CardSpec("成长A", 0, 10, grow_score=100)
+    second = CardSpec("成长B", 0, 10, grow_score=100)
+    sim = LessonSim([first], _config(turns=3, stamina=10, hand_size=2))
+    sim.hand = [first, second]
+    sim.deck = []
+    sim.discard = []
+
+    sim.step(0)
+    sim.step(0)
+
+    assert sim.score == 20  # 不是 10 + 20
+    assert sim.card_uses[id(first)] == 1
+    assert sim.card_uses[id(second)] == 1

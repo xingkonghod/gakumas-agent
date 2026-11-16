@@ -283,3 +283,51 @@ rich 池 +8 全部来自「再出发」×4 +「冲动」×4；legacy 池 +4 只�
 
 **buffs.json**：并入现有条目「热意」（`zeal`，加 cn「热意」「热意延长」）与「再演」
 （`revival`，加 cn「再演」）；新增「全力强化」「好调增加量追加」「成长」3 条，32 → 35 条。
+
+
+## 14. 2026-11-16 建模 16 种新效果（MODELED_EFFECTS 13 → 29）
+
+16 种全部接进 `sim/lesson.py` + `scripts/sim_produce.py::_effect_fields`，口径逐条写在
+`lesson.py` 模块 docstring 与 `_effect_fields` docstring 里。
+
+**精确建模（8）**：`ExamStaminaRecoverFix`（固定回体力、封顶 stamina_max）、
+`ExamLessonFullPowerPoint`（出牌前全力值 × 千分比/1000 加进本牌分）、
+`ExamStatusEnchantEncore`（本牌直接效果两次）、`ExamReviewMultiple`（回合末好印象分 ×(1000+值)/1000）、
+`ExamParameterBuffAdditiveFix`（获得好调时额外 +N 回合）、
+`ExamFullPowerLessonMultipleAdditive`（放大全力值折算段）、
+`ExamEnthusiasticTurnAdd`（并进好调回合数）、`ExamAddGrowEffect`（第 k 次使用按 1+(k-1)×值/100 计分）。
+
+**保守近似（8，误差方向见 docstring）**：`ExamForcePlayCardSearch` / `ExamCardCreateId` /
+`ExamCardMove` → +1 抽牌（有 `ExamPlayableValueAdd` 时不再加，避免 0 费循环）；
+`ExamStatusEnchant` → 内层立刻结算；`ExamEffectTimer` / `ExamEffectTimerEndTurn` → 延迟效果立刻生效；
+`ExamAntiDebuff` → 课程内 no-op；`ExamCardPlayAggressive` → 干劲（永久近似）。
+
+| 口径（分母 1817） | 改前 | 改后 |
+|---|---:|---:|
+| 宽松（至少一种效果被建模） | 92.24%（1676） | **97.03%（1763）** |
+| 严格（所有效果都被建模） | 34.89%（634） | **74.57%（1355）** |
+| rich 奖励池（max_score=60、排除 SSR） | 212 | **260（+48）** |
+
+**单位口径（按卡表 effectValue 实测，不用卡面文字直接当百分数）**
+
+- `ExamLessonFullPowerPoint`：卡面「累计全力值的 100%」对应 `effectValue2=1000`，所以按
+  `/1000` 折算。任务文字里的 `/100` 会把 100% 读成 1000%（实测「锻炼的成果」单卡 5 回合
+  从 231 → 1631 分；改 `/1000` 后 371 分），故未采用。
+- `ExamReviewMultiple` / `ExamFullPowerLessonMultipleAdditive`：`2000` = 卡面 +200%、
+  `100` = +10%，按 `(1000+值)/1000` 放大。
+- `ExamAddGrowEffect` 的成长量不在已下载的卡表里（`values` 为空，值在
+  `ProduceCardGrowEffect` 表），所以真实卡现在 `grow_score=0` 不涨分——机制已实现，等数据。
+
+**800 局 `lesson_heavy` 改前/改后（实测）**
+
+| | 三维总和均值 | 评价点均值 | P50 | P90 | C+ 率 |
+|---|---:|---:|---:|---:|---:|
+| 改前 | 990 | 4574.4 | 4612 | 4858 | 68% |
+| 改后 | 990 | 4574.4 | 4612 | 4858 | 68% |
+
+完全相同的原因：模拟器的 `pick_reward` 按「卡面分/费用」选卡，池里 0 费 60 分的
+「汗水与成长+++」本来就是最优且仍在池中；新进池的 48 张最高只有 35/0，挤不掉它，所以
+这 800 局的牌组没有变化（不是建模没生效）。受控牌组（势如破竹+++ / 即兴发挥的基础+++ /
+决不停歇+++ / 锻炼的成果+++ 各 3 张）用旧解析课程 0 分、新解析课程均分 1345——这批卡
+以前在 LessonSim 里效果恒 0，现在能打分了；1345 偏高是因为附魔内层按"立刻结算"近似。
+真实奖励选卡走 `CardTable.value`（auto_produce 侧），不在本次改动范围。

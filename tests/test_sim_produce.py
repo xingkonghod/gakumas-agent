@@ -630,6 +630,312 @@ def test_parameter_buff_condition_only_helps_later_cards() -> None:
     assert sim.score == 25
 
 
+def test_new_effect_types_are_modeled() -> None:
+    """2026-11-16 新卡池 16 种效果全部进 MODELED_EFFECTS（13 → 29），旧集合不变。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    new_types = {
+        "ExamLessonFullPowerPoint",
+        "ExamStatusEnchantEncore",
+        "ExamForcePlayCardSearch",
+        "ExamStaminaRecoverFix",
+        "ExamStatusEnchant",
+        "ExamCardMove",
+        "ExamEffectTimer",
+        "ExamAddGrowEffect",
+        "ExamCardCreateId",
+        "ExamEffectTimerEndTurn",
+        "ExamEnthusiasticTurnAdd",
+        "ExamParameterBuffAdditiveFix",
+        "ExamFullPowerLessonMultipleAdditive",
+        "ExamAntiDebuff",
+        "ExamReviewMultiple",
+        "ExamCardPlayAggressive",
+    }
+    assert new_types <= sp.MODELED_EFFECTS
+    assert len(sp.MODELED_EFFECTS) == 29
+    assert not (new_types & sp.LEGACY_MODELED_EFFECTS)
+    assert sp.LEGACY_MODELED_EFFECTS == {"ExamLesson", "ExamBlock", "ExamLessonBuff"}
+
+
+def test_stamina_recover_full_power_and_encore_parse_to_rich_row() -> None:
+    """体力回复/全力折算/再演的数值进 rich 行，再原样透传进 CardSpec。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    fields = sp._effect_fields(
+        {
+            "effects": [
+                {"type": "ExamStaminaRecoverFix", "values": [4]},
+                {"type": "ExamLessonFullPowerPoint", "values": [1000]},
+                {"type": "ExamStatusEnchantEncore", "values": []},
+            ]
+        }
+    )
+    assert (fields[14], fields[15], fields[16]) == (4, 1000, 1)
+
+    spec = sp._spec_from_row(sp._rich_row("新卡", 0, fields))
+    assert (spec.stamina_recover, spec.full_power_scale, spec.encore) == (4, 1000, True)
+
+    # 双值形态：[固定打分, 折算千分比]（传递勇气的启明星 卡面 +20 / 650%）
+    dual = sp._effect_fields(
+        {"effects": [{"type": "ExamLessonFullPowerPoint", "values": [20, 6500]}]}
+    )
+    assert dual[0] == 20 and dual[15] == 6500
+
+
+def test_status_enchant_expands_inner_and_encore_flag() -> None:
+    """ExamStatusEnchant 递归展开内层；Encore 只置标记，不再把其检索内层算成抽牌。"""
+    import json
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    outer = sp._effect_fields(
+        {
+            "effects": [
+                {
+                    "type": "ExamStatusEnchant",
+                    "values": [],
+                    "inner": [{"type": "ExamLessonDependBlock", "values": [1300]}],
+                },
+                {
+                    "type": "ExamStatusEnchantEncore",
+                    "values": [],
+                    "inner": [{"type": "ExamForcePlayCardSearch", "values": []}],
+                },
+                {"type": "ExamEffectTimer", "values": [1]},
+                {"type": "ExamEffectTimerEndTurn", "values": []},
+                {"type": "ExamAntiDebuff", "values": []},
+            ]
+        }
+    )
+    assert outer[9] == 1300  # 内层元气依赖分被继承
+    assert outer[16] == 1    # Encore
+    assert outer[3] == 0     # Encore 的检索内层不重复算抽牌
+
+    # 真实卡：粉丝所期望的事 的 ExamStatusEnchant 内层是 ExamFullPowerPoint +2
+    table = json.loads(sp.CARD_TABLE.read_text(encoding="utf-8"))["cards"]
+    assert sp._effect_fields(table["粉丝所期望的事"])[7] == 2
+
+
+def test_search_create_move_are_approximated_as_one_draw() -> None:
+    """检索/生成/移动 → 至少 +1 抽牌；已有更大抽牌数时取较大者（保守）。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    for kind in ("ExamForcePlayCardSearch", "ExamCardCreateId", "ExamCardMove"):
+        fields = sp._effect_fields({"effects": [{"type": kind, "values": []}]})
+        assert fields[3] == 1, kind
+
+    both = sp._effect_fields(
+        {
+            "effects": [
+                {"type": "ExamCardDraw", "values": [2]},
+                {"type": "ExamForcePlayCardSearch", "values": []},
+            ]
+        }
+    )
+    assert both[3] == 2  # 不是 2 + 1
+
+    # 本牌已有"可出牌次数追加"时不再加抽牌：资源收益已由次数表达，且 0 费
+    # 检索+加次数牌会让 LessonSim 无限过牌
+    with_play = sp._effect_fields(
+        {
+            "effects": [
+                {"type": "ExamCardMove", "values": []},
+                {"type": "ExamPlayableValueAdd", "values": [], "count": 1},
+            ]
+        }
+    )
+    assert (with_play[3], with_play[8]) == (0, 1)
+
+
+def test_review_additive_and_full_power_lesson_turns_parse() -> None:
+    """好印象强化 / 好调增加量追加 / 全力强化：数值 + 持续回合（-1 = 永久）。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    review = sp._effect_fields(
+        {"effects": [{"type": "ExamReviewMultiple", "values": [2000], "turn": 3}]}
+    )
+    assert (review[17], review[18]) == (2000, 3)
+    permanent = sp._effect_fields(
+        {"effects": [{"type": "ExamReviewMultiple", "values": [100], "turn": -1}]}
+    )
+    assert permanent[18] == -1
+
+    additive = sp._effect_fields(
+        {"effects": [{"type": "ExamParameterBuffAdditiveFix", "values": [2], "turn": 2}]}
+    )
+    assert (additive[19], additive[20]) == (2, 2)
+
+    lesson = sp._effect_fields(
+        {
+            "effects": [
+                {"type": "ExamFullPowerLessonMultipleAdditive", "values": [100], "turn": 1}
+            ]
+        }
+    )
+    assert (lesson[21], lesson[22]) == (100, 1)
+
+
+def test_enthusiastic_grow_and_aggressive_parse() -> None:
+    """热意延长 → 好调回合；成长（values 空 → 0）；出牌干劲 → motivation。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    enthusiastic = sp._effect_fields(
+        {"effects": [{"type": "ExamEnthusiasticTurnAdd", "values": [1]}]}
+    )
+    assert enthusiastic[1] == 1
+
+    empty_grow = sp._effect_fields({"effects": [{"type": "ExamAddGrowEffect", "values": []}]})
+    assert empty_grow[23] == 0
+    explicit_grow = sp._effect_fields(
+        {"effects": [{"type": "ExamAddGrowEffect", "values": [50]}]}
+    )
+    assert explicit_grow[23] == 50
+
+    aggressive = sp._effect_fields(
+        {"effects": [{"type": "ExamCardPlayAggressive", "values": [4]}]}
+    )
+    assert aggressive[24] == 4
+    spec = sp._spec_from_row(sp._rich_row("干劲", 0, aggressive))
+    assert spec.motivation == 4
+
+
+def test_all_new_fields_pass_through_spec_from_row() -> None:
+    """25 元组后 11 个新字段全部能穿过 _spec_from_row，不再被静默丢掉。"""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    row = sp.CardRow(
+        "全字段",
+        1,
+        10,
+        2,
+        3,
+        draw=4,
+        impression=5,
+        impression_scale=600,
+        preservation=1,
+        full_power_point=2,
+        extra_play=3,
+        block_scale=700,
+        parameter_buff=1500,
+        parameter_buff_turns=2,
+        strong_level=1,
+        vitality=6,
+        stamina_recover=7,
+        full_power_scale=800,
+        encore=1,
+        review_multiple=900,
+        review_multiple_turns=3,
+        condition_additive=2,
+        condition_additive_turns=2,
+        full_power_lesson_multiple=100,
+        full_power_lesson_multiple_turns=1,
+        grow_score=50,
+        motivation=4,
+    )
+    spec = sp._spec_from_row(row)
+    assert (
+        spec.stamina_recover,
+        spec.full_power_scale,
+        spec.encore,
+        spec.review_multiple,
+        spec.review_multiple_turns,
+        spec.condition_additive,
+        spec.condition_additive_turns,
+        spec.full_power_lesson_multiple,
+        spec.full_power_lesson_multiple_turns,
+        spec.grow_score,
+        spec.motivation,
+    ) == (7, 800, True, 900, 3, 2, 2, 100, 1, 50, 4)
+    # 旧字段不受影响
+    assert (spec.score, spec.condition, spec.focus, spec.draw, spec.vitality) == (10, 2, 3, 4, 6)
+
+
+def test_rich_pool_includes_new_effect_cards_and_stays_modeled() -> None:
+    """奖励池从 212 扩到更多新卡，且仍只收"效果类型全被建模"的卡。"""
+    import json
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    rich = sp.build_pool(rich=True)
+    assert len(rich) > 212, f"rich 池没有扩大：{len(rich)}"
+
+    table = json.loads(sp.CARD_TABLE.read_text(encoding="utf-8"))["cards"]
+    for row in rich:
+        types = {str(e.get("type") or "") for e in table[row.name].get("effects") or []}
+        assert types <= sp.MODELED_EFFECTS, row.name
+
+    # 状态附魔内层打分让「决不停歇」第一次进池；新效果字段也确实传进池
+    assert any(row.name == "决不停歇" for row in rich)
+    assert any(row.stamina_recover > 0 for row in rich)
+    assert any(row.motivation > 0 for row in rich)
+    assert any(row.full_power_scale > 0 for row in rich)
+
+
+def test_real_new_cards_parse_to_expected_fields() -> None:
+    """用真实新卡锁定 16 种效果的解析口径（数值来自卡表，不是手写 CardRow）。"""
+    import json
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    import sim_produce as sp
+
+    table = json.loads(sp.CARD_TABLE.read_text(encoding="utf-8"))["cards"]
+
+    full_power = sp._effect_fields(table["全力冲刺"])
+    assert (full_power[7], full_power[15]) == (3, 1000)  # 全力值 +3 / 折算 100%
+
+    grow = sp._effect_fields(table["化身为恶魔"])
+    assert (grow[19], grow[20]) == (2, 2)  # 好调增加量追加 +2（2 回合）
+
+    encore = sp._effect_fields(table["真实的自己"])
+    assert (encore[16], encore[17]) == (1, 500)  # 再演 / 好印象强化 +50%
+
+    now = sp._effect_fields(table["作为结果的现在"])
+    assert (now[14], now[1]) == (4, 1)  # 回复 4 体力 / 热意延长 1 回合
+
+    wind = sp._effect_fields(table["我就是、风！"])
+    assert (wind[0], wind[15], wind[21]) == (2, 1200, 100)  # 固定分 / 折算 / 全力强化
+
+    aggressive = sp._effect_fields(table["还差一点点"])
+    assert aggressive[24] == 3  # 干劲 +3
+
+    move = sp._effect_fields(table["一点一滴的进步"])
+    # 本牌同时有 +3 可出牌次数：按约定不再额外加抽牌，避免 0 费循环
+    assert (move[3], move[8]) == (0, 3)
+
+
 def test_legacy_pool_still_excludes_new_types() -> None:
     """旧 5 元组池子口径不变：仍只收 4 类基础效果，不因新建模而混入新卡。"""
     import sys
