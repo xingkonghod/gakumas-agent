@@ -51,6 +51,16 @@ from functools import lru_cache
 from typing import Any
 
 from gkagent.sim.lesson import Buffs, CardSpec, DrinkSpec
+from gkagent.sim.p_items import (
+    CARD_PLAY,
+    STATUS_GAIN,
+    TURN_END,
+    TURN_START,
+    PassiveEvent,
+    PassiveState,
+    PItemSpec,
+    apply_passive,
+)
 from gkagent.sim.stance import (
     StanceState,
     apply_full_power_point,
@@ -76,12 +86,14 @@ __all__ = [
     "expectimax",
     "expectimax_value",
     "expectimax_with_stats",
+    "fire_p_items",
     "is_legal",
     "legal_cards",
     "run_sequence",
     "sample_apply_card",
     "sample_draws",
     "search_beam",
+    "start_turn_state",
     "state_from_sim",
     "use_drink_state",
 ]
@@ -174,6 +186,10 @@ class ExpectState:
     attribute_coefficient: float = 1.0
     hand_size: int = 3
     min_cost: int = 0
+    # P 道具（被动）：状态里带着，出牌/回合事件会触发；数据来自 sim/p_items.py
+    p_items: tuple[PItemSpec, ...] = ()
+    p_item_uses: tuple[tuple[str, int], ...] = ()
+    cards_played_total: int = 0
     # 三框饮料：只在状态里携带，决策层仍走调用方现有 use_drink 流程
     # （架构评审的动作定义是 play(card)/SKIP；饮品不占出牌次数、每回合限 1 瓶）
     drinks: tuple[DrinkSpec, ...] = ()
@@ -266,6 +282,8 @@ class ExpectState:
             float(self.attribute_coefficient),
             self.hand_size,
             self.min_cost,
+            self.p_item_uses,
+            self.cards_played_total,
             self.drinks,
             self.drink_uses,
             self.drinks_used_this_turn,
@@ -448,9 +466,8 @@ def available_drinks(state: ExpectState) -> list[int]:
 def use_drink_state(state: ExpectState, index: int) -> ExpectState:
     """喝一瓶饮料，返回新状态（与 ``LessonSim.use_drink`` 同语义）。
 
-    饮料不占本回合出牌次数，但每回合最多 1 瓶；饮品槽/次数进 ``ExpectState``，
-    调用方可以在出牌前调用本函数把局面推进一步。当前 ``expectimax``/``search_beam``
-    不把饮料当搜索动作（动作定义仍是 play/SKIP），只保证状态可用、不错账。
+    饮料不占本回合出牌次数；饮品槽/次数进 ``ExpectState``。当前 expectimax 的
+    动作仍是 play/SKIP，饮料由调用方在出牌前/后决定。
     """
     if isinstance(index, bool) or not isinstance(index, int):
         raise TypeError(f"饮料下标必须是 int：{index!r}")
@@ -627,12 +644,13 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     condition_gain = effect_card.condition
     if condition_gain > 0 and state.condition_additive > 0:
         condition_gain += state.condition_additive
+    vitality_gain = effect_card.vitality + state.motivation
     state = replace(
         state,
         condition_turns=state.condition_turns + condition_gain,
         focus=state.focus + effect_card.focus,
         impression=state.impression + effect_card.impression,
-        vitality=state.vitality + effect_card.vitality + state.motivation,
+        vitality=state.vitality + vitality_gain,
         motivation=state.motivation + effect_card.motivation,
         extra_plays=state.extra_plays + effect_card.extra_play,
         plays_used=state.plays_used + 1,
@@ -659,7 +677,40 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
                 save_level=max(stance.save_level, int(delta["save_level"])),
             )
     state = state.with_stance(stance)
-    # 温存解除时给热意（近似成好调回合）：使用数 + 1
+    # P 道具：获得层数时（status_gain）
+    if condition_gain > 0:
+        state = fire_p_items(
+            state, STATUS_GAIN, status="parameter_buff", amount=condition_gain
+        )
+    if effect_card.focus > 0:
+        state = fire_p_items(
+            state, STATUS_GAIN, status="focus", amount=effect_card.focus
+        )
+    if effect_card.impression > 0:
+        state = fire_p_items(
+            state,
+            STATUS_GAIN,
+            status="impression",
+            amount=effect_card.impression,
+        )
+    if effect_card.vitality > 0:
+        state = fire_p_items(
+            state, STATUS_GAIN, status="vitality", amount=vitality_gain
+        )
+    if effect_card.motivation > 0:
+        state = fire_p_items(
+            state,
+            STATUS_GAIN,
+            status="aggressive",
+            amount=effect_card.motivation,
+        )
+    if effect_card.full_power_point > 0:
+        state = fire_p_items(
+            state,
+            STATUS_GAIN,
+            status="full_power_point",
+            amount=effect_card.full_power_point,
+        )
     if stance.stance == "save":
         state = replace(state, save_cards_used=state.save_cards_used + 1)
     elif previous_stance == "save":
@@ -836,15 +887,24 @@ def apply_card(state: ExpectState, card: CardSpec) -> list[tuple[float, ExpectSt
     hand.remove(card)
     after = replace(after, hand=tuple(hand))
     outcomes = _draw_distribution(after, draw)
-    if card.once:
-        return [
-            (probability, replace(successor, excluded=successor.excluded + (card,)))
-            for probability, successor in outcomes
-        ]
-    return [
-        (probability, replace(successor, discard=successor.discard + (card,)))
-        for probability, successor in outcomes
-    ]
+    results: list[tuple[float, ExpectState]] = []
+    for probability, successor in outcomes:
+        successor = replace(
+            successor, cards_played_total=state.cards_played_total + 1
+        )
+        successor = fire_p_items(
+            successor,
+            CARD_PLAY,
+            card_category=card.category,
+            cards_played_this_turn=successor.plays_used,
+            cards_played_total=successor.cards_played_total,
+        )
+        if card.once:
+            successor = replace(successor, excluded=successor.excluded + (card,))
+        else:
+            successor = replace(successor, discard=successor.discard + (card,))
+        results.append((probability, successor))
+    return results
 
 
 def run_sequence(state: ExpectState, cards: Iterable[CardSpec]) -> ExpectState:
@@ -906,9 +966,149 @@ def sample_apply_card(
     hand.remove(card)
     after = replace(after, hand=tuple(hand))
     after = sample_draws(after, draw, rng)
+    after = replace(after, cards_played_total=state.cards_played_total + 1)
+    after = fire_p_items(
+        after,
+        CARD_PLAY,
+        card_category=card.category,
+        cards_played_this_turn=after.plays_used,
+        cards_played_total=after.cards_played_total,
+    )
     if card.once:
         return replace(after, excluded=after.excluded + (card,))
     return replace(after, discard=after.discard + (card,))
+
+
+_P_ITEM_GROUP_CACHE: dict[int, tuple[tuple[PItemSpec, ...], dict[str, tuple[PItemSpec, ...]]]] = {}
+
+
+def _p_items_grouped(
+    items: tuple[PItemSpec, ...],
+) -> dict[str, tuple[PItemSpec, ...]]:
+    """按 trigger 预分组（避免每个搜索节点都遍历全部 1000+ 条 P 道具）。
+
+    用 ``id(items)`` 做缓存键并保留 items 引用，防止 id 复用；同一局内
+    ``ExpectState.p_items`` 是同一个 tuple 对象（``replace`` 不换引用）。
+    """
+    cached = _P_ITEM_GROUP_CACHE.get(id(items))
+    if cached is not None and cached[0] is items:
+        return cached[1]
+    grouped: dict[str, tuple[PItemSpec, ...]] = {}
+    for item in items:
+        grouped[item.trigger] = (*grouped.get(item.trigger, ()), item)
+    _P_ITEM_GROUP_CACHE[id(items)] = (items, grouped)
+    return grouped
+
+
+def _passive_state(state: ExpectState) -> PassiveState:
+    return PassiveState(
+        turn=state.current_turn,
+        turns_left=state.turns_left,
+        is_final_turn=state.turns_left <= 1,
+        stamina=state.stamina,
+        stamina_max=state.stamina_max,
+        score=state.score,
+        stacks={
+            "vitality": state.vitality,
+            "impression": state.impression,
+            "focus": state.focus,
+            "aggressive": state.motivation,
+            "full_power_point": state.stance_state.full_power_point,
+            "parameter_buff": state.condition_turns,
+        },
+        uses=dict(state.p_item_uses),
+    )
+
+
+def _p_item_event_subset(
+    state: ExpectState, kind: str
+) -> tuple[PItemSpec, ...]:
+    if not state.p_items:
+        return ()
+    grouped = _p_items_grouped(state.p_items)
+    if kind == TURN_START:
+        return grouped.get(TURN_START, ())
+    if kind == TURN_END:
+        return grouped.get(TURN_END, ())
+    if kind == STATUS_GAIN:
+        return grouped.get(STATUS_GAIN, ())
+    return (
+        grouped.get("card_play", ())
+        + grouped.get("card_played", ())
+        + grouped.get("card_play_interval", ())
+    )
+
+
+def fire_p_items(
+    state: ExpectState,
+    kind: str,
+    *,
+    card_category: str = "",
+    cards_played_this_turn: int = 0,
+    cards_played_total: int = 0,
+    status: str = "",
+    amount: int = 0,
+) -> ExpectState:
+    """在指定时机触发 P 道具并返回结算后的状态（纯函数）。"""
+    if not state.p_items:
+        return state
+    subset = _p_item_event_subset(state, kind)
+    if not subset:
+        return state
+    event = PassiveEvent(
+        kind=kind,
+        card_category=card_category,
+        cards_played_this_turn=cards_played_this_turn,
+        cards_played_total=cards_played_total,
+        status=status,
+        amount=amount,
+    )
+    delta = apply_passive(subset, event, _passive_state(state))
+    if delta.is_zero():
+        return state
+    score = state.score + int(delta.score)
+    stamina = state.stamina
+    if delta.stamina:
+        stamina = min(state.stamina_max, max(0, stamina + delta.stamina))
+    vitality = state.vitality
+    impression = state.impression
+    focus = state.focus
+    condition_turns = state.condition_turns
+    motivation = state.motivation
+    stance = state.stance_state
+    for key, value in delta.stacks.items():
+        value = int(value)
+        if key == "vitality":
+            vitality += value
+        elif key == "impression":
+            impression += value
+        elif key == "focus":
+            focus += value
+        elif key == "aggressive":
+            motivation += value
+        elif key == "full_power_point":
+            stance = apply_full_power_point(stance, value)
+        elif key == "parameter_buff":
+            condition_turns += value
+    uses = dict(state.p_item_uses)
+    for item_id in delta.applied:
+        uses[item_id] = uses.get(item_id, 0) + 1
+    return replace(
+        state,
+        score=score,
+        stamina=stamina,
+        vitality=vitality,
+        impression=impression,
+        focus=focus,
+        condition_turns=condition_turns,
+        motivation=motivation,
+        p_item_uses=tuple(sorted(uses.items())),
+    ).with_stance(stance)
+
+
+def start_turn_state(state: ExpectState) -> ExpectState:
+    """抽完新手牌后的回合开始结算（P 道具 turn_start）；beam 未来回合用。"""
+    return fire_p_items(state, TURN_START)
 
 
 def end_turn_state(state: ExpectState) -> ExpectState:
@@ -932,7 +1132,7 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     full_power_turns = _tick_turns(state.full_power_lesson_multiple_turns)
     full_power_multiple = state.full_power_lesson_multiple if full_power_turns != 0 else 0
     next_stance = end_turn(state.stance_state)
-    return replace(
+    next_state = replace(
         state,
         score=score,
         impression=impression,
@@ -957,6 +1157,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
             next_stance.full_power_point,
         ),
     )
+    # P 道具：回合结束（好印象/好调结算后、弃手牌前）
+    return fire_p_items(next_state, TURN_END)
 
 
 # ---------------------------------------------------------------- 搜索
@@ -988,6 +1190,7 @@ class _Search:
         self.deadline = deadline
         self.memo: dict[tuple[Any, ...], float] = {}
         self.choice_memo: dict[tuple[Any, ...], CardSpec | None] = {}
+        self.drink_choice_memo: dict[tuple[Any, ...], int | None] = {}
         self.nodes = 0
         self.aborted = False
 
@@ -1018,6 +1221,7 @@ class _Search:
             return cached
         best = self.leaf(state)
         best_card: CardSpec | None = None
+        best_drink: int | None = None
         best_key: tuple[int, int, int] | None = (
             state.plays_left,
             state.total_cost_available,
@@ -1032,9 +1236,11 @@ class _Search:
             ):
                 best = value
                 best_card = card
+                best_drink = None
                 best_key = key_break
         self.memo[key] = best
         self.choice_memo[key] = best_card
+        self.drink_choice_memo[key] = best_drink
         return best
 
     def action_value(self, state: ExpectState, card: CardSpec) -> float:
@@ -1046,11 +1252,12 @@ class _Search:
 
     def root(
         self, state: ExpectState
-    ) -> tuple[float, CardSpec | None, list[tuple[str, float]]]:
-        """根节点：返回 (最优价值, 最优首牌或 None, 各首牌动作价值)。"""
+    ) -> tuple[float, CardSpec | None, int | None, list[tuple[str, float]]]:
+        """根节点：返回 (最优价值, 最优首牌或 None, 最优饮料下标或 None, 动作价值)。"""
         skip_value = self.leaf(state)
         best_value = skip_value
         best_card: CardSpec | None = None
+        best_drink: int | None = None
         best_key: tuple[int, int, int] | None = (
             state.plays_left,
             state.total_cost_available,
@@ -1071,10 +1278,12 @@ class _Search:
             ):
                 best_value = value
                 best_card = card
+                best_drink = None
                 best_key = key_break
         self.memo[state.canonical()] = best_value
         self.choice_memo[state.canonical()] = best_card
-        return best_value, best_card, actions
+        self.drink_choice_memo[state.canonical()] = best_drink
+        return best_value, best_card, best_drink, actions
 
 
 def _config_with_overrides(
@@ -1136,9 +1345,14 @@ def expectimax_with_stats(
         deadline = started + max(float(config.time_budget_ms), 0.0) / 1000.0
     search = _Search(model, config, clock=clock, deadline=deadline)
     try:
-        best_value, best_card, actions = search.root(state)
+        best_value, best_card, _best_drink, actions = search.root(state)
     except _Deadline:
-        best_value, best_card, actions = search.leaf(state), None, []
+        best_value, best_card, _best_drink, actions = (
+            search.leaf(state),
+            None,
+            None,
+            [],
+        )
         search.aborted = True
     elapsed_ms = (clock() - started) * 1000.0
     return ExpectimaxResult(
@@ -1267,7 +1481,7 @@ def _top_turn_plans(
     limit = max(int(limit), 1)
     has_draw = any(card.draw > 0 for card in state.hand)
     if limit == 1 or has_draw:
-        # 单计划/有抽牌：直接用 expectimax 的最佳序列（比枚举所有序列快）
+        # 单计划/有抽牌/有饮料：直接用 expectimax 的最佳序列（比枚举快）
         return [
             _plan_turn(state, value, rng, clock=clock, deadline=deadline)
             for _ in range(limit)
@@ -1449,6 +1663,7 @@ def search_beam(
                 start = sample_draws(
                     node.plan.end_state, node.plan.end_state.hand_size, rng
                 )
+                start = start_turn_state(start)
                 try:
                     plans = _top_turn_plans(
                         start,
@@ -1549,6 +1764,11 @@ def state_from_sim(sim: Any) -> ExpectState:
         ),
         hand_size=max(int(getattr(config, "hand_size", 3) if config else 3), 1),
         min_cost=max(int(getattr(sim, "_min_cost", 0)), 0),
+        p_items=tuple(getattr(config, "p_items", ()) if config else ()),
+        p_item_uses=tuple(
+            sorted(getattr(sim, "p_item_uses", {}).items())
+        ),
+        cards_played_total=max(int(getattr(sim, "cards_played_total", 0)), 0),
         drinks=tuple(getattr(config, "drinks", ()) if config else ()),
         drink_uses=tuple(
             max(int(uses), 0) for uses in getattr(sim, "drink_uses", ())

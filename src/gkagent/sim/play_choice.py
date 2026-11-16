@@ -199,6 +199,7 @@ def specs_from_hand(
                 name=card.name,
                 cost=cost,
                 score=score,
+                category=str(row.get("category") or ""),
                 **_effect_fields(row),
             )
             estimated = False

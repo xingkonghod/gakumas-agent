@@ -293,7 +293,8 @@ def _trigger_matches(spec: PItemSpec, event: PassiveEvent, state: PassiveState) 
             return False
 
     if spec.max_uses and state.uses is not None:
-        return state.uses.get(spec.item_id, 0) < spec.max_uses
+        key = spec.item_id or spec.name
+        return state.uses.get(key, 0) < spec.max_uses
     return True
 
 

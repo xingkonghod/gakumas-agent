@@ -80,6 +80,7 @@ from pathlib import Path
 
 from gkagent.data.plans import DEFAULT_PLAN
 from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim, greedy_policy
+from gkagent.sim.p_items import PItemSpec
 
 ATTRIBUTES = ("Vo", "Da", "Vi")
 
@@ -213,6 +214,8 @@ class ProduceConfig:
     exam_turns_mid: int = 9
     exam_turns_final: int = 12
     exam_turns_final_logic: int = 11
+    # P 道具（被动）：默认空；传入后由 LessonSim 在课程 step 内触发
+    p_items: tuple[PItemSpec, ...] = ()
     training_gain_ratio: float = 0.5  # 旧口径：训练得分→属性；official 模式改用官方排期
     # official：按 data/knowledge/official.json 的逐周收益；constants：退回旧常数
     schedule_source: str = "official"
@@ -254,6 +257,7 @@ class ProduceConfig:
         exam_turns_mid: int | None = None,
         exam_turns_final: int | None = None,
         exam_turns_final_logic: int | None = None,
+        p_items: tuple[PItemSpec, ...] | None = None,
         outing_weeks: tuple[int, ...] | None = None,
         exam_weeks: tuple[int, ...] | None = None,
         training_targets: tuple[int, ...] | None = None,
@@ -313,6 +317,7 @@ class ProduceConfig:
             "exam_turns_mid": pick(exam_turns_mid, None, 9),
             "exam_turns_final": pick(exam_turns_final, None, 12),
             "exam_turns_final_logic": pick(exam_turns_final_logic, None, 11),
+            "p_items": pick(p_items, None, ()),
             "outing_weeks": pick(outing_weeks, None, (3, 5, 8, 14)),
             "exam_weeks": pick(exam_weeks, None, (7, 16)),
             "training_targets": pick(training_targets, lesson_targets, (100, 150, 200, 250, 300)),
@@ -778,6 +783,7 @@ class ProduceSim:
                 hand_size=3,
                 plan=self.config.plan,
                 stance_costs=self.config.stance_costs,
+                p_items=self.config.p_items,
             ),
             rng_seed=self.rng.randrange(1 << 30),
         )
@@ -870,6 +876,7 @@ class ProduceSim:
                 attribute_coefficient=self.config.audition_coefficient,
                 plan=self.config.plan,
                 stance_costs=self.config.stance_costs,
+                p_items=self.config.p_items,
             ),
             rng_seed=self.rng.randrange(1_000_000),
         )

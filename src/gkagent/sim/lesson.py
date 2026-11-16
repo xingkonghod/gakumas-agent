@@ -158,7 +158,16 @@ from gkagent.data.plans import (
     default_plan_library,
     normalize_plan,
 )
-from gkagent.sim.p_items import PItemSpec
+from gkagent.sim.p_items import (
+    CARD_PLAY,
+    STATUS_GAIN,
+    TURN_END,
+    TURN_START,
+    PassiveEvent,
+    PassiveState,
+    PItemSpec,
+    apply_passive,
+)
 from gkagent.sim.stance import (
     FULL_POWER_POINT_COST,
     StanceState,
@@ -263,6 +272,8 @@ class CardSpec:
     name: str
     cost: int
     score: float
+    # 卡类别（ActiveSkill / MentalSkill / IdolUnique）；P 道具 card_filter 用
+    category: str = ""
     vitality: int = 0
     condition: int = 0
     focus: int = 0
@@ -396,6 +407,13 @@ class LessonSim:
         self.rng = random.Random(rng_seed)
         # P 道具接口：只保存，不结算（数据未到位；默认空 tuple）
         self.p_items: tuple[PItemSpec, ...] = tuple(getattr(config, "p_items", ()))
+        # P 道具触发次数（max_uses）与本场已出牌总数（card_play_interval 用）
+        self.p_item_uses: dict[str, int] = {}
+        self.cards_played_total: int = 0
+        self._p_items_by_trigger: dict[str, tuple[PItemSpec, ...]] = {}
+        for item in self.p_items:
+            self._p_items_by_trigger.setdefault(item.trigger, ())
+            self._p_items_by_trigger[item.trigger] += (item,)
 
         self.deck: list[CardSpec] = list(deck)
         self.rng.shuffle(self.deck)
@@ -666,6 +684,14 @@ class LessonSim:
             self._draw(effect_card.draw)
         # 成长计数器要等本牌算完分再 +1，保证第 k 次使用吃 (k-1) 层成长
         self.card_uses[id(card)] = uses + 1
+        # P 道具：每次出牌后（含刚打出的这张；card_play/card_played/interval 共用）
+        self.cards_played_total += 1
+        self._fire_p_items(
+            CARD_PLAY,
+            card_category=card.category,
+            cards_played_this_turn=self.plays_this_turn,
+            cards_played_total=self.cards_played_total,
+        )
         if card.once:
             # レッスン中1回：用掉后除外，本场不再回到牌库/弃牌堆
             self.excluded.append(card)
@@ -795,6 +821,11 @@ class LessonSim:
         """
         if card.full_power_point > 0:
             self.stance = apply_full_power_point(self.stance, card.full_power_point)
+            self._fire_p_items(
+                STATUS_GAIN,
+                status="full_power_point",
+                amount=card.full_power_point,
+            )
         if card.strong_level > 0:
             delta = card_stance_effect("ExamConcentration", [card.strong_level])
             if delta["stance"] is not None:
@@ -859,10 +890,27 @@ class LessonSim:
         self.buffs.condition_turns += condition_gain
         self.buffs.focus += card.focus
         self.buffs.impression += card.impression
+        vitality_gain = card.vitality + self.motivation
         if card.vitality > 0:
             # 干劲提升元气获得量；元气优先用于抵牌费（真机语义）
-            self.vitality += card.vitality + self.motivation
+            self.vitality += vitality_gain
         self.motivation += card.motivation
+        if condition_gain > 0:
+            self._fire_p_items(
+                STATUS_GAIN, status="parameter_buff", amount=condition_gain
+            )
+        if card.focus > 0:
+            self._fire_p_items(STATUS_GAIN, status="focus", amount=card.focus)
+        if card.impression > 0:
+            self._fire_p_items(
+                STATUS_GAIN, status="impression", amount=card.impression
+            )
+        if card.vitality > 0:
+            self._fire_p_items(STATUS_GAIN, status="vitality", amount=vitality_gain)
+        if card.motivation > 0:
+            self._fire_p_items(
+                STATUS_GAIN, status="aggressive", amount=card.motivation
+            )
 
     def _pay_card_cost(self, card: CardSpec) -> None:
         """支付牌费：先按指針修正实际费用，強気 2 段階再穿透 1 点元气。
@@ -900,6 +948,88 @@ class LessonSim:
             uses > 0 and drink.effect_type == "stamina"
             for drink, uses in zip(self.config.drinks, self.drink_uses)
         )
+
+    # ------------------------------------------------------------------ P 道具
+    def _passive_state(self) -> PassiveState:
+        """把当前 LessonSim 局面投影成 p_items 的只读状态。"""
+        return PassiveState(
+            turn=self.current_turn,
+            turns_left=self.turns_left,
+            is_final_turn=self.turns_left <= 1,
+            stamina=self.stamina,
+            stamina_max=self.stamina_max,
+            score=self.score,
+            lesson_type="",
+            is_sp=False,
+            stacks={
+                "vitality": self.vitality,
+                "impression": self.buffs.impression,
+                "focus": self.buffs.focus,
+                "aggressive": self.motivation,
+                "full_power_point": self.stance.full_power_point,
+                "parameter_buff": self.buffs.condition_turns,
+            },
+            uses=self.p_item_uses,
+        )
+
+    def _fire_p_items(
+        self,
+        kind: str,
+        *,
+        card_category: str = "",
+        cards_played_this_turn: int = 0,
+        cards_played_total: int = 0,
+        status: str = "",
+        amount: int = 0,
+    ) -> None:
+        """在指定时机触发 P 道具并结算增量（分数/体力/层数）。"""
+        if not self.p_items:
+            return
+        if kind == TURN_START:
+            subset = self._p_items_by_trigger.get(TURN_START, ())
+        elif kind == TURN_END:
+            subset = self._p_items_by_trigger.get(TURN_END, ())
+        elif kind == STATUS_GAIN:
+            subset = self._p_items_by_trigger.get(STATUS_GAIN, ())
+        else:
+            # card_play / card_played / card_play_interval 共享同一个事件 kind
+            subset = (
+                self._p_items_by_trigger.get("card_play", ())
+                + self._p_items_by_trigger.get("card_played", ())
+                + self._p_items_by_trigger.get("card_play_interval", ())
+            )
+        if not subset:
+            return
+        event = PassiveEvent(
+            kind=kind,
+            card_category=card_category,
+            cards_played_this_turn=cards_played_this_turn,
+            cards_played_total=cards_played_total,
+            status=status,
+            amount=amount,
+        )
+        delta = apply_passive(subset, event, self._passive_state())
+        if delta.is_zero():
+            return
+        self.score += int(delta.score)
+        if delta.stamina:
+            self.stamina = min(self.stamina_max, max(0, self.stamina + delta.stamina))
+        for key, value in delta.stacks.items():
+            if key == "vitality":
+                self.vitality += int(value)
+            elif key == "impression":
+                self.buffs.impression += int(value)
+            elif key == "focus":
+                self.buffs.focus += int(value)
+            elif key == "aggressive":
+                self.motivation += int(value)
+            elif key == "full_power_point":
+                self.stance = apply_full_power_point(self.stance, int(value))
+            elif key == "parameter_buff":
+                # P 道具的「好调」按回合数近似；模拟器没有独立参数 buff 资源
+                self.buffs.condition_turns += int(value)
+        for item_id in delta.applied:
+            self.p_item_uses[item_id] = self.p_item_uses.get(item_id, 0) + 1
 
     def _end_turn(self, *, skipped: bool) -> None:
         """回合结束：结算好印象得分、衰减好调/持续 buff、记录 trace、弃手牌、抽下一手。
@@ -940,6 +1070,8 @@ class LessonSim:
             self.buffs.full_power_lesson_multiple = 0
         # 审查基准加成只在本回合内持续
         self.turn_parameter_buff = 0
+        # P 道具：回合结束（好印象/好调结算后、弃手牌前）
+        self._fire_p_items(TURN_END)
         self.trace.append(
             {
                 "turn": self.config.turns - self.turns_left + 1,
@@ -971,6 +1103,8 @@ class LessonSim:
         self.drinks_used_this_turn = 0
         self.hand.clear()
         self._draw(self.config.hand_size)
+        # P 道具：回合开始（抽完手牌后、出牌前）
+        self._fire_p_items(TURN_START)
 
     def _draw(self, count: int) -> None:
         for _ in range(count):
