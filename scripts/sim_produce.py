@@ -2,9 +2,9 @@
 
 用法：
     python scripts/sim_produce.py --episodes 50000          # 每种策略 5 万局
-    python scripts/sim_produce.py --episodes 20000 --only train_best,mixed
+    python scripts/sim_produce.py --episodes 20000 --only class_best,mixed
 
-输出：每种策略的三维均值、总和、评价分布、上课/过关次数、CPU 时间。
+输出：每种策略的三维均值、总和、评价分布、训练/过关次数、CPU 时间。
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
 # 2026-11-16：新卡池 16 种效果接入后从 13 种扩到 29 种；其中 8 种精确建模
 # （体力回复/全力折算/再演/好印象强化/好调加算/全力强化/热意延长/成长），
 # 8 种保守近似（检索/生成/移动→抽 1；延迟→立刻；附魔外层展开内层；低下无效
-# 与课程无关；出牌干劲→motivation）。近似口径与误差方向见 sim/lesson.py 模块 docstring。
+# 与训练无关；出牌干劲→motivation）。近似口径与误差方向见 sim/lesson.py 模块 docstring。
 MODELED_EFFECTS = {
     "ExamLesson",
     "ExamBlock",
@@ -102,7 +102,7 @@ class CardRow(NamedTuple):
     parameter_buff: int = 0
     parameter_buff_turns: int = 1
     strong_level: int = 0
-    # ExamBlock：出牌获得的元气（盾）。课程里优先抵牌费，也喂依赖元气的分数
+    # ExamBlock：出牌获得的元气（盾）。训练里优先抵牌费，也喂依赖元气的分数
     vitality: int = 0
     # ---- 2026-11-16 新卡池 16 种效果（字段顺序与 _effect_fields 返回值一致）----
     stamina_recover: int = 0          # ExamStaminaRecoverFix
@@ -193,7 +193,7 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
       已由次数表达，也避免 0 费循环无限过牌）；``ExamStatusEnchant`` → 递归展开
       内层、本回合立刻结算（**通常高估当回合**）；``ExamEffectTimer`` /
       ``ExamEffectTimerEndTurn`` → 无字段，被延迟的效果本回合立刻生效
-      （**通常高估当回合**）；``ExamAntiDebuff`` → no-op（课程没有低下状态，
+      （**通常高估当回合**）；``ExamAntiDebuff`` → no-op（训练没有低下状态，
       模型内恒 0）；``ExamCardPlayAggressive`` → ``motivation``（近似永久干劲，
       长期**高估**）；
     - ``ExamLessonFullPowerPoint`` 的双值形态是 ``[固定打分, 折算千分比]``：
@@ -240,7 +240,7 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
                 approx_draw = 1
                 continue
             if kind in ("ExamEffectTimer", "ExamEffectTimerEndTurn", "ExamAntiDebuff"):
-                # 延迟标记/低下无效：课程里按"立刻生效"或 no-op 处理
+                # 延迟标记/低下无效：训练里按"立刻生效"或 no-op 处理
                 continue
             if kind == "ExamAddGrowEffect":
                 grow_score = max(grow_score, value)
@@ -308,7 +308,7 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
                 # 卡面是「強気変更」（打招呼的基础），values[0] 是 1/2 段階；不是集中。
                 strong_level = max(strong_level, value)
             elif kind == "ExamBlock":
-                # 元气（盾）：课程里先扣元气再扣体力；没有伤害来源，所以不是"挡伤害"
+                # 元气（盾）：训练里先扣元气再扣体力；没有伤害来源，所以不是"挡伤害"
                 vitality = max(vitality, value)
             elif kind == "ExamCardDraw":
                 draw = max(draw, value)
@@ -412,7 +412,7 @@ def build_pool(
     """奖励池：真机早期能拿到的技能卡。
 
     默认排除 SSR/Legend（本账号支援卡弱、早期拿不到高分彩卡），并限制分数 <= 40；
-    否则模拟器会"每节课都拿 155 分彩卡"，课程平均 320 分，和真机 60-180 完全不符。
+    否则模拟器会"每节课都拿 155 分彩卡"，训练平均 320 分，和真机 60-180 完全不符。
 
     ``rich=False`` 时只收旧集合里的效果类型并返回旧 5 元组（其它脚本兼容）；
     ``rich=True`` 时使用完整 ``MODELED_EFFECTS``（2026-11-16 起 29 种：含温存/
@@ -490,9 +490,50 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)
 
 
+def _policy_plan_default() -> str:
+    """policy.json 的 produce.plan（缺文件/坏值退回 sense）。"""
+    from gkagent.data.plans import DEFAULT_PLAN, normalize_plan
+
+    try:
+        raw = json.loads((ROOT / "data" / "knowledge" / "policy.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return DEFAULT_PLAN
+    produce = raw.get("produce") if isinstance(raw, dict) else None
+    candidate = produce.get("plan") if isinstance(produce, dict) else None
+    return normalize_plan(candidate) or DEFAULT_PLAN
+
+
+def _parse_plans(value: str) -> list[str]:
+    """``--plans sense,logic,anomaly`` → 去重后的方案列表；空/未知回退默认方案。"""
+    from gkagent.data.plans import normalize_plan
+
+    plans: list[str] = []
+    for raw in (value or "").split(","):
+        name = raw.strip()
+        if not name:
+            continue
+        plan = normalize_plan(name)
+        if plan is None:
+            print(f"未知方案 {name!r}：只支持 sense/logic/anomaly，已忽略")
+            continue
+        if plan not in plans:
+            plans.append(plan)
+    return plans or [_policy_plan_default()]
+
+
 def run_chunk(task: tuple) -> dict:
     """子进程：跑一段局数，返回聚合结果。"""
-    strategy_name, episodes, seed, deck_raw, pool_raw, reward_pick, support, audition = task
+    (
+        strategy_name,
+        episodes,
+        seed,
+        deck_raw,
+        pool_raw,
+        reward_pick,
+        support,
+        audition,
+        plan,
+    ) = task
     from gkagent.sim.produce import (
         STRATEGIES,
         ProduceConfig,
@@ -507,18 +548,23 @@ def run_chunk(task: tuple) -> dict:
         reward_pick=reward_pick,
         support_bonus=support,
         audition_coefficient=audition,
+        plan=plan,
     )
     if strategy_name == "random":
         strategy = random_strategy(seed)
     else:
         strategy = STRATEGIES[strategy_name]
 
-    totals, evals, grades, clears, exams, lessons = [], [], Counter(), 0, 0, 0
+    totals, evals, grades, clears, exams, trainings = [], [], Counter(), 0, 0, 0
+    attr_rows: list[tuple[int, int, int]] = []
+    exam_scores: list[int] = []
     for episode in range(episodes):
         sim = ProduceSim(deck, config=config, rng_seed=seed + episode)
         sim.reward_pool = pool
         result = sim.run(strategy)
         totals.append(result.total)
+        attr_rows.append(result.attrs)
+        exam_scores.append(result.exam_score)
         rank = 3
         for row in reversed(sim.trace):
             if row.get("exam"):
@@ -529,11 +575,13 @@ def run_chunk(task: tuple) -> dict:
         grades[result.grade] += 1
         clears += result.cleared
         exams += result.exams_passed
-        lessons += result.lessons
+        trainings += result.trainings
     return {
         "strategy": strategy_name,
+        "plan": plan,
         "n": episodes,
         "mean_total": round(stats.mean(totals), 1),
+        "mean_attrs": tuple(round(stats.mean(row[i] for row in attr_rows), 1) for i in range(3)),
         "p90_total": round(sorted(totals)[int(len(totals) * 0.9)], 1),
         # 真正的目标指标：官方评价点（均值/P90）+ C+ 达成率
         "mean_eval": round(stats.mean(evals), 1),
@@ -542,9 +590,12 @@ def run_chunk(task: tuple) -> dict:
         "p95_eval": round(sorted(evals)[int(len(evals) * 0.95)], 1),
         "cplus_rate": round(sum(1 for e in evals if e >= 4500) / len(evals), 3),
         "grades": dict(grades.most_common()),
-        "clear_rate": round(clears / max(lessons, 1), 3),
-        "lessons_per_run": round(lessons / episodes, 2),
+        "clear_rate": round(clears / max(trainings, 1), 3),
+        # 新键 + 旧键（旧脚本读 lessons_per_run）
+        "trainings_per_run": round(trainings / episodes, 2),
+        "lessons_per_run": round(trainings / episodes, 2),
         "exams_passed": round(exams / episodes, 2),
+        "mean_exam_score": round(stats.mean(exam_scores), 1),
     }
 
 
@@ -553,24 +604,28 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--episodes", type=int, default=20000, help="每种策略的局数")
     parser.add_argument("--workers", type=int, default=0)
-    parser.add_argument("--only", default="train_best,train_lowest,lesson_heavy,mixed,random,smart")
+    parser.add_argument("--only", default="class_best,class_lowest,training_heavy,mixed,random,smart")
     parser.add_argument("--rewards", choices=["best", "random", "none"], default="best")
     parser.add_argument("--support", type=float, default=1.2,
-                        help="训练/课程收益倍率（默认 1.2 = 真机支援卡均值 Lv20 校准值）")
+                        help="训练/训练收益倍率（默认 1.2 = 真机支援卡均值 Lv20 校准值）")
     parser.add_argument("--audition-coefficient", type=float, default=4.11,
                         help="考试/舞台属性倍率（默认 4.11 = 真机屏幕「歌唱 411%%」；"
-                             "课程仍 1.0，传 1.0 可复现改前口径）")
+                             "训练仍 1.0，传 1.0 可复现改前口径）")
+    parser.add_argument("--plans", default="",
+                        help="方案，逗号分隔：sense,logic,anomaly；默认读 "
+                             "policy.json 的 produce.plan（缺省 sense）")
     args = parser.parse_args(argv)
 
     # rich=True：把抽牌/好印象/依赖倍率带进 CardSpec（默认 5 元组给其它脚本兼容）
     deck = build_deck(rich=True)
     pool = build_pool(rich=True) if args.rewards != "none" else []
+    plans = _parse_plans(args.plans)
     print(
         f"卡组 {len(deck)} 张, 奖励池 {len(pool)} 张, 选牌={args.rewards}, "
-        f"支援加成={args.support}, 考试属性倍率={args.audition_coefficient}"
+        f"支援加成={args.support}, 考试属性倍率={args.audition_coefficient}, "
+        f"方案={','.join(plans)}"
     )
     names = [name.strip() for name in args.only.split(",") if name.strip()]
-    workers = args.workers or min(8, (len(names)))
     tasks = [
         (
             name,
@@ -581,9 +636,12 @@ def main(argv: list[str]) -> int:
             args.rewards,
             args.support,
             args.audition_coefficient,
+            plan,
         )
+        for plan in plans
         for index, name in enumerate(names)
     ]
+    workers = args.workers or min(8, len(tasks))
 
     started = time.perf_counter()
     with ProcessPoolExecutor(max_workers=workers) as pool:
@@ -592,10 +650,12 @@ def main(argv: list[str]) -> int:
 
     for row in results:
         print(
-            f"{row['strategy']:14s} n={row['n']:>7} 总和均值={row['mean_total']:>7} "
+            f"{row['strategy']:14s} plan={row['plan']:7s} n={row['n']:>7} "
+            f"三维均值={row['mean_attrs']} 总和均值={row['mean_total']:>7} "
+            f"终试分={row['mean_exam_score']:>8.1f} "
             f"评价点均值={row['mean_eval']:>7} P50={row['p50_eval']:>7} "
             f"P90={row['p90_eval']:>7} C+率={row['cplus_rate']*100:3.0f}% "
-            f"上课/局={row['lessons_per_run']:.1f} 考试通过={row['exams_passed']:.1f} "
+            f"训练/局={row['trainings_per_run']:.1f} 考试通过={row['exams_passed']:.1f} "
             f"评价={row['grades']}"
         )
     total_runs = sum(row["n"] for row in results)

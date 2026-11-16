@@ -1,0 +1,33 @@
+{
+ "sense": {
+  "cn": "感性",
+  "buff_priority": [
+   "好调",
+   "集中"
+  ],
+  "early_buff_turns": 3,
+  "score_after_buff": true,
+  "notes": "好调覆盖爆发回合，集中永久叠；先铺再打"
+ },
+ "logic": {
+  "cn": "理性",
+  "buff_priority": [
+   "好印象",
+   "やる気"
+  ],
+  "early_buff_turns": 4,
+  "score_after_buff": true,
+  "notes": "好印象铺到 15 层再兑现；留 3-5 やる気付费用"
+ },
+ "anomaly": {
+  "cn": "非凡",
+  "buff_priority": [
+   "温存",
+   "強気",
+   "全力"
+  ],
+  "early_buff_turns": 2,
+  "score_after_buff": false,
+  "notes": "温存攒到全力值 10，最后 1-2 回合切全力"
+ }
+}

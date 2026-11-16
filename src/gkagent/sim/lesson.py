@@ -148,7 +148,15 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TypeAlias
 
+from gkagent.data.plans import (
+    DEFAULT_PLAN,
+    PLAN_BUFF_FIELDS,
+    Plan,
+    default_plan_library,
+    normalize_plan,
+)
 from gkagent.sim.stance import (
+    FULL_POWER_POINT_COST,
     StanceState,
     apply_full_power_point,
     card_stance_effect,
@@ -325,6 +333,7 @@ class LessonConfig:
     turns: int
     stamina: int
     target_clear: int
+    # PERFECT 线：None = 默认 2×target_clear（三档结算见 LessonSim.reward_tier）
     target_perfect: int | None = None
     # 真机每回合手里 3 张牌
     hand_size: int = 3
@@ -336,6 +345,9 @@ class LessonConfig:
     stamina_max: int | None = None
     # 属性倍率：考试/舞台屏幕上的「歌唱 411%」= 4.11；课程 ≈ 1.0（默认）
     attribute_coefficient: float = 1.0
+    # 方案（プラン）：sense=感性 / logic=理性 / anomaly=非凡；未知值退回 sense。
+    # 只影响 greedy_policy 的 buff 优先级（见 data/knowledge/plans.json）。
+    plan: str = DEFAULT_PLAN
 
 
 @dataclass
@@ -386,6 +398,18 @@ class LessonSim:
         self.extra_plays: int = 0
         # 非凡指針：温存 / 強気 / 全力 的倍率状态（纯函数模块 stance.py）
         self.stance = StanceState()
+        # 方案（プラン）：greedy_policy 按它决定先铺哪些 buff；未知值退回 sense。
+        self.plan = normalize_plan(getattr(config, "plan", DEFAULT_PLAN)) or DEFAULT_PLAN
+        self.plan_config: Plan = default_plan_library().get(self.plan)
+        # 三档目标：score < target_clear → FAILED（0 属性）；≥ target_clear → CLEAR；
+        # ≥ target_perfect → PERFECT（拿 CLEAR+PERFECT 满档）。target_perfect 缺省
+        # 按用户口径取 target_clear × 2，不再"打到 CLEAR 就收手"。
+        self.target_clear = int(config.target_clear)
+        self.target_perfect = int(
+            config.target_perfect
+            if config.target_perfect is not None
+            else config.target_clear * 2
+        )
 
         # 元气 / 干劲：元气（ExamBlock）优先抵牌费，也能喂依赖元气的分数
         self.vitality: int = 0
@@ -421,13 +445,22 @@ class LessonSim:
         return not self._has_unused_stamina_drink()
 
     @property
+    def reward_tier(self) -> int:
+        """三档结算：0=FAILED（0 属性）/ 1=CLEAR（clear 档）/ 2=PERFECT（clear+perfect 档）。"""
+        if self.score >= self.target_perfect:
+            return 2
+        if self.score >= self.target_clear:
+            return 1
+        return 0
+
+    @property
     def result(self) -> str:
-        """按当前分数给出评价；``target_perfect`` 为 None 时永远不会 PERFECT。"""
-        if self.config.target_perfect is not None and self.score >= self.config.target_perfect:
-            return "PERFECT"
-        if self.score >= self.config.target_clear:
-            return "CLEAR"
-        return "FAILED"
+        """按当前分数给出评价（三档与 ``reward_tier`` 一致）。
+
+        ``target_perfect`` 缺省 = 2×``target_clear``；真机训练要打满 PERFECT
+        才拿 CLEAR+PERFECT 的完整属性。
+        """
+        return ("FAILED", "CLEAR", "PERFECT")[self.reward_tier]
 
     def legal_actions(self) -> list[Action]:
         """当前能出的手牌下标 + SKIP（None，固定在最后）。
@@ -845,6 +878,19 @@ class LessonSim:
         return self.deck.pop()
 
 
+def _plan_card_matches(card: CardSpec, name: str) -> bool:
+    """这张牌是否属于方案优先级里的某一类 buff（按 CardSpec 字段判断）。"""
+    return any(getattr(card, field, 0) > 0 for field in PLAN_BUFF_FIELDS.get(name, ()))
+
+
+def _plan_buff_rank(card: CardSpec, priority: tuple[str, ...]) -> int:
+    """方案优先级名次：0 = 最先铺；没命中任何优先 buff 的牌排在最后。"""
+    for rank, name in enumerate(priority):
+        if _plan_card_matches(card, name):
+            return rank
+    return len(priority)
+
+
 def greedy_policy(sim: LessonSim) -> Action:
     """基线策略：能出的牌里挑 ``分数 / 体力`` 最高的，都出不起就 SKIP。
 
@@ -860,34 +906,21 @@ def greedy_policy(sim: LessonSim) -> Action:
     也常常 ``score=0``，同样给固定效率 ``_DEPENDENT_CARD_EFFICIENCY``，
     避免这类牌永远轮不到；已经有白值的牌仍按白值效率排序。
     ``full_power_scale``（全力值折算分）也是 ``score=0`` 也能得分的牌，按同一档处理。
+
+    **方案（プラン）**：``LessonConfig.plan`` 决定先铺哪些 buff——
+
+    - 感性/理性：前 ``early_buff_turns`` 回合按 ``plans[plan].buff_priority``
+      的顺序铺层（感性 好调→集中、理性 好印象→やる気）；
+    - 非凡：早期不无脑铺 buff，先切温存（没到 2 段階时）攒全力值，最后 2 回合
+      直接兑现打分/全力折算牌。
     """
     playable = [index for index in sim.legal_actions() if index is not None]
     if not playable:
         return None
 
-    # 前几个回合（剩余回合数 >= 3）先铺层数类 buff：集中/好调/印象/干劲会让后续每张
-    # 牌更强，越早铺越值钱（2026-11-15 用户打法；与真机 LessonPolicy.buff_early_turns 对齐）。
-    if sim.turns_left >= 3:
-        buffs = [
-            index
-            for index in playable
-            if sim.hand[index].focus > 0
-            or sim.hand[index].condition > 0
-            or sim.hand[index].impression > 0
-            or sim.hand[index].motivation > 0
-        ]
-        if buffs:
-            def _buff_key(index: int) -> tuple[float, int, int]:
-                card = sim.hand[index]
-                weight = (
-                    card.focus * 30.0
-                    + card.condition * 40.0
-                    + card.impression * 20.0
-                    + card.motivation * 10.0
-                )
-                return (weight, -card.cost, -index)
-
-            return max(buffs, key=_buff_key)
+    plan = getattr(sim, "plan", DEFAULT_PLAN)
+    plan_config = getattr(sim, "plan_config", None) or default_plan_library().get(plan)
+    turns = sim.turns_left
 
     def efficiency(index: int) -> tuple[float, float, int, int]:
         card = sim.hand[index]
@@ -914,5 +947,78 @@ def greedy_policy(sim: LessonSim) -> Action:
             )
         # 0 费牌按 1 费算，避免"1 分 0 费"霸榜
         return (card.score / max(card.cost, 1), card.score, -card.cost, -index)
+
+    # 目标函数是 PERFECT，不是 CLEAR：最后一回合还没到 PERFECT 线时按"总分最大"
+    # 选牌（而不是性价比），把 CLEAR+PERFECT 的完整属性档打满。
+    if turns is not None and turns <= 1 and sim.score < sim.target_perfect:
+        return max(
+            playable,
+            key=lambda index: (
+                sim.hand[index].score,
+                sim.hand[index].full_power_scale,
+                -sim.hand[index].cost,
+                -index,
+            ),
+        )
+
+    if plan == "anomaly":
+        if turns is not None and turns <= 2:
+            # 全力窗口：最后 1-2 回合不再铺指針，直接兑现打分 / 全力值折算牌。
+            cash = [
+                index
+                for index in playable
+                if sim.hand[index].score > 0 or sim.hand[index].full_power_scale > 0
+            ]
+            if cash:
+                return max(cash, key=efficiency)
+        else:
+            # 温存优先：先切到温存（未满 2 段階时）攒全力值，再考虑其它动作。
+            if sim.stance.save_level < 2:
+                save = [index for index in playable if sim.hand[index].preservation > 0]
+                if save:
+                    return max(
+                        save,
+                        key=lambda index: (
+                            sim.hand[index].full_power_point,
+                            -sim.hand[index].cost,
+                            -index,
+                        ),
+                    )
+            # 全力值没攒满前，优先打全力值牌，否则「全力 ×3」的窗口永远不来。
+            if sim.stance.stance != "full" and sim.stance.full_power_point < FULL_POWER_POINT_COST:
+                build = [index for index in playable if sim.hand[index].full_power_point > 0]
+                if build:
+                    return max(
+                        build,
+                        key=lambda index: (
+                            sim.hand[index].full_power_point,
+                            -sim.hand[index].cost,
+                            -index,
+                        ),
+                    )
+    elif turns is not None and turns >= plan_config.early_buff_turns > 0:
+        # 前几个回合先铺层数类 buff：集中/好调/印象/干劲会让后续每张牌更强，
+        # 越早铺越值钱；顺序按方案 buff_priority（感性 好调→集中、理性 好印象→やる気）。
+        buffs = [
+            index
+            for index in playable
+            if sim.hand[index].focus > 0
+            or sim.hand[index].condition > 0
+            or sim.hand[index].impression > 0
+            or sim.hand[index].motivation > 0
+        ]
+        if buffs:
+            def _buff_key(index: int) -> tuple[int, float, int, int]:
+                card = sim.hand[index]
+                rank = _plan_buff_rank(card, plan_config.buff_priority)
+                weight = (
+                    card.focus * 30.0
+                    + card.condition * 40.0
+                    + card.impression * 20.0
+                    + card.motivation * 10.0
+                )
+                return (-rank, weight, -card.cost, -index)
+
+            return max(buffs, key=_buff_key)
 
     return max(playable, key=efficiency)

@@ -34,6 +34,7 @@
   "sim_choice": false,
   "lesson_min_stamina": 12,
   "sim_play": false,
-  "audition_coefficient": 4.11
+  "audition_coefficient": 4.11,
+  "plan": "sense"
  }
 }

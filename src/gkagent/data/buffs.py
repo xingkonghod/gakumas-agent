@@ -99,6 +99,27 @@ class BuffLibrary:
         hits = self.find(text)
         return hits[0].play_order if hits else 50
 
+    def matches(self, text: str, name: str) -> bool:
+        """卡面文本是否命中名字叫 ``name`` 的 buff（中/日文关键词都算）。"""
+        if not text or not name:
+            return False
+        return any(
+            name in buff.cn or name in buff.jp
+            for buff in self.find(text)
+        )
+
+    def plan_rank(self, text: str, priority: tuple[str, ...]) -> tuple[int, int]:
+        """按方案优先级给一张牌排序：命中 ``priority[i]`` → ``(i, 0)``。
+
+        没命中任何优先 buff 的牌排在所有优先项之后，再按原来的 ``play_order``
+        细分（保留"元气/防御后置"这类全局经验）。返回值越小越先打。
+        """
+        hits = self.find(text)
+        for rank, name in enumerate(priority):
+            if any(name in buff.cn or name in buff.jp for buff in hits):
+                return rank, 0
+        return len(priority), hits[0].play_order if hits else 50
+
     def value(self, text: str, *, turns_left: int | None = None) -> float:
         """buff 文本折算成"等效分数"，只用于和打分牌排序。
 

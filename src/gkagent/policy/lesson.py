@@ -5,12 +5,20 @@
 1. 只用分数预览判断收益——那是游戏自己算好的值，含好调/集中/属性倍率；
 2. 按 ``分数 ÷ 体力`` 选牌；0 费牌按 1 费算，避免被"1 分 0 费"骗；
 3. 每个回合的体力预算 ≈ ``体力 / 剩余回合``，先给后面的回合留饭；
-4. 剩余回合 ≥2 且本回合还没上过 buff 时，先铺一张便宜的 好调/集中（后续牌吃倍率）；
-5. 没有正收益的牌就 **SKIP 结束回合**，不要瞎点卡面空转；
-6. 已经过了审查基准、剩下的牌又不值几分时，也别再烧体力。
+4. 铺 buff 的顺序**按方案（プラン）**：感性 好调→集中、理性 好印象→やる気、
+   非凡 温存优先（最后 1-2 回合留给全力/大分牌），数据在
+   ``data/knowledge/plans.json``；
+5. 剩余回合 ≥ ``early_buff_turns`` 且本回合还没上过 buff 时，先铺一张便宜的
+   方案优先 buff（后续牌吃倍率）；
+6. 目标函数按 **PERFECT** 而不是 CLEAR：``LessonState.gauge`` 是屏幕 CLEAR
+   基准，PERFECT 线 = gauge × 2；没到线时按"总分最大"补缺口、不因低于
+   ``min_gain`` 而 SKIP（真机只打 CLEAR 只拿半档属性）；
+7. 没有正收益的牌就 **SKIP 结束回合**，不要瞎点卡面空转；
+8. 已经到 PERFECT 线、剩下的牌又不值几分时，也别再烧体力。
 
 数值参数全部外置到 ``data/knowledge/policy.json``：模拟器扫出来的参数写回文件后，
 真机下一次构造 ``LessonPolicy`` 就生效；``describe()`` 返回当前生效参数，便于日志对比。
+当前方案读 ``policy.json`` 的 ``produce.plan``（缺省/未知一律退回 ``sense``）。
 
 策略只产出"点哪里"，不负责点击的时序（两段式确认由调用方处理）。
 """
@@ -25,6 +33,14 @@ from typing import Any, ClassVar
 
 from gkagent.data.buffs import BuffLibrary
 from gkagent.data.card_effects import estimate_value
+from gkagent.data.plans import (
+    DEFAULT_PLAN,
+    VALID_PLANS,
+    Plan,
+    PlanLibrary,
+    default_plan_library,
+    normalize_plan,
+)
 from gkagent.vision.lesson import LessonCard, LessonState, card_value
 
 # 默认参数文件：真机与模拟器共用。模拟器也可以先写 policy_sim.json 再通过 params_path 传进来。
@@ -33,6 +49,7 @@ DEFAULT_POLICY_PATH = Path(__file__).resolve().parents[3] / "data" / "knowledge"
 # 字符串型参数的合法取值；文件里写错就回退默认值，不让策略崩。
 _ALLOWED_VALUES: dict[str, frozenset[str]] = {
     "unknown_score_fallback": frozenset({"cheapest", "skip"}),
+    "plan": frozenset(VALID_PLANS),
 }
 
 
@@ -55,6 +72,8 @@ class LessonPolicy:
     """
 
     DEFAULT_PARAMS: ClassVar[dict[str, Any]] = {
+        # 方案（プラン）：sense=感性 / logic=理性 / anomaly=非凡；未知值退回 sense
+        "plan": DEFAULT_PLAN,
         # 保留给后续回合的体力下限：每剩 1 回合至少留这么多
         "reserve_per_turn": 2.0,
         # 分数预览 ≤ 这个值（且不是 buff）被视为"没用"
@@ -81,19 +100,28 @@ class LessonPolicy:
         # 分数是卡表兜底估出来的（屏幕宝石没读到）时按这个系数轻微降权：
         # 不把它当 0 分卡跳过，但也别完全信任估值。
         "estimated_score_weight": 0.9,
+        # PERFECT 线 = 屏幕 CLEAR 基准（LessonState.gauge）× 该倍率。
+        # 目标函数按 PERFECT 而不是 CLEAR：没到线就不收手（真机 CLEAR 只拿半档属性）。
+        "perfect_target_multiplier": 2.0,
     }
 
     def __init__(
         self,
         *,
         buffs: BuffLibrary | None = None,
+        plans: PlanLibrary | None = None,
+        plan: str | None = None,
         buff_first: bool | None = None,
         min_gain: float | None = None,
         params: dict | None = None,
         params_path: str | Path | None = None,
     ) -> None:
         self.buffs = buffs or BuffLibrary.load()
+        self.plans = plans or default_plan_library()
         self.params = self._resolve_params(params, params_path)
+        # 显式 plan 参数优先级最高；未知值按需求退回 sense，不抛异常。
+        if plan is not None:
+            self.params["plan"] = normalize_plan(plan) or DEFAULT_PLAN
         # 兼容旧的显式关键字参数（优先级最高）
         if buff_first is not None:
             self.params["buff_first"] = bool(buff_first)
@@ -106,6 +134,26 @@ class LessonPolicy:
         self._buff_played_this_turn = False
 
     # ------------------------------------------------------------------ 参数
+    @property
+    def plan(self) -> str:
+        """当前方案 key（``sense`` / ``logic`` / ``anomaly``）。"""
+        return normalize_plan(self.params.get("plan")) or DEFAULT_PLAN
+
+    @property
+    def plan_config(self) -> Plan:
+        """当前方案的完整配置（buff 优先级 / 前期回合数 / 是否先铺后打）。"""
+        return self.plans.get(self.plan)
+
+    @property
+    def buff_priority(self) -> tuple[str, ...]:
+        """按方案决定的 buff 出牌顺序。"""
+        return self.plan_config.buff_priority
+
+    @property
+    def early_buff_turns(self) -> int:
+        """前 N 个回合（剩余回合数 ≥ N）buff 优先，按方案取值。"""
+        return self.plan_config.early_buff_turns
+
     @property
     def buff_first(self) -> bool:
         return bool(self.params["buff_first"])
@@ -128,6 +176,10 @@ class LessonPolicy:
         """当前生效的规则参数（拷贝，供日志/评测对比）。"""
         return dict(self.params)
 
+    def describe_plan(self) -> dict[str, Any]:
+        """当前方案的配置（方案名 / buff 顺序 / early_buff_turns / notes）。"""
+        return self.plan_config.as_dict()
+
     @classmethod
     def _resolve_params(
         cls, params: dict | None, params_path: str | Path | None
@@ -135,18 +187,36 @@ class LessonPolicy:
         values = dict(cls.DEFAULT_PARAMS)
         # 不传 params_path 时尝试默认文件；显式传路径则只认那个路径（缺失=默认值）。
         path = Path(params_path) if params_path is not None else DEFAULT_POLICY_PATH
-        values.update(cls._read_overrides(path, values))
+        raw = cls._read_json(path)
+        if raw is not None:
+            values.update(cls._coerce(raw, values))
+            # produce.plan 是唯一从 produce 段读进 lesson 策略的字段（默认 sense）。
+            file_plan = cls._read_plan(raw)
+            if file_plan is not None:
+                values["plan"] = file_plan
         if params:
             values.update(cls._coerce(params, values))
+            if "plan" in params:
+                values["plan"] = normalize_plan(params["plan"]) or DEFAULT_PLAN
         return values
 
-    @classmethod
-    def _read_overrides(cls, path: Path, base: dict[str, Any]) -> dict[str, Any]:
+    @staticmethod
+    def _read_json(path: Path) -> object | None:
         try:
-            raw = json.loads(path.read_text(encoding="utf-8"))
+            return json.loads(path.read_text(encoding="utf-8"))
         except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            return {}
-        return cls._coerce(raw, base)
+            return None
+
+    @staticmethod
+    def _read_plan(raw: object) -> str | None:
+        """从 policy.json 的 ``produce.plan``（兼容顶层 ``plan``）读方案。"""
+        if not isinstance(raw, dict):
+            return None
+        produce = raw.get("produce")
+        candidate = produce.get("plan") if isinstance(produce, dict) else None
+        if candidate is None:
+            candidate = raw.get("plan")
+        return normalize_plan(candidate)
 
     @classmethod
     def _coerce(cls, raw: object, base: dict[str, Any]) -> dict[str, Any]:
@@ -210,6 +280,12 @@ class LessonPolicy:
         SKIP 出口，退化为「硬打一张最值的」/「等下一帧交给兜底选牌」。
         """
         self._sync_turn(state.turns_left)
+        perfect_target = self._perfect_target(state)
+        below_perfect = (
+            perfect_target is not None
+            and state.score is not None
+            and state.score < perfect_target
+        )
         cards = [card for card in state.cards if card.name or card.score is not None]
         if not cards:
             return LessonAction("wait", reason="没读到手牌")
@@ -262,10 +338,16 @@ class LessonPolicy:
         if buff_action is not None:
             return buff_action
 
-        # 2) 性价比最高的牌
-        best = self._best_score_card(affordable, values, budget, turns)
+        # 2) 性价比最高的牌（没到 PERFECT 线时改为"总分最大"，先把缺口补上）
+        best = self._best_score_card(
+            affordable, values, budget, turns, prefer_total=below_perfect
+        )
         if best is None:
-            if self.params["unknown_score_fallback"] == "skip" and allow_skip:
+            if (
+                self.params["unknown_score_fallback"] == "skip"
+                and allow_skip
+                and not below_perfect
+            ):
                 return LessonAction(
                     "skip",
                     point=state.skip_point,
@@ -284,6 +366,12 @@ class LessonPolicy:
                 )
             if not allow_skip:
                 return self._must_play(affordable, values, "考试不允许 SKIP，硬打一张")
+            if below_perfect:
+                # 还没到 PERFECT 线：哪怕这张牌的收益低于 min_gain，也要继续推进，
+                # 不能像以前那样"打够 CLEAR 就收手"。
+                return self._must_play(
+                    affordable, values, "还没到 PERFECT 线，继续打一张"
+                )
             return LessonAction(
                 "skip",
                 point=state.skip_point,
@@ -321,6 +409,17 @@ class LessonPolicy:
             value = max(value * weight, min(value, float(self.params["min_gain"])))
         return value
 
+    def _perfect_target(self, state: LessonState) -> int | None:
+        """PERFECT 线 = 屏幕 CLEAR 基准 × ``perfect_target_multiplier``。
+
+        ``LessonState.gauge`` 是课程界面上读到的 CLEAR 基准；没有它（试镜/OCR
+        没读到）时返回 None，策略退回原来的"性价比优先"。
+        """
+        gauge = state.gauge
+        if gauge is None or gauge <= 0:
+            return None
+        return math.ceil(gauge * float(self.params["perfect_target_multiplier"]))
+
     def _budget(self, stamina: int | None, turns: int | None) -> float:
         if stamina is None:
             return 99.0
@@ -341,13 +440,14 @@ class LessonPolicy:
         turns = state.turns_left
         if turns is not None and turns <= 1:
             return None
-        buffs = [card for card in affordable if card.buff]
+        buffs = [card for card in affordable if self._is_buff_candidate(card)]
         if not buffs:
             return None
-        # 知识库给每种 buff 定了出牌顺序（好调/集中先铺，元气/干劲后置），同序再比费用
+        # 方案（プラン）决定 buff 顺序：感性 好调→集中、理性 好印象→やる気、
+        # 非凡 温存→強気→全力；同序再比费用。
         buffs.sort(
             key=lambda card: (
-                self.buffs.play_order(card.text),
+                self.buffs.plan_rank(card.text, self.buff_priority),
                 card.cost if card.cost is not None else 9,
                 card.index,
             )
@@ -369,7 +469,11 @@ class LessonPolicy:
         if self._plays_this_turn > 0:
             return None
         best_score = max(
-            (values.get(card.index, 0.0) for card in affordable if not card.buff),
+            (
+                values.get(card.index, 0.0)
+                for card in affordable
+                if not self._is_buff_candidate(card)
+            ),
             default=0.0,
         )
         # 手里没有能打分的牌时，铺 buff 完全无效（打了也吃不到倍率）——2026-11-15 用户实测反馈
@@ -379,24 +483,61 @@ class LessonPolicy:
             buff_value = estimate_value(candidate.text, turns_left=turns).score
         else:
             buff_value = float(self.params["buff_value_fallback"])
-        guard = float(self.params["buff_score_guard"])
-        # 早期回合（剩余回合数 ≥ buff_early_turns）buff 优先：层数 buff 越早铺收益越大，
-        # 这时只有「能一击清 CLEAR」的分数牌才压过 buff（turn_gain_expected>0 保留原语义）。
-        early_turns = int(self.params.get("buff_early_turns", 3) or 0)
-        early = turns is not None and turns >= early_turns > 0
-        if not early and best_score >= guard * max(buff_value, 1.0) and turn_gain_expected(best_score) > 0:
-            return None
+        plan = self.plan_config
+        candidate_rank = self.buffs.plan_rank(candidate.text, self.buff_priority)[0]
+        if not plan.score_after_buff:
+            # 非凡（アノマリー）：不在早期无脑铺 buff。温存（优先级第一）先铺，
+            # 用来攒全力值；最后 1-2 回合不再铺，把回合留给全力/大分牌兑现。
+            if turns is not None and turns <= 2:
+                return None
+            if candidate_rank > 0:
+                return None
+        else:
+            # 早期回合（剩余回合数 ≥ 方案 early_buff_turns）buff 优先：层数 buff
+            # 越早铺收益越大，这时只有「能一击清 CLEAR」的分数牌才压过 buff。
+            early_turns = self.early_buff_turns
+            early = turns is not None and turns >= early_turns > 0
+            guard = float(self.params["buff_score_guard"])
+            if (
+                not early
+                and best_score >= guard * max(buff_value, 1.0)
+                and turn_gain_expected(best_score) > 0
+            ):
+                return None
+        if plan.score_after_buff:
+            reason = (
+                f"先上 buff（{plan.cn}）：{candidate.name or '卡'}（体力 {candidate.cost}，"
+                f"等效 {buff_value:.1f}，剩余 {turns} 回合）"
+            )
+        else:
+            reason = (
+                f"非凡温存优先：{candidate.name or '卡'}（体力 {candidate.cost}，"
+                f"等效 {buff_value:.1f}，剩余 {turns} 回合）"
+            )
         return LessonAction(
             "card",
             index=candidate.index,
             point=candidate.point,
             card=candidate,
             expected=buff_value,
-            reason=(
-                f"先上 buff：{candidate.name or '卡'}（体力 {candidate.cost}，"
-                f"等效 {buff_value:.1f}，剩余 {turns} 回合）"
-            ),
+            reason=reason,
         )
+
+    def _is_buff_candidate(self, card: LessonCard) -> bool:
+        """这张牌能不能按"铺 buff"处理。
+
+        - 感性/理性沿用旧口径：只认读屏打上的 ``card.buff`` 标记；
+        - 非凡的指針牌（温存/強気/全力）在真机上不一定被 ``is_buff_text``
+          认成 buff，所以再按方案优先级匹配一次卡面文本（带打分的牌除外）。
+        """
+        if card.buff:
+            return True
+        if self.plan_config.score_after_buff:
+            return False
+        text = card.text or ""
+        if not text or any(word in text for word in ("打分", "得分", "分数", "スコア")):
+            return False
+        return any(self.buffs.matches(text, name) for name in self.buff_priority)
 
     @staticmethod
     def _must_play(
@@ -447,6 +588,8 @@ class LessonPolicy:
         values: dict[int, float],
         budget: float,
         turns: int | None = None,
+        *,
+        prefer_total: bool = False,
     ) -> tuple[LessonCard, float] | None:
         scored = [
             (card, values.get(card.index, 0.0))
@@ -470,6 +613,18 @@ class LessonPolicy:
             item for item in scored if (item[0].cost or 0) <= budget or item[0].cost is None
         ]
         pool = in_budget or scored
+        if prefer_total:
+            # 还没到 PERFECT 线：优先把单张总分最高的打出去（而不是性价比），
+            # 同时不再用 min_gain 卡掉"分数不大但能把缺口补上"的牌。
+            pool.sort(
+                key=lambda item: (
+                    item[1],
+                    -item[0].cost if item[0].cost is not None else 0,
+                    -item[0].index,
+                ),
+                reverse=True,
+            )
+            return pool[0]
         pool.sort(
             key=lambda item: (
                 item[1] / max(item[0].cost or 3, 1),
