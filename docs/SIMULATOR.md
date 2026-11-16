@@ -201,6 +201,12 @@ ExamPlayableValueAdd(357)、ExamStatusEnchant(285)、ExamEffectTimer(282)、Exam
 `local-files/masterTrans/ProduceCard.json`，据此把 `data/master/produce_cards.json`
 从 1724 行更新到 1817 行，再跑 `build_card_table.py` + `fetch_card_values.py`。
 
+**2026-11-16 19:51 复核**：上游最新 release 仍为 **v2.3.66**（asset
+2026-11-15T20:37:16Z；`ProduceCard.json` 21,963,119 B，SHA-256
+`154c28a7ca6a26987d746d36653775ebbd40a79de82c477362d0903a32b1c36a`），与本节
+已用数据逐字节一致；重新下载并重建后仍 **1817** 行，卡名/文本 0 变更，
+`card_table.json` 哈希不变，故无需改动卡表。
+
 **差异（逐 (id, upgrade) 对比旧表）**
 
 | 项 | 数值 |
