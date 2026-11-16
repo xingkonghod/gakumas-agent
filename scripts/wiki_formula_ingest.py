@@ -10,6 +10,9 @@
   ``clear+perfect`` 是「授業（lesson）」的基础属性上升；``train_clear`` 是
   「レッスン/追い込み（train）」的基础上升。两者分开是因为模拟器的默认策略
   仍按自己的节奏选课/训练，不能保证和官方排期一一对应。
+  注意：这里沿用 official.json 的历史 schema（``lesson`` = 授業、``train`` = レッスン），
+  与模拟器 2026-11-16 改名后的新名（training = レッスン、class = 授業）方向相反；
+  写盘键名保持不变，避免已有 official.json 与旧消费者失效。
 - ``formulas``：官方公式的字符串形式；日文原文存在 ``wiki_*`` 字段里。
 - ``source``：每个字段的来源（leafierlemon / seesaawiki / manual / assumed / real）。
 - ``constants``：周数、考试周、训练曲线、评价点公式常量。
@@ -80,9 +83,11 @@ CANONICAL_FORMULAS = {
 MANUAL_CONSTANTS = {
     "weeks": 16,
     "exam_weeks": [7, 16],
-    "lesson_gain_ratio": 0.5,
+    "lesson_gain_ratio": 0.5,  # official.json 历史 schema 键名（旧口径 fallback 系数）
     "support_bonus": 1.2,
     "audition_coefficient": 4.11,
+    # official.json 历史 schema：train = レッスン(训练) 的 40→165 成长曲线。
+    # 不改成 training_*，保持与磁盘上已有 official.json 的键名一致。
     "train_gain_start": TRAIN_START,
     "train_gain_end": TRAIN_END,
     "rank_points": {"1": 1700, "2": 900, "3": 500},
@@ -237,7 +242,7 @@ def main(argv: list[str]) -> int:
         "formulas_kind": mechanics_kind,
         "eval": "official_prompt",
         "class_gain_curve": "assumed",
-        "train_gain_curve": "real",
+        "train_gain_curve": "real",  # 历史 schema：train = レッスン(训练) 的成长曲线来源
         "weeks": schedule_source,
     }
     data = {

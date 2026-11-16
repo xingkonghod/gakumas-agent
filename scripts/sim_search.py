@@ -4,7 +4,7 @@
     python scripts/sim_search.py --episodes 1500 --samples 60
     python scripts/sim_search.py --write          # 最优参数写 data/knowledge/policy_sim.json
 
-搜索空间（StrategyParams）：休息阈值 / 上课节奏 / 上课体力门 / 练哪个属性 / 外出门槛 / 硬练下限。
+搜索空间（StrategyParams）：休息阈值 / 训练节奏 / 训练体力门 / 上课体力门 / 练哪个属性 / 外出门槛。
 """
 
 from __future__ import annotations
@@ -33,13 +33,13 @@ PLAY_GRID = {
 
 GRID = {
     "rest_threshold": [6, 8, 10, 12, 14],
-    "lesson_every": [1, 2, 3],
-    # 上课体力门：真机 0 体力进课一张牌都打不出，只白送回合。
-    # 8 是低于课程消耗(10)的反例，10/12/14 是安全区，让搜索自己选。
-    "lesson_min_stamina": [8, 10, 12, 14],
+    "training_every": [1, 2, 3],
+    # 训练体力门：真机 0 体力进训练一张牌都打不出，只白送回合。
+    # 8 是低于训练消耗(10)的反例，10/12/14 是安全区，让搜索自己选。
+    "training_min_stamina": [8, 10, 12, 14],
     "attr_choice": ["weight", "lowest"],
     "outing_below": [-1, 16, 20],
-    "min_stamina_to_train": [8, 10, 12],
+    "min_stamina_for_class": [8, 10, 12],
 }
 
 
@@ -58,11 +58,11 @@ def evaluate(task: tuple) -> dict:
     pool = _to_specs(pool_raw)
     params = StrategyParams(**params_dict)
     strategy = strategy_from_params(params)
-    # 不覆盖 calibration 默认值：lesson_gain_ratio=0.5 / support_bonus=1.2
+    # 不覆盖 calibration 默认值：training_gain_ratio=0.5 / support_bonus=1.2
     # （真机 C/4135 反推，见 ProduceConfig docstring）
     config = ProduceConfig(reward_pick="best")
 
-    totals, evals, grades, exams, clears, lessons = [], [], [], 0, 0, 0
+    totals, evals, grades, exams, clears, trainings = [], [], [], 0, 0, 0
     for episode in range(episodes):
         sim = ProduceSim(deck, config=config, rng_seed=seed + episode)
         sim.reward_pool = pool
@@ -77,13 +77,13 @@ def evaluate(task: tuple) -> dict:
         evals.append(eval_value(result.total, rank, result.exam_score))
         exams += result.exams_passed
         clears += result.cleared
-        lessons += result.lessons
+        trainings += result.trainings
     return {
         "params": params_dict,
         "mean": round(stats.mean(totals), 1),
         "p10": round(sorted(totals)[max(0, len(totals) // 10)], 1),
         "exams": round(exams / episodes, 2),
-        "clear_rate": round(clears / max(lessons, 1), 3),
+        "clear_rate": round(clears / max(trainings, 1), 3),
         "fail_exam_rate": round(1 - exams / episodes / 2, 3),
         "n": episodes,
         "mean_eval": round(stats.mean(evals), 1),
@@ -119,8 +119,9 @@ def evaluate_play(task: tuple) -> dict:
     pool = _to_specs(pool_raw)
     # 用校准后的默认值（ratio=0.5 / support=1.2），不要在这里改单卡收益口径
     config = ProduceConfig(reward_pick="best")
-    strategy = strategy_from_params(StrategyParams(rest_threshold=8, lesson_every=1, lesson_min_stamina=12,
-                                                   attr_choice="weight", outing_below=16, min_stamina_to_train=8))
+    strategy = strategy_from_params(StrategyParams(rest_threshold=8, training_every=1,
+                                                   training_min_stamina=12, attr_choice="weight",
+                                                   outing_below=16, min_stamina_for_class=8))
 
     with tempfile.TemporaryDirectory() as tmp:
         path = _Path(tmp) / "policy.json"
@@ -246,14 +247,14 @@ def main(argv: list[str]) -> int:
     keys = list(GRID)
     all_combos = list(itertools.product(*(GRID[key] for key in keys)))
     rng = random.Random(7)
-    # 已知好参数（rest=8/每周上课/体力门12/按权重/外出16/下限8）
+    # 已知好参数（rest=8/每周训练/训练体力门12/按权重/外出16/上课体力门8）
     warm_params = {
         "rest_threshold": 8,
-        "lesson_every": 1,
-        "lesson_min_stamina": 12,
+        "training_every": 1,
+        "training_min_stamina": 12,
         "attr_choice": "weight",
         "outing_below": 16,
-        "min_stamina_to_train": 8,
+        "min_stamina_for_class": 8,
     }
     warm = tuple(warm_params[key] for key in keys)
     combos = [warm] + [combo for combo in rng.sample(all_combos, min(args.samples, len(all_combos))) if combo != warm]

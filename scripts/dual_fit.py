@@ -157,7 +157,7 @@ def parameter_rows(official: dict, config: ProduceConfig, real_runs: list[dict])
             "evidence": "非授業周（训练周/空周）默认策略仍可能选上课：65→125 线性插值",
         },
         {
-            "name": "train_gain_curve",
+            "name": "training_gain_curve",
             "value": [40, 165],
             "source": "real",
             "evidence": "真机实测训练 40→165；165 同时是最终追い込み CLEAR",
@@ -169,7 +169,8 @@ def parameter_rows(official: dict, config: ProduceConfig, real_runs: list[dict])
             "evidence": "leafierlemon 追い込み行 CLEAR/PERFECT",
         },
         {
-            "name": "lesson_gain_formula",
+            "name": "training_gain_formula",
+            # official.json 的 formulas 段沿用历史键名 lesson_gain（レッスン中パラメータ上昇値）
             "value": (official.get("formulas") or {}).get("lesson_gain"),
             "source": "official" if src.get("formulas") == "seesaawiki" else "assumed",
             "evidence": "seesaawiki レッスン中パラメータ上昇値（好調倍率×上昇量增加）",
@@ -199,17 +200,17 @@ def parameter_rows(official: dict, config: ProduceConfig, real_runs: list[dict])
             "evidence": "支援卡 Lv10/10/10/20/10/60 的均值/SR 档折算 1.2",
         },
         {
-            "name": "lesson_gain_ratio",
-            "value": config.lesson_gain_ratio,
+            "name": "training_gain_ratio",
+            "value": config.training_gain_ratio,
             "source": "assumed",
-            "evidence": "旧口径 fallback；schedule_source=official 时不参与课程收益",
+            "evidence": "旧口径 fallback；schedule_source=official 时不参与训练收益",
         },
         {
-            "name": "stamina_max/train_cost/lesson_cost/rest_gain",
+            "name": "stamina_max/class_cost/training_cost/rest_gain",
             "value": [
                 config.stamina_max,
-                config.train_cost,
-                config.lesson_cost,
+                config.class_cost,
+                config.training_cost,
                 config.rest_gain,
             ],
             "source": "assumed",
@@ -267,14 +268,14 @@ def diagnosis(sim: dict, real: dict) -> list[str]:
         "本轮按用户给定目标（final total 971）对齐，起始属性未建模。"
     )
     items.append(
-        "周数分配：模拟默认策略在 16 周里做 10 次课 + 4 次休息 + 2 次考试；"
-        "官方行动排期是 3 次课 + 6 次训练 + 5 次休息 + 2 次考试（体力门导致部分"
-        "训练周变休息）。两者 total 都在目标附近，但「8 次课 + 4 次训练」的真机"
+        "周数分配：模拟默认策略在 16 周里做 10 次训练 + 4 次休息 + 2 次考试；"
+        "官方行动排期是 6 次上课 + 3 次训练 + 5 次休息 + 2 次考试（体力门导致部分"
+        "训练周变休息）。两者 total 都在目标附近，但「8 次训练 + 4 次上课」的真机"
         "动作组合没有被强制复现。"
     )
     items.append(
-        "仍 assumed 的参数：起始三维、体力/费用、npc 基准与倍率、非授课周课程收益曲线、"
-        "lesson_gain_ratio（official 模式不用）。这些需要真机逐周记录或更多跑局才能收紧。"
+        "仍 assumed 的参数：起始三维、体力/费用、npc 基准与倍率、非授课周上课收益曲线、"
+        "training_gain_ratio（official 模式不用）。这些需要真机逐周记录或更多跑局才能收紧。"
     )
     return items
 

@@ -1,6 +1,6 @@
-"""敏感性分析：课程成长系数从 0.2 扫到 1.0，看"纯训练 vs 能上课就上课"谁更强。
+"""敏感性分析：训练成长系数从 0.2 扫到 1.0，看"纯上课 vs 能训练就训练"谁更强。
 
-背景：真机锚点只有"评价 C / 4135 评价点 / 三维约 1000-1200"，`lesson_gain_ratio`
+背景：真机锚点只有"评价 C / 4135 评价点 / 三维约 1000-1200"，`training_gain_ratio`
 的机制值是 1.0，但模拟牌组比真机强约 2 倍，所以校准默认值取 0.5；这张图用来看
 "结论在什么系数下成立"，避免把一次拟合当真理。
 
@@ -25,16 +25,16 @@ RATIOS = (0.20, 0.40, 0.50, 0.60, 0.80, 0.90, 1.00)
 CALIBRATED = 0.50
 
 VARIANTS = {
-    "纯训练": {
-        "lesson_every": 0, "rest_threshold": 8, "attr_choice": "weight",
-        "outing_below": -1, "min_stamina_to_train": 10,
+    "纯上课": {
+        "training_every": 0, "rest_threshold": 8, "attr_choice": "weight",
+        "outing_below": -1, "min_stamina_for_class": 10,
     },
-    "能上课就上课": {
-        "lesson_every": 1, "rest_threshold": 8, "attr_choice": "weight",
-        "outing_below": 16, "min_stamina_to_train": 8,
+    "能训练就训练": {
+        "training_every": 1, "rest_threshold": 8, "attr_choice": "weight",
+        "outing_below": 16, "min_stamina_for_class": 8,
     },
 }
-COLORS = {"纯训练": "#3fa7d6", "能上课就上课": "#e0556b"}
+COLORS = {"纯上课": "#3fa7d6", "能训练就训练": "#e0556b"}
 
 
 def run_cell(task: tuple) -> dict:
@@ -51,7 +51,7 @@ def run_cell(task: tuple) -> dict:
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
     config = ProduceConfig(
         weights=(0.40, 0.38, 0.22),
-        lesson_gain_ratio=ratio,
+        training_gain_ratio=ratio,
         reward_pick="best",
         support_bonus=1.2,
     )
@@ -86,7 +86,7 @@ def draw(rows: list[dict]) -> None:
     except OSError:
         font = small = title_font = ImageFont.load_default()
 
-    canvas.text((60, 24), "敏感性分析：课程成长系数 → 两种打法的总分", fill="#111111", font=title_font)
+    canvas.text((60, 24), "敏感性分析：训练成长系数 → 两种打法的总分", fill="#111111", font=title_font)
     box = (100, 100, 1320, 600)
     x0, y0, x1, y1 = box
     canvas.rectangle(box, outline="#cccccc")
@@ -101,7 +101,7 @@ def draw(rows: list[dict]) -> None:
     for index, ratio in enumerate(RATIOS):
         x = x0 + (x1 - x0) * index / (len(RATIOS) - 1)
         canvas.text((x - 16, y1 + 12), f"{ratio:.2f}", fill="#333333", font=small)
-    canvas.text(((x0 + x1) / 2 - 70, y1 + 44), "lesson_gain_ratio（课程得分→属性）", fill="#333333", font=font)
+    canvas.text(((x0 + x1) / 2 - 70, y1 + 44), "training_gain_ratio（训练得分→属性）", fill="#333333", font=font)
 
     for name in VARIANTS:
         series = [row for row in rows if row["name"] == name]

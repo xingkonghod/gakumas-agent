@@ -93,7 +93,7 @@ def main(argv: list[str]) -> int:
     from gkagent.sim.produce import ProduceConfig, ProduceSim, StrategyParams, strategy_from_params
 
     sim = ProduceSim([CardSpec(name="t", cost=3, score=9)], config=ProduceConfig(weeks=4), rng_seed=1)
-    result = sim.run(strategy_from_params(StrategyParams(lesson_every=0)))
+    result = sim.run(strategy_from_params(StrategyParams(training_every=0)))
     check("培育模拟可跑", result.total > 0, str(result.total))
     check("考试有 6 人排名", len(sim.exam(1)["npc"]) == 5)
 

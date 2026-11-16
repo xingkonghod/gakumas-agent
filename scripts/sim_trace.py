@@ -32,7 +32,7 @@ def build_runs(count: int) -> list[dict]:
     deck = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in deck_raw]
     pool = [CardSpec(name=n, cost=c, score=s, condition=cd, focus=f) for n, c, s, cd, f in pool_raw]
 
-    strategies = ["searched", "lesson_heavy", "train_best", "smart", "random"]
+    strategies = ["searched", "training_heavy", "class_best", "smart", "random"]
     runs = []
     for index in range(count):
         name = strategies[index % len(strategies)]
@@ -65,7 +65,9 @@ def build_runs(count: int) -> list[dict]:
                     "total": result.total,
                     "fans": result.fans,
                     "grade": result.grade,
-                    "lessons": result.lessons,
+                    # 新键 + 旧键别名（旧 viewer/脚本仍读 lessons）
+                    "trainings": result.trainings,
+                    "lessons": result.trainings,
                     "cleared": result.cleared,
                     "exams_passed": result.exams_passed,
                 },
@@ -100,12 +102,12 @@ TEMPLATE = r"""<!doctype html>
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
   th{color:var(--muted);font-weight:500}
-  tr.lesson td{background:#141a24}
+  tr.training td, tr.lesson td{background:#141a24}
   tr.exam td{background:#1d1720;color:#ffb4a2}
   .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:#202634;color:#a9b4c8;margin-right:6px}
-  .tag.lesson{background:#1b2a33;color:#7fd3f5}
+  .tag.training, .tag.lesson{background:#1b2a33;color:#7fd3f5}
   .tag.exam{background:#331c24;color:#ffa0b4}
-  .tag.train{background:#1c2a1f;color:#8fe0a5}
+  .tag.class, .tag.train{background:#1c2a1f;color:#8fe0a5}
   .tag.rest{background:#2a2318;color:#ffd479}
   .delta{color:var(--ok);font-weight:600}
   .neg{color:var(--warn)}
@@ -144,12 +146,12 @@ TEMPLATE = r"""<!doctype html>
     <div class="card">
       <div class="row"><span>本周行动</span><span id="actionNow">—</span></div>
       <div class="row"><span>本局结果</span><span id="resultNow" class="grade">—</span></div>
-      <div class="row"><span>上课/过关</span><span id="lessonNow">0 / 0</span></div>
+      <div class="row"><span>训练/过关</span><span id="trainingNow">0 / 0</span></div>
     </div>
   </aside>
   <section>
     <table>
-      <thead><tr><th style="width:56px">周</th><th style="width:110px">行动</th><th>变化</th><th>课程明细</th></tr></thead>
+      <thead><tr><th style="width:56px">周</th><th style="width:110px">行动</th><th>变化</th><th>训练明细</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </section>
@@ -170,9 +172,14 @@ const ATTR = ["vo","da","vi"];
 let run = RUNS[0], step = 0, timer = null;
 
 function actionLabel(a){
-  return {train:"训练",train_low:"补短板",lesson:"上课",rest:"休息",outing:"外出",remove:"删卡",exam:"考试"}[a] || a;
+  return {training:"训练",class:"上课",class_low:"补短板",rest:"休息",outing:"外出",remove:"删卡",exam:"考试",
+          lesson:"训练",train:"上课",train_low:"补短板"}[a] || a;
 }
-function actionClass(a){ return a==="lesson"?"lesson":(a==="lesson"?"lesson":(a.startsWith("train")?"train":"rest")); }
+function actionClass(a){
+  if(a==="training"||a==="lesson") return "training";
+  if(a==="class"||a==="class_low"||a==="train"||a==="train_low") return "class";
+  return "rest";
+}
 function fmtDelta(before, after){
   const out=[];
   const names=["Vo","Da","Vi"];
@@ -190,20 +197,21 @@ function build(){
   $("runMeta").textContent = `策略 ${run.strategy} · 卡组 ${run.deck_size} 张 · 结果 ${run.result.grade}（总和 ${run.result.total}）`;
   $("resultNow").textContent = run.result.grade;
   $("resultNow").style.color = run.result.grade==="E" ? "#ff8a65" : "#67d391";
-  $("lessonNow").textContent = `${run.result.lessons} / ${run.result.cleared}`;
+  $("trainingNow").textContent = `${run.result.trainings ?? run.result.lessons} / ${run.result.cleared}`;
   $("weekOf").textContent = weeks.length;
   // 表格：只显示到当前步
   const rows = [];
   for(let i=0;i<=step && i<weeks.length;i++){
     const w = weeks[i];
-    const cls = w.action==="lesson"?"lesson":"";
+    const cls = actionClass(w.action);
     let detail = "";
-    if(w.lesson){
-      const L = w.lesson;
+    const training = w.training || w.lesson;
+    if(training){
+      const L = training;
       const plays = (L.plays||[]).map(p=> p.skip
         ? `<li><span class="c">SKIP</span><span class="muted">剩余 ${p.turn} 回合</span></li>`
         : `<li><span class="c">${p.card}</span><span class="muted">费用 ${p.cost} · 卡面 ${p.base}${p.focus?` +集中${p.focus}`:""}${p.condition?" · 好调×1.5":""}</span></li>`).join("");
-      detail = `<div><span class="tag lesson">课程</span>审查 ${L.target} · 得分 <b>${L.score}</b> · <b style="color:${L.grade==="FAILED"?"#ff8a65":"#67d391"}">${L.grade}</b></div><ul class="plays">${plays}</ul>`;
+      detail = `<div><span class="tag training">训练</span>审查 ${L.target} · 得分 <b>${L.score}</b> · <b style="color:${L.grade==="FAILED"?"#ff8a65":"#67d391"}">${L.grade}</b></div><ul class="plays">${plays}</ul>`;
     }
     rows.push(`<tr class="${cls}"><td>W${w.week}</td><td><span class="tag ${actionClass(w.action)}">${actionLabel(w.action)}</span></td>
       <td>${fmtDelta(w.attrs_before,w.attrs_after)} <span class="muted">体力 ${w.stamina_before}→${w.stamina_after}</span></td>
@@ -257,7 +265,7 @@ def main(argv: list[str]) -> int:
     OUT.write_text(TEMPLATE.replace("__DATA__", payload), encoding="utf-8")
     print(f"生成 {OUT}（{len(runs)} 局，{OUT.stat().st_size/1024:.0f} KB）")
     for r in runs:
-        print(f"  {r['label']:32s} 总和={r['result']['total']:4d} 评价={r['result']['grade']:2s} 上课={r['result']['lessons']} 过关={r['result']['cleared']} 卡组={r['deck_size']}")
+        print(f"  {r['label']:32s} 总和={r['result']['total']:4d} 评价={r['result']['grade']:2s} 训练={r['result']['trainings']} 过关={r['result']['cleared']} 卡组={r['deck_size']}")
     return 0
 
 

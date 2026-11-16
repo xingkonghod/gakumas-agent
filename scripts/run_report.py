@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNS = ROOT / "data" / "runs"
 sys.path.insert(0, str(ROOT / "src"))
 
-from gkagent.sim.produce import eval_value, grade_for  # noqa: E402
+from gkagent.sim.produce import eval_value, grade_for
 
 
 def load_run(episode: str, runs_dir: Path | str | None = None) -> tuple[dict, Path]:
@@ -35,7 +35,8 @@ def load_run(episode: str, runs_dir: Path | str | None = None) -> tuple[dict, Pa
     except (OSError, json.JSONDecodeError) as exc:
         raise ValueError(f"读不了 {path}: {exc}") from exc
     if not isinstance(payload, dict):
-        raise ValueError(f"{path} 顶层不是对象")
+        # 调用方（main / 测试）按 ValueError 处理坏数据；保持异常类型不变。
+        raise ValueError(f"{path} 顶层不是对象")  # noqa: TRY004
     return payload, path
 
 
@@ -101,9 +102,13 @@ def build_report(record: dict, *, path: Path | str | None = None) -> str:
         )
     else:
         lines.append("评价: 未采集到（final=null）")
+    # 训练体力门：新键 training_min_stamina 优先，旧跑局记录只有 lesson_min_stamina 时回落。
+    training_min_stamina = meta.get("training_min_stamina")
+    if training_min_stamina is None:
+        training_min_stamina = meta.get("lesson_min_stamina", 10)
     lines.append(
-        f"配置: 考试属性倍率 {coefficient} / 课程最低体力 "
-        f"{meta.get('lesson_min_stamina', 10)}"
+        f"配置: 考试属性倍率 {coefficient} / 训练最低体力 "
+        f"{training_min_stamina}"
     )
 
     lines.append("")

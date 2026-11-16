@@ -11,7 +11,7 @@
   属性倍率 411%，从 ``gkagent.sim.produce`` 导入）；
   P50/P90 用最近秩（与 ``scripts/sim_produce.py`` 一致），打榜看尾巴，所以 P90 单独画竖线。
 - 输局 = 期末 rank>3 或 官方评价点 < 4500（C+）。
-- 死因可多因：课程均分<120 / 牌组没成长 / 属性够但名次不够 / 体力长期<8；
+- 死因可多因：训练均分<120 / 牌组没成长 / 属性够但名次不够 / 体力长期<8；
   四类都不命中的输局单独记“属性积累不足”，不硬塞进任何一类。
 
 不 import ``scripts/sim_produce.py`` 的 build_deck/build_pool：并行任务正在改它，
@@ -71,30 +71,30 @@ BIN_WIDTH = 200
 
 STRATEGIES: dict[str, StrategyParams | None] = {
     "random": None,
-    "纯训练": StrategyParams(
-        lesson_every=0,
+    "纯上课": StrategyParams(
+        training_every=0,
         rest_threshold=8,
         attr_choice="weight",
         outing_below=-1,
-        min_stamina_to_train=10,
+        min_stamina_for_class=10,
     ),
-    "能上课就上课": StrategyParams(
-        lesson_every=1,
+    "能训练就训练": StrategyParams(
+        training_every=1,
         rest_threshold=8,
         attr_choice="weight",
         outing_below=16,
-        min_stamina_to_train=8,
+        min_stamina_for_class=8,
     ),
 }
 
-CAUSE_ORDER = ("课程没打出分", "牌组没成长", "考试名次不够", "体力断档")
+CAUSE_ORDER = ("训练没打出分", "牌组没成长", "考试名次不够", "体力断档")
 STRATEGY_COLORS = {
     "random": "#9aa7b8",
-    "纯训练": "#f2b134",
-    "能上课就上课": "#3fa7d6",
+    "纯上课": "#f2b134",
+    "能训练就训练": "#3fa7d6",
 }
 CAUSE_COLORS = {
-    "课程没打出分": "#e0556b",
+    "训练没打出分": "#e0556b",
     "牌组没成长": "#f2b134",
     "考试名次不够": "#7d5ba6",
     "体力断档": "#43aa8b",
@@ -226,19 +226,19 @@ def evaluate_run(sim: ProduceSim, result, deck_size: int) -> dict:
     rank = final_rank(sim.trace)
     total = result.total
     points = eval_value(total, rank, getattr(result, "exam_score", total * 2))
-    lesson_scores = [
-        int(row["lesson"]["score"])
+    training_scores = [
+        int((row.get("training") or row.get("lesson") or {})["score"])
         for row in sim.trace
-        if row.get("action") == "lesson" and row.get("lesson")
+        if row.get("action") in ("training", "lesson") and (row.get("training") or row.get("lesson"))
     ]
-    lesson_avg = st.mean(lesson_scores) if lesson_scores else 0.0
+    training_avg = st.mean(training_scores) if training_scores else 0.0
     low_weeks, low_streak = longest_low_stamina(sim.trace)
     growth = len(sim.deck) - deck_size
     return {
         "total": total,
         "rank": rank,
         "points": points,
-        "lesson_avg": lesson_avg,
+        "training_avg": training_avg,
         "reward_picks": sim.reward_picks,
         "deck_growth": growth,
         "low_weeks": low_weeks,
@@ -246,7 +246,7 @@ def evaluate_run(sim: ProduceSim, result, deck_size: int) -> dict:
         "lost": rank > 3 or points < 4500,
         # rank>3 时顺位点=0，若这时评价点仍 >=4500，说明属性本身够 C+，只输在名次。
         "exam_limited": rank > 3 and points >= 4500,
-        "course_failed": lesson_avg < 120,
+        "training_failed": training_avg < 120,
         "deck_failed": sim.reward_picks == 0 or growth <= 0,
         "stamina_failed": low_weeks >= 4 or low_streak >= 3,
     }
@@ -266,7 +266,7 @@ def run_strategy(
 
     evals: list[int] = []
     totals: list[int] = []
-    lesson_avgs: list[float] = []
+    training_avgs: list[float] = []
     losses = 0
     causes: Counter[str] = Counter()
     residual = 0
@@ -279,14 +279,14 @@ def run_strategy(
         row = evaluate_run(sim, result, len(deck))
         evals.append(row["points"])
         totals.append(row["total"])
-        lesson_avgs.append(row["lesson_avg"])
+        training_avgs.append(row["training_avg"])
         if not row["lost"]:
             continue
         losses += 1
         hit = False
         for cause in CAUSE_ORDER:
             flag = {
-                "课程没打出分": row["course_failed"],
+                "训练没打出分": row["training_failed"],
                 "牌组没成长": row["deck_failed"],
                 "考试名次不够": row["exam_limited"],
                 "体力断档": row["stamina_failed"],
@@ -308,7 +308,7 @@ def run_strategy(
         "p95": percentile(ordered, 0.95),
         "cplus_rate": sum(1 for value in evals if value >= 4500) / max(len(evals), 1),
         "mean_total": st.mean(totals) if totals else 0.0,
-        "mean_lesson": st.mean(lesson_avgs) if lesson_avgs else 0.0,
+        "mean_training": st.mean(training_avgs) if training_avgs else 0.0,
         "losses": losses,
         "causes": causes,
         "residual": residual,
@@ -559,7 +559,7 @@ def draw_chart(
             anchor="ma",
         )
         label_lines = {
-            "课程没打出分": ("课程没", "打出分"),
+            "训练没打出分": ("训练没", "打出分"),
             "牌组没成长": ("牌组没", "成长"),
             "考试名次不够": ("考试名次", "不够"),
             "体力断档": ("体力", "断档"),
@@ -571,11 +571,11 @@ def draw_chart(
 
     notes = [
         (
-            f"random 输局 {loss_by_name['random']} / 纯训练 {loss_by_name['纯训练']} / "
-            f"能上课就上课 {loss_by_name['能上课就上课']}"
+            f"random 输局 {loss_by_name['random']} / 纯上课 {loss_by_name['纯上课']} / "
+            f"能训练就训练 {loss_by_name['能训练就训练']}"
         ),
-        f"{residual} 局四类均未命中（属性积累/上课次数不足，单独统计）",
-        "课程=课程均分<120；牌组=reward_picks==0 或牌组规模未涨",
+        f"{residual} 局四类均未命中（属性积累/训练次数不足，单独统计）",
+        "训练=训练均分<120；牌组=reward_picks==0 或牌组规模未涨",
         "考试=rank>3 且属性单独已够 C+；体力=≥4 周 stamina_after<8 或连续≥3 周",
     ]
     for index, note in enumerate(notes):
@@ -627,7 +627,7 @@ def print_report(results: list[dict], cause_counts: Counter[str], total_losses: 
     ):
         print(f"  {_pad(cause, 12)}{count:5d}  ({count / max(total_losses, 1):.1%})")
     print(f"  {_pad('四类均未命中', 12)}{residual:5d}  "
-          f"({residual / max(total_losses, 1):.1%})  ← 属性积累/上课次数不足")
+          f"({residual / max(total_losses, 1):.1%})  ← 属性积累/训练次数不足")
     print("\n按策略拆分（命中局数，可多因）:")
     print(_pad("死因", 14) + "".join(_pad(result["name"], 14) for result in results))
     for cause in CAUSE_ORDER:

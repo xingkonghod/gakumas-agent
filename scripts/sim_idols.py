@@ -34,11 +34,11 @@ IDOLS: dict[str, tuple[float, float, float]] = {
 
 
 STRATEGIES: dict[str, dict] = {
-    "能上课就上课": {"lesson_every": 1, "rest_threshold": 8, "attr_choice": "weight", "outing_below": 16, "min_stamina_to_train": 8},
-    "纯训练": {"lesson_every": 0, "rest_threshold": 8, "attr_choice": "weight", "outing_below": -1, "min_stamina_to_train": 10},
-    "每3周上课": {"lesson_every": 3, "rest_threshold": 8, "attr_choice": "weight", "outing_below": 16, "min_stamina_to_train": 8},
-    "补短板": {"lesson_every": 1, "rest_threshold": 8, "attr_choice": "lowest", "outing_below": 16, "min_stamina_to_train": 8},
-    "多休息": {"lesson_every": 0, "rest_threshold": 14, "attr_choice": "weight", "outing_below": 20, "min_stamina_to_train": 12},
+    "能训练就训练": {"training_every": 1, "rest_threshold": 8, "attr_choice": "weight", "outing_below": 16, "min_stamina_for_class": 8},
+    "纯上课": {"training_every": 0, "rest_threshold": 8, "attr_choice": "weight", "outing_below": -1, "min_stamina_for_class": 10},
+    "每3周训练": {"training_every": 3, "rest_threshold": 8, "attr_choice": "weight", "outing_below": 16, "min_stamina_for_class": 8},
+    "补短板": {"training_every": 1, "rest_threshold": 8, "attr_choice": "lowest", "outing_below": 16, "min_stamina_for_class": 8},
+    "多休息": {"training_every": 0, "rest_threshold": 14, "attr_choice": "weight", "outing_below": 20, "min_stamina_for_class": 12},
 }
 
 
@@ -191,7 +191,7 @@ def main(argv: list[str]) -> int:
             for index, (name, params) in enumerate(STRATEGIES.items())
         ]
     else:
-        base_params = STRATEGIES["能上课就上课"]
+        base_params = STRATEGIES["能训练就训练"]
         tasks = [
             (name, weights, base_params, args.episodes, 3000 + index * 97)
             for index, (name, weights) in enumerate(IDOLS.items())

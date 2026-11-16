@@ -59,7 +59,8 @@ def run_cell(task: tuple) -> dict:
         reward_pick="best",
     )
     strategy = strategy_from_params(
-        StrategyParams(rest_threshold=8, lesson_every=1, attr_choice="weight", outing_below=16, min_stamina_to_train=8)
+        StrategyParams(rest_threshold=8, training_every=1, attr_choice="weight",
+                       outing_below=16, min_stamina_for_class=8)
     )
     totals, exam_pass = [], 0
     for episode in range(episodes):
