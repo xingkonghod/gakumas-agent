@@ -1,0 +1,1304 @@
+{
+ "generated_by": "scripts/i18n_scan.py",
+ "generated_at": "2026-11-16",
+ "source": {
+  "cards": "data/cache/ProduceCard.yaml vs data/master/produce_cards.json",
+  "items": "data/cache/ProduceItem.yaml vs masterTrans/ProduceItem.json (2026-09-16)",
+  "tables": "masterTrans\\*.json（逐字段查日文假名）",
+  "installed_master": "D:\\Games\\Gakumas\\gakumas\\gakumas-local\\local-files\\masterTrans"
+ },
+ "summary": {
+  "scan_meta": {
+   "files": 110,
+   "rows": 51406
+  },
+  "ProduceCard": {
+   "baseline_rows": 1817,
+   "baseline_ids": 476,
+   "upstream_rows": 1829,
+   "upstream_ids": 479,
+   "missing_variants": 12,
+   "missing_ids": 3,
+   "by_rarity": {
+    "R": 4,
+    "Sr": 4,
+    "Ssr": 4
+   },
+   "names": [
+    "一途な従者",
+    "忠義を胸に",
+    "柔らかな光の中で"
+   ]
+  },
+  "ProduceItem": {
+   "baseline_rows": 1068,
+   "upstream_rows": 1115,
+   "missing": 47,
+   "by_rarity": {
+    "N": 12,
+    "R": 2,
+    "Sr": 7,
+    "Ssr": 26
+   }
+  },
+  "other_tables": {
+   "CharacterDetail.json": {
+    "rows": 181,
+    "flagged_rows": 1,
+    "flagged_fields": 1,
+    "fields": {
+     "content": 1
+    }
+   },
+   "Localization.json": {
+    "rows": 96,
+    "flagged_rows": 2,
+    "flagged_fields": 2,
+    "fields": {
+     "description": 2
+    }
+   },
+   "ProduceExamEffect.json": {
+    "rows": 2089,
+    "flagged_rows": 13,
+    "flagged_fields": 28,
+    "fields": {
+     "produceDescriptions[0].text": 13,
+     "customizeProduceDescriptions[1].text": 13,
+     "produceDescriptions[2].text": 1,
+     "customizeProduceDescriptions[3].text": 1
+    }
+   },
+   "ProduceExamTrigger.json": {
+    "rows": 680,
+    "flagged_rows": 5,
+    "flagged_fields": 11,
+    "fields": {
+     "produceDescriptions[0].text": 4,
+     "playProduceDescriptions[0].text": 3,
+     "playEffectProduceDescriptions[0].text": 3,
+     "produceDescriptions[1].text": 1
+    }
+   },
+   "ProduceSkill.json": {
+    "rows": 1508,
+    "flagged_rows": 1,
+    "flagged_fields": 1,
+    "fields": {
+     "produceDescriptions[0].text": 1
+    }
+   },
+   "ProduceStepEventDetail.json": {
+    "rows": 6894,
+    "flagged_rows": 2,
+    "flagged_fields": 2,
+    "fields": {
+     "produceDescriptions[0].text": 1,
+     "produceDescriptions[2].text": 1
+    }
+   },
+   "Story.json": {
+    "rows": 304,
+    "flagged_rows": 5,
+    "flagged_fields": 5,
+    "fields": {
+     "title": 5
+    }
+   },
+   "SupportCard.json": {
+    "rows": 202,
+    "flagged_rows": 1,
+    "flagged_fields": 1,
+    "fields": {
+     "name": 1
+    }
+   }
+  },
+  "out_of_scope": {
+   "Music.json": 149,
+   "Rule.json": 6
+  },
+  "story": {
+   "resource_files": 3490,
+   "messages": 97764,
+   "segments": 159163,
+   "untranslated_messages": 1,
+   "segments_equal_to_japanese": 1337,
+   "pure_kana_segments": 1,
+   "note": "补丁用 <r=日文>中文</r> 双语内嵌；逐条检查后无整句未翻。"
+  }
+ },
+ "entries": [
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-1_138",
+   "upgrade": 0,
+   "jp_name": "一途な従者",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "R",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / パラメータ / + / \"3\" / \"\" / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"3\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-1_138",
+   "upgrade": 1,
+   "jp_name": "一途な従者+",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "R",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / パラメータ / + / \"3\" / \"\" / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"3\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-1_138",
+   "upgrade": 2,
+   "jp_name": "一途な従者++",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "R",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / パラメータ / + / \"4\" / \"\" / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"4\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-1_138",
+   "upgrade": 3,
+   "jp_name": "一途な従者+++",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "R",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / パラメータ / + / \"5\" / \"\" / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"5\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-2_170",
+   "upgrade": 0,
+   "jp_name": "忠義を胸に",
+   "en_name": "",
+   "category": "ProduceCardCategory_MentalSkill",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / 好調 / <nobr> / \"4\" / ターン</nobr> / \"\" / 集中 / <nobr>+ / \"1\" / </nobr> / \"\" / 絶好調 / <nobr> / \"1\" / ターン</nobr> / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-2_170",
+   "upgrade": 1,
+   "jp_name": "忠義を胸に+",
+   "en_name": "",
+   "category": "ProduceCardCategory_MentalSkill",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / 好調 / <nobr> / \"4\" / ターン</nobr> / \"\" / 集中 / <nobr>+ / \"1\" / </nobr> / \"\" / 絶好調 / <nobr> / \"1\" / ターン</nobr> / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-2_170",
+   "upgrade": 2,
+   "jp_name": "忠義を胸に++",
+   "en_name": "",
+   "category": "ProduceCardCategory_MentalSkill",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / 好調 / <nobr> / \"4\" / ターン</nobr> / \"\" / 集中 / <nobr>+ / \"1\" / </nobr> / \"\" / 絶好調 / <nobr> / \"2\" / ターン</nobr> / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-2_170",
+   "upgrade": 3,
+   "jp_name": "忠義を胸に+++",
+   "en_name": "",
+   "category": "ProduceCardCategory_MentalSkill",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / \"\" / 好調 / <nobr> / \"4\" / ターン</nobr> / \"\" / 集中 / <nobr>+ / \"1\" / </nobr> / \"\" / 絶好調 / <nobr> / \"3\" / ターン</nobr> / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-3_292",
+   "upgrade": 0,
+   "jp_name": "柔らかな光の中で",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / 集中 / が<nobr>3以上</nobr>の場合、使用可 / \"\" / \"\" / スキルカード使用数追加 / <nobr>+ / \"1\" / </nobr> / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"2\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / \"2\" / ターン</nobr>後のターン終了時、 / パラメータ / <nobr>+ / \"2\" / </nobr>（<nobr> / \"3\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-3_292",
+   "upgrade": 1,
+   "jp_name": "柔らかな光の中で+",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / 集中 / が<nobr>3以上</nobr>の場合、使用可 / \"\" / \"\" / スキルカード使用数追加 / <nobr>+ / \"1\" / </nobr> / \"\" / パラメータ / <nobr>+ / \"2\" / </nobr> / \"\" / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"2\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / \"2\" / ターン</nobr>後のターン終了時、 / パラメータ / <nobr>+ / \"2\" / </nobr>（<nobr> / \"3\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-3_292",
+   "upgrade": 2,
+   "jp_name": "柔らかな光の中で++",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / 集中 / が<nobr>3以上</nobr>の場合、使用可 / \"\" / \"\" / スキルカード使用数追加 / <nobr>+ / \"1\" / </nobr> / \"\" / パラメータ / <nobr>+ / \"3\" / </nobr> / \"\" / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"3\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / \"2\" / ターン</nobr>後のターン終了時、 / パラメータ / <nobr>+ / \"3\" / </nobr>（<nobr> / \"3\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceCard",
+   "priority": "P0",
+   "id": "p_card-01-ido-3_292",
+   "upgrade": 3,
+   "jp_name": "柔らかな光の中で+++",
+   "en_name": "",
+   "category": "ProduceCardCategory_ActiveSkill",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / 集中 / が<nobr>3以上</nobr>の場合、使用可 / \"\" / \"\" / スキルカード使用数追加 / <nobr>+ / \"1\" / </nobr> / \"\" / パラメータ / <nobr>+ / \"3\" / </nobr> / \"\" / \"\" / 次のターンのターン終了時、 / パラメータ / <nobr>+ / \"3\" / </nobr>（<nobr> / \"2\" / 回</nobr>） / \"\" / <nobr> / \"2\" / ターン</nobr>後のターン終了時、 / パラメータ / <nobr>+ / \"3\" / </nobr>（<nobr> / \"3\" / 回</nobr>） / \"\" / <nobr> / 重複不可 / \" </nobr>\" / レッスン中1回 / \"\""
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-0-001-0-022",
+   "jp_name": "初星オブジェ（銀）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan1",
+   "jp_desc": "残り<nobr>5ターン以内</nobr>の場合、ターン内にスキルカードを2回使用するごとに、 / \"\" / 集中 / <nobr>+ / \"4\" / </nobr> / \"\" / 集中強化 / <nobr> / \"15\" / \"%</nobr>\" / \"\" / （ / レッスン / 内5回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-0-001-0-023",
+   "jp_name": "初星オブジェ（銀）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan1",
+   "jp_desc": "残り<nobr>5ターン以内</nobr>の場合、ターン内にスキルカードを2回使用するごとに、 / \"\" / 集中 / <nobr>+ / \"4\" / </nobr> / \"\" / 集中強化 / <nobr> / \"15\" / \"%</nobr>\" / \"\" / （ / レッスン / 内5回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-0-001-0-024",
+   "jp_name": "初星オブジェ（銀）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan1",
+   "jp_desc": "メンタルスキルカード / 使用後、 / 好調 / が<nobr>8ターン以上</nobr>の場合、 / \"\" / 集中 / <nobr>+ / \"6\" / </nobr> / \"\" / <nobr> / \"5\" / ターン</nobr>後、 / パラメータ / <nobr>+ / \"10\" / </nobr> / \"\" / \" \" / \"\" / <nobr> / \"6\" / ターン</nobr>後、 / パラメータ / <nobr>+ / \"10\" / </nobr> / \"\" / \" \" / \"\" / （ / レッスン / 内3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-0-005-0-030",
+   "jp_name": "初星オブジェ（紫）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan1",
+   "jp_desc": "ターン開始時、除外以外にある / トラブルカード / が<nobr>2枚以上</nobr>の場合、 / \"\" / パラメータ上昇量増加 / <nobr> / \"50\" / \"%</nobr>\" / \"\" / 絶好調 / <nobr> / \"3\" / ターン</nobr> / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-1-100-0",
+   "jp_name": "従者の必需品",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "R",
+   "plan": "Plan1",
+   "jp_desc": "レッスン / 開始後、 / \"\" / 集中 / <nobr>+ / \"2\" / </nobr> / \"\" / パラメータ上昇量減少 / <nobr> / \"10\" / \"%</nobr>（<nobr>\" / \"2\" / ターン</nobr>） / \"\" / （ / レッスン / 内1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-1-100-1",
+   "jp_name": "従者の必需品+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "R",
+   "plan": "Plan1",
+   "jp_desc": "レッスン / 開始後、 / \"\" / 集中 / <nobr>+ / \"3\" / </nobr> / \"\" / パラメータ上昇量減少 / <nobr> / \"10\" / \"%</nobr>（<nobr>\" / \"2\" / ターン</nobr>） / \"\" / （ / レッスン / 内1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-2-095-0",
+   "jp_name": "ねぎらいコーヒー",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / Pポイント+ / \"25\" / \"\" / ビジュアル上昇+ / \"10\" / \"\" / （プロデュース中2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-2-135-0",
+   "jp_name": "王子様隠しかぼちゃ",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "好調 / \"\" / ダンス上昇+ / \"20\" / \"\" / Pポイント+ / \"10\" / \"\" / （プロデュース中3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-2-137-0",
+   "jp_name": "お掃除の成果",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / スキルカードを選択して / 強化 / \"\" / ビジュアル上昇+ / \"15\" / \"\" / （プロデュース中1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-2-171-0",
+   "jp_name": "お返しの髪飾り",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "残り<nobr>2ターン以内</nobr>のターン終了時、 / \"\" / パラメータ / <nobr>+ / \"3\" / </nobr> / \"\" / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-2-171-1",
+   "jp_name": "お返しの髪飾り+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Sr",
+   "plan": "Plan1",
+   "jp_desc": "残り<nobr>2ターン以内</nobr>のターン終了時、 / \"\" / パラメータ / <nobr>+ / \"5\" / </nobr> / \"\" / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-346-0",
+   "jp_name": "天性の才能",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "スキルカード使用後、手札の / 眠気 / が<nobr>1枚以上</nobr>の場合、 / \"\" / 好調 / の<nobr> / \"30\" / \"%</nobr>分\" / パラメータ / 上昇 / \"\" / \"\""
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-346-1",
+   "jp_name": "天性の才能+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "スキルカード使用後、手札の / 眠気 / が<nobr>1枚以上</nobr>の場合、 / \"\" / 元気 / <nobr>+ / \"1\" / </nobr> / \"\" / 好調 / の<nobr> / \"50\" / \"%</nobr>分\" / パラメータ / 上昇 / \"\" / \"\""
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-349-0",
+   "jp_name": "世界を魅了する姿",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "残り<nobr>4ターン以内</nobr>のターン開始後、 / \"\" / 元気 / <nobr>+ / \"1\" / </nobr> / \"\" / 除外にある / 獲物はあなた / 1枚を / 手札 / に移動 / \"\" / 固定体力消費 / <nobr> / \"1\" / </nobr> / \"\" / 強化状態コスト増加 / <nobr> / \"1\" / ターン</nobr> / \"\" / （ / レッスン / 内4回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-349-1",
+   "jp_name": "世界を魅了する姿+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "残り<nobr>5ターン以内</nobr>のターン開始後、 / \"\" / 元気 / <nobr>+ / \"2\" / </nobr> / \"\" / 除外にある / 獲物はあなた / 1枚を / 手札 / に移動 / \"\" / 固定体力消費 / <nobr> / \"1\" / </nobr> / \"\" / 強化状態コスト増加 / <nobr> / \"1\" / ターン</nobr> / \"\" / （ / レッスン / 内5回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-355-0",
+   "jp_name": "お誘いチケット",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / 体力回復 / \"4\" / \"\" / ボーカル上昇+ / \"10\" / \"\" / （プロデュース中4回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-356-0",
+   "jp_name": "お嬢様おでかけセット",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "集中 / \"\" / Pポイント+ / \"20\" / \"\" / ボーカル上昇+ / \"20\" / \"\" / （プロデュース中3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-362-0",
+   "jp_name": "仲良しアルバム",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "\"\" / ボーカル上昇+ / \"20\" / \"\" / 体力回復 / \"3\" / \"\" / （プロデュース中2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-393-0",
+   "jp_name": "なにかが変わる予感",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "レッスン / 開始後、 / \"\" / メタモルフォーゼ（支度） / \"\" / 集中 / <nobr>+ / \"1\" / </nobr> / \"\" / （ / レッスン / 内1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_01-3-393-1",
+   "jp_name": "なにかが変わる予感+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan1",
+   "jp_desc": "レッスン / 開始後、 / \"\" / メタモルフォーゼ（支度） / \"\" / 集中 / <nobr>+ / \"1\" / </nobr> / \"\" / 好調 / <nobr> / \"1\" / ターン</nobr> / \"\" / （ / レッスン / 内1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-0-002-0-023",
+   "jp_name": "初星ライト（オレンジ）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan2",
+   "jp_desc": "直接効果 / で / 好印象 / が4回増加時、 / \"\" / 好印象 / <nobr>+ / \"7\" / </nobr> / \"\" / 好印象追加発動 / <nobr>+ / \"1\" / </nobr>（<nobr> / \"1\" / ターン</nobr>） / \"\" / （ / レッスン / 内4回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-0-002-0-024",
+   "jp_name": "初星ライト（オレンジ）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan2",
+   "jp_desc": "直接効果 / で / 好印象 / が4回増加時、 / \"\" / 好印象 / <nobr>+ / \"7\" / </nobr> / \"\" / 好印象追加発動 / <nobr>+ / \"1\" / </nobr>（<nobr> / \"1\" / ターン</nobr>） / \"\" / （ / レッスン / 内4回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-0-006-0-033",
+   "jp_name": "初星ライト（紫）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan2",
+   "jp_desc": "アクティブスキルカード / 使用時、体力が<nobr>80%以上</nobr>の場合、 / \"\" / 元気 / <nobr>+ / \"6\" / </nobr> / \"\" / やる気 / <nobr>+ / \"8\" / </nobr> / \"\" / （ / レッスン / 内3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-0-006-0-034",
+   "jp_name": "初星ライト（紫）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan2",
+   "jp_desc": "アクティブスキルカード / 使用時、体力が<nobr>80%以上</nobr>の場合、 / \"\" / 元気 / <nobr>+ / \"6\" / </nobr> / \"\" / やる気 / <nobr>+ / \"8\" / </nobr> / \"\" / （ / レッスン / 内3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-2-136-0",
+   "jp_name": "お手製ぴったり衣装",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Sr",
+   "plan": "Plan2",
+   "jp_desc": "やる気 / \"\" / ダンス上昇+ / \"20\" / \"\" / Pポイント+ / \"10\" / \"\" / （プロデュース中3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-3-336-0",
+   "jp_name": "星々を統べる輝き",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan2",
+   "jp_desc": "直接効果 / で / 好印象 / が4回増加時、 / \"\" / 好印象追加発動 / <nobr>+ / \"1\" / </nobr>（<nobr> / \"2\" / ターン</nobr>） / \"\" / 好印象強化 / <nobr>+ / \"10\" / \"%</nobr>（<nobr>\" / \"2\" / ターン</nobr>） / \"\" / 固定体力消費 / <nobr> / \"1\" / </nobr> / \"\""
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-3-336-1",
+   "jp_name": "星々を統べる輝き+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan2",
+   "jp_desc": "直接効果 / で / 好印象 / が4回増加時、 / \"\" / 好印象追加発動 / <nobr>+ / \"1\" / </nobr>（<nobr> / \"2\" / ターン</nobr>） / \"\" / 好印象強化 / <nobr>+ / \"10\" / \"%</nobr>（<nobr>\" / \"2\" / ターン</nobr>） / \"\""
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-3-348-0",
+   "jp_name": "規格外の魅力",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan2",
+   "jp_desc": "やる気 / が<nobr>5以上</nobr>の場合、 / メンタルスキルカード / を2回使用するごとに、 / \"\" / やる気 / <nobr>+ / \"4\" / </nobr> / \"\" / 消費体力削減 / <nobr> / \"1\" / </nobr> / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-3-348-1",
+   "jp_name": "規格外の魅力+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan2",
+   "jp_desc": "やる気 / が<nobr>5以上</nobr>の場合、 / メンタルスキルカード / を2回使用するごとに、 / \"\" / やる気 / <nobr>+ / \"5\" / </nobr> / \"\" / 好印象 / <nobr>+ / \"1\" / </nobr> / \"\" / 消費体力削減 / <nobr> / \"1\" / </nobr> / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-3-354-0",
+   "jp_name": "花海ファームランタン",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan2",
+   "jp_desc": "やる気 / \"\" / Pポイント+ / \"40\" / \"\" / ビジュアル上昇+ / \"30\" / \"\" / （プロデュース中2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_02-3-357-0",
+   "jp_name": "過激め？チョイス",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan2",
+   "jp_desc": "ロジック / \"\" / ボーカル上昇+ / \"25\" / \"\" / ランダムなスキルカードを / 強化 / \"\" / （プロデュース中2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-0-003-0-021",
+   "jp_name": "初星フラッグ（青）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan3",
+   "jp_desc": "強気 / 効果のスキルカード使用時、この / レッスン / 中の累計 / 全力値 / が<nobr>10以上</nobr>の場合、 / \"\" / 熱意追加 / <nobr>+ / \"5\" / </nobr>（<nobr> / \"1\" / ターン</nobr>） / \"\" / 次のターン、 / スキルカードを<nobr> / \"2\" / 枚</nobr>引く / \" \" / \"\" / （ / レッスン / 内3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-0-003-0-022",
+   "jp_name": "初星フラッグ（青）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan3",
+   "jp_desc": "強気 / 効果のスキルカード使用時、 / \"\" / 全力値 / <nobr>+ / \"5\" / </nobr> / \"\" / 強気 / 効果のスキルカードの / パラメータ値増加 / +25・ / パラメータ上昇回数増加 / \"+1\" / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-0-007-0-016",
+   "jp_name": "初星フラッグ（紫）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan3",
+   "jp_desc": "アイドル固有スキルカード使用時、 / 全力 / の場合、 / \"\" / 全力値 / <nobr>+ / \"9\" / </nobr> / \"\" / アクティブスキルカード / の / パラメータ値増加 / \"+25\" / \"\" / （ / レッスン / 内1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-0-007-0-017",
+   "jp_name": "初星フラッグ（紫）",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "N",
+   "plan": "Plan3",
+   "jp_desc": "この / レッスン / 中の累計 / 全力値 / が<nobr>10以上</nobr>の場合、ターン内にスキルカードを5回使用するごとに、 / \"\" / 全力 / 効果のスキルカードの / パラメータ値増加 / +20・ / パラメータ上昇回数増加 / \"+1\" / \"\" / （ / レッスン / 内3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-2-134-0",
+   "jp_name": "限界への挑戦券",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Sr",
+   "plan": "Plan3",
+   "jp_desc": "温存 / \"\" / ダンス上昇+ / \"20\" / \"\" / Pポイント+ / \"10\" / \"\" / （プロデュース中3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-334-0",
+   "jp_name": "夢見る輝き",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "わずかずつの歩み / 使用後、 / \"\" / 除外にある / わずかずつの歩み / 1枚を / 山札の一番上 / に移動 / \"\" / 固定体力消費 / <nobr> / \"1\" / </nobr> / \"\" / （ / レッスン / 内3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-334-1",
+   "jp_name": "夢見る輝き+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "わずかずつの歩み / 使用後、 / \"\" / 除外にある / わずかずつの歩み / 1枚を / 山札の一番上 / に移動 / \"\" / 元気 / <nobr>+ / \"2\" / </nobr> / \"\" / （ / レッスン / 内3回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-337-0",
+   "jp_name": "ヒーローの輝き",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "ターン開始後、この / レッスン / 中の累計 / 全力値 / が<nobr>10以上</nobr>の場合、 / \"\" / 元気 / <nobr>+ / \"4\" / </nobr> / \"\" / パラメータ上昇量増加 / <nobr> / \"25\" / \"%</nobr>\" / \"\" / 山札か捨札にある / 結果としての今 / 1枚を / 手札 / に移動 / \"\" / （ / レッスン / 内1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-337-1",
+   "jp_name": "ヒーローの輝き+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "ターン開始後、この / レッスン / 中の累計 / 全力値 / が<nobr>10以上</nobr>の場合、 / \"\" / 元気 / <nobr>+ / \"11\" / </nobr> / \"\" / パラメータ上昇量増加 / <nobr> / \"25\" / \"%</nobr>\" / \"\" / 山札か捨札にある / 結果としての今 / 1枚を / 手札 / に移動 / \"\" / （ / レッスン / 内1回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-345-0",
+   "jp_name": "止まない嵐",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "ターン開始時、 / \"\" / 全力値増加量増加 / <nobr>+ / \"25\" / \"%</nobr>（<nobr>\" / \"1\" / ターン</nobr>） / \"\" / 温存 / に変更 / \"\" / 元気 / <nobr>+ / \"2\" / </nobr> / \"\" / 強化状態コスト増加 / <nobr> / \"1\" / ターン</nobr> / \"\""
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-345-1",
+   "jp_name": "止まない嵐+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "ターン開始時、 / \"\" / 全力値増加量増加 / <nobr>+ / \"40\" / \"%</nobr>（<nobr>\" / \"1\" / ターン</nobr>） / \"\" / 温存 / に変更 / \"\" / 元気 / <nobr>+ / \"2\" / </nobr> / \"\" / 強化状態コスト増加 / <nobr> / \"1\" / ターン</nobr> / \"\""
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-347-0",
+   "jp_name": "小悪魔の色気",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "ターン開始時、 / 全力 / の場合、 / \"\" / 元気 / <nobr>+ / \"7\" / </nobr> / \"\" / 全力値 / <nobr>+ / \"1\" / </nobr> / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_03-3-347-1",
+   "jp_name": "小悪魔の色気+",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Plan3",
+   "jp_desc": "ターン開始時、 / 全力 / の場合、 / \"\" / 元気 / <nobr>+ / \"7\" / </nobr> / \"\" / 全力値 / <nobr>+ / \"2\" / </nobr> / \"\" / （ / レッスン / 内2回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_3-258-research-event-008",
+   "jp_name": "ゼミパーカー",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Common",
+   "jp_desc": "センス / のスキルカード使用後、 / \"\" / パラメータ上昇量増加 / <nobr> / \"10\" / \"%</nobr>\" / \"\" / （ / レッスン / 内5回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_3-258-research-event-009",
+   "jp_name": "ゼミパーカー",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Common",
+   "jp_desc": "センス / のスキルカード使用後、 / \"\" / パラメータ上昇量増加 / <nobr> / \"10\" / \"%</nobr>\" / \"\" / （ / レッスン / 内5回）"
+  },
+  {
+   "table": "ProduceItem",
+   "priority": "P0",
+   "id": "pitem_3-258-research-event-010",
+   "jp_name": "ゼミパーカー",
+   "en_name": "",
+   "category": "ProduceItem",
+   "rarity": "Ssr",
+   "plan": "Common",
+   "jp_desc": "センス / のスキルカード使用後、 / \"\" / パラメータ上昇量増加 / <nobr> / \"10\" / \"%</nobr>\" / \"\" / （ / レッスン / 内5回）"
+  },
+  {
+   "table": "CharacterDetail",
+   "priority": "P2",
+   "id": "CharacterDetailType_Cv",
+   "field": "content",
+   "jp_name": "凑 みや",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "Localization",
+   "priority": "P2",
+   "id": "home.gasha.continuous_share.share_text",
+   "field": "description",
+   "jp_name": "＼ TVCM放映纪念随心抽举办中 ／\n\n只要还能「续抽」，就可以免费无限抽卡！\n扭蛋必定可以获得一张以上SSR！\n\n#学マス #引き放題って好き",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "Localization",
+   "priority": "P2",
+   "id": "profile.report.share.text",
+   "field": "description",
+   "jp_name": "#学マス #初星学園通知表",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_add_grow_effect-p_card_search-target_is_self-g_effect-lesson_add-8-g_effect-lesson_count_add-1-g_effect-cost_add-1",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamAddGrowEffect, EffectValue1: 0, EffectValue2: 0, EffectCount: 0, EffectTurn: 0, ProduceCardSearchID: p_card_search-target_is_self, PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_add_grow_effect-p_card_search-target_is_self-g_effect-lesson_add-8-g_effect-lesson_count_add-1-g_effect-cost_add-1",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamAddGrowEffect, EffectValue1: 0, EffectValue2: 0, EffectCount: 0, EffectTurn: 0, ProduceCardSearchID: p_card_search-target_is_self, PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1300-0250-01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1300, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1300-0250-01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1300, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1600-0250-01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1600, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1600-0250-01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1600, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1700-0250-01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1700, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1700-0250-01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1700, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1800-0250-01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1800, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-1800-0250-01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 1800, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-2200-0250-01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 2200, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-2200-0250-01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 2200, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-2400-0250-01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 2400, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-2400-0250-01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 2400, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-2500-0250-01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 2500, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_depend_block-2500-0250-01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonDependBlock, EffectValue1: 2500, EffectValue2: 250, EffectCount: 1, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_value_multiple_down-p_card_search-deck_all-all-0_0-g_effect-lesson_reduce-2",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonValueMultipleDown, EffectValue1: 0, EffectValue2: 0, EffectCount: 0, EffectTurn: 0, ProduceCardSearchID: p_card_search-deck_all, PickRangeType: All, PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_lesson_value_multiple_down-p_card_search-deck_all-all-0_0-g_effect-lesson_reduce-2",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamLessonValueMultipleDown, EffectValue1: 0, EffectValue2: 0, EffectCount: 0, EffectTurn: 0, ProduceCardSearchID: p_card_search-deck_all, PickRangeType: All, PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_stamina_consumption_down-inf",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "#未定義のパターン",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_stamina_consumption_down-inf",
+   "field": "produceDescriptions[2].text",
+   "jp_name": "は永続指定禁止です！",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_stamina_consumption_down-inf",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "#未定義のパターン",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_stamina_consumption_down-inf",
+   "field": "customizeProduceDescriptions[3].text",
+   "jp_name": "は永続指定禁止です！",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_status_enchant",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamStatusEnchant, EffectValue1: 0, EffectValue2: 0, EffectCount: 0, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_status_enchant",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamStatusEnchant, EffectValue1: 0, EffectValue2: 0, EffectCount: 0, EffectTurn: 0, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_status_enchant-0005-02-inf-enchant-tower_001-exam_lesson_buff-0002-stage_004-enc01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamStatusEnchant, EffectValue1: 5, EffectValue2: 0, EffectCount: 2, EffectTurn: -1, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_status_enchant-0005-02-inf-enchant-tower_001-exam_lesson_buff-0002-stage_004-enc01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamStatusEnchant, EffectValue1: 5, EffectValue2: 0, EffectCount: 2, EffectTurn: -1, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_status_enchant-0020-02-inf-enchant-tower_001-exam_lesson_buff-0002-stage_005-enc01",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamStatusEnchant, EffectValue1: 20, EffectValue2: 0, EffectCount: 2, EffectTurn: -1, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamEffect",
+   "priority": "P2",
+   "id": "e_effect-exam_status_enchant-0020-02-inf-enchant-tower_001-exam_lesson_buff-0002-stage_005-enc01",
+   "field": "customizeProduceDescriptions[1].text",
+   "jp_name": "未定義のパターン(Type: ExamStatusEnchant, EffectValue1: 20, EffectValue2: 0, EffectCount: 2, EffectTurn: -1, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, PickCountType: , ProduceCardSearch2TemplateNumber: 0)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_card_play-condition_threshold_multiple_down-250",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "技能卡使用时，未定義のパターン(Type: ConditionThresholdMultipleDown, CheckType: , Value: 250)的时候，",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_card_play-condition_threshold_multiple_down-250",
+   "field": "playProduceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ConditionThresholdMultipleDown, CheckType: , Value: 250)的时候，可以使用",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_card_play-condition_threshold_multiple_down-250",
+   "field": "playEffectProduceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ConditionThresholdMultipleDown, CheckType: , Value: 250)的时候，",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_end_turn-fullpower_up1",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "技能卡使用时，未定義のパターン(Type: FullPowerUp, CheckType: , Value: 1)的时候，",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_end_turn-fullpower_up1",
+   "field": "playProduceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: FullPowerUp, CheckType: , Value: 1)的时候，可以使用",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_end_turn-fullpower_up1",
+   "field": "playEffectProduceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: FullPowerUp, CheckType: , Value: 1)的时候，",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_search_card_play-full_power_up-p_card_search-target_is_self-0_1",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamSearchCardPlay, PhaseValue: 0, ProduceCardSearchID: p_card_search-target_is_self, UpperCount: 0, LowerCount: 1)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_search_card_play-p_card_search-target_is_self-0_1",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ExamSearchCardPlay, PhaseValue: 0, ProduceCardSearchID: p_card_search-target_is_self, UpperCount: 0, LowerCount: 1)",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_start_exam-parameter_buff-1",
+   "field": "produceDescriptions[1].text",
+   "jp_name": "开始时，未定義のパターン(Type: ParameterBuff, CheckType: , Value: 1)的时候，",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_start_exam-parameter_buff-1",
+   "field": "playProduceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ParameterBuff, CheckType: , Value: 1)的时候，可以使用",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceExamTrigger",
+   "priority": "P2",
+   "id": "e_trigger-exam_start_exam-parameter_buff-1",
+   "field": "playEffectProduceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ParameterBuff, CheckType: , Value: 1)的时候，",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceSkill",
+   "priority": "P2",
+   "id": "p_idol_skill-common-p_trigger-produce_start-no_description-idol_card_produce_card_customize_enable-03-001",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: IdolCardProduceCardCustomizeEnable, ProduceCardSearchID: , PickRangeType: , PickCountMin: 0, PickCountMax: 0, EffectValueMin: 0, EffectValueMax: 0, ProduceRewardSetID: )",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceStepEventDetail",
+   "priority": "P2",
+   "id": "event-detail-p_story-003-produce-007-after_audition_final-1",
+   "field": "produceDescriptions[0].text",
+   "jp_name": "未定義のパターン(Type: ProduceCustomizeItemUpgrade, ProduceCardSearchID: , PickRangeType: Select, PickCountMin: 1, PickCountMax: 1, EffectValueMin: 0, EffectValueMax: 0, ProduceRewardSetID: )",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "ProduceStepEventDetail",
+   "priority": "P2",
+   "id": "event-detail-p_story-003-produce-007-after_audition_mid2-1",
+   "field": "produceDescriptions[2].text",
+   "jp_name": "未定義のパターン(Type: ProduceCustomizeItemUpgrade, ProduceCardSearchID: , PickRangeType: Select, PickCountMin: 1, PickCountMax: 1, EffectValueMin: 0, EffectValueMax: 0, ProduceRewardSetID: )",
+   "en_name": "",
+   "category": "placeholder",
+   "confidence": "low"
+  },
+  {
+   "table": "Story",
+   "priority": "P2",
+   "id": "story-box-gasha-event-020-01",
+   "field": "title",
+   "jp_name": "ライブツアーイベント特別編 GO MY WAY!! 第1话",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "Story",
+   "priority": "P2",
+   "id": "story-box-gasha-event-020-02",
+   "field": "title",
+   "jp_name": "ライブツアーイベント特別編 GO MY WAY!! 第2话",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "Story",
+   "priority": "P2",
+   "id": "story-box-gasha-event-020-03",
+   "field": "title",
+   "jp_name": "ライブツアーイベント特別編 GO MY WAY!! 第3话",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "Story",
+   "priority": "P2",
+   "id": "story-box-gasha-event-020-04",
+   "field": "title",
+   "jp_name": "ライブツアーイベント特別編 GO MY WAY!! 第4话",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "Story",
+   "priority": "P2",
+   "id": "story-box-gasha-event-020-05",
+   "field": "title",
+   "jp_name": "ライブツアーイベント特別編 GO MY WAY!! 第5话",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  },
+  {
+   "table": "SupportCard",
+   "priority": "P2",
+   "id": "s_card-3-0024",
+   "field": "name",
+   "jp_name": "不是‘ア’而是‘エ’！",
+   "en_name": "",
+   "category": "untranslated-prop",
+   "confidence": null
+  }
+ ]
+}
