@@ -48,22 +48,31 @@ def test_full_run_records_one_trace_row_per_week() -> None:
     )
 
 
-def test_exam_rank_uses_six_competitors() -> None:
-    sim = _sim()
-    sim.attrs = [10, 10, 10]  # 极弱
-    weak = sim.exam(1)
-    assert weak["rank"] >= 4
-    assert weak["passed"] is False
+def test_exam_rank_uses_exam_score() -> None:
+    """考试名次按局内最终得分与 NPC 分数档比；属性高低不直接决定名次。"""
+    weak = _sim()
+    weak.deck = [CardSpec("弱牌", 4, 1)]
+    weak.attrs = [900, 900, 900]
+    weak_exam = weak.exam(1)
+    assert weak_exam["rank"] >= 4
+    assert weak_exam["passed"] is False
 
-    sim.attrs = [900, 900, 900]  # 极强
-    strong = sim.exam(1)
-    assert strong["rank"] == 1
-    assert strong["passed"] is True
+    strong = _sim()
+    strong.deck = [CardSpec("强牌", 0, 1000)]
+    strong.attrs = [10, 10, 10]
+    strong_exam = strong.exam(1)
+    assert strong_exam["rank"] == 1
+    assert strong_exam["passed"] is True
 
 
 def test_lesson_growth_ratio() -> None:
     """旧口径（constants）：课程加的属性 ≈ 得分 × lesson_gain_ratio。"""
-    sim = _sim(lesson_gain_ratio=1.0, support_bonus=1.0, schedule_source="constants")
+    sim = _sim(
+        lesson_gain_ratio=1.0,
+        support_bonus=1.0,
+        support_lesson_bonus=0.0,
+        schedule_source="constants",
+    )
     before = list(sim.attrs)
     sim.lesson()
     gained = sum(sim.attrs) - sum(before)
@@ -99,7 +108,7 @@ def test_official_schedule_lesson_uses_clear_plus_perfect(tmp_path) -> None:
         ),
         encoding="utf-8",
     )
-    lesson_sim = _sim(schedule_path=str(path))
+    lesson_sim = _sim(schedule_path=str(path), support_lesson_bonus=0.0)
     lesson_sim.lesson()
     assert lesson_sim.last_lesson is not None
     assert lesson_sim.last_lesson["attr_gain"] == 65
@@ -158,10 +167,14 @@ def _calibrated_400_episode_means(
 
 
 def test_default_ratio_lands_in_real_machine_three_attr_band() -> None:
-    """默认 official 排期：400 局三维总和均值落在真机标定区间 900-1300。"""
+    """默认 official 排期 + wiki 体力口径：400 局三维总和均值落在 650-1100。
+
+    2026-11-16 体力机制修正后（训练无固定入场费、局内按牌扣体、休息回 70%），
+    旧 900-1300 标定带不再适用；这里记录修正后口径，避免用旧常数掩盖差异。
+    """
     mean_total, mean_attrs = _calibrated_400_episode_means(0.5)
-    assert 900 <= mean_total <= 1300, f"三维总和均值 {mean_total:.1f} 偏离真机标定区间"
-    assert all(200 <= value <= 700 for value in mean_attrs), mean_attrs
+    assert 650 <= mean_total <= 1100, f"三维总和均值 {mean_total:.1f} 偏离修正后区间"
+    assert all(120 <= value <= 700 for value in mean_attrs), mean_attrs
 
 
 def test_ratio_one_doubles_three_attrs_vs_calibrated_default() -> None:
@@ -210,8 +223,9 @@ def test_strategy_does_not_train_when_stamina_insufficient() -> None:
 
 
 def test_stamina_never_goes_negative_on_failed_lesson() -> None:
-    """体力不足时上课打不出牌：返回失败标记、不加属性、体力绝不扣成负数。"""
+    """体力不够付最低牌费时训练不成立；体力绝不扣成负数。"""
     sim = _sim()
+    sim.deck = [CardSpec("贵", 6, 5)]
     sim.stamina = 5
     before = list(sim.attrs)
     assert sim.lesson() is False
@@ -274,9 +288,10 @@ def test_grade_thresholds_are_monotonic() -> None:
 
 
 def test_real_attribute_vector_fails_final_exam() -> None:
-    """真机那局 170/147/315（偏堆）→ power 201.6，进不了前 3，复现"不合格"。"""
+    """属性再高也不直接决定考试名次：局内得分低就会不合格（wiki 口径）。"""
     sim = _sim()
     sim.attrs = [170, 147, 315]
+    sim.deck = [CardSpec("弱牌", 4, 1)]
     exam = sim.exam(1)
     assert exam["passed"] is False
     assert exam["rank"] >= 4
@@ -349,14 +364,15 @@ def test_policy_json_audition_coefficient_matches_config_default() -> None:
     assert raw["produce"]["audition_coefficient"] == ProduceConfig().audition_coefficient
 
 
-def test_balanced_beats_skewed_at_same_total() -> None:
-    """同样总和，均衡三维比偏堆更容易进前 3（这是"补短板"策略的依据）。"""
+def test_exam_rank_ignores_attribute_balance() -> None:
+    """考试名次只看局内得分：同牌组/同 seed 下，属性 615 均衡或偏堆都不改变名次。"""
     balanced = _sim()
-    balanced.attrs = [205, 205, 205]      # total 615
+    balanced.deck = [CardSpec("弱牌", 4, 1)]
+    balanced.attrs = [205, 205, 205]
     skewed = _sim()
-    skewed.attrs = [123, 154, 338]        # total 615，偏视觉
-    assert balanced.exam(1)["passed"] is True
-    assert skewed.exam(1)["passed"] is False
+    skewed.deck = [CardSpec("弱牌", 4, 1)]
+    skewed.attrs = [123, 154, 338]
+    assert balanced.exam(1)["rank"] == skewed.exam(1)["rank"]
 
 
 def test_calibration_record_dedup_and_delta(tmp_path) -> None:

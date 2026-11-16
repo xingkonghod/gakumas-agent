@@ -1035,13 +1035,15 @@ def greedy_policy(sim: LessonSim) -> Action:
 
     def efficiency(index: int) -> tuple[float, float, int, int]:
         card = sim.hand[index]
+        # 指針会改实际牌费（温存减半/強気双倍）；基线也要按实际费用比
+        cost = sim._effective_cost(card)
         if card.preservation > 0 or card.full_power_point > 0 or card.strong_level > 0:
-            return (_STANCE_CARD_EFFICIENCY, _STANCE_CARD_EFFICIENCY, -card.cost, -index)
+            return (_STANCE_CARD_EFFICIENCY, _STANCE_CARD_EFFICIENCY, -cost, -index)
         if card.extra_play > 0:
             return (
                 _EXTRA_PLAY_CARD_EFFICIENCY,
                 _EXTRA_PLAY_CARD_EFFICIENCY,
-                -card.cost,
+                -cost,
                 -index,
             )
         if card.score <= 0 and (
@@ -1053,11 +1055,11 @@ def greedy_policy(sim: LessonSim) -> Action:
             return (
                 _DEPENDENT_CARD_EFFICIENCY,
                 _DEPENDENT_CARD_EFFICIENCY,
-                -card.cost,
+                -cost,
                 -index,
             )
         # 0 费牌按 1 费算，避免"1 分 0 费"霸榜
-        return (card.score / max(card.cost, 1), card.score, -card.cost, -index)
+        return (card.score / max(cost, 1), card.score, -cost, -index)
 
     # 目标函数是 PERFECT，不是 CLEAR：最后一回合还没到 PERFECT 线时按"总分最大"
     # 选牌（而不是性价比），把 CLEAR+PERFECT 的完整属性档打满。
@@ -1067,7 +1069,7 @@ def greedy_policy(sim: LessonSim) -> Action:
             key=lambda index: (
                 sim.hand[index].score,
                 sim.hand[index].full_power_scale,
-                -sim.hand[index].cost,
+                -sim._effective_cost(sim.hand[index]),
                 -index,
             ),
         )

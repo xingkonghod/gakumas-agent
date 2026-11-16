@@ -127,6 +127,7 @@ def _train(score: int, tmp_path: Path) -> dict:
             exam_weeks=(),
             schedule_path=str(_official_path(tmp_path)),
             reward_pick="none",
+            support_lesson_bonus=0.0,
         ),
         rng_seed=1,
     )
@@ -135,13 +136,17 @@ def _train(score: int, tmp_path: Path) -> dict:
     return sim.last_training
 
 
-def test_training_gain_uses_three_reward_tiers(tmp_path: Path) -> None:
-    """<CLEAR → 0 属性；CLEAR 档 → clear；PERFECT 档 → clear+perfect。"""
+def test_training_gain_uses_continuous_progress(tmp_path: Path) -> None:
+    """CLEAR/PERFECT 是连续进度：gain = min(score,40) + min(max(score-40,0),25)。
+
+    score=25 → 25（未到 CLEAR 也按已达成进度）；score=50 → 40+10=50；
+    score=100 → 40+25=65（封顶）。档位判定仍是 FAILED/CLEAR/PERFECT 三档（UI 用）。
+    """
     failed = _train(5, tmp_path)   # 5 回合 × 5 = 25 < CLEAR 40
     clear = _train(10, tmp_path)   # 10 × 5 = 50（40 ≤ 50 < 65）
     perfect = _train(20, tmp_path)  # 20 × 5 = 100 ≥ 65
-    assert (failed["grade"], failed["attr_gain"]) == ("FAILED", 0)
-    assert (clear["grade"], clear["attr_gain"]) == ("CLEAR", 40)
+    assert (failed["grade"], failed["attr_gain"]) == ("FAILED", 25)
+    assert (clear["grade"], clear["attr_gain"]) == ("CLEAR", 50)
     assert (perfect["grade"], perfect["attr_gain"]) == ("PERFECT", 65)
 
 

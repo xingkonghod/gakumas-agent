@@ -182,8 +182,17 @@ class ProduceConfig:
     class_cost: int = 10
     class_gain: int = 75
     class_sigma: float = 6.0
-    training_cost: int = 10
+    # 训练没有固定入场耗体（wiki 核实）：体力只在局内按打出的牌结算。
+    training_cost: int = 0
+    # 训练用当前体力开局（True=wiki 口径；False=旧 stamina_max 口径，仅 ablation）
+    training_use_current_stamina: bool = True
+    # PERFECT 返还「剩余回合 × 2」体力（wiki 核实；False=旧口径，仅 ablation）
+    perfect_stamina_refund: bool = True
+    # 指針体力代价（温存减半/強気双倍/2段穿透）；False=旧口径（仅 ablation）
+    stance_costs: bool = True
+    # 休息回复最大体力的比例（wiki：70%，向下取整）；rest_gain 仅作旧字段兼容
     rest_gain: int = 24
+    rest_gain_ratio: float = 0.7
     outing_weeks: tuple[int, ...] = (3, 5, 8, 14)  # 官方排期的空周（可外出）
     exam_weeks: tuple[int, ...] = (7, 16)          # 16 周プロ：期中 7 / 期末 16
     training_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
@@ -191,6 +200,19 @@ class ProduceConfig:
     #   从 official.json 的 (clear, perfect) 对取 CLEAR/PERFECT 线。
     support_levels: tuple[int, ...] = (10, 10, 10, 20, 10, 60)  # 真机实测支援卡等级
     support_bonus: float = 1.2      # 上课收益倍率：均值 Lv20 / SR 档（旧 1.35 假设 Lv40）
+    # 支援卡レッスンボーナス总和（0.2 = +20%）；wiki：训练收益 ×(1+sum bonus%)
+    support_lesson_bonus: float = 0.2
+    # 考试名次：score=按局内最终得分排（wiki 核实）；attribute=旧属性加权（仅 ablation）
+    exam_rank_mode: str = "score"
+    # NPC 考试得分档（期中真机实测 603/387/206/205；期末缺数据，沿用同档）
+    exam_npc_scores: tuple[tuple[int, ...], ...] = (
+        (603, 387, 206, 205),
+        (603, 387, 206, 205),
+    )
+    # 考试回合数：期中 9；期末 Sense/Anomaly 12、Logic 11（wiki 核实）
+    exam_turns_mid: int = 9
+    exam_turns_final: int = 12
+    exam_turns_final_logic: int = 11
     training_gain_ratio: float = 0.5  # 旧口径：训练得分→属性；official 模式改用官方排期
     # official：按 data/knowledge/official.json 的逐周收益；constants：退回旧常数
     schedule_source: str = "official"
@@ -221,7 +243,17 @@ class ProduceConfig:
         class_gain: int | None = None,
         class_sigma: float | None = None,
         training_cost: int | None = None,
+        training_use_current_stamina: bool | None = None,
+        perfect_stamina_refund: bool | None = None,
+        stance_costs: bool | None = None,
         rest_gain: int | None = None,
+        rest_gain_ratio: float | None = None,
+        support_lesson_bonus: float | None = None,
+        exam_rank_mode: str | None = None,
+        exam_npc_scores: tuple[tuple[int, ...], ...] | None = None,
+        exam_turns_mid: int | None = None,
+        exam_turns_final: int | None = None,
+        exam_turns_final_logic: int | None = None,
         outing_weeks: tuple[int, ...] | None = None,
         exam_weeks: tuple[int, ...] | None = None,
         training_targets: tuple[int, ...] | None = None,
@@ -265,8 +297,22 @@ class ProduceConfig:
             "class_cost": pick(class_cost, train_cost, 10),
             "class_gain": pick(class_gain, train_gain, 75),
             "class_sigma": pick(class_sigma, train_sigma, 6.0),
-            "training_cost": pick(training_cost, lesson_cost, 10),
+            "training_cost": pick(training_cost, lesson_cost, 0),
+            "training_use_current_stamina": pick(
+                training_use_current_stamina, None, True
+            ),
+            "perfect_stamina_refund": pick(perfect_stamina_refund, None, True),
+            "stance_costs": pick(stance_costs, None, True),
             "rest_gain": pick(rest_gain, None, 24),
+            "rest_gain_ratio": pick(rest_gain_ratio, None, 0.7),
+            "support_lesson_bonus": pick(support_lesson_bonus, None, 0.2),
+            "exam_rank_mode": pick(exam_rank_mode, None, "score"),
+            "exam_npc_scores": pick(
+                exam_npc_scores, None, ((603, 387, 206, 205), (603, 387, 206, 205))
+            ),
+            "exam_turns_mid": pick(exam_turns_mid, None, 9),
+            "exam_turns_final": pick(exam_turns_final, None, 12),
+            "exam_turns_final_logic": pick(exam_turns_final_logic, None, 11),
             "outing_weeks": pick(outing_weeks, None, (3, 5, 8, 14)),
             "exam_weeks": pick(exam_weeks, None, (7, 16)),
             "training_targets": pick(training_targets, lesson_targets, (100, 150, 200, 250, 300)),
@@ -399,18 +445,24 @@ def training_policy(sim) -> int | None:
 
     scored = [(index, value(index)) for index in legal if value(index) > 0]
     if not scored:
-        return min(legal, key=lambda i: (sim.hand[i].cost, i))
+        return min(legal, key=lambda i: (sim._effective_cost(sim.hand[i]), i))
     if sim.score < sim.target_perfect:
         scored.sort(
             key=lambda item: (
                 item[1],
-                -sim.hand[item[0]].cost,
+                -sim._effective_cost(sim.hand[item[0]]),
                 -item[0],
             ),
             reverse=True,
         )
         return scored[0][0]
-    scored.sort(key=lambda item: (item[1] / max(sim.hand[item[0]].cost, 1), item[1]), reverse=True)
+    scored.sort(
+        key=lambda item: (
+            item[1] / max(sim._effective_cost(sim.hand[item[0]]), 1),
+            item[1],
+        ),
+        reverse=True,
+    )
     return scored[0][0]
 
 
@@ -545,12 +597,15 @@ class ProduceSim:
             return float(entry["train_clear"]), True
         return float(self.config.class_gain), False
 
-    def _official_training_gain(self, grade: str) -> int | None:
-        """官方排期的训练属性成长：按三档结算 CLEAR/PERFECT。
+    def _official_training_gain(self, score: int, grade: str = "") -> int | None:
+        """官方排期的训练属性成长：按 CLEAR/PERFECT 的**已达成进度**连续结算。
 
-        - ``FAILED``：0（没到 CLEAR 线，1 点属性都不给）；
-        - ``CLEAR``：只拿 ``clear`` 档（旧实现无条件给 clear+perfect，这是 bug）；
-        - ``PERFECT``：拿满 ``clear + perfect``。
+        wiki 口径：
+        ``gain = min(score, clear) + min(max(score-clear, 0), perfect)``，
+        再乘支援卡レッスンボーナス ``(1 + support_lesson_bonus)``，向下取整。
+        ``score=50 / clear=40 / perfect=25`` → 40 + 10 = 50（support=0 时）；
+        score 未到 CLEAR 时按已达成部分给分（= score），不是整档 0；未打满的
+        PERFECT 部分拿不到。``grade`` 只保留给旧调用方兼容，不参与计算。
 
         注：official.json 沿用历史 schema：``clear``/``perfect`` 是该周训练
         （旧 lesson() = 现在的 training()）的基础收益；这里只为兼容旧数据。
@@ -559,15 +614,14 @@ class ProduceSim:
         if entry is None:
             return None
         try:
-            clear = int(entry.get("clear") or 0)
-            perfect = int(entry.get("perfect") or 0)
+            clear = max(int(entry.get("clear") or 0), 0)
+            perfect = max(int(entry.get("perfect") or 0), 0)
         except (TypeError, ValueError):
             return None
-        if grade == "FAILED":
-            return 0
-        if grade == "PERFECT":
-            return clear + perfect
-        return clear
+        value = max(int(score), 0)
+        base = min(value, clear) + min(max(value - clear, 0), perfect)
+        # 支援卡レッスンボーナス：(CLEAR+PERFECT) 收益 ×(1+sum bonus%)，向下取整
+        return int(base * (1.0 + float(self.config.support_lesson_bonus)))
 
     def training_target_pair(self, week: int | None = None) -> tuple[int, int]:
         """本周训练的 ``(CLEAR 线, PERFECT 线)``。
@@ -620,12 +674,28 @@ class ProduceSim:
         self.log.append(f"W{self.week} class{ATTRIBUTES[index]}+{gain}")
         return True
 
-    def rest(self) -> None:
-        self.stamina = min(self.config.stamina_max, self.stamina + self.config.rest_gain)
+    def _recovery_gain(self) -> int:
+        """休息/外出的体力回复：默认最大体力的 70%（向下取整）。"""
+        ratio = getattr(self.config, "rest_gain_ratio", 0.0) or 0.0
+        if ratio > 0:
+            return int(self.config.stamina_max * ratio)
+        return int(self.config.rest_gain)
+
+    def rest(self) -> bool:
+        """休息：回复最大体力的 70%（向下取整）；满体力时不可选（no-op False）。"""
+        if self.stamina >= self.config.stamina_max:
+            self.log.append(f"W{self.week} rest skipped (full stamina)")
+            return False
+        self.stamina = min(
+            self.config.stamina_max, self.stamina + self._recovery_gain()
+        )
         self.log.append(f"W{self.week} rest")
+        return True
 
     def outing(self) -> None:
-        self.stamina = min(self.config.stamina_max, self.stamina + self.config.rest_gain)
+        self.stamina = min(
+            self.config.stamina_max, self.stamina + self._recovery_gain()
+        )
         reward = self.pick_reward()
         if reward is not None:
             self.deck.append(reward)
@@ -652,7 +722,9 @@ class ProduceSim:
         让调用方/策略知道该休息。旧名 ``lesson()`` 保留为别名。
         """
         cost = self.config.training_cost
-        if self.stamina < cost:
+        min_card_cost = min((int(card.cost) for card in self.deck), default=0)
+        gate = max(cost, min_card_cost if cost == 0 else cost)
+        if self.stamina < gate:
             self.trainings += 1
             self.last_training = {
                 "target": None,
@@ -660,9 +732,11 @@ class ProduceSim:
                 "grade": "FAILED",
                 "plays": [],
                 "reward": None,
-                "reason": f"stamina {self.stamina} < {cost}",
+                "reason": f"stamina {self.stamina} < {gate}",
+                "attr_gain": 0,
+                "gain_source": "gate",
             }
-            self.log.append(f"W{self.week} training failed stamina{self.stamina}<{cost}")
+            self.log.append(f"W{self.week} training failed stamina{self.stamina}<{gate}")
             return False
         self.stamina = max(0, self.stamina - cost)
         # 训练目标是 PERFECT（CLEAR+PERFECT 满档），不是只到 CLEAR 就收手。
@@ -693,15 +767,28 @@ class ProduceSim:
             self.deck,
             LessonConfig(
                 turns=5,
-                stamina=self.config.stamina_max,
+                # 训练没有固定入场耗体：用当前体力开局，局内按牌结算
+                stamina=(
+                    self.stamina
+                    if self.config.training_use_current_stamina
+                    else self.config.stamina_max
+                ),
                 target_clear=target_clear,
                 target_perfect=target_perfect,
                 hand_size=3,
                 plan=self.config.plan,
+                stance_costs=self.config.stance_costs,
             ),
             rng_seed=self.rng.randrange(1 << 30),
         )
         score, grade = sim.run(traced_policy)
+        # 局内实际消耗体力写回；PERFECT 返还「剩余回合 × 2」体力（wiki 核实）
+        if self.config.training_use_current_stamina:
+            self.stamina = max(0, sim.stamina)
+        if self.config.perfect_stamina_refund and grade == "PERFECT":
+            self.stamina = min(
+                self.config.stamina_max, self.stamina + max(sim.turns_left, 0) * 2
+            )
         self.trainings += 1
         if grade in ("CLEAR", "PERFECT"):
             self.cleared += 1
@@ -710,13 +797,13 @@ class ProduceSim:
         # PERFECT=clear+perfect）；旧口径才用 score×ratio，FAILED 同样不给属性。
         order = sorted(range(3), key=lambda i: self.config.weights[i], reverse=True)
         target_attr = order[self.trainings % 3]
-        official_gain = self._official_training_gain(grade)
+        official_gain = self._official_training_gain(score, grade)
         if official_gain is not None:
             gain = official_gain
             gain_source = "official"
         else:
-            # 支援卡也提升训练成长（真机支援卡给属性加成/技能卡；这里只建模属性加成那一路）
-            support_factor = 0.85 + 0.15 * self.config.support_bonus
+            # 支援卡レッスンボーナス：训练收益 ×(1+sum bonus%)，向下取整
+            support_factor = 1.0 + float(self.config.support_lesson_bonus)
             gain = (
                 0
                 if grade == "FAILED"
@@ -756,39 +843,53 @@ class ProduceSim:
 
     # ------------------------------------------------------------------ 学期
     def exam(self, index: int) -> dict:
-        """6 人考试：属性加权 = 实力，和第 3 名基准比，进前 3 才合格。
+        """6 人考试：名次按**局内最终得分**与 NPC 得分档比较（wiki 核实）。
 
-        终试得分 = ``2 × 三维总和 × audition_coefficient``：考试/舞台里每张牌的
-        分数都吃屏幕上的属性倍率（「歌唱 411%」= 4.11），训练里倍率 ≈ 1.0。
-        旧口径的 ``2 × 三维总和`` 只是"终试得分 ≈ 2×属性"的 proxy；乘上倍率后
-        再喂 ``eval_value`` / ``exam_score_points``，典型局评价点才落回真机 C+/5577
-        的区间。
+        旧实现拿属性加权 ``weighted()`` 与 NPC 比，这是 bug；属性只用于最终评价点，
+        不进考试名次。NPC 得分档默认期中实测 603/387/206/205（期末缺数据沿用）。
+        考试回合数：期中 9；期末 Sense/Anomaly 12、Logic 11。
+
+        终试得分 = 牌组跑考试模拟器的总分（每张牌 × 属性倍率 411%），作为
+        ``eval_value`` / ``exam_score_points`` 的输入。
         """
         power = self.weighted()
-        base = self.config.exam_base[min(index, len(self.config.exam_base) - 1)]
-        opponents = [base * factor for factor in self.config.npc_factors]
-        rank = 1 + sum(1 for value in opponents if value > power)
-        passed = rank <= 3
-        if passed:
-            self.exams_passed += 1
-            self.fans += 3000
-        # 考试/舞台得分：沿用“终试 ≈ 2×三维总和”的 proxy，再乘属性倍率（411%）
-        # 真实考试：用当前牌组跑 12 回合（每张牌得分 × 属性倍率 411%），
-        # 而不是 ``2 × 三维 × 倍率`` 的粗估——后者把真机 5992 低估成 3588。
+        # 考试/舞台得分：用当前牌组跑考试（每张牌得分 × 属性倍率 411%）
+        if index == 0:
+            turns = int(self.config.exam_turns_mid)
+        elif str(self.config.plan) == "logic":
+            turns = int(self.config.exam_turns_final_logic)
+        else:
+            turns = int(self.config.exam_turns_final)
         exam_sim = LessonSim(
             list(self.deck),
             LessonConfig(
-                turns=12,
+                turns=turns,
                 stamina=self.config.stamina_max,
                 target_clear=0,
                 hand_size=3,
                 attribute_coefficient=self.config.audition_coefficient,
                 plan=self.config.plan,
+                stance_costs=self.config.stance_costs,
             ),
             rng_seed=self.rng.randrange(1_000_000),
         )
         exam_sim.run(greedy_policy)
         exam_score = int(exam_sim.score)
+
+        score_tiers = self.config.exam_npc_scores
+        tier = score_tiers[min(index, len(score_tiers) - 1)] if score_tiers else ()
+        if str(self.config.exam_rank_mode) == "attribute":
+            # 仅 ablation：旧属性加权口径
+            base = self.config.exam_base[min(index, len(self.config.exam_base) - 1)]
+            opponents = [base * factor for factor in self.config.npc_factors]
+            rank = 1 + sum(1 for value in opponents if value > power)
+        else:
+            opponents = [float(value) for value in tier]
+            rank = 1 + sum(1 for value in opponents if value > exam_score)
+        passed = rank <= 3
+        if passed:
+            self.exams_passed += 1
+            self.fans += 3000
         self.last_exam = {
             "rank": rank,
             "power": round(power, 1),
@@ -796,6 +897,8 @@ class ProduceSim:
             "npc": [round(value, 1) for value in opponents],
             # 终试原始得分（已乘考试属性倍率）：官方评价公式的输入
             "score": exam_score,
+            "turns": turns,
+            "rank_mode": str(self.config.exam_rank_mode),
         }
         return self.last_exam
 

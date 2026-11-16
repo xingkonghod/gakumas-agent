@@ -42,6 +42,7 @@ V_leaf 先上线**解析式**（不训练）::
 from __future__ import annotations
 
 import math
+import random
 import time
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping
@@ -62,11 +63,13 @@ from gkagent.sim.stance import (
 
 __all__ = [
     "AnalyticLeafValue",
+    "BeamResult",
     "ExpectState",
     "ExpectimaxConfig",
     "ExpectimaxResult",
     "apply_card",
     "available_drinks",
+    "best_turn_sequence",
     "effective_cost",
     "end_turn_state",
     "expected_tier_utility",
@@ -76,6 +79,9 @@ __all__ = [
     "is_legal",
     "legal_cards",
     "run_sequence",
+    "sample_apply_card",
+    "sample_draws",
+    "search_beam",
     "state_from_sim",
     "use_drink_state",
 ]
@@ -855,6 +861,56 @@ def run_sequence(state: ExpectState, cards: Iterable[CardSpec]) -> ExpectState:
     return current
 
 
+def sample_draws(state: ExpectState, count: int, rng: random.Random) -> ExpectState:
+    """从真实剩余多重集**无放回抽样** ``count`` 张（牌库空则把弃牌洗回）。"""
+    deck = Counter(state.deck)
+    discard = Counter(state.discard)
+    hand = list(state.hand)
+    for _ in range(max(int(count), 0)):
+        if not deck:
+            if not discard:
+                break
+            deck, discard = discard, Counter()
+        total = sum(deck.values())
+        pick = rng.randrange(total)
+        chosen: CardSpec | None = None
+        for card, available in deck.items():
+            if pick < available:
+                chosen = card
+                break
+            pick -= available
+        if chosen is None:
+            break
+        deck[chosen] -= 1
+        if deck[chosen] <= 0:
+            del deck[chosen]
+        hand.append(chosen)
+    return replace(
+        state,
+        hand=tuple(hand),
+        deck=_counts_tuple(deck),
+        discard=_counts_tuple(discard),
+    )
+
+
+def sample_apply_card(
+    state: ExpectState, card: CardSpec, rng: random.Random
+) -> ExpectState:
+    """打出一张牌并按真实剩余多重集抽样一个抽牌结果（beam 用）。"""
+    if card not in state.hand:
+        raise ValueError(f"牌不在手牌里：{card.name}")
+    if not is_legal(state, card):
+        raise ValueError(f"牌不合法：{card.name}")
+    after, draw = _apply_card_effects(state, card)
+    hand = list(after.hand)
+    hand.remove(card)
+    after = replace(after, hand=tuple(hand))
+    after = sample_draws(after, draw, rng)
+    if card.once:
+        return replace(after, excluded=after.excluded + (card,))
+    return replace(after, discard=after.discard + (card,))
+
+
 def end_turn_state(state: ExpectState) -> ExpectState:
     """结算回合末：好印象加分后 -1、好调 -1、持续 buff 倒计时、弃手牌、回合 -1。
 
@@ -1126,6 +1182,319 @@ def expectimax_value(
 ) -> float:
     """当前状态在档位效用下的最优价值（测试/日志用）。"""
     return expectimax_with_stats(state, value, **kwargs).utility
+
+
+def best_turn_sequence(
+    state: ExpectState,
+    value: AnalyticLeafValue | None = None,
+    *,
+    clock: Callable[[], float] = time.perf_counter,
+    deadline: float | None = None,
+) -> tuple[list[CardSpec], ExpectState, bool]:
+    """本回合的最优**有序出牌序列**（抽牌取最大概率后继；beam 规划用）。"""
+    model = value or AnalyticLeafValue()
+    search = _Search(model, ExpectimaxConfig(), clock=clock, deadline=deadline)
+    cards: list[CardSpec] = []
+    current = state
+    complete = True
+    try:
+        while current.plays_left > 0 and current.hand:
+            search.search(current)
+            card = search.choice_memo.get(current.canonical())
+            if card is None:
+                break
+            outcomes = apply_card(current, card)
+            if not outcomes:
+                break
+            outcomes.sort(key=lambda item: item[0], reverse=True)
+            current = outcomes[0][1]
+            cards.append(card)
+    except _Deadline:
+        complete = False
+    return cards, current, complete and not search.aborted
+
+
+# ---------------------------------------------------------------- 跨回合 beam
+@dataclass(frozen=True)
+class BeamResult:
+    """跨回合 beam 的决策结果（按 V_leaf 排序，不按当前分数）。"""
+
+    card: CardSpec | None
+    utility: float
+    skip_utility: float
+    sequence: tuple[str, ...]
+    end_state: ExpectState | None
+    width: int
+    depth_reached: int
+    layer_scores: tuple[float, ...]
+    elapsed_ms: float
+    complete: bool
+
+
+@dataclass(frozen=True)
+class _TurnPlan:
+    first_card: CardSpec | None
+    sequence: tuple[str, ...]
+    end_state: ExpectState
+    utility: float
+    complete: bool
+
+
+@dataclass(frozen=True)
+class _BeamNode:
+    """beam 节点：保留父链和根回合计划，最后按最深层的 V 回溯根动作。"""
+
+    plan: _TurnPlan
+    parent: _BeamNode | None
+    root_plan: _TurnPlan
+    depth: int
+
+
+def _top_turn_plans(
+    state: ExpectState,
+    value: AnalyticLeafValue,
+    *,
+    limit: int,
+    rng: random.Random,
+    clock: Callable[[], float],
+    deadline: float,
+) -> list[_TurnPlan]:
+    """本回合按 V_leaf 取 top-limit 个**不同出牌序列**（beam 根分支用）。
+
+    手牌里没有抽牌卡时，回合内是确定性的，直接枚举所有有序序列（含提前 SKIP）；
+    有抽牌卡时用 ``_plan_turn`` 抽样 limit 次（不确定的抽牌交给随机机会）。
+    """
+    limit = max(int(limit), 1)
+    has_draw = any(card.draw > 0 for card in state.hand)
+    if limit == 1 or has_draw:
+        # 单计划/有抽牌：直接用 expectimax 的最佳序列（比枚举所有序列快）
+        return [
+            _plan_turn(state, value, rng, clock=clock, deadline=deadline)
+            for _ in range(limit)
+        ]
+
+    results: dict[tuple[Any, ...], _TurnPlan] = {}
+
+    def record(cards: list[CardSpec], current: ExpectState) -> None:
+        end = end_turn_state(current)
+        names = tuple(card.name for card in cards)
+        key = (names, end.canonical())
+        if key in results:
+            return
+        results[key] = _TurnPlan(
+            first_card=cards[0] if cards else None,
+            sequence=names,
+            end_state=end,
+            utility=value.utility(end),
+            complete=True,
+        )
+
+    def recurse(current: ExpectState, cards: list[CardSpec]) -> None:
+        if clock() >= deadline:
+            return
+        record(cards, current)
+        if current.plays_left <= 0 or not current.hand:
+            return
+        for card in legal_cards(current):
+            outcomes = apply_card(current, card)
+            if len(outcomes) != 1:
+                # 手牌里没有 draw 卡时不应出现分支；防御性跳过
+                continue
+            recurse(outcomes[0][1], [*cards, card])
+
+    recurse(state, [])
+    ordered = sorted(results.values(), key=lambda plan: plan.utility, reverse=True)
+    return ordered[:limit]
+
+
+def _plan_turn(
+    state: ExpectState,
+    value: AnalyticLeafValue,
+    rng: random.Random,
+    *,
+    clock: Callable[[], float],
+    deadline: float,
+) -> _TurnPlan:
+    """一个回合的最佳序列；有抽牌卡时按真实剩余多重集抽样推进。"""
+    has_draw = any(card.draw > 0 for card in state.hand)
+    first_card: CardSpec | None = None
+    names: list[str] = []
+    complete = True
+    if not has_draw:
+        cards, current, complete = best_turn_sequence(
+            state, value, clock=clock, deadline=deadline
+        )
+        names = [card.name for card in cards]
+        first_card = cards[0] if cards else None
+    else:
+        current = state
+        try:
+            while current.plays_left > 0 and current.hand:
+                result = expectimax_with_stats(
+                    current, value, clock=clock, deadline=deadline
+                )
+                if result.card is None:
+                    break
+                if first_card is None:
+                    first_card = result.card
+                names.append(result.card.name)
+                current = sample_apply_card(current, result.card, rng)
+                if not result.complete:
+                    complete = False
+                    break
+        except _Deadline:
+            complete = False
+    end_state = end_turn_state(current)
+    return _TurnPlan(
+        first_card=first_card,
+        sequence=tuple(names),
+        end_state=end_state,
+        utility=value.utility(end_state),
+        complete=complete,
+    )
+
+
+def search_beam(
+    state: ExpectState,
+    value: AnalyticLeafValue | None = None,
+    *,
+    width: int = 24,
+    depth: int | None = None,
+    deadline_ms: float = DEFAULT_BEAM_DEADLINE_MS,
+    time_budget_ms: float | None = None,
+    clock: Callable[[], float] = time.perf_counter,
+    rng: random.Random | int | None = None,
+    branching: int | None = None,
+) -> BeamResult:
+    """跨回合 beam：每层一个回合，节点是回合末状态，按 V_leaf 保留 top-width。
+
+    根回合先生成 top-``branch`` 个不同出牌序列作为 beam 分支；之后每层用真实
+    剩余多重集**无放回抽样**新一手牌（``sample_draws``），回合内用 expectimax
+    产出该回合最佳序列。最终按**最深一层**的 V_leaf 回溯根动作——这样"先铺 buff
+    的投资线"不会因为当前分数低被剪掉。到 ``deadline_ms`` 返回当前最优。
+    """
+    model = value or AnalyticLeafValue()
+    if time_budget_ms is not None:
+        deadline_ms = time_budget_ms
+    width = max(int(width), 1)
+    total_depth = max(state.turns_left, 1)
+    if depth is not None:
+        total_depth = max(min(int(depth), total_depth), 1)
+    branch = (
+        max(int(branching), 1)
+        if branching is not None
+        else max(2, min(width, 3))
+    )
+    if isinstance(rng, int):
+        rng = random.Random(rng)
+    rng = rng or random.Random(0)
+    started = clock()
+    deadline = started + max(float(deadline_ms), 0.0) / 1000.0
+    complete = True
+
+    def timed_out() -> bool:
+        nonlocal complete
+        if clock() >= deadline:
+            complete = False
+            return True
+        return False
+
+    # 根回合：手牌已在手上。枚举/抽样 top 序列，每个序列一个 beam 节点。
+    root_plans: list[_TurnPlan] = []
+    try:
+        root_plans = _top_turn_plans(
+            state,
+            model,
+            limit=max(branch, width),
+            rng=rng,
+            clock=clock,
+            deadline=deadline,
+        )
+    except _Deadline:
+        complete = False
+    if not root_plans:
+        result = expectimax_with_stats(state, model, clock=clock, deadline=deadline)
+        return BeamResult(
+            card=result.card,
+            utility=result.utility,
+            skip_utility=result.skip_utility,
+            sequence=(result.card.name,) if result.card else (),
+            end_state=None,
+            width=width,
+            depth_reached=0,
+            layer_scores=(),
+            elapsed_ms=(clock() - started) * 1000.0,
+            complete=False,
+        )
+    root_plans.sort(key=lambda plan: plan.utility, reverse=True)
+    beam = [
+        _BeamNode(plan=plan, parent=None, root_plan=plan, depth=1)
+        for plan in root_plans[:width]
+    ]
+    best_node = beam[0]
+    layer_scores = [best_node.plan.utility]
+    depth_reached = 1
+
+    for layer in range(2, total_depth + 1):
+        if timed_out():
+            break
+        children: list[_BeamNode] = []
+        for node in beam:
+            if node.plan.end_state.turns_left <= 0:
+                continue
+            samples = branch
+            for _ in range(samples):
+                if timed_out():
+                    break
+                start = sample_draws(
+                    node.plan.end_state, node.plan.end_state.hand_size, rng
+                )
+                try:
+                    plans = _top_turn_plans(
+                        start,
+                        model,
+                        limit=1,
+                        rng=rng,
+                        clock=clock,
+                        deadline=deadline,
+                    )
+                except _Deadline:
+                    complete = False
+                    break
+                for plan in plans:
+                    children.append(
+                        _BeamNode(
+                            plan=plan,
+                            parent=node,
+                            root_plan=node.root_plan,
+                            depth=layer,
+                        )
+                    )
+            if not complete:
+                break
+        if not children:
+            break
+        children.sort(key=lambda node: node.plan.utility, reverse=True)
+        beam = children[:width]
+        best_node = beam[0]
+        layer_scores.append(best_node.plan.utility)
+        depth_reached = layer
+        if not complete:
+            break
+
+    # 最终按最深层 V 回溯根回合计划（不是按当前分数/根回合叶子）
+    return BeamResult(
+        card=best_node.root_plan.first_card,
+        utility=best_node.plan.utility,
+        skip_utility=model.utility(end_turn_state(state)),
+        sequence=best_node.root_plan.sequence,
+        end_state=best_node.plan.end_state,
+        width=width,
+        depth_reached=depth_reached,
+        layer_scores=tuple(layer_scores),
+        elapsed_ms=(clock() - started) * 1000.0,
+        complete=complete and depth_reached >= total_depth,
+    )
 
 
 # ---------------------------------------------------------------- LessonSim 适配
