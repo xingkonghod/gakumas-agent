@@ -484,6 +484,134 @@
 "rarity": "Sr",
 "upgrade": 3
 },
+"一心一意的随从": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+}
+],
+"id": "p_card-01-ido-1_138",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 0
+},
+"一心一意的随从+": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+}
+],
+"id": "p_card-01-ido-1_138",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 1
+},
+"一心一意的随从++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+4
+]
+}
+],
+"id": "p_card-01-ido-1_138",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 2
+},
+"一心一意的随从+++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+5
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+5
+]
+}
+],
+"id": "p_card-01-ido-1_138",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 3
+},
 "一心不乱": {
 "category": "MentalSkill",
 "cost": 3,
@@ -20798,6 +20926,114 @@
 "rarity": "Sr",
 "upgrade": 3
 },
+"心怀忠义": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+1
+]
+},
+{
+"turn": 1,
+"type": "ExamParameterBuffMultiplePerTurn",
+"values": []
+}
+],
+"id": "p_card-01-ido-2_170",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 0
+},
+"心怀忠义+": {
+"category": "MentalSkill",
+"cost": 1,
+"effects": [
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+1
+]
+},
+{
+"turn": 1,
+"type": "ExamParameterBuffMultiplePerTurn",
+"values": []
+}
+],
+"id": "p_card-01-ido-2_170",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 1
+},
+"心怀忠义++": {
+"category": "MentalSkill",
+"cost": 1,
+"effects": [
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+1
+]
+},
+{
+"turn": 2,
+"type": "ExamParameterBuffMultiplePerTurn",
+"values": []
+}
+],
+"id": "p_card-01-ido-2_170",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 2
+},
+"心怀忠义+++": {
+"category": "MentalSkill",
+"cost": 1,
+"effects": [
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+1
+]
+},
+{
+"turn": 3,
+"type": "ExamParameterBuffMultiplePerTurn",
+"values": []
+}
+],
+"id": "p_card-01-ido-2_170",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 3
+},
 "心情多变": {
 "category": "MentalSkill",
 "cost": 2,
@@ -31743,6 +31979,215 @@
 "id": "p_card-02-ido-3_096",
 "plan": "Plan2",
 "rarity": "Ssr",
+"upgrade": 3
+},
+"温柔的光之中": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+2
+]
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-ido-3_292",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-3",
+"upgrade": 0
+},
+"温柔的光之中+": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+2
+]
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-ido-3_292",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-3",
+"upgrade": 1
+},
+"温柔的光之中++": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+2
+]
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+}
+],
+"id": "p_card-01-ido-3_292",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-3",
+"upgrade": 2
+},
+"温柔的光之中+++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+1
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": [
+2
+]
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+3
+]
+}
+],
+"id": "p_card-01-ido-3_292",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-3",
 "upgrade": 3
 },
 "溢满的回忆": {
@@ -53384,6 +53829,6 @@
 "upgrade": 3
 }
 },
-"count": 1817,
+"count": 1829,
 "source": "vertesan/gakumasu-diff ProduceCard.yaml"
 }

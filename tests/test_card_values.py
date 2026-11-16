@@ -33,7 +33,7 @@ def values_of(cards: dict[str, dict], name: str, effect_type: str) -> list[int]:
 
 def test_table_keeps_scale_and_schema() -> None:
     cards = load_cards()
-    assert len(cards) == 1817
+    assert len(cards) == 1829  # 2026-11-16 游戏更新 + 自译补全（1817 -> 1829）
     for name, row in cards.items():
         assert name
         assert isinstance(row["cost"], int) and row["cost"] >= 0
