@@ -50,7 +50,8 @@ VALID_ACTIONS = ("lesson", "train", "rest", "outing")
 MIDTERM_WEEK = 6
 FINAL_WEEK = 12
 #: 模拟器标定所需配置的默认值（policy.json 缺文件/缺键时兜底；不是实测数据）。
-DEFAULT_META = {"audition_coefficient": 4.11, "lesson_min_stamina": 10}
+#: 训练体力门新键 ``training_min_stamina`` 优先；旧键 ``lesson_min_stamina`` 保留同步。
+DEFAULT_META = {"audition_coefficient": 4.11, "training_min_stamina": 10, "lesson_min_stamina": 10}
 
 _WEEK_RE = re.compile(r"(\d{1,2})\s*周")
 _GRADE_RE = re.compile(r"([SABCDE])\s*(\+?)")
@@ -242,7 +243,11 @@ def parse_exam_result(lines: Iterable[Any]) -> dict[str, Any] | None:
 
 
 def load_meta(policy_path: Path | str | None = None) -> dict[str, Any]:
-    """从 ``data/knowledge/policy.json`` 的 produce 段取标定配置（缺就回默认）。"""
+    """从 ``data/knowledge/policy.json`` 的 produce 段取标定配置（缺就回默认）。
+
+    训练体力门新旧键都认：``training_min_stamina`` 优先，缺失时读
+    ``lesson_min_stamina``；返回的 meta 同时写新旧两个键，旧脚本继续可读。
+    """
     meta: dict[str, Any] = dict(DEFAULT_META)
     path = Path(policy_path) if policy_path is not None else POLICY_PATH
     try:
@@ -256,6 +261,12 @@ def load_meta(policy_path: Path | str | None = None) -> dict[str, Any]:
         value = produce.get(key)
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             meta[key] = value
+    threshold = produce.get("training_min_stamina")
+    if not isinstance(threshold, (int, float)) or isinstance(threshold, bool):
+        threshold = produce.get("lesson_min_stamina")
+    if isinstance(threshold, (int, float)) and not isinstance(threshold, bool):
+        meta["training_min_stamina"] = threshold
+        meta["lesson_min_stamina"] = threshold
     return meta
 
 

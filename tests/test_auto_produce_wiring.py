@@ -1,4 +1,4 @@
-﻿"""接线静态检查：auto_produce.py 里对 ProduceDriver 的每次方法调用都必须真实存在。
+"""接线静态检查：auto_produce.py 里对 ProduceDriver 的每次方法调用都必须真实存在。
 
 背景：2026-11-15 连续踩了三次同类坑——
   * policy.json 的 produce 段只保留默认键，attr_choice 被静默丢弃；
@@ -171,7 +171,7 @@ def test_sim_play_switch_wired() -> None:
     source = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")
     assert 'driver._produce_params().get("sim_play")' in source, "没读 policy.json 的 sim_play 开关"
     assert "plan_pick(" in source, "出牌分支没接模拟器 rollout"
-    assert "[lesson] sim-pick" in source, "sim 选牌没打日志（真机复盘要对比规则选择）"
+    assert "[training] sim-pick" in source, "sim 选牌没打日志（真机复盘要对比规则选择）"
     assert "if sim_best is not None and sim_best.point is not None" in source, (
         "模拟器返回 None/异常时必须保留规则选择（不能把出牌搞退化）"
     )

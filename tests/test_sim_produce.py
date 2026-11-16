@@ -179,7 +179,7 @@ def test_strategy_rests_below_threshold() -> None:
 
 
 def test_strategy_rests_instead_of_lesson_when_stamina_below_gate() -> None:
-    """体力 5 + lesson_min_stamina=12：即使轮到上课周也改休息（真机事故回归）。"""
+    """体力 5 + training_min_stamina=12：即使轮到训练周也改休息（真机事故回归）。"""
     sim = _sim()
     sim.week = 1
     sim.stamina = 5
@@ -188,9 +188,9 @@ def test_strategy_rests_instead_of_lesson_when_stamina_below_gate() -> None:
     )
     assert strategy(sim) == "rest"
 
-    # 体力 20 达标 → 正常上课
+    # 体力 20 达标 → 正常训练
     sim.stamina = 20
-    assert strategy(sim) == "lesson"
+    assert strategy(sim) == "training"
 
 
 def test_strategy_does_not_train_when_stamina_insufficient() -> None:
@@ -226,15 +226,16 @@ def test_stamina_never_goes_negative_on_failed_lesson() -> None:
 
 
 def test_search_grid_covers_lesson_stamina_gate() -> None:
-    """搜索空间必须包含体力门，否则重跑也找不到新的 lesson_min_stamina。"""
+    """搜索空间必须包含训练体力门（脚本层暂用旧键名，兼容两种键）。"""
     import sys
     from pathlib import Path
 
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
     import sim_search as ss
 
-    assert "lesson_min_stamina" in ss.GRID
-    values = ss.GRID["lesson_min_stamina"]
+    gate_key = "training_min_stamina" if "training_min_stamina" in ss.GRID else "lesson_min_stamina"
+    assert gate_key in ss.GRID
+    values = ss.GRID[gate_key]
     assert 12 in values
     assert all(isinstance(value, int) for value in values)
 
@@ -244,9 +245,9 @@ def test_strategy_lessons_on_cadence() -> None:
     sim.week = 3
     sim.stamina = 30
     strategy = strategy_from_params(StrategyParams(lesson_every=3, rest_threshold=6))
-    assert strategy(sim) == "lesson"
+    assert strategy(sim) == "training"
     sim.week = 4
-    assert strategy(sim) in ("train", "train_low")
+    assert strategy(sim) in ("class", "class_low")
 
 
 def test_reward_adds_card_to_deck() -> None:

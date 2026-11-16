@@ -71,11 +71,11 @@
 
 ### run ep-sim2（规则/模拟器实时出牌首跑，17:57:40 起，lead 启动）
 - 启动时 `sim_play=true`；`scripts/auto_produce.py:47` import `plan_pick`、出牌分支调用并打印
-  `[lesson] sim-pick ...`（日志在进程退出时落盘）。
+  `[training] sim-pick ...`（日志在进程退出时落盘）。
 - **sim-pick 已实机确认生效**（16 步里 6 条，3 条与规则一致 / 3 条覆盖规则）：
-  - `006 [lesson] sim-pick 平衡感 (0分/2费) 期望 372.0 vs 规则选 凭势而行+(62分)`
-  - `009 [lesson] sim-pick 凭势而行 (43分/4费) 期望 1912.2 vs 规则选 轻快步伐+(857分)`
-  - `015 [lesson] sim-pick 表现的基础 (0分/0费) 期望 894.5 vs 规则选 在我发现的世界 (400分)`
+  - `006 [training] sim-pick 平衡感 (0分/2费) 期望 372.0 vs 规则选 凭势而行+(62分)`
+  - `009 [training] sim-pick 凭势而行 (43分/4费) 期望 1912.2 vs 规则选 轻快步伐+(857分)`
+  - `015 [training] sim-pick 表现的基础 (0分/0费) 期望 894.5 vs 规则选 在我发现的世界 (400分)`
   - 其余 3 条 `sim-pick 与规则一致 card1 (期望 690.0) / 荒人喜爱 (3938.0) / 表情的基础 (1345.4)`
 - `[exam-mode]` 每步都命中（F#17 生效）；第 17 步被 `data/STOP` 急停（lead 为清僵尸进程创建）。
 - **待办**：用 9bfccc8（buff 早期优先）重启后，统计 sim 与规则分歧率、以及模拟器期望分标定
@@ -96,7 +96,7 @@
 ### run ep-sim3（sim_play/sim_choice 全开首跑，18:05:57 起，lead 启动）
 - **结果**：27 步 / 140s（5.2s/步）/ done=false；18:08:17 被外部 data/STOP 急停（非 supervisor 创建）。
 - 从最终审查开局，第 1 步起 [exam-mode] 命中，全程无 SKIP。
-- [lesson] sim-pick 8 条，**全部与规则一致（分歧率 0）**；本段手牌全是分数牌，未出现 buff/高亮牌。
+- [training] sim-pick 8 条，**全部与规则一致（分歧率 0）**；本段手牌全是分数牌，未出现 buff/高亮牌。
 - **教训**：STOP 是全局文件，今天已误伤 4 局（ep-sim1/2/3、ep-sup1b）；停局必须只针对目标 PID。
 
 ### run ep-aud3（僵尸续跑，17:47:04 起，lead 启动）

@@ -6,6 +6,10 @@
 
 这样「选训练」这件事就是模拟器算出来的，而不是拍脑袋。
 
+行动名（2026-11-16 起）：``training``（训练/レッスン）、``class``（上课/授業）、
+``class_low``（给最低属性上课）；旧名 ``lesson`` / ``train`` / ``train_low``
+继续接受，且调用方传旧名时返回值也保持旧名（旧脚本/外部集成不用改）。
+
 用法（真机侧）：`choose_action(attrs, stamina, week, deck, config)`
 """
 
@@ -18,35 +22,42 @@ from gkagent.sim.produce import (
     ProduceConfig,
     ProduceSim,
     StrategyParams,
+    canonical_action,
     eval_value,
     strategy_from_params,
 )
 
 DEFAULT_PARAMS = StrategyParams(
-    rest_threshold=8, lesson_every=1, attr_choice="weight", outing_below=16, min_stamina_to_train=8
+    rest_threshold=8, training_every=1, attr_choice="weight", outing_below=16, min_stamina_for_class=8
 )
 
 ACTION_LABELS = {
-    "train": "练审查基准最高属性",
-    "train_low": "练最低属性",
+    # 新名
+    "training": "做训练(レッスン，拿卡+粉丝)",
+    "class": "按审查基准最高属性上课(授業)",
+    "class_low": "给最低属性上课(授業)",
     "rest": "休息",
-    "lesson": "上课",
     "outing": "外出",
+    # 旧名兼容
+    "lesson": "做训练(旧名 lesson)",
+    "train": "上课(旧名 train)",
+    "train_low": "上课(旧名 train_low)",
 }
 
 
 def _apply(sim: ProduceSim, action: str, weights: tuple[float, float, float]) -> None:
-    if action == "train":
+    kind = canonical_action(action)
+    if kind == "class":
         best = max(range(3), key=lambda i: weights[i])
-        sim.train(best)
-    elif action == "train_low":
-        sim.train(sim.lagging_attribute())
-    elif action == "rest":
+        sim.class_lesson(best)
+    elif kind == "class_low":
+        sim.class_lesson(sim.lagging_attribute())
+    elif kind == "rest":
         sim.rest()
-    elif action == "outing":
+    elif kind == "outing":
         sim.outing()
-    elif action == "lesson":
-        sim.lesson()
+    elif kind == "training":
+        sim.training()
     else:
         raise ValueError(f"未知行动: {action}")
 
@@ -87,7 +98,7 @@ def _rollout(
             if row.get("exam"):
                 rank = row["exam"]["rank"]
                 break
-        # 终试得分从 sim 里取（已乘考试属性倍率），课程/考试口径与 produce.run 一致
+        # 终试得分从 sim 里取（已乘考试属性倍率），训练/考试口径与 produce.run 一致
         values.append(eval_value(total, rank, sim.last_exam_score()))
     return sum(values) / len(values)
 
@@ -100,11 +111,15 @@ def choose_action(
     stamina: int,
     week: int,
     config: ProduceConfig | None = None,
-    actions: tuple[str, ...] = ("train", "train_low", "rest", "lesson", "outing"),
+    actions: tuple[str, ...] = ("training", "class", "class_low", "rest", "outing"),
     episodes: int = 16,
     seed: int = 12345,
 ) -> dict:
-    """返回 {action, eval, ranking}：按模拟评价点排序的候选行动。"""
+    """返回 {action, eval, ranking}：按模拟评价点排序的候选行动。
+
+    ``actions`` 可以混用新旧行动名；输出会保留调用方传入的写法，方便旧集成
+    （例如 ``("train", "rest", "lesson")``）原样读取 ``result["action"]``。
+    """
     cfg = config or ProduceConfig()
     reward_pool = pool or []
     # 外出只在特定周开放；不开放时不该被选

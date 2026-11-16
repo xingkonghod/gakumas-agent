@@ -1,4 +1,4 @@
-"""实时出牌：用课程模拟器给每张手牌算期望分，选期望最高的那张打。
+"""实时出牌：用训练模拟器给每张手牌算期望分，选期望最高的那张打。
 
 现有 ``LessonPolicy`` 是规则（分数÷体力、buff 优先、体力门）。这里对**每张手牌**做
 N 次前瞻 rollout：先打这张牌，之后按 ``greedy_policy`` 把剩余回合打完，比较期望总分，
@@ -11,10 +11,11 @@ anytime：总预算 ``time_budget_ms`` 用完就返回当前最优；第一轮�
 不能让出牌因此退化。开关与日志样例见 ``scripts/auto_produce.py``。
 
 **考试/舞台**：真机考试里每张牌的分数都吃屏幕上的属性倍率
-（「歌唱 411%」= 4.11），课程里 ≈ 1.0。调用方已知当前是考试/舞台时传
+（「歌唱 411%」= 4.11），训练里 ≈ 1.0。调用方已知当前是考试/舞台时传
 ``kind="audition"``：rollout 的 ``LessonConfig.attribute_coefficient`` 会设成
-4.11，期望分与选择按考试口径算；不传 / ``kind="lesson"`` 仍按课程 1.0
-（旧调用方行为不变）。``config`` 显式传入时以 config 为准。
+4.11，期望分与选择按考试口径算；不传 / ``kind="lesson"`` 仍按训练 1.0
+（``kind="lesson"`` 是读屏层的旧 screen kind，保留不改；旧调用方行为不变）。
+``config`` 显式传入时以 config 为准。
 """
 
 from __future__ import annotations
@@ -200,7 +201,7 @@ def _sim_config(
     *,
     kind: str | None = None,
 ) -> LessonConfig:
-    """构造 rollout 配置：课程 1.0；``kind`` 是考试/舞台时用 411% 属性倍率。
+    """构造 rollout 配置：训练 1.0；``kind`` 是考试/舞台时用 411% 属性倍率。
 
     显式传入 ``config`` 时以它为准（调用方可以自己设 ``attribute_coefficient``）。
     """
@@ -293,7 +294,7 @@ def estimate_hand(
 ) -> list[CardEstimate]:
     """对每张手牌 rollout，返回可打出的牌的期望分（按手牌顺序，只含打得出的牌）。
 
-    ``kind="audition"``（考试/舞台）时 rollout 用属性倍率 4.11；默认课程 1.0。
+    ``kind="audition"``（考试/舞台）时 rollout 用属性倍率 4.11；默认训练 1.0。
     """
     try:
         play_cards = specs_from_hand(hand, table=table)
@@ -413,7 +414,7 @@ def plan_pick(
     """一次 rollout 同时拿到「选择下标 + 每张牌期望分」，供真机日志对比规则选择。
 
     ``choose_card_via_sim`` 是它的薄封装；任何异常都返回 ``(None, [])``。
-    ``kind="audition"`` 时 rollout 走考试属性倍率（411%），默认课程 1.0。
+    ``kind="audition"`` 时 rollout 走考试属性倍率（411%），默认训练 1.0。
     """
     try:
         estimates = estimate_hand(

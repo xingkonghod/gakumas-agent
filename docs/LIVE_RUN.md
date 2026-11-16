@@ -98,8 +98,8 @@ Get-ScheduledTask -TaskName GDEAgent | Select-Object State
 |---|---|
 | `calibrate.py` 给出真实 `周增长/得分` | `src/gkagent/sim/produce.py` 的 `lesson_gain_ratio` |
 | 期末名次/评价 | 复核 `exam_base`（现在 85/205，按真机标定） |
-| 某类界面卡住/空转 | `data/auto/auto_log_<ep>.log` 里 `[lesson]`/`[action]` 行 + 截图 |
-| 出牌明显不合理 | 先看 `[lesson]` 行里的 `分数/体力` 是否读对，再动 `policy.json` |
+| 某类界面卡住/空转 | `data/auto/auto_log_<ep>.log` 里 `[training]`/`[action]` 行 + 截图 |
+| 出牌明显不合理 | 先看 `[training]` 行里的 `分数/体力` 是否读对，再动 `policy.json` |
 
 ## 4. 判定标准
 

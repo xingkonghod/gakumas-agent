@@ -625,6 +625,25 @@ class UserBusy(Exception):
     """用户正在用键鼠：这一次动作先不做，等用户离开再继续。"""
 
 
+def _display_action(action: str) -> str:
+    """日志里的行动名：用游戏术语（训练/上课）显示，内部 action id 保持兼容。
+
+    - ``train-Vo``（点「Vo.训练」）→ ``class-Vo``：按 2026-11-16 统一后的
+      代码名显示（``train`` 一律显示成 ``class``）；
+    - ``lesson``（点「授课」）→ ``training``；
+    - 其余 action（rest/outing/skip 等）原样返回。
+    """
+    if action.startswith("sim-train-"):
+        return "sim-class-" + action[len("sim-train-"):]
+    if action.startswith("train-"):
+        return "class-" + action[len("train-"):]
+    if action == "sim-lesson":
+        return "sim-training"
+    if action == "lesson":
+        return "training"
+    return action
+
+
 @dataclass
 class TickResult:
     screen: str
@@ -633,7 +652,7 @@ class TickResult:
     detail: str = ""
 
     def describe(self) -> str:
-        text = f"[{self.screen}] {self.action}"
+        text = f"[{self.screen}] {_display_action(self.action)}"
         return f"{text} {self.detail}".strip()
 
 
@@ -1274,7 +1293,12 @@ class ProduceDriver:
             return None
 
     def _produce_params(self) -> dict:
-        """读 data/knowledge/policy.json 的 produce 段；坏文件/缺文件回退默认值。"""
+        """读 data/knowledge/policy.json 的 produce 段；坏文件/缺文件回退默认值。
+
+        轮行动参数新旧键都认（``training_every`` 优先于 ``lesson_every``，
+        ``training_min_stamina`` 优先于 ``lesson_min_stamina`` 等）；返回的 dict
+        同时保留旧键别名，旧脚本读 ``lesson_every`` 也能拿到新值。
+        """
         cached = getattr(self, "_produce_cfg", None)
         if isinstance(cached, dict):
             return cached
@@ -1283,20 +1307,26 @@ class ProduceDriver:
             "rest_threshold": DEFAULT_REST_THRESHOLD,
             "lesson_threshold": DEFAULT_LESSON_THRESHOLD,
             "reward_pick": "best",
-            "lesson_every": 1,
+            "training_every": 1,
             "attr_choice": "weight",
-            "min_stamina_to_train": 10,
+            "min_stamina_for_class": 10,
             "outing_below": -1,
         }
         try:
             import json as _json
             from pathlib import Path as _Path
 
+            from gkagent.sim.produce import PRODUCE_KEY_ALIASES, normalize_produce_params
+
             raw = _json.loads(_Path(r"D:\Games\gakumas-agent\data\knowledge\policy.json").read_text(encoding="utf-8"))
             section = raw.get("produce") or {}
             if isinstance(section, dict):
-                # 保留 policy.json 里的所有键（之前只保留默认字典里的键，新参数被静默丢弃）
-                defaults.update(section)
+                # 保留 policy.json 里的所有键（之前只保留默认字典里的键，新参数被静默丢弃）；
+                # 先只对 policy 内容做新旧键归一，避免默认新键覆盖文件里的旧键值。
+                defaults.update(normalize_produce_params(section))
+            for old_key, new_key in PRODUCE_KEY_ALIASES.items():
+                if new_key in defaults and old_key not in defaults:
+                    defaults[old_key] = defaults[new_key]
         except Exception:  # noqa: BLE001 - 参数文件坏了就用默认值
             self._produce_cfg = defaults
             return defaults

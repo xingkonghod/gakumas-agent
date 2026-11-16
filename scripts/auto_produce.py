@@ -987,7 +987,7 @@ def main() -> int:
                 )
             elif force_skip:
                 log_lines.append(
-                    f"{step:03d} [lesson] 同一屏连续 {same_screen.repeats} 步无变化，"
+                    f"{step:03d} [training] 同一屏连续 {same_screen.repeats} 步无变化，"
                     f"强制 SKIP 结束回合"
                 )
             # 体力门：体力 0 / 体力 < 最低手牌费用 → 一张牌都打不出。立刻按 SKIP
@@ -1039,7 +1039,7 @@ def main() -> int:
                 bad_cards.update(lesson_guard.failed_names)
                 lesson_policy.reset_turn()
                 log_lines.append(
-                    f"{step:03d} [lesson] {failed_name or '这张牌'} 确认后分数/手牌没变"
+                    f"{step:03d} [training] {failed_name or '这张牌'} 确认后分数/手牌没变"
                     "或浮层仍在，判为打不出去，换一张"
                 )
             if stamina_gate is not None:
@@ -1050,7 +1050,7 @@ def main() -> int:
                     # 交给同屏兜底（5 步强制 / 10 步退出），避免每 7 秒一次的连点。
                     action_name = "lesson-skip-wait"
                     result = (
-                        "[lesson] 本回合已 SKIP 过且画面未推进，不重复点"
+                        "[training] 本回合已 SKIP 过且画面未推进，不重复点"
                         f"（同屏 {same_screen.repeats}/{same_screen.exit_after}）"
                     )
                     idle = 0
@@ -1069,7 +1069,7 @@ def main() -> int:
                         last_pick_name = None
                         same_pick_count = 0
                         action_name = "lesson-skip"
-                        result = f"[lesson] {skip_reason}，直接 SKIP"
+                        result = f"[training] {skip_reason}，直接 SKIP"
                         idle = 0
             elif guard_action == "confirm" and guard_point is not None:
                 pending_name = lesson_guard.pending_name
@@ -1099,7 +1099,7 @@ def main() -> int:
                     lesson_guard.confirm_clicked()
                     lesson_pending = None
                     action_name = "lesson-confirm"
-                    result = f"[lesson] confirm card at {guard_point}"
+                    result = f"[training] confirm card at {guard_point}"
                     idle = 0
             elif guard_action == "close" and guard_point is not None:
                 clicked = agent.device.click_force(*guard_point)
@@ -1112,7 +1112,7 @@ def main() -> int:
                     lesson_pending = None
                     lesson_sig_before_pick = None
                     action_name = "lesson-close-overlay"
-                    result = f"[lesson] 卡片详情浮层挡路，点空白 {guard_point} 关闭后重选"
+                    result = f"[training] 卡片详情浮层挡路，点空白 {guard_point} 关闭后重选"
                     idle = 0
             elif guard_action == "skip" and guard_point is not None:
                 clicked = agent.device.click_force(*guard_point)
@@ -1131,7 +1131,7 @@ def main() -> int:
                     same_pick_count = 0
                     action_name = "lesson-skip"
                     result = (
-                        f"[lesson] 同一坐标连续 {lesson_guard.skip_after} 次未推进，"
+                        f"[training] 同一坐标连续 {lesson_guard.skip_after} 次未推进，"
                         f"点 SKIP {guard_point}"
                     )
                     idle = 0
@@ -1139,7 +1139,7 @@ def main() -> int:
                 lesson_pending = None
                 lesson_sig_before_pick = None
                 action_name = "lesson-wait"
-                result = "[lesson] 选牌点击已生效，等下一帧"
+                result = "[training] 选牌点击已生效，等下一帧"
                 idle = 0
             if (
                 stamina is not None
@@ -1158,7 +1158,7 @@ def main() -> int:
                 if use is not None:
                     agent.device.click_force(*driver.center(use))
                 time.sleep(0.8)
-                result = f"[lesson] drink at stamina={stamina}"
+                result = f"[training] drink at stamina={stamina}"
                 clicked = True
                 action_name = "drink"
                 hand = scan_hand(image)
@@ -1209,7 +1209,7 @@ def main() -> int:
                     last_pick_name = None
                     same_pick_count = 0
                     action_name = "lesson-skip"
-                    result = "[lesson] SKIP 结束回合（剩下的牌不值得体力）"
+                    result = "[training] SKIP 结束回合（剩下的牌不值得体力）"
                 if name_pick is not None:
                     # 卡名只剩 SELECT/SEECT/S/A/M 时不能沿用脏名字：按分数/费用重选
                     cleaned_name = clean_card_name(name_pick.name)
@@ -1289,7 +1289,7 @@ def main() -> int:
                             )
                             if name_pick is None or sim_best.point != name_pick.point:
                                 log_lines.append(
-                                    f"{step:03d} [lesson] sim-pick {sim_best.name} "
+                                    f"{step:03d} [training] sim-pick {sim_best.name} "
                                     f"(屏幕 {sim_best.score:.0f}分/{sim_best.cost}费、"
                                     f"模拟口径期望 {sim_best.expected:.1f}) vs 规则选 {rule_label}"
                                 )
@@ -1301,7 +1301,7 @@ def main() -> int:
                                 )
                             else:
                                 log_lines.append(
-                                    f"{step:03d} [lesson] sim-pick 与规则一致 {sim_best.name} "
+                                    f"{step:03d} [training] sim-pick 与规则一致 {sim_best.name} "
                                     f"(屏幕 {sim_best.score:.0f}分、模拟口径期望 "
                                     f"{sim_best.expected:.1f}、规则估值 {name_pick.value:.1f})"
                                 )
@@ -1322,7 +1322,7 @@ def main() -> int:
                         same_pick_count = 1
                     if same_pick_count >= 4:
                         bad_cards.add(name_pick.name)
-                        log_lines.append(f"{step:03d} [lesson] {name_pick.name} 连点不动，标记跳过")
+                        log_lines.append(f"{step:03d} [training] {name_pick.name} 连点不动，标记跳过")
                         last_pick_name = None
                         same_pick_count = 0
                         name_pick = pick_hand_card(
@@ -1345,7 +1345,7 @@ def main() -> int:
                         lesson_guard.picked(name_pick.point, name_pick.name)
                         lesson_sig_before_pick = lesson_hand_signature(lesson_state)
                         result = (
-                            f"[lesson] name-pick {name_pick.name} "
+                            f"[training] name-pick {name_pick.name} "
                             f"({name_pick.value:.1f}) at {name_pick.point}"
                         )
                         idle = 0
@@ -1405,7 +1405,7 @@ def main() -> int:
                             last_pick_name = None
                             same_pick_count = 0
                             action_name = "lesson-skip"
-                            result = "[lesson] 剩余牌都确认打不出去，点 SKIP 结束回合"
+                            result = "[training] 剩余牌都确认打不出去，点 SKIP 结束回合"
                             idle = 0
                     elif play is None and exam_mode:
                         # 考试：绝不能 SKIP。换一张还没确认打不出去的牌硬出（分数没读到也点）；
@@ -1444,12 +1444,12 @@ def main() -> int:
                             lesson_pending = (play.point, boxes, "")
                             lesson_guard.picked(play.point, "")
                             lesson_sig_before_pick = lesson_hand_signature(lesson_state)
-                            result = f"[lesson] play card#{play.index} {play.source} at {play.point}"
+                            result = f"[training] play card#{play.index} {play.source} at {play.point}"
                             idle = 0
                     else:
                         clicked = agent.device.click_force(360, 1000)
                         time.sleep(0.9)
-                        result = "[lesson] 无可用决策，点击中位卡兜底"
+                        result = "[training] 无可用决策，点击中位卡兜底"
                         idle += 1
             # 考试模式给每一步打标记，真机日志里一眼能看出"这步在考试里做了什么"
             if exam_mode and not result.startswith("[exam-mode]"):
