@@ -430,6 +430,22 @@ class LessonSim:
 
         self._draw_hand()
 
+    def shuffle_deck(self, deck: list[CardSpec], *, seed: int | None = None) -> None:
+        """PIMC determinization：重新布置牌库顺序（**只改顺序，不改组成**）。
+
+        ``seed`` 非 None 时重置随机数发生器再洗牌：同一 seed 完全可复现，不同
+        seed 得到不同牌序。构造时随机抽出的起手牌会被丢弃并一起重洗，所以调用方
+        通常要在本方法之后自己设置 ``hand``（见 ``sim/play_choice.py`` 的
+        ``_new_sim``）。``seed=None`` 时沿用当前 RNG 状态。
+        """
+        self.deck = list(deck)
+        if seed is not None:
+            self.rng = random.Random(seed)
+            self.rng_seed = seed
+        self.rng.shuffle(self.deck)
+        self.discard.clear()
+        self._min_cost = min((card.cost for card in self.deck), default=0)
+
     # ------------------------------------------------------------------ 状态
     @property
     def done(self) -> bool:
