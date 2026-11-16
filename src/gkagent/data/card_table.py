@@ -1,7 +1,7 @@
 """卡牌属性表：来自 gakumasu-diff 的 ProduceCard.yaml（和游戏 master 同一套 ID）。
 
 作用：出牌时**不用 OCR 猜体力费用**——卡面爱心小字 12px、确认帧预览会错位，
-而这张表是按 ID 对出来的真值（1724 张全中）。
+而这张表是按 ID 对出来的真值（1817 张全中）。
 
 字段：cost（体力费用）、rarity、plan、category、effects（examEffectType 列表）。
 """

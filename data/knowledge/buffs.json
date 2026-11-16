@@ -1,11 +1,11 @@
 {
  "version": 1,
- "updated": "2026-11-14",
+ "updated": "2026-11-16",
  "source": [
   "https://seesaawiki.jp/gakumasu/dp/%a5%ec%a5%c3%a5%b9%a5%f3%a1%a6%bb%ee%b8%b3%be%dc%ba%d9",
   "https://wikiwiki.jp/gakumas/%E5%BC%B7%E5%8C%96/%E4%BD%8E%E4%B8%8B%E7%8A%B6%E6%85%8B%E4%B8%80%E8%A6%A7"
  ],
- "notes": "cn 用游戏中文 UI 的关键词（用于卡面文本匹配），jp 用于攻略原文匹配；play_order 越小越早打",
+ "notes": "cn 用游戏中文 UI 的关键词（用于卡面文本匹配），jp 用于攻略原文匹配；play_order 越小越早打；2026-11-16 补入热意/全力强化/好调增加量追加/成长",
  "buffs": [
   {
    "id": "condition",
@@ -384,7 +384,9 @@
   {
    "id": "zeal",
    "cn": [
-    "热情"
+    "热情",
+    "热意",
+    "热意延长"
    ],
    "jp": [
     "熱意"
@@ -395,8 +397,8 @@
    "duration": "turn",
    "score_flat": 1.0,
    "play_order": 19,
-   "effect": "打分上升量 +1，回合结束归零",
-   "notes": "只在本回合有效，打之前先用"
+   "effect": "热意每 1 点使打分上升量 +1；回合结束归零，延长可增加剩余回合",
+   "notes": "只在本回合有效，打之前先用；温存解除时也会给热意"
   },
   {
    "id": "full_power",
@@ -509,7 +511,8 @@
    "id": "revival",
    "cn": [
     "重演",
-    "再次使用"
+    "再次使用",
+    "再演"
    ],
    "jp": [
     "再演"
@@ -637,6 +640,60 @@
    "notes": "",
    "jp_desc": "文字通りであるためゲーム内の説明が無い \n主に「アクティブスキルカード」「メンタルスキルカード」といった特定のカードを指定される。",
    "wiki": "https://seesaawiki.jp/gakumasu/d/%b8%fa%b2%cc%a1%f5%b6%af%b2%bd/%c4%e3%b2%bc%be%f5%c2%d6%28%a5%d0%a5%d5/%a5%c7%a5%d0%a5%d5%29%b0%ec%cd%f7"
+  },
+  {
+   "id": "full_power_boost",
+   "cn": [
+    "全力强化"
+   ],
+   "jp": [
+    "全力強化"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "amplifier",
+   "duration": "turns",
+   "score_flat": 0.0,
+   "score_mult": 1.1,
+   "play_order": 8,
+   "effect": "全力提供的打分上升量 +10%/层（1 回合）",
+   "notes": "只在全力回合前打；非全力状态无收益"
+  },
+  {
+   "id": "condition_add",
+   "cn": [
+    "好调增加量追加"
+   ],
+   "jp": [
+    "好調増加量追加"
+   ],
+   "kind": "buff",
+   "scope": "sense",
+   "category": "amplifier",
+   "duration": "turns",
+   "score_flat": 0.2,
+   "score_mult": 1.0,
+   "play_order": 8,
+   "effect": "2 回合内获得好调时，好调回合数额外 +2（加算）",
+   "notes": "靠后续好调牌兑现；单独使用不加分"
+  },
+  {
+   "id": "grow_effect",
+   "cn": [
+    "成长"
+   ],
+   "jp": [
+    "成長"
+   ],
+   "kind": "buff",
+   "scope": "anomaly",
+   "category": "amplifier",
+   "duration": "battle",
+   "score_flat": 0.0,
+   "score_mult": 1.0,
+   "play_order": 25,
+   "effect": "满足条件时，本场训练内这张卡自身性能变化（打分值/次数/费用）",
+   "notes": "2026-11-16 新机制；模拟器未建模，仅作关键词记录"
   }
  ],
  "score_weights": {
@@ -653,6 +710,6 @@
   "synced": "2026-11-14 22:36:23",
   "added": 6,
   "updated": 19,
-  "total": 32
+  "total": 35
  }
 }

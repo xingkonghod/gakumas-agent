@@ -644,6 +644,111 @@
 "rarity": "R",
 "upgrade": 3
 },
+"一点一滴的进步": {
+"category": "MentalSkill",
+"cost": 8,
+"effects": [
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+}
+],
+"id": "p_card-03-ido-3_219",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"一点一滴的进步+": {
+"category": "MentalSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+}
+],
+"id": "p_card-03-ido-3_219",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"一点一滴的进步++": {
+"category": "MentalSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+5
+]
+},
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+}
+],
+"id": "p_card-03-ido-3_219",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"一点一滴的进步+++": {
+"category": "MentalSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+10
+]
+},
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"count": 3,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+}
+],
+"id": "p_card-03-ido-3_219",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 3
+},
 "下次，绝对要！": {
 "category": "MentalSkill",
 "cost": 6,
@@ -1144,6 +1249,174 @@
 "id": "p_card-03-ido-3_235",
 "plan": "Plan3",
 "rarity": "Ssr",
+"upgrade": 3
+},
+"不自觉的魅力": {
+"category": "MentalSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 10,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamCardCreateId",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamCardDraw",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-ido-3_246",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-parameter_buff_up-8",
+"upgrade": 0
+},
+"不自觉的魅力+": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 10,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamCardCreateId",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamCardDraw",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-ido-3_246",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-parameter_buff_up-8",
+"upgrade": 1
+},
+"不自觉的魅力++": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 11,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamCardCreateId",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamCardDraw",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-ido-3_246",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-parameter_buff_up-8",
+"upgrade": 2
+},
+"不自觉的魅力+++": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 12,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamCardCreateId",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamCardDraw",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-ido-3_246",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-parameter_buff_up-8",
 "upgrade": 3
 },
 "不许东张西望♪": {
@@ -3304,6 +3577,218 @@
 "trigger": "e_trigger-none-preservation_change_count_up-2",
 "upgrade": 3
 },
+"作为结果的现在": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+4
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEnthusiasticTurnAdd",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_209-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_209",
+"plan": "Plan3",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-full_power_point_get_sum_up-10",
+"upgrade": 0
+},
+"作为结果的现在+": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+7
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEnthusiasticTurnAdd",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_209-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_209",
+"plan": "Plan3",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-full_power_point_get_sum_up-10",
+"upgrade": 1
+},
+"作为结果的现在++": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+8
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEnthusiasticTurnAdd",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_209-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_209",
+"plan": "Plan3",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-full_power_point_get_sum_up-10",
+"upgrade": 2
+},
+"作为结果的现在+++": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+10
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamEffectTimerEndTurn",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamEnthusiasticTurnAdd",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_209-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_209",
+"plan": "Plan3",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-full_power_point_get_sum_up-10",
+"upgrade": 3
+},
 "你带给我的梦想": {
 "category": "MentalSkill",
 "cost": 7,
@@ -4827,6 +5312,102 @@
 "rarity": "R",
 "upgrade": 3
 },
+"全力冲刺": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-03-act-2_118",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 0
+},
+"全力冲刺+": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1500
+]
+}
+],
+"id": "p_card-03-act-2_118",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 1
+},
+"全力冲刺++": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1500
+]
+}
+],
+"id": "p_card-03-act-2_118",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 2
+},
+"全力冲刺+++": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1500
+]
+}
+],
+"id": "p_card-03-act-2_118",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 3
+},
 "全力支援": {
 "category": "MentalSkill",
 "cost": 2,
@@ -5609,6 +6190,118 @@
 "trigger": "e_trigger-exam_start_turn-review_up-1",
 "upgrade": 3
 },
+"再出发": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 3,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 1,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-act-2_108",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 0
+},
+"再出发+": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-act-2_108",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 1
+},
+"再出发++": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-act-2_108",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 2
+},
+"再出发+++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-act-2_108",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 3
+},
 "再次飞翔": {
 "category": "MentalSkill",
 "cost": 4,
@@ -6263,6 +6956,134 @@
 "id": "p_card-03-act-0_021",
 "plan": "Plan3",
 "rarity": "N",
+"upgrade": 3
+},
+"冲动": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+1
+]
+}
+],
+"id": "p_card-01-act-2_113",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 0
+},
+"冲动+": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-act-2_113",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 1
+},
+"冲动++": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-act-2_113",
+"plan": "Plan1",
+"rarity": "Sr",
+"upgrade": 2
+},
+"冲动+++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-act-2_113",
+"plan": "Plan1",
+"rarity": "Sr",
 "upgrade": 3
 },
 "决不停歇": {
@@ -9190,6 +10011,126 @@
 "rarity": "R",
 "upgrade": 3
 },
+"化身为恶魔": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 2,
+"type": "ExamParameterBuffAdditiveFix",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 3,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-sup-3_253",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-turn_progress_up-2",
+"upgrade": 0
+},
+"化身为恶魔+": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 3,
+"type": "ExamParameterBuffAdditiveFix",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 4,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-sup-3_253",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-turn_progress_up-2",
+"upgrade": 1
+},
+"化身为恶魔++": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 3,
+"type": "ExamParameterBuffAdditiveFix",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 5,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-sup-3_253",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-turn_progress_up-2",
+"upgrade": 2
+},
+"化身为恶魔+++": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 3,
+"type": "ExamParameterBuffAdditiveFix",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamEffectTimer",
+"values": [
+1
+]
+},
+{
+"turn": 6,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-sup-3_253",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-turn_progress_up-2",
+"upgrade": 3
+},
 "午后微风": {
 "category": "MentalSkill",
 "cost": 3,
@@ -9287,6 +10228,130 @@
 ],
 "id": "p_card-02-ido-3_069",
 "plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 3
+},
+"午睡报告": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-not-full_power_up",
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+},
+{
+"trigger": "e_trigger-none-full_power_up",
+"turn": 0,
+"type": "ExamAddGrowEffect",
+"values": []
+}
+],
+"id": "p_card-03-sup-3_252",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"午睡报告+": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-not-full_power_up",
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+},
+{
+"trigger": "e_trigger-none-full_power_up",
+"turn": 0,
+"type": "ExamAddGrowEffect",
+"values": []
+}
+],
+"id": "p_card-03-sup-3_252",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"午睡报告++": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+6
+]
+},
+{
+"trigger": "e_trigger-none-not-full_power_up",
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+},
+{
+"trigger": "e_trigger-none-full_power_up",
+"turn": 0,
+"type": "ExamAddGrowEffect",
+"values": []
+}
+],
+"id": "p_card-03-sup-3_252",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"午睡报告+++": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+7
+]
+},
+{
+"trigger": "e_trigger-none-not-full_power_up",
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+},
+{
+"trigger": "e_trigger-none-full_power_up",
+"turn": 0,
+"type": "ExamAddGrowEffect",
+"values": []
+}
+],
+"id": "p_card-03-sup-3_252",
+"plan": "Plan3",
 "rarity": "Ssr",
 "upgrade": 3
 },
@@ -11595,6 +12660,36 @@
 "rarity": "R",
 "upgrade": 3
 },
+"回报恩情的启明星": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"count": 1,
+"enchant": "enchant-p_card-03-ido-100_049-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamAddGrowEffect",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-03-ido-100_049",
+"plan": "Plan3",
+"rarity": "Legend",
+"upgrade": 0
+},
 "因为不再害怕了": {
 "category": "MentalSkill",
 "cost": 3,
@@ -12242,6 +13337,162 @@
 ],
 "id": "p_card-01-ido-3_151",
 "plan": "Plan1",
+"rarity": "Ssr",
+"upgrade": 3
+},
+"坚持一件事的可贵": {
+"category": "MentalSkill",
+"cost": 7,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+1
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"count": 3,
+"enchant": "enchant-p_card-03-ido-3_206-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_206",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"坚持一件事的可贵+": {
+"category": "MentalSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"count": 3,
+"enchant": "enchant-p_card-03-ido-3_206-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_206",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"坚持一件事的可贵++": {
+"category": "MentalSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+3
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"count": 3,
+"enchant": "enchant-p_card-03-ido-3_206-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_206",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"坚持一件事的可贵+++": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+3
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"count": 3,
+"enchant": "enchant-p_card-03-ido-3_206-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-03-ido-3_206",
+"plan": "Plan3",
 "rarity": "Ssr",
 "upgrade": 3
 },
@@ -13132,6 +14383,134 @@
 "plan": "Plan1",
 "rarity": "Legend",
 "upgrade": 0
+},
+"天使的微笑": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+700
+]
+}
+],
+"id": "p_card-02-act-2_044",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 0
+},
+"天使的微笑+": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+6
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-02-act-2_044",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 1
+},
+"天使的微笑++": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+6
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-02-act-2_044",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 2
+},
+"天使的微笑+++": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+6
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-02-act-2_044",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 3
 },
 "天真烂漫": {
 "category": "MentalSkill",
@@ -14652,6 +16031,130 @@
 ],
 "id": "p_card-03-ido-1_055",
 "plan": "Plan3",
+"rarity": "R",
+"upgrade": 3
+},
+"安定感": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-lesson_buff_up-5",
+"turn": 1,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-not-parameter_buff_up-10",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+2
+]
+}
+],
+"id": "p_card-01-men-1_091",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 0
+},
+"安定感+": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-lesson_buff_up-5",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-not-parameter_buff_up-10",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+}
+],
+"id": "p_card-01-men-1_091",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 1
+},
+"安定感++": {
+"category": "MentalSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-lesson_buff_up-5",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-not-parameter_buff_up-10",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+}
+],
+"id": "p_card-01-men-1_091",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 2
+},
+"安定感+++": {
+"category": "MentalSkill",
+"cost": 1,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-lesson_buff_up-5",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-not-parameter_buff_up-10",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+3
+]
+}
+],
+"id": "p_card-01-men-1_091",
+"plan": "Plan1",
 "rarity": "R",
 "upgrade": 3
 },
@@ -16934,6 +18437,130 @@
 "plan": "Plan2",
 "rarity": "Legend",
 "upgrade": 0
+},
+"干劲全开": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+1
+]
+},
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-03-act-2_120",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 0
+},
+"干劲全开+": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-03-act-2_120",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 1
+},
+"干劲全开++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-03-act-2_120",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 2
+},
+"干劲全开+++": {
+"category": "ActiveSkill",
+"cost": 1,
+"effects": [
+{
+"turn": 0,
+"type": "ExamConcentration",
+"values": [
+2
+]
+},
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+1000
+]
+}
+],
+"id": "p_card-03-act-2_120",
+"plan": "Plan3",
+"rarity": "Sr",
+"upgrade": 3
 },
 "干劲十足！": {
 "category": "MentalSkill",
@@ -20273,6 +21900,78 @@
 "rarity": "N",
 "upgrade": 3
 },
+"恶作剧偷心贼": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+4
+]
+}
+],
+"id": "p_card-03-ido-3_247",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"恶作剧偷心贼+": {
+"category": "ActiveSkill",
+"cost": 5,
+"effects": [
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+4
+]
+}
+],
+"id": "p_card-03-ido-3_247",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"恶作剧偷心贼++": {
+"category": "ActiveSkill",
+"cost": 4,
+"effects": [
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+4
+]
+}
+],
+"id": "p_card-03-ido-3_247",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"恶作剧偷心贼+++": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+4
+]
+}
+],
+"id": "p_card-03-ido-3_247",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 3
+},
 "悠哉闲谈": {
 "category": "ActiveSkill",
 "cost": 4,
@@ -23070,6 +24769,110 @@
 "rarity": "Ssr",
 "upgrade": 3
 },
+"我就是、风！": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 1,
+"type": "ExamFullPowerLessonMultipleAdditive",
+"values": [
+100
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+2,
+1200
+]
+}
+],
+"id": "p_card-03-ido-3_245",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"我就是、风！+": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 1,
+"type": "ExamFullPowerLessonMultipleAdditive",
+"values": [
+100
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+5,
+1500
+]
+}
+],
+"id": "p_card-03-ido-3_245",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"我就是、风！++": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 1,
+"type": "ExamFullPowerLessonMultipleAdditive",
+"values": [
+100
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+6,
+1700
+]
+}
+],
+"id": "p_card-03-ido-3_245",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"我就是、风！+++": {
+"category": "ActiveSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 1,
+"type": "ExamFullPowerLessonMultipleAdditive",
+"values": [
+100
+]
+},
+{
+"count": 2,
+"turn": 0,
+"type": "ExamLessonFullPowerPoint",
+"values": [
+7,
+1900
+]
+}
+],
+"id": "p_card-03-ido-3_245",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 3
+},
 "我才是最强的！": {
 "category": "ActiveSkill",
 "cost": 0,
@@ -23344,6 +25147,166 @@
 "id": "p_card-02-men-3_002",
 "plan": "Plan2",
 "rarity": "Ssr",
+"upgrade": 3
+},
+"我的猎物是你哦": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+4
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"trigger": "e_trigger-none-remaining_turn-5",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-remaining_turn-1",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+}
+],
+"id": "p_card-01-ido-3_249",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-6",
+"upgrade": 0
+},
+"我的猎物是你哦+": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+6
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"trigger": "e_trigger-none-remaining_turn-5",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-remaining_turn-1",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+}
+],
+"id": "p_card-01-ido-3_249",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-6",
+"upgrade": 1
+},
+"我的猎物是你哦++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+7
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"trigger": "e_trigger-none-remaining_turn-5",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-remaining_turn-1",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+}
+],
+"id": "p_card-01-ido-3_249",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-6",
+"upgrade": 2
+},
+"我的猎物是你哦+++": {
+"category": "ActiveSkill",
+"cost": 1,
+"effects": [
+{
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+7
+]
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"trigger": "e_trigger-none-remaining_turn-5",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-remaining_turn-1",
+"turn": 0,
+"type": "ExamLesson",
+"values": [
+10
+]
+}
+],
+"id": "p_card-01-ido-3_249",
+"plan": "Plan1",
+"rarity": "Ssr",
+"trigger": "e_trigger-none-lesson_buff_up-6",
 "upgrade": 3
 },
 "战斗的理由": {
@@ -31498,6 +33461,134 @@
 "rarity": "N",
 "upgrade": 3
 },
+"焕彩妆容": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+2
+]
+}
+],
+"id": "p_card-02-men-1_093",
+"plan": "Plan2",
+"rarity": "R",
+"upgrade": 0
+},
+"焕彩妆容+": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+}
+],
+"id": "p_card-02-men-1_093",
+"plan": "Plan2",
+"rarity": "R",
+"upgrade": 1
+},
+"焕彩妆容++": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+}
+],
+"id": "p_card-02-men-1_093",
+"plan": "Plan2",
+"rarity": "R",
+"upgrade": 2
+},
+"焕彩妆容+++": {
+"category": "MentalSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+}
+],
+"id": "p_card-02-men-1_093",
+"plan": "Plan2",
+"rarity": "R",
+"upgrade": 3
+},
 "熊熊燃烧的青色火焰": {
 "category": "ActiveSkill",
 "cost": 10,
@@ -32598,6 +34689,188 @@
 ],
 "id": "p_card-03-ido-3_234",
 "plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 3
+},
+"甜蜜陷阱♡": {
+"category": "MentalSkill",
+"cost": 5,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamAntiDebuff",
+"values": []
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"enchant": "enchant-p_card-02-ido-3_248-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-02-ido-3_248",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"甜蜜陷阱♡+": {
+"category": "MentalSkill",
+"cost": 2,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamAntiDebuff",
+"values": []
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"enchant": "enchant-p_card-02-ido-3_248-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-02-ido-3_248",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"甜蜜陷阱♡++": {
+"category": "MentalSkill",
+"cost": 1,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamAntiDebuff",
+"values": []
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamCardDraw",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-02-ido-3_248-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-02-ido-3_248",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"甜蜜陷阱♡+++": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"count": 1,
+"turn": 0,
+"type": "ExamAntiDebuff",
+"values": []
+},
+{
+"count": 1,
+"turn": 0,
+"type": "ExamPlayableValueAdd",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamCardDraw",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-02-ido-3_248-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamCardMove",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-02-ido-3_248",
+"plan": "Plan2",
 "rarity": "Ssr",
 "upgrade": 3
 },
@@ -33842,6 +36115,166 @@
 "rarity": "Ssr",
 "upgrade": 3
 },
+"真实的自己": {
+"category": "MentalSkill",
+"cost": 7,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": -1,
+"type": "ExamReviewMultiple",
+"values": [
+500
+]
+},
+{
+"count": 2,
+"enchant": "enchant-p_card-02-ido-3_208-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-02-ido-3_208",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"真实的自己+": {
+"category": "MentalSkill",
+"cost": 5,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": -1,
+"type": "ExamReviewMultiple",
+"values": [
+500
+]
+},
+{
+"count": 2,
+"enchant": "enchant-p_card-02-ido-3_208-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-02-ido-3_208",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"真实的自己++": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": -1,
+"type": "ExamReviewMultiple",
+"values": [
+500
+]
+},
+{
+"count": 2,
+"enchant": "enchant-p_card-02-ido-3_208-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-02-ido-3_208",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"真实的自己+++": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": -1,
+"type": "ExamReviewMultiple",
+"values": [
+500
+]
+},
+{
+"count": 2,
+"enchant": "enchant-p_card-02-ido-3_208-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamForcePlayCardSearch",
+"values": []
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchantEncore",
+"values": [
+1
+]
+}
+],
+"id": "p_card-02-ido-3_208",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 3
+},
 "眼力": {
 "category": "MentalSkill",
 "cost": 3,
@@ -34712,6 +37145,122 @@
 "rarity": "Sr",
 "upgrade": 3
 },
+"竞争原理": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 3,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-parameter_buff_up-4",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+1
+]
+},
+{
+"trigger": "e_trigger-none-not-lesson_buff_up-10",
+"turn": 1,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-men-1_026",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 0
+},
+"竞争原理+": {
+"category": "MentalSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 3,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-parameter_buff_up-4",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+2
+]
+},
+{
+"trigger": "e_trigger-none-not-lesson_buff_up-10",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-men-1_026",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 1
+},
+"竞争原理++": {
+"category": "MentalSkill",
+"cost": 1,
+"effects": [
+{
+"turn": 3,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-parameter_buff_up-4",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+2
+]
+},
+{
+"trigger": "e_trigger-none-not-lesson_buff_up-10",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-men-1_026",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 2
+},
+"竞争原理+++": {
+"category": "MentalSkill",
+"cost": 0,
+"effects": [
+{
+"turn": 3,
+"type": "ExamParameterBuff",
+"values": []
+},
+{
+"trigger": "e_trigger-none-parameter_buff_up-4",
+"turn": 0,
+"type": "ExamLessonBuff",
+"values": [
+2
+]
+},
+{
+"trigger": "e_trigger-none-not-lesson_buff_up-10",
+"turn": 2,
+"type": "ExamParameterBuff",
+"values": []
+}
+],
+"id": "p_card-01-men-1_026",
+"plan": "Plan1",
+"rarity": "R",
+"upgrade": 3
+},
 "竭尽全力": {
 "category": "MentalSkill",
 "cost": 2,
@@ -35238,6 +37787,141 @@
 "id": "p_card-00-men-1_007",
 "plan": "Common",
 "rarity": "R",
+"upgrade": 3
+},
+"粉丝所期望的事": {
+"category": "MentalSkill",
+"cost": 7,
+"effects": [
+{
+"turn": 0,
+"type": "ExamPreservation",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_222-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-03-ido-3_222",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"粉丝所期望的事+": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamPreservation",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_222-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-03-ido-3_222",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"粉丝所期望的事++": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamPreservation",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_222-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+}
+],
+"id": "p_card-03-ido-3_222",
+"plan": "Plan3",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"粉丝所期望的事+++": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamPreservation",
+"values": [
+1
+]
+},
+{
+"enchant": "enchant-p_card-03-ido-3_222-enc01",
+"inner": [
+{
+"turn": 0,
+"type": "ExamFullPowerPoint",
+"values": [
+2
+]
+}
+],
+"turn": -1,
+"type": "ExamStatusEnchant",
+"values": []
+},
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+2
+]
+}
+],
+"id": "p_card-03-ido-3_222",
+"plan": "Plan3",
+"rarity": "Ssr",
 "upgrade": 3
 },
 "粉丝服务": {
@@ -36906,6 +39590,134 @@
 "plan": "Plan3",
 "rarity": "Ssr",
 "trigger": "e_trigger-none-not-no_stance",
+"upgrade": 3
+},
+"罗曼蒂克": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamCardPlayAggressive",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-not-review_up-9",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+2
+]
+}
+],
+"id": "p_card-02-men-1_094",
+"plan": "Plan2",
+"rarity": "R",
+"upgrade": 0
+},
+"罗曼蒂克+": {
+"category": "MentalSkill",
+"cost": 4,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamCardPlayAggressive",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-not-review_up-9",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+}
+],
+"id": "p_card-02-men-1_094",
+"plan": "Plan2",
+"rarity": "R",
+"upgrade": 1
+},
+"罗曼蒂克++": {
+"category": "MentalSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamCardPlayAggressive",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-not-review_up-9",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+}
+],
+"id": "p_card-02-men-1_094",
+"plan": "Plan2",
+"rarity": "R",
+"upgrade": 2
+},
+"罗曼蒂克+++": {
+"category": "MentalSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+3
+]
+},
+{
+"turn": 0,
+"type": "ExamCardPlayAggressive",
+"values": [
+4
+]
+},
+{
+"trigger": "e_trigger-none-not-review_up-9",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+}
+],
+"id": "p_card-02-men-1_094",
+"plan": "Plan2",
+"rarity": "R",
 "upgrade": 3
 },
 "翘首以盼的瞬间": {
@@ -41717,6 +44529,138 @@
 ],
 "id": "p_card-01-act-3_032",
 "plan": "Plan1",
+"rarity": "Ssr",
+"upgrade": 3
+},
+"认可我的人": {
+"category": "ActiveSkill",
+"cost": 6,
+"effects": [
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-7-p_card_search-lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-11-p_card_search-lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+1700
+]
+}
+],
+"id": "p_card-02-ido-3_221",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 0
+},
+"认可我的人+": {
+"category": "ActiveSkill",
+"cost": 6,
+"effects": [
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-7-p_card_search-lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-11-p_card_search-lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+2800
+]
+}
+],
+"id": "p_card-02-ido-3_221",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 1
+},
+"认可我的人++": {
+"category": "ActiveSkill",
+"cost": 6,
+"effects": [
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-7-p_card_search-lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-11-p_card_search-lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+3500
+]
+}
+],
+"id": "p_card-02-ido-3_221",
+"plan": "Plan2",
+"rarity": "Ssr",
+"upgrade": 2
+},
+"认可我的人+++": {
+"category": "ActiveSkill",
+"cost": 6,
+"effects": [
+{
+"turn": 0,
+"type": "ExamReview",
+"values": [
+3
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-7-p_card_search-lost",
+"turn": 0,
+"type": "ExamReview",
+"values": [
+5
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-11-p_card_search-lost",
+"turn": 0,
+"type": "ExamLessonDependExamReview",
+"values": [
+4100
+]
+}
+],
+"id": "p_card-02-ido-3_221",
+"plan": "Plan2",
 "rarity": "Ssr",
 "upgrade": 3
 },
@@ -48346,6 +51290,134 @@
 "rarity": "Ssr",
 "upgrade": 3
 },
+"雀跃步伐": {
+"category": "ActiveSkill",
+"cost": 3,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonDependBlock",
+"values": [
+600
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+4
+]
+}
+],
+"id": "p_card-02-act-2_116",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 0
+},
+"雀跃步伐+": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonDependBlock",
+"values": [
+800
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+4
+]
+}
+],
+"id": "p_card-02-act-2_116",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 1
+},
+"雀跃步伐++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonDependBlock",
+"values": [
+950
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+4
+]
+}
+],
+"id": "p_card-02-act-2_116",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 2
+},
+"雀跃步伐+++": {
+"category": "ActiveSkill",
+"cost": 2,
+"effects": [
+{
+"turn": 0,
+"type": "ExamBlock",
+"values": [
+4
+]
+},
+{
+"turn": 0,
+"type": "ExamLessonDependBlock",
+"values": [
+1100
+]
+},
+{
+"trigger": "e_trigger-none-card_search_count_up-2-p_card_search-trouble-not_lost",
+"turn": 0,
+"type": "ExamStaminaRecoverFix",
+"values": [
+4
+]
+}
+],
+"id": "p_card-02-act-2_116",
+"plan": "Plan2",
+"rarity": "Sr",
+"upgrade": 3
+},
 "顶尖水准": {
 "category": "MentalSkill",
 "cost": 6,
@@ -50312,6 +53384,6 @@
 "upgrade": 3
 }
 },
-"count": 1724,
+"count": 1817,
 "source": "vertesan/gakumasu-diff ProduceCard.yaml"
 }

@@ -14,7 +14,7 @@ D:\Games\Gakumas\gakumas\gakumas-local\local-files\masterTrans\
 
 | 文件 | 行数 | 内容 |
 |---|---:|---|
-| `data/master/produce_cards.json` | 1724 | 培育技能卡：id、名称、描述文本、效果标签 |
+| `data/master/produce_cards.json` | 1817 | 培育技能卡：id、名称、描述文本、效果标签 |
 | `data/master/support_cards.json` | 202 | 支援卡：id、名称、效果文本 |
 | `data/master/events.json` | 6894 | 培育事件：选项文本/效果 |
 | `data/master/event_suggestions.json` | 3066 | 事件建议/奖励 |

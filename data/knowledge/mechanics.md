@@ -92,6 +92,6 @@
 
 - [vertesan/gakumasu-diff](https://github.com/vertesan/gakumasu-diff) 的 `ProduceCard.yaml`：和游戏 master **同一套 ID**，
   含 `stamina`（体力费用）、`rarity`、`planType`、`playEffects`。已由 `scripts/build_card_table.py`
-  转成 `data/knowledge/card_table.json`（1724 张卡，中文名 → 费用/稀有度/方案/效果类型），出牌时用它取代 OCR 读费用。
+  转成 `data/knowledge/card_table.json`（1817 张卡，中文名 → 费用/稀有度/方案/效果类型），出牌时用它取代 OCR 读费用。
 - [gakumas-tools](https://github.com/gakumas-tools/gakumas-tools)：考试分数计算器/卡牌查询参考。
 - [game8 スキルカード一覧](https://game8.jp/gakuen-idolmaster/609737)：日文卡面文本对照。

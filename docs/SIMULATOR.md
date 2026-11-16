@@ -13,7 +13,7 @@
 
 | 数据 | 来源 | 内容 |
 |---|---|---|
-| `data/knowledge/card_table.json` | gakumasu-diff | 1724 张卡：体力费用、稀有度、方案、效果类型 |
+| `data/knowledge/card_table.json` | gakumasu-diff | 1817 张卡：体力费用、稀有度、方案、效果类型 |
 | `data/knowledge/buffs.json` | 学マスwiki | buff 倍率/叠层/出牌顺序 |
 | `data/knowledge/mechanics.md` | wiki + B站/NGA | 分数公式：`(卡面值+集中)×好调倍率×(1+上升量)`，再 × スコアボーナス |
 | `data/master/produce_cards.json` | 游戏 master | 中文卡名 ↔ ID ↔ 效果文本 |
@@ -69,7 +69,7 @@ Terminal    = 回合用尽 或 体力不足 → 总分 vs 审查基准 → CLEAR
 
 | 机制 | 状态 | 说明 |
 |---|---|---|
-| 卡面数值 | ✅ | gakumasu-diff 1724 张，94% 直接数值 |
+| 卡面数值 | ✅ | gakumasu-diff 1817 张，94.1% 直接数值 |
 | 课程（课程内出牌/好调/集中/好印象/元气） | ✅ | `sim/lesson.py`，11 条单测 |
 | 课程目标随进度递增 | ✅ | 前半 100-200，后半 250-300 |
 | 课程奖励（每节三选一） | ✅ | 按 打分/体力 选最强，牌组 14→22 张 |
@@ -184,3 +184,102 @@ ExamPlayableValueAdd(357)、ExamStatusEnchant(285)、ExamEffectTimer(282)、Exam
 **离 90% 还差**：`ExamPlayableValueAdd`(357)、`ExamStatusEnchant`(285)、
 `ExamEffectTimer`(282)、`ExamCardPlayAggressive`(204)——这四类是元效果
 （改动出牌次数/附加状态/延迟触发），需要状态机级改动，不是加字段能解决。
+
+
+## 13. 2026-11-16 卡池更新（1724 → 1817）
+
+**数据源**：`vertesan/gakumasu-diff` main HEAD `a307052d8c8c`（2026-11-16 经本地代理拉取）：
+
+| 文件 | 新大小 | 旧缓存 |
+|---|---:|---:|
+| `ProduceCard.yaml` | 49,015,507 | 41,274,874 |
+| `ProduceExamEffect.yaml` | 34,406,008 | 29,087,391 |
+| `ProduceExamStatusEnchant.yaml` | 30,837,327 | 25,874,738 |
+
+本地 `masterTrans` 仍是 v2.3.44 / 2026-09-16，没有新卡中文名；中文名改用
+`chinosk6/GakumasTranslationData` v2.3.66（2026-11-15T20:37:16Z）的
+`local-files/masterTrans/ProduceCard.json`，据此把 `data/master/produce_cards.json`
+从 1724 行更新到 1817 行，再跑 `build_card_table.py` + `fetch_card_values.py`。
+
+**差异（逐 (id, upgrade) 对比旧表）**
+
+| 项 | 数值 |
+|---|---:|
+| 卡数 | 1724 → **1817** |
+| 新增 | **93 个变体 = 24 张卡**（23 张 ×4 变体 + Legend「回报恩情的启明星」仅基础） |
+| 改动 | **0**（旧 1724 张的 cost/rarity/plan/category/effects/trigger 全部一致） |
+| 删除 | **0** |
+
+**24 张新卡**（打分 = 表内直接 `ExamLesson` 值；0 表示得分走全力值/好印象依赖等未建模效果）
+
+| # | 卡名 | 费用 | 打分 | 稀有度 | 方案 | 类型 |
+|---:|---|---:|---:|---|---|---|
+| 1 | 再出发 | 5 | 10 | Sr | 1 | 主动 |
+| 2 | 冲动 | 5 | 10 | Sr | 1 | 主动 |
+| 3 | 不自觉的魅力 | 2 | 0 | Ssr | 1 | 精神 |
+| 4 | 我的猎物是你哦 | 3 | 10 | Ssr | 1 | 主动 |
+| 5 | 竞争原理 | 3 | 0 | R | 1 | 精神 |
+| 6 | 安定感 | 4 | 0 | R | 1 | 精神 |
+| 7 | 化身为恶魔 | 0 | 0 | Ssr | 1 | 精神 |
+| 8 | 天使的微笑 | 5 | 0 | Sr | 2 | 主动 |
+| 9 | 雀跃步伐 | 3 | 0 | Sr | 2 | 主动 |
+| 10 | 真实的自己 | 7 | 0 | Ssr | 2 | 精神 |
+| 11 | 认可我的人 | 6 | 0 | Ssr | 2 | 主动 |
+| 12 | 甜蜜陷阱♡ | 5 | 0 | Ssr | 2 | 精神 |
+| 13 | 焕彩妆容 | 4 | 0 | R | 2 | 精神 |
+| 14 | 罗曼蒂克 | 4 | 0 | R | 2 | 精神 |
+| 15 | 全力冲刺 | 5 | 0 | Sr | 3 | 主动 |
+| 16 | 干劲全开 | 4 | 0 | Sr | 3 | 主动 |
+| 17 | 回报恩情的启明星 | 0 | 0 | Legend | 3 | 精神 |
+| 18 | 坚持一件事的可贵 | 7 | 0 | Ssr | 3 | 精神 |
+| 19 | 作为结果的现在 | 0 | 0 | Ssr | 3 | 主动 |
+| 20 | 一点一滴的进步 | 8 | 0 | Ssr | 3 | 精神 |
+| 21 | 粉丝所期望的事 | 7 | 0 | Ssr | 3 | 精神 |
+| 22 | 我就是、风！ | 0 | 0 | Ssr | 3 | 主动 |
+| 23 | 恶作剧偷心贼 | 5 | 4 | Ssr | 3 | 主动 |
+| 24 | 午睡报告 | 4 | 0 | Ssr | 3 | 精神 |
+
+上游 YAML 有 1829 个 `(id, upgrade)` key，比官方 master 多 12 个（3 张卡 ×4 变体）：
+`一途な従者` / `忠義を胸に` / `柔らかな光の中で`。这 3 张在 v2.3.66 master 中不存在
+（未上线/未本地化），`build_card_table.py` 按官方 master 名匹配时会跳过，故未计入 1817。
+
+**模拟器反馈**
+
+| 口径 | 更新前 | 更新后 |
+|---|---:|---:|
+| rich 奖励池（max_score=60，排除 SSR） | 204 | **212** |
+| legacy 奖励池 | 100 | **104** |
+| 800 局 lesson_heavy 三维（歌唱/舞蹈/表现） | 321 / 364 / 305 | 321 / 364 / 305 |
+| 三维总和均值 | 990 | 990 |
+| 评价点均值 | 4574.4 | 4574.4 |
+| P50 / P90 / C+ 率 | 4612 / 4858 / 68% | 4612 / 4858 / 68% |
+
+rich 池 +8 全部来自「再出发」×4 +「冲动」×4；legacy 池 +4 只有「冲动」×4。
+两张都是低分/辅助卡，`--rewards best` 从未选中它们，所以 800 局结果逐位相同（不是没读到新表：
+池子确实变了）。
+
+**新增卡的未建模效果（覆盖率缺口，对照 `MODELED_EFFECTS`）**
+
+新卡共出现 28 种 effect type，12 种已建模，16 种未建模：
+
+| 未建模类型 | 出现变体数 | 机制 |
+|---|---:|---|
+| `ExamStaminaRecoverFix` | 12 | 固定体力回复 |
+| `ExamStatusEnchantEncore` | 12 | 再演附魔（满足条件自动再用） |
+| `ExamForcePlayCardSearch` | 12 | 检索并强制打出卡牌 |
+| `ExamLessonFullPowerPoint` | 12 | 累计全力值折算打分 |
+| `ExamStatusEnchant` | 9 | 状态附魔外层 |
+| `ExamCardMove` | 8 | 手牌/保留/弃牌移动 |
+| `ExamEffectTimer` | 8 | 延迟触发 |
+| `ExamAddGrowEffect` | 5 | 成长：本卡性能变化 |
+| `ExamCardCreateId` | 4 | 生成卡牌（如「睡意」） |
+| `ExamEffectTimerEndTurn` | 4 | 回合结束时延迟触发 |
+| `ExamEnthusiasticTurnAdd` | 4 | 热意延长 |
+| `ExamParameterBuffAdditiveFix` | 4 | 好调增加量追加 |
+| `ExamFullPowerLessonMultipleAdditive` | 4 | 全力强化 |
+| `ExamAntiDebuff` | 4 | 低下状态无效 |
+| `ExamReviewMultiple` | 4 | 好印象强化 |
+| `ExamCardPlayAggressive` | 4 | 出牌追加干劲 |
+
+**buffs.json**：并入现有条目「热意」（`zeal`，加 cn「热意」「热意延长」）与「再演」
+（`revival`，加 cn「再演」）；新增「全力强化」「好调增加量追加」「成长」3 条，32 → 35 条。
