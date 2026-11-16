@@ -13,7 +13,9 @@
   "unknown_score_fallback": "cheapest",
   "source": "defaults",
   "buff_early_turns": 3,
-  "engine": "rules"
+  "engine": "expectimax",
+  "expectimax_budget_ms": 800.0,
+  "expectimax_sigma": 80.0
  },
  "produce": {
   "prefer_lesson": true,
@@ -37,6 +39,6 @@
   "sim_play": false,
   "audition_coefficient": 4.11,
   "plan": "sense",
-  "engine": "rules"
+  "engine": "expectimax"
  }
 }
