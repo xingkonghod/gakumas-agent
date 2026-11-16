@@ -109,7 +109,7 @@ CARD_DETAIL_PROBES: tuple[tuple[int, int, int, int], ...] = (
 CARD_DETAIL_NAME_BOX = (140, 585, 440, 45)  # 浮层顶部卡名
 CARD_DETAIL_BLANK = (360, 260)  # 浮层外上方空白：点这里关闭浮层
 LESSON_SKIP_POINT = (657, 800)  # 课程右下「SKIP」（点的是圆形箭头图标，不是 SKIP 文字）
-TURN_END_YES = (502, 1155)  # SKIP 后「回合结束」确认框的「是」（左边「否」在 x≈130）
+TURN_END_YES = (492, 1197)  # SKIP 后「回合结束」确认框的「是」（2026-11-16 按真机截图 step_235 实测；旧值 y=1155 点空）
 # 培育记录详情弹窗底部的圆形 X（OCR 读不出这个图标，只能固定坐标；真机截图核对：
 # data/auto/step_055.png，720x1280 下圆心约 (360,1197)）
 PRODUCE_RECORD_CLOSE = (360, 1197)
