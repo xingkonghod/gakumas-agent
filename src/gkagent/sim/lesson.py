@@ -30,8 +30,8 @@
 - 出牌先按**当前** buff 算分，再结算这张卡自带的 buff（本牌不享受自己刚加的 buff）；
 - ``ExamCardDraw``：出牌后立即抽 N 张（``CardSpec.draw``），牌库空则把弃牌堆
   洗回牌库再抽（刚打出的牌在抽牌之后才进弃牌堆，所以抽不到自己）；
-- ``ExamReview``：叠好印象层数（``CardSpec.impression``）；**回合结束**先按当前
-  层数加分（``score += 层数``），再把层数 -1（最低 0）；
+- ``ExamReview``：叠好印象层数（``CardSpec.impression``）；**回合结束先按当前
+  层数加分（``score += 层数``），下一回合开始时层数才 -1（最低 0）**；
 - ``ExamLessonDependExamReview``：依赖好印象的分数，按出牌**前**的层数算
   ``int(层数 × 倍率 / 100)``（倍率 1000 = 层数×10）。卡表没给出更细的结算
   顺序，这里沿用"本牌不享受自己刚加的 buff"的保守规则：本牌自带的
@@ -58,7 +58,7 @@
   ``full_power_point``），所以**本牌不吃自己刚切的倍率**；``ExamConcentration``
   是卡面「強気変更」，解析成 ``strong_level``（1/2 段階）；
   回合结束调用 ``stance.end_turn`` 结算全力值；
-- 回合结束：好印象按当前层数加分并 -1，好调回合数 -1；
+- 回合结束：好印象按当前层数加分（下一回合开始才 -1），好调回合数 -1；
 - 分数向下取整（``math.floor``）；
 - 体力+元气不足以支付牌库里**任何**一张牌、且没有剩余回复饮料时本局提前结束
   （``done``）。真机其实可以继续空回合/喝饮料，这里保留"提前结束"简化。
@@ -158,6 +158,7 @@ from gkagent.data.plans import (
     default_plan_library,
     normalize_plan,
 )
+from gkagent.sim.p_items import PItemSpec
 from gkagent.sim.stance import (
     FULL_POWER_POINT_COST,
     StanceState,
@@ -165,6 +166,8 @@ from gkagent.sim.stance import (
     card_stance_effect,
     end_turn,
     score_multiplier,
+    stamina_cost_multiplier,
+    stamina_pierce,
 )
 
 __all__ = [
@@ -177,6 +180,7 @@ __all__ = [
     "DrinkSpec",
     "LessonConfig",
     "LessonSim",
+    "PItemSpec",
     "Policy",
     "greedy_policy",
 ]
@@ -353,9 +357,13 @@ class LessonConfig:
     stamina_max: int | None = None
     # 属性倍率：考试/舞台屏幕上的「歌唱 411%」= 4.11；课程 ≈ 1.0（默认）
     attribute_coefficient: float = 1.0
+    # 指針体力代价（温存减半/強気双倍/2段穿透）；False = 旧口径（仅 ablation）
+    stance_costs: bool = True
     # 方案（プラン）：sense=感性 / logic=理性 / anomaly=非凡；未知值退回 sense。
     # 只影响 greedy_policy 的 buff 优先级（见 data/knowledge/plans.json）。
     plan: str = DEFAULT_PLAN
+    # P 道具（右上角被动）：接口占位，默认空；数据未到位前不结算（见 PItemSpec）
+    p_items: tuple[PItemSpec, ...] = ()
 
 
 @dataclass
@@ -364,7 +372,7 @@ class Buffs:
 
     condition_turns: int = 0  # 好调剩余回合
     focus: int = 0  # 集中层数（永久）
-    impression: int = 0  # 好印象层数（回合结束加分后 -1）
+    impression: int = 0  # 好印象层数（回合结束加分，下一回合开始 -1）
     # 2026-11-16 新效果带来的持续倍率/加算；turns = 0 未激活、-1 永久
     condition_additive: int = 0  # 好调增加量追加（ExamParameterBuffAdditiveFix）
     condition_additive_turns: int = 0
@@ -386,6 +394,8 @@ class LessonSim:
         self.config = config
         self.rng_seed = rng_seed
         self.rng = random.Random(rng_seed)
+        # P 道具接口：只保存，不结算（数据未到位；默认空 tuple）
+        self.p_items: tuple[PItemSpec, ...] = tuple(getattr(config, "p_items", ()))
 
         self.deck: list[CardSpec] = list(deck)
         self.rng.shuffle(self.deck)
@@ -408,6 +418,8 @@ class LessonSim:
         self.extra_plays: int = 0
         # 非凡指針：温存 / 強気 / 全力 的倍率状态（纯函数模块 stance.py）
         self.stance = StanceState()
+        # 温存期间打出的牌数：解除温存时按「使用数 + 1」给热意（近似成好调回合）
+        self._save_cards_used: int = 0
         # 方案（プラン）：greedy_policy 按它决定先铺哪些 buff；未知值退回 sense。
         self.plan = normalize_plan(getattr(config, "plan", DEFAULT_PLAN)) or DEFAULT_PLAN
         self.plan_config: Plan = default_plan_library().get(self.plan)
@@ -455,9 +467,20 @@ class LessonSim:
         self.rng.shuffle(self.deck)
         self.discard.clear()
         self.excluded.clear()
+        self._save_cards_used = 0
         self._min_cost = min((card.cost for card in self.deck), default=0)
 
     # ------------------------------------------------------------------ 状态
+    @property
+    def total_turns(self) -> int:
+        """本课程总回合数（配置值；与剩余回合一起决定当前进度）。"""
+        return int(self.config.turns)
+
+    @property
+    def current_turn(self) -> int:
+        """当前是第几回合（1 起；回合用尽后返回 total_turns）。"""
+        return max(self.total_turns - self.turns_left + 1, 1)
+
     @property
     def done(self) -> bool:
         """回合用尽，或体力+元气付不起任何牌、且没有剩余回复饮料。
@@ -481,6 +504,28 @@ class LessonSim:
         return 0
 
     @property
+    def reward_gain(self) -> int:
+        """普通课程属性收益：CLEAR 部分逐点 + PERFECT 部分按实际进度。
+
+        wiki 口径（note.com「学マスのレッスンにおけるパラメータ上昇量の計算式」）：
+        CLEAR 是"还差多少分 CLEAR"，PERFECT 是达标后"还差多少分 PERFECT"；
+        参数按**已达成**的数值计。因此::
+
+            gain = min(score, CLEAR)
+                 + min(max(score - CLEAR, 0), PERFECT)
+
+        ``LessonConfig.target_perfect`` 是绝对 PERFECT 线，所以这里
+        ``PERFECT = target_perfect - target_clear``。score 未到 CLEAR 时按
+        "已达成部分"给 gain（= score），不是整档 0；这是 note.com 口径，见
+        ``docs/EXPECTIMAX.md`` §2。CLEAR/PERFECT 档位判定仍由 ``reward_tier``
+        给 UI/统计用（两者不矛盾：档位是阈值，收益是连续进度）。
+        """
+        clear = max(int(self.target_clear), 0)
+        perfect = max(int(self.target_perfect) - clear, 0)
+        score = max(int(self.score), 0)
+        return min(score, clear) + min(max(score - clear, 0), perfect)
+
+    @property
     def result(self) -> str:
         """按当前分数给出评价（三档与 ``reward_tier`` 一致）。
 
@@ -492,7 +537,7 @@ class LessonSim:
     def legal_actions(self) -> list[Action]:
         """当前能出的手牌下标 + SKIP（None，固定在最后）。
 
-        体力+元气够付牌费就合法；本回合出牌数达到
+        体力+元气够付**指針修正后的实际牌费**就合法；本回合出牌数达到
         ``plays_per_turn + extra_plays`` 后只剩 SKIP。
         """
         if self.done:
@@ -502,7 +547,7 @@ class LessonSim:
         actions: list[Action] = [
             index
             for index, card in enumerate(self.hand)
-            if card.cost <= self.stamina + self.vitality
+            if self._effective_cost(card) <= self.stamina + self.vitality
         ]
         actions.append(None)
         return actions
@@ -582,14 +627,16 @@ class LessonSim:
                 f"{self.plays_per_turn + self.extra_plays}（先 SKIP 结束本回合）"
             )
         card = self.hand[action]
-        if card.cost > self.stamina + self.vitality:
+        effective_cost = self._effective_cost(card)
+        if effective_cost > self.stamina + self.vitality:
             raise ValueError(
-                f"体力不足：{card.name} 需要 {card.cost}，当前体力 {self.stamina} "
-                f"+ 元气 {self.vitality}"
+                f"体力不足：{card.name} 需要 {effective_cost}（指針修正后），当前体力 "
+                f"{self.stamina} + 元气 {self.vitality}"
             )
 
         self.hand.pop(action)
         self.plays_this_turn += 1
+        previous_stance = self.stance.stance
         # 再演（ExamStatusEnchantEncore）：本牌直接效果执行两次；牌费只付一次，
         # 成长计数器仍按"打出这张牌一次"计。倍率类字段不翻倍（避免百分比乘方）。
         effect_card = self._encore_card(card) if card.encore else card
@@ -605,6 +652,13 @@ class LessonSim:
             )
         self._apply_card_buffs(effect_card)
         self._apply_card_stance(effect_card)
+        # 温存解除时给热意（近似成好调回合）：使用数 + 1
+        if getattr(self.config, "stance_costs", True):
+            if self.stance.stance == "save":
+                self._save_cards_used += 1
+            elif previous_stance == "save":
+                self.buffs.condition_turns += self._save_cards_used + 1
+                self._save_cards_used = 0
         # 本牌结算后追加本回合可出牌次数（本牌本身仍占一次）
         if effect_card.extra_play > 0:
             self.extra_plays += effect_card.extra_play
@@ -811,12 +865,34 @@ class LessonSim:
         self.motivation += card.motivation
 
     def _pay_card_cost(self, card: CardSpec) -> None:
-        """支付牌费：**先扣元气（盾）、不够再扣体力**（真机语义）。"""
-        remaining = card.cost
+        """支付牌费：先按指針修正实际费用，強気 2 段階再穿透 1 点元气。
+
+        指針体力代价（wiki 核实）：
+        - 温存 1 段階 ×0.5、2 段階 ×0.25（向上取整）；
+        - 強気 1/2 段階 ×2；2 段階额外 1 点直接扣体力（不吃元气）；
+        - 无指針/全力 ×1。
+        """
+        cost = self._effective_cost(card)
+        pierce = (
+            min(cost, stamina_pierce(self.stance))
+            if getattr(self.config, "stance_costs", True)
+            else 0
+        )
+        if pierce:
+            self.stamina -= pierce
+        remaining = cost - pierce
         absorbed = min(self.vitality, remaining)
         self.vitality -= absorbed
-        remaining -= absorbed
-        self.stamina -= remaining
+        self.stamina -= remaining - absorbed
+
+    def _effective_cost(self, card: CardSpec) -> int:
+        """指針修正后的实际牌费（向上取整；不改变 card.cost 本身）。"""
+        if not getattr(self.config, "stance_costs", True):
+            return int(card.cost)
+        multiplier = stamina_cost_multiplier(self.stance)
+        if multiplier == 1.0:
+            return int(card.cost)
+        return math.ceil(card.cost * multiplier)
 
     def _has_unused_stamina_drink(self) -> bool:
         """槽里还有没消耗的回复饮料（真机可以下一回合喝它继续打牌）。"""
@@ -826,10 +902,11 @@ class LessonSim:
         )
 
     def _end_turn(self, *, skipped: bool) -> None:
-        """回合结束：结算好印象、衰减好调/持续 buff、记录 trace、弃手牌、抽下一手。
+        """回合结束：结算好印象得分、衰减好调/持续 buff、记录 trace、弃手牌、抽下一手。
 
-        好印象的结算顺序固定为**先加分、再减层**：本回合按完整层数拿分，
-        下一回合才少一层；这样 N 层在剩余 T 回合里的总分是 N+(N-1)+…。
+        好印象时序（2026-11-16 wiki 核实）：**回合结束按当前层数加等量分，
+        **下一回合开始**才 -1**（不是结束就扣）。最后一回合结束后没有下一回合，
+        所以层数不再扣——这一点和旧实现不同，旧实现会在最终回合也扣掉。
         ``ExamReviewMultiple``（好印象强化）在这里放大本回合的好印象结算分。
 
         SKIP（``skipped=True``）与手牌自然打空走同一条结算路径：剩余手牌
@@ -844,7 +921,7 @@ class LessonSim:
                     impression_score * (1000 + self.buffs.review_multiple) / 1000
                 )
             self.score += impression_score
-            self.buffs.impression -= 1
+            # 不在这里 -1：下一回合开始时扣（见 _draw_hand）
         if self.buffs.condition_turns > 0:
             self.buffs.condition_turns -= 1
         # 持续类 buff 剩余回合 -1；到 0 后同时清掉倍率，永久（-1）保持
@@ -885,7 +962,10 @@ class LessonSim:
             self._draw_hand()
 
     def _draw_hand(self) -> None:
-        # 新手牌 = 新回合：本回合出牌数、额外次数、已喝饮料数从 0 重新计
+        # 新手牌 = 新回合：好印象在**下一回合开始时** -1（回合末已按当前层数加分）
+        if self.buffs.impression > 0:
+            self.buffs.impression -= 1
+        # 本回合出牌数、额外次数、已喝饮料数从 0 重新计
         self.plays_this_turn = 0
         self.extra_plays = 0
         self.drinks_used_this_turn = 0

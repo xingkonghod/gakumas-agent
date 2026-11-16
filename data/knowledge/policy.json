@@ -12,7 +12,8 @@
   "last_turn_max_total": true,
   "unknown_score_fallback": "cheapest",
   "source": "defaults",
-  "buff_early_turns": 3
+  "buff_early_turns": 3,
+  "engine": "rules"
  },
  "produce": {
   "prefer_lesson": true,

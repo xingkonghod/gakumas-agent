@@ -50,6 +50,7 @@ DEFAULT_POLICY_PATH = Path(__file__).resolve().parents[3] / "data" / "knowledge"
 _ALLOWED_VALUES: dict[str, frozenset[str]] = {
     "unknown_score_fallback": frozenset({"cheapest", "skip"}),
     "plan": frozenset(VALID_PLANS),
+    "engine": frozenset({"rules", "expectimax"}),
 }
 
 
@@ -103,6 +104,12 @@ class LessonPolicy:
         # PERFECT 线 = 屏幕 CLEAR 基准（LessonState.gauge）× 该倍率。
         # 目标函数按 PERFECT 而不是 CLEAR：没到线就不收手（真机 CLEAR 只拿半档属性）。
         "perfect_target_multiplier": 2.0,
+        # 出牌引擎：rules=固定优先级规则（默认，行为不变）；expectimax=回合内搜索。
+        # 搜索异常/状态不完整时自动退回 rules。
+        "engine": "rules",
+        # expectimax 的 anytime 预算与 V_leaf σ；规则模式不读。
+        "expectimax_budget_ms": 800.0,
+        "expectimax_sigma": 80.0,
     }
 
     def __init__(
@@ -115,6 +122,7 @@ class LessonPolicy:
         min_gain: float | None = None,
         params: dict | None = None,
         params_path: str | Path | None = None,
+        engine: str | None = None,
     ) -> None:
         self.buffs = buffs or BuffLibrary.load()
         self.plans = plans or default_plan_library()
@@ -122,6 +130,9 @@ class LessonPolicy:
         # 显式 plan 参数优先级最高；未知值按需求退回 sense，不抛异常。
         if plan is not None:
             self.params["plan"] = normalize_plan(plan) or DEFAULT_PLAN
+        # 显式 engine 参数优先级最高；未知值退回 rules（保持旧行为）
+        if engine is not None:
+            self.params["engine"] = engine if engine in _ALLOWED_VALUES["engine"] else "rules"
         # 兼容旧的显式关键字参数（优先级最高）
         if buff_first is not None:
             self.params["buff_first"] = bool(buff_first)
@@ -161,6 +172,11 @@ class LessonPolicy:
     @buff_first.setter
     def buff_first(self, value: bool) -> None:
         self.params["buff_first"] = bool(value)
+
+    @property
+    def engine(self) -> str:
+        """当前出牌引擎：``rules``（默认）或 ``expectimax``。"""
+        return str(self.params.get("engine") or "rules")
 
     @property
     def min_gain(self) -> float:
@@ -273,11 +289,25 @@ class LessonPolicy:
             self._buff_played_this_turn = True
 
     def decide(self, state: LessonState, *, allow_skip: bool = True) -> LessonAction:
-        """``allow_skip=False``（考试/试镜）：绝不返回 ``skip``，必须每回合出一张牌。
+        """按 ``engine`` 选择规则或 expectimax；搜索异常/局面不完整退回规则。
 
-        F#17：考试页被当成课程时，体力门/「剩下的牌都不值体力」会连续 SKIP 白送回合
-        （真机期中 4th/228Pt 直接不合格）。考试里 SKIP 没有任何收益，所以禁掉三个
-        SKIP 出口，退化为「硬打一张最值的」/「等下一帧交给兜底选牌」。
+        默认 ``engine="rules"``，行为与旧版逐位一致；``policy.json`` 的
+        ``lesson.engine`` 或构造参数 ``engine="expectimax"`` 才启用搜索。
+        """
+        self._sync_turn(state.turns_left)
+        rules_action = self._decide_rules(state, allow_skip=allow_skip)
+        if self.engine != "expectimax":
+            return rules_action
+        override = self._try_expectimax(state, allow_skip=allow_skip)
+        return override if override is not None else rules_action
+
+    def _decide_rules(
+        self, state: LessonState, *, allow_skip: bool = True
+    ) -> LessonAction:
+        """固定优先级规则（旧版 ``decide`` 的实现，行为不变）。
+
+        考试模式（``allow_skip=False``）绝不返回 SKIP：没有付得起的牌也比白送回合好，
+        退回 `"硬打一张最值的"`/`"等下一帧"`。
         """
         self._sync_turn(state.turns_left)
         perfect_target = self._perfect_target(state)
@@ -395,6 +425,99 @@ class LessonPolicy:
         )
 
     # ------------------------------------------------------------------ 内部
+    def _try_expectimax(
+        self, state: LessonState, *, allow_skip: bool
+    ) -> LessonAction | None:
+        """用真机 ``LessonState`` 构造模拟状态并跑回合内 expectimax。
+
+        只映射读屏能确认的字段（手牌/体力/剩余回合/分数/CLEAR 基准）；卡表能补
+        费用与效果。读不到总回合数时用剩余回合兜底；身份不明的牌/异常一律返回
+        ``None``，调用方退回规则，绝不让出牌退化。
+        """
+        try:
+            if not state.cards:
+                return None
+            gauge = state.gauge
+            turns_left = state.turns_left
+            stamina = state.stamina
+            if gauge is None or gauge <= 0 or turns_left is None or turns_left <= 0:
+                return None
+            if stamina is None:
+                return None
+            from gkagent.sim.expectimax import (
+                AnalyticLeafValue,
+                ExpectState,
+                expectimax_with_stats,
+            )
+            from gkagent.sim.play_choice import specs_from_hand
+
+            play_cards = specs_from_hand(state.cards, table=self._card_table())
+            if not play_cards:
+                return None
+            perfect = math.ceil(
+                float(gauge) * float(self.params["perfect_target_multiplier"])
+            )
+            sim_state = ExpectState(
+                hand=tuple(card.spec for card in play_cards),
+                stamina=max(int(stamina), 0),
+                score=max(int(state.score or 0), 0),
+                turns_left=max(int(turns_left), 1),
+                total_turns=max(int(state.total_turns or turns_left), 1),
+                plays_used=max(int(self._plays_this_turn), 0),
+                play_limit=3,
+                clear=int(gauge),
+                perfect=max(int(perfect), int(gauge)),
+                hand_size=len(play_cards),
+            )
+            result = expectimax_with_stats(
+                sim_state,
+                AnalyticLeafValue(sigma=float(self.params["expectimax_sigma"])),
+                time_budget_ms=float(self.params["expectimax_budget_ms"]),
+            )
+            if result.card is None:
+                if not allow_skip:
+                    return None
+                return LessonAction(
+                    "skip",
+                    point=state.skip_point,
+                    reason=(
+                        f"expectimax: SKIP（档位期望 {result.utility:.2f}，"
+                        f"{result.elapsed_ms:.0f}ms）"
+                    ),
+                )
+            picked = next(
+                (card for card in play_cards if card.spec == result.card), None
+            )
+            if picked is None:
+                return None
+            original = next(
+                (card for card in state.cards if card.index == picked.index),
+                state.cards[picked.index],
+            )
+            return LessonAction(
+                "card",
+                index=picked.index,
+                point=picked.point,
+                card=original,
+                expected=result.utility,
+                reason=(
+                    f"expectimax: {picked.name}（档位期望 {result.utility:.2f}，"
+                    f"{result.nodes} 节点，{result.elapsed_ms:.0f}ms）"
+                ),
+            )
+        except Exception:  # noqa: BLE001 - 搜索绝不能让出牌退化
+            return None
+
+    def _card_table(self):
+        """懒加载卡表；测试可以替换 ``self._table`` 注入 FakeTable。"""
+        table = getattr(self, "_table", None)
+        if table is None:
+            from gkagent.data.card_table import CardTable
+
+            table = CardTable()
+            self._table = table
+        return table
+
     def _value(self, card: LessonCard, turns: int | None) -> float:
         # 纯 buff 牌不走"分数"通道，只由 _maybe_buff 决定要不要先铺
         if card.buff:

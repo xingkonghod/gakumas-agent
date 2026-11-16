@@ -42,6 +42,8 @@ __all__ = [
     "card_stance_effect",
     "end_turn",
     "score_multiplier",
+    "stamina_cost_multiplier",
+    "stamina_pierce",
 ]
 
 # 攒满 10 点全力值，回合结束时消耗 10 点进入下一回合的「全力」。
@@ -118,6 +120,27 @@ def score_multiplier(state: StanceState) -> float:
     段階缺失 = 1 段階，不抛异常。
     """
     return MULTIPLIER[_multiplier_key(state)]
+
+
+def stamina_cost_multiplier(state: StanceState) -> float:
+    """出牌体力消耗倍率（wiki 核实，2026-11-16）。
+
+    温存 1 段階 0.5、2 段階 0.25；強気 1/2 段階 ×2；无指針/全力 ×1。
+    实际扣费在 ```LessonSim._pay_card_cost`` 里向上取整。
+    """
+    key = _multiplier_key(state)
+    if key == "save1":
+        return 0.5
+    if key == "save2":
+        return 0.25
+    if key in ("strong1", "strong2"):
+        return 2.0
+    return 1.0
+
+
+def stamina_pierce(state: StanceState) -> int:
+    """強気 2 段階：额外穿透元气、直接扣体力的点数（wiki：1 点）。"""
+    return 1 if _multiplier_key(state) == "strong2" else 0
 
 
 def apply_full_power_point(state: StanceState, delta: int) -> StanceState:

@@ -123,6 +123,9 @@ def _gold_frame(image, rect: tuple[int, int, int, int]) -> bool:
 class LessonState:
     kind: str = "lesson"
     turns_left: int | None = None
+    # 本课程总回合数（OCR 只读"剩余回合数"；能读到课程配置时由调用方填，
+    # 用于判断"这是第几回合/还剩几回合"）。None = 未知。
+    total_turns: int | None = None
     score: int | None = None
     gauge: int | None = None
     stamina: int | None = None
@@ -132,9 +135,16 @@ class LessonState:
     skip_point: tuple[int, int] | None = SKIP_POINT
     notes: tuple[str, ...] = field(default_factory=tuple)
 
+    @property
+    def current_turn(self) -> int | None:
+        """当前回合号（1 起）；总回合数未知时返回 None。"""
+        if self.total_turns is None or self.turns_left is None:
+            return None
+        return max(self.total_turns - self.turns_left + 1, 1)
+
     def summary(self) -> str:
         return (
-            f"{self.kind} 回合{self._fmt(self.turns_left)} "
+            f"{self.kind} 回合{self._fmt(self.turns_left)}/{self._fmt(self.total_turns)} "
             f"体力{self._fmt(self.stamina)} 分数{self._fmt(self.score)} "
             f"{self.attribute or ''}{self.multiplier or ''} 手牌{len(self.cards)}"
         )
