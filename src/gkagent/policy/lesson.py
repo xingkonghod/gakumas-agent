@@ -143,6 +143,10 @@ class LessonPolicy:
         self._last_turns: int | None = None
         self._plays_this_turn = 0
         self._buff_played_this_turn = False
+        # 读不到回合数时 `_sync_turn` 无法判断新回合；用「上一手是 SKIP」和
+        # 「手牌整体换了一批」两个信号兜底重置，避免计数器卡死导致满体力一直 SKIP。
+        self._await_turn_reset = False
+        self._last_hand_sig: tuple[str, ...] = ()
 
     # ------------------------------------------------------------------ 参数
     @property
@@ -284,8 +288,12 @@ class LessonPolicy:
 
     def note_play(self, card: LessonCard | None = None) -> None:
         """调用方真正点出去之后告知，用于回合内计数。"""
+        if card is None:
+            # SKIP 结束本回合：下一帧决策前重置出牌计数
+            self._await_turn_reset = True
+            return
         self._plays_this_turn += 1
-        if card is not None and card.buff:
+        if card.buff:
             self._buff_played_this_turn = True
 
     def decide(self, state: LessonState, *, allow_skip: bool = True) -> LessonAction:
@@ -440,7 +448,11 @@ class LessonPolicy:
             gauge = state.gauge
             turns_left = state.turns_left
             stamina = state.stamina
-            if gauge is None or gauge <= 0 or turns_left is None or turns_left <= 0:
+            # 用户要求：禁用规则回退。读不到 CLEAR 基准时用经验默认值（250），
+            # 只保留"手牌为空 / 体力未知 / 回合未知"这类无法决策的硬性回退。
+            if gauge is None or gauge <= 0:
+                gauge = int(self.params.get("default_clear_gauge") or 250)
+            if turns_left is None or turns_left <= 0:
                 return None
             if stamina is None:
                 return None
@@ -761,7 +773,16 @@ class LessonPolicy:
             return None
         return card, value
 
+    def _reset_turn_counters(self) -> None:
+        self._plays_this_turn = 0
+        self._buff_played_this_turn = False
+        self._await_turn_reset = False
+
     def _sync_turn(self, turns: int | None) -> None:
+        # 读不到回合数时不能直接 return：否则 `_plays_this_turn` 永不归零，
+        # 会在下一回合（甚至同一屏）一直判「次数用完」而满体力 SKIP。
+        if self._await_turn_reset:
+            self._reset_turn_counters()
         if turns is None:
             return
         if self._last_turns is None:
@@ -769,8 +790,7 @@ class LessonPolicy:
             return
         if turns != self._last_turns:
             self._last_turns = turns
-            self._plays_this_turn = 0
-            self._buff_played_this_turn = False
+            self._reset_turn_counters()
 
 
 def turn_gain_expected(score: float) -> float:
