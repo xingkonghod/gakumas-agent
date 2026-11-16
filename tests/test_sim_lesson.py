@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from gkagent.sim.lesson import (
-    DRINKS_PER_TURN,
     CardSpec,
     DrinkSpec,
     LessonConfig,
@@ -31,7 +30,7 @@ def _config(
     hand_size: int = 3,
     drinks: tuple[DrinkSpec, ...] = (),
     stamina_max: int | None = None,
-    attribute_coefficient: float = 1.0,
+    attribute_coefficient: float = 1.0, drinks_per_turn: int | None = None,
 ) -> LessonConfig:
     return LessonConfig(
         turns=turns,
@@ -42,6 +41,7 @@ def _config(
         drinks=drinks,
         stamina_max=stamina_max,
         attribute_coefficient=attribute_coefficient,
+        drinks_per_turn=drinks_per_turn,
     )
 
 
@@ -913,26 +913,33 @@ def test_drink_condition_and_score_effects() -> None:
     assert score_sim.score == 10
 
 
-def test_only_one_drink_per_turn_and_consumed_after_use() -> None:
-    """每回合限 1 瓶；uses=1 的饮料用掉后不能再用，下一回合才能喝别的。"""
+def test_drinks_have_no_per_turn_limit_by_default() -> None:
+    """真机饮料没有"每回合 1 瓶"限制（用户确认）：同一回合可连喝，只受库存 uses 约束。"""
     drinks = (DrinkSpec("A", 0, "focus", 1), DrinkSpec("B", 0, "focus", 1))
     sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=3, stamina=10, drinks=drinks))
 
     assert sim.legal_drinks() == [0, 1]
     sim.use_drink(0)
-    assert sim.drinks_used_this_turn == DRINKS_PER_TURN
+    assert sim.legal_drinks() == [1]  # A 库存用完；B 仍可同回合喝
+    sim.use_drink(1)
     assert sim.legal_drinks() == []
-    with pytest.raises(ValueError, match="每回合最多"):
-        sim.use_drink(1)
-    assert sim.drink_uses == [0, 1]
-
-    sim.step(None)  # 新回合
-    assert sim.legal_drinks() == [1]
+    assert sim.drink_uses == [0, 0]
+    assert sim.buffs.focus == 2
     with pytest.raises(ValueError, match="用完"):
         sim.use_drink(0)
-    sim.use_drink(1)
-    assert sim.buffs.focus == 2
 
+
+def test_drinks_per_turn_cap_is_optional() -> None:
+    """显式配置 drinks_per_turn 时才限制每回合瓶数。"""
+    drinks = (DrinkSpec("A", 0, "focus", 1), DrinkSpec("B", 0, "focus", 1))
+    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=3, stamina=10, drinks=drinks, drinks_per_turn=1))
+
+    sim.use_drink(0)
+    assert sim.legal_drinks() == []
+    with pytest.raises(ValueError, match="最多 1 瓶"):
+        sim.use_drink(1)
+    sim.step(None)
+    assert sim.legal_drinks() == [1]
 
 def test_drink_cost_is_paid_before_effect() -> None:
     """带体力消耗的饮料先扣 cost 再结算效果（真机饮料 cost=0，字段留给自定义）。"""

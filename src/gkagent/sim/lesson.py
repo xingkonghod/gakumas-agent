@@ -8,6 +8,9 @@
   所以 ``LessonConfig.stamina_max`` 默认取初始体力；
 - 每回合从洗好的牌库抽 ``hand_size`` 张，**默认 3 张（与真机一致）**；打出的牌
   进弃牌堆，牌库抽空后把弃牌堆洗回牌库（近似真机）；每回合补满 3 张；
+- **除外**：``CardSpec.once``（卡面「訓練中1回」）的卡用掉后进 ``excluded``，
+  本场不再回到牌库/弃牌堆——这是真实牌库压缩；没用掉的手牌仍按普通卡弃掉。
+  卡表/读屏给不出该属性时默认 ``once=False``（按可重复卡处理）；
 - 一回合内可以连续出牌，直到 SKIP；手牌打完则本回合自动结束；
 - 每回合基础可出牌次数 ``plays_per_turn``（默认 3，与标准手牌数一致），本回合
   出牌数达到上限后只能 SKIP；``ExamPlayableValueAdd``（``CardSpec.extra_play``）
@@ -19,7 +22,7 @@
   每次回合末都记进 ``LessonSim.trace``（``skipped=True``；手牌自然打空为
   ``skipped=False``）；
 - **饮料**：``LessonConfig.drinks`` 注入 ``DrinkSpec``（真机底部 3 个饮料槽），
-  ``use_drink(index)`` 喝一瓶，**每回合最多 1 瓶**（真机限制），每瓶按 ``uses``
+  ``use_drink(index)`` 喝一瓶，**默认不限每回合瓶数**（用户确认真机无此限制），每瓶按 ``uses``
   计次、用掉即消耗（``uses=1`` 默认一次性）。效果支持 ``stamina``（回复体力，
   不超过 ``stamina_max``）/ ``focus``（集中 +N）/ ``condition``（好调 N 回合）/
   ``score``（直接加 N 分，不吃倍率）。``DrinkSpec.cost`` 默认 0：真机饮料不耗
@@ -185,7 +188,7 @@ Policy: TypeAlias = Callable[["LessonSim"], Action]
 # 饮料支持的效果类型（真机饮料的其余 20+ 种效果都未建模，配置时由 DrinkSpec 报错）
 DRINK_EFFECTS: tuple[str, ...] = ("stamina", "focus", "condition", "score")
 # 真机每回合最多喝 1 瓶（不是每个饮料槽 1 瓶）
-DRINKS_PER_TURN = 1
+DRINKS_PER_TURN: int | None = None  # None = 真机实际无每回合上限（用户确认）
 # 考试/舞台屏幕显示的属性倍率（「歌唱 411%」= 4.11）真机实测默认值；
 # 课程里属性倍率 ≈ 1.0，所以 LessonConfig 默认仍是 1.0。
 AUDITION_ATTRIBUTE_COEFFICIENT = 4.11
@@ -289,6 +292,9 @@ class CardSpec:
     full_power_lesson_multiple_turns: int = 0
     # ExamAddGrowEffect：成长（第 k 次使用按 1 + (k-1)×grow_score/100 计分）
     grow_score: int = 0
+    # 「レッスン中1回」：本场用掉后进除外区，不再回牌库/弃牌堆（牌库压缩）。
+    # 卡表/读屏给不出这个属性时默认 False（按可重复卡处理，保守口径见模块 docstring）。
+    once: bool = False
 
 
 @dataclass(frozen=True)
@@ -341,6 +347,8 @@ class LessonConfig:
     plays_per_turn: int = 3
     # 饮料槽（真机 3 个）；默认空 = 旧行为
     drinks: tuple[DrinkSpec, ...] = ()
+    # None = 不限每回合瓶数（真机实际无此限制）；给整数才限制
+    drinks_per_turn: int | None = None
     # 体力上限；None = 初始体力（真机课程开局满体力）。饮料回复不会超过它
     stamina_max: int | None = None
     # 属性倍率：考试/舞台屏幕上的「歌唱 411%」= 4.11；课程 ≈ 1.0（默认）
@@ -382,6 +390,8 @@ class LessonSim:
         self.deck: list[CardSpec] = list(deck)
         self.rng.shuffle(self.deck)
         self.discard: list[CardSpec] = []
+        # 除外区：レッスン中1回 的卡用掉后本场消失（不进弃牌堆、不会被重新抽到）
+        self.excluded: list[CardSpec] = []
         self.hand: list[CardSpec] = []
 
         self.score: int = 0
@@ -444,6 +454,7 @@ class LessonSim:
             self.rng_seed = seed
         self.rng.shuffle(self.deck)
         self.discard.clear()
+        self.excluded.clear()
         self._min_cost = min((card.cost for card in self.deck), default=0)
 
     # ------------------------------------------------------------------ 状态
@@ -501,7 +512,8 @@ class LessonSim:
 
         真机限制每回合 1 瓶；``DrinkSpec`` 的 ``uses`` 用完后该下标不再出现。
         """
-        if self.done or self.drinks_used_this_turn >= DRINKS_PER_TURN:
+        cap = getattr(self.config, "drinks_per_turn", None)
+        if self.done or (cap is not None and self.drinks_used_this_turn >= cap):
             return []
         return [
             index
@@ -515,7 +527,7 @@ class LessonSim:
     def use_drink(self, index: int) -> None:
         """喝一瓶饮料（``index`` 是 ``LessonConfig.drinks`` 的下标）。
 
-        - 每回合最多 1 瓶（``DRINKS_PER_TURN``），喝过再喝报 ``ValueError``；
+        - 每回合瓶数上限由 ``LessonConfig.drinks_per_turn`` 决定（None = 不限）；
         - 按 ``DrinkSpec.uses`` 消耗次数，用完后该槽位不可再用；
         - ``stamina`` 回复不超过 ``stamina_max``；``score`` 直接加分，不吃倍率。
         """
@@ -525,10 +537,9 @@ class LessonSim:
             raise TypeError(f"饮料下标必须是 int：{index!r}")
         if not 0 <= index < len(self.config.drinks):
             raise ValueError(f"饮料下标越界：{index}")
-        if self.drinks_used_this_turn >= DRINKS_PER_TURN:
-            raise ValueError(
-                f"本回合已经喝过饮料（每回合最多 {DRINKS_PER_TURN} 瓶）"
-            )
+        cap = getattr(self.config, "drinks_per_turn", None)
+        if cap is not None and self.drinks_used_this_turn >= cap:
+            raise ValueError(f"本回合已经喝过饮料（每回合最多 {cap} 瓶）")
         drink = self.config.drinks[index]
         if self.drink_uses[index] <= 0:
             raise ValueError(f"饮料已经用完：{drink.name}")
@@ -601,7 +612,11 @@ class LessonSim:
             self._draw(effect_card.draw)
         # 成长计数器要等本牌算完分再 +1，保证第 k 次使用吃 (k-1) 层成长
         self.card_uses[id(card)] = uses + 1
-        self.discard.append(card)
+        if card.once:
+            # レッスン中1回：用掉后除外，本场不再回到牌库/弃牌堆
+            self.excluded.append(card)
+        else:
+            self.discard.append(card)
 
         # 体力+元气见底：本局提前结束（不再结算回合末）
         if self.done:
