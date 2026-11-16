@@ -161,7 +161,11 @@ class ProduceConfig:
     - ``weeks=16`` / ``exam_weeks=(7, 16)``：真机那局是 16 周プロ，旧默认
       12 周（exam 6/12）少 4 个行动周，是旧模拟 620 vs 真机 971 的主因之一。
     - ``training_gain_ratio=0.5``：旧口径 fallback 的训练得分→属性系数；official
-      模式不使用（训练收益直接取 CLEAR+PERFECT）。
+      模式不使用（训练属性按 CLEAR/PERFECT 三档结算）。
+    - 训练目标三档（official 模式）：``CLEAR = official.clear``、
+      ``PERFECT = official.clear + official.perfect``；只有打到 PERFECT 才拿
+      CLEAR+PERFECT 的完整属性，只到 CLEAR 只拿 clear 档，未到 CLEAR 为 0。
+      缺失 official 时退回 ``training_targets`` 的单值 + 默认 PERFECT=2×CLEAR。
     - ``support_bonus=1.2``：真机支援卡均值 Lv20、SR 档 → 1.2；official 排期
       收益已是最终值，不再乘该倍率。
     - ``audition_coefficient=4.11``：考试/舞台的属性倍率（屏幕「歌唱 411%」），
@@ -183,6 +187,8 @@ class ProduceConfig:
     outing_weeks: tuple[int, ...] = (3, 5, 8, 14)  # 官方排期的空周（可外出）
     exam_weeks: tuple[int, ...] = (7, 16)          # 16 周プロ：期中 7 / 期末 16
     training_targets: tuple[int, ...] = (100, 150, 200, 250, 300)
+    # ↑ 仅非 official 兜底的 CLEAR 线；official 模式由 training_target_pair()
+    #   从 official.json 的 (clear, perfect) 对取 CLEAR/PERFECT 线。
     support_levels: tuple[int, ...] = (10, 10, 10, 20, 10, 60)  # 真机实测支援卡等级
     support_bonus: float = 1.2      # 上课收益倍率：均值 Lv20 / SR 档（旧 1.35 假设 Lv40）
     training_gain_ratio: float = 0.5  # 旧口径：训练得分→属性；official 模式改用官方排期
@@ -304,6 +310,7 @@ class ProduceConfig:
 
     @property
     def lesson_targets(self) -> tuple[int, ...]:
+        """旧名别名：非 official 兜底的 CLEAR 线（official 用 training_target_pair）。"""
         return self.training_targets
 
     @property
@@ -372,9 +379,11 @@ def eval_value(total: int, rank: int = 3, exam_score: int | None = None) -> int:
 
 
 def training_policy(sim) -> int | None:
-    """训练内策略：分数/体力最高，没有就换最便宜的（与真机策略同构的简化版）。
+    """训练内策略：目标 PERFECT（CLEAR+PERFECT 满档），不是打够 CLEAR 就收手。
 
-    旧名 ``lesson_policy`` 保留为模块级别名。
+    没到 PERFECT 线时按"单张总分最大"选牌（先把缺口补上），到线后才回到
+    分数/体力性价比；最后一回合同样按总分最大。旧名 ``lesson_policy`` 保留为
+    模块级别名。
     """
     legal = [index for index in sim.legal_actions() if index is not None]
     if not legal:
@@ -391,6 +400,16 @@ def training_policy(sim) -> int | None:
     scored = [(index, value(index)) for index in legal if value(index) > 0]
     if not scored:
         return min(legal, key=lambda i: (sim.hand[i].cost, i))
+    if sim.score < sim.target_perfect:
+        scored.sort(
+            key=lambda item: (
+                item[1],
+                -sim.hand[item[0]].cost,
+                -item[0],
+            ),
+            reverse=True,
+        )
+        return scored[0][0]
     scored.sort(key=lambda item: (item[1] / max(sim.hand[item[0]].cost, 1), item[1]), reverse=True)
     return scored[0][0]
 
@@ -526,19 +545,55 @@ class ProduceSim:
             return float(entry["train_clear"]), True
         return float(self.config.class_gain), False
 
-    def _official_training_gain(self) -> int | None:
-        """官方排期里的训练收益 = CLEAR + PERFECT；缺失时返回 None。
+    def _official_training_gain(self, grade: str) -> int | None:
+        """官方排期的训练属性成长：按三档结算 CLEAR/PERFECT。
 
-        注：official.json 沿用历史 schema：``clear``/``perfect`` 是该周「旧
-        lesson() = 现在的 training()」的基准收益；这里只为兼容旧数据。
+        - ``FAILED``：0（没到 CLEAR 线，1 点属性都不给）；
+        - ``CLEAR``：只拿 ``clear`` 档（旧实现无条件给 clear+perfect，这是 bug）；
+        - ``PERFECT``：拿满 ``clear + perfect``。
+
+        注：official.json 沿用历史 schema：``clear``/``perfect`` 是该周训练
+        （旧 lesson() = 现在的 training()）的基础收益；这里只为兼容旧数据。
         """
         entry = self.official_entry()
         if entry is None:
             return None
         try:
-            return int(entry.get("clear") or 0) + int(entry.get("perfect") or 0)
+            clear = int(entry.get("clear") or 0)
+            perfect = int(entry.get("perfect") or 0)
         except (TypeError, ValueError):
             return None
+        if grade == "FAILED":
+            return 0
+        if grade == "PERFECT":
+            return clear + perfect
+        return clear
+
+    def training_target_pair(self, week: int | None = None) -> tuple[int, int]:
+        """本周训练的 ``(CLEAR 线, PERFECT 线)``。
+
+        official 模式直接从 ``official.json`` 的 ``(clear, perfect)`` 取：
+        ``CLEAR = clear``、``PERFECT = clear + perfect``（perfect 是"达标后
+        再往上打到的额外值"，不是独立阈值）。缺 official 时退回
+        ``training_targets`` 的单值 CLEAR + 默认 PERFECT=2×CLEAR。
+        """
+        entry = self.official_entry(week)
+        if entry is not None:
+            try:
+                clear = int(entry.get("clear") or 0)
+                perfect = int(entry.get("perfect") or 0)
+            except (TypeError, ValueError):
+                clear = perfect = 0
+            if clear > 0:
+                return clear, clear + max(perfect, 0)
+        # 非 official / 缺字段：旧单值表 + 默认 PERFECT=2×CLEAR
+        stage = min(
+            len(self.config.training_targets) - 1,
+            (self.week - 1) * len(self.config.training_targets)
+            // max(self.config.weeks, 1),
+        )
+        clear = int(self.config.training_targets[stage])
+        return clear, clear * 2
 
     def class_lesson(self, index: int) -> bool:
         """上课(授業)：属性 +N、耗 P 点；体力/P 不足则**不发生**并返回 False。
@@ -610,9 +665,8 @@ class ProduceSim:
             self.log.append(f"W{self.week} training failed stamina{self.stamina}<{cost}")
             return False
         self.stamina = max(0, self.stamina - cost)
-        # 审查基准随进度抬升：前半段偏易，后半段偏难
-        stage = min(len(self.config.training_targets) - 1, (self.week - 1) * len(self.config.training_targets) // max(self.config.weeks, 1))
-        target = self.config.training_targets[stage]
+        # 训练目标是 PERFECT（CLEAR+PERFECT 满档），不是只到 CLEAR 就收手。
+        target_clear, target_perfect = self.training_target_pair()
         plays: list[dict] = []
 
         base_policy = getattr(self, "training_policy_fn", None) or training_policy
@@ -640,8 +694,8 @@ class ProduceSim:
             LessonConfig(
                 turns=5,
                 stamina=self.config.stamina_max,
-                target_clear=target,
-                target_perfect=int(target * 1.5),
+                target_clear=target_clear,
+                target_perfect=target_perfect,
                 hand_size=3,
                 plan=self.config.plan,
             ),
@@ -652,18 +706,22 @@ class ProduceSim:
         if grade in ("CLEAR", "PERFECT"):
             self.cleared += 1
             self.fans += self.config.fans_per_clear
-        # 训练的属性成长：official 模式直接用官方排期的 (CLEAR + PERFECT)，
-        # 它已经把训练内得分/好调倍率折算成了最终属性；旧口径才用 score×ratio。
+        # 训练的属性成长：official 模式按三档结算（FAILED=0 / CLEAR=clear /
+        # PERFECT=clear+perfect）；旧口径才用 score×ratio，FAILED 同样不给属性。
         order = sorted(range(3), key=lambda i: self.config.weights[i], reverse=True)
         target_attr = order[self.trainings % 3]
-        official_gain = self._official_training_gain()
+        official_gain = self._official_training_gain(grade)
         if official_gain is not None:
             gain = official_gain
             gain_source = "official"
         else:
             # 支援卡也提升训练成长（真机支援卡给属性加成/技能卡；这里只建模属性加成那一路）
             support_factor = 0.85 + 0.15 * self.config.support_bonus
-            gain = int(score * self.config.training_gain_ratio * support_factor)
+            gain = (
+                0
+                if grade == "FAILED"
+                else int(score * self.config.training_gain_ratio * support_factor)
+            )
             gain_source = "constants"
         self.attrs[target_attr] += gain
         # 训练奖励：真机每次训练后都有三选一，所以不管 CLEAR 都给（这才是牌组变强的来源）
@@ -672,7 +730,10 @@ class ProduceSim:
             self.deck.append(reward)
             self.reward_picks += 1
         self.last_training = {
-            "target": target,
+            "target": target_clear,
+            "target_clear": target_clear,
+            "target_perfect": target_perfect,
+            "reward_tier": sim.reward_tier,
             "score": score,
             "grade": grade,
             "plays": plays,
@@ -683,7 +744,10 @@ class ProduceSim:
             "turns": [dict(row) for row in sim.trace],
             "skipped": any(row.get("skipped") for row in sim.trace),
         }
-        self.log.append(f"W{self.week} training target{target} score{score} {grade} +{gain}")
+        self.log.append(
+            f"W{self.week} training CLEAR{target_clear}/PERFECT{target_perfect} "
+            f"score{score} {grade} +{gain}"
+        )
         return True
 
     # ---- 旧方法名别名（旧代码/测试/外部脚本继续可用）----
