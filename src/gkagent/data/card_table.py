@@ -127,6 +127,9 @@ class CardTable:
         "ExamAggressiveAdditiveFix": 13.0,
         "ExamAggressiveValueMultiple": 13.0,
         "ExamAddGrowEffect": 13.0,  # 成长
+        "ExamLessonFullPowerPoint": 13.0,  # 全力值累计折算打分
+        "ExamFullPowerLessonMultipleAdditive": 13.0,  # 全力强化
+        "ExamEnthusiasticTurnAdd": 13.0,  # 热意延长（多一回合倍率）
         "ExamStatusEnchant": 12.0,  # 状态附魔（效果在内层）
         "ExamStatusEnchantEncore": 12.0,
     }
@@ -144,6 +147,9 @@ class CardTable:
         "ExamForcePlayCardSearch": 11.0,
         "ExamForcePlayCardSearchWithCost": 11.0,
         "ExamLessonAddMultipleParameterBuff": 12.0,  # 打点 + 参数上升
+        "ExamCardMove": 10.0,  # 手牌/弃牌移动（资源调度）
+        "ExamEffectTimer": 9.0,  # 延迟触发
+        "ExamEffectTimerEndTurn": 9.0,  # 回合结束延迟触发
     }
     SUSTAIN_EFFECT_VALUES: ClassVar[dict[str, float]] = {
         "ExamBlock": 9.0,  # 元气（保命，不加分）
