@@ -226,12 +226,16 @@ def lesson_policy(sim) -> int | None:
 
 
 _REWARD_TABLE = None
+_REWARD_CACHE: dict[str, float] = {}
 
 
 def _reward_value(card) -> float:
     """模拟器选奖励也用与真机同一套估值（CardTable.value），否则 buff/SSR 新卡永远进不了牌组。"""
     global _REWARD_TABLE
     name = str(getattr(card, "name", "")).split("#")[0]
+    cached = _REWARD_CACHE.get(name)
+    if cached is not None:
+        return cached
     try:
         if _REWARD_TABLE is None:
             from gkagent.data.card_table import CardTable
@@ -242,6 +246,7 @@ def _reward_value(card) -> float:
         value = None
     if value is None:
         return float(getattr(card, "score", 0)) / max(int(getattr(card, "cost", 1) or 1), 1)
+    _REWARD_CACHE[name] = float(value)
     return float(value)
 
 
