@@ -1835,11 +1835,10 @@ class ProduceDriver:
         if "结束回合" in text and (
             "尚可使用技能卡" in text or "确定要结束回合" in text or "下次起不再显示" in text
         ):
-            yes = self.find_button(lines, ("是",))
-            if yes is not None:
-                self._click_line(agent, yes)
-            else:
-                self._click(agent, TURN_END_YES)
+            # 固定坐标点「是」：不再用 find_button(("是",)) 模糊匹配——
+            # 整屏任何含「是」的文本（卡名/说明/问句）都会被误当成按钮，
+            # 导致点空后确认框不消失、课程卡死在弹窗上（ep-exp4 step 85 复现）。
+            self._click(agent, TURN_END_YES)
             return TickResult("dialog", "end-turn-yes")
 
         # 1.75) 培育记录详情弹窗在 0.7) 的 _settlement_action 里统一处理（返回
