@@ -643,8 +643,14 @@ def main() -> int:
         if pending_week is not None:
             end_lesson()
             finalize_week(None, None, why="final")
+        # 结算页一般不显示三维；先试读一次，读不到才退回最后一次采样（并在 note 里标 stale）
+        final_attrs = None
+        try:
+            final_attrs = driver.read_attrs(image, allow_full=False)
+        except Exception:  # noqa: BLE001 - 结算页读不到不影响流程
+            final_attrs = None
         final = recorder.note_final(
-            attrs=last_attrs,
+            attrs=final_attrs or last_attrs,
             rank=None,
             exam_score=None,
             eval_points=result.get("eval_points"),
