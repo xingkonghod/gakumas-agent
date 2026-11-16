@@ -116,6 +116,9 @@ class ProduceConfig:
 
     weeks: int = 16
     stamina_max: int = 35
+    # P点（游戏内资源）：上课(授業)耗 P，训练(レッスン)不耗
+    p_start: int = 150
+    train_p_cost: int = 30
     start_stamina: int = 35
     weights: tuple[float, float, float] = (0.40, 0.33, 0.27)  # 审查基准比例
     train_cost: int = 10
@@ -221,6 +224,27 @@ def lesson_policy(sim) -> int | None:
     return scored[0][0]
 
 
+
+_REWARD_TABLE = None
+
+
+def _reward_value(card) -> float:
+    """模拟器选奖励也用与真机同一套估值（CardTable.value），否则 buff/SSR 新卡永远进不了牌组。"""
+    global _REWARD_TABLE
+    name = str(getattr(card, "name", "")).split("#")[0]
+    try:
+        if _REWARD_TABLE is None:
+            from gkagent.data.card_table import CardTable
+
+            _REWARD_TABLE = CardTable()
+        value = _REWARD_TABLE.value(name)
+    except Exception:  # noqa: BLE001 - 估值失败退回白值
+        value = None
+    if value is None:
+        return float(getattr(card, "score", 0)) / max(int(getattr(card, "cost", 1) or 1), 1)
+    return float(value)
+
+
 class ProduceSim:
     """一局培育。`strategy(state) -> action` 由外部传入，便于比较不同打法。"""
 
@@ -237,6 +261,7 @@ class ProduceSim:
         self.stamina = self.config.start_stamina
         self.week = 1
         self.fans = 0
+        self.p_point = int(getattr(self.config, "p_start", 0) or 0)
         self.lessons = 0
         self.cleared = 0
         self.exams_passed = 0
@@ -310,10 +335,16 @@ class ProduceSim:
         只有成功的训练才给属性。
         """
         cost = self.config.train_cost
+        p_cost = int(getattr(self.config, "train_p_cost", 0) or 0)
         if self.stamina < cost:
             self.log.append(f"W{self.week} train{ATTRIBUTES[index]} failed stamina{self.stamina}<{cost}")
             return False
+        if p_cost and getattr(self, "p_point", 0) < p_cost:
+            self.log.append(f"W{self.week} train{ATTRIBUTES[index]} failed P{getattr(self, 'p_point', 0)}<{p_cost}")
+            return False
         self.stamina = max(0, self.stamina - cost)
+        if p_cost:
+            self.p_point -= p_cost
         base, from_official = self._train_base()
         if not from_official:
             base *= self.config.support_bonus
@@ -342,7 +373,7 @@ class ProduceSim:
             return self.rng.choice(self.reward_pool)
         best = max(
             self.reward_pool,
-            key=lambda card: (card.score / max(card.cost, 1), card.score),
+            key=lambda card: (_reward_value(card), card.score),
         )
         return best
 
