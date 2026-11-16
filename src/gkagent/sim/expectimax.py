@@ -84,6 +84,7 @@ __all__ = [
     "end_turn_state",
     "expected_tier_utility",
     "expectimax",
+    "expectimax_action",
     "expectimax_value",
     "expectimax_with_stats",
     "fire_p_items",
@@ -302,6 +303,8 @@ class ExpectimaxConfig:
     draw_enum_limit: int = DEFAULT_DRAW_ENUM_LIMIT
     max_nodes: int = DEFAULT_MAX_NODES
     time_budget_ms: float | None = DEFAULT_TIME_BUDGET_MS
+    # 是否把「喝饮料」纳入动作集合（default True；饮料为空时零开销）
+    allow_drinks: bool = True
 
 
 @dataclass(frozen=True)
@@ -315,6 +318,8 @@ class ExpectimaxResult:
     nodes: int
     elapsed_ms: float
     complete: bool
+    # 最优动作是喝饮料时给出下标（与 card 互斥；card=None 且 drink=None 才是 SKIP）
+    drink: int | None = None
 
 
 # ---------------------------------------------------------------- 叶子价值 V
@@ -463,11 +468,63 @@ def available_drinks(state: ExpectState) -> list[int]:
     ]
 
 
+def _drink_worth_expanding(state: ExpectState, drink: DrinkSpec) -> bool:
+    """饮料动作剪枝：只在「能提升本回合后续得分」时展开。
+
+    理由：饮料不占出牌次数，但每展开一个饮料分支就多一层递归；大多数时候
+    （没有后续可打分牌/体力本来够）喝不喝对档位效用几乎无差。只保留：
+    - score 饮料：直接加分，总值得算；
+    - focus/condition：本回合还有出牌位且有正分牌；
+    - stamina：本回合有出牌位、且有正分牌当前付不起（喝了才解锁）。
+    这样分支数从「每节点 × 库存瓶数」降到通常 0–1 个。
+    """
+    if state.plays_left <= 0:
+        return drink.effect_type == "score"
+    score_cards = [card for card in state.hand if card.score > 0]
+    if drink.effect_type == "score":
+        return True
+    if not score_cards:
+        return False
+    if drink.effect_type in ("focus", "condition"):
+        return True
+    if drink.effect_type == "stamina":
+        available = state.total_cost_available
+        return any(effective_cost(state, card) > available for card in score_cards)
+    return False
+
+
+def _candidate_drinks(state: ExpectState) -> list[int]:
+    """返回本状态最多 1 个值得展开的饮料下标（控制分支数）。
+
+    优先级：能解锁当前付不起的正分牌的 stamina → 有正分牌时的 focus/condition
+    → score（任意时候都直接加分）。同一状态不把所有库存都展开；每回合仍可
+    在不同节点各喝一瓶（受 ``drinks_per_turn``/库存限制）。
+    """
+    useful: list[tuple[int, int]] = []
+    for index in available_drinks(state):
+        drink = state.drinks[index]
+        if not _drink_worth_expanding(state, drink):
+            continue
+        priority = 0
+        if drink.effect_type == "stamina":
+            priority = 3
+        elif drink.effect_type in ("focus", "condition"):
+            priority = 2
+        elif drink.effect_type == "score":
+            priority = 1
+        useful.append((priority, index))
+    if not useful:
+        return []
+    useful.sort(key=lambda item: (-item[0], item[1]))
+    return [useful[0][1]]
+
+
 def use_drink_state(state: ExpectState, index: int) -> ExpectState:
     """喝一瓶饮料，返回新状态（与 ``LessonSim.use_drink`` 同语义）。
 
-    饮料不占本回合出牌次数；饮品槽/次数进 ``ExpectState``。当前 expectimax 的
-    动作仍是 play/SKIP，饮料由调用方在出牌前/后决定。
+    饮料不占本回合出牌次数；饮品槽/次数进 ``ExpectState``，expectimax 会把
+    「喝饮料」作为与打牌并列的动作（`ExpectimaxConfig.allow_drinks`），受库存和
+    ``drinks_per_turn`` 限制。
     """
     if isinstance(index, bool) or not isinstance(index, int):
         raise TypeError(f"饮料下标必须是 int：{index!r}")
@@ -1238,6 +1295,20 @@ class _Search:
                 best_card = card
                 best_drink = None
                 best_key = key_break
+        if self.config.allow_drinks:
+            for index in _candidate_drinks(state):
+                drink = state.drinks[index]
+                value = self.search(use_drink_state(state, index))
+                # 喝饮料只在严格提升档位效用时替换；打平优先出牌（饮料可留到后面）
+                if value > best + 1e-12:
+                    best = value
+                    best_card = None
+                    best_drink = index
+                    best_key = (
+                        state.plays_left,
+                        state.total_cost_available - int(drink.cost),
+                        0,
+                    )
         self.memo[key] = best
         self.choice_memo[key] = best_card
         self.drink_choice_memo[key] = best_drink
@@ -1280,6 +1351,25 @@ class _Search:
                 best_card = card
                 best_drink = None
                 best_key = key_break
+        if self.config.allow_drinks:
+            for index in _candidate_drinks(state):
+                drink = state.drinks[index]
+                try:
+                    value = self.search(use_drink_state(state, index))
+                except _Deadline:
+                    self.aborted = True
+                    break
+                actions.append((f"drink:{drink.name}", value))
+                # 打平优先出牌（饮料可留到后面），只有严格提升才替换
+                if value > best_value + 1e-12:
+                    best_value = value
+                    best_card = None
+                    best_drink = index
+                    best_key = (
+                        state.plays_left,
+                        state.total_cost_available - int(drink.cost),
+                        0,
+                    )
         self.memo[state.canonical()] = best_value
         self.choice_memo[state.canonical()] = best_card
         self.drink_choice_memo[state.canonical()] = best_drink
@@ -1295,6 +1385,7 @@ def _config_with_overrides(
     time_budget_ms: float | None,
     draw_enum_limit: int | None,
     max_nodes: int | None,
+    allow_drinks: bool | None,
 ) -> ExpectimaxConfig:
     base = config or ExpectimaxConfig()
     updates: dict[str, Any] = {}
@@ -1310,6 +1401,8 @@ def _config_with_overrides(
         updates["draw_enum_limit"] = max(int(draw_enum_limit), 0)
     if max_nodes is not None:
         updates["max_nodes"] = max(int(max_nodes), 1)
+    if allow_drinks is not None:
+        updates["allow_drinks"] = bool(allow_drinks)
     return replace(base, **updates) if updates else base
 
 
@@ -1326,6 +1419,7 @@ def expectimax_with_stats(
     sigma: float | None = None,
     draw_enum_limit: int | None = None,
     max_nodes: int | None = None,
+    allow_drinks: bool | None = None,
 ) -> ExpectimaxResult:
     """完整决策：返回动作、价值、节点数、耗时、是否完整（anytime 截止）。"""
     config = _config_with_overrides(
@@ -1336,6 +1430,7 @@ def expectimax_with_stats(
         time_budget_ms=time_budget_ms,
         draw_enum_limit=draw_enum_limit,
         max_nodes=max_nodes,
+        allow_drinks=allow_drinks,
     )
     model = value or AnalyticLeafValue(
         sigma=config.sigma, a_clear=config.a_clear, a_perfect=config.a_perfect
@@ -1345,9 +1440,9 @@ def expectimax_with_stats(
         deadline = started + max(float(config.time_budget_ms), 0.0) / 1000.0
     search = _Search(model, config, clock=clock, deadline=deadline)
     try:
-        best_value, best_card, _best_drink, actions = search.root(state)
+        best_value, best_card, best_drink, actions = search.root(state)
     except _Deadline:
-        best_value, best_card, _best_drink, actions = (
+        best_value, best_card, best_drink, actions = (
             search.leaf(state),
             None,
             None,
@@ -1363,6 +1458,7 @@ def expectimax_with_stats(
         nodes=search.nodes,
         elapsed_ms=float(elapsed_ms),
         complete=not search.aborted,
+        drink=best_drink,
     )
 
 
@@ -1374,9 +1470,38 @@ def expectimax(
     clock: Callable[[], float] = time.perf_counter,
     deadline: float | None = None,
     time_budget_ms: float | None = None,
+    allow_drinks: bool | None = None,
     **kwargs: Any,
 ) -> CardSpec | None:
-    """返回本回合第一张要打的牌；``None`` = SKIP（结束本回合）。"""
+    """返回本回合第一张要打的牌；``None`` = SKIP（或最优动作是喝饮料）。
+
+    要同时拿饮料动作请用 ``expectimax_action``；只出牌的场景保持旧 API。
+    """
+    if allow_drinks is not None:
+        kwargs["allow_drinks"] = allow_drinks
+    card, _drink = expectimax_action(
+        state,
+        value,
+        config=config,
+        clock=clock,
+        deadline=deadline,
+        time_budget_ms=time_budget_ms,
+        **kwargs,
+    )
+    return card
+
+
+def expectimax_action(
+    state: ExpectState,
+    value: AnalyticLeafValue | None = None,
+    *,
+    config: ExpectimaxConfig | None = None,
+    clock: Callable[[], float] = time.perf_counter,
+    deadline: float | None = None,
+    time_budget_ms: float | None = None,
+    **kwargs: Any,
+) -> tuple[CardSpec | None, int | None]:
+    """返回 ``(首牌, 饮料下标)``；两者都 None = SKIP。"""
     result = expectimax_with_stats(
         state,
         value,
@@ -1386,7 +1511,7 @@ def expectimax(
         time_budget_ms=time_budget_ms,
         **kwargs,
     )
-    return result.card
+    return result.card, result.drink
 
 
 def expectimax_value(
@@ -1480,7 +1605,8 @@ def _top_turn_plans(
     """
     limit = max(int(limit), 1)
     has_draw = any(card.draw > 0 for card in state.hand)
-    if limit == 1 or has_draw:
+    has_drinks = bool(available_drinks(state))
+    if limit == 1 or has_draw or has_drinks:
         # 单计划/有抽牌/有饮料：直接用 expectimax 的最佳序列（比枚举快）
         return [
             _plan_turn(state, value, rng, clock=clock, deadline=deadline)
@@ -1531,10 +1657,11 @@ def _plan_turn(
 ) -> _TurnPlan:
     """一个回合的最佳序列；有抽牌卡时按真实剩余多重集抽样推进。"""
     has_draw = any(card.draw > 0 for card in state.hand)
+    has_drinks = bool(available_drinks(state))
     first_card: CardSpec | None = None
     names: list[str] = []
     complete = True
-    if not has_draw:
+    if not has_draw and not has_drinks:
         cards, current, complete = best_turn_sequence(
             state, value, clock=clock, deadline=deadline
         )
@@ -1547,8 +1674,16 @@ def _plan_turn(
                 result = expectimax_with_stats(
                     current, value, clock=clock, deadline=deadline
                 )
-                if result.card is None:
+                if result.card is None and result.drink is None:
                     break
+                if result.drink is not None:
+                    drink = current.drinks[result.drink]
+                    names.append(f"drink:{drink.name}")
+                    current = use_drink_state(current, result.drink)
+                    if not result.complete:
+                        complete = False
+                        break
+                    continue
                 if first_card is None:
                     first_card = result.card
                 names.append(result.card.name)

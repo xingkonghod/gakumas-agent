@@ -50,6 +50,9 @@
 - 考试名次按局内得分与 NPC 分数档比；期中 9 回合、期末 Sense/Anomaly 12、
   Logic 11 回合；训练用当前体力、无固定入场费；休息回复最大体力 70%；PERFECT
   返还剩余回合×2 体力；支援卡训练加成 `×(1+sum bonus%)`。
+- P 道具：6 个时机（turn_start/card_played/card_play/status_gain/turn_end/
+  card_play_interval）在 `LessonSim` 与 `ExpectState` 都触发；未实现类型 no-op。
+- 饮料作为 expectimax 动作：可喝饮料并继续出牌，不占出牌次数，受库存/每回合上限。
 
 ### 近似
 
@@ -62,14 +65,58 @@
 
 ### 未建模（接口/状态就位，等数据）
 
-- **P 道具**：`LessonConfig.p_items` 默认空；`LessonSim.p_items` 只保存。仓库已有
-  `sim/p_items.py` 的被动效果纯函数与数据表，但课程 `step()` 尚未接入自动触发；
-  expectimax 也不把 P 道具计分。**未编造数值**。
 - 考试对手/追击/干扰、饮料槽获得流程、强化后数值等：沿用原模拟器缺口。
 - 真机 OCR 读不到 buff 层数/牌库/总回合数：`LessonPolicy` 的 expectimax 模式用
   已知手牌/体力/剩余回合/分数/CLEAR 构造状态；牌库空、buff 默认 0，异常退回 rules。
-- 饮料已进状态，但 `expectimax` 的动作仍只有 play/SKIP；真机饮料仍走现有
-  `use_drink` 流程（不占出牌次数，`drinks_per_turn=None` 时按仓库最新口径不限瓶数）。
+
+## 2.3 2026-11-16 第三批：P 道具真接入 + 饮料作为搜索动作
+
+### P 道具（`LessonConfig.p_items` → `LessonSim.step`）
+
+- 触发时机：`turn_start`（抽完手牌后）、`card_play`/`card_played`/`card_play_interval`
+  （每次出牌后一次，含刚出的第 N 张）、`status_gain`（获得层数时逐项）、`turn_end`
+  （好印象/好调结算后、弃手牌前）；
+- 结算：`apply_passive` 的 `score` / `stamina` / `stacks` 映射到分、体力、
+  vitality/impression/focus/aggressive(motivation)/full_power_point/parameter_buff；
+  `max_uses` 按 `p_item_uses` 记录（修了 p_items 对空 `item_id` 的计数键）；
+- `ExpectState` 带 `p_items/p_item_uses/cards_played_total`，`apply_card` 触发
+  card/status 事件，`end_turn_state` 触发 turn_end；beam 抽完下一手后调用
+  `start_turn_state` 触发 turn_start；
+- 未实现 `effect_type` / 认不出的条件 → no-op，不抛异常；
+- 时序近似：`p_items.py` 的 `card_play` 与 `card_played` 共用同一 event kind，
+  为不双触发，统一在**出牌结算后**触发一次（card_play 类效果因此不会作用于
+  本牌自身，属保守近似）。
+- 测试：`tests/test_p_items_integration.py` 9 条（6 个时机 + max_uses + 未实现 no-op +
+  ExpectState 同步）。
+
+### 饮料作为搜索动作
+
+- `ExpectimaxConfig.allow_drinks=True`（默认）；`_Search.search`/`root` 同时枚举
+  「打牌」与「喝饮料」，返回 `ExpectimaxResult.drink`；新增 `expectimax_action()`
+  返回 `(card, drink)`；只出牌的旧 API `expectimax()` 保持返回 card；
+- 喝饮料不占 `plays_used`，受库存 `drink_uses` 和 `drinks_per_turn` 限制；
+- **剪枝理由**：饮料不占次数，但每个节点 × 库存瓶数会指数膨胀；只在
+  「本回合后续能得分」时展开（score 饮料总展开；focus/condition 要求还有出牌位
+  且有正分牌；stamina 要求有正分牌当前付不起），且每个状态只展开**优先级最高
+  的 1 瓶**（stamina 解锁 > focus/condition > score）。因此分支通常 0–1 个，
+  而不是 3 瓶全开；
+- 测试：`tests/test_drink_search.py` 6 条（搜索选择/体力够时不喝/每回合1瓶/库存空/
+  不占次数后继续出牌/耗时 <10ms）。
+
+### 两项的 300 局 ablation（固定 seed/牌组/策略）
+
+| 项 | before | after | 差异 |
+|---|---:|---:|---:|
+| P 道具（全部 1764 spec，upper bound）P50 | 5096 | 11270 | **+6174** |
+| P 道具（同上）均值 | 5055.0 | 11267.1 | +6212.1 |
+| 饮料可搜索（带 3 瓶×3 次）P50 | 151 | 239 | **+88** |
+| 饮料可搜索 均值 | 138.2 | 254.8 | +116.6 |
+| 饮料可搜索 PERFECT 局数 | 4/300 | 290/300 | +286 |
+| 饮料搜索单次决策耗时 | — | 7.67ms 均值 / 46.5ms p95 | 原 1.6ms → <10ms 目标内 |
+
+> P 道具的 +6174 是**全部** P 道具（含大量高数值/重复触发）的 upper bound，
+> 不是真实 3 槽配装；接入正确性由 9 条时机测试保证，数值请按实际持有道具重跑
+> `scripts/ablate_p_items_drinks.py`。脚本：`scripts/ablate_p_items_drinks.py`。
 
 ## 2.1 2026-11-16 机制核对（Gemini + wiki）
 
@@ -133,7 +180,8 @@
 
 ## 4. L1 测试清单
 
-`tests/test_expectimax.py`（27 条）+ `tests/test_mechanism_corrections.py`（11 条）：
+`tests/test_expectimax.py`（27 条）+ `tests/test_mechanism_corrections.py`（11 条）+
+`tests/test_p_items_integration.py`（9 条）+ `tests/test_drink_search.py`（6 条）：
 
 - 背包（10 vs 3+6=9）、元气抵费、集中先手（18 > 16）、阈值风险（A=+5 vs B=30%+100/70%-20）、
   空放 buff、可复现、可行性、再动 6/5 体力、再动不吃体力截断、抽牌+再动；
@@ -143,7 +191,9 @@
 - 除外/牌库、buff 剩余回合/总回合/饮料、P 道具接口、beam 投资线/deadline/可复现；
 - 机制核对：饮料不占出牌次数、CLEAR/PERFECT 连续收益、好印象下回合开始扣层、
   やる気/元气分离、考试分数名次、训练体力、休息 70%、考试回合、指針代价、支援加成
-  （见 §2.1 / §2.2）。
+  （见 §2.1 / §2.2）；
+- P 道具 6 个时机 / max_uses / 未实现 no-op / ExpectState 同步；饮料搜索选择、
+  不占次数、每回合 1 瓶、库存空、喝后继续出牌、耗时上限（见 §2.3）。
 
 ## 5. L3 配对评测
 
