@@ -42,3 +42,5 @@ data/bench_repo/
 data/dl/
 data/bench_local/*.json
 data/bench_local/*.md
+data/reverse/out/
+data/reverse/*.log
