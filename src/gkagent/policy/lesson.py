@@ -486,9 +486,26 @@ class LessonPolicy:
                 perfect=max(int(perfect), int(gauge)),
                 hand_size=len(play_cards),
             )
+            # 叶子：有拟合模型就用 ensemble（analytic + learned 平均），否则纯解析式。
+            # 真机默认走 ensemble —— 本地评测里它比任一单模型都强（+13.2% 配对几何）。
+            leaf = AnalyticLeafValue(sigma=float(self.params["expectimax_sigma"]))
+            try:
+                from pathlib import Path as _Path
+
+                v_leaf_path = _Path("data/knowledge/v_leaf.json")
+                if v_leaf_path.exists():
+                    from gkagent.sim.v_leaf import EnsembleLeafValue, LinearLeafValue
+
+                    leaf = EnsembleLeafValue(
+                        primary=leaf,
+                        secondary=LinearLeafValue.load(v_leaf_path),
+                        weight=0.5,
+                    )
+            except Exception:  # noqa: BLE001 - 模型坏了退回解析式，不能让出牌崩
+                pass
             result = expectimax_with_stats(
                 sim_state,
-                AnalyticLeafValue(sigma=float(self.params["expectimax_sigma"])),
+                leaf,
                 time_budget_ms=float(self.params["expectimax_budget_ms"]),
             )
             if result.card is None:
