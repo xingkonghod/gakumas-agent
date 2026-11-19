@@ -501,8 +501,10 @@ class LessonPolicy:
                         secondary=LinearLeafValue.load(v_leaf_path),
                         weight=0.5,
                     )
-            except Exception:  # noqa: BLE001 - 模型坏了退回解析式，不能让出牌崩
-                pass
+            except Exception as exc:  # noqa: BLE001 - 模型坏了退回解析式，不能让出牌崩
+                import logging
+
+                logging.getLogger(__name__).warning("v_leaf 加载失败，退回解析式叶子: %s", exc)
             result = expectimax_with_stats(
                 sim_state,
                 leaf,
