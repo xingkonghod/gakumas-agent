@@ -1,0 +1,8 @@
+{
+  "label": "expectimax",
+  "entry": "algo.py:ExpectimaxAlgo",
+  "params": {},
+  "author": "xingkonghod",
+  "sets": ["hif"],
+  "step_seconds": 5
+}

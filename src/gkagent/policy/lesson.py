@@ -50,7 +50,7 @@ DEFAULT_POLICY_PATH = Path(__file__).resolve().parents[3] / "data" / "knowledge"
 _ALLOWED_VALUES: dict[str, frozenset[str]] = {
     "unknown_score_fallback": frozenset({"cheapest", "skip"}),
     "plan": frozenset(VALID_PLANS),
-    "engine": frozenset({"rules", "expectimax"}),
+    "engine": frozenset({"rules", "expectimax", "uinet"}),
 }
 
 
@@ -104,8 +104,9 @@ class LessonPolicy:
         # PERFECT 线 = 屏幕 CLEAR 基准（LessonState.gauge）× 该倍率。
         # 目标函数按 PERFECT 而不是 CLEAR：没到线就不收手（真机 CLEAR 只拿半档属性）。
         "perfect_target_multiplier": 2.0,
-        # 出牌引擎：rules=固定优先级规则（默认，行为不变）；expectimax=回合内搜索。
-        # 搜索异常/状态不完整时自动退回 rules。
+        # 出牌引擎：rules=固定优先级规则（默认，行为不变）；expectimax=回合内搜索；
+        # uinet=GKMSUINet 神经网络（ONNX，UIObs v1）。后两者异常/状态不完整/
+        # 模型缺失时都自动退回 rules。
         "engine": "rules",
         # expectimax 的 anytime 预算与 V_leaf σ；规则模式不读。
         "expectimax_budget_ms": 800.0,
@@ -179,7 +180,7 @@ class LessonPolicy:
 
     @property
     def engine(self) -> str:
-        """当前出牌引擎：``rules``（默认）或 ``expectimax``。"""
+        """当前出牌引擎：``rules``（默认）/ ``expectimax`` / ``uinet``。"""
         return str(self.params.get("engine") or "rules")
 
     @property
@@ -297,17 +298,21 @@ class LessonPolicy:
             self._buff_played_this_turn = True
 
     def decide(self, state: LessonState, *, allow_skip: bool = True) -> LessonAction:
-        """按 ``engine`` 选择规则或 expectimax；搜索异常/局面不完整退回规则。
+        """按 ``engine`` 选择规则 / expectimax / UINet；异常或局面不完整退回规则。
 
         默认 ``engine="rules"``，行为与旧版逐位一致；``policy.json`` 的
-        ``lesson.engine`` 或构造参数 ``engine="expectimax"`` 才启用搜索。
+        ``lesson.engine`` 或构造参数 ``engine="expectimax"`` / ``engine="uinet"``
+        才启用搜索 / 神经网络。
         """
         self._sync_turn(state.turns_left)
         rules_action = self._decide_rules(state, allow_skip=allow_skip)
-        if self.engine != "expectimax":
-            return rules_action
-        override = self._try_expectimax(state, allow_skip=allow_skip)
-        return override if override is not None else rules_action
+        if self.engine == "expectimax":
+            override = self._try_expectimax(state, allow_skip=allow_skip)
+            return override if override is not None else rules_action
+        if self.engine == "uinet":
+            override = self._try_uinet(state, allow_skip=allow_skip)
+            return override if override is not None else rules_action
+        return rules_action
 
     def _decide_rules(
         self, state: LessonState, *, allow_skip: bool = True
@@ -518,6 +523,73 @@ class LessonPolicy:
                 ),
             )
         except Exception:  # noqa: BLE001 - 搜索绝不能让出牌退化
+            return None
+
+    def _try_uinet(
+        self, state: LessonState, *, allow_skip: bool
+    ) -> LessonAction | None:
+        """把真机 ``LessonState`` 转 UIObs v1，交给 GKMSUINet 选一张牌。
+
+        只映射**读屏能确认**的字段（手牌/体力/剩余回合/分数），其余按
+        :mod:`gkagent.sim.uiobs` 的保守默认值补。模型/主数据缺失、包没装、
+        ONNX 报错、动作越界、体力其实不够……一律返回 ``None`` 退回规则，
+        绝不让出牌崩掉或点出非法动作。
+        """
+        try:
+            if not state.cards or state.stamina is None:
+                return None
+            from gkagent.sim import uinet
+            from gkagent.sim.uiobs import to_uiobs
+
+            obs = to_uiobs(
+                state,
+                table=self._card_table(),
+                plan=self.plan,
+                allow_skip=allow_skip,
+                plays=self._plays_this_turn,
+            )
+            legal = {tuple(item) for item in obs["legal"]}
+            if not any(item[0] == "play" for item in legal):
+                return None
+            result = uinet.predict(obs)
+            action = result.action
+            if not action:
+                return None
+            kind = str(action[0])
+            if kind == "play":
+                index = int(action[1])
+                if ["play", index] not in obs["legal"]:
+                    return None
+                card = state.cards[index]
+                cost = card.cost
+                if cost is None:
+                    cost = self._card_table().cost(card.name)
+                if cost is not None and cost > state.stamina:
+                    return None
+                top_prob = max(result.probs) if result.probs else 0.0
+                return LessonAction(
+                    "card",
+                    index=card.index,
+                    point=card.point,
+                    card=card,
+                    expected=0.0,
+                    reason=(
+                        f"uinet: {card.name or '卡'}（概率 {top_prob:.2f}，"
+                        f"{result.elapsed_ms:.0f}ms）"
+                    ),
+                )
+            if kind == "end":
+                if not allow_skip:
+                    return None
+                top_prob = max(result.probs) if result.probs else 0.0
+                return LessonAction(
+                    "skip",
+                    point=state.skip_point,
+                    reason=f"uinet: 结束回合（概率 {top_prob:.2f}，{result.elapsed_ms:.0f}ms）",
+                )
+            # 饮料等真机还没有对应操作：退回规则。
+            return None
+        except Exception:  # noqa: BLE001 - 神经网络绝不能让出牌退化
             return None
 
     def _card_table(self):

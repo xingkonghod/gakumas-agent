@@ -507,17 +507,17 @@ def test_stuck_lesson_ten_ticks_skips_once_then_forces_then_exits() -> None:
     assert same.stuck_exits == 1
 
 
-def test_turn_end_dialog_clicks_yes_not_question_text() -> None:
-    """SKIP 后的「回合结束」确认框：点「是」，不能被问句里的「确定」抢走。
+def test_turn_end_dialog_uses_fixed_yes_point() -> None:
+    """回合结束确认框固定点「是」的坐标。
 
-    ep-cplus11 实测：通用按钮匹配先命中「确定要结束回合吗？」的问句文字，
-    点了 13 步都没结束回合。这个弹窗必须排在通用「确定」匹配之前。
+    2026-11-16 真机 ep-exp4 step 85：旧实现用 find_button(("是",)) 在整屏 OCR 里
+    找含「是」的文本，会点到卡名/问句上导致确认框不消失、课程卡死。改为固定坐标。
     """
     agent = FakeAgent()
     lines = _lines(
         "回合结束",
         "尚可使用技能卡",
-        "确定要结束回合吗？",
+        "确定要结束回合吗",
         "下次起不再显示",
         "否",
         "是",
@@ -525,9 +525,9 @@ def test_turn_end_dialog_clicks_yes_not_question_text() -> None:
     result = _driver().decide(agent, lines)
     assert result.screen == "dialog"
     assert result.action == "end-turn-yes"
-    assert agent.device.clicks[-1] == _center(5)  # 「是」按钮，不是问句
-    assert agent.device.clicks[-1] != _center(2)
+    from gkagent.tasks.produce_ui import TURN_END_YES
 
+    assert agent.device.clicks[-1] == TURN_END_YES
 
 def test_action_preview_confirms_at_last_point() -> None:
     driver = _driver()

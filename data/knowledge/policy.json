@@ -13,7 +13,7 @@
   "unknown_score_fallback": "cheapest",
   "source": "defaults",
   "buff_early_turns": 3,
-  "engine": "expectimax",
+  "engine": "rules",
   "expectimax_budget_ms": 800.0,
   "expectimax_sigma": 80.0
  },
