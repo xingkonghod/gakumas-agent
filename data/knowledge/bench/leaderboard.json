@@ -1,0 +1,82 @@
+[
+ {
+  "family": "uihorizon",
+  "label": "lockprobe-4way",
+  "mean": 6460360.75,
+  "vs_oracle": null,
+  "p50_ms": 4580.42,
+  "sees": "seed"
+ },
+ {
+  "family": "uihorizon",
+  "label": "submission-check-clang",
+  "mean": 1579154,
+  "vs_oracle": null,
+  "p50_ms": 4211.4,
+  "sees": "seed"
+ },
+ {
+  "family": "uihorizon",
+  "label": "lockprobe-2way",
+  "mean": 1047613.5,
+  "vs_oracle": null,
+  "p50_ms": 4104.55,
+  "sees": "seed"
+ },
+ {
+  "family": "oracle",
+  "label": "oracle-30s",
+  "mean": 567947.8857142857,
+  "vs_oracle": 1,
+  "p50_ms": 0,
+  "sees": "seed"
+ },
+ {
+  "family": "pimc-vote",
+  "label": "pimc-vote-16w-2s",
+  "mean": 302202.47142857144,
+  "vs_oracle": 0.5100578844328416,
+  "p50_ms": 1624.08,
+  "sees": "screen"
+ },
+ {
+  "family": "uinet",
+  "label": "uinet",
+  "mean": 290127.9,
+  "vs_oracle": 0.498566816875896,
+  "p50_ms": 13.67,
+  "sees": "screen"
+ },
+ {
+  "family": "greedy",
+  "label": "greedy",
+  "mean": 41506.857142857145,
+  "vs_oracle": 0.059621798244142356,
+  "p50_ms": 0.5,
+  "sees": "screen"
+ },
+ {
+  "family": "uihorizon",
+  "label": "lockprobe-v2.2b-rebuilt",
+  "mean": 25112,
+  "vs_oracle": null,
+  "p50_ms": 4066.15,
+  "sees": "seed"
+ },
+ {
+  "family": "uihorizon",
+  "label": "submission-check",
+  "mean": 22753,
+  "vs_oracle": null,
+  "p50_ms": 4129.57,
+  "sees": "seed"
+ },
+ {
+  "family": "random",
+  "label": "random",
+  "mean": 22039.485714285714,
+  "vs_oracle": 0.02905850344300631,
+  "p50_ms": 0,
+  "sees": "screen"
+ }
+]
