@@ -431,17 +431,15 @@ class ExpectimaxPolicy:
         )
         if result.complete:
             self.completed += 1
-            if result.drink is not None:
-                return ("drink", int(result.drink))
-            if result.card is None:
-                return ("end", None)
+        else:
+            self.incomplete += 1
+        # anytime: 超时也用当前最优动作，不整步退回贪心
+        if result.drink is not None:
+            return ("drink", int(result.drink))
+        if result.card is not None:
             index = _hand_index(sim, result.card)
             if index is not None:
                 return ("play", index)
-            # 模型/画面分歧：退回贪心，不抛错
-            self.fallbacks += 1
-            return _greedy_action(sim)
-        self.incomplete += 1
         self.fallbacks += 1
         return _greedy_action(sim)
 
