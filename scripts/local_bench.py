@@ -129,6 +129,7 @@ class EpisodeResult:
     fallbacks: int
     incomplete: int
     wall_s: float
+    completed: int = 0
 
 
 @dataclass
@@ -140,12 +141,14 @@ class AlgorithmRun:
     episodes: list[EpisodeResult] = field(default_factory=list)
     fallbacks: int = 0
     incomplete: int = 0
+    completed: int = 0
     decisions: int = 0
 
     def add(self, episode: EpisodeResult) -> None:
         self.episodes.append(episode)
         self.fallbacks += episode.fallbacks
         self.incomplete += episode.incomplete
+        self.completed += int(getattr(episode, "completed", 0))
         self.decisions += episode.decisions
 
 
@@ -542,6 +545,7 @@ def run_episode(spec: ProblemSpec, seed: int, policy: Any) -> EpisodeResult:
         route=route,
         fallbacks=fallbacks + int(getattr(policy, "fallbacks", 0)),
         incomplete=int(getattr(policy, "incomplete", 0)),
+        completed=int(getattr(policy, "completed", 0)),
         wall_s=wall_s,
     )
 
@@ -595,6 +599,10 @@ def algorithm_summary(run: AlgorithmRun) -> dict[str, Any]:
         else 0.0,
         "fallbacks": run.fallbacks,
         "fallback_rate": round(run.fallbacks / run.decisions, 4) if run.decisions else 0.0,
+        # complete = 预算内搜完；anytime = 超时但用了当前最优动作；fallback = 只能退回贪心
+        "complete_rate": round(run.completed / run.decisions, 4) if run.decisions else 0.0,
+        "anytime_rate": round(run.incomplete / run.decisions, 4) if run.decisions else 0.0,
+        "completed": run.completed,
         "incomplete": run.incomplete,
         "step_ms_mean": round(step_summary["mean"], 3),
         "step_ms_p50": round(step_summary["p50"], 3),
@@ -784,7 +792,9 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"{row['label']:24s} {row['episodes']:4d} {row['mean']:9.1f} {row['p50']:7.1f} "
             f"{row['p90']:7.1f} {row['step_ms_mean']:11.2f} {row['step_ms_p50']:8.2f} "
-            f"{row['fallback_rate'] * 100:8.1f}%"
+            f"{row.get('complete_rate', 0.0) * 100:8.1f}%"
+        f"{row.get('anytime_rate', 0.0) * 100:7.1f}%"
+        f"{row['fallback_rate'] * 100:8.1f}%"
         )
     print("-" * len(header))
     if "greedy" in summary["algorithms"]:
