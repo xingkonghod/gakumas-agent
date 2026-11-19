@@ -1,0 +1,21 @@
+{
+ "status": "ok",
+ "referee": "gakumas-engine (gakumas-tools, BSD-3, contest stage only)",
+ "engine": "gakumas-engine@1.0.0",
+ "mode": "contest",
+ "stage_id": 95,
+ "seed": 610397104,
+ "strategy": "heuristic",
+ "score": 13257,
+ "finished": true,
+ "turns": 10,
+ "decisions": 18,
+ "logs": 168,
+ "ms": 5.67,
+ "node": "v24.20.0",
+ "self_test": {
+  "suite_id": "seed1-001",
+  "expected_score": 13257,
+  "match": true
+ }
+}

@@ -1,0 +1,6430 @@
+[
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-DDCRRSTM",
+   "loadout": {
+    "deck_cards": [
+     "p_card-02-ido-3_018+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_002",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-02-men-0_012+1",
+     "p_card-02-men-0_012+1",
+     "p_card-02-act-0_010+1",
+     "p_card-02-men-1_035+1",
+     "p_card-02-act-1_071",
+     "p_card-00-sup-3_093+1",
+     "p_card-02-men-1_031+1",
+     "p_card-02-sup-3_094+1",
+     "p_card-02-act-1_028",
+     "p_card-02-act-2_047",
+     "p_card-02-act-1_004+1",
+     "p_card-02-act-2_062+1/p_card_custom-040_070-g_effect-lesson_depend_block_add-200-g_effect-lesson_depend_block_add-600*2",
+     "p_card-00-men-3_012+1",
+     "p_card-02-act-3_050",
+     "p_card-02-men-2_100",
+     "p_card-02-men-2_004",
+     "p_card-02-men-2_008",
+     "p_card-00-sup-3_027+1",
+     "p_card-00-men-3_003+1",
+     "p_card-02-act-1_004",
+     "p_card-02-men-2_052"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-009",
+     "pdrink_00-2-004",
+     "pdrink_00-2-008",
+     "pdrink_02-3-010"
+    ],
+    "idol_card_id": "i_card-shro-3-000",
+    "include_produce_default": false,
+    "max_stamina": 45,
+    "parameters": [
+     822,
+     930,
+     721
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_00-3-022-1",
+     "pitem_00-2-004-0",
+     "pitem_00-3-352-0",
+     "pitem_00-3-001-0"
+    ],
+    "round": "final",
+    "schema": "gkms.exam_loadout.v1",
+    "score_bonus_permils": [
+     10340,
+     9800,
+     7250
+    ],
+    "starting_stamina": 45,
+    "step_select_number": 1,
+    "step_type": 18,
+    "support_cards": [
+     "s_card-3-0001:98",
+     "s_card-3-0010:107",
+     "s_card-3-0040:111",
+     "s_card-3-0039:107",
+     "s_card-2-0007:84",
+     "s_card-3-0099:111"
+    ]
+   },
+   "meta": {
+    "by": "matto",
+    "created": "20261111T095520Z",
+    "family": "AF-28Y4NNTN",
+    "mechanic": "aggressive",
+    "source": {
+     "kind": "history"
+    },
+    "stage": "hajime.audition_final",
+    "tags": [
+     "name:hist-20261018-produce-001-shro-3-000-final1"
+    ],
+    "turns": 11
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-28Y4NNTN",
+  "id": "AS-DDCRRSTM",
+  "name": "hist-20261018-produce-001-shro-3-000-final1",
+  "scene": {
+   "by": "matto",
+   "deck": 26,
+   "drinks": [
+    "pdrink_00-2-009",
+    "pdrink_00-2-004",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-shro-3-000",
+   "items": [
+    "pitem_00-3-022-1",
+    "pitem_00-2-004-0",
+    "pitem_00-3-352-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "final",
+   "mechanic": "aggressive",
+   "plan": "PLAN2",
+   "round": "final",
+   "source": "history",
+   "stage": "hajime.audition_final",
+   "turns": 11
+  },
+  "seeds": [],
+  "tags": {
+   "idol": "i_card-shro-3-000",
+   "mechanic": "aggressive",
+   "produce": "produce-001",
+   "round": "final",
+   "stage": "hajime.audition_final"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-X8NXKZXW",
+   "loadout": {
+    "deck_cards": [
+     "p_card-02-ido-3_018+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_002",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-02-men-0_012+1",
+     "p_card-02-men-0_012+1",
+     "p_card-02-act-0_010",
+     "p_card-02-men-1_035+1",
+     "p_card-02-act-1_071",
+     "p_card-00-sup-3_093+1",
+     "p_card-02-men-1_031",
+     "p_card-02-sup-3_094+1",
+     "p_card-02-act-1_028",
+     "p_card-02-act-2_047",
+     "p_card-02-act-1_004+1"
+    ],
+    "drink_ids": [
+     "pdrink_02-1-008",
+     "pdrink_02-2-006",
+     "pdrink_02-1-008",
+     "pdrink_00-2-009"
+    ],
+    "idol_card_id": "i_card-shro-3-000",
+    "include_produce_default": false,
+    "max_stamina": 45,
+    "parameters": [
+     508,
+     524,
+     355
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_00-3-022-1",
+     "pitem_00-2-004-0",
+     "pitem_00-3-352-0"
+    ],
+    "round": "mid1",
+    "schema": "gkms.exam_loadout.v1",
+    "score_bonus_permils": [
+     6440,
+     5930,
+     4310
+    ],
+    "starting_stamina": 45,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-3-0001:98",
+     "s_card-3-0010:107",
+     "s_card-3-0040:111",
+     "s_card-3-0039:96",
+     "s_card-2-0007:84",
+     "s_card-3-0099:99"
+    ]
+   },
+   "meta": {
+    "by": "matto",
+    "created": "20261111T095520Z",
+    "family": "AF-YQ765PZM",
+    "mechanic": "aggressive",
+    "source": {
+     "kind": "history"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:hist-20261018-produce-001-shro-3-000-mid11"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-YQ765PZM",
+  "id": "AS-X8NXKZXW",
+  "name": "hist-20261018-produce-001-shro-3-000-mid11",
+  "scene": {
+   "by": "matto",
+   "deck": 17,
+   "drinks": [
+    "pdrink_02-1-008",
+    "pdrink_02-2-006",
+    "pdrink_02-1-008",
+    "pdrink_00-2-009"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-shro-3-000",
+   "items": [
+    "pitem_00-3-022-1",
+    "pitem_00-2-004-0",
+    "pitem_00-3-352-0"
+   ],
+   "kind": "mid",
+   "mechanic": "aggressive",
+   "plan": "PLAN2",
+   "round": "mid1",
+   "source": "history",
+   "stage": "hajime.audition_mid1",
+   "turns": 9
+  },
+  "seeds": [],
+  "tags": {
+   "idol": "i_card-shro-3-000",
+   "mechanic": "aggressive",
+   "produce": "produce-001",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-986M49WS",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_050",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074",
+     "p_card-03-act-2_081",
+     "p_card-03-act-1_042+1/p_card_custom-100-g_effect-lesson_count_add-1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_073+1",
+     "p_card-03-act-2_082+1",
+     "p_card-00-men-3_005",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-2_103",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-3_063",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-03-act-100_018"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-2-010"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     565,
+     1215,
+     538
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 20,
+    "step_id": "p_step_lesson-produce_006-full_power-sp-03",
+    "step_number": 12,
+    "step_select_number": null,
+    "step_type": 30,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100912Z",
+    "family": "AF-D28B6CGQ",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.30",
+    "tags": [
+     "name:yz-20261024-atbm-3-018-hajime-30"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-D28B6CGQ",
+  "id": "AS-986M49WS",
+  "name": "yz-20261024-atbm-3-018-hajime-30",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 23,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.30",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "0628f726f038",
+    "fixed_id": "AS-ZSTEKG6Z",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.30"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-XDJDPDGF",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074",
+     "p_card-03-act-2_081",
+     "p_card-03-act-1_042+1/p_card_custom-100-g_effect-lesson_count_add-1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_073+1",
+     "p_card-03-act-2_082+1",
+     "p_card-00-men-3_005",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-2_103",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-3_063",
+     "p_card-03-act-3_053+1",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-03-act-100_018",
+     "p_card-03-men-3_062+1",
+     "p_card-03-act-3_055",
+     "p_card-03-men-3_061+1",
+     "p_card-00-men-3_012"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-2-010",
+     "pdrink_00-2-008"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     1182,
+     1451,
+     986
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0",
+     "pitem_00-3-010-0",
+     "pitem_03-3-065-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 8,
+    "step_id": "p_step_lesson-produce_006-full_power-sp-05",
+    "step_number": 16,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100914Z",
+    "family": "AF-W3GQBY9V",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261024-atbm-3-018-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-W3GQBY9V",
+  "id": "AS-XDJDPDGF",
+  "name": "yz-20261024-atbm-3-018-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 25,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0",
+    "pitem_00-3-010-0",
+    "pitem_03-3-065-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "38ac2ad0e2af",
+    "fixed_id": "AS-Y2MRB7GD",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-2AYFMJMR",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-act-0_048",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_050",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074",
+     "p_card-03-act-2_081",
+     "p_card-03-act-1_042+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_073+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     283,
+     419,
+     230
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 27,
+    "step_id": "p_step_lesson-produce_006-full_power-sp-01",
+    "step_number": 4,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100916Z",
+    "family": "AF-5PPKVYTA",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261024-atbm-3-018-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-5PPKVYTA",
+  "id": "AS-2AYFMJMR",
+  "name": "yz-20261024-atbm-3-018-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 13,
+   "drinks": [
+    "pdrink_00-3-005"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "a4bbc10f8692",
+    "fixed_id": "AS-53DGRPQN",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-A8CQEZKP",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-act-0_048",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_050",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074",
+     "p_card-03-act-2_081",
+     "p_card-03-act-1_042+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_073+1",
+     "p_card-03-act-2_082+1",
+     "p_card-00-men-3_005",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-2_103",
+     "p_card-00-sup-3_027+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-2-009"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce_006-full_power-normal",
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     387,
+     899,
+     293
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-2-004-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 19,
+    "step_id": "p_step_lesson-produce_006-full_power-normal-02",
+    "step_number": 7,
+    "step_select_number": null,
+    "step_type": 33,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100914Z",
+    "family": "AF-J5XP4HXN",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.33",
+    "tags": [
+     "name:yz-20261024-atbm-3-018-hajime-33"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-J5XP4HXN",
+  "id": "AS-A8CQEZKP",
+  "name": "yz-20261024-atbm-3-018-hajime-33",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 19,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-009"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-2-004-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.33",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "071507928449",
+    "fixed_id": "AS-JGBK25J7",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.33"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-6S48T4EC",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_050",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074",
+     "p_card-03-act-2_081",
+     "p_card-03-act-1_042+1/p_card_custom-100-g_effect-lesson_count_add-1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_073+1",
+     "p_card-03-act-2_082+1",
+     "p_card-00-men-3_005",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-2_103",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-3_063",
+     "p_card-03-act-3_053+1",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-03-act-100_018",
+     "p_card-03-men-3_062+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-2-010",
+     "pdrink_00-2-008"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce_006-full_power-normal",
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     892,
+     1328,
+     618
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 25,
+    "step_id": "p_step_lesson-produce_006-full_power-normal-04",
+    "step_number": 14,
+    "step_select_number": null,
+    "step_type": 33,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100912Z",
+    "family": "AF-3VJJ3FNW",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.33",
+    "tags": [
+     "name:yz-20261024-atbm-3-018-hajime-33"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-3VJJ3FNW",
+  "id": "AS-6S48T4EC",
+  "name": "yz-20261024-atbm-3-018-hajime-33",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 23,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.33",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "a99726ee7bda",
+    "fixed_id": "AS-7APWH9MT",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.33"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-RBR82XW7",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-2_079",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074",
+     "p_card-03-act-2_081",
+     "p_card-03-act-1_042+1/p_card_custom-100-g_effect-lesson_count_add-1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_073+1",
+     "p_card-03-act-2_082+1",
+     "p_card-00-men-3_005",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-2_103",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-3_063",
+     "p_card-03-act-3_053+1",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-03-act-100_018",
+     "p_card-03-men-3_062+1",
+     "p_card-03-act-3_055",
+     "p_card-03-men-3_061+1",
+     "p_card-00-men-3_012+1",
+     "p_card-03-act-2_106"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-2-010",
+     "pdrink_00-2-008"
+    ],
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01"
+    ],
+    "max_stamina": 32,
+    "parameters": [
+     1323,
+     2325,
+     1118
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0",
+     "pitem_00-3-010-0",
+     "pitem_03-3-065-0"
+    ],
+    "research_card_ids": [],
+    "round": "final",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     14000,
+     22670,
+     11510
+    ],
+    "starting_stamina": 30,
+    "step_id": "AuditionFinal",
+    "step_number": 18,
+    "step_select_number": 1,
+    "step_type": 18,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100101Z",
+    "family": "AF-RNHN9EWK",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_final",
+    "tags": [
+     "name:yz-20261024-atbm-3-018-hajime-audition_final"
+    ],
+    "turns": 12
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-RNHN9EWK",
+  "id": "AS-RBR82XW7",
+  "name": "yz-20261024-atbm-3-018-hajime-audition_final",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 25,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0",
+    "pitem_00-3-010-0",
+    "pitem_03-3-065-0"
+   ],
+   "kind": "final",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "final",
+   "source": "capture",
+   "stage": "hajime.audition_final",
+   "turns": 12
+  },
+  "seeds": [
+   {
+    "exam_sha": "654d7516403c",
+    "fixed_id": "AS-8XZZTRMZ",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "final",
+   "stage": "hajime.audition_final"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-5CRWDT5C",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_050",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074",
+     "p_card-03-act-2_081",
+     "p_card-03-act-1_042+1/p_card_custom-100-g_effect-lesson_count_add-1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_073+1",
+     "p_card-03-act-2_082+1",
+     "p_card-00-men-3_005",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-2_103",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-3_063"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-2-009",
+     "pdrink_00-3-001"
+    ],
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01"
+    ],
+    "max_stamina": 32,
+    "parameters": [
+     449,
+     1042,
+     458
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-2-004-0"
+    ],
+    "research_card_ids": [],
+    "round": "mid1",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     11700,
+     22560,
+     10010
+    ],
+    "starting_stamina": 32,
+    "step_id": "AuditionMid1",
+    "step_number": 10,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100110Z",
+    "family": "AF-HSAWJMYG",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:yz-20261024-atbm-3-018-hajime-audition_mid1"
+    ],
+    "turns": 10
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-HSAWJMYG",
+  "id": "AS-5CRWDT5C",
+  "name": "yz-20261024-atbm-3-018-hajime-audition_mid1",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 19,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-009",
+    "pdrink_00-3-001"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-2-004-0"
+   ],
+   "kind": "mid",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "mid1",
+   "source": "capture",
+   "stage": "hajime.audition_mid1",
+   "turns": 10
+  },
+  "seeds": [
+   {
+    "exam_sha": "390384e22dce",
+    "fixed_id": "AS-YCXGEWCB",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-RQR6ENR8",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_080+1",
+     "p_card-00-sup-3_152+1",
+     "p_card-03-men-2_064",
+     "p_card-00-men-2_012",
+     "p_card-03-men-3_063+1/p_card_custom-070-g_effect-effect_add-e_effect-exam_add_grow_effect-p_card_search-hold-all-0_0-g_effect-lesson_add-5",
+     "p_card-03-men-2_103+1",
+     "p_card-03-men-2_078",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-act-3_057",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-03-men-2_076",
+     "p_card-03-men-1_051",
+     "p_card-03-men-1_050",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-100_015"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-010",
+     "pdrink_03-3-011",
+     "pdrink_03-2-007"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     744,
+     1231,
+     838
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-3-010-0",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 28,
+    "step_id": "p_step_lesson-produce_006-full_power-sp-04",
+    "step_number": 14,
+    "step_select_number": null,
+    "step_type": 30,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100916Z",
+    "family": "AF-S6JQ3CY3",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.30",
+    "tags": [
+     "name:yz-20261027-atbm-3-018-hajime-30"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-S6JQ3CY3",
+  "id": "AS-RQR6ENR8",
+  "name": "yz-20261027-atbm-3-018-hajime-30",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 26,
+   "drinks": [
+    "pdrink_00-2-010",
+    "pdrink_03-3-011",
+    "pdrink_03-2-007"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-3-010-0",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.30",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "91fed8ca7cf7",
+    "fixed_id": "AS-7V3KF6CE",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.30"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-V3RYWGV9",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-act-0_048",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_049+1",
+     "p_card-03-men-0_050",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_080+1",
+     "p_card-00-sup-3_152+1",
+     "p_card-03-men-2_064",
+     "p_card-00-men-2_012",
+     "p_card-03-men-3_063+1",
+     "p_card-03-men-2_103",
+     "p_card-03-men-2_078",
+     "p_card-00-sup-3_027+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-010",
+     "pdrink_00-3-001"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     514,
+     655,
+     443
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 20,
+    "step_id": "p_step_lesson-produce_006-full_power-sp-02",
+    "step_number": 7,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100913Z",
+    "family": "AF-AMX23BJP",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261027-atbm-3-018-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-AMX23BJP",
+  "id": "AS-V3RYWGV9",
+  "name": "yz-20261027-atbm-3-018-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 19,
+   "drinks": [
+    "pdrink_00-2-010",
+    "pdrink_00-3-001"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "ea0be676ce8d",
+    "fixed_id": "AS-SBVBHWHH",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-GWS6HYJS",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-act-0_048",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_050",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_080+1",
+     "p_card-00-sup-3_152+1",
+     "p_card-03-men-2_064"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-010"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     411,
+     297,
+     230
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 27,
+    "step_id": "p_step_lesson-produce_006-full_power-sp-01",
+    "step_number": 4,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100915Z",
+    "family": "AF-FDGPANRN",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261027-atbm-3-018-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-FDGPANRN",
+  "id": "AS-GWS6HYJS",
+  "name": "yz-20261027-atbm-3-018-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 14,
+   "drinks": [
+    "pdrink_00-2-010"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "ca78a9db909c",
+    "fixed_id": "AS-G2HZSXCS",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-WNAX63AN",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_080+1",
+     "p_card-00-sup-3_152+1",
+     "p_card-03-men-2_064",
+     "p_card-00-men-2_012",
+     "p_card-03-men-3_063+1/p_card_custom-070-g_effect-effect_add-e_effect-exam_add_grow_effect-p_card_search-hold-all-0_0-g_effect-lesson_add-5",
+     "p_card-03-men-2_103+1",
+     "p_card-03-men-2_078",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-act-3_057",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-03-men-2_076",
+     "p_card-03-men-1_051",
+     "p_card-03-men-1_050",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-100_015",
+     "p_card-03-men-2_075",
+     "p_card-03-men-3_062+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-010",
+     "pdrink_03-3-011",
+     "pdrink_03-1-009"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     1199,
+     1574,
+     941
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-3-010-0",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 16,
+    "step_id": "p_step_lesson-produce_006-full_power-sp-05",
+    "step_number": 16,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100911Z",
+    "family": "AF-2QP983DD",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261027-atbm-3-018-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-2QP983DD",
+  "id": "AS-WNAX63AN",
+  "name": "yz-20261027-atbm-3-018-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 28,
+   "drinks": [
+    "pdrink_00-2-010",
+    "pdrink_03-3-011",
+    "pdrink_03-1-009"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-3-010-0",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "eacd326f33f2",
+    "fixed_id": "AS-9FS2A6JN",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-FYF6S5MF",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_080+1",
+     "p_card-00-sup-3_152+1",
+     "p_card-03-men-2_064",
+     "p_card-00-men-2_012",
+     "p_card-03-men-3_063+1/p_card_custom-070-g_effect-effect_add-e_effect-exam_add_grow_effect-p_card_search-hold-all-0_0-g_effect-lesson_add-5",
+     "p_card-03-men-2_103+1",
+     "p_card-03-men-2_078",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-act-3_057",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-03-men-2_076",
+     "p_card-03-men-1_051",
+     "p_card-03-men-1_050",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-2_071+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-010",
+     "pdrink_03-3-011"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce_006-full_power-normal",
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 32,
+    "parameters": [
+     676,
+     1141,
+     592
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-3-010-0",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 27,
+    "step_id": "p_step_lesson-produce_006-full_power-normal-03",
+    "step_number": 12,
+    "step_select_number": null,
+    "step_type": 33,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100914Z",
+    "family": "AF-BAWZ7HFV",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.33",
+    "tags": [
+     "name:yz-20261027-atbm-3-018-hajime-33"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-BAWZ7HFV",
+  "id": "AS-FYF6S5MF",
+  "name": "yz-20261027-atbm-3-018-hajime-33",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 26,
+   "drinks": [
+    "pdrink_00-2-010",
+    "pdrink_03-3-011"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-3-010-0",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.33",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "0b6914cad278",
+    "fixed_id": "AS-9KPAF39K",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.33"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-EEMMKQ5W",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_080+1",
+     "p_card-00-sup-3_152+1",
+     "p_card-03-men-2_064",
+     "p_card-00-men-2_012",
+     "p_card-03-men-3_063+1/p_card_custom-070-g_effect-effect_add-e_effect-exam_add_grow_effect-p_card_search-hold-all-0_0-g_effect-lesson_add-5",
+     "p_card-03-men-2_103+1",
+     "p_card-03-men-2_078",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-act-3_057",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-03-men-2_076",
+     "p_card-03-men-1_051",
+     "p_card-03-men-1_050",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1/p_card_custom-070-g_effect-block_add-9",
+     "p_card-03-act-2_071+1",
+     "p_card-03-men-2_075",
+     "p_card-03-men-3_062+1",
+     "p_card-03-act-2_082"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-010",
+     "pdrink_03-3-011",
+     "pdrink_00-2-010"
+    ],
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01"
+    ],
+    "max_stamina": 32,
+    "parameters": [
+     1337,
+     2453,
+     1073
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-3-010-0",
+     "pitem_00-2-004-0",
+     "pitem_03-3-191-0"
+    ],
+    "research_card_ids": [],
+    "round": "final",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     14090,
+     23450,
+     11240
+    ],
+    "starting_stamina": 32,
+    "step_id": "AuditionFinal",
+    "step_number": 18,
+    "step_select_number": 1,
+    "step_type": 18,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100107Z",
+    "family": "AF-D7J256YX",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_final",
+    "tags": [
+     "name:yz-20261027-atbm-3-018-hajime-audition_final"
+    ],
+    "turns": 12
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-D7J256YX",
+  "id": "AS-EEMMKQ5W",
+  "name": "yz-20261027-atbm-3-018-hajime-audition_final",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 28,
+   "drinks": [
+    "pdrink_00-2-010",
+    "pdrink_03-3-011",
+    "pdrink_00-2-010"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-3-010-0",
+    "pitem_00-2-004-0",
+    "pitem_03-3-191-0"
+   ],
+   "kind": "final",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "final",
+   "source": "capture",
+   "stage": "hajime.audition_final",
+   "turns": 12
+  },
+  "seeds": [
+   {
+    "exam_sha": "aba085b1ee3a",
+    "fixed_id": "AS-VVA39K4H",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "final",
+   "stage": "hajime.audition_final"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-A46436QG",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_238+1",
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049",
+     "p_card-03-men-0_049+1",
+     "p_card-03-men-2_079",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_080+1",
+     "p_card-00-sup-3_152+1",
+     "p_card-03-men-2_064",
+     "p_card-00-men-2_012",
+     "p_card-03-men-3_063+1/p_card_custom-070-g_effect-effect_add-e_effect-exam_add_grow_effect-p_card_search-hold-all-0_0-g_effect-lesson_add-5",
+     "p_card-03-men-2_103+1",
+     "p_card-03-men-2_078",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-act-3_057",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-03-men-2_076",
+     "p_card-03-men-1_051",
+     "p_card-03-men-1_050"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-010",
+     "pdrink_00-3-001",
+     "pdrink_03-3-009"
+    ],
+    "idol_card_id": "i_card-atbm-3-018",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-207-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01",
+     "enchant-pitem_03-3-213-challenge-enc01"
+    ],
+    "max_stamina": 32,
+    "parameters": [
+     592,
+     1015,
+     512
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-338-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-207-challenge",
+     "pitem_03-3-213-challenge",
+     "pitem_00-3-010-0",
+     "pitem_00-2-004-0"
+    ],
+    "research_card_ids": [],
+    "round": "mid1",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     13640,
+     22200,
+     10740
+    ],
+    "starting_stamina": 32,
+    "step_id": "AuditionMid1",
+    "step_number": 10,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0049:61",
+     "s_card-3-0043:61",
+     "s_card-3-0010:64",
+     "s_card-3-0001:61",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100104Z",
+    "family": "AF-5QVMHMXD",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:yz-20261027-atbm-3-018-hajime-audition_mid1"
+    ],
+    "turns": 10
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-5QVMHMXD",
+  "id": "AS-A46436QG",
+  "name": "yz-20261027-atbm-3-018-hajime-audition_mid1",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 22,
+   "drinks": [
+    "pdrink_00-2-010",
+    "pdrink_00-3-001",
+    "pdrink_03-3-009"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-018",
+   "items": [
+    "pitem_03-3-338-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-207-challenge",
+    "pitem_03-3-213-challenge",
+    "pitem_00-3-010-0",
+    "pitem_00-2-004-0"
+   ],
+   "kind": "mid",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "mid1",
+   "source": "capture",
+   "stage": "hajime.audition_mid1",
+   "turns": 10
+  },
+  "seeds": [
+   {
+    "exam_sha": "1caba9b3446b",
+    "fixed_id": "AS-JH9YSF9H",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-018",
+   "mechanic": "full_power",
+   "produce": "produce-006",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-F5AB4ZW6",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-1_077+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003+1",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015+1",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-2_079",
+     "p_card-00-men-2_012",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-2_103",
+     "p_card-03-men-2_080",
+     "p_card-03-act-1_073",
+     "p_card-03-act-3_057+1",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_082"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-003",
+     "pdrink_00-2-001",
+     "pdrink_03-1-010"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_concentration_01-lesson_sp-after_mid",
+    "idol_card_id": "i_card-atbm-1-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 35,
+    "parameters": [
+     468,
+     1000,
+     343
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-1-069-0",
+     "pitem_03-3-065-0",
+     "pitem_00-3-001-0",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 26,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-sp-03",
+    "step_number": 10,
+    "step_select_number": null,
+    "step_type": 2,
+    "support_cards": [
+     "s_card-2-0007:82",
+     "s_card-3-0049:95",
+     "s_card-3-0043:95",
+     "s_card-3-0010:99",
+     "s_card-3-0001:95",
+     "s_card-3-0069:108"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100911Z",
+    "family": "AF-4Q3Y9KP5",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.2",
+    "tags": [
+     "name:yz-20261028-atbm-1-000-hajime-2"
+    ],
+    "turns": 7
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-4Q3Y9KP5",
+  "id": "AS-F5AB4ZW6",
+  "name": "yz-20261028-atbm-1-000-hajime-2",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 22,
+   "drinks": [
+    "pdrink_00-2-003",
+    "pdrink_00-2-001",
+    "pdrink_03-1-010"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-1-000",
+   "items": [
+    "pitem_03-1-069-0",
+    "pitem_03-3-065-0",
+    "pitem_00-3-001-0",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.2",
+   "turns": 7
+  },
+  "seeds": [
+   {
+    "exam_sha": "fb2c35ebd0c0",
+    "fixed_id": "AS-WE76BF6Q",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-1-000",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.2"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-F5CCBHDD",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-1_077+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003+1",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015+1",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-2_079",
+     "p_card-00-men-2_012",
+     "p_card-00-sup-3_027+1"
+    ],
+    "drink_ids": [],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-1-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 35,
+    "parameters": [
+     247,
+     266,
+     120
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-1-069-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 35,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-normal-01",
+    "step_number": 1,
+    "step_select_number": null,
+    "step_type": 4,
+    "support_cards": [
+     "s_card-2-0007:69",
+     "s_card-3-0049:79",
+     "s_card-3-0043:79",
+     "s_card-3-0010:82",
+     "s_card-3-0001:79",
+     "s_card-3-0069:92"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100913Z",
+    "family": "AF-J6VKGT3X",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.4",
+    "tags": [
+     "name:yz-20261028-atbm-1-000-hajime-4"
+    ],
+    "turns": 6
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-J6VKGT3X",
+  "id": "AS-F5CCBHDD",
+  "name": "yz-20261028-atbm-1-000-hajime-4",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 12,
+   "drinks": null,
+   "exam": "produce-001",
+   "idol": "i_card-atbm-1-000",
+   "items": [
+    "pitem_03-1-069-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.4",
+   "turns": 6
+  },
+  "seeds": [
+   {
+    "exam_sha": "80eb2cf29850",
+    "fixed_id": "AS-PCTBJTXS",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-1-000",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.4"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-ZMEAPG7W",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-1_077+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003+1",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015+1",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-2_079",
+     "p_card-00-men-2_012",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-2_103",
+     "p_card-03-men-2_080"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-003"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_concentration_01-lesson_sp-before_mid",
+    "idol_card_id": "i_card-atbm-1-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 35,
+    "parameters": [
+     247,
+     414,
+     120
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-1-069-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 27,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-sp-01",
+    "step_number": 3,
+    "step_select_number": null,
+    "step_type": 5,
+    "support_cards": [
+     "s_card-2-0007:78",
+     "s_card-3-0049:91",
+     "s_card-3-0043:91",
+     "s_card-3-0010:94",
+     "s_card-3-0001:91",
+     "s_card-3-0069:104"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100915Z",
+    "family": "AF-KXYB24EQ",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.5",
+    "tags": [
+     "name:yz-20261028-atbm-1-000-hajime-5"
+    ],
+    "turns": 6
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-KXYB24EQ",
+  "id": "AS-ZMEAPG7W",
+  "name": "yz-20261028-atbm-1-000-hajime-5",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 14,
+   "drinks": [
+    "pdrink_00-2-003"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-1-000",
+   "items": [
+    "pitem_03-1-069-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.5",
+   "turns": 6
+  },
+  "seeds": [
+   {
+    "exam_sha": "bb1ae5bfa836",
+    "fixed_id": "AS-HE3SA5BY",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-1-000",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.5"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-GF8BCR32",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-1_077+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003+1",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015+1",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-2_079",
+     "p_card-00-men-2_012",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-2_103",
+     "p_card-03-men-2_080",
+     "p_card-03-act-1_073",
+     "p_card-03-act-3_057+1",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065",
+     "p_card-03-men-3_058+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_076"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-003",
+     "pdrink_00-1-004"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_concentration_01-lesson_sp-after_mid",
+    "idol_card_id": "i_card-atbm-1-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 35,
+    "parameters": [
+     466,
+     814,
+     343
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-1-069-0",
+     "pitem_03-3-065-0",
+     "pitem_00-3-001-0",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 27,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-sp-02",
+    "step_number": 9,
+    "step_select_number": null,
+    "step_type": 5,
+    "support_cards": [
+     "s_card-2-0007:84",
+     "s_card-3-0049:98",
+     "s_card-3-0043:98",
+     "s_card-3-0010:101",
+     "s_card-3-0001:98",
+     "s_card-3-0069:111"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100913Z",
+    "family": "AF-Y6TQNGEQ",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.5",
+    "tags": [
+     "name:yz-20261028-atbm-1-000-hajime-5"
+    ],
+    "turns": 7
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-Y6TQNGEQ",
+  "id": "AS-GF8BCR32",
+  "name": "yz-20261028-atbm-1-000-hajime-5",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 21,
+   "drinks": [
+    "pdrink_00-2-003",
+    "pdrink_00-1-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-1-000",
+   "items": [
+    "pitem_03-1-069-0",
+    "pitem_03-3-065-0",
+    "pitem_00-3-001-0",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.5",
+   "turns": 7
+  },
+  "seeds": [
+   {
+    "exam_sha": "d401cecc5bd5",
+    "fixed_id": "AS-D46XT4W2",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-1-000",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.5"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-F4PT4N47",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-1_077+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003+1",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015+1",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-2_079",
+     "p_card-00-men-2_012",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-2_103",
+     "p_card-03-men-2_080",
+     "p_card-03-act-1_073"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-003",
+     "pdrink_00-1-004"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-002-exam_concentration_01-lesson_hard-before_mid",
+    "idol_card_id": "i_card-atbm-1-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 35,
+    "parameters": [
+     249,
+     617,
+     120
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-1-069-0",
+     "pitem_03-3-065-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 35,
+    "step_id": "p_step_lesson-produce-002-exam_concentration_01-hard-01",
+    "step_number": 5,
+    "step_select_number": null,
+    "step_type": 9,
+    "support_cards": [
+     "s_card-2-0007:60",
+     "s_card-3-0049:67",
+     "s_card-3-0043:67",
+     "s_card-3-0010:70",
+     "s_card-3-0001:67",
+     "s_card-3-0069:80"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100913Z",
+    "family": "AF-7Y4HEJ4B",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.9",
+    "tags": [
+     "name:yz-20261028-atbm-1-000-hajime-9"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-7Y4HEJ4B",
+  "id": "AS-F4PT4N47",
+  "name": "yz-20261028-atbm-1-000-hajime-9",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 15,
+   "drinks": [
+    "pdrink_00-2-003",
+    "pdrink_00-1-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-1-000",
+   "items": [
+    "pitem_03-1-069-0",
+    "pitem_03-3-065-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.9",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "d50f27e674a6",
+    "fixed_id": "AS-XEZBTXS5",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-1-000",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.9"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-2GZ97QF6",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-1_077+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003+1",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015+1",
+     "p_card-03-act-0_020",
+     "p_card-03-men-2_079",
+     "p_card-00-men-2_012",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-2_103",
+     "p_card-03-men-2_080",
+     "p_card-03-act-1_073",
+     "p_card-03-act-3_057+1",
+     "p_card-03-act-3_053",
+     "p_card-03-act-3_065+1",
+     "p_card-03-men-3_058+1",
+     "p_card-03-act-2_071",
+     "p_card-03-men-2_076",
+     "p_card-03-act-2_082",
+     "p_card-03-men-2_064",
+     "p_card-03-men-2_112",
+     "p_card-03-act-2_067+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-001",
+     "pdrink_03-1-010",
+     "pdrink_00-2-008"
+    ],
+    "idol_card_id": "i_card-atbm-1-000",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 35,
+    "parameters": [
+     826,
+     1000,
+     693
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-1-069-0",
+     "pitem_03-3-065-0",
+     "pitem_00-3-001-0",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "final",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     9020,
+     11840,
+     6870
+    ],
+    "starting_stamina": 31,
+    "step_id": "AuditionFinal",
+    "step_number": 13,
+    "step_select_number": 1,
+    "step_type": 18,
+    "support_cards": [
+     "s_card-2-0007:84",
+     "s_card-3-0049:98",
+     "s_card-3-0043:98",
+     "s_card-3-0010:101",
+     "s_card-3-0001:98",
+     "s_card-3-0069:111"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100106Z",
+    "family": "AF-CS527QNV",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_final",
+    "tags": [
+     "name:yz-20261028-atbm-1-000-hajime-audition_final"
+    ],
+    "turns": 12
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-CS527QNV",
+  "id": "AS-2GZ97QF6",
+  "name": "yz-20261028-atbm-1-000-hajime-audition_final",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 24,
+   "drinks": [
+    "pdrink_00-2-001",
+    "pdrink_03-1-010",
+    "pdrink_00-2-008"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-1-000",
+   "items": [
+    "pitem_03-1-069-0",
+    "pitem_03-3-065-0",
+    "pitem_00-3-001-0",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "final",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "final",
+   "source": "capture",
+   "stage": "hajime.audition_final",
+   "turns": 12
+  },
+  "seeds": [
+   {
+    "exam_sha": "43851e7e1a23",
+    "fixed_id": "AS-TQN8BBTN",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-1-000",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "final",
+   "stage": "hajime.audition_final"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-QTXG26TY",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-1_077+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003+1",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015+1",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-2_079",
+     "p_card-00-men-2_012",
+     "p_card-00-sup-3_027+1",
+     "p_card-03-men-2_103",
+     "p_card-03-men-2_080",
+     "p_card-03-act-1_073",
+     "p_card-03-act-3_057+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-003",
+     "pdrink_00-1-004"
+    ],
+    "idol_card_id": "i_card-atbm-1-000",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 35,
+    "parameters": [
+     360,
+     749,
+     323
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-1-069-0",
+     "pitem_03-3-065-0"
+    ],
+    "research_card_ids": [],
+    "round": "mid1",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     4800,
+     8180,
+     4010
+    ],
+    "starting_stamina": 35,
+    "step_id": "AuditionMid1",
+    "step_number": 6,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-2-0007:84",
+     "s_card-3-0049:98",
+     "s_card-3-0043:98",
+     "s_card-3-0010:90",
+     "s_card-3-0001:87",
+     "s_card-3-0069:111"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100100Z",
+    "family": "AF-2BNTBVEG",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:yz-20261028-atbm-1-000-hajime-audition_mid1"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-2BNTBVEG",
+  "id": "AS-QTXG26TY",
+  "name": "yz-20261028-atbm-1-000-hajime-audition_mid1",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 16,
+   "drinks": [
+    "pdrink_00-2-003",
+    "pdrink_00-1-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-1-000",
+   "items": [
+    "pitem_03-1-069-0",
+    "pitem_03-3-065-0"
+   ],
+   "kind": "mid",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "mid1",
+   "source": "capture",
+   "stage": "hajime.audition_mid1",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "f42af51b3c99",
+    "fixed_id": "AS-X26SZHN6",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-1-000",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-NSG2ADDH",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003+1",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-1_049",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039+1",
+     "p_card-03-men-1_049",
+     "p_card-03-act-2_065+1",
+     "p_card-03-act-3_054+1/p_card_custom-070-g_effect-lesson_add-12",
+     "p_card-03-men-2_064+1",
+     "p_card-03-men-2_064"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-004"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [
+     "enchant-p_ef-lesson-block-enc01"
+    ],
+    "main_item_enchant_ids": [],
+    "max_stamina": 37,
+    "parameters": [
+     339,
+     421,
+     232
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 24,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-normal-03",
+    "step_number": 9,
+    "step_select_number": null,
+    "step_type": 4,
+    "support_cards": [
+     "s_card-3-0025:98",
+     "s_card-3-0010:82",
+     "s_card-3-0019:49",
+     "s_card-3-0023:82",
+     "s_card-3-0104:95",
+     "s_card-3-0069:104"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100917Z",
+    "family": "AF-DCHFF6BN",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.4",
+    "tags": [
+     "name:yz-20261029-atbm-3-015-hajime-4"
+    ],
+    "turns": 7
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-DCHFF6BN",
+  "id": "AS-NSG2ADDH",
+  "name": "yz-20261029-atbm-3-015-hajime-4",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 19,
+   "drinks": [
+    "pdrink_00-2-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.4",
+   "turns": 7
+  },
+  "seeds": [
+   {
+    "exam_sha": "ab03453aac1c",
+    "fixed_id": "AS-YSBHEE4N",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.4"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-NJS4FSVV",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003+1",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-1_049",
+     "p_card-03-men-1_039"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-004"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 37,
+    "parameters": [
+     217,
+     182,
+     159
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-337-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 29,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-normal-02",
+    "step_number": 3,
+    "step_select_number": null,
+    "step_type": 4,
+    "support_cards": [
+     "s_card-3-0025:78",
+     "s_card-3-0010:63",
+     "s_card-3-0019:39",
+     "s_card-3-0023:63",
+     "s_card-3-0104:75",
+     "s_card-3-0069:85"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100914Z",
+    "family": "AF-PY7ESSXZ",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.4",
+    "tags": [
+     "name:yz-20261029-atbm-3-015-hajime-4"
+    ],
+    "turns": 6
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-PY7ESSXZ",
+  "id": "AS-NJS4FSVV",
+  "name": "yz-20261029-atbm-3-015-hajime-4",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 12,
+   "drinks": [
+    "pdrink_00-2-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.4",
+   "turns": 6
+  },
+  "seeds": [
+   {
+    "exam_sha": "c90d62038672",
+    "fixed_id": "AS-T566P368",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.4"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-GZP54V4T",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020"
+    ],
+    "drink_ids": [],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 37,
+    "parameters": [
+     142,
+     115,
+     159
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-337-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 37,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-normal-01",
+    "step_number": 1,
+    "step_select_number": null,
+    "step_type": 4,
+    "support_cards": [
+     "s_card-3-0025:73",
+     "s_card-3-0010:57",
+     "s_card-3-0019:36",
+     "s_card-3-0023:57",
+     "s_card-3-0104:70",
+     "s_card-3-0069:79"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100916Z",
+    "family": "AF-TGEAWC7Z",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.4",
+    "tags": [
+     "name:yz-20261029-atbm-3-015-hajime-4"
+    ],
+    "turns": 6
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-TGEAWC7Z",
+  "id": "AS-GZP54V4T",
+  "name": "yz-20261029-atbm-3-015-hajime-4",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 10,
+   "drinks": null,
+   "exam": "produce-001",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.4",
+   "turns": 6
+  },
+  "seeds": [
+   {
+    "exam_sha": "0d4c1d7f0abe",
+    "fixed_id": "AS-F56XPKWJ",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.4"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-35BS9YF4",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003+1",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-1_049",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-004",
+     "pdrink_00-1-004",
+     "pdrink_00-3-001"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-002-exam_concentration_01-lesson_hard-before_mid",
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [
+     "enchant-p_ef-lesson-block-enc01"
+    ],
+    "main_item_enchant_ids": [],
+    "max_stamina": 37,
+    "parameters": [
+     247,
+     294,
+     159
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-337-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 28,
+    "step_id": "p_step_lesson-produce-002-exam_concentration_01-hard-01",
+    "step_number": 5,
+    "step_select_number": null,
+    "step_type": 6,
+    "support_cards": [
+     "s_card-3-0025:88",
+     "s_card-3-0010:72",
+     "s_card-3-0019:44",
+     "s_card-3-0023:72",
+     "s_card-3-0104:84",
+     "s_card-3-0069:94"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100916Z",
+    "family": "AF-3VCBX44V",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.6",
+    "tags": [
+     "name:yz-20261029-atbm-3-015-hajime-6"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-3VCBX44V",
+  "id": "AS-35BS9YF4",
+  "name": "yz-20261029-atbm-3-015-hajime-6",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 13,
+   "drinks": [
+    "pdrink_00-2-004",
+    "pdrink_00-1-004",
+    "pdrink_00-3-001"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.6",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "e06f1e0a686c",
+    "fixed_id": "AS-5EBPY8ZD",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.6"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-ZHE9FQQC",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003+1",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-1_049",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039+1",
+     "p_card-03-men-1_049",
+     "p_card-03-act-2_065+1",
+     "p_card-03-act-3_054+1/p_card_custom-070-g_effect-lesson_add-12",
+     "p_card-03-men-2_064+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_068"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-004"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_concentration_01-lesson_sp-after_mid",
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [
+     "enchant-p_ef-lesson_sp-stamina_consumption_down-enc01",
+     "enchant-p_ef-lesson_sp_concentration-enc01"
+    ],
+    "main_item_enchant_ids": [],
+    "max_stamina": 37,
+    "parameters": [
+     340,
+     521,
+     234
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 33,
+    "step_id": "p_step_lesson-produce-001-exam_concentration_01-sp-03",
+    "step_number": 10,
+    "step_select_number": null,
+    "step_type": 8,
+    "support_cards": [
+     "s_card-3-0025:83",
+     "s_card-3-0010:67",
+     "s_card-3-0019:41",
+     "s_card-3-0023:67",
+     "s_card-3-0104:79",
+     "s_card-3-0069:89"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100914Z",
+    "family": "AF-KK787SZA",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.8",
+    "tags": [
+     "name:yz-20261029-atbm-3-015-hajime-8"
+    ],
+    "turns": 7
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-KK787SZA",
+  "id": "AS-ZHE9FQQC",
+  "name": "yz-20261029-atbm-3-015-hajime-8",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 20,
+   "drinks": [
+    "pdrink_00-2-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.8",
+   "turns": 7
+  },
+  "seeds": [
+   {
+    "exam_sha": "12777bd6e2a0",
+    "fixed_id": "AS-ACFD5HGD",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.8"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-PMYWMAB3",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003+1",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-1_049",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039+1",
+     "p_card-03-men-1_049",
+     "p_card-03-act-2_065+1",
+     "p_card-03-act-3_054+1/p_card_custom-070-g_effect-lesson_add-12",
+     "p_card-03-men-2_064+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_068",
+     "p_card-03-men-2_064",
+     "p_card-00-men-3_012"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-004",
+     "pdrink_00-2-001",
+     "pdrink_03-1-010"
+    ],
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 37,
+    "parameters": [
+     523,
+     926,
+     595
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "final",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     4650,
+     7560,
+     4140
+    ],
+    "starting_stamina": 37,
+    "step_id": "AuditionFinal",
+    "step_number": 13,
+    "step_select_number": 1,
+    "step_type": 18,
+    "support_cards": [
+     "s_card-3-0025:104",
+     "s_card-3-0010:89",
+     "s_card-3-0019:53",
+     "s_card-3-0023:89",
+     "s_card-3-0104:101",
+     "s_card-3-0069:111"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100102Z",
+    "family": "AF-52K8XPBK",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_final",
+    "tags": [
+     "name:yz-20261029-atbm-3-015-hajime-audition_final"
+    ],
+    "turns": 12
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-52K8XPBK",
+  "id": "AS-PMYWMAB3",
+  "name": "yz-20261029-atbm-3-015-hajime-audition_final",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 22,
+   "drinks": [
+    "pdrink_00-2-004",
+    "pdrink_00-2-001",
+    "pdrink_03-1-010"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "final",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "final",
+   "source": "capture",
+   "stage": "hajime.audition_final",
+   "turns": 12
+  },
+  "seeds": [
+   {
+    "exam_sha": "b85488cff837",
+    "fixed_id": "AS-A4R4ZECJ",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "final",
+   "stage": "hajime.audition_final"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-KAS533NW",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003+1",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_015",
+     "p_card-03-act-0_014",
+     "p_card-03-act-0_020",
+     "p_card-03-men-1_049",
+     "p_card-03-men-1_039",
+     "p_card-03-men-1_039"
+    ],
+    "drink_ids": [
+     "pdrink_00-2-004",
+     "pdrink_00-1-004",
+     "pdrink_00-3-001"
+    ],
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 37,
+    "parameters": [
+     247,
+     405,
+     159
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-337-0"
+    ],
+    "research_card_ids": [],
+    "round": "mid1",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     2690,
+     3900,
+     1940
+    ],
+    "starting_stamina": 37,
+    "step_id": "AuditionMid1",
+    "step_number": 6,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-3-0025:77",
+     "s_card-3-0010:68",
+     "s_card-3-0019:43",
+     "s_card-3-0023:68",
+     "s_card-3-0104:73",
+     "s_card-3-0069:103"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100103Z",
+    "family": "AF-RD6GVMER",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:yz-20261029-atbm-3-015-hajime-audition_mid1"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-RD6GVMER",
+  "id": "AS-KAS533NW",
+  "name": "yz-20261029-atbm-3-015-hajime-audition_mid1",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 13,
+   "drinks": [
+    "pdrink_00-2-004",
+    "pdrink_00-1-004",
+    "pdrink_00-3-001"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0"
+   ],
+   "kind": "mid",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "mid1",
+   "source": "capture",
+   "stage": "hajime.audition_mid1",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "69764b4c9d28",
+    "fixed_id": "AS-C4Z7KPMH",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-001",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-DEXNA7DQ",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044+1",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01/p_card_custom-wrapper-p_card-03-men-1_050-a-01/p_card_custom-wrapper-p_card-03-men-1_050-c-01",
+     "p_card-01-men-3_006+1",
+     "p_card-03-act-2_106+1",
+     "p_card-03-men-2_076",
+     "p_card-03-men-3_058",
+     "p_card-03-men-3_061",
+     "p_card-03-act-3_065+1",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_070+1/p_card_custom-070-g_effect-effect_change-e_effect-exam_concentration-0001-e_effect-exam_concentration-0002/p_card_custom-040_070-g_effect-lesson_add-6-g_effect-lesson_add-22",
+     "p_card-03-men-1_050",
+     "p_card-01-men-2_034+1/p_card_custom-040_070-g_effect-parameter_buff_multiple_per_turn_add-1-g_effect-parameter_buff_multiple_per_turn_add-3",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-01-men-2_011+1/p_card_custom-040_070-g_effect-parameter_buff_turn_add-1-g_effect-parameter_buff_turn_add-3*2",
+     "p_card-03-men-3_060+1",
+     "p_card-03-men-2_080",
+     "p_card-03-act-100_013",
+     "p_card-03-men-3_062+1",
+     "p_card-00-sup-3_024+1",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-3_056"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-3-005",
+     "pdrink_00-3-005",
+     "pdrink_03-3-011"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce_006-concentration-normal",
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 36,
+    "parameters": [
+     956,
+     1717,
+     1043
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0",
+     "pitem_00-3-027-0",
+     "pitem_00-3-119-0",
+     "pitem_03-3-190-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 36,
+    "step_id": "p_step_lesson-produce_006-concentration-normal-05",
+    "step_number": 16,
+    "step_select_number": null,
+    "step_type": 29,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100915Z",
+    "family": "AF-8YMGVRQV",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.29",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-29"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-8YMGVRQV",
+  "id": "AS-DEXNA7DQ",
+  "name": "yz-20261031-atbm-3-015-hajime-29",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 26,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_03-3-011"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0",
+    "pitem_00-3-027-0",
+    "pitem_00-3-119-0",
+    "pitem_03-3-190-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.29",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "26070695001b",
+    "fixed_id": "AS-5D8S9ANS",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.29"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-7YCPKHTH",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044+1",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01/p_card_custom-wrapper-p_card-03-men-1_050-a-01/p_card_custom-wrapper-p_card-03-men-1_050-c-01",
+     "p_card-01-men-3_006+1",
+     "p_card-03-act-2_106+1",
+     "p_card-03-men-2_076",
+     "p_card-03-men-3_058",
+     "p_card-03-men-3_061",
+     "p_card-03-act-3_065+1",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_070+1/p_card_custom-070-g_effect-effect_change-e_effect-exam_concentration-0001-e_effect-exam_concentration-0002/p_card_custom-040_070-g_effect-lesson_add-6-g_effect-lesson_add-22",
+     "p_card-03-men-1_050",
+     "p_card-03-act-3_055",
+     "p_card-01-men-2_034+1/p_card_custom-040_070-g_effect-parameter_buff_multiple_per_turn_add-1-g_effect-parameter_buff_multiple_per_turn_add-3",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-01-men-2_011+1/p_card_custom-040_070-g_effect-parameter_buff_turn_add-1-g_effect-parameter_buff_turn_add-3*2",
+     "p_card-03-men-3_060+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-3-005",
+     "pdrink_03-1-009"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 36,
+    "parameters": [
+     506,
+     1448,
+     384
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0",
+     "pitem_00-3-027-0",
+     "pitem_00-3-119-0",
+     "pitem_03-3-190-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 31,
+    "step_id": "p_step_lesson-produce_006-concentration-sp-03",
+    "step_number": 12,
+    "step_select_number": null,
+    "step_type": 30,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100911Z",
+    "family": "AF-FD4N7K6K",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.30",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-30"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-FD4N7K6K",
+  "id": "AS-7YCPKHTH",
+  "name": "yz-20261031-atbm-3-015-hajime-30",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 21,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_03-1-009"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0",
+    "pitem_00-3-027-0",
+    "pitem_00-3-119-0",
+    "pitem_03-3-190-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.30",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "bebd2cf0d09b",
+    "fixed_id": "AS-NAPW85CX",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.30"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-394HE7Z4",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_042",
+     "p_card-03-act-0_043",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01",
+     "p_card-01-men-3_006+1",
+     "p_card-03-act-2_106+1",
+     "p_card-03-men-2_076",
+     "p_card-03-men-3_058",
+     "p_card-03-men-3_061"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 36,
+    "parameters": [
+     232,
+     502,
+     170
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 26,
+    "step_id": "p_step_lesson-produce_006-concentration-sp-01",
+    "step_number": 4,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100912Z",
+    "family": "AF-W5ABHMZP",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-W5ABHMZP",
+  "id": "AS-394HE7Z4",
+  "name": "yz-20261031-atbm-3-015-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 14,
+   "drinks": [
+    "pdrink_00-3-005"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "7fd5f71dbdd7",
+    "fixed_id": "AS-STDTXG3C",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-FPXZ2F44",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_042",
+     "p_card-03-act-0_043",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044+1",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01",
+     "p_card-03-men-2_080+1",
+     "p_card-03-men-1_050+1",
+     "p_card-03-men-1_050",
+     "p_card-03-men-1_050",
+     "p_card-03-men-2_074+1"
+    ],
+    "drink_ids": [
+     "pdrink_03-2-007"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 36,
+    "parameters": [
+     333,
+     289,
+     220
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0",
+     "pitem_00-3-119-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 26,
+    "step_id": "p_step_lesson-produce_006-concentration-sp-01",
+    "step_number": 4,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100914Z",
+    "family": "AF-TSCMDCX6",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-TSCMDCX6",
+  "id": "AS-FPXZ2F44",
+  "name": "yz-20261031-atbm-3-015-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 14,
+   "drinks": [
+    "pdrink_03-2-007"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0",
+    "pitem_00-3-119-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "c370977ef7e1",
+    "fixed_id": "AS-4P9RZ4XV",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-ZFWNXQKR",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_042",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01",
+     "p_card-01-men-3_006+1",
+     "p_card-03-act-2_106+1",
+     "p_card-03-men-2_076",
+     "p_card-03-men-3_058",
+     "p_card-03-men-3_061",
+     "p_card-03-act-3_065+1",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_070+1",
+     "p_card-00-men-1_005"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-2-004",
+     "pdrink_00-2-008",
+     "pdrink_00-3-005"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": null,
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 36,
+    "parameters": [
+     344,
+     963,
+     234
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0",
+     "pitem_00-3-027-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 22,
+    "step_id": "p_step_lesson-produce_006-concentration-sp-02",
+    "step_number": 7,
+    "step_select_number": null,
+    "step_type": 32,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100913Z",
+    "family": "AF-H35RPZ69",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.32",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-32"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-H35RPZ69",
+  "id": "AS-ZFWNXQKR",
+  "name": "yz-20261031-atbm-3-015-hajime-32",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 17,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-004",
+    "pdrink_00-2-008",
+    "pdrink_00-3-005"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0",
+    "pitem_00-3-027-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.32",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "22e9f6ef8a03",
+    "fixed_id": "AS-3R5T66T2",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.32"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-7NZSBYQV",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044+1",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01/p_card_custom-wrapper-p_card-03-men-1_050-a-01/p_card_custom-wrapper-p_card-03-men-1_050-c-01",
+     "p_card-01-men-3_006+1",
+     "p_card-03-act-2_106+1",
+     "p_card-03-men-2_076",
+     "p_card-03-men-3_058",
+     "p_card-03-men-3_061",
+     "p_card-03-act-3_065+1",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_070+1/p_card_custom-070-g_effect-effect_change-e_effect-exam_concentration-0001-e_effect-exam_concentration-0002/p_card_custom-040_070-g_effect-lesson_add-6-g_effect-lesson_add-22",
+     "p_card-03-men-1_050",
+     "p_card-03-act-3_055",
+     "p_card-01-men-2_034+1/p_card_custom-040_070-g_effect-parameter_buff_multiple_per_turn_add-1-g_effect-parameter_buff_multiple_per_turn_add-3",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-01-men-2_011+1/p_card_custom-040_070-g_effect-parameter_buff_turn_add-1-g_effect-parameter_buff_turn_add-3*2",
+     "p_card-03-men-3_060+1",
+     "p_card-03-men-2_080",
+     "p_card-03-act-100_013"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-3-005",
+     "pdrink_00-3-005",
+     "pdrink_03-3-011"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce_006-concentration-normal",
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 90,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 36,
+    "parameters": [
+     860,
+     1593,
+     466
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0",
+     "pitem_00-3-027-0",
+     "pitem_00-3-119-0",
+     "pitem_03-3-190-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 36,
+    "step_id": "p_step_lesson-produce_006-concentration-normal-04",
+    "step_number": 14,
+    "step_select_number": null,
+    "step_type": 33,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100911Z",
+    "family": "AF-E999EH7P",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.33",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-33"
+    ],
+    "turns": 8
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-E999EH7P",
+  "id": "AS-7NZSBYQV",
+  "name": "yz-20261031-atbm-3-015-hajime-33",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 23,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_03-3-011"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0",
+    "pitem_00-3-027-0",
+    "pitem_00-3-119-0",
+    "pitem_03-3-190-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.33",
+   "turns": 8
+  },
+  "seeds": [
+   {
+    "exam_sha": "8b077702d6f8",
+    "fixed_id": "AS-SRBKENCG",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "lesson",
+   "stage": "hajime.33"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-HSAEP7SF",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044+1",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01/p_card_custom-wrapper-p_card-03-men-1_050-a-01/p_card_custom-wrapper-p_card-03-men-1_050-c-01",
+     "p_card-01-men-3_006+1",
+     "p_card-03-act-2_106+1",
+     "p_card-03-men-2_076",
+     "p_card-03-men-3_058",
+     "p_card-03-men-3_061",
+     "p_card-03-act-3_065+1",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_070+1/p_card_custom-070-g_effect-effect_change-e_effect-exam_concentration-0001-e_effect-exam_concentration-0002/p_card_custom-040_070-g_effect-lesson_add-6-g_effect-lesson_add-22",
+     "p_card-03-men-1_050+1",
+     "p_card-01-men-2_034+1/p_card_custom-040_070-g_effect-parameter_buff_multiple_per_turn_add-1-g_effect-parameter_buff_multiple_per_turn_add-3",
+     "p_card-03-act-2_102+1/p_card_custom-wrapper-p_card-03-act-2_102-b-01",
+     "p_card-01-men-2_011+1/p_card_custom-040_070-g_effect-parameter_buff_turn_add-1-g_effect-parameter_buff_turn_add-3*2",
+     "p_card-03-men-3_060+1",
+     "p_card-03-men-2_080",
+     "p_card-03-act-100_013",
+     "p_card-03-men-3_062+1",
+     "p_card-00-sup-3_024+1",
+     "p_card-00-acc-0_002",
+     "p_card-03-act-3_056",
+     "p_card-03-men-2_103+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-3-005",
+     "pdrink_03-3-011",
+     "pdrink_00-2-010"
+    ],
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [
+     "enchant-pitem_03-3-204-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01",
+     "enchant-pitem_03-3-204-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01",
+     "enchant-pitem_03-3-204-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01"
+    ],
+    "max_stamina": 36,
+    "parameters": [
+     1613,
+     1880,
+     1170
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0",
+     "pitem_00-3-027-0",
+     "pitem_00-3-119-0",
+     "pitem_03-3-190-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "final",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     14310,
+     18000,
+     10770
+    ],
+    "starting_stamina": 36,
+    "step_id": "AuditionFinal",
+    "step_number": 18,
+    "step_select_number": 1,
+    "step_type": 18,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100056Z",
+    "family": "AF-PXPDBZAV",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_final",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-audition_final"
+    ],
+    "turns": 12
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-PXPDBZAV",
+  "id": "AS-HSAEP7SF",
+  "name": "yz-20261031-atbm-3-015-hajime-audition_final",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 27,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_03-3-011",
+    "pdrink_00-2-010"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0",
+    "pitem_00-3-027-0",
+    "pitem_00-3-119-0",
+    "pitem_03-3-190-0"
+   ],
+   "kind": "final",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "final",
+   "source": "capture",
+   "stage": "hajime.audition_final",
+   "turns": 12
+  },
+  "seeds": [
+   {
+    "exam_sha": "73052171b17b",
+    "fixed_id": "AS-5ZE9KKWB",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "final",
+   "stage": "hajime.audition_final"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-HXJN46AG",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_209+1",
+     "p_card-03-ido-3_222+1",
+     "p_card-03-act-0_043",
+     "p_card-03-men-0_044+1",
+     "p_card-03-men-0_044",
+     "p_card-03-men-0_045",
+     "p_card-03-men-1_050+1/p_card_custom-wrapper-p_card-03-men-1_050-b-01/p_card_custom-wrapper-p_card-03-men-1_050-a-01/p_card_custom-wrapper-p_card-03-men-1_050-c-01",
+     "p_card-01-men-3_006+1",
+     "p_card-03-act-2_106+1",
+     "p_card-03-men-2_076",
+     "p_card-03-men-3_058",
+     "p_card-03-men-3_061",
+     "p_card-03-act-3_065+1",
+     "p_card-03-men-2_074+1",
+     "p_card-03-act-2_070+1/p_card_custom-070-g_effect-effect_change-e_effect-exam_concentration-0001-e_effect-exam_concentration-0002/p_card_custom-040_070-g_effect-lesson_add-6-g_effect-lesson_add-22",
+     "p_card-03-men-1_050",
+     "p_card-03-act-3_055"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-005",
+     "pdrink_00-3-005",
+     "pdrink_03-1-009",
+     "pdrink_00-3-001"
+    ],
+    "idol_card_id": "i_card-atbm-3-015",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [
+     "enchant-pitem_03-3-204-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01",
+     "enchant-pitem_03-3-204-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01",
+     "enchant-pitem_03-3-204-challenge-enc01",
+     "enchant-pitem_03-3-212-challenge-enc01"
+    ],
+    "max_stamina": 36,
+    "parameters": [
+     424,
+     1302,
+     304
+    ],
+    "produce_id": "produce-006",
+    "produce_item_ids": [
+     "pitem_03-3-337-0",
+     "pitem_00-3-194-challenge",
+     "pitem_03-3-204-challenge",
+     "pitem_03-3-212-challenge",
+     "pitem_3-258-research-event-010",
+     "pitem_00-2-004-0",
+     "pitem_00-3-027-0",
+     "pitem_00-3-119-0"
+    ],
+    "research_card_ids": [
+     "p_card-01-act-2_030",
+     "p_card-01-act-3_010",
+     "p_card-01-act-3_032",
+     "p_card-01-act-3_184",
+     "p_card-01-men-1_034",
+     "p_card-01-men-2_011",
+     "p_card-01-men-2_034",
+     "p_card-01-men-2_037",
+     "p_card-01-men-3_006",
+     "p_card-01-men-3_035"
+    ],
+    "round": "mid1",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     10290,
+     23390,
+     7110
+    ],
+    "starting_stamina": 36,
+    "step_id": "AuditionMid1",
+    "step_number": 10,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-2-0007:56",
+     "s_card-3-0005:67",
+     "s_card-3-0010:64",
+     "s_card-3-0049:61",
+     "s_card-3-0017:64",
+     "s_card-3-0069:74"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100105Z",
+    "family": "AF-SFBPCTWY",
+    "mechanic": "stance",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:yz-20261031-atbm-3-015-hajime-audition_mid1"
+    ],
+    "turns": 10
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-SFBPCTWY",
+  "id": "AS-HXJN46AG",
+  "name": "yz-20261031-atbm-3-015-hajime-audition_mid1",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 17,
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_03-1-009",
+    "pdrink_00-3-001"
+   ],
+   "exam": "produce-006",
+   "idol": "i_card-atbm-3-015",
+   "items": [
+    "pitem_03-3-337-0",
+    "pitem_00-3-194-challenge",
+    "pitem_03-3-204-challenge",
+    "pitem_03-3-212-challenge",
+    "pitem_3-258-research-event-010",
+    "pitem_00-2-004-0",
+    "pitem_00-3-027-0",
+    "pitem_00-3-119-0"
+   ],
+   "kind": "mid",
+   "mechanic": "stance",
+   "plan": "PLAN3",
+   "round": "mid1",
+   "source": "capture",
+   "stage": "hajime.audition_mid1",
+   "turns": 10
+  },
+  "seeds": [
+   {
+    "exam_sha": "0a96ce1fe7dc",
+    "fixed_id": "AS-JHAAAFQC",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-atbm-3-015",
+   "mechanic": "stance",
+   "produce": "produce-006",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-JADRCWFC",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-act-1_042",
+     "p_card-03-act-1_038",
+     "p_card-03-act-1_046"
+    ],
+    "drink_ids": [],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_full_power_01-lesson_sp-before_mid",
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 33,
+    "parameters": [
+     215,
+     80,
+     149
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0",
+     "pitem_00-3-015-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 12,
+    "step_id": "p_step_lesson-produce-001-exam_full_power_01-sp-01",
+    "step_number": 3,
+    "step_select_number": null,
+    "step_type": 2,
+    "support_cards": [
+     "s_card-3-0005:81",
+     "s_card-3-0006:50",
+     "s_card-3-0012:50",
+     "s_card-3-0019:40",
+     "s_card-2-0001:38",
+     "s_card-3-0001:87"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100916Z",
+    "family": "AF-6S5A4WZE",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.2",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-2"
+    ],
+    "turns": 6
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-6S5A4WZE",
+  "id": "AS-JADRCWFC",
+  "name": "yz-20261105-hmsz-3-000-hajime-2",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 12,
+   "drinks": null,
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0",
+    "pitem_00-3-015-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.2",
+   "turns": 6
+  },
+  "seeds": [
+   {
+    "exam_sha": "f2e74b92335a",
+    "fixed_id": "AS-SXMXECC6",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.2"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-JGF26HTF",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_065",
+     "p_card-03-act-1_038+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_038"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-001"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_full_power_01-lesson_sp-after_mid",
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 27,
+    "parameters": [
+     356,
+     207,
+     262
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0",
+     "pitem_00-3-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 19,
+    "step_id": "p_step_lesson-produce-001-exam_full_power_01-sp-02",
+    "step_number": 9,
+    "step_select_number": null,
+    "step_type": 2,
+    "support_cards": [
+     "s_card-3-0005:62",
+     "s_card-3-0000:62",
+     "s_card-3-0012:62",
+     "s_card-2-0007:47",
+     "s_card-2-0001:47",
+     "s_card-3-0039:89"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100917Z",
+    "family": "AF-KNW2KQXD",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.2",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-2"
+    ],
+    "turns": 7
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-KNW2KQXD",
+  "id": "AS-JGF26HTF",
+  "name": "yz-20261105-hmsz-3-000-hajime-2",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 14,
+   "drinks": [
+    "pdrink_00-3-001"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.2",
+   "turns": 7
+  },
+  "seeds": [
+   {
+    "exam_sha": "6781ea1a7459",
+    "fixed_id": "AS-PFG8NG7C",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.2"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-7NYT9DPT",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-act-1_042",
+     "p_card-03-act-1_038",
+     "p_card-03-act-1_046",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_064"
+    ],
+    "drink_ids": [
+     "pdrink_03-1-010"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-002-exam_full_power_01-lesson_hard-before_mid",
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 33,
+    "parameters": [
+     332,
+     80,
+     149
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0",
+     "pitem_00-3-015-0",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 33,
+    "step_id": "p_step_lesson-produce-002-exam_full_power_01-hard-01",
+    "step_number": 5,
+    "step_select_number": null,
+    "step_type": 3,
+    "support_cards": [
+     "s_card-3-0005:91",
+     "s_card-3-0006:60",
+     "s_card-3-0012:60",
+     "s_card-3-0019:45",
+     "s_card-2-0001:45",
+     "s_card-3-0001:97"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100912Z",
+    "family": "AF-GEFXWPM7",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.3",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-3"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-GEFXWPM7",
+  "id": "AS-7NYT9DPT",
+  "name": "yz-20261105-hmsz-3-000-hajime-3",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 14,
+   "drinks": [
+    "pdrink_03-1-010"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0",
+    "pitem_00-3-015-0",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.3",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "56bee06f41fd",
+    "fixed_id": "AS-X33536WR",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.3"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-MDRPSFB5",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001+1",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_065",
+     "p_card-03-act-1_038+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_038",
+     "p_card-03-act-2_072"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-001",
+     "pdrink_00-2-004",
+     "pdrink_00-2-004"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-002-exam_full_power_01-lesson_hard-after_mid",
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 27,
+    "parameters": [
+     536,
+     207,
+     363
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0",
+     "pitem_00-3-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 22,
+    "step_id": "p_step_lesson-produce-002-exam_full_power_01-hard-02",
+    "step_number": 12,
+    "step_select_number": null,
+    "step_type": 3,
+    "support_cards": [
+     "s_card-3-0005:74",
+     "s_card-3-0000:74",
+     "s_card-3-0012:74",
+     "s_card-2-0007:56",
+     "s_card-2-0001:56",
+     "s_card-3-0039:101"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100912Z",
+    "family": "AF-XSX3HGEX",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.3",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-3"
+    ],
+    "turns": 11
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-XSX3HGEX",
+  "id": "AS-MDRPSFB5",
+  "name": "yz-20261105-hmsz-3-000-hajime-3",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 17,
+   "drinks": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-004",
+    "pdrink_00-2-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.3",
+   "turns": 11
+  },
+  "seeds": [
+   {
+    "exam_sha": "f15a60243f31",
+    "fixed_id": "AS-72TVY74X",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.3"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-B8CP3AG6",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_065"
+    ],
+    "drink_ids": [
+     "pdrink_00-1-001"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-002-exam_full_power_01-lesson_hard-before_mid",
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 27,
+    "parameters": [
+     139,
+     80,
+     161
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 27,
+    "step_id": "p_step_lesson-produce-002-exam_full_power_01-hard-01",
+    "step_number": 5,
+    "step_select_number": null,
+    "step_type": 3,
+    "support_cards": [
+     "s_card-3-0005:44",
+     "s_card-3-0000:44",
+     "s_card-3-0012:44",
+     "s_card-2-0007:33",
+     "s_card-2-0001:33",
+     "s_card-3-0039:72"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100915Z",
+    "family": "AF-A97GPZTA",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.3",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-3"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-A97GPZTA",
+  "id": "AS-B8CP3AG6",
+  "name": "yz-20261105-hmsz-3-000-hajime-3",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 11,
+   "drinks": [
+    "pdrink_00-1-001"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.3",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "cbbd5cf3dc15",
+    "fixed_id": "AS-DYYSX6YA",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.3"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-7SX7JANA",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001+1",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_065",
+     "p_card-03-act-1_038+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_064"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-001",
+     "pdrink_00-2-004"
+    ],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_full_power_01-lesson_normal-after_mid",
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 27,
+    "parameters": [
+     536,
+     207,
+     265
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0",
+     "pitem_00-3-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 20,
+    "step_id": "p_step_lesson-produce-001-exam_full_power_01-normal-04",
+    "step_number": 10,
+    "step_select_number": null,
+    "step_type": 7,
+    "support_cards": [
+     "s_card-3-0005:54",
+     "s_card-3-0000:54",
+     "s_card-3-0012:54",
+     "s_card-2-0007:41",
+     "s_card-2-0001:41",
+     "s_card-3-0039:82"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100915Z",
+    "family": "AF-9S69ZDSF",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.7",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-7"
+    ],
+    "turns": 7
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-9S69ZDSF",
+  "id": "AS-7SX7JANA",
+  "name": "yz-20261105-hmsz-3-000-hajime-7",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 15,
+   "drinks": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.7",
+   "turns": 7
+  },
+  "seeds": [
+   {
+    "exam_sha": "6f770a3e917e",
+    "fixed_id": "AS-J37VAFSB",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.7"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-BZ2TB867",
+   "loadout": {
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-act-1_042"
+    ],
+    "drink_ids": [],
+    "exam_extra_turn": 0,
+    "gimmick_group_id": "p_exam_gimmick-produce-001-exam_full_power_01-lesson_normal-before_mid",
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_limit_up_score": 0,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 33,
+    "parameters": [
+     140,
+     80,
+     90
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0"
+    ],
+    "research_card_ids": [],
+    "round": "lesson",
+    "schema": "gkms.hif_loadout.v1",
+    "starting_stamina": 33,
+    "step_id": "p_step_lesson-produce-001-exam_full_power_01-normal-01",
+    "step_number": 1,
+    "step_select_number": null,
+    "step_type": 7,
+    "support_cards": [
+     "s_card-3-0005:71",
+     "s_card-3-0006:40",
+     "s_card-3-0012:40",
+     "s_card-3-0019:35",
+     "s_card-2-0001:30",
+     "s_card-3-0001:77"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100913Z",
+    "family": "AF-9PT4J53G",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.7",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-7"
+    ],
+    "turns": 6
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-9PT4J53G",
+  "id": "AS-BZ2TB867",
+  "name": "yz-20261105-hmsz-3-000-hajime-7",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 10,
+   "drinks": null,
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0"
+   ],
+   "kind": "lesson",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "lesson",
+   "source": "capture",
+   "stage": "hajime.7",
+   "turns": 6
+  },
+  "seeds": [
+   {
+    "exam_sha": "3ef650f92fce",
+    "fixed_id": "AS-DHC63RGP",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "lesson",
+   "stage": "hajime.7"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-E8K6Z53Y",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001+1",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_065",
+     "p_card-03-act-1_038+1",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_064",
+     "p_card-03-act-1_038",
+     "p_card-03-act-2_072",
+     "p_card-03-act-1_040+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-3-001",
+     "pdrink_00-2-004",
+     "pdrink_00-2-004"
+    ],
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 27,
+    "parameters": [
+     811,
+     260,
+     422
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0",
+     "pitem_00-3-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "final",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     7050,
+     2630,
+     4200
+    ],
+    "starting_stamina": 22,
+    "step_id": "AuditionFinal",
+    "step_number": 13,
+    "step_select_number": 1,
+    "step_type": 18,
+    "support_cards": [
+     "s_card-3-0005:74",
+     "s_card-3-0000:67",
+     "s_card-3-0012:74",
+     "s_card-2-0007:41",
+     "s_card-2-0001:56",
+     "s_card-3-0039:95"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100108Z",
+    "family": "AF-D6NTH7ET",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_final",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-audition_final"
+    ],
+    "turns": 12
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-D6NTH7ET",
+  "id": "AS-E8K6Z53Y",
+  "name": "yz-20261105-hmsz-3-000-hajime-audition_final",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 18,
+   "drinks": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-004",
+    "pdrink_00-2-004"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0",
+    "pitem_00-3-001-0"
+   ],
+   "kind": "final",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "final",
+   "source": "capture",
+   "stage": "hajime.audition_final",
+   "turns": 12
+  },
+  "seeds": [
+   {
+    "exam_sha": "f474a84bed23",
+    "fixed_id": "AS-W27SHTCG",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "final",
+   "stage": "hajime.audition_final"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-ZAC8DF5R",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_065",
+     "p_card-03-act-1_038+1"
+    ],
+    "drink_ids": [
+     "pdrink_00-1-001"
+    ],
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 27,
+    "parameters": [
+     351,
+     162,
+     252
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0"
+    ],
+    "research_card_ids": [],
+    "round": "mid1",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     3660,
+     1950,
+     2710
+    ],
+    "starting_stamina": 27,
+    "step_id": "AuditionMid1",
+    "step_number": 6,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-3-0005:61",
+     "s_card-3-0000:53",
+     "s_card-3-0012:61",
+     "s_card-2-0007:35",
+     "s_card-2-0001:46",
+     "s_card-3-0039:81"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100058Z",
+    "family": "AF-GKJN4BDP",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-audition_mid1"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-GKJN4BDP",
+  "id": "AS-ZAC8DF5R",
+  "name": "yz-20261105-hmsz-3-000-hajime-audition_mid1",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 12,
+   "drinks": [
+    "pdrink_00-1-001"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0"
+   ],
+   "kind": "mid",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "mid1",
+   "source": "capture",
+   "stage": "hajime.audition_mid1",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "8a4b85d99711",
+    "fixed_id": "AS-BTC98DFK",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ },
+ {
+  "archive": {
+   "check": {},
+   "format": "gkms.audition_save.v2",
+   "id": "AS-B2HC6WS6",
+   "loadout": {
+    "audition_number": 1,
+    "deck_cards": [
+     "p_card-03-ido-3_077",
+     "p_card-00-act-0_001",
+     "p_card-00-act-0_001",
+     "p_card-00-men-0_003",
+     "p_card-00-men-0_003",
+     "p_card-03-men-0_015",
+     "p_card-03-men-0_013",
+     "p_card-03-men-0_013",
+     "p_card-03-act-0_021",
+     "p_card-03-act-1_042",
+     "p_card-03-act-1_038",
+     "p_card-03-act-1_046",
+     "p_card-03-act-1_038",
+     "p_card-03-men-2_064",
+     "p_card-03-act-2_072"
+    ],
+    "drink_ids": [
+     "pdrink_03-1-010"
+    ],
+    "idol_card_id": "i_card-hmsz-3-000",
+    "include_produce_default": false,
+    "lesson_start_enchant_ids": [],
+    "main_item_enchant_ids": [],
+    "max_stamina": 33,
+    "parameters": [
+     583,
+     180,
+     255
+    ],
+    "produce_id": "produce-001",
+    "produce_item_ids": [
+     "pitem_03-3-133-0",
+     "pitem_00-2-001-0",
+     "pitem_00-3-015-0",
+     "pitem_00-3-010-0"
+    ],
+    "research_card_ids": [],
+    "round": "mid1",
+    "schema": "gkms.hif_loadout.v1",
+    "score_bonus_permils": [
+     5170,
+     2240,
+     3010
+    ],
+    "starting_stamina": 33,
+    "step_id": "AuditionMid1",
+    "step_number": 6,
+    "step_select_number": 1,
+    "step_type": 16,
+    "support_cards": [
+     "s_card-3-0005:104",
+     "s_card-3-0006:54",
+     "s_card-3-0012:74",
+     "s_card-3-0019:46",
+     "s_card-2-0001:56",
+     "s_card-3-0001:111"
+    ]
+   },
+   "meta": {
+    "by": "yuzeis",
+    "created": "20261111T100057Z",
+    "family": "AF-W8JSPQMD",
+    "mechanic": "full_power",
+    "source": {
+     "kind": "capture"
+    },
+    "stage": "hajime.audition_mid1",
+    "tags": [
+     "name:yz-20261105-hmsz-3-000-hajime-audition_mid1"
+    ],
+    "turns": 9
+   },
+   "objective": {},
+   "prefix": "",
+   "runs": []
+  },
+  "core": false,
+  "family": "AF-W8JSPQMD",
+  "id": "AS-B2HC6WS6",
+  "name": "yz-20261105-hmsz-3-000-hajime-audition_mid1",
+  "scene": {
+   "by": "yuzeis",
+   "deck": 15,
+   "drinks": [
+    "pdrink_03-1-010"
+   ],
+   "exam": "produce-001",
+   "idol": "i_card-hmsz-3-000",
+   "items": [
+    "pitem_03-3-133-0",
+    "pitem_00-2-001-0",
+    "pitem_00-3-015-0",
+    "pitem_00-3-010-0"
+   ],
+   "kind": "mid",
+   "mechanic": "full_power",
+   "plan": "PLAN3",
+   "round": "mid1",
+   "source": "capture",
+   "stage": "hajime.audition_mid1",
+   "turns": 9
+  },
+  "seeds": [
+   {
+    "exam_sha": "cb1c717b6134",
+    "fixed_id": "AS-6Q8T6WPR",
+    "index": 0,
+    "label": "上传",
+    "split": "dev"
+   }
+  ],
+  "tags": {
+   "idol": "i_card-hmsz-3-000",
+   "mechanic": "full_power",
+   "produce": "produce-001",
+   "round": "mid1",
+   "stage": "hajime.audition_mid1"
+  }
+ }
+]

@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json
 import statistics
+import sys
 import time
+import types
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from gkagent.data.card_table import CardTable
@@ -15,6 +18,7 @@ from gkagent.sim import uinet
 from gkagent.sim.uiobs import (
     DEFAULT_MAX_STAMINA,
     PLAN_CODES,
+    legal_actions,
     resolve_card,
     to_uiobs,
 )
@@ -314,3 +318,92 @@ def _policy_for_real(table: CardTable) -> LessonPolicy:
     )
     policy._table = table
     return policy
+
+
+# ---------------------------------------------------------------- 2026-11-19 审查补测
+def test_legal_actions_indices_align_with_hand_positions() -> None:
+    """legal 的下标必须与 hand 列表位置一致，p=0 的牌不能混进去。"""
+    hand = [
+        {"id": "a", "u": 0, "p": 1},
+        {"id": "b", "u": 0, "p": 0},
+        {"id": "c", "u": 0, "p": 1},
+    ]
+    assert legal_actions(hand, allow_skip=False) == [["play", 0], ["play", 2]]
+    assert legal_actions(hand, allow_skip=True) == [
+        ["play", 0],
+        ["play", 2],
+        ["end"],
+    ]
+
+
+def test_uiobs_missing_fields_are_encodable_by_uinet() -> None:
+    """缺字段的观测（空 LessonState / 普通读数）喂给 UINet 编码器不能抛/出 NaN。"""
+    pytest.importorskip("gkms_uinet.encode")
+    from gkms_uinet.encode import encode
+    from gkms_uinet.feat import Featurizer
+
+    class FakeMaster:
+        """只有空表的 Master；让卡表查不到时走 UINet 的 unknown-card 分支。"""
+
+        def __init__(self) -> None:
+            self.cards: dict = {}
+            self.customizes: dict = {}
+            self.grow_effects: dict = {}
+            self.searches: dict = {}
+            self.effects: dict = {}
+            self.triggers: dict = {}
+            self.enchants: dict = {}
+            self.drinks: dict = {}
+            self.drink_effects: dict = {}
+
+    featurizer = Featurizer(FakeMaster())
+    for state in (LessonState(), _state()):
+        obs = to_uiobs(state, table=TABLE)
+        arrays = encode(obs, featurizer)
+        for name, array in arrays.items():
+            assert np.isfinite(array).all(), name
+        for action in obs["legal"]:
+            if action[0] == "play":
+                assert 0 <= action[1] < len(obs["hand"])
+
+
+def test_uinet_policy_session_is_reused_until_reset(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """ONNX Policy（含会话）必须按模型/主数据/线程数缓存，不能每次 decide 重建。"""
+    model = tmp_path / "fake.onnx"
+    model.write_bytes(b"onnx")
+    master = tmp_path / "master"
+    master.mkdir()
+    created: list[str] = []
+
+    class FakePolicy:
+        def __init__(self, model, master, threads=1):
+            created.append("init")
+
+        def decide(self, obs):
+            created.append("decide")
+            return {
+                "action": ["end"],
+                "probs": [1.0],
+                "score_quantiles": {"50%": 12},
+            }
+
+    fake_module = types.ModuleType("gkms_uinet")
+    fake_module.Policy = FakePolicy
+    monkeypatch.setitem(sys.modules, "gkms_uinet", fake_module)
+    monkeypatch.setattr(uinet, "_load_master", lambda directory: object())
+    uinet.reset_cache()
+    try:
+        first = uinet.predict({}, model=model, master=master, threads=1)
+        second = uinet.predict({}, model=model, master=master, threads=1)
+        assert created.count("init") == 1
+        assert created.count("decide") == 2
+        assert first.action == second.action == ("end",)
+        assert second.score_quantiles == {"50%": 12}
+
+        uinet.reset_cache()
+        uinet.predict({}, model=model, master=master, threads=1)
+        assert created.count("init") == 2
+    finally:
+        uinet.reset_cache()

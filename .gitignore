@@ -40,3 +40,5 @@ data/keep_ep*/
 # 官方 gkbench 仓库（本地参考/克隆，不入库；提交算法在 submissions/ 下）
 data/bench_repo/
 data/dl/
+data/bench_local/*.json
+data/bench_local/*.md

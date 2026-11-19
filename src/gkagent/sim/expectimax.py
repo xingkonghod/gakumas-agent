@@ -48,7 +48,7 @@ from collections import Counter
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, fields, replace
 from functools import lru_cache
-from typing import Any
+from typing import Any, Protocol
 
 from gkagent.sim.lesson import Buffs, CardSpec, DrinkSpec
 from gkagent.sim.p_items import (
@@ -77,6 +77,7 @@ __all__ = [
     "ExpectState",
     "ExpectimaxConfig",
     "ExpectimaxResult",
+    "LeafValue",
     "apply_card",
     "available_drinks",
     "best_turn_sequence",
@@ -170,6 +171,11 @@ class ExpectState:
     clear: int = 0
     perfect: int = 0
     condition_turns: int = 0
+    # 绝好调 / 不调剩余回合（gakumas-tools 的 perfectConditionTurns / poorConditionTurns）
+    perfect_condition_turns: int = 0
+    poor_condition_turns: int = 0
+    # メタモルフォーゼ："" | "performance"（披露 +25%）| "preparation"（支度 ×0.75）
+    metamorphosis: str = ""
     focus: int = 0
     impression: int = 0
     motivation: int = 0
@@ -268,6 +274,9 @@ class ExpectState:
             self.clear,
             self.perfect,
             self.condition_turns,
+            self.perfect_condition_turns,
+            self.poor_condition_turns,
+            self.metamorphosis,
             self.focus,
             self.impression,
             self.motivation,
@@ -291,6 +300,21 @@ class ExpectState:
             self.drinks_per_turn,
             self.card_uses,
         )
+
+
+class LeafValue(Protocol):
+    """叶子估值接口：``AnalyticLeafValue`` 与 ``v_leaf.LinearLeafValue`` 都实现它。
+
+    搜索/beam 只调用 ``utility``；``predict`` 留作日志/诊断与契约的一部分。
+    """
+
+    def predict(self, state: ExpectState) -> tuple[float, float]:
+        """返回未来得分的 (μ, σ)。"""
+        ...
+
+    def utility(self, state: ExpectState) -> float:
+        """返回档位期望效用。"""
+        ...
 
 
 @dataclass(frozen=True)
@@ -419,7 +443,7 @@ def expected_tier_utility(
     state: ExpectState,
     outcomes: Mapping[int, float],
     *,
-    value: AnalyticLeafValue | None = None,
+    value: LeafValue | None = None,
 ) -> float:
     """给定「分数增量 → 概率」的档位期望效用（阈值风险态度用）。"""
     model = value or AnalyticLeafValue()
@@ -605,12 +629,27 @@ def _card_award(
     if base_score > 0 and card.grow_score > 0 and uses > 0:
         base_score = base_score * (100 + uses * card.grow_score) / 100
     if base_score > 0:
-        multiplier = 1.5 if state.condition_turns > 0 else 1.0
+        # 与 LessonSim._card_award 同一口径（对照 gakumas-tools resolveScore）：
+        #   好调 = 1 + (0.5 + 绝好调 ? 好调回合数×0.1 : 0)；メタモルフォーゼ
+        #   披露 +25% / 支度 ×0.75；不调 ×0.67。
+        if state.condition_turns > 0:
+            condition_bonus = 0.5
+            if state.perfect_condition_turns > 0:
+                condition_bonus += 0.1 * state.condition_turns
+            multiplier = 1.0 + condition_bonus
+        else:
+            multiplier = 1.0
         raw = (
             (base_score + state.focus)
             * multiplier
             * score_multiplier(state.stance_state)
         )
+        if state.metamorphosis == "performance":
+            raw *= 1.25
+        elif state.metamorphosis == "preparation":
+            raw *= 0.75
+        if state.poor_condition_turns > 0:
+            raw *= 0.67
         if state.attribute_coefficient == 1.0:
             award = math.floor(raw)
         else:
@@ -1182,6 +1221,12 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         score += int(value)
         impression -= 1
     condition_turns = state.condition_turns - 1 if state.condition_turns > 0 else 0
+    perfect_condition_turns = (
+        state.perfect_condition_turns - 1 if state.perfect_condition_turns > 0 else 0
+    )
+    poor_condition_turns = (
+        state.poor_condition_turns - 1 if state.poor_condition_turns > 0 else 0
+    )
     condition_additive_turns = _tick_turns(state.condition_additive_turns)
     condition_additive = state.condition_additive if condition_additive_turns != 0 else 0
     review_multiple_turns = _tick_turns(state.review_multiple_turns)
@@ -1194,6 +1239,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         score=score,
         impression=impression,
         condition_turns=condition_turns,
+        perfect_condition_turns=perfect_condition_turns,
+        poor_condition_turns=poor_condition_turns,
         condition_additive=condition_additive,
         condition_additive_turns=condition_additive_turns,
         review_multiple=review_multiple,
@@ -1235,7 +1282,7 @@ class _Search:
 
     def __init__(
         self,
-        value: AnalyticLeafValue,
+        value: LeafValue,
         config: ExpectimaxConfig,
         *,
         clock: Callable[[], float],
@@ -1408,7 +1455,7 @@ def _config_with_overrides(
 
 def expectimax_with_stats(
     state: ExpectState,
-    value: AnalyticLeafValue | None = None,
+    value: LeafValue | None = None,
     *,
     config: ExpectimaxConfig | None = None,
     clock: Callable[[], float] = time.perf_counter,
@@ -1464,7 +1511,7 @@ def expectimax_with_stats(
 
 def expectimax(
     state: ExpectState,
-    value: AnalyticLeafValue | None = None,
+    value: LeafValue | None = None,
     *,
     config: ExpectimaxConfig | None = None,
     clock: Callable[[], float] = time.perf_counter,
@@ -1493,7 +1540,7 @@ def expectimax(
 
 def expectimax_action(
     state: ExpectState,
-    value: AnalyticLeafValue | None = None,
+    value: LeafValue | None = None,
     *,
     config: ExpectimaxConfig | None = None,
     clock: Callable[[], float] = time.perf_counter,
@@ -1516,7 +1563,7 @@ def expectimax_action(
 
 def expectimax_value(
     state: ExpectState,
-    value: AnalyticLeafValue | None = None,
+    value: LeafValue | None = None,
     **kwargs: Any,
 ) -> float:
     """当前状态在档位效用下的最优价值（测试/日志用）。"""
@@ -1525,7 +1572,7 @@ def expectimax_value(
 
 def best_turn_sequence(
     state: ExpectState,
-    value: AnalyticLeafValue | None = None,
+    value: LeafValue | None = None,
     *,
     clock: Callable[[], float] = time.perf_counter,
     deadline: float | None = None,
@@ -1591,7 +1638,7 @@ class _BeamNode:
 
 def _top_turn_plans(
     state: ExpectState,
-    value: AnalyticLeafValue,
+    value: LeafValue,
     *,
     limit: int,
     rng: random.Random,
@@ -1649,7 +1696,7 @@ def _top_turn_plans(
 
 def _plan_turn(
     state: ExpectState,
-    value: AnalyticLeafValue,
+    value: LeafValue,
     rng: random.Random,
     *,
     clock: Callable[[], float],
@@ -1705,7 +1752,7 @@ def _plan_turn(
 
 def search_beam(
     state: ExpectState,
-    value: AnalyticLeafValue | None = None,
+    value: LeafValue | None = None,
     *,
     width: int = 24,
     depth: int | None = None,
@@ -1877,6 +1924,9 @@ def state_from_sim(sim: Any) -> ExpectState:
         clear=max(int(getattr(sim, "target_clear", 0)), 0),
         perfect=max(int(getattr(sim, "target_perfect", 0)), 0),
         condition_turns=max(int(buffs.condition_turns), 0),
+        perfect_condition_turns=max(int(buffs.perfect_condition_turns), 0),
+        poor_condition_turns=max(int(buffs.poor_condition_turns), 0),
+        metamorphosis=str(buffs.metamorphosis or ""),
         focus=max(int(buffs.focus), 0),
         impression=max(int(buffs.impression), 0),
         motivation=max(int(getattr(sim, "motivation", 0)), 0),

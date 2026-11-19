@@ -1077,6 +1077,11 @@ class LessonSim:
             # 不在这里 -1：下一回合开始时扣（见 _draw_hand）
         if self.buffs.condition_turns > 0:
             self.buffs.condition_turns -= 1
+        # 绝好调 / 不调也按剩余回合衰减；メタモルフォーゼ是偶像特性，不随回合消失
+        if self.buffs.perfect_condition_turns > 0:
+            self.buffs.perfect_condition_turns -= 1
+        if self.buffs.poor_condition_turns > 0:
+            self.buffs.poor_condition_turns -= 1
         # 持续类 buff 剩余回合 -1；到 0 后同时清掉倍率，永久（-1）保持
         self.buffs.condition_additive_turns = _tick_buff_turns(
             self.buffs.condition_additive_turns
