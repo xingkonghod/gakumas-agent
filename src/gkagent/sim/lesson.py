@@ -382,6 +382,12 @@ class Buffs:
     """课程内会衰减的 buff。"""
 
     condition_turns: int = 0  # 好调剩余回合
+    # 绝好调：好调回合数每回合再 +0.1 倍（gakumas-tools resolveScore 口径）
+    perfect_condition_turns: int = 0
+    # 不调（poor condition）：分数 ×0.67
+    poor_condition_turns: int = 0
+    # メタモルフォーゼ："" | "performance"（披露 +25%）| "preparation"（支度 ×0.75）
+    metamorphosis: str = ""
     focus: int = 0  # 集中层数（永久）
     impression: int = 0  # 好印象层数（回合结束加分，下一回合开始 -1）
     # 2026-11-16 新效果带来的持续倍率/加算；turns = 0 未激活、-1 永久
@@ -779,8 +785,25 @@ class LessonSim:
         if base_score > 0 and card.grow_score > 0 and uses > 0:
             base_score = base_score * (100 + uses * card.grow_score) / 100
         if base_score > 0:
-            multiplier = 1.5 if self.buffs.condition_turns > 0 else 1.0
+            # 好调倍率（对照 gakumas-tools resolveScore，BSD-3）：
+            #   1 + (0.5 + 绝好调 ? 好调回合数×0.1 : 0) × 倍率
+            # 不是固定 1.5——绝好调下好调拖得越久越强。
+            if self.buffs.condition_turns > 0:
+                condition_bonus = 0.5
+                if self.buffs.perfect_condition_turns > 0:
+                    condition_bonus += 0.1 * self.buffs.condition_turns
+                multiplier = 1.0 + condition_bonus
+            else:
+                multiplier = 1.0
             raw = (base_score + self.buffs.focus) * multiplier * score_multiplier(self.stance)
+            # メタモルフォーゼ：披露 +25% 分数增益；支度 ×0.75（作用在减益基数上）
+            if self.buffs.metamorphosis == "performance":
+                raw *= 1.25
+            elif self.buffs.metamorphosis == "preparation":
+                raw *= 0.75
+            # 不调：×0.67
+            if self.buffs.poor_condition_turns > 0:
+                raw *= 0.67
             coefficient = self.config.attribute_coefficient
             if coefficient == 1.0:
                 award = math.floor(raw)
