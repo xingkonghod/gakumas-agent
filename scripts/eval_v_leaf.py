@@ -114,15 +114,27 @@ def main(argv: list[str]) -> int:
     args = parser.parse_args(argv)
 
     from gkagent.sim.expectimax import AnalyticLeafValue
-    from gkagent.sim.v_leaf import LinearLeafValue
 
-    model = LinearLeafValue.load(ROOT / "data" / "knowledge" / "v_leaf.json")
-    print(f"learned: σ={model.sigma:.1f} r²={model.meta.get('history', [{}])[-1].get('r2')}")
+    model = None
+    model_path = ROOT / "data" / "knowledge" / "v_leaf.json"
+    if model_path.exists():
+        try:
+            from gkagent.sim.v_leaf import LinearLeafValue
+
+            model = LinearLeafValue.load(model_path)
+            history = model.meta.get("history") or [{}]
+            print(f"learned: σ={model.sigma:.1f} r²={history[-1].get('r2')}")
+        except Exception as exc:  # noqa: BLE001 - 模型坏了不该挡住 baseline 评测
+            print(f"learned 加载失败（跳过该组）: {type(exc).__name__}: {exc}")
+    else:
+        print(f"未找到 {model_path.name}，跳过 learned 组（只跑 greedy / analytic）")
+
     results = [
         report("greedy", play(args.episodes, args.seed, "greedy")),
         report("analytic", play(args.episodes, args.seed, "expectimax", AnalyticLeafValue())),
-        report("learned", play(args.episodes, args.seed, "expectimax", model)),
     ]
+    if model is not None:
+        results.append(report("learned", play(args.episodes, args.seed, "expectimax", model)))
     base = results[0]["mean"]
     for row in results[1:]:
         print(f"  {row['name']} vs greedy: 均值 {row['mean'] - base:+.1f} ({row['mean'] / base - 1:+.1%})")
