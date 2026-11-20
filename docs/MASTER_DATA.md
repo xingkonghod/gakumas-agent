@@ -42,3 +42,21 @@
 - [ ] 用主数据修正 `hajime_data.py` 里的常数（考试基础分已确认，课程档位待查 `ProduceStepLessonLevel`）
 - [ ] 抽一场考试，用 gakumas_exam 跑一遍，和我们的 LessonSim 对比
 - [ ] 查 52 条定制卡的真实定义，补我们的效果表
+
+
+## 附：seed 在流量里（2026-11-20 发现）
+
+UserProduceProgress.ExamSeedValueFieldNumber = 600，服务器会把它下发给客户端。
+同一培育的多个响应里值一致：
+
+`
+StepAuditionStart        = 1347175689 (0x504C4509)
+StepAuditionEndExamBattle = 1347175689
+User/Get                  = 1347175689
+`
+
+配合客户端同款 RNG（xorshift32，见 gakumas_exam/rng.py）可以精确重放洗牌。
+工具：scripts/find_seed.py / scripts/verify_seed.py。
+
+**还没验证完**：考试时刻的「卡组列表」在哪个字段（Produce/Start 响应里有 23 种 base/idol 卡，
+但考试时牌组会因抓卡/删卡变化，需要在 StepAuditionStart 响应里定位实际 deck）。
