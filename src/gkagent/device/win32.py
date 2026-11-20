@@ -157,8 +157,13 @@ class Win32Device:
         return True
 
     def click_force(self, x: int, y: int, delay: float = 0.4) -> bool:
-        """兼容旧调用：与 click 相同，统一走 MAA 输入。"""
-        return self.click(x, y, delay=delay)
+        """强制点击：不受「用户正在操作」门限影响。
+
+        之前这里透传给 click()，而 click() 默认 respect_user=True，
+        结果机器自己刚点完一下就会被自己的输入判成"用户在动"，
+        下一帧的点击被静默跳过 —— 领卡弹窗那种连续点两下的流程会卡死。
+        """
+        return self.click(x, y, delay=delay, respect_user=False)
 
     def click_bg(self, x: int, y: int, delay: float = 0.3) -> None:
         """原生 PostMessage 点击：不移动系统光标，不抢前台焦点（本游戏无效，留作他用）。"""

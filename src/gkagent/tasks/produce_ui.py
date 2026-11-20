@@ -2123,8 +2123,14 @@ class ProduceDriver:
                     self._click(agent, (cx, max(60, cy - 60)))
                 else:
                     self._click(agent, (240, 960))  # 三选一的第一张（卡身中心）
+            # 选卡后「领取」按钮要等一小段才点亮，直接连点会点空 → 反复重进本分支
+            self.sleep(0.6)
             claim = self.find(lines, "领取")
-            self._click_once(agent, self.center(claim) if claim else (360, 1095))
+            claim_pt = self.center(claim) if claim else (360, 1095)
+            self._click(agent, claim_pt)
+            self.sleep(0.5)
+            # 点一次没关掉就再点一次（按钮点亮动画的兜底），仍关不掉交给下一帧
+            self._click(agent, claim_pt)
             self.sleep(0.9)
             return TickResult("card-reward", "pick+claim")
         # 4.05) "领取完成/已领取以下奖励" 结算弹窗：点关闭，别反复点领取（会死循环）
