@@ -644,7 +644,17 @@ class LessonPolicy:
         gauge = state.gauge
         if gauge is None or gauge <= 0:
             return None
-        return math.ceil(gauge * float(self.params["perfect_target_multiplier"]))
+        try:
+            from gkagent.sim.hajime_data import lesson_by_clear, perfect_target
+
+            tier = lesson_by_clear(int(gauge), int(state.turns_left) if state.turns_left else None)
+            if tier is None:
+                tier = lesson_by_clear(int(gauge))
+            if tier is not None:
+                return int(tier.full)
+            return int(perfect_target(int(gauge)))
+        except Exception:  # noqa: BLE001 - 查表失败就用经验倍率，不能影响出牌
+            return math.ceil(gauge * float(self.params["perfect_target_multiplier"]))
 
     def _budget(self, stamina: int | None, turns: int | None) -> float:
         if stamina is None:
