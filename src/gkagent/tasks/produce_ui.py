@@ -1925,7 +1925,13 @@ class ProduceDriver:
             and "P" not in line.text
             and "快进" not in line.text
         ]
-        if "快进" in text and "请选择行动" not in text and len(option_rows) >= 2:
+        # 事件屏不一定能 OCR 到「快进」（按钮小/灰），「外出」标题 + 多个选项也视为事件屏；
+        # 行动选择页同样有「外出」但有「请选择行动」，已被这个条件排除。
+        if (
+            ("快进" in text or "外出" in text)
+            and "请选择行动" not in text
+            and len(option_rows) >= 2
+        ):
             if self.event_pending_y is not None:
                 y = self.event_pending_y
                 self.event_pending_y = None
@@ -2058,7 +2064,7 @@ class ProduceDriver:
             return TickResult("toast", "wait")
         self.toast_waits = 0
         # 4.56) True End / 条件成就 达成弹窗：底部 ✕ 关闭
-        if "条件成就" in text or "True End" in text:
+        if ("条件成就" in text or "True End" in text) and "请选择要领取" not in text:
             close = self.find(lines, "关闭")
             self._click_line(agent, close) if close else self._click(agent, (360, 1215))
             return TickResult("achievement", "close")
@@ -2116,9 +2122,9 @@ class ProduceDriver:
                     # 「推荐」标签在卡牌下缘，点它选不中卡；向上 60px 点到卡身
                     self._click(agent, (cx, max(60, cy - 60)))
                 else:
-                    self._click(agent, (250, 915))  # 三选一的第一张
+                    self._click(agent, (240, 960))  # 三选一的第一张（卡身中心）
             claim = self.find(lines, "领取")
-            self._click_once(agent, self.center(claim) if claim else (360, 1097))
+            self._click_once(agent, self.center(claim) if claim else (360, 1095))
             self.sleep(0.9)
             return TickResult("card-reward", "pick+claim")
         # 4.05) "领取完成/已领取以下奖励" 结算弹窗：点关闭，别反复点领取（会死循环）
