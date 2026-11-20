@@ -151,6 +151,14 @@ class Win32Device:
                 if time.monotonic() >= deadline:
                     return False
                 time.sleep(0.12)
+        # 设计坐标是 720x1280，但游戏窗口可能被缩放到更小（例如 540x960）。
+        # 之前直接把设计坐标当窗口像素发给 controller，点击全部落空。
+        rect = wintypes.RECT()
+        USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
+        cw, ch = rect.right, rect.bottom
+        if cw > 0 and ch > 0 and (cw != 720 or ch != 1280):
+            x = round(int(x) * cw / 720.0)
+            y = round(int(y) * ch / 1280.0)
         self.controller.post_click(int(x), int(y)).wait()
         if delay:
             time.sleep(delay)
