@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from gkagent.sim.hajime_eval import hajime_evaluation, reverse_final_score  # noqa: E402
+from gkagent.sim.hajime_eval import hajime_evaluation, reverse_final_score
 
 
 def test_regular_9973():
