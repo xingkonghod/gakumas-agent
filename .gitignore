@@ -44,3 +44,7 @@ data/bench_local/*.json
 data/bench_local/*.md
 data/reverse/out/
 data/reverse/*.log
+
+# 视频/音频/抽帧（体积大，不入库；分析结论见 docs/LOCAL_DEPLOY_VIDEO.md）
+data/video/
+data/hiro/
