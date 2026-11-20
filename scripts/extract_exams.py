@@ -125,7 +125,7 @@ def main(argv: list[str]) -> int:
     for e in exams:
         print(
             f"{str(e['ts'])[:19]:20s} {str(e['rank']):>4s} {str(e['score']):>6s} "
-            f"{str(e['vocal']):>5s} {str(e['dance']):>5s} {str(e['visual']):>5s} {str(e['actions']):>6d}"
+            f"{str(e['vocal']):>5s} {str(e['dance']):>5s} {str(e['visual']):>5s} {str(e['actions']):>6s}"
         )
     totals = [e["score"] for e in exams if isinstance(e["score"], int)]
     if totals:

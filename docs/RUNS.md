@@ -243,3 +243,32 @@ uff check src tests 全绿。
 - `data/arun/f_056.png` — 期末考试第 1 名 + True End 3/3 MAX
 - `data/arun/f_061.png` — 培育完成（PLv 22、粉丝 36,897）
 - `data/arun/f_030.png` — 课程中（剩余 5 回合、CLEAR 55、分数 651、体力 29、集中 7、好调 2、好印象 6）
+
+
+## 2026-11-20 真机完整采集局（用户手动，B/7404）
+
+**第一次完整抓到「一局两场考试」的真实数据**（经 MITM 采集，`C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl`）。
+
+| 项 | 值 |
+|---|---|
+| 最终评价 | **B / 7404**（第二名）|
+| 最终三维 | **1011 / 493 / 779 = 2283** |
+| 期中考试 | 第 **3** 名，569 分（413/87/69），10 步操作 |
+| 期末考试 | 第 **2** 名，**4798** 分（3266/476/1056），17 步操作 |
+| 考试分合计 | 5367 |
+
+### 数据形态（protobuf 解码后）
+
+`StepAuditionEndExamBattle` 请求体（gzip 压缩）解出 `ExamBattleResult`：
+```
+field 1  = rank
+field 2  = score
+field 8/9/10 = vocal / dance / visual
+field 100 = 逐操作日志（每步一条）
+```
+
+### 提取工具
+```
+python scripts/extract_exams.py
+```
+输出每场考试的名次/分数/三维/操作数。
