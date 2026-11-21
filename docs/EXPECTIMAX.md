@@ -551,3 +551,52 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 
 命令：`python scripts/eval_known_draw.py --games 60 --scenario small --policy beam --score-tiebreak 0.001 --branching 10`
 
+## rollout 叶子实验（T4，2026-11-22 凌晨，**负结果**）
+
+**动机**：T4 诊断结论是"V_leaf 的 μ 不准"（真实小牌组 beam 111.2 vs 回合内 expectimax 143.1）。
+解析式 μ 高估"存体力"，于是做最小版 rollout 叶子：叶子用 `LessonSim` 把剩余回合快跑一遍，
+拿最终分数增量当 μ。
+
+**实现**
+- `src/gkagent/sim/expectimax.py`：
+  - `sim_from_state(state, *, rng, plan)`：把搜索里的纯 `ExpectState` 快照重建成可跑的 `LessonSim`
+    （牌序：`known_draw` 已知→按已知顺序；未知→按 rollout rng 洗牌；叶子手牌为空时补一手）。
+  - `RolloutLeafValue`：`predict` = `rollouts` 次 rollout 的分数增量均值/标准差（σ=max(sigma, 实测std)），
+    `utility` 复用解析式档位公式；按 `state.canonical()` 缓存。
+  - rollout 策略可选 `greedy`（快）或 `within`（每回合小预算 expectimax，慢）；后者用于验证
+    "叶子策略必须跟执行策略同强度"。
+- `scripts/eval_known_draw.py`：新增 `--leaf {analytic,rollout}`、`--rollouts`、
+  `--rollout-policy {greedy,within}`、`--rollout-budget-ms`。
+
+**配对评测（small，60 局，beam width=4 / budget=100ms / branching=10 / score_tiebreak=1e-3）**
+
+| 叶子 | unknown 均值 | known 均值 | CLEAR 率(u/k) | fallback |
+|---|---:|---:|---:|---:|
+| analytic（基线） | **111.3** | **111.4** | 35.0% / 38.3% | 0 |
+| rollout greedy r=3 | 103.0 | 104.1 | 28.3% / 26.7% | 0 |
+
+- 20 局变体：rollout 且不开 tiebreak 更差（78.8~89.0）；`--rollout-policy within`（budget 5ms）
+  也只有 78.8/85.3。within 策略本身：analytic 145.4 vs rollout 143.2（≈中性，略差）。
+- 结论：**最小版 rollout 叶子没有改善 beam，反而 -7~8 分**。原因是 rollout 策略（greedy）
+  比执行策略（回合内 expectimax）弱，leaf μ 的排序和执行结果错位；rollout 次数（1/3/6）不改变结论。
+
+**为什么没继续硬啃**
+1. 用执行同强度策略做 policy-evaluation 叶子，成本 = 每叶子"剩余回合 × 每回合 expectimax"，
+   在 beam 的数百个端点上是十几倍的耗时，当前 CPU 预算内不可行；
+2. 三次 learned 线性 V 失败说明"线性特征+回归"也不通，需要新信息（rollout 数据拟合/机制建模）；
+3. 现有解析式 + tiebreak 在 beam 上已经是 111.2（比 beam 默认 91.3 好很多），先把 T4 的收益
+   限定在"平手项+采样"，把 μ 的修复留给下一步。
+
+**下一步（按性价比）**
+1. **策略评价叶子（受控成本）**：只对 beam 最深一层的端点做 rollout，且用执行同策略（within）
+   + 缓存 + 小预算，验证 μ 排序是否变好；
+2. **rollout 数据 → 学 V_leaf**：用 rollout 的（状态, 最终分）样本重训 `v_leaf.json`
+   （比纯解析特征多一个"自我对弈"监督信号）；
+3. 同时补 T5 机制建模（P 道具/回忆/附魔/选牌/减益），否则 rollout 再准也只是模拟器内准。
+
+命令（复现负结果）：
+```powershell
+.venv\Scripts\python.exe scripts\eval_known_draw.py --games 60 --scenario small --policy beam \
+  --width 4 --budget-ms 100 --branching 10 --score-tiebreak 0.001 \
+  --leaf rollout --rollouts 3 --rollout-policy greedy
+```

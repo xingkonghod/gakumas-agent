@@ -394,6 +394,40 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 
 ---
 
+### 二·补十、11-22 凌晨（T4 rollout 叶子：实现完成，结果负）
+
+**做了什么**（`src/gkagent/sim/expectimax.py` + `scripts/eval_known_draw.py`）
+- `sim_from_state()`：把搜索的纯 `ExpectState` 快照重建成可跑的 `LessonSim`
+  （`known_draw` → 已知牌序；未知 → 按 rollout rng 洗牌；叶子空手补一手；P 道具/除外区/成长计数全带过去）。
+- `RolloutLeafValue`：叶子处用 `LessonSim` 跑完剩余回合，μ=分数增量均值，σ=max(sigma, 实测std)；
+  支持 `policy=greedy|within`（within = 每回合小预算 expectimax）；按 `canonical()` 缓存。
+- `eval_known_draw.py` 新增 `--leaf {analytic,rollout}`、`--rollouts`、`--rollout-policy`、
+  `--rollout-budget-ms`，默认全部保持 analytic（生产行为不变）。
+
+**结果（small 60 局，beam width4 / budget100ms / branching10 / tiebreak=1e-3）**
+
+| 叶子 | unknown | known | CLEAR(u/k) | fallback |
+|---|---:|---:|---:|---:|
+| analytic（基线） | **111.3** | **111.4** | 35.0% / 38.3% | 0 |
+| rollout greedy r=3 | 103.0 | 104.1 | 28.3% / 26.7% | 0 |
+
+- 20 局变体：rollout 无 tiebreak 更差（78.8~89.0）；`rollout-policy=within`（5ms）也只有 78.8/85.3；
+  within 策略本身 analytic 145.4 vs rollout 143.2（≈中性）。
+- **结论：最小版 rollout 叶子没有改善 beam，反而 −7~8 分**；根因是 rollout 策略（greedy）比执行策略
+  （回合内 expectimax）弱，leaf μ 的排序与执行结果错位。rollout 次数 1/3/6 不改变结论。
+
+**为什么停在这里**：用执行同强度策略做 policy-evaluation 叶子，成本 ≈ 每叶子"剩余回合 × expectimax"，
+beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 V 已失败三次。下一步建议：
+①只对 beam 最深端点的受控 policy-evaluation 叶子；②用 rollout 数据当监督信号重训 `v_leaf.json`；
+③补 T5 机制建模。细节与复现命令见 [EXPECTIMAX.md](EXPECTIMAX.md)「rollout 叶子实验」。
+
+**测试**：新增 `tests/test_rollout_leaf.py` 7 条（快照往返/缓存/边界/单调性/known_draw 确定性/不改输入）；
+全量 `pytest tests/ -q` 收集 **897 条（1 skipped）全绿**；`ruff` 通过。
+
+**提交**：`366131a` feat(t4): rollout 叶子最小版（ExpectState→LessonSim 快照 + RolloutLeafValue + eval 开关）——实验负结果，默认关闭
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -410,7 +444,9 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 - `uihorizon 和 uinet 都到头了`，`上了十倍的训练量指标反而倒退了`
 - 他们在做 **seed 反推**（2^31-1 枚举 + 观测剪枝），并已逆出来，但**定下规矩实战不用**
 - 他们用 **frida 注入**（需要管理员），有人卡在 `VirtualAllocEx 0x5`
-- 没人提过 **MITM/抓包**——这是我们独有的路线
+- 2026-11-21 深夜用户反馈：**群里已开始出现 MITM/RNG 讨论**（"最新发现"），但只是刚摸到
+  「能拿 seed/RNG」的入口，尚未复现牌堆重建+洗牌+决策全链路；我们仍是完整链路唯一的实现方。
+  **对外策略**：不公开可复现路径（hook/解密/字段/算法），最多发结论；优先趁封堵窗口自用验证与备份数据。
 
 详见 `docs/QQ_GROUP_NOTES.md`、`docs/HIRO_VIDEO_NOTES.md`。
 
