@@ -12,7 +12,8 @@
 只读本模块自己写的缓存文件，不接受外部输入。
 
 本模块不吞异常：模型/主数据缺失、ONNX 报错都抛给调用方，由
-``LessonPolicy._try_uinet`` 统一退回规则引擎。
+``LessonPolicy._try_uinet`` 记原因后抛 ``RuleFallbackBlocked``（用户规则：
+bot 不许回退 rules）。
 """
 
 from __future__ import annotations
@@ -182,7 +183,8 @@ def predict(
 ) -> UinetOutput:
     """UIObs v1 → UINet 的贪心动作（含每个 legal 动作的概率）。
 
-    模型/主数据缺失、ONNX 报错都直接抛异常；调用方负责退回规则。
+    模型/主数据缺失、ONNX 报错都直接抛异常；调用方（``LessonPolicy``）负责
+    记 blocked 原因，绝不静默回退 rules。
     """
     model_file = model_path(model)
     if not model_file.is_file():

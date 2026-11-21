@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 from gkagent.data.card_table import CardTable
-from gkagent.policy.lesson import LessonPolicy
+from gkagent.policy.lesson import LessonPolicy, RuleFallbackBlocked
 from gkagent.sim import uinet
 from gkagent.sim.uiobs import (
     DEFAULT_MAX_STAMINA,
@@ -199,34 +199,34 @@ def test_policy_json_accepts_uinet_engine(tmp_path: Path) -> None:
     assert LessonPolicy(params_path=path).engine == "uinet"
 
 
-def test_uinet_missing_model_falls_back_to_rules(
+def test_uinet_missing_model_blocks_rule_fallback(
     monkeypatch, tmp_path: Path
 ) -> None:
+    """用户规则：UINet 模型缺失时抛 blocked，绝不回退 rules。"""
     monkeypatch.setenv("GKMS_UINET_MODEL", str(tmp_path / "missing.onnx"))
-    state = _state()
-    rules = _policy(tmp_path).decide(state)
-    fallback = _policy(tmp_path, engine="uinet").decide(state)
-    assert (fallback.kind, fallback.index) == (rules.kind, rules.index)
+    policy = _policy(tmp_path, engine="uinet")
+    with pytest.raises(RuleFallbackBlocked, match="uinet"):
+        policy.decide(_state())
+    assert policy.forbids_rule_fallback
 
 
-def test_uinet_missing_master_falls_back_to_rules(
+def test_uinet_missing_master_blocks_rule_fallback(
     monkeypatch, tmp_path: Path
 ) -> None:
     monkeypatch.setenv("GKMS_UINET_MASTER", str(tmp_path / "no-master"))
-    state = _state()
-    rules = _policy(tmp_path).decide(state)
-    fallback = _policy(tmp_path, engine="uinet").decide(state)
-    assert (fallback.kind, fallback.index) == (rules.kind, rules.index)
+    policy = _policy(tmp_path, engine="uinet")
+    with pytest.raises(RuleFallbackBlocked, match="uinet"):
+        policy.decide(_state())
 
 
-def test_uinet_exception_falls_back_to_rules(monkeypatch, tmp_path: Path) -> None:
+def test_uinet_exception_blocks_rule_fallback(monkeypatch, tmp_path: Path) -> None:
     def boom(*args, **kwargs):
         raise RuntimeError("onnx exploded")
 
     monkeypatch.setattr(uinet, "predict", boom)
-    state = _state()
-    rules = _policy(tmp_path).decide(state)
-    assert _policy(tmp_path, engine="uinet").decide(state).index == rules.index
+    policy = _policy(tmp_path, engine="uinet")
+    with pytest.raises(RuleFallbackBlocked, match="onnx exploded"):
+        policy.decide(_state())
 
 
 def test_uinet_play_action_maps_back_to_lesson_card(
@@ -257,25 +257,43 @@ def test_uinet_end_action_intercepted_to_card(monkeypatch, tmp_path: Path) -> No
 
     monkeypatch.setattr(uinet, "predict", fake)
     policy = _policy(tmp_path, engine="uinet")
-    # 2026-11-21 用户规则：UINet 说 end 也不算数——还有付得起的牌就硬打
-    assert policy.decide(_state()).kind == "card"
-    # 考试模式不允许 SKIP：UINet 说 end 也退回规则
+    # 2026-11-21 用户规则：UINet 说 end 也不算数——还有付得起的牌就按它的概率硬打
+    action = policy.decide(_state())
+    assert action.kind == "card"
+    assert "不回退 rules" in policy.decision_note()
+    # 考试模式不允许 SKIP：同样只能出牌/等待
     exam_action = policy.decide(_state(), allow_skip=False)
     assert exam_action.kind in {"card", "wait"}
 
 
-def test_uinet_drink_action_falls_back_to_rules(
+def test_uinet_no_affordable_cards_skips_only_when_allowed(
+    tmp_path: Path,
+) -> None:
+    """只有所有牌都付不起（真没体力）才 SKIP；考试返回 wait。"""
+    state = _state(stamina=0)
+    policy = _policy(tmp_path, engine="uinet")
+    action = policy.decide(state)
+    assert action.kind == "skip"
+    exam_action = policy.decide(state, allow_skip=False)
+    assert exam_action.kind == "wait"
+
+
+def test_uinet_drink_action_forces_probability_pick(
     monkeypatch, tmp_path: Path
 ) -> None:
+    """UINet 建议喝饮料（真机没有对应动作）：按其概率硬打一张，不回退 rules。"""
+
     def fake(obs, **kwargs):
         return uinet.UinetOutput(
-            action=("drink", 0), probs=(1.0,), score_quantiles={}, elapsed_ms=1.0
+            action=("drink", 0), probs=(0.9, 0.1, 0.0, 0.0), score_quantiles={}, elapsed_ms=1.0
         )
 
     monkeypatch.setattr(uinet, "predict", fake)
-    state = _state()
-    rules = _policy(tmp_path).decide(state)
-    assert _policy(tmp_path, engine="uinet").decide(state).index == rules.index
+    policy = _policy(tmp_path, engine="uinet")
+    action = policy.decide(_state())
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "大牌"
+    assert "不回退 rules" in policy.decision_note()
 
 
 # ---------------------------------------------------------------- 真实 ONNX

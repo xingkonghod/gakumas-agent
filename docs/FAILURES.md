@@ -290,6 +290,27 @@ ote_self_input() 落盘，0.6s 排除窗口不够。
 - **教训**：**策略里的"放弃动作"只能是物理不可能，不能是模型不确定**。不确定就退到保守可行动作，
   并把不确定性写进日志/指标，而不是用它当跳过理由。
 
+### 40. 设计错误：搜索失败静默退回 rules → 用户规则「bot 不许回退 rules」
+- **现象**（C/4242 那局）：考试 32 步里 9 步 `eng=expectimax fallback=搜索未产出动作，退回规则`；
+  日志里 `eng=expectimax` 看着像搜索在打，实际这一手是规则引擎选的，事后才能从 `fallback=` 发现。
+- **根因**：`LessonPolicy.decide` 先无条件算一遍 `rules_action`，搜索引擎返回 `None`（异常 / 状态没读全 /
+  搜索建议 SKIP / 结果失配）就整手改用规则；beam 缺全知退回回合内搜索是允许的，但 uinet→rules、
+  SKIP 被拦截→rules_action 等也都在用规则兜底。等于"降级"发生在暗处。
+- **用户规则（2026-11-21 追加）**：**bot 不许回退 rules**。搜索失败 = bug（OCR/卡表/参数），
+  要暴露出来去修，不许用规则引擎或跳过补偿。
+- **修复**：
+  - 搜索引擎（expectimax/beam/uinet）**不再调用 `_decide_rules`**，任何失败都不拿 rules 兜底：
+    搜索建议 SKIP 但还有付得起的牌 → 按搜索自己的动作排序硬打（expectimax `actions` /
+    beam 根回合计划首牌 / UINet 合法动作概率）；状态没读全 → `wait` 等下一帧重读；
+    搜索异常 / 结果失配 → 抛 `RuleFallbackBlocked`；
+  - `auto_produce` 捕获后写 `[engine][BLOCKED]` + `fallback= rule-fallback-blocked` 并中止本局；
+  - 入口 `--engine`/`produce.engine` 非法 → exit 2；显式 `engine=` 写错 → 构造期 `ValueError`；
+  - bot 入口默认引擎改为 `expectimax`；`--engine rules` 只保留给 A/B 对照/离线复现（日志会警告）。
+- **测试**：expectimax/beam/uinet 的「异常退回 rules」用例全部改写为「必须 blocked」；新增
+  skip→按搜索排名硬打、beam 根计划首牌、uinet 概率硬打、wait 语义、显式 engine 写错等回归。
+- **教训**：**降级必须是显式的、可观测的失败，不能是静默换引擎**——否则日志里的 `eng=` 会撒谎，
+  事后根本分不清"这手是谁决定的"。宁可中止本局，也不要一个悄悄变弱的 bot。
+
 ## 评估口径约定（2026-11-16 用户指定）
 
 **不再用 C+ 达成率 / B 率这类阈值二元指标评估策略。**

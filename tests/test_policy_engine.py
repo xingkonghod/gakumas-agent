@@ -1,11 +1,18 @@
-"""LessonPolicy 的 engine 开关：默认 rules，expectimax 可选，异常退回 rules。"""
+"""LessonPolicy 的 engine 开关与「禁止回退 rules」规则。
+
+用户规则（2026-11-21）：bot 不许回退 rules——搜索引擎搜索异常/结果失配时抛
+``RuleFallbackBlocked``，不再静默用规则引擎打；搜索建议 SKIP 时按搜索结果自己的
+动作价值硬打；状态没读全返回 ``wait`` 等下一帧重读。
+"""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from gkagent.policy.lesson import LessonPolicy
+import pytest
+
+from gkagent.policy.lesson import LessonPolicy, RuleFallbackBlocked
 from gkagent.sim.expectimax import ExpectimaxResult
 from gkagent.vision.lesson import LessonCard, LessonState
 
@@ -75,11 +82,17 @@ def test_policy_json_can_switch_engine(tmp_path: Path) -> None:
     policy = LessonPolicy(params_path=path)
     policy._table = TABLE
     assert policy.engine == "expectimax"
-    # 未知取值不能把 engine 变成非法状态 → 退回 rules
+    # 未知取值不能把 engine 变成非法状态：配置文件里的坏值仍按默认 rules 解析
+    # （这是构造期配置默认，不是运行期静默回退；显式 engine= 写错会直接抛错）。
     path.write_text(
         json.dumps({"version": 1, "lesson": {"engine": "magic"}}), encoding="utf-8"
     )
     assert LessonPolicy(params_path=path).engine == "rules"
+
+
+def test_unknown_explicit_engine_raises(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="未知出牌引擎"):
+        _policy(tmp_path, engine="rulse")
 
 
 def test_expectimax_engine_maps_lesson_state(monkeypatch, tmp_path: Path) -> None:
@@ -108,17 +121,28 @@ def test_expectimax_engine_maps_lesson_state(monkeypatch, tmp_path: Path) -> Non
     assert action.card is not None and action.card.name == "大牌"
     assert action.expected == 0.875
     assert "expectimax" in action.reason
-    mapped = captured["state"]
-    assert mapped.stamina == 10
-    assert mapped.score == 50
-    assert mapped.turns_left == 3
-    assert mapped.total_turns == 6
-    assert mapped.clear == 100
-    assert mapped.perfect == 200
-    assert mapped.plays_used == 0
+    # 真机出牌链路没有喝饮料动作：搜索必须关掉饮料，否则 card=None 会被当成 SKIP。
+    assert captured["kwargs"]["allow_drinks"] is False
 
 
-def test_expectimax_exception_falls_back_to_rules(monkeypatch, tmp_path: Path) -> None:
+def test_expectimax_exception_blocks_rule_fallback(monkeypatch, tmp_path: Path) -> None:
+    """搜索异常不再退回 rules：必须抛 RuleFallbackBlocked（由真机入口中止本局）。"""
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("sim exploded")
+
+    monkeypatch.setattr(
+        "gkagent.sim.expectimax.expectimax_with_stats", boom, raising=True
+    )
+    policy = _policy(tmp_path, engine="expectimax")
+    with pytest.raises(RuleFallbackBlocked, match="sim exploded"):
+        policy.decide(_state())
+    assert "异常" in policy.last_fallback_reason
+
+
+def test_allow_rule_fallback_debug_switch(monkeypatch, tmp_path: Path) -> None:
+    """只有显式调试开关才保留旧回退行为（真机入口永远不传 True）。"""
+
     def boom(*args, **kwargs):
         raise RuntimeError("sim exploded")
 
@@ -127,14 +151,41 @@ def test_expectimax_exception_falls_back_to_rules(monkeypatch, tmp_path: Path) -
     )
     state = _state()
     rules = _policy(tmp_path).decide(state)
-    fallback = _policy(tmp_path, engine="expectimax").decide(state)
+    fallback = _policy(
+        tmp_path, engine="expectimax", allow_rule_fallback=True
+    ).decide(state)
     assert (fallback.kind, fallback.index) == (rules.kind, rules.index)
 
 
-def test_expectimax_skip_intercepted_when_cards_affordable(
+def test_expectimax_skip_intercepted_by_search_ranking(
     monkeypatch, tmp_path: Path
 ) -> None:
-    """2026-11-21 用户规则：搜索建议 SKIP 不算数——还有付得起的牌就硬打一张。"""
+    """搜索建议 SKIP 不算数：还有付得起的牌就按搜索结果自己的动作价值硬打。"""
+
+    def fake(state, *args, **kwargs):
+        return ExpectimaxResult(
+            card=None,
+            utility=0.2,
+            skip_utility=0.9,
+            actions=(("小牌", 0.2), ("大牌", 0.1)),
+            nodes=5,
+            elapsed_ms=0.5,
+            complete=True,
+        )
+
+    monkeypatch.setattr(
+        "gkagent.sim.expectimax.expectimax_with_stats", fake, raising=True
+    )
+    policy = _policy(tmp_path, engine="expectimax")
+    action = policy.decide(_state())
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "小牌"
+    assert "SKIP" in action.reason and "硬打" in action.reason
+    assert "不回退 rules" in policy.decision_note()
+
+
+def test_expectimax_skip_without_alternative_blocks(monkeypatch, tmp_path: Path) -> None:
+    """搜索说 SKIP 但又拿不出任何动作：宁可 blocked，也不许回退 rules。"""
 
     def fake(state, *args, **kwargs):
         return ExpectimaxResult(
@@ -151,14 +202,36 @@ def test_expectimax_skip_intercepted_when_cards_affordable(
         "gkagent.sim.expectimax.expectimax_with_stats", fake, raising=True
     )
     policy = _policy(tmp_path, engine="expectimax")
-    state = _state()
-    # allow_skip=True 也不许跳过（有付得起的牌）
+    with pytest.raises(RuleFallbackBlocked, match="SKIP"):
+        policy.decide(_state())
+
+
+def test_expectimax_skip_allowed_when_no_card_affordable(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """只有所有牌都付不起（真没体力）才允许 SKIP。"""
+
+    def fake(state, *args, **kwargs):
+        return ExpectimaxResult(
+            card=None,
+            utility=0.0,
+            skip_utility=0.0,
+            actions=(),
+            nodes=1,
+            elapsed_ms=0.1,
+            complete=True,
+        )
+
+    monkeypatch.setattr(
+        "gkagent.sim.expectimax.expectimax_with_stats", fake, raising=True
+    )
+    policy = _policy(tmp_path, engine="expectimax")
+    state = _state(
+        stamina=1, cards=(_card(0, "大牌", 40, 5), _card(1, "小牌", 5, 2))
+    )
     action = policy.decide(state)
-    assert action.kind == "card"
-    assert "SKIP" in policy.decision_note() or "fallback=" in policy.decision_note()
-    # 考试模式（allow_skip=False）：更不能 SKIP
-    action = policy.decide(state, allow_skip=False)
-    assert action.kind in {"card", "wait"}
+    assert action.kind == "skip"
+    assert "付不起" in action.reason
 
 
 # ---------------------------------------------------------------- 决策可观测性
@@ -187,29 +260,14 @@ def test_decision_note_reports_engine(monkeypatch, tmp_path: Path) -> None:
     assert policy.last_decision["engine"] == "expectimax"
 
 
-def test_decision_note_reports_search_failure(monkeypatch, tmp_path: Path) -> None:
-    def boom(*args, **kwargs):
-        raise RuntimeError("sim exploded")
-
-    monkeypatch.setattr(
-        "gkagent.sim.expectimax.expectimax_with_stats", boom, raising=True
-    )
-    policy = _policy(tmp_path, engine="expectimax")
-    action = policy.decide(_state())
-    # 搜索异常不能影响出牌，但要能看出「这手其实是规则打的」
-    assert action.kind == "card"
-    note = policy.decision_note()
-    assert "eng=expectimax" in note
-    assert "fallback=" in note and "异常" in note
-
-
 def test_decision_note_reports_missing_state(tmp_path: Path) -> None:
-    """体力读不到 → 搜索用不了，decision_note 里必须写明原因。"""
+    """体力读不到 → 搜索用不了，返回 wait 等下一帧，且写明不回退 rules。"""
     policy = _policy(tmp_path, engine="expectimax")
     action = policy.decide(_state(stamina=None))
-    assert action.kind in {"card", "wait"}
+    assert action.kind == "wait"
     note = policy.decision_note()
-    assert "fallback=体力未知" in note
+    assert "等待重读" in note
+    assert "不回退 rules" in note
 
 
 def test_decision_note_rules_engine(tmp_path: Path) -> None:

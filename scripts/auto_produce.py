@@ -37,7 +37,7 @@ from gkagent.data.master import MasterData
 from gkagent.data.run_record import RunRecorder, action_of
 from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd, user_idle_ms
 from gkagent.nav import Navigator
-from gkagent.policy.lesson import LessonPolicy
+from gkagent.policy.lesson import LessonPolicy, RuleFallbackBlocked
 from gkagent.policy.lesson_pick import decide_lesson_pick
 from gkagent.policy.ocr_cards import OcrCardPolicy
 from gkagent.policy.search import SearchPolicy
@@ -489,17 +489,28 @@ def main() -> int:
     cost_cache = CardCosts()
     lesson_reader = LessonReader(engine, cards=card_lib, costs=cost_cache)
     # 真机出牌引擎：--engine 优先，其次 policy.json 的 produce.engine。
-    # `lesson.engine` 是 LessonPolicy 独立使用/单元测试的默认值（保持 rules），
-    # 真机 bot 读 produce 段——之前 produce.engine 是死配置（没人读），这里接上。
+    # 用户规则（2026-11-21）：**bot 不许回退 rules**。入口默认 expectimax（不再
+    # 默认 rules）；只有显式 `--engine rules` 才用规则引擎（仅 A/B 对照/离线复现）。
     engine_override = (arg_value("--engine") or "").strip().lower()
     produce_engine = str(driver._produce_params().get("engine") or "").strip().lower()
-    lesson_engine = engine_override or produce_engine
-    lesson_policy = LessonPolicy(buffs=lesson_reader.buffs, engine=lesson_engine or None)
+    allowed_engines = ("rules", "expectimax", "beam", "uinet")
+    requested_engine = engine_override or produce_engine
     engine_source = (
         "--engine"
         if engine_override
-        else ("policy.json produce.engine" if produce_engine else "默认")
+        else ("policy.json produce.engine" if produce_engine else "默认(expectimax)")
     )
+    lesson_engine = requested_engine or "expectimax"
+    if lesson_engine not in allowed_engines:
+        print(
+            f"invalid engine {lesson_engine!r}（可选 {', '.join(allowed_engines)}）"
+            "；用户规则禁止静默回退 rules",
+            file=sys.stderr,
+        )
+        return 2
+    lesson_policy = LessonPolicy(buffs=lesson_reader.buffs, engine=lesson_engine)
+    # 搜索引擎（非 rules）一旦无法决策就中止本局，绝不接老规则路径。
+    strict_engine = lesson_policy.engine != "rules"
     # 考试牌序计划（完全信息搜索数据源）：--exam-setup 指向 build_exam_setup.py 的产物。
     # 计划挂到策略后，每回合会拿采集推出来的牌序跟实机手牌核对；核对不上自动停用，
     # 行为退回期望搜索（没有采集数据时也完全等价于现状）。
@@ -516,6 +527,15 @@ def main() -> int:
 
     log_lines: list[str] = []
     log_lines.append(f"[engine] 出牌引擎 = {lesson_policy.engine}（来源：{engine_source}）")
+    if strict_engine:
+        log_lines.append(
+            "[engine] 用户规则：规则回退已禁用——搜索无法决策会记 [engine][BLOCKED] "
+            "并中止本局，不再静默退回 rules"
+        )
+    else:
+        log_lines.append(
+            "[engine] ⚠️ 显式 rules 引擎：仅用于 A/B 对照/离线复现；正常整局跑局不要用"
+        )
     if ignore_user:
         log_lines.append("[engine] --ignore-user：忽略暂停门（无人值守跑完整局用）")
     idle = 0
@@ -1356,25 +1376,55 @@ def main() -> int:
                 )
                 costs = [card.cost for card in hand.cards] if hand.cards else None
                 lesson_skip = False
-                name_pick, lesson_done = decide_lesson_pick(
-                    image,
-                    lesson_reader,
-                    lesson_policy,
-                    stamina=stamina,
-                    exclude=bad_cards,
-                    click=agent.device.click_force,
-                    state=state_clean,
-                    allow_skip=not exam_mode,
-                    fallback=lambda lines=lines, boxes=boxes, stamina=stamina, costs=costs, image=image: pick_hand_card(
-                        lines if lines else driver.engine().read(image, (0, 780, 720, 420)),
-                        boxes,
-                        card_lib,
+                try:
+                    name_pick, lesson_done = decide_lesson_pick(
+                        image,
+                        lesson_reader,
+                        lesson_policy,
                         stamina=stamina,
-                        costs=costs,
-                        attribute=driver.lesson_attribute,
                         exclude=bad_cards,
-                    ),
-                )
+                        click=agent.device.click_force,
+                        state=state_clean,
+                        allow_skip=not exam_mode,
+                        # 用户规则（2026-11-21）：搜索引擎禁止回退老规则路径；
+                        # 只有显式 --engine rules 才保留 pick_hand_card 兜底。
+                        fallback=(
+                            None
+                            if strict_engine
+                            else (
+                                lambda lines=lines, boxes=boxes, stamina=stamina, costs=costs, image=image: pick_hand_card(
+                                    lines if lines else driver.engine().read(image, (0, 780, 720, 420)),
+                                    boxes,
+                                    card_lib,
+                                    stamina=stamina,
+                                    costs=costs,
+                                    attribute=driver.lesson_attribute,
+                                    exclude=bad_cards,
+                                )
+                            )
+                        ),
+                    )
+                except RuleFallbackBlocked as exc:
+                    # 用户规则：**bot 不许回退 rules**。搜索引擎无法决策时不许悄悄
+                    # 改用规则打，也不许用 SKIP 补偿——记 BLOCKED 并中止本局，暴露
+                    # OCR/卡表问题。
+                    log_lines.append(
+                        f"{step:03d} [engine][BLOCKED] {exc}（用户规则：不许回退 rules）"
+                    )
+                    log_failure(
+                        episode,
+                        step,
+                        "rule-fallback-blocked",
+                        str(exc),
+                        {
+                            "engine": lesson_policy.engine,
+                            "attribute": driver.lesson_attribute,
+                            "stamina": last_stamina,
+                            "exam": exam_mode,
+                        },
+                    )
+                    stuck_exit = True
+                    break
                 # 决策可观测性：本步到底用哪个引擎、搜索有没有静默退回规则
                 decision_note = lesson_policy.decision_note()
                 if lesson_done:
@@ -1393,26 +1443,36 @@ def main() -> int:
                     # 卡名只剩 SELECT/SEECT/S/A/M 时不能沿用脏名字：按分数/费用重选
                     cleaned_name = clean_card_name(name_pick.name)
                     if not cleaned_name:
-                        fallback_card = pick_lesson_card(
-                            state_clean.cards,
-                            stamina=stamina,
-                            exclude_points=lesson_guard.failed_points,
-                        )
-                        if fallback_card is not None:
-                            name_pick = HandPick(
-                                point=fallback_card.point,
-                                index=fallback_card.index,
-                                name=clean_card_name(fallback_card.name)
-                                or f"card{fallback_card.index}",
-                                value=float(fallback_card.total_score or name_pick.value),
-                            )
-                        else:
+                        if strict_engine:
+                            # 用户规则：不许回退 rules。卡名读不全不代表引擎选错牌：
+                            # 保留引擎选的点位，只换占位名，不再用规则另选一张。
                             name_pick = HandPick(
                                 point=name_pick.point,
                                 index=name_pick.index,
                                 name=f"card{name_pick.index}",
                                 value=name_pick.value,
                             )
+                        else:
+                            fallback_card = pick_lesson_card(
+                                state_clean.cards,
+                                stamina=stamina,
+                                exclude_points=lesson_guard.failed_points,
+                            )
+                            if fallback_card is not None:
+                                name_pick = HandPick(
+                                    point=fallback_card.point,
+                                    index=fallback_card.index,
+                                    name=clean_card_name(fallback_card.name)
+                                    or f"card{fallback_card.index}",
+                                    value=float(fallback_card.total_score or name_pick.value),
+                                )
+                            else:
+                                name_pick = HandPick(
+                                    point=name_pick.point,
+                                    index=name_pick.index,
+                                    name=f"card{name_pick.index}",
+                                    value=name_pick.value,
+                                )
                     elif cleaned_name != name_pick.name:
                         name_pick = HandPick(
                             point=name_pick.point,
@@ -1423,8 +1483,8 @@ def main() -> int:
                     if tuple(name_pick.point) in lesson_guard.failed_points:
                         name_pick = None
                 # sim 实时出牌（policy.json produce.sim_play，默认 false）：
-                # 对每张手牌 rollout「打这张 + 剩余回合 greedy 打完」，期望分最高者覆盖规则选择；
-                # 模拟器返回 None/异常时保留规则结果，绝不让出牌退化。
+                # 对每张手牌 rollout「打这张 + 剩余回合 greedy 打完」，期望分最高者覆盖策略选择；
+                # 模拟器返回 None/异常时保留策略结果，绝不让出牌退化。
                 if sim_play and not lesson_skip and state_clean.cards:
                     sim_candidates = [
                         card
@@ -1462,7 +1522,7 @@ def main() -> int:
                             )
                             rule_label = (
                                 f"{name_pick.name}(屏幕 {rule_screen:.0f}分、"
-                                f"规则估值 {name_pick.value:.1f})"
+                                f"策略估值 {name_pick.value:.1f})"
                                 if name_pick is not None
                                 else "无"
                             )
@@ -1470,7 +1530,7 @@ def main() -> int:
                                 log_lines.append(
                                     f"{step:03d} [training] sim-pick {sim_best.name} "
                                     f"(屏幕 {sim_best.score:.0f}分/{sim_best.cost}费、"
-                                    f"模拟口径期望 {sim_best.expected:.1f}) vs 规则选 {rule_label}"
+                                    f"模拟口径期望 {sim_best.expected:.1f}) vs 策略选 {rule_label}"
                                 )
                                 name_pick = HandPick(
                                     point=sim_best.point,
@@ -1480,9 +1540,9 @@ def main() -> int:
                                 )
                             else:
                                 log_lines.append(
-                                    f"{step:03d} [training] sim-pick 与规则一致 {sim_best.name} "
+                                    f"{step:03d} [training] sim-pick 与策略一致 {sim_best.name} "
                                     f"(屏幕 {sim_best.score:.0f}分、模拟口径期望 "
-                                    f"{sim_best.expected:.1f}、规则估值 {name_pick.value:.1f})"
+                                    f"{sim_best.expected:.1f}、策略估值 {name_pick.value:.1f})"
                                 )
                         # 近似牌库：真机拿不到完整牌组，把见过的手牌并进来（最多 12 张）
                         for item in sim_estimates:
@@ -1504,15 +1564,20 @@ def main() -> int:
                         log_lines.append(f"{step:03d} [training] {name_pick.name} 连点不动，标记跳过")
                         last_pick_name = None
                         same_pick_count = 0
-                        name_pick = pick_hand_card(
-                            lines,
-                            boxes,
-                            card_lib,
-                            stamina=stamina,
-                            costs=costs,
-                            attribute=driver.lesson_attribute,
-                            exclude=bad_cards,
-                        )
+                        if strict_engine:
+                            # 用户规则：不许回退 rules。下一帧 state_clean 会剔除这张卡，
+                            # 让搜索引擎重新决策；本帧不点，也不接老规则路径。
+                            name_pick = None
+                        else:
+                            name_pick = pick_hand_card(
+                                lines,
+                                boxes,
+                                card_lib,
+                                stamina=stamina,
+                                costs=costs,
+                                attribute=driver.lesson_attribute,
+                                exclude=bad_cards,
+                            )
                 if name_pick is not None:
                     clicked = agent.device.click_force(*name_pick.point)
                     time.sleep(0.9)
@@ -1530,6 +1595,30 @@ def main() -> int:
                         no_decision_streak = 0
                         idle = 0
                     action_name = "name-pick"
+                elif not lesson_skip and strict_engine:
+                    # 用户规则（2026-11-21）：**bot 不许回退 rules**。搜索引擎没产出
+                    # 可点的牌（状态没读全/等下一帧）时原地等待，不接老规则路径；
+                    # 考试不能干等，点中央推进（关浮层/等下一帧），也绝不 SKIP。
+                    if exam_mode:
+                        clicked = agent.device.click_force(*SETTLE_CENTER_TAP)
+                        time.sleep(0.9)
+                        if clicked is False:
+                            result = "[pause] 用户正在操作，暂停出牌"
+                            idle = 0
+                        else:
+                            action_name = "exam-tap"
+                            result = (
+                                "[exam-mode] 策略无牌可出（真没体力/状态未就绪），点中央推进"
+                                f"（不回退 rules） | {decision_note}"
+                            )
+                            idle += 1
+                    else:
+                        action_name = "engine-wait"
+                        result = (
+                            "[training] 等待下一帧重读（禁止回退 rules）"
+                            f" | {decision_note}"
+                        )
+                        idle += 1
                 elif not lesson_skip:
                     with (ROOT / "data" / "pick_debug.log").open("a", encoding="utf-8") as handle:
                         detail = []

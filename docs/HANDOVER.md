@@ -305,6 +305,39 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 
 ---
 
+### 二·补八、11-21 深夜四段（用户规则：bot 不许回退 rules）
+
+**用户指令**（2026-11-21）：**「你把 rules 禁用了，不许 bot 回退 rules」**。
+
+**改了什么**
+- `LessonPolicy`（[lesson.py](../src/gkagent/policy/lesson.py)）：搜索引擎（expectimax/beam/uinet）
+  不再先算规则动作、失败时也不拿 rules 兜底——
+  - 搜索建议 SKIP 但还有付得起的牌 → 按**搜索自己的动作排序**硬打（expectimax `actions` /
+    beam 根回合计划首牌 / UINet 合法动作概率）；
+  - 状态没读全（手牌/体力/回合/卡表）→ 返回 `wait` 等下一帧重读，日志
+    `fallback=等待重读：…（不回退 rules）`；
+  - 搜索异常 / 搜索结果不在手牌 → 抛 `RuleFallbackBlocked`；
+  - `engine=` 写错 → 构造期 `ValueError`（不再静默变 rules）。
+- `scripts/auto_produce.py`：bot 入口默认引擎改为 **expectimax**（不再默认 rules）；
+  `--engine rules` 仍保留但只用于 A/B 对照/离线复现（日志警告）；`--engine`/`produce.engine`
+  非法直接 exit 2。捕获 `RuleFallbackBlocked` → `[engine][BLOCKED]` + `fallback= rule-fallback-blocked`
+  并中止本局（`stuck=true`）。`decide_lesson_pick` 的 `pick_hand_card` 兜底、卡名脏了用规则另选、
+  连点不动换牌等老规则路径在搜索引擎下一律不接（改为等待/中止）。
+- `lesson_pick.py`：严格模式不再调用 `fallback`；无法执行的动作抛 blocked。
+- 测试：expectimax/beam/uinet 的「异常退回 rules」用例全部改写为「必须 blocked」；新增
+  skip→按搜索排名硬打、beam 根计划首牌、uinet 概率硬打、wait 语义、显式 engine 写错等回归。
+
+**改后基线（全绿）**
+- `verify_shuffle.py`：4/4 场整段复现（含重洗）
+- `pytest tests/ -q`：**883 passed，1 skipped**（884 条收集 / 59 文件）全绿
+- `build_exam_setup.py`：4/4 场、初始段 86/86 张、重洗段 24/24 张
+- `verify_exam_wiring.py`：手牌 36/36 回合、重洗 3/3、known_draw 29/29、策略链路 beam 出牌 28 次
+
+**下一步**：T1 整局真机验收。日志里不应再出现 `fallback=搜索未产出动作，退回规则`；
+若出现 `[engine][BLOCKED]`，说明搜索被真实缺陷挡住——按原因修 OCR/卡表，不许把 rules 加回来兜底。
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

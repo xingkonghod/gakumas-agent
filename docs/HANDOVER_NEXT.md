@@ -16,16 +16,20 @@
          真机第一次完整跑完一局：期中 914/第3 → 最终 C/4242；20:55–22:20 七次短跑修掉 7 类卡点
          根因已定：课程"读不到价值 → 搜索建议 SKIP → 规则执行跳过"（C/4242 主因）
          已落地用户规则：**只有所有牌都付不起（真没体力）才允许 SKIP**（4b07fa7/8a2af2b/b231b3f）
+         已落地用户规则：**bot 不许回退 rules**——搜索引擎失败 → [engine][BLOCKED] 中止本局，
+         绝不静默改用规则；入口默认 expectimax（见 F#40，本次提交）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**，但真机跑局时采集没开 → 全知 0 锁定，差实战验收
         ④ 策略强度：V_leaf 是瓶颈；机制建模缺 P 道具/回忆/附魔/选牌/减益
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
-当前最高优先：T1 重跑整局（禁跳规则验证）→ 开采集 + T3 实战 → T2 真机 A/B → T4 策略强度
+当前最高优先：T1 重跑整局（禁跳 + 禁回退 rules 验证）→ 开采集 + T3 实战 → T2 真机 A/B → T4 策略强度
 ```
 
 > **2026-11-21 用户硬规矩（不许破）**：SKIP 只在"所有牌都付不起"时允许；读不到分数/费用不是跳过理由，
-> 那是 OCR/卡表 bug，去修它，不许用 SKIP 补偿。真机整局必须带 `--ignore-user`（人别碰键鼠/别最小化窗口）。
+> 那是 OCR/卡表 bug，去修它，不许用 SKIP 补偿。**bot 不许回退 rules**：搜索/规划/神经网络失败 =
+> 记 `[engine][BLOCKED]` 并中止本局、去修 root cause，不许静默改用规则引擎（见 §4 硬约束 5/6）。
+> 真机整局必须带 `--ignore-user`（人别碰键鼠/别最小化窗口）。
 
 当前最好成绩对照（都是"初/REGULAR-PRO"路线，口径见 [RUNS.md L229](RUNS.md#L229)）：
 
@@ -52,7 +56,7 @@
 | 完全信息搜索（搜索侧） | `ExpectState.known_draw` / `discard_order` / `reshuffle` 钩子 | 17 条测试；重洗后段可确定分支 |
 | 生产接线接口 | `LessonPolicy(draw_plan=…)` + `auto_produce --exam-setup` | [verify_exam_wiring.py](../scripts/verify_exam_wiring.py)：36/36 手牌、3/3 重洗、29/29 known_draw |
 | 跨回合 beam 选项 | `lesson.engine="beam"`（`beam_width=4` / `beam_deadline_ms=250`） | 7 条测试；无 known_draw 自动退回回合内搜索 |
-| 决策可观测性 + 引擎接线 | 日志首行 `[engine]`、每步 `| eng=…` / `fallback=…`；真机引擎由 `--engine` > `produce.engine` 决定 | 4 条测试；能回答"到底是不是 rule 在打、为什么退回" |
+| 决策可观测性 + 引擎接线 | 日志首行 `[engine]`、每步 `| eng=…` / `fallback=…`；真机引擎由 `--engine` > `produce.engine` 决定 | 4 条测试；能回答"到底是不是 rule 在打、为什么退回"；2026-11-21 深夜起搜索引擎**禁止回退 rules**（失败→`[engine][BLOCKED]`，见 F#40） |
 | T3 实时接线（代码） | `build_exam_setup.py --current` + `ExamPlanSelector` + `auto_produce` 运行时重载 | 4 条 selector 测试；已用采集局离线验证第 2 回合锁定正确 config_turns |
 | 模拟器 + 评价公式 | [hajime_eval.py](../src/gkagent/sim/hajime_eval.py)、[hajime_data.py](../src/gkagent/sim/hajime_data.py) | 4 局实机逐分回归（9973/10428/8790/12903） |
 | 主数据库 | `data/hiro/vendor/.../catalog.sqlite` | 286 表 / 163,974 行 |
@@ -68,7 +72,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 856 passed, 1 skipped（58 个测试文件）
+# ② 全量测试：应为 883 passed, 1 skipped（884 条收集 / 59 个测试文件）
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
 # ③ 采集数据 → 考试牌序：应为 4/4 场、初始段 86/86 张、重洗段 24/24 张
@@ -117,6 +121,9 @@ cd D:\Games\gakumas-agent
 > 2. "读不到" = OCR 或卡表 bug → 去修识别/卡表，不许用 SKIP/降级补偿。
 > 3. 真机整局必须 `--ignore-user`（无人值守），人不要碰键鼠、不要最小化窗口。
 > 4. 每步日志必须能回答"这手是谁决定的、为什么退回"（`eng=… fallback=…`）；新增决策引擎必须接这个口径。
+> 5. **bot 不许回退 rules**（2026-11-21 追加）：搜索引擎/规划/神经网络失败时不许静默改用 rules。
+>    状态没读全 → `wait` 等下一帧；搜索异常/结果失配 → `[engine][BLOCKED]` 中止本局，去修 OCR/卡表/参数。
+> 6. bot 入口默认 `expectimax`；`--engine rules` 只用于 A/B 对照/离线复现，正常整局跑局不许用。
 
 ### T1（P0）无人值守跑完整局 🟡（流程卡点已修，差整局真机验收）
 **目标**：bot 从主页起跑，一路到期末考试/结算，**不停机、不白给回合**，一局 ≤20 分钟。
@@ -140,8 +147,10 @@ cd D:\Games\gakumas-agent
 **剩余（跑一局验收）**
 1. 按 [LIVE_RUN.md](LIVE_RUN.md) §0 自检；起跑必须带 `--ignore-user`（人别碰键鼠/别最小化）：
    `auto_produce.py 300 ep-<名字> --skip-home --engine expectimax --ignore-user`。
-2. 验收点：整局 **不再出现"还有牌却 SKIP"**；期中/期末分数、评价、时长记进 `docs/RUNS.md`；
-   若分数仍低，看日志 `| eng=… fallback=…` 与 `[unknown-card]` 定位是 OCR 还是策略问题。
+2. 验收点：整局 **不再出现"还有牌却 SKIP"**，也**不再出现 `fallback=…退回规则`**（搜索引擎已禁止回退 rules）；
+   若出现 `[engine][BLOCKED]`，按后面原因修 OCR/卡表，别把 rules 加回来兜底。
+   期中/期末分数、评价、时长记进 `docs/RUNS.md`；若分数仍低，看日志 `| eng=… fallback=…` 与
+   `[unknown-card]` 定位是 OCR 还是策略问题。
 3. 完成一局后把记录写进 `docs/RUNS.md`，再决定是否上 T3（开采集）。
 
 **改哪儿**：`scripts/auto_produce.py`、`src/gkagent/tasks/produce_ui.py`、`docs/FAILURES.md`、`docs/RUNS.md`
@@ -283,7 +292,7 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
 # 离线配对评测：known_draw / beam / full-info（重洗后段全知）
 .venv\Scripts\python.exe scripts\eval_known_draw.py --games 40 --scenario small --policy beam --full-info
-# 真机跑局（引擎：--engine > policy.json produce.engine；不传则用 produce.engine=expectimax）
+# 真机跑局（引擎：--engine > policy.json produce.engine > 默认 expectimax；rules 只用于 A/B 对照）
 .venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 300 ep-xxx --skip-home --exam-setup out\exam_setup.json --engine expectimax" --timeout 2400
 # 考试分数提取（A/B 对比用）
 .venv\Scripts\python.exe scripts\extract_exams.py
@@ -300,9 +309,10 @@ cd D:\Games\gakumas-agent
 | 四条铁律 | ① 不碰 `D:\Games\Gakumas\gakumas`（用户在用）；② 采集必须 `GKM_UNLOCK=0 / GKM_FORGE=0 / GKM_STATIC_USER=0`；③ `data/hiro/` 是 AGPL 只参考；④ 成本纪律（见 [HANDOVER 八](HANDOVER.md#L404)） |
 | 真机 | 一局只允许一个 `auto_produce` 进程；窗口 540x960、不能最小化；游戏重启后必须重启 `GDEAgent`；`data/STOP` 要清 |
 | 跳过红线 | **SKIP 只在所有牌都付不起时允许**（用户 2026-11-21 指定）；读不到分/费用=去修 OCR/卡表，不许跳过补偿。`--ignore-user` 是无人值守跑整局的默认参数 |
+| 规则回退 | **bot 不许回退 rules**（用户 2026-11-21）：搜索失败 = `[engine][BLOCKED]` 中止本局 + 修 OCR/卡表/参数，不许静默改用 rules 兜底；`--engine rules` 仅 A/B/离线；`allow_rule_fallback=True` 只是代码级调试开关（policy.json 不可配） |
 | 快速路径 | 课程/加载帧的模板快速路径会吞掉遮罩弹窗（回合结束确认框、通信错误弹窗）：新增弹窗必须配"同屏重复→强制整屏 OCR"的逃生门 |
 | 全知搜索 | 牌序**核对失败自动停用**是设计（宁可用期望模型也不用错牌序）；离线回放里策略出牌与实机不同会在重洗前停用，属正常 |
-| 配置陷阱 | 引擎优先级：`--engine` CLI > `policy.json` 的 `produce.engine`（真机 bot）> 默认 rules；`lesson.engine` 是 `LessonPolicy` 独立/单测默认（保持 rules，别只改它）。每局日志首行 `[engine]` 写明实际用了谁 |
+| 配置陷阱 | 引擎优先级：`--engine` CLI > `policy.json` 的 `produce.engine`（真机 bot）> 默认 **expectimax**（bot 入口；`LessonPolicy` 自身默认仍是 rules，供离线/单测）；`lesson.engine` 只作 `LessonPolicy` 独立使用/单测默认（保持 rules，别只改它）。每局日志首行 `[engine]` 写明实际用了谁 |
 | 数据 | 主数据缺 11-21 新卡：`verify_shuffle.py` 用 `SUPPLEMENT_*` 兜底，更新主数据后可删；`out/` 不进 git |
 | 时间口径 | 期中考试有 `forceEndScore` 提前结束，但 K（洗牌前 RNG 消耗）**按配置回合**算，不是实战回合 |
 | 提交 | 一次任务一个 `feat(...)` 提交（含测试+文档），再一个 `docs(handover): 补提交记录哈希`；`.gitignore` 已忽略 `out/` |
@@ -326,8 +336,10 @@ cd D:\Games\gakumas-agent
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md，然后照 docs/HANDOVER_NEXT.md §2 跑四条基线命令（期望：洗牌 4/4、
-pytest 856 passed、exam_setup 4/4 场 86/86 张、wiring 36/36 手牌 + 3/3 重洗）。
+pytest 883 passed（1 skipped，884 条收集）、exam_setup 4/4 场 86/86 张、wiring 36/36 手牌 + 3/3 重洗）。
 基线绿后按 §4 任务表从最高优先的 ⬜ 开始（建议 T1 → T3 → T2 → T4），一次只做一个任务。
+硬规矩：SKIP 只在真没体力时允许；bot 不许回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
+真机整局必须 --ignore-user。
 ```
 
 ---

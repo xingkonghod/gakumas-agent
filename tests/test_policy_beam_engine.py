@@ -3,8 +3,8 @@
 两层：
 
 * beam：``policy.json`` 能开关（``lesson.engine=beam`` + 宽度/预算参数），搜索走
-  ``search_beam``；没有 known_draw（没采到牌序）时退回回合内 expectimax；
-  搜索异常退回规则，绝不让出牌退化；
+  ``search_beam``；没有 known_draw（没采到牌序）时改用回合内 expectimax；
+  搜索异常抛 ``RuleFallbackBlocked``（用户规则：**不许回退 rules**）；
 * draw_plan：策略把当前手牌喂给 ``ExamDrawPlan``（begin_turn/observe_hand/end_turn），
   并把计划给的 known_draw / discard_order / 重洗钩子注进 ExpectState。
 """
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from gkagent.policy.lesson import LessonPolicy
+from gkagent.policy.lesson import LessonPolicy, RuleFallbackBlocked
 from gkagent.sim.expectimax import BeamResult, ExpectimaxResult
 from gkagent.vision.lesson import LessonCard, LessonState
 
@@ -201,18 +201,21 @@ def test_beam_without_known_draw_falls_back_to_expectimax(
 
 
 def test_beam_exception_falls_back_to_rules(monkeypatch, tmp_path: Path) -> None:
+    """beam 搜索异常不再回退 rules：抛 RuleFallbackBlocked（真机入口中止本局）。"""
+
     def boom(*args, **kwargs):
         raise RuntimeError("beam exploded")
 
     monkeypatch.setattr("gkagent.sim.expectimax.search_beam", boom, raising=True)
     plan = FakePlan([(SMALL_ID, 0)])
-    state = _state()
-    rules = _policy(tmp_path).decide(state)
-    fallback = _policy(tmp_path, engine="beam", draw_plan=plan).decide(state)
-    assert (fallback.kind, fallback.index) == (rules.kind, rules.index)
+    policy = _policy(tmp_path, engine="beam", draw_plan=plan)
+    with pytest.raises(RuleFallbackBlocked, match="beam exploded"):
+        policy.decide(_state())
 
 
-def test_beam_skip_intercepted_when_cards_affordable(monkeypatch, tmp_path: Path) -> None:
+def test_beam_skip_intercepted_when_cards_affordable(
+    monkeypatch, tmp_path: Path
+) -> None:
     def fake_beam(state, *args, **kwargs):
         return BeamResult(
             card=None,
@@ -227,13 +230,59 @@ def test_beam_skip_intercepted_when_cards_affordable(monkeypatch, tmp_path: Path
             complete=True,
         )
 
+    def fake_expectimax(state, *args, **kwargs):
+        return ExpectimaxResult(
+            card=state.hand[0],
+            utility=0.3,
+            skip_utility=0.0,
+            actions=(("大牌", 0.3),),
+            nodes=2,
+            elapsed_ms=0.5,
+            complete=True,
+        )
+
+    monkeypatch.setattr("gkagent.sim.expectimax.search_beam", fake_beam, raising=True)
+    monkeypatch.setattr(
+        "gkagent.sim.expectimax.expectimax_with_stats",
+        fake_expectimax,
+        raising=True,
+    )
+    plan = FakePlan([(SMALL_ID, 0)])
+    policy = _policy(tmp_path, engine="beam", draw_plan=plan)
+    # 2026-11-21 用户规则：beam 建议 SKIP 不算数，有牌就按搜索硬打（不回退 rules）
+    action = policy.decide(_state())
+    assert action.kind == "card"
+    assert action.reason.startswith("expectimax:")
+    assert "不回退 rules" in policy.decision_note()
+    exam_action = policy.decide(_state(), allow_skip=False)
+    assert exam_action.kind in {"card", "wait"}
+
+
+def test_beam_skip_uses_beam_plan_first_card(monkeypatch, tmp_path: Path) -> None:
+    """beam 建议 SKIP 但根回合计划里有首牌：按 beam 自己的计划硬打，不用 rules。"""
+
+    def fake_beam(state, *args, **kwargs):
+        return BeamResult(
+            card=None,
+            utility=0.4,
+            skip_utility=0.9,
+            sequence=("大牌",),
+            end_state=None,
+            width=2,
+            depth_reached=1,
+            layer_scores=(),
+            elapsed_ms=1.0,
+            complete=True,
+        )
+
     monkeypatch.setattr("gkagent.sim.expectimax.search_beam", fake_beam, raising=True)
     plan = FakePlan([(SMALL_ID, 0)])
     policy = _policy(tmp_path, engine="beam", draw_plan=plan)
-    # 2026-11-21 用户规则：beam 建议 SKIP 不算数，有牌就硬打
-    assert policy.decide(_state()).kind == "card"
-    action = policy.decide(_state(), allow_skip=False)
-    assert action.kind in {"card", "wait"}
+    action = policy.decide(_state())
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "大牌"
+    assert "beam 根回合计划" in action.reason
+    assert "不回退 rules" in policy.decision_note()
 
 
 # ---------------------------------------------------------------- draw_plan 接线

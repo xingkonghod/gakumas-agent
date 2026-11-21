@@ -57,6 +57,18 @@ _ALLOWED_VALUES: dict[str, frozenset[str]] = {
 }
 
 
+class RuleFallbackBlocked(RuntimeError):
+    """搜索引擎无法决策时禁止静默回退 rules（用户规则，2026-11-21）。
+
+    真机入口（``scripts/auto_produce.py``）捕获后写 ``[engine][BLOCKED]`` 并中止
+    本局：宁可停下暴露 OCR/卡表问题，也不许 bot 悄悄改用 rules 引擎打。
+    """
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
 @dataclass(frozen=True)
 class LessonAction:
     kind: str  # card / skip / wait
@@ -109,8 +121,9 @@ class LessonPolicy:
         "perfect_target_multiplier": 2.0,
         # 出牌引擎：rules=固定优先级规则（默认，行为不变）；expectimax=回合内搜索；
         # uinet=GKMSUINet 神经网络（ONNX，UIObs v1）；beam=跨回合 beam 规划
-        # （需要 ExamDrawPlan 给 known_draw 才有意义，没有全知数据时退回回合内搜索）。
-        # 后几者异常/状态不完整/模型缺失时都自动退回 rules。
+        # （需要 ExamDrawPlan 给 known_draw 才有意义，没有全知数据时改用回合内搜索）。
+        # 用户规则（2026-11-21）：**bot 不许回退 rules**——搜索异常/状态不读全时
+        # 只会 wait 重读或抛 RuleFallbackBlocked，绝不静默改用规则引擎。
         "engine": "rules",
         # expectimax 的 anytime 预算与 V_leaf σ；规则模式不读。
         "expectimax_budget_ms": 800.0,
@@ -132,6 +145,7 @@ class LessonPolicy:
         params_path: str | Path | None = None,
         engine: str | None = None,
         draw_plan=None,
+        allow_rule_fallback: bool = False,
     ) -> None:
         self.buffs = buffs or BuffLibrary.load()
         self.plans = plans or default_plan_library()
@@ -139,9 +153,19 @@ class LessonPolicy:
         # 显式 plan 参数优先级最高；未知值按需求退回 sense，不抛异常。
         if plan is not None:
             self.params["plan"] = normalize_plan(plan) or DEFAULT_PLAN
-        # 显式 engine 参数优先级最高；未知值退回 rules（保持旧行为）
+        # 用户规则（2026-11-21）：**bot 不许回退 rules**。显式 engine 写错时大声
+        # 报错（否则真机 bot 会静默变成 rules 在打）；只有调试/旧评测脚本才允许
+        # 显式打开 allow_rule_fallback。
+        self.allow_rule_fallback = bool(allow_rule_fallback)
         if engine is not None:
-            self.params["engine"] = engine if engine in _ALLOWED_VALUES["engine"] else "rules"
+            normalized = str(engine).strip().lower()
+            if normalized not in _ALLOWED_VALUES["engine"]:
+                raise ValueError(
+                    f"未知出牌引擎 {engine!r}（可选："
+                    f"{', '.join(sorted(_ALLOWED_VALUES['engine']))}）"
+                    "；用户规则禁止静默回退 rules"
+                )
+            self.params["engine"] = normalized
         # 兼容旧的显式关键字参数（优先级最高）
         if buff_first is not None:
             self.params["buff_first"] = bool(buff_first)
@@ -202,6 +226,11 @@ class LessonPolicy:
     def engine(self) -> str:
         """当前出牌引擎：``rules``（默认）/ ``expectimax`` / ``uinet`` / ``beam``。"""
         return str(self.params.get("engine") or "rules")
+
+    @property
+    def forbids_rule_fallback(self) -> bool:
+        """搜索引擎是否禁止回退 rules（用户规则：bot 不许回退 rules）。"""
+        return self.engine != "rules" and not self.allow_rule_fallback
 
     def attach_draw_plan(self, plan) -> None:
         """挂上考试牌序计划（``gkagent.sim.exam_plan.ExamDrawPlan`` 或 None）。
@@ -346,35 +375,33 @@ class LessonPolicy:
                     logging.getLogger(__name__).warning("draw_plan.note_play 失败：%s", exc)
 
     def decide(self, state: LessonState, *, allow_skip: bool = True) -> LessonAction:
-        """按 ``engine`` 选择规则 / expectimax / beam / UINet；异常或局面不完整退回规则。
+        """按 ``engine`` 决策；**搜索引擎绝不回退 rules**（用户规则，2026-11-21）。
 
-        默认 ``engine="rules"``，行为与旧版逐位一致；``policy.json`` 的
-        ``lesson.engine`` 或构造参数 ``engine="expectimax"`` / ``engine="beam"`` /
-        ``engine="uinet"`` 才启用搜索 / 跨回合规划 / 神经网络。
+        - ``engine="rules"``：显式规则引擎（A/B 对照 / 离线脚本），行为与旧版一致；
+        - ``expectimax`` / ``beam`` / ``uinet``：搜索/规划/神经网络决策。搜索建议
+          SKIP 但还有付得起的牌时，按**搜索结果自己的动作价值**硬打一张（不是规则）；
+          状态没读全时返回 ``wait`` 等下一帧重读；搜索异常/结果失配抛
+          :class:`RuleFallbackBlocked`，由真机入口记 ``[engine][BLOCKED]`` 并中止
+          本局——去修 OCR/卡表，不许用 rules 兜底。只有调试/旧评测显式传
+          ``allow_rule_fallback=True`` 时才保留旧回退。
 
         挂了 ``draw_plan``（``ExamDrawPlan``）时先把当前手牌喂给计划：新回合做一次
         牌序核对，核对通过后搜索用 ``known_draw`` / ``discard_order``（完全信息）。
 
-        决策可观测性：每次返回前把「实际用哪个引擎、搜索为什么退回规则」记到
+        决策可观测性：每次返回前把「实际用哪个引擎、为什么没产出动作」记到
         ``last_decision`` / ``last_fallback_reason``，真机日志用 :meth:`decision_note`
-        打出来，避免"到底是不是 rule 在打"说不清。
+        打出来。
         """
         self.last_fallback_reason = ""
         self._sync_turn(state.turns_left)
         self._sync_exam_plan(state)
-        rules_action = self._decide_rules(state, allow_skip=allow_skip)
-        action = rules_action
-        if self.engine == "expectimax":
-            override = self._try_expectimax(state, allow_skip=allow_skip)
-            action = override if override is not None else rules_action
-        elif self.engine == "beam":
-            override = self._try_beam(state, allow_skip=allow_skip)
-            action = override if override is not None else rules_action
-        elif self.engine == "uinet":
-            override = self._try_uinet(state, allow_skip=allow_skip)
-            action = override if override is not None else rules_action
-        # 用户规则（2026-11-21）：**只有真没体力/真没付得起的牌才允许 SKIP**。
-        # 搜索/UINet 因"读不到分数 → 价值 0"建议跳过的，一律改打一张（未知≠没用）。
+        if self.engine == "rules":
+            action = self._decide_rules(state, allow_skip=allow_skip)
+        else:
+            action = self._decide_search(state, allow_skip=allow_skip)
+        # 用户规则：只有"所有牌都付不起（真没体力）"才允许 SKIP。搜索引擎若仍返回
+        # SKIP 而手里有付得起的牌（正常已被 _decide_search 拦截），说明决策链路有
+        # bug——宁可暴露也不许悄悄执行跳过。
         if action.kind == "skip" and state.cards:
             stamina = state.stamina
             affordable = [
@@ -383,27 +410,9 @@ class LessonPolicy:
                 if stamina is None or card.cost is None or card.cost <= stamina
             ]
             if affordable:
-                if rules_action.kind == "card":
-                    action = rules_action
-                else:
-                    cheapest = min(
-                        affordable,
-                        key=lambda card: (
-                            card.cost if card.cost is not None else 99,
-                            card.index,
-                        ),
-                    )
-                    action = LessonAction(
-                        "card",
-                        index=cheapest.index,
-                        point=cheapest.point,
-                        card=cheapest,
-                        expected=0.0,
-                        reason="读不到价值不允许 SKIP，硬打一张",
-                    )
-                self.last_fallback_reason = "SKIP 被拦截（还有付得起的牌）"
-        if action is rules_action and self.engine != "rules" and not self.last_fallback_reason:
-            self.last_fallback_reason = "搜索未产出动作，退回规则"
+                raise RuleFallbackBlocked(
+                    "SKIP 被拦截：还有付得起的牌，但没有引擎给出可打的牌"
+                )
         self.last_decision = {
             "engine": self.engine,
             "kind": action.kind,
@@ -411,6 +420,31 @@ class LessonPolicy:
             "fallback": self.last_fallback_reason,
         }
         return action
+
+    def _decide_search(self, state: LessonState, *, allow_skip: bool) -> LessonAction:
+        """搜索引擎决策；失败时不回退 rules（见 :meth:`decide`）。"""
+        if self.engine == "expectimax":
+            action = self._try_expectimax(state, allow_skip=allow_skip)
+        elif self.engine == "beam":
+            action = self._try_beam(state, allow_skip=allow_skip)
+        else:
+            action = self._try_uinet(state, allow_skip=allow_skip)
+        if action is not None:
+            return action
+        reason = self.last_fallback_reason or "搜索未产出动作"
+        if self.allow_rule_fallback:
+            # 仅调试/旧评测：显式打开才允许旧行为（真机入口永远不传 True）。
+            self.last_fallback_reason = f"{reason}（调试开关 allow_rule_fallback）"
+            logging.getLogger(__name__).warning(
+                "allow_rule_fallback=True，退回 rules：%s", reason
+            )
+            return self._decide_rules(state, allow_skip=allow_skip)
+        raise RuleFallbackBlocked(f"engine={self.engine} 无法决策：{reason}")
+
+    def _wait_action(self, reason: str) -> LessonAction:
+        """状态没读全/搜索超时：等下一帧重读，绝不改成规则决策。"""
+        self.last_fallback_reason = f"等待重读：{reason}（不回退 rules）"
+        return LessonAction("wait", reason=f"{reason}：等下一帧重读（禁止回退 rules）")
 
     def decision_note(self) -> str:
         """最近一次决策的紧凑说明（真机日志用）：``eng=expectimax fallback=…``。"""
@@ -683,19 +717,90 @@ class LessonPolicy:
             reason=reason,
         )
 
+    def _resolve_search_skip(
+        self,
+        state: LessonState,
+        play_cards,
+        *,
+        actions,
+        complete: bool,
+        elapsed_ms: float,
+        nodes: int,
+        allow_skip: bool,
+        engine_name: str,
+    ) -> LessonAction | None:
+        """搜索建议 SKIP 时的处理：有付得起的牌就按**搜索结果自己的动作价值**硬打。
+
+        用户规则（2026-11-21）：读不到价值/搜索建议都不是跳过理由，只有所有牌都
+        付不起才允许 SKIP。这里绝不回退 rules——硬打的依据必须是引擎给出的动作
+        排序；真没动作时返回 ``None``（调用方按失败处理）或 ``wait``（考试）。
+        """
+        affordable = [
+            card
+            for card in state.cards
+            if state.stamina is None or card.cost is None or card.cost <= state.stamina
+        ]
+        ranked = sorted(
+            (item for item in actions if item),
+            key=lambda item: float(item[1]),
+            reverse=True,
+        )
+        if affordable:
+            for name, value in ranked:
+                spec = next(
+                    (item.spec for item in play_cards if item.spec.name == name), None
+                )
+                if spec is None:
+                    continue
+                forced = self._search_action(
+                    state,
+                    play_cards,
+                    spec,
+                    allow_skip=False,
+                    reason=(
+                        f"{engine_name} 建议 SKIP 被用户规则拦截 → 按搜索动作价值硬打 "
+                        f"{name}（{float(value):.2f}，{nodes} 节点，{elapsed_ms:.0f}ms）"
+                    ),
+                    expected=float(value),
+                )
+                if forced is not None:
+                    self.last_fallback_reason = (
+                        "搜索建议 SKIP → 按搜索排名硬打（不回退 rules）"
+                    )
+                    return forced
+            if not complete:
+                return self._wait_action(
+                    f"{engine_name} 超时且没给出动作（{nodes} 节点，{elapsed_ms:.0f}ms）"
+                )
+            self.last_fallback_reason = (
+                f"{engine_name} 建议 SKIP 且没有可打动作"
+                f"（complete={complete}，nodes={nodes}，{elapsed_ms:.0f}ms）"
+            )
+            return None
+        if not allow_skip:
+            return self._wait_action(f"考试没有付得起的牌（体力 {state.stamina}）")
+        self.last_fallback_reason = "所有牌都付不起（真没体力）→ 允许 SKIP"
+        return LessonAction(
+            "skip",
+            point=state.skip_point,
+            reason=f"所有牌都付不起（体力 {state.stamina}），允许 SKIP",
+        )
+
     def _try_expectimax(
         self, state: LessonState, *, allow_skip: bool
     ) -> LessonAction | None:
         """用真机 ``LessonState`` 构造模拟状态并跑回合内 expectimax。
 
+        返回 card / wait / skip；返回 ``None`` 表示搜索彻底失败——调用方按用户
+        规则抛 :class:`RuleFallbackBlocked`，**绝不退回 rules**。
+
         挂了激活的 ``draw_plan``（``ExamDrawPlan``）时，``known_draw`` 让抽牌机会
         节点退化成确定分支；``discard_order`` + 重洗钩子让弃牌堆重洗后也能全知。
-        身份不明的牌/异常一律返回 ``None``，调用方退回规则，绝不让出牌退化。
         """
         try:
             prepared = self._search_state(state)
             if prepared is None:
-                return None
+                return self._wait_action(self.last_fallback_reason or "状态未读全")
             sim_state, play_cards, reshuffle = prepared
             from gkagent.sim.expectimax import expectimax_with_stats
 
@@ -704,16 +809,21 @@ class LessonPolicy:
                 self._leaf_value(),
                 time_budget_ms=float(self.params["expectimax_budget_ms"]),
                 reshuffle=reshuffle,
+                # 真机出牌链路没有"喝饮料"动作（auto_produce 单独处理饮料）：
+                # 否则搜索选中饮料时 card=None，会被误当成 SKIP。
+                allow_drinks=False,
             )
             if result.card is None:
-                # 用户规则：读不到价值不是跳过理由（未知≠0 分），只有真没体力才跳过。
-                # 这里不自己 SKIP，交给规则分支：还有付得起的牌就一定硬打一张。
-                # 日志带上搜索是否完整/耗时/节点数，真机才能分清「超时」还是「真的没动作」。
-                self.last_fallback_reason = (
-                    f"搜索无动作（complete={result.complete}，nodes={result.nodes}，"
-                    f"{result.elapsed_ms:.0f}ms）→按规则硬打"
+                return self._resolve_search_skip(
+                    state,
+                    play_cards,
+                    actions=result.actions,
+                    complete=bool(result.complete),
+                    elapsed_ms=float(result.elapsed_ms),
+                    nodes=int(result.nodes),
+                    allow_skip=allow_skip,
+                    engine_name="expectimax",
                 )
-                return None
             reason = (
                 f"expectimax: {result.card.name}（档位期望 {result.utility:.2f}，"
                 f"{result.nodes} 节点，{result.elapsed_ms:.0f}ms）"
@@ -727,27 +837,38 @@ class LessonPolicy:
                 expected=result.utility,
             )
             if action is None:
-                self.last_fallback_reason = "搜索结果不在手牌（CardSpec 失配）→按规则硬打"
+                self.last_fallback_reason = "搜索结果不在手牌（CardSpec 失配）"
+                logging.getLogger(__name__).warning(
+                    "expectimax 搜索结果不在手牌（禁止回退 rules）：%s", result.card
+                )
+                return None
             return action
-        except Exception as exc:  # noqa: BLE001 - 搜索绝不能让出牌退化
+        except RuleFallbackBlocked:
+            raise
+        except Exception as exc:  # noqa: BLE001 - 搜索失败要暴露，不许退回 rules
             self.last_fallback_reason = f"expectimax 异常: {exc!r}"
-            logging.getLogger(__name__).warning("expectimax 失败，退回规则：%s", exc)
+            logging.getLogger(__name__).warning(
+                "expectimax 失败（禁止回退 rules）：%s", exc
+            )
             return None
 
     def _try_beam(self, state: LessonState, *, allow_skip: bool) -> LessonAction | None:
         """跨回合 beam（``engine="beam"``）：按 V_leaf 规划整段，出计划首牌。
 
         必须有 ``draw_plan`` 给的 known_draw 才有意义（知道后面几张真实好牌，
-        才谈得上替它保留体力/出牌位）；没有全知数据时退回回合内 expectimax，
-        保证 ``engine="beam"`` 在任何数据条件下都不比现状差。
+        才谈得上替它保留体力/出牌位）；没有全知数据时改用回合内 expectimax
+        （不是 rules）。beam 自己建议 SKIP 时，优先执行它根回合计划的真实首牌，
+        再退回合内搜索；仍无动作才算失败（调用方抛 blocked，绝不回退 rules）。
         """
         try:
             prepared = self._search_state(state)
             if prepared is None:
-                return None
+                return self._wait_action(self.last_fallback_reason or "状态未读全")
             sim_state, play_cards, reshuffle = prepared
             if not sim_state.known_draw:
-                self.last_fallback_reason = "beam 无 known_draw，退回回合内 expectimax"
+                self.last_fallback_reason = (
+                    "beam 无 known_draw，改用回合内 expectimax（不回退 rules）"
+                )
                 return self._try_expectimax(state, allow_skip=allow_skip)
             from gkagent.sim.expectimax import search_beam
 
@@ -759,8 +880,25 @@ class LessonPolicy:
                 reshuffle=reshuffle,
             )
             if result.card is None:
-                self.last_fallback_reason = "beam 建议 SKIP → 按规则硬打（读不到价值不算理由）"
-                return None
+                forced = self._force_from_beam_sequence(state, play_cards, result)
+                if forced is not None:
+                    return forced
+                self.last_fallback_reason = (
+                    "beam 建议 SKIP → 改回合内 expectimax 硬打（不回退 rules）"
+                )
+                fallback = self._try_expectimax(state, allow_skip=allow_skip)
+                if fallback is not None:
+                    return fallback
+                return self._resolve_search_skip(
+                    state,
+                    play_cards,
+                    actions=(),
+                    complete=bool(result.complete),
+                    elapsed_ms=float(result.elapsed_ms),
+                    nodes=0,
+                    allow_skip=allow_skip,
+                    engine_name="beam",
+                )
             reason = (
                 f"beam: {result.card.name}（V {result.utility:.2f}，宽 {result.width}，"
                 f"深 {result.depth_reached}/{sim_state.turns_left}，"
@@ -775,12 +913,41 @@ class LessonPolicy:
                 expected=result.utility,
             )
             if action is None:
-                self.last_fallback_reason = "beam 结果不在手牌（CardSpec 失配）→按规则硬打"
+                self.last_fallback_reason = "beam 结果不在手牌（CardSpec 失配）"
+                logging.getLogger(__name__).warning(
+                    "beam 结果不在手牌（禁止回退 rules）：%s", result.card
+                )
             return action
-        except Exception as exc:  # noqa: BLE001 - 搜索绝不能让出牌退化
+        except RuleFallbackBlocked:
+            raise
+        except Exception as exc:  # noqa: BLE001 - 搜索失败要暴露，不许退回 rules
             self.last_fallback_reason = f"beam 异常: {exc!r}"
-            logging.getLogger(__name__).warning("beam 失败，退回规则：%s", exc)
+            logging.getLogger(__name__).warning("beam 失败（禁止回退 rules）：%s", exc)
             return None
+
+    def _force_from_beam_sequence(
+        self, state: LessonState, play_cards, result
+    ) -> LessonAction | None:
+        """beam 建议 SKIP 但根回合计划里有首牌：按 beam 自己的计划硬打（不是 rules）。"""
+        sequence = getattr(result, "sequence", ()) or ()
+        if not sequence:
+            return None
+        name = str(sequence[0])
+        spec = next((item.spec for item in play_cards if item.spec.name == name), None)
+        if spec is None:
+            return None
+        self.last_fallback_reason = "beam 建议 SKIP → 按 beam 计划首牌硬打（不回退 rules）"
+        return self._search_action(
+            state,
+            play_cards,
+            spec,
+            allow_skip=False,
+            reason=(
+                f"beam 建议 SKIP 被用户规则拦截 → 按 beam 根回合计划首牌硬打 {name}"
+                f"（V {result.utility:.2f}，{result.elapsed_ms:.0f}ms）"
+            ),
+            expected=float(result.utility),
+        )
 
     def _try_uinet(
         self, state: LessonState, *, allow_skip: bool
@@ -788,13 +955,15 @@ class LessonPolicy:
         """把真机 ``LessonState`` 转 UIObs v1，交给 GKMSUINet 选一张牌。
 
         只映射**读屏能确认**的字段（手牌/体力/剩余回合/分数），其余按
-        :mod:`gkagent.sim.uiobs` 的保守默认值补。模型/主数据缺失、包没装、
-        ONNX 报错、动作越界、体力其实不够……一律返回 ``None`` 退回规则，
-        绝不让出牌崩掉或点出非法动作。
+        :mod:`gkagent.sim.uiobs` 的保守默认值补。UINet 说「结束回合/饮料」时按它
+        自己的合法动作概率硬打一张（用户规则：有牌就不许跳过）；模型/主数据缺失、
+        ONNX 报错、动作越界都返回 ``None``（调用方抛 blocked，**不回退 rules**）。
         """
         try:
-            if not state.cards or state.stamina is None:
-                return None
+            if not state.cards:
+                return self._wait_action("手牌为空")
+            if state.stamina is None:
+                return self._wait_action("体力未知")
             from gkagent.sim import uinet
             from gkagent.sim.uiobs import to_uiobs
 
@@ -805,23 +974,33 @@ class LessonPolicy:
                 allow_skip=allow_skip,
                 plays=self._plays_this_turn,
             )
-            legal = {tuple(item) for item in obs["legal"]}
-            if not any(item[0] == "play" for item in legal):
-                return None
+            legal = [tuple(item) for item in obs["legal"]]
+            if not any(item and item[0] == "play" for item in legal):
+                if not allow_skip:
+                    return self._wait_action("考试没有付得起的牌")
+                self.last_fallback_reason = "所有牌都付不起（真没体力）→ 允许 SKIP"
+                return LessonAction(
+                    "skip",
+                    point=state.skip_point,
+                    reason=f"所有牌都付不起（体力 {state.stamina}），允许 SKIP",
+                )
             result = uinet.predict(obs)
             action = result.action
             if not action:
+                self.last_fallback_reason = "uinet 无动作"
                 return None
             kind = str(action[0])
             if kind == "play":
                 index = int(action[1])
                 if ["play", index] not in obs["legal"]:
+                    self.last_fallback_reason = f"uinet 动作越界：play {index}"
                     return None
                 card = state.cards[index]
                 cost = card.cost
                 if cost is None:
                     cost = self._card_table().cost(card.name)
                 if cost is not None and cost > state.stamina:
+                    self.last_fallback_reason = "uinet 选了付不起的牌"
                     return None
                 top_prob = max(result.probs) if result.probs else 0.0
                 return LessonAction(
@@ -835,21 +1014,62 @@ class LessonPolicy:
                         f"{result.elapsed_ms:.0f}ms）"
                     ),
                 )
-            if kind == "end":
-                if not allow_skip:
-                    return None
-                top_prob = max(result.probs) if result.probs else 0.0
+            # 结束回合/饮料/其他：用户规则禁止"有牌却跳过"，按 UINet 自己的概率硬打。
+            forced = self._uinet_forced_card(state, obs, result)
+            if forced is not None:
+                return forced
+            if allow_skip:
                 return LessonAction(
                     "skip",
                     point=state.skip_point,
-                    reason=f"uinet: 结束回合（概率 {top_prob:.2f}，{result.elapsed_ms:.0f}ms）",
+                    reason=f"uinet: {kind}，没有付得起的牌，允许 SKIP",
                 )
-            # 饮料等真机还没有对应操作：退回规则。
-            return None
-        except Exception as exc:  # noqa: BLE001 - 神经网络绝不能让出牌退化
+            return self._wait_action(f"uinet 返回 {kind}，考试没有可打的牌")
+        except RuleFallbackBlocked:
+            raise
+        except Exception as exc:  # noqa: BLE001 - 模型失败要暴露，不许退回 rules
             self.last_fallback_reason = f"uinet 异常: {exc!r}"
-            logging.getLogger(__name__).warning("uinet 失败，退回规则：%s", exc)
+            logging.getLogger(__name__).warning(
+                "uinet 失败（禁止回退 rules）：%s", exc
+            )
             return None
+
+    def _uinet_forced_card(self, state: LessonState, obs, result) -> LessonAction | None:
+        """UINet 说结束/饮料时，按它自己的合法动作概率挑一张牌（不是 rules）。"""
+        plays = [
+            int(item[1])
+            for item in (tuple(entry) for entry in obs["legal"])
+            if item and item[0] == "play"
+        ]
+        if not plays:
+            return None
+        probs = list(result.probs or [])
+
+        def probability(index: int) -> float:
+            return float(probs[index]) if index < len(probs) else 0.0
+
+        for index in sorted(plays, key=probability, reverse=True):
+            card = state.cards[index]
+            cost = card.cost
+            if cost is None:
+                cost = self._card_table().cost(card.name)
+            if cost is not None and state.stamina is not None and cost > state.stamina:
+                continue
+            self.last_fallback_reason = (
+                "uinet 建议结束 → 按合法动作概率硬打（不回退 rules）"
+            )
+            return LessonAction(
+                "card",
+                index=card.index,
+                point=card.point,
+                card=card,
+                expected=0.0,
+                reason=(
+                    f"uinet 建议结束/饮料被用户规则拦截 → 按概率硬打 "
+                    f"{card.name or '卡'}（p={probability(index):.2f}）"
+                ),
+            )
+        return None
 
     def _card_table(self):
         """懒加载卡表；测试可以替换 ``self._table`` 注入 FakeTable。"""
