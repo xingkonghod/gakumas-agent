@@ -428,6 +428,31 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
 
 ---
 
+### 二·补十一、11-22 凌晨（known_draw 事前检测：额外 RNG 机制）
+
+**背景**：群公开的「考试 RNG 全部显式消费入口」清单（已归档到 [QQ_GROUP_NOTES](QQ_GROUP_NOTES.md)）说明，
+除我们已建模的 K 组成之外，恐慌/卡牌搜索/随机选取/生成卡/随机移动还会额外消耗 xorshift32 —— 这类牌组
+`known_draw` 只能用到第一个事件，之前只能靠"核对失败才停用"事后兜底。
+
+**改动**
+- 新增 `src/gkagent/sim/exam_risk.py`：`EXTRA_RNG_EFFECT_TYPES` + 卡表索引 + `deck_rng_risks()`
+  （返回 `[{card_id, effects}]`）+ `known_info_ok()`/`format_rng_risks()`；
+- `build_exam_setup.py`：默认全量 + `--current` 记录都写 `rng_risk`，命中打印「known_draw 不可验」；
+- `ExamSetup.rng_risk` + `known_info_ok`；`ExamDrawPlan.start()` 对不可验 setup **直接停用**
+  （不建 oracle、known_draw 恒空，reason 写明）；`exam_plan` 单测覆盖；
+- `auto_produce.build_exam_plans()`：加载候选时跳过不可验的并打日志
+  `[exam-plan] 跳过 N 个含额外 RNG 机制的候选`；安全设计不变（核对失败仍自动停用）。
+
+**实测**
+- 卡表 1829 张里 **169 条**带额外 RNG 机制（`ExamCardCreateId/CreateSearch/Move/ForcePlayCardSearch/
+  SearchEffectPlayCountBuff/...`）；
+- 我们验证过的四场考试牌组命中 **0** → 纯牌组，4/4 精确复现成立（与之前结论一致）；
+- `build_exam_setup` 4/4 场、86/86 + 重洗 24/24；`verify_exam_wiring` 36/36、3/3、29/29 不变。
+
+**测试**：新增 `tests/test_exam_risk.py` 8 条（卡表扫描/牌组扫描/序列化往返/计划拒用/摘要格式）。
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

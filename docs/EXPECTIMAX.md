@@ -615,3 +615,18 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 - 现有保护是"核对失败即停用"（事后）；下一步应做**事前检测**：建 ExamSetup 时扫牌组/支援的 effects，
   命中上述机制 → 标记 `unverifiable`/不启用全知，避免白跑核对和错误计划。
 - 纯牌组（无上述机制）的 4/4 场整段复现不受影响。
+
+### 事前检测已实现（2026-11-22 凌晨）
+
+- 新模块 `src/gkagent/sim/exam_risk.py`：扫描卡表/牌组里的**额外 RNG 机制卡**
+  （`ExamCardCreateId`/`ExamCardCreateSearch`/`ExamCardMove`/`ExamForcePlayCardSearch`/
+  `ExamCardSearchEffectPlayCountBuff`/`ExamReviewPerSearchCount`/搜索费用变化/恐慌类）；
+- `scripts/build_exam_setup.py`：生成记录时写 `rng_risk` 字段（含默认全量 + `--current` 两种模式），
+  命中就打印「known_draw 不可验」；
+- `ExamSetup.known_info_ok`（`rng_risk` 为空才 True）；`ExamDrawPlan.start()` 对不可验 setup
+  **直接停用**（不建 oracle、不给 known_draw，reason 写明原因）；
+- `auto_produce.build_exam_plans()`：加载候选时跳过不可验的，日志
+  `[exam-plan] 跳过 N 个含额外 RNG 机制的候选`；
+- 实测：卡表 1829 张里 **169 条**带额外 RNG 机制；我们验证过的四场考试牌组命中 **0**（纯牌组），
+  所以 4/4 精确复现成立；含机制的牌组以后不会再盲目跑核对。
+- 回归：`tests/test_exam_risk.py` 8 条；`build_exam_setup` 4/4、`verify_exam_wiring` 36/36、3/3、29/29 不变。
