@@ -375,3 +375,53 @@ L3 配对（150 局）：
 3. 真正的出路是 UINet 那条：**结构化特征（1300 维）+ 模仿全信息搜索**
 
 `leaf="analytic"` 保持生产默认。规则修正是独立收益（课程分数更真实），已单独测试覆盖。
+
+## 完全信息搜索：known_draw 接入（2026-11-21，第一步）
+
+洗牌/支援强化/弃牌堆重洗破解后（见 `MASTER_DATA.md` 附录），整场考试牌序可以从 seed 推出来。
+本步把「知道牌序」接进搜索，并如实量了信息本身值多少分。
+
+### 数据链路
+
+| 模块 | 作用 |
+|---|---|
+| `src/gkagent/sim/exam_oracle.py` | `initial_shuffled_deck(seed, deck, config_turns)` = 开局真实牌堆顺序；`ExamDrawOracle` 边打边推：每回合 `draw_next_turn(param)` 返回真实手牌并结算支援强化掷点，牌堆空时用调用方给的真实 grave 顺序重洗 |
+| `src/gkagent/sim/expectimax.py` → `ExpectState.known_draw` | 已知的后续抽牌顺序（下标 0 = 下一张）。非空时抽牌机会节点退化成**确定分支**（`_draw_distribution` / `sample_draws`）；与 `deck` 长度不一致（牌被效果移动过）时自动退回多重集期望 |
+| `state_from_sim(sim, known_deck_order=True)` | 离线评测入口：把 `LessonSim` 的真实剩余牌序写成 `known_draw`（`LessonSim` 从列表尾部 pop，所以顺序 = `reversed(deck)`） |
+
+### 测试
+
+- `tests/test_expectimax_known_draw.py`（8 条）：确定分支、按已知顺序入手、知道「下一张是大牌」时效用 = 确定结果、
+  长度不一致退回期望、已知段抽完退回洗牌期望、`sample_draws` 按顺序、`state_from_sim` 顺序；
+- `tests/test_exam_oracle.py`（6 条）：开局顺序、`peek` 不消耗、逐回合手牌与 `replay_initial_deck` 一致、
+  isInitial 首回合、支援强化推进 RNG 与 `support_upgrade` 一致、重洗用给定 grave 顺序、缺 grave 报错。
+
+### 配对评测（`scripts/eval_known_draw.py`，同牌组同 seed，unknown vs known）
+
+| 场景 | 策略 | unknown 均值 | known 均值 | known − unknown |
+|---|---|---:|---:|---:|
+| 真实牌组 small（14 张/5 回合，无抽牌卡） | 回合内 expectimax | 138.6 | 138.6 | **+0.0** |
+| 真实牌组 large（31 张/9 回合，1 张抽牌卡） | 回合内 expectimax | 356.5 | 356.6 | +0.1 |
+| 真实牌组 small | 跨回合 beam（width 4） | 87.9 | 90.9 | **+3.0**（P50 +4.0，CLEAR 22.5%→30.0%） |
+| 抽牌多构造牌组（7 张抽 1，14 张/5 回合） | 回合内 expectimax | 402.0 | 404.5 | +2.5 |
+| 抽牌多构造牌组 | 跨回合 beam（width 4） | 265.8 | 310.4 | **+44.6**（P50 +55，均值 +16.8%） |
+
+命令：`python scripts/eval_known_draw.py --games 40 --scenario small --policy beam --width 4 --budget-ms 100`
+
+**如实解读**：
+
+- 回合内 expectimax 用不到「未来回合」的信息，只有本回合抽牌卡的抽牌结果能用上——真实牌组里抽牌卡极少，
+  所以增益 ≈0；抽牌多的牌组 +2.5。
+- 跨回合 beam 用已知牌序做规划（为了后面几张真实好牌保留体力/出牌位），收益明显（构造牌组 +16.8%）；
+  真实 small 牌组只有 +3.0，且 beam 本身还不如回合内 expectimax（见上文的 V_leaf 限制）。
+- 结论：**信息本身是真实的（构造牌组验证），但要变成分数需要跨回合规划 + 更好的叶子估值**，这是下一步。
+
+### 还没接的（下一步）
+
+1. **生产接线**：`auto_produce` 拿采集到的 seed/牌组/支援编成/配置回合建 `ExamDrawOracle`，每回合
+   `draw_next_turn(param)` 与实机抽牌核对后把 `known_draw` 写进 `ExpectState`（目前只有离线评测入口）；
+2. **重洗后段全知**：`ExpectState.discard` 现在是多重集，丢掉进弃牌堆顺序 → 第一次重洗后只能退回期望。
+   要全知需要把 `discard_order` 带进状态（搜索/模拟器同步改），再配合 oracle 的 `reshuffle(grave)`；
+3. **生产策略**：把 beam/全信息规划接成 `lesson.engine` 的一个选项，按耗时（beam 均值 ~100ms/回合）取舍；
+4. 真机 `LessonState` 读不到牌库/回合属性之外的隐藏状态——seed 数据来自 MITM 采集，需要把采集进程和
+   bot 决策进程的数据打通（traffic.jsonl → policy 进程）。

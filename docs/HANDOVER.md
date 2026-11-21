@@ -134,7 +134,7 @@ produce-001 = レギュラー（REGULAR）、produce-002 = プロ（PRO），四
    `p_card-01-ido-3_292` 较新 gakumasu-diff 里是 `playMovePositionType=Lost`；
    `verify_shuffle.py` 有 `SUPPLEMENT_*` 兜底，更新主数据后可删。
 4. **之后接「完全信息搜索」**：seed + 牌堆 + 支援编成 + 回合属性 + 出牌序列 → 整段牌序
-   （含弃牌堆重洗）→ expectimax 叶子。
+   （含弃牌堆重洗）→ expectimax 叶子。**第一步已接入，见二·补四**。
 
 ### 二·补三、11-21 傍晚（支援强化掷点 + 弃牌堆重洗完整破解 ✅）
 
@@ -166,6 +166,33 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 **未验证/未建模**（都不影响已跑的四场）：
 11-20 期末 T9 回合内重洗样本（T8 有考试内生成卡）；考试内生成卡/中途抽牌等其它随机消耗源；
 非 5 NPC 的 K 公式。
+
+### 二·补四、11-21 晚（完全信息搜索：第一步接入）
+
+```
+✅ 牌序数据链路：src/gkagent/sim/exam_oracle.py
+   initial_shuffled_deck(seed, deck, config_turns) = 开局真实牌堆顺序
+   ExamDrawOracle：每回合 draw_next_turn(param) 返回真实手牌（含支援强化掷点），
+   牌堆空时按调用方给的真实 grave 顺序重洗 → 整段牌序可从 seed 推出
+✅ 搜索侧开关：ExpectState.known_draw（已知后续抽牌顺序）
+   非空 → 抽牌机会节点退化成确定分支（_draw_distribution / sample_draws）；
+   空 → 原「只知多重集」期望模型（默认生产行为不变）
+✅ 离线评测入口：state_from_sim(sim, known_deck_order=True)
+✅ 新测试 14 条（tests/test_expectimax_known_draw.py 8 + tests/test_exam_oracle.py 6）
+✅ 配对评测脚本 scripts/eval_known_draw.py，实测（同牌组同 seed unknown vs known）：
+   · 真实牌组回合内搜索：增益 ≈0（牌组里几乎没有抽牌卡，回合内用不到未来信息）
+   · 真实小牌组跨回合 beam：+3.0 均值（P50 +4，CLEAR 22.5%→30%）
+   · 抽牌多构造牌组 beam：+44.6 均值 / P50 +55（+16.8%）
+   → 信息本身值钱，但要变成分数需要跨回合规划 + 更好的叶子估值（V_leaf 仍是瓶颈）
+```
+
+**下一步（完全信息搜索第二段）**：
+1. 生产接线：`auto_produce` 用采集到的 seed/牌组/支援编成/配置回合建 `ExamDrawOracle`，
+   每回合与实机抽牌核对后把 `known_draw` 写进 `ExpectState`；
+2. 重洗后段全知：给 `ExpectState` 加 `discard_order`（现在只有多重集），
+   第一次重洗后也能用 oracle 的 `reshuffle(grave)`；
+3. 生产策略：把 beam/全信息规划接成 `lesson.engine` 选项（beam ~100ms/回合）；
+4. 打通 MITM 采集进程与 bot 决策进程（seed 数据在 traffic.jsonl 里）。
 
 ---
 
@@ -209,7 +236,8 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 ```
 
 **下一步**：① 采非 5 NPC 的 produce 类型补充 K 公式样本；② 11-20 期末 T9「回合内重洗」样本
-（有考试内生成卡，未建模）；**完成后**：seed+牌堆+支援编成+回合属性+出牌序列→精确牌序→完全信息搜索。
+（有考试内生成卡，未建模）；③ 完全信息搜索第二段：生产接线 + 跨回合规划 + 重洗后段全知
+（见二·补四）；**完成后**：seed+牌堆+支援编成+回合属性+出牌序列→精确牌序→完全信息搜索。
 
 **注意**：中间考试有 `forceEndScore`（produce-002：baseScore 1150→封顶 1700、1200→封顶 1800），
 bot/模拟器要按「达到封顶分即提前结束」处理。
@@ -312,8 +340,9 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/ -q` 全绿（**803 条**，含 `tests/test_exam_shuffle.py` 四场考试
-洗牌回放 + 「实战回合算 K 会错」回归防线 + 三组弃牌堆重洗样本的掷点数/强化增量/重洗手牌对照），
+**测试状态**：`pytest tests/ -q` 全绿（**817 条**，含 `tests/test_exam_shuffle.py` 四场考试
+洗牌回放 + 「实战回合算 K 会错」回归防线 + 三组弃牌堆重洗样本的掷点数/强化增量/重洗手牌对照；
+`tests/test_expectimax_known_draw.py` 8 条 + `tests/test_exam_oracle.py` 6 条完全信息搜索测试），
 `ruff check src` 与改动文件的 ruff 通过。
 
 ---

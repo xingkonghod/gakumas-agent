@@ -158,6 +158,10 @@ class ExpectState:
     deck: tuple[CardSpec, ...] = ()
     discard: tuple[CardSpec, ...] = ()
     excluded: tuple[CardSpec, ...] = ()
+    # 全知牌序（完全信息搜索）：已知的后续抽牌顺序，下标 0 = 下一张抽到的牌。
+    # 非空时要求它的多重集 == ``deck``；抽牌机会节点退化成确定分支。
+    # 空 = 原来「只知多重集」的期望模型（默认，行为不变）。
+    known_draw: tuple[CardSpec, ...] = ()
     stamina: int = 0
     stamina_max: int = 0
     vitality: int = 0
@@ -260,6 +264,8 @@ class ExpectState:
         return (
             _counts_key(self.hand),
             _counts_key(self.deck),
+            # known_draw 的顺序会影响未来抽牌，所以按原样入键（不能只按多重集）
+            self.known_draw,
             _counts_key(self.discard),
             _counts_key(self.excluded),
             self.stamina,
@@ -914,9 +920,32 @@ def _draw_distribution(
     *,
     enum_limit: int = DEFAULT_DRAW_ENUM_LIMIT,
 ) -> list[tuple[float, ExpectState]]:
-    """抽 ``count`` 张牌的精确机会节点 ``[(概率, 后继状态)]``。"""
+    """抽 ``count`` 张牌的精确机会节点 ``[(概率, 后继状态)]``。
+
+    ``state.known_draw`` 非空（完全信息搜索）时退化成**确定分支**：按已知顺序取前
+    ``count`` 张；已知段不够要继续抽时，之后要洗弃牌（顺序依赖未知的出牌顺序），
+    这一段退回多重集期望。``known_draw`` 与 ``deck`` 长度不一致时也退回期望模型
+    （防御：牌被效果移动过，已知顺序已失效）。
+    """
     if count <= 0:
         return [(1.0, state)]
+    known = state.known_draw
+    if known and len(known) == len(state.deck):
+        take = min(count, len(known))
+        drawn = known[:take]
+        remaining = known[take:]
+        base = replace(
+            state,
+            hand=state.hand + drawn,
+            deck=remaining,
+            known_draw=remaining,
+        )
+        if count <= take:
+            return [(1.0, base)]
+        if not base.discard:
+            return [(1.0, base)]
+        # 已知段抽完、牌库空：剩余抽牌要洗弃牌，顺序不可知 → 退回多重集期望
+        return _draw_distribution(replace(base, known_draw=()), count - take)
     deck = Counter(state.deck)
     discard = Counter(state.discard)
     if not deck and discard:
@@ -1018,7 +1047,46 @@ def run_sequence(state: ExpectState, cards: Iterable[CardSpec]) -> ExpectState:
 
 
 def sample_draws(state: ExpectState, count: int, rng: random.Random) -> ExpectState:
-    """从真实剩余多重集**无放回抽样** ``count`` 张（牌库空则把弃牌洗回）。"""
+    """从真实剩余多重集**无放回抽样** ``count`` 张（牌库空则把弃牌洗回）。
+
+    ``state.known_draw`` 非空（完全信息搜索）时先按已知顺序取牌；已知段不够时
+    剩余抽牌要洗弃牌，那一段仍按多重集随机（顺序不可知）。
+    """
+    count = max(int(count), 0)
+    known = state.known_draw
+    if known and len(known) == len(state.deck):
+        take = min(count, len(known))
+        drawn = known[:take]
+        remaining = known[take:]
+        hand = list(state.hand) + list(drawn)
+        deck = Counter(remaining)
+        discard = Counter(state.discard)
+        for _ in range(count - take):
+            if not deck:
+                if not discard:
+                    break
+                deck, discard = discard, Counter()
+            total = sum(deck.values())
+            pick = rng.randrange(total)
+            chosen: CardSpec | None = None
+            for card, available in deck.items():
+                if pick < available:
+                    chosen = card
+                    break
+                pick -= available
+            if chosen is None:
+                break
+            deck[chosen] -= 1
+            if deck[chosen] <= 0:
+                del deck[chosen]
+            hand.append(chosen)
+        return replace(
+            state,
+            hand=tuple(hand),
+            deck=_counts_tuple(deck),
+            discard=_counts_tuple(discard),
+            known_draw=remaining,
+        )
     deck = Counter(state.deck)
     discard = Counter(state.discard)
     hand = list(state.hand)
@@ -1895,8 +1963,14 @@ def search_beam(
 
 
 # ---------------------------------------------------------------- LessonSim 适配
-def state_from_sim(sim: Any) -> ExpectState:
-    """把一个 ``LessonSim`` 的当前局面快照成 ``ExpectState``（离线评测用）。"""
+def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
+    """把一个 ``LessonSim`` 的当前局面快照成 ``ExpectState``（离线评测用）。
+
+    ``known_deck_order=True`` 时把 ``sim.deck`` 的**真实顺序**写成 ``known_draw``
+    （``LessonSim`` 从列表尾部 ``pop()`` 抽牌，所以抽牌顺序 = ``reversed(sim.deck)``），
+    用来离线评测「完全信息搜索」：搜索知道接下来的抽牌顺序；牌库抽空后要洗弃牌，
+    那一段顺序仍不可知（退回多重集期望）。
+    """
     buffs = getattr(sim, "buffs", Buffs())
     stance = getattr(sim, "stance", StanceState())
     config = getattr(sim, "config", None)
@@ -1912,6 +1986,7 @@ def state_from_sim(sim: Any) -> ExpectState:
         deck=tuple(sim.deck),
         discard=tuple(sim.discard),
         excluded=tuple(getattr(sim, "excluded", ())),
+        known_draw=(tuple(reversed(sim.deck)) if known_deck_order else ()),
         stamina=max(int(sim.stamina), 0),
         stamina_max=max(int(getattr(sim, "stamina_max", 0)), 0),
         vitality=max(int(sim.vitality), 0),
