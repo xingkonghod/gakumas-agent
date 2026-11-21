@@ -1,8 +1,18 @@
-"""考试洗牌重放模型（2026-11-21 破解，四场实机验证）。
+"""考试洗牌重放模型（2026-11-21 破解，四场实机验证；含弃牌堆重洗 + 支援强化掷点）。
 
 客户端考试随机数是 xorshift32（与社区 gakumas_exam.rng 的 NativeRandom 一致）。
+整场考试只有一条随机数流，消耗顺序：
 
-**考试开局的 RNG 消耗顺序**（StepAuditionStart → 第 1 回合发牌前）：
+1. **开局**：回合属性 ``turns-3`` 次 + NPC 分数 ``npc_count*turns`` 次，然后洗初始牌堆。
+2. **每回合抽牌后**：支援卡考试内临时强化（:func:`support_upgrade`）——
+   按「入手顺序 × 支援卡顺序」每对掷一次 ``integer(0, 1000)``，命中（``roll < permil``）
+   的支援本回合不再参与；牌不可再强化（主数据没有 ``upgrade+1`` 变体）时整张跳过。
+3. **牌堆抽空时**：洗弃牌堆（:func:`reshuffle_grave`，同一个 Fisher-Yates 倒序）。
+   弃牌堆顺序 = 卡进弃牌堆的先后：出牌后去 Grave 的牌按出牌顺序 append，
+   回合末剩余手牌按手牌顺序 append；``playMovePositionType=Lost`` / ``isEndTurnLost`` 的卡不进弃牌堆。
+4. 之后的抽牌照旧从牌堆顶（下标 0）取。
+
+**开局阶段的 RNG 消耗**（StepAuditionStart → 第 1 回合发牌前）：
 
 1. 回合属性：只有前 ``turns - 3`` 个回合随机，最后 3 个回合固定（静态表按 NPC 权重定序）。
    随机方式 = 按前 ``turns - 3`` 回合的属性池逐个「随机取一个并移除」，消耗 ``turns - 3`` 次抽取。
@@ -25,7 +35,9 @@ produce-002 プロ 的 audition 是 5 个 NPC，因此 ``K = 6 * turns - 3``：
 * 第 1 回合先 ``SetInitialCard``：从牌堆「底 → 顶」扫，把 ``isInitial`` 卡按扫描顺序移入手牌
   （超出手牌上限的接到牌堆底），再从牌堆顶补抽到 ``turnStartDistribute`` 张；
 * 第 2 回合起每回合从牌堆顶抽 ``turnStartDistribute`` 张；
-* 牌堆抽空时客户端会洗弃牌堆，那一段依赖弃牌/失落区的顺序，本模块不建模。
+* 牌堆抽空时客户端会洗弃牌堆（:func:`reshuffle_grave`），重洗前还会先跑完本回合已抽到的牌的
+  支援强化（:func:`support_upgrade`）——2026-11-21 三组实机样本逐张复现：
+  11-20 期中 T7（45 次掷点 → 9/9）、11-21 期中 T6（29 次 → 6/6）、11-21 期末 T10（46 次 → 9/9）。
 """
 
 from __future__ import annotations
@@ -99,6 +111,21 @@ def infer_turn_type_pool(turn_types: list[int]) -> list[int] | None:
     return [t for t in order for _ in range(counts[t])]
 
 
+def opening_deck_and_rng(
+    seed: int, deck: list[Card], k: int
+) -> tuple[NativeRandom, list[Card]]:
+    """考试开局：RNG 先 advance ``k`` 次（回合属性 + NPC 分数），再 Fisher-Yates 洗牌。
+
+    返回 ``(洗牌后的 RNG, 洗后的牌堆)``。后续支援强化掷点、弃牌堆重洗都用这条随机数流。
+    """
+    rng = NativeRandom(seed)
+    for _ in range(k):
+        rng.advance()
+    shuffled = list(deck)
+    shuffle(shuffled, rng)
+    return rng, shuffled
+
+
 def replay_initial_deck(
     seed: int,
     deck: list[Card],
@@ -114,13 +141,10 @@ def replay_initial_deck(
     * ``k``：洗牌前 RNG 消耗次数（用 :func:`k_before_shuffle` 算）；
     * ``initial_keys``：``isInitial`` 的卡（(produceCardId, upgradeCount)）；
     * 返回逐回合手牌；最后回合不足 ``turn_start_distribute`` 张表示牌堆已抽空
-      （客户端此时会洗弃牌堆，超出本模型，故到此为止）。
+      （下一张牌要洗弃牌堆，见 :func:`reshuffle_grave`；若该回合还没抽满就空了，
+      说明重洗发生在**回合内**，前几张是原牌堆的）。
     """
-    rng = NativeRandom(seed)
-    for _ in range(k):
-        rng.advance()
-    remaining = list(deck)
-    shuffle(remaining, rng)
+    _rng, remaining = opening_deck_and_rng(seed, deck, k)
 
     turns: list[list[Card]] = []
     turn = 1
@@ -152,3 +176,62 @@ def replay_initial_deck(
         if turn > 100:  # pragma: no cover - 防御死循环
             break
     return turns
+
+
+def support_upgrade(
+    rng: NativeRandom,
+    added: list,
+    supports: list[dict],
+    parameter_type: int,
+    *,
+    used: list[str] | None = None,
+    upgradeable=None,
+) -> list[tuple]:
+    """支援卡考试内临时强化：**每张入手牌 × 每张支援卡** 掷一次 ``integer(0, 1000)``。
+
+    客户端 `ExamSupportCard` 的规则（社区 gakumas_exam 已对原生核对，2026-11-21 三组实机验证）：
+
+    * 外层按入手顺序，内层按**支援卡列表顺序**（= 编成槽位号 ``number`` 升序）；
+    * 卡在主数据里没有 ``upgrade+1`` 变体（已叠满）时整张跳过，不掷；
+    * 支援卡 ``filter_parameter_type`` 不是 0/None 且 ≠ 本回合属性时不掷；
+    * 命中（``roll < permil``）后该支援**本回合不再参与**（``used`` 里记 id）；
+    * 同一张牌可以被多张支援叠强化（每张支援每回合至多成功一次）。
+
+    :param rng: 考试随机数流（会就地消耗）。
+    :param added: 本批入手的卡（按入手顺序），元素为可哈希的卡标识（如 ``(id, upgrade)``）。
+    :param supports: 支援卡列表，每项 ``{"id": str, "filter": int, "permil": int}``。
+    :param parameter_type: 本回合属性 1 Vo / 2 Da / 3 Vi。
+    :param used: 本回合已成功的支援 id（就地追加；每回合开头清空）。
+    :param upgradeable: ``callable(card) -> bool``，主数据里是否还有下一级变体；None 表示都可强化。
+    :return: ``(成功列表, 掷点次数)``；成功列表元素为 ``(card, support_id)``，按判定顺序。
+    """
+    used = used if used is not None else []
+    planned: list[tuple] = []
+    rolls = 0
+    for card in added:
+        if upgradeable is not None and not upgradeable(card):
+            continue
+        for support in supports:
+            sid = support["id"]
+            if sid in used:
+                continue
+            filt = support.get("filter") or 0
+            if filt != 0 and filt != parameter_type:
+                continue
+            rolls += 1
+            if rng.integer(0, 1000) < support["permil"]:
+                used.append(sid)
+                planned.append((card, sid))
+    return planned, rolls
+
+
+def reshuffle_grave(rng: NativeRandom, grave: list) -> list:
+    """牌堆抽空时洗弃牌堆：对弃牌堆做 Fisher-Yates 倒序洗（同一随机数流），返回洗后的新牌堆顺序。
+
+    ``grave`` 是「进弃牌堆的先后顺序」（出牌后去 Grave 的按出牌顺序 append，回合末剩余手牌按
+    手牌顺序 append；Lost 卡不在里面）。客户端洗完后把手牌堆接到牌堆上（此时牌堆为空），
+    所以返回顺序就是之后抽牌的顺序（下标 0 = 牌堆顶）。
+    """
+    cards = list(grave)
+    shuffle(cards, rng)
+    return cards

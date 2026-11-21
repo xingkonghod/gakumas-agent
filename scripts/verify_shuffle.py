@@ -1,19 +1,21 @@
-"""洗牌重放验证：examSeedValue + 考试牌堆 → 精确牌序（2026-11-21 修正版）。
+"""洗牌重放验证：examSeedValue + 考试牌堆 → 精确牌序（含支援强化掷点与弃牌堆重洗）。
 
-模型（实现见 ``src/gkagent/sim/exam_shuffle.py``）：
+整条考试随机数流（实现见 ``src/gkagent/sim/exam_shuffle.py``）：
 
-  · 考试开局先消耗随机数：回合属性 ``turns-3`` 次 + NPC 分数 ``npc_count*turns`` 次
-    → 洗牌前 K = (turns-3) + npc_count*turns（produce-002 プロ是 5 个 NPC，K = 6*turns-3）
-  · 这里的 turns 是**配置回合数**，不是实战回合数：中间考试达到 forceEndScore 会提前结束，
-    但回合属性/NPC 分数在开局仍按配置回合生成（2026-11-21 采集：配置 9 回合、实战 7 回合，
-    K=51 精确复现牌序，见 docs/MASTER_DATA.md 附录）
-  · 洗牌 = xorshift32(examSeedValue) advance K 次 → Fisher-Yates 倒序洗「Number 升序」牌堆
-  · 第 1 回合先 SetInitialCard：把 isInitial 卡从牌堆抽入手，再补抽到 turnStartDistribute 张
-  · 牌堆抽完前，洗后牌序 = 逐回合手牌依次拼接
+  ① 开局：回合属性 ``turns-3`` 次 + NPC 分数 ``npc_count*turns`` 次
+     → 洗牌前 K = (turns-3) + npc_count*turns（produce-002 プロ是 5 个 NPC，K = 6*turns-3）；
+     这里的 turns 是**配置回合数**（中间考试到 forceEndScore 提前结束时，K 仍按配置回合算）。
+  ② 洗初始牌堆 = Fisher-Yates 倒序洗「number 升序」牌堆；
+  ③ 第 1 回合先 SetInitialCard（isInitial 卡），再补抽到 turnStartDistribute 张；
+  ④ 每回合抽牌后：支援强化掷点（入手顺序 × 支援卡顺序，各掷 integer(0,1000)）；
+  ⑤ 牌堆抽空：洗弃牌堆（进弃牌堆的先后顺序 = 出牌顺序 + 回合末剩余手牌顺序；Lost 卡不进）；
+  ⑥ 洗完后继续从牌堆顶抽。
 
-旧版（2026-11-20）漏了 isInitial 卡，期末才会「复现不出」：期末牌堆里的
-``p_card-02-men-2_054`` 是 isInitial，首回合它被抽人手牌，之后每一回合都错位。
-修正后：期中 K=51 → 18/18，期末 K=63 → 26/26（两场都回合集合全中）。
+验证内容（四场实机采集）：
+  * 初始发牌（牌堆抽空前）逐张对照；
+  * 每回合支援强化增量对照（乘上掷点的 RNG 状态必须与实战一致，否则重洗对不上）；
+  * 弃牌堆重洗后的手牌逐张对照：11-20 期中 T7（掷点 45 次）、
+    11-21 期中 T6（29 次）、11-21 期末 T10（46 次）。
 
 用法：python scripts/verify_shuffle.py [--file PATH] [--k N]
 """
@@ -37,13 +39,30 @@ from gkagent.sim.exam_shuffle import (
     DEFAULT_NPC_COUNT,
     generate_turn_types,
     k_before_shuffle,
+    opening_deck_and_rng,
     replay_initial_deck,
+    reshuffle_grave,
+    support_upgrade,
 )
 
 MAX_CONFIG_TURNS = 30
 
 DEFAULT = Path(r"C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl")
 MASTER_DIR = Path(__file__).resolve().parents[1] / "data/hiro/vendor/gakumas-player/data/master"
+
+SUPPORT_LIST_FIELD = 256246388  # UserData.userProduceProgressSupportCardList
+PARAMETER_TYPE = {
+    "ProduceParameterType_Vocal": 1,
+    "ProduceParameterType_Dance": 2,
+    "ProduceParameterType_Visual": 3,
+}
+
+# 主数据 catalog（gakumasu-diff d31baf6，2026-11-20）之后游戏版本新增的卡：
+# 采集里出现但 catalog 缺条目，用以下补充值（来源见 docs/MASTER_DATA.md 附录）：
+#  * p_card-01-ido-3_292：较新的 gakumasu-diff ProduceCard.yaml 里 playMovePositionType=Lost、有 +0..+3；
+#  * s_card-3-0115：SupportCard 缺条目，考试内强化 filter 由 11-21 两场掷点唯一确定 = Vocal。
+SUPPLEMENT_CARD_MOVE = {"p_card-01-ido-3_292": "ProduceCardMovePositionType_Lost"}
+SUPPLEMENT_SUPPORT_FILTER = {"s_card-3-0115": 1}
 
 
 def fmap(nodes: list) -> dict:
@@ -87,7 +106,24 @@ def truth_turns(req: bytes) -> list[dict]:
             continue
         m = fmap(node)
         hand = [c for c in (card_of(v) for v in m.get(50, [])) if c]
-        turns.append({"turn": (m.get(1) or [0])[0], "parameterType": (m.get(7) or [0])[0], "hand": hand})
+        played = []
+        for cmd in m.get(100, []):
+            cnode = inner(cmd)
+            if cnode is None:
+                continue
+            cm = fmap(cnode)
+            if 5 in cm:
+                card = card_of(cm[5][0]) if isinstance(cm[5][0], tuple) else None
+                if card:
+                    played.append(card)
+        turns.append(
+            {
+                "turn": (m.get(1) or [0])[0],
+                "parameterType": (m.get(7) or [0])[0],
+                "hand": hand,
+                "played": played,
+            }
+        )
     return turns
 
 
@@ -102,21 +138,38 @@ def master_db() -> Path | None:
     return candidates[-1] if candidates else None
 
 
-def load_master_info(db: Path | None) -> tuple[set[tuple[str, int]], int]:
-    """返回（isInitial 的卡集合, turnStartDistribute）。主数据缺失时退回空集/3。"""
+def load_master_info(db: Path | None) -> tuple[frozenset, int, dict, dict]:
+    """返回（isInitial 卡集合, turnStartDistribute, 卡信息, 支援卡 filter）。
+
+    卡信息：``(ProduceCard, upgradeCount) -> {"move": playMovePositionType, "end_lost": isEndTurnLost}``；
+    支援卡 filter：``supportCardId -> ProduceParameterType(0=不限/1 Vo/2 Da/3 Vi)``。
+    """
     if db is None or not db.is_file():
-        print(f"⚠️ 主数据不可用（{db}），isInitial 按空集处理")
-        return set(), 3
+        print(f"⚠️ 主数据不可用（{db}），按空集处理")
+        return frozenset(), 3, {}, {}
     initial: set[tuple[str, int]] = set()
     turn_start_distribute = 3
+    card_info: dict[tuple[str, int], dict] = {}
+    support_filter: dict[str, int] = {}
     con = sqlite3.connect(db)
     try:
         for row_id, variant, payload in con.execute(
             "select row_id, variant, payload from records where table_name='ProduceCard'"
         ):
             card = json.loads(zlib.decompress(payload).decode("utf-8", "replace"))
+            card_info[(row_id, int(variant))] = {
+                "move": card.get("playMovePositionType"),
+                "end_lost": bool(card.get("isEndTurnLost")),
+            }
             if card.get("isInitial"):
                 initial.add((row_id, int(variant)))
+        for row_id, _variant, payload in con.execute(
+            "select row_id, variant, payload from records where table_name='SupportCard'"
+        ):
+            card = json.loads(zlib.decompress(payload).decode("utf-8", "replace"))
+            support_filter[row_id] = PARAMETER_TYPE.get(
+                card.get("produceCardUpgradeLessonParameterType"), 0
+            )
         row = con.execute(
             "select payload from records where table_name='ExamSetting' order by row_id limit 1"
         ).fetchone()
@@ -125,10 +178,40 @@ def load_master_info(db: Path | None) -> tuple[set[tuple[str, int]], int]:
             turn_start_distribute = int(setting.get("turnStartDistribute", 3))
     finally:
         con.close()
-    return initial, turn_start_distribute
+    return frozenset(initial), turn_start_distribute, card_info, support_filter
 
 
-def load_exams(path: Path, snap_path: Path) -> list[dict]:
+def load_supports(start_rec: dict, support_filter: dict) -> list[dict]:
+    """从 StepAuditionStart 响应解析支援卡（按 number 升序；permil 是服务器算好的值）。"""
+    resp = body(start_rec, "resp_plain_hex")
+    if resp is None:
+        return []
+    out = []
+    for _path, field, wire, value, _offset in walk(parse(resp)):
+        if field != SUPPORT_LIST_FIELD or wire != 2:
+            continue
+        node = inner(value)
+        if node is None:
+            continue
+        m = fmap(node)
+        raw = (m.get(5) or [None])[0]
+        if raw is None:
+            continue
+        sid = raw[0].decode("utf-8", "replace") if isinstance(raw, tuple) else raw.decode("utf-8", "replace")
+        number = (m.get(2) or [0])[0]
+        out.append(
+            {
+                "id": sid,
+                "number": number,
+                "permil": (m.get(16) or [0])[0],
+                "filter": SUPPLEMENT_SUPPORT_FILTER.get(sid, support_filter.get(sid, 0)),
+            }
+        )
+    out.sort(key=lambda s: s["number"])
+    return out
+
+
+def load_exams(path: Path, snap_path: Path, support_filter: dict) -> list[dict]:
     """把每场考试（StepAuditionEndExamBattle）配到它之前最近一次 StepAuditionStart。
 
     不能按 starts[i]/ends[i] 下标配对：采集里可能有「只有 Start、没打 End」的半场
@@ -170,6 +253,7 @@ def load_exams(path: Path, snap_path: Path) -> list[dict]:
                 "ts": end.get("ts"),
                 "deck": deck,
                 "turns": turns,
+                "supports": load_supports(start, support_filter),
                 "npc_count": len(top.get(5, [])) or DEFAULT_NPC_COUNT,
             }
         )
@@ -225,7 +309,144 @@ def turn_type_check(
     return False, None, None
 
 
-def report_exam(exam: dict, initial: set[tuple[str, int]], turn_start_distribute: int, k: int | None) -> bool:
+# ---------------------------------------------------------------------- 弃牌堆重洗
+
+
+def card_can_upgrade(card: tuple[str, int], card_info: dict) -> bool:
+    """主数据里有没有 ``upgrade+1`` 变体（没有就不能再强化，支援强化整张跳过、不掷点）。
+
+    catalog 缺条目的新卡按「可强化」处理（2026-11 新增的 ido-3_292 有 +0..+3）。
+    """
+    if card not in card_info:
+        return True
+    return (card[0], card[1] + 1) in card_info
+
+
+def card_move_position(card: tuple[str, int], card_info: dict) -> str:
+    info = card_info.get(card)
+    if info is None:
+        return SUPPLEMENT_CARD_MOVE.get(card[0], "ProduceCardMovePositionType_Grave")
+    return info.get("move") or "ProduceCardMovePositionType_Grave"
+
+
+def build_grave(
+    hands: list[list[tuple[str, int]]], turns: list[dict], card_info: dict
+) -> tuple[list[tuple[str, int]], list[str]]:
+    """按实战出牌日志重建「重洗前弃牌堆」的卡顺序。
+
+    规则：出牌后去 Grave 的牌按出牌顺序 append（Lost 不进），回合末剩余手牌按手牌顺序 append
+    （isEndTurnLost 的不进）。手牌顺序 = 初始发牌顺序，抽出后未被移除的相对顺序不变。
+    """
+    grave: list[tuple[str, int]] = []
+    warnings: list[str] = []
+    for t, hand in enumerate(hands):
+        hand = [tuple(c) for c in hand]
+        remaining = list(range(len(hand)))
+        for cid, up in turns[t]["played"]:
+            cand = [i for i in remaining if hand[i][0] == cid and hand[i][1] <= up]
+            if not cand:
+                warnings.append(f"T{t + 1} 打出的卡不在起始手牌里：{cid}+{up}（考试内生成/移动的卡？）")
+                continue
+            exact = [i for i in cand if hand[i][1] == up]
+            idx = (exact or cand)[0]
+            remaining.remove(idx)
+            base = hand[idx]
+            if card_move_position(base, card_info) != "ProduceCardMovePositionType_Lost":
+                grave.append(base)
+        for i in remaining:
+            base = hand[i]
+            if (card_info.get(base) or {}).get("end_lost"):
+                continue
+            grave.append(base)
+    return grave, warnings
+
+
+def verify_reshuffle(
+    exam: dict,
+    hands: list[list[tuple[str, int]]],
+    config_turns: int,
+    turn_start_distribute: int,
+    card_info: dict,
+) -> dict | None:
+    """重放「初始牌堆抽空之后」的支援强化掷点 + 弃牌堆重洗，对照实战手牌。
+
+    返回 ``None``（没有重洗样本）或结果 dict；``skipped`` 非空表示样本不可验证。
+    """
+    turns = exam["turns"]
+    total_turns = len(turns)
+    last_hand_size = len(hands[-1])
+    if last_hand_size < turn_start_distribute and len(hands) < total_turns:
+        complete = len(hands) - 1  # 重洗发生在第 len(hands) 回合内
+        kind = "回合内"
+    elif last_hand_size == turn_start_distribute and len(hands) < total_turns:
+        complete = len(hands)  # 重洗发生在下一回合开始抽牌时
+        kind = "回合开始"
+    else:
+        return None
+
+    # 从「初始洗牌后」的 RNG 状态开始，按实战手牌顺序补掷支援强化（每回合 used 清空）
+    rng, _deck = opening_deck_and_rng(exam["seed"], exam["deck"], k_before_shuffle(config_turns, exam["npc_count"]))
+    rolls = 0
+    successes = 0
+    bump_ok = True
+    for t in range(complete):
+        hand = [tuple(c) for c in hands[t]]
+        used: list[str] = []
+        planned, turn_rolls = support_upgrade(
+            rng,
+            hand,
+            exam["supports"],
+            turns[t]["parameterType"],
+            used=used,
+            upgradeable=lambda card: card_can_upgrade(card, card_info),
+        )
+        rolls += turn_rolls
+        successes += len(planned)
+        got_bumps = [0] * len(hand)
+        for card, _sid in planned:
+            got_bumps[hand.index(card)] += 1
+        obs_bumps = [obs[1] - base[1] for base, obs in zip(hand, turns[t]["hand"])]
+        if got_bumps != obs_bumps:
+            bump_ok = False
+
+    grave, warnings = build_grave(hands, turns, card_info)
+    if warnings:
+        return {
+            "kind": kind,
+            "turn": complete + 1,
+            "skipped": "；".join(warnings),
+            "rolls": rolls,
+            "successes": successes,
+            "bump_ok": bump_ok,
+        }
+
+    shuffled = reshuffle_grave(rng, grave)
+    want = [c for turn in turns[complete:] for c in turn["hand"]]
+    if kind == "回合内":
+        first = [tuple(c) for c in hands[-1]]
+        got = first + shuffled[: len(want) - len(first)]
+    else:
+        got = shuffled[: len(want)]
+    ok = len(got) == len(want) and all(
+        pred[0] == obs[0] and pred[1] <= obs[1] for pred, obs in zip(got, want)
+    )
+    return {
+        "kind": kind,
+        "turn": complete + 1,
+        "grave": len(grave),
+        "rolls": rolls,
+        "successes": successes,
+        "bump_ok": bump_ok,
+        "ok": ok,
+        "got": got,
+        "want": want,
+        "skipped": None,
+    }
+
+
+def report_exam(
+    exam: dict, initial: frozenset, turn_start_distribute: int, card_info: dict, k: int | None
+) -> bool:
     seed = exam["seed"]
     deck = exam["deck"]
     turns = exam["turns"]
@@ -295,12 +516,18 @@ def report_exam(exam: dict, initial: set[tuple[str, int]], turn_start_distribute
     ok = stats["id"] == stats["total"]
     mark = "✅" if ok else "❌"
     print(f"  isInitial 卡: {sorted(deck_initial) or '无'}")
-    print(f"  洗牌重放: {mark} 整段 {stats['id']}/{stats['total']} 张 id 精确、"
+    print(f"  初始发牌重放: {mark} 整段 {stats['id']}/{stats['total']} 张 id 精确、"
           f"{stats['variant']}/{stats['total']} 张强化不冲突；回合集合 {stats['sets'][0]}/{stats['sets'][1]}")
-    if ok:
-        return True
 
-    # 4) 公式不通时按 K 搜索（保留旧的调试能力）
+    # 4) 支援强化掷点 + 弃牌堆重洗（整条随机数流的后半段）
+    reshuffle_ok = True
+    if ok and k is None:
+        reshuffle_ok = _report_reshuffle(exam, predicted, config_turns, turn_start_distribute, card_info)
+
+    if ok:
+        return reshuffle_ok if k is None else True
+
+    # 5) 公式不通时按 K 搜索（保留旧的调试能力）
     if k is None:
         hits = []
         for candidate in range(2001):
@@ -322,6 +549,38 @@ def report_exam(exam: dict, initial: set[tuple[str, int]], turn_start_distribute
     return False
 
 
+def _report_reshuffle(
+    exam: dict,
+    hands: list[list[tuple[str, int]]],
+    config_turns: int,
+    turn_start_distribute: int,
+    card_info: dict,
+) -> bool:
+    if not exam["supports"]:
+        print("  支援强化/重洗: ⏭ 没解析到支援卡列表，跳过")
+        return True
+    result = verify_reshuffle(exam, hands, config_turns, turn_start_distribute, card_info)
+    if result is None:
+        print("  支援强化/重洗: ⏭ 牌堆没抽空（无重洗样本）")
+        return True
+    bump = "✅" if result.get("bump_ok") else "❌"
+    if result.get("skipped"):
+        print(f"  支援强化: 掷点 {result['rolls']} 次、成功 {result['successes']} 次，"
+              f"逐回合强化增量 {bump}")
+        print(f"  弃牌堆重洗（T{result['turn']} {result['kind']}）: ⏭ 跳过（{result['skipped']}）")
+        return True
+    ok = result["ok"]
+    print(f"  支援强化: 掷点 {result['rolls']} 次、成功 {result['successes']} 次，"
+          f"逐回合强化增量 {bump}")
+    print(f"  弃牌堆重洗（T{result['turn']} {result['kind']}，grave {result['grave']} 张）: "
+          f"{'✅' if ok else '❌'} {len(result['want'])}/{len(result['want'])} 张逐张对照"
+          f"（掷点 {result['rolls']} 次后洗）")
+    if not ok:
+        print("   实战:", result["want"])
+        print("   预测:", result["got"])
+    return ok and bool(bump == "✅")
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", default=str(DEFAULT))
@@ -338,11 +597,14 @@ def main(argv: list[str]) -> int:
         print(f"❌ 牌堆快照不存在: {snap}（先跑 scripts/reconstruct_deck.py）")
         return 1
 
-    initial, turn_start_distribute = load_master_info(master_db())
-    exams = load_exams(path, snap)
-    print(f"共 {len(exams)} 场考试；turnStartDistribute={turn_start_distribute}；isInitial 卡 {len(initial)} 种变体")
-    results = [report_exam(exam, initial, turn_start_distribute, args.k) for exam in exams]
-    print(f"\n汇总: {sum(results)}/{len(results)} 场考试整段复现")
+    initial, turn_start_distribute, card_info, support_filter = load_master_info(master_db())
+    exams = load_exams(path, snap, support_filter)
+    print(f"共 {len(exams)} 场考试；turnStartDistribute={turn_start_distribute}；"
+          f"isInitial 卡 {len(initial)} 种变体；ProduceCard {len(card_info)} 行")
+    results = [
+        report_exam(exam, initial, turn_start_distribute, card_info, args.k) for exam in exams
+    ]
+    print(f"\n汇总: {sum(results)}/{len(results)} 场考试整段复现（含重洗）")
     return 0 if all(results) else 1
 
 

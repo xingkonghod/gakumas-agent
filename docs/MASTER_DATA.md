@@ -144,11 +144,43 @@ field100 = commands（本回合打出，useProduceCard=5 带真实卡 id）、fi
 11-21 两场是 [2,1,3]），由 `ExamUtility.GetBonusParameterTypeOrderedList(vocalPermil, dancePermil,
 visualPermil)` 按 NPC 权重定序，不是固定值。
 
-**洗后（弃牌堆重洗）**：期中（11-20）第 7 回合牌堆抽空后重洗弃牌堆，从洗牌后状态再消耗 45 次
-随机数即可精确复现 T7-T9 手牌（9/9；45 应为支援卡临时强化等掷点，尚未完全建模）。
-注意「打出后去 Lost 区」的卡（`playMovePositionType=Lost`）不进弃牌堆，重洗时只洗 Grave 区。
-新增的两场也提供了重洗样本：11-21 期中 T6-T7、11-21 期末 T10-T12。
+**弃牌堆重洗 + 支援强化掷点：已完整建模（2026-11-21 深夜）**
+
+整场考试只有一条 xorshift32 随机数流；洗完初始牌堆后继续按下面顺序消耗：
+
+1. **每回合抽牌后 → 支援强化掷点**（客户端 `ExamSupportCard` 的考试内临时强化）：
+   按「入手顺序 × 支援卡顺序（编成槽位号 `number` 升序）」**每对掷一次 `integer(0,1000)`**；
+   - 牌在主数据里没有 `upgrade+1` 变体（已叠满）→ 整张跳过、不掷；
+   - 支援卡 `produceCardUpgradeLessonParameterType` ≠ 0 且 ≠ 本回合属性 → 跳过不掷；
+   - `roll < produceCardUpgradePermil`（服务器下发的值，‰；不是主数据基础值）即成功：
+     该牌显示强化 +1，且这张支援**本回合不再参与**（每回合开始清空）；
+   - 牌堆抽空才重洗时，重洗发生在「本回合已抽到的牌」的支援强化**之前**
+     （第 1 回合 `SetInitialCard` 的初始卡批次、补抽批次各判一次，共用本回合的已用集合）。
+2. **牌堆抽空 → 洗弃牌堆**：弃牌堆顺序 = 卡进弃牌堆的先后——出牌后去 Grave 的牌按出牌顺序 append，
+   回合末剩余手牌按手牌顺序 append；`playMovePositionType=Lost` / `isEndTurnLost` 的卡不进弃牌堆。
+   用同一个 Fisher-Yates 倒序洗，洗完后接成新牌堆，继续从牌堆顶（下标 0）抽。
+
+三组实机重洗样本逐张复现（`scripts/verify_shuffle.py` 端到端跑，回归在 `tests/test_exam_shuffle.py`）：
+
+| 局 | 重洗时点 | 重洗前掷点 | Grave | 重洗后实战手牌 |
+|---|---|---:|---:|---|
+| 11-20 期中 | T7 回合开始 | **45 次**（0 次成功）| 12 张 | T7-T9 9/9 ✅ |
+| 11-21 期中 | T6 回合开始 | **29 次**（1 次成功）| 11 张 | T6-T7 6/6 ✅ |
+| 11-21 期末 | T10 回合开始 | **46 次**（6 次成功）| 20 张 | T10-T12 9/9 ✅ |
+
+模型在 `src/gkagent/sim/exam_shuffle.py`：`opening_deck_and_rng` / `support_upgrade` / `reshuffle_grave`
+（`replay_initial_deck` 只覆盖牌堆抽空前的那段）。现在「seed + 考试时刻牌堆 + 支援编成 + 回合属性 +
+出牌序列」可以精确推演整场牌序（含弃牌堆重洗）。
+
+**主数据缺两张 11-21 游戏版本的新卡**（catalog 是 gakumasu-diff d31baf6）：
+- `p_card-01-ido-3_292`：工程内较新的 gakumasu-diff `ProduceCard.yaml` 里有
+  （`playMovePositionType=Lost`、有 +0..+3 变体）；catalog 缺所以按「可强化、打出后去 Lost」处理；
+- `s_card-3-0115`：`SupportCard` 缺条目，考试内强化 filter 由 11-21 两场掷点唯一反推 = **Vocal**。
+
+`scripts/verify_shuffle.py` 顶部用 `SUPPLEMENT_CARD_MOVE` / `SUPPLEMENT_SUPPORT_FILTER` 兜底，主数据更新后可删。
 
 **仍未做**：① 非 5 NPC 的 produce 类型验证（四场都是 5 NPC，公式里 npc 项还没换过数）；
-② 弃牌堆重洗前的那 45 次消耗（支援强化掷点）建模，才能从 seed 预测整场牌序；
-③ 用 11-21 的两场重洗样本（期中 T6-T7、期末 T10-T12）验证同一重洗模型。
+② 11-20 期末 T9 的「回合内重洗」样本（牌堆在第 9 回合第 3 抽才空）暂跳过：该局 T8 打出过
+考试内生成的卡（`p_card-00-men-3_003+1`），弃牌堆顺序和生成卡的随机消耗还没建模；
+③ 考试内生成卡 / 中途抽牌等其它随机数消耗源（本批四场没触发，`support_upgrade` 的
+`IsEnchantTriggerActive` 条件还没验证过）。
