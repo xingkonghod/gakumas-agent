@@ -624,6 +624,8 @@ rules / expectimax(ensemble) / uinet
 09b9358 feat(sim): 上真机前整局引擎 A/B + 考试策略注入 + auto_produce 墙钟上限
 ae86e1c feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
 （2026-11-22 凌晨四段）
+26459dc docs: 11-22 P0/T3 first real run (F#41-43) + group files intel + launcher flags
+584f742 fix(ui): story choice bubbles - layout fallback + region OCR (real-machine ep-t3-1..3)
 e820e34 docs(exam): known_draw 事前检测实现记录（169/1829 机制卡、四场牌组 0 命中）
 beec501 feat(exam): known_draw 事前检测——额外 RNG 机制卡扫描（exam_risk）+ ExamSetup.rng_risk + 计划拒用 + bot 跳过候选
 67a1a37 docs(t4): rollout 叶子负结果 + C/4242 整局记录 + 群 MITM 情报更新
