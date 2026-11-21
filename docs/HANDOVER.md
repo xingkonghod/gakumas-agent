@@ -311,6 +311,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-21 晚）
+e0bd668 feat(search): 完全信息搜索第一步——ExamDrawOracle 牌序链路 + ExpectState.known_draw 确定分支 + 配对评测
 c8c4c71 feat(seed): 支援强化掷点+弃牌堆重洗完整破解——三组样本 45/29/46 次掷点后逐张复现
 （2026-11-21）
 58b39d3 feat(seed): 期末洗牌破解——isInitial 首回合 + K=6*turns-3，期中/期末整段复现(18/18, 26/26)
