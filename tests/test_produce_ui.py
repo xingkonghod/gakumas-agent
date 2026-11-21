@@ -1295,3 +1295,56 @@ def test_settlement_streak_degrades_then_exits() -> None:
     stuck = driver.decide(agent, lines)
     assert stuck.screen == "stuck"
     assert stuck.ok is False
+
+
+# ---------------------------------------------------------------- 授课答题屏
+
+
+def test_class_quiz_chooses_answer_row_not_fast_forward() -> None:
+    """初模式「授课」答题屏：三个属性答案 + 審査基準 + 右下「快进」。
+
+    真机 ep-finish1：旧逻辑看到「快进」就点快进 → 弹「是否快进」→ 回来 → 无限循环；
+    这里必须点答案行（默认第一行 Vo），不能点快进。
+    """
+    agent = FakeAgent()
+    lines = _lines(
+        "授课",
+        "審査基準",
+        "快进",
+        "言葉を届ける力",
+        "きれいな姿勢と所作",
+        "清楚なたたずまい",
+    )
+    result = _driver().decide(agent, lines)
+    assert result.screen == "class-quiz"
+    assert result.action == "choose-Vo"
+    assert agent.device.clicks[-1] == produce_ui.CLASS_QUIZ_ROWS[0]
+
+
+def test_class_quiz_follows_selected_attribute() -> None:
+    """课程类型选择里选过 Vi（视觉）时，答题屏点第三行。"""
+    agent = FakeAgent()
+    driver = _driver()
+    driver.lesson_attribute = "Vi"
+    lines = _lines("授课", "審査基準", "快进", "A", "B", "C")
+    result = driver.decide(agent, lines)
+    assert result.screen == "class-quiz"
+    assert agent.device.clicks[-1] == produce_ui.CLASS_QUIZ_ROWS[2]
+
+
+def test_class_quiz_detection_ignores_reward_popup() -> None:
+    """答题屏背后的课程 HUD（審査基準/授课）在领奖弹窗上仍然可见，不能误判成答题屏。
+
+    真机 ep-finish2：点完答案弹出「请选择要领取的技能卡」，每步仍被当成 class-quiz
+    点 (360,730) 空白 → 13 步卡死。
+    """
+    agent = FakeAgent()
+    lines = _lines(
+        "授课",
+        "審査基準",
+        "请选择要领取的技能卡。",
+        "领取",
+        "再抽选",
+    )
+    result = _driver().decide(agent, lines)
+    assert result.screen != "class-quiz"

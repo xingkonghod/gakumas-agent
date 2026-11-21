@@ -47,6 +47,8 @@ TRAIN_VI = (525, 1012)
 LESSON_ACTION = (268, 1010)  # 「授课」二选一行动
 EVENT_ADVANCE = (650, 1080)  # 事件卡右下 ▼
 DIALOGUE_FAST = (600, 1185)  # 剧情「快进」
+# 初模式「授课」答题屏：三个属性答案行（720x1280 设计坐标，实测中心）
+CLASS_QUIZ_ROWS = ((360, 730), (360, 840), (360, 952))  # Vo / Da / Vi
 DIALOGUE_SKIP = (208, 1185)  # 剧情「SKIP」
 
 CANCEL_WORD = "取消"
@@ -2159,6 +2161,26 @@ class ProduceDriver:
             nxt = self.find_button(lines, ("下一步",))
             self._click_line(agent, nxt) if nxt else self._click(agent, (360, 1135))
             return TickResult("reward-page", "next")
+
+        # 4.38) 初模式「授课」答题屏（三个属性答案 + 審査基準 + 右下「快进」）
+        # 旧逻辑：这批字里包含「快进」→ 命中 7) 剧情分支，每步点快进 → 弹「是否快进？」
+        # → 确认后回到同一屏 → 无限循环（真机 ep-finish1 第 50-145 步烧了 95 步）。
+        # 三个答案按属性排（Vo/Da/Vi），点一个就进结算；默认点第一行（实测最便宜，
+        # 且评价公式三维等权，早买哪个都算分）。课程类型选择页（重点练习）另有分支。
+        if (
+            ("審査基準" in text or "审查基准" in text)
+            and ("授课" in text or "授業" in text)
+            and "重点练习" not in text
+            # 答题屏背后是课程 HUD（審査基準/授课 一直可见），所以领奖/弹窗类界面
+            # 也会命中；必须排除，否则把「请选择要领取的技能卡」也当成答题屏，
+            # 每步点同一块空白（ep-finish2 第 4-13 步）。
+            and "请选择要领取" not in text
+            and "领取" not in text
+            and "再抽选" not in text
+        ):
+            index = {"Vo": 0, "Da": 1, "Vi": 2}.get(self.lesson_attribute or "", 0)
+            self._click(agent, CLASS_QUIZ_ROWS[index])
+            return TickResult("class-quiz", f"choose-{self.lesson_attribute or 'Vo'}")
 
         # 4.4) 行动结算页（顶部「活动奖励/授课」标题、没有「请选择行动」按钮）：点一下继续
         # 注意：奖励领取弹窗顶部也有「活动奖励」，必须排除，否则会一直点空白

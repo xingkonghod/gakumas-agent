@@ -52,6 +52,7 @@ from gkagent.tasks.produce_ui import (
     LESSON_SKIP_POINT,
     LESSON_WORDS,
     SETTLE_CENTER_TAP,
+    TURN_END_YES,
     LessonPlayGuard,
     ProduceDriver,
     SameScreenGuard,
@@ -122,6 +123,10 @@ WINDOW_RESTORE_FAIL_LIMIT = 5
 
 # 加载帧快速路径连续多少步后强制完整 OCR（F#27：通信错误弹窗会被加载模板盖住）
 LOADING_FAST_OCR_EVERY = 12
+# 课程帧快速路径（模板命中 skip_round/health，省整屏 OCR）连续多少步后强制完整 OCR。
+# 必须定期回看：SKIP 后的「回合结束」确认框盖在课程上时，两个模板仍然命中，
+# 若一直用 text="剩余回合" 就永远看不到弹框 → card/force-skip 死循环（ep-finish4）。
+LESSON_FAST_OCR_EVERY = 5
 
 
 def client_size(hwnd: int, user32=None) -> tuple[int, int]:
@@ -471,6 +476,11 @@ def main() -> int:
     # 暂停门：排除 bot 自己点击注入的"用户输入"；点击统一走 click_force 补丁
     pause_gate = PauseGate()
     click_guard = SelfInputClickGuard(agent.device, pause_gate).install()
+    # --ignore-user：无人值守跑完整局时无视"用户正在操作"门限（否则用户在电脑前
+    # 打字/挪鼠标会让所有点击被拒 → 画面僵住 → 同屏强制 SKIP 死循环）。
+    ignore_user = "--ignore-user" in sys.argv
+    if ignore_user:
+        pause_gate.gate_ms = 0
     engine = OcrEngine()
     card_lib = CardLibrary(MasterData(ROOT / "data" / "master"))
     task = build_task(episode, engine, card_lib)
@@ -506,6 +516,8 @@ def main() -> int:
 
     log_lines: list[str] = []
     log_lines.append(f"[engine] 出牌引擎 = {lesson_policy.engine}（来源：{engine_source}）")
+    if ignore_user:
+        log_lines.append("[engine] --ignore-user：忽略暂停门（无人值守跑完整局用）")
     idle = 0
     # 连续「无可用决策」计数（ep-t1-k：手牌读不到时点中位卡兜底会无限空转）
     no_decision_streak = 0
@@ -541,6 +553,8 @@ def main() -> int:
     window_fail_streak = 0
     # 加载帧快速路径连续计数（F#27）：超过阈值强制 OCR，避免漏看通信错误弹窗
     loading_fast_streak = 0
+    # 课程帧快速路径连续计数：超过阈值强制整屏 OCR，避免漏看「回合结束」确认框
+    lesson_fast_streak = 0
     # 考试/试镜模式（F#17）：本局是否已进入过考试（只打一次 [exam-mode] 进入日志）
     exam_seen = False
     # 考试牌序计划（T3 实时接线）：启动时先读一次候选；真正的场次在进入考试时由
@@ -762,6 +776,14 @@ def main() -> int:
             )
 
         t_ocr = time.perf_counter()
+        # 卡住兜底：上一屏与这一屏相同（same_screen.repeats>=1）时，课程/加载快速路径
+        # 和两段式确认都不可信——强制整屏 OCR，并清掉卡住的两段式确认态。
+        # 真机 ep-finish4/5/6：SKIP 后弹「回合结束」确认框，快速路径仍命中课程模板 →
+        # text 永远只有「剩余回合」，弹框没人点「是」，拍死在同一个屏上。
+        stuck_fast = same_screen.repeats >= 1
+        force_full_ocr = stuck_fast
+        if stuck_fast:
+            lesson_pending = None
         if lesson_pending is not None:
             # 两段式出牌的确认步：不需要任何 OCR，直接点上一张卡确认（省 3-5s/步）
             corner_lines = []
@@ -794,13 +816,27 @@ def main() -> int:
             else:
                 loading_fast_streak = 0
             if lesson_fast:
-                corner_lines = []
-                corner_text = ""
-                corner_lesson = True
-                lines = []
-                text = "剩余回合"
-                ocr_ms = 0.0
+                lesson_fast_streak += 1
+                if force_full_ocr or lesson_fast_streak >= LESSON_FAST_OCR_EVERY:
+                    # 定期回看整屏：SKIP 后的「回合结束」确认框盖在课程上时，
+                    # produce_skip_round / produce_health 模板仍然命中；一直用
+                    # text="剩余回合" 就永远看不到弹框（ep-finish4 死循环）。
+                    lesson_fast_streak = 0
+                    lines = driver.engine().read(image)
+                    text = driver.text_of(lines)
+                    corner_lines = lines
+                    corner_text = text
+                    corner_lesson = True
+                    ocr_ms = (time.perf_counter() - t_ocr) * 1000
+                else:
+                    corner_lines = []
+                    corner_text = ""
+                    corner_lesson = True
+                    lines = []
+                    text = "剩余回合"
+                    ocr_ms = 0.0
             else:
+                lesson_fast_streak = 0
                 if loading_fast:
                     # 模板已经命中加载帧：连左上角状态条都不用读。
                     corner_lines = []
@@ -815,7 +851,13 @@ def main() -> int:
                     corner_lesson = any(
                         word in corner_text for word in ("剩余回合", "CLEAR", "PERFECT")
                     )
-                    if corner_lesson:
+                    if corner_lesson and force_full_ocr:
+                        # 画面卡住时不能只读左上角：整屏 OCR 才能看到遮罩弹窗
+                        lines = driver.engine().read(image)
+                        text = driver.text_of(lines)
+                        corner_lines = lines
+                        corner_text = text
+                    elif corner_lesson:
                         lines = corner_lines
                         text = corner_text
                     else:
@@ -970,7 +1012,22 @@ def main() -> int:
 
         t_decide = time.perf_counter()
         clicked: bool | None = None
-        if lesson_fast or any(word in text for word in LESSON_WORDS):
+        # 1.5) 「回合结束」确认框（SKIP 后必出）——lesson_fast 分支不走 driver.decide，
+        # 必须在这里先处理，否则 SKIP 后弹框没人点「是」→ 同屏计数→强制 SKIP→再弹框，
+        # 整个课程变成 card/force-skip 死循环（真机 ep-finish3 第 47-94 步）。
+        if "结束回合" in text and (
+            "尚可使用技能卡" in text
+            or "确定要结束回合" in text
+            or "下次起不再显示" in text
+        ):
+            action_name, screen_name = "end-turn-yes", "lesson"
+            exam_mode = False
+            clicked = agent.device.click_force(*TURN_END_YES)
+            time.sleep(0.8)
+            result = "[training] 回合结束确认框 → 点「是」"
+            idle = 0
+            same_screen.reset()
+        elif lesson_fast or any(word in text for word in LESSON_WORDS):
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
             if pending_week is not None:
