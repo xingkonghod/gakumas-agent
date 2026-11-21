@@ -93,23 +93,45 @@ User/Get                  = 1347175689
 **逐回合 ground truth**（scripts/decode_exam_actions.py --json → out/exam_truth.json）：
 请求顶层 field3 = `ExamTurnEndLog`，其中 **field50 = startPlayHandProduceCards（回合开始手牌）**、
 field100 = commands（本回合打出，useProduceCard=5 带真实卡 id）、field7 = 回合属性。
-回合末手牌全进弃牌堆，故**每回合开始手牌 = 当回合从牌堆顶抽的 turnStartDistribute(=3) 张**；
+回合末手牌进弃牌堆（打出后去 Lost 区的卡除外），故一般情况下**每回合开始手牌 = 当回合从牌堆顶
+抽的 turnStartDistribute(=3) 张**；例外是第 1 回合要先抽 isInitial 卡再补抽（见下）。
 牌堆抽完前，洗牌后牌序 = 各回合手牌依次拼接（期中 18 张 = 前 6 回合正好抽完，可整段对照）。
 
-**洗牌重放：期中已精确破解（18/18）**
+**洗牌重放：期中 + 期末都已精确破解（2026-11-21 晚）**
 
-已验证模型（`scripts/verify_shuffle.py`）：
+完整模型（实现 `src/gkagent/sim/exam_shuffle.py`，验证 `scripts/verify_shuffle.py`）：
 ```
-牌堆输入序 = number 升序
-rng = xorshift32(examSeedValue)，洗牌前先 advance K=51 次
-洗牌 = Fisher-Yates 倒序（n=len..2, j=integer(0,n), swap(a[j],a[n-1])）
-发牌 = 每回合从牌堆顶抽 turnStartDistribute(=3) 张，回合末全部进弃牌堆
-→ 牌堆抽完前，牌序 = 各回合开始手牌依次拼接
-```
-期中 seed=0x504C4509、K=51：整段精确 **18/18**、回合集合 6/6 ✅
+考试开局 RNG 消耗顺序（同一 xorshift32(考试 seed)）：
+  ① 回合属性：只有前 turns-3 回合随机（逐个随机取并移除，消耗 turns-3 次），末 3 回合固定
+  ② NPC 分数：npc_count 个 NPC × turns 回合，每对消耗 1 次（produce-001 是 5 个 NPC）
+  ③ 洗牌：Fisher-Yates 倒序洗「number 升序」牌堆
+⇒ 洗牌前消耗 K = (turns-3) + npc_count*turns = 6*turns - 3（5 NPC 时）
 
-**期末异常（未解决）**：seed=0x7ECD7553、牌堆 26 张（牌堆多重集与首 26 张手牌**完全一致**，
-即牌堆重建正确），但 k=0..2000 × 输入排序(Number 升/降、id 升/降、新卡前置/后置) ×
-种子变换(seed±1、异或、midterm seed 等) **均无法复现**（回合集合最好仅 1/8）。期中与期末
-唯一的结构差异是期末牌堆在期中考试后由「删 1 张 + 加 9 张 + 强化 2 张」演化而来，
-疑为牌堆顺序/种子派生在跨考试时不同。需再采一局期末（或另一局期中）判断是局特有还是普遍差异。
+发牌：
+  · 第 1 回合先 SetInitialCard：从牌堆「底→顶」扫，把 isInitial 卡移入手牌，
+    再从牌堆顶补抽到 turnStartDistribute(3) 张；
+  · 第 2 回合起每回合从牌堆顶抽 3 张；
+  · 牌堆抽空前的抽牌序列 = 各回合开始手牌依次拼接。
+```
+
+| 考试 | seed | 回合 | K | isInitial | 结果 |
+|---|---|---:|---:|---|---|
+| 期中 | 0x504C4509 | 9 | (9-3)+5×9 = **51** | 无 | 18/18 精确、回合集合 6/6 ✅ |
+| 期末 | 0x7ECD7553 | 11 | (11-3)+5×11 = **63** | `p_card-02-men-2_054` | 26/26 精确、回合集合 8/8 ✅ |
+
+**期末之前复现不出的根因**：期末牌堆里的 `p_card-02-men-2_054` 是 `isInitial`（主数据
+`ProduceCard.isInitial=true`），第 1 回合会被**优先抽入手牌**，所以「首回合手牌 = 洗后牌堆
+前 3 张」的假设失效，后面所有回合跟着错位。旧版搜索 k=0..2000 全部失败正是这个原因。
+
+**回合属性独立验证**：把 `CalculatedTurnParameterType` 的算法（池 = 末 3 回合的权重降序拼接，
+逐个 `pool.pop(integer(0,len))`）放在 **RNG offset 0** 跑，两场考试的「前 turns-3 回合属性」
+都能逐项复现；剩下的消耗正好 = 5×turns，与 NPC 组（`ProduceExamBattleNpcGroup` 5 行）一致。
+所以 K 的分解不是拟合，是逐段对上的。
+
+**洗后（弃牌堆重洗）**：期中第 7 回合牌堆抽空后重洗弃牌堆，从洗牌后状态再消耗 45 次随机数
+即可精确复现 T7-T9 手牌（9/9；45 应为支援卡临时强化等掷点，尚未完全建模）。
+注意「打出后去 Lost 区」的卡（`playMovePositionType=Lost`）不进弃牌堆，重洗时只洗 Grave 区。
+
+**仍未做**：① 采第三场考试验证 K=6×turns-3 的普适性（尤其非 5 NPC 的 produce 类型）；
+② 弃牌堆重洗前的那 45 次消耗（支援强化掷点）建模，才能从 seed 预测整场牌序；
+③ 期末 T9-T11 的弃牌堆重洗同口径验证。

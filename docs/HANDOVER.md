@@ -79,7 +79,7 @@ f6b99c0  外出事件屏识别（不再只靠「快进」按钮）
 
 ---
 
-## 二·补、11-21 进展（牌堆定位 + 期中洗牌破解）
+## 二·补、11-21 进展（牌堆定位 + 洗牌端到端破解）
 
 ```
 ✅ 牌堆字段定位：UserData.userProduceProgressProduceCardList = 309641228
@@ -87,12 +87,18 @@ f6b99c0  外出事件屏识别（不再只靠「快进」按钮）
    元素 UserProduceProgressProduceCard: number=2 / produceCardId=3 / upgradeCount=4 / deleted=6
 ✅ 更新语义：Produce/Start、User/Get = 全量快照；步骤响应 = 按 number 增量 upsert
 ✅ 重建并交叉验证：期中 18 张、期末 26 张（27−删 1），与 User/Get 快照逐张吻合
-✅ ground truth：ExamTurnEndLog.field50 = 每回合开始手牌（=当回合抽的 3 张），field100 = 打出卡
-✅ 期中洗牌精确破解（18/18）：
-     xorshift32(examSeedValue) 先 advance 51 次 → Fisher-Yates 倒序洗「Number 升序」牌堆
-     → 每回合从牌堆顶抽 3 张。seed=0x504C4509，整段精确 18/18、回合集合 6/6
-⚠️ 期末异常（TROUBLESHOOTING 3.6）：牌堆多重集正确，但 k=0..2000 × 输入序 × 种子变换
-     都复现不出（集合口径最好 1/8）。期中→期末牌堆经历「删1+加9+强化2」，疑为跨考试顺序差异
+✅ ground truth：ExamTurnEndLog.field50 = 每回合开始手牌（一般=当回合抽的 3 张；T1 可能先含
+   isInitial 卡），field100 = 打出卡
+✅ 洗牌模型完整破解（期中 + 期末都精确复现，模型在 src/gkagent/sim/exam_shuffle.py）：
+   · 洗牌前 RNG 消耗 K = (turns-3) + npc_count*turns（5 NPC ⇒ 6*turns-3）
+     期中 9 回合 → K=51；期末 11 回合 → K=63（不是固定常数！）
+   · 洗牌 = xorshift32(examSeedValue) advance K → Fisher-Yates 倒序洗「number 升序」牌堆
+   · 第 1 回合先 SetInitialCard：isInitial 卡从牌堆底→顶扫入手牌，再补抽到 3 张
+     （期末的 p_card-02-men-2_054 就是 isInitial，旧模型漏了它才会「期末复现不出」）
+   · 结果：期中 18/18（6/6 回合集合）、期末 26/26（8/8）——scripts/verify_shuffle.py
+✅ 回合属性算法在 RNG offset 0 上可逐项复现两场考试（前 turns-3 回合随机、末 3 回合固定）
+✅ 洗后弃牌堆重洗：期中 T7 从洗牌后状态再消耗 45 次随机数 → T7-T9 精确 9/9
+   （45 应为支援临时强化等掷点；打出后去 Lost 区的卡不进弃牌堆，重洗只洗 Grave 区）
 ```
 
 **新工具**（scripts/，ruff 通过）：
@@ -101,16 +107,17 @@ dig_deck.py            按 dump.cs 字段号标注解析任意响应（--tree �
 scan_deck_updates.py   扫描图鉴字段 230550472（对照用）
 reconstruct_deck.py    重建考试时刻牌堆 → out/deck_snapshots.json
 decode_exam_actions.py 逐回合手牌/出牌/属性 → out/exam_truth.json（--json）
-verify_shuffle.py      洗牌重放验证：期中 ✅ k=51 18/18，期末自动报异常
+verify_shuffle.py      洗牌重放验证：自动读主数据 isInitial + NPC 数，期中/期末都 ✅
 ```
 
-**下一会话从这里继续**（先读 MASTER_DATA.md 附录「洗牌重放：期中已精确破解」）：
-1. **采一局新考试**（期末或另一局期中），用现有工具跑 `reconstruct_deck.py` + `verify_shuffle.py`，
-   看 K 是否仍为 51。数据一多即可判定：期末异常是局特有，还是 K 随考试结构变化。
-2. 若新样本仍 K=51 → 大概率是牌堆输入序/跨考试演化问题，继续用逆推法查；
-   若 K 变化 → 找 K 与「回合数/牌堆大小/NPC 数」的关系（期中：9 回合/18 张 → K=51）。
-3. 都不通再上 frida hook 原生 Shuffle/种子派生（QQ 群路线，需管理员）。
-注意：期末手牌含支援临时强化（+1/+2），精确对照优先用期中；集合口径对 id 匹配免疫强化。
+**下一会话从这里继续**（先读 MASTER_DATA.md 附录「洗牌重放」）：
+1. **采第三场考试**（另一局期中/期末都行），用 reconstruct_deck + verify_shuffle 跑一遍，
+   确认 `K = (turns-3) + npc_count*turns` 普适（尤其换 produce 类型 / NPC 数不是 5 时）。
+2. **洗后重洗前那张账要记全**：目前期中 T7 重洗前多消耗 45 次随机数（推测是支援卡临时强化
+   的掷点：每「入手的牌 × 支援卡」一次 `integer(0,1000)`）。把这 45 次拆清楚，才能从 seed
+   预测整场（含弃牌堆重洗）的牌序；期末 T9-T11 可当同一模型的验证样本。
+3. 弃牌堆「Grave 顺序」已确认（按入手/打出先后 append；Lost 卡不进 Grave）。
+4. 之后才接「完全信息搜索」：seed + 牌堆 → 整段牌序 → expectimax 叶子。
 
 ---
 
@@ -138,18 +145,20 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 
 ## 四、下一步（按优先级）
 
-### ① 把「考试时刻的牌堆」字段挖出来（最高优先）—— 期中已端到端破解
+### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
 ```
 ✅ 牌堆 = UserData.userProduceProgressProduceCardList (309641228)，已重建（期中18/期末26）
 ✅ 逐回合 ground truth = ExamTurnEndLog.field50（每回合开始手牌）
-✅ 期中洗牌重放精确破解：xorshift32(examSeedValue) 先 advance 51 次 → FY倒序洗 Number升序牌堆
-   → 18/18 整段精确匹配（scripts/verify_shuffle.py）
-⚠️ 期末异常：牌堆多重集正确，但任何 k/输入序/种子变换都复现不出（见 TROUBLESHOOTING 3.6）
+✅ 洗牌完整破解：K = (turns-3) + npc_count*turns（5 NPC ⇒ 6*turns-3，期中51/期末63）
+   → xorshift32(examSeedValue) advance K → FY倒序洗 Number升序牌堆
+   → 第 1 回合 SetInitialCard 先抽 isInitial 卡，再补抽
+   → 期中 18/18、期末 26/26 整段精确（src/gkagent/sim/exam_shuffle.py）
+✅ 洗后弃牌堆重洗：期中 T7 多消耗 45 次随机数后 T7-T9 精确 9/9
 ```
 
-**下一步**：再采一局（期末或另一局期中）验证「K=51」与期末异常是局特有还是普遍规律；
-若普遍，需 frida hook 原生洗牌/种子派生（QQ 群路线）。**成功后**：seed+牌堆→精确牌序→完全信息搜索。
+**下一步**：① 采第三场考试确认 K 公式普适（换 produce 类型 / NPC 数）；② 拆清洗后重洗前的
+45 次消耗（支援临时强化掷点），才能预测整场牌序；**完成后**：seed+牌堆→精确牌序→完全信息搜索。
 
 ### ② bot 能无人值守跑完一局
 
@@ -236,7 +245,8 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/ -q` 全绿（773+ 条），`ruff check` 通过。
+**测试状态**：`pytest tests/ -q` 全绿（795 条，含新的 `tests/test_exam_shuffle.py` 两场考试
+洗牌回放），`ruff check` 通过。
 
 ---
 
