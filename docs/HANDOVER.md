@@ -646,6 +646,7 @@ rules / expectimax(ensemble) / uinet
 09b9358 feat(sim): 上真机前整局引擎 A/B + 考试策略注入 + auto_produce 墙钟上限
 ae86e1c feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
 （2026-11-22 凌晨四段）
+2cb4c20 docs(workplan): master plan for next session - offline finish, then real machine, then gkbench
 a608c6e docs: group-files analysis - OCR root cause (JP model), GKMSMAA structure, experimental APK
 26459dc docs: 11-22 P0/T3 first real run (F#41-43) + group files intel + launcher flags
 584f742 fix(ui): story choice bubbles - layout fallback + region OCR (real-machine ep-t3-1..3)
