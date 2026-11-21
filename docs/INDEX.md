@@ -122,5 +122,8 @@
 重洗前掷点 45/29/46 次，洗后手牌 9/9、6/6、9/9 逐张复现。完全信息搜索第二段已接完：
 **生产接线**（采集数据 → `ExamSetup`/`ExamDrawPlan` → `LessonPolicy` → `ExpectState.known_draw`，
 端到端 4/4 场、手牌 36/36 回合、重洗 3/3）+ **重洗后段全知**（`ExpectState.discard_order` +
-确定性重洗钩子）+ **`lesson.engine="beam"` 跨回合规划选项**。下一步：采集进程 ↔ 决策进程实时打通
-（traffic.jsonl → policy 进程）+ 真机 A/B。** 细节见 [HANDOVER.md](HANDOVER.md) 二·补五。
+确定性重洗钩子）+ **`lesson.engine="beam"` 跨回合规划选项**。真机侧：决策可观测性 + 引擎接线
+（`--engine` > `produce.engine`）+ T1 十类流程卡点修复（[FAILURES #27-32](FAILURES.md#L6)）已提交；
+T3 实时接线代码已接（`build_exam_setup --current` + `ExamPlanSelector` + 运行时重载），**差真机考试验收**。
+下一步：真机整局验收（T1）→ 真机考试锁定（T3）→ 三引擎 A/B（T2）→ 策略强度（T4）。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补六 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

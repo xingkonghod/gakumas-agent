@@ -390,6 +390,8 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-21 深夜）
+304d393 feat(bot): T3 实时接线（build --current + ExamPlanSelector + 运行时重载）+ T1 卡点收尾 + 文档状态
+a9537b0 fix(bot): T1 真机流程修复（点击坐标/难度/领卡/外出/考试浮层/网络重试/加载）+ 出牌引擎接 produce.engine + 决策可观测性
 233e9d7 feat(search): 完全信息搜索第二段——生产接线(ExamSetup/ExamDrawPlan) + 重洗后段全知(discard_order) + lesson.engine=beam
 （2026-11-21 晚）
 e0bd668 feat(search): 完全信息搜索第一步——ExamDrawOracle 牌序链路 + ExpectState.known_draw 确定分支 + 配对评测
