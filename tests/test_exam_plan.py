@@ -17,7 +17,9 @@ from gkagent.sim.exam_oracle import ExamDrawOracle
 from gkagent.sim.exam_plan import (
     STATUS_ACTIVE,
     STATUS_MISMATCH,
+    STATUS_PENDING,
     ExamDrawPlan,
+    ExamPlanSelector,
     ExamSetup,
     load_exam_setups,
 )
@@ -268,3 +270,137 @@ def test_plan_summary_contains_status_and_stats():
     assert summary["seed"].startswith("0x")
     assert summary["turn"] == 1
     assert "verified" in summary
+
+
+# ---------------------------------------------------------------- 候选选择
+
+
+class _FakePlan:
+    """``ExamPlanSelector`` 的桩计划：按预设脚本决定每次 begin_turn 成功/失败。"""
+
+    def __init__(self, name: str, outcomes: list[bool], *, setup=None) -> None:
+        self.name = name
+        self.outcomes = list(outcomes)
+        self.setup = setup
+        self.status = STATUS_PENDING
+        self.reason = ""
+        self.turn = 0
+        self.calls: list[tuple] = []
+
+    @property
+    def active(self) -> bool:
+        return True
+
+    @property
+    def cards(self):
+        return ()
+
+    def start(self) -> None:
+        self.calls.append(("start",))
+
+    def begin_turn(self, observed, parameter_type=None) -> bool:
+        self.calls.append(("begin_turn", tuple(observed), parameter_type))
+        ok = bool(self.outcomes.pop(0)) if self.outcomes else False
+        if ok:
+            self.status = STATUS_ACTIVE
+            self.turn += 1
+        else:
+            self.status = STATUS_MISMATCH
+            self.reason = f"{self.name} 不符"
+        return ok
+
+    def reset(self) -> None:
+        self.status = STATUS_PENDING
+        self.turn = 0
+        self.reason = ""
+
+    def observe_hand(self, observed) -> bool:
+        self.calls.append(("observe", tuple(observed)))
+        return True
+
+    def note_play(self, card) -> None:
+        self.calls.append(("play", card))
+
+    def end_turn(self, leftover=()) -> None:
+        self.calls.append(("end", tuple(leftover)))
+
+    def finish(self) -> None:
+        self.calls.append(("finish",))
+
+    def expect_state_kwargs(self, to_specs=None) -> dict:
+        if self.status != STATUS_ACTIVE:
+            return {}
+        return {"known_draw": (self.name,)}
+
+    def reshuffle_hook(self):
+        return None
+
+    def summary(self) -> dict:
+        return {"status": self.status, "name": self.name}
+
+
+def test_selector_locks_single_survivor_and_delegates():
+    first = _FakePlan("first", [True])
+    second = _FakePlan("second", [False])
+    selector = ExamPlanSelector([first, second])
+    selector.start()
+    assert selector.begin_turn([("卡1", 0)], 1) is True
+    assert selector.chosen is first
+    assert selector.locked_turn == 1
+    assert selector.expect_state_kwargs() == {"known_draw": ("first",)}
+    selector.note_play("卡1")
+    selector.end_turn(["卡2"])
+    # 锁定后只喂选中的计划，被淘汰的不再收到台账
+    assert ("play", "卡1") in first.calls
+    assert ("end", ("卡2",)) in first.calls
+    assert not any(call[0] == "play" for call in second.calls)
+    assert "candidates" in selector.summary() and "alive" in selector.summary()
+
+
+def test_selector_narrows_over_turns_then_locks():
+    first = _FakePlan("first", [True, True])
+    second = _FakePlan("second", [True, False])
+    selector = ExamPlanSelector([first, second])
+    selector.start()
+    # 第 1 回合两个候选都对上（例如 isInitial 卡相同）→ 不锁定，但都继续跟进
+    assert selector.begin_turn([("卡1", 0)], 1) is False
+    assert selector.chosen is None
+    assert selector.alive == 2
+    selector.note_play("卡1")
+    assert ("play", "卡1") in first.calls and ("play", "卡1") in second.calls
+    # 第 2 回合第二个候选淘汰 → 锁定第一个
+    assert selector.begin_turn([("卡2", 0)], 1) is True
+    assert selector.chosen is first
+    assert selector.locked_turn == 2
+    assert selector.alive == 1
+
+
+def test_selector_retries_then_gives_up():
+    plans = [_FakePlan("a", [], setup=None), _FakePlan("b", [])]
+    selector = ExamPlanSelector(plans, max_attempts=3)
+    selector.start()
+    for _ in range(3):
+        assert selector.begin_turn([("卡", 0)], 1) is False
+    assert selector.active is False
+    summary = selector.summary()
+    assert summary["status"] == STATUS_MISMATCH
+    assert summary["attempts"] == 3
+    assert summary["retries"] == 3
+
+
+def test_selector_with_real_plans_locks_on_first_hand():
+    setups = [_setup(seed=0x1234), _setup(seed=0x5678)]
+    plans = [ExamDrawPlan(setup) for setup in setups]
+    hands = [
+        [tuple(card) for card in setup.new_oracle().draw_next_turn(1)]
+        for setup in setups
+    ]
+    # 喂第二份候选的首回合手牌 → 应锁定第二个
+    selector = ExamPlanSelector(plans)
+    selector.start()
+    assert selector.begin_turn(hands[1], 1) is True
+    assert selector.chosen is plans[1]
+    assert selector.locked_turn == 1
+    kwargs = selector.expect_state_kwargs(to_specs=list)
+    assert kwargs["known_draw"] == plans[1].expect_state_kwargs(to_specs=list)["known_draw"]
+

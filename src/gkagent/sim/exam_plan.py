@@ -39,6 +39,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -387,6 +388,19 @@ class ExamDrawPlan:
             self.status = STATUS_DONE
         self._turn_ok = False
 
+    def reset(self) -> None:
+        """把计划清回「开局前」状态（候选切换/重试时用，oracle 重建）。"""
+        self.status = STATUS_PENDING
+        self.reason = ""
+        self.turn = 0
+        self._oracle = None
+        self._grave.clear()
+        self._known.clear()
+        self._observed.clear()
+        self._expected_hand = 0
+        self._played_cards.clear()
+        self._turn_ok = False
+
     # ------------------------------------------------------------------ 搜索接口
     def expect_state_kwargs(self, to_specs=None) -> dict[str, Any]:
         """给 ``ExpectState`` 的全知字段（计划不可用 / 没给转换器时返回空 dict）。
@@ -480,3 +494,185 @@ def _same_ids(left: Sequence[Card], right: Sequence[Card]) -> bool:
 def _contains(subset: Sequence[Card], cards: Sequence[Card]) -> bool:
     """``subset`` 的 id 多重集是否是 ``cards`` 的子集（抽到的牌应当还在手牌里）。"""
     return not (Counter(_ids(subset)) - Counter(_ids(cards)))
+
+
+# ---------------------------------------------------------------------- 候选选择
+class ExamPlanSelector:
+    """同一场考试的多个候选计划：逐回合用实机手牌收窄，唯一剩下即「锁定」。
+
+    生产场景：
+
+    * ``build_exam_setup.py --current`` 不知道「当前这场」的配置回合数（考试还没
+      结束、拿不到 EndExamBattle），于是同一 seed/牌堆输出多个 ``config_turns`` 候选；
+    * ``out/exam_setup.json`` 里也可能同时躺着多场历史数据。
+
+    做法：每回合把**同一份读屏手牌**喂给所有仍然存活的候选，核对失败的淘汰；
+    只剩一个时锁定（从这一回合起给搜索喂 known_draw）。第 1 回合往往分不出来
+    （例如 isInitial 卡都是同一张），第 2–3 回合自然收敛——和 QQ 群「2–3 回合
+    锁定 seed」是同一个道理。全部候选被淘汰 = 数据不匹配，返回 ``False``（调用方
+    退回期望搜索）；给 ``max_attempts`` 次重来机会，避免过期数据无限重试烧 CPU。
+    """
+
+    def __init__(self, plans, *, max_attempts: int = 40) -> None:
+        self.plans = list(plans)
+        self.max_attempts = max(int(max_attempts), 1)
+        self._chosen: ExamDrawPlan | None = None
+        self._alive: list[ExamDrawPlan] = list(self.plans)
+        self._attempts = 0
+        self._retries = 0
+        self._locked_at = 0
+        self.reset_count = 0
+
+    # ------------------------------------------------------------------ 状态
+    @property
+    def chosen(self) -> ExamDrawPlan | None:
+        return self._chosen
+
+    @property
+    def candidates(self) -> int:
+        return len(self.plans)
+
+    @property
+    def alive(self) -> int:
+        return len(self._alive)
+
+    @property
+    def locked_turn(self) -> int:
+        """锁定发生在第几回合（0 = 还没锁定）。"""
+        return self._locked_at
+
+    @property
+    def active(self) -> bool:
+        if self._chosen is not None:
+            return self._chosen.active
+        return bool(self._alive) and self._retries < self.max_attempts
+
+    @property
+    def setup(self):
+        plan = self._chosen or (self._alive[0] if self._alive else None)
+        if plan is None and self.plans:
+            plan = self.plans[0]
+        return plan.setup if plan is not None else None
+
+    @property
+    def status(self) -> str:
+        if self._chosen is not None:
+            return self._chosen.status
+        if not self._alive or self._retries >= self.max_attempts:
+            return STATUS_MISMATCH
+        return STATUS_PENDING
+
+    @property
+    def reason(self) -> str:
+        if self._chosen is not None:
+            return self._chosen.reason
+        if len(self._alive) > 1:
+            return f"候选未收敛（{len(self._alive)} 个仍在核对）"
+        reasons = [plan.reason for plan in self.plans if plan.reason]
+        if reasons:
+            return "候选都不匹配：" + "；".join(reasons[:3])
+        return ""
+
+    @property
+    def cards(self):
+        return self._chosen.cards if self._chosen is not None else ()
+
+    def __getattr__(self, name):
+        """其余只读属性（known_draw/turn/stats/turn_ok…）代理给选中的计划。"""
+        if name.startswith("_"):
+            raise AttributeError(name)
+        chosen = self.__dict__.get("_chosen")
+        if chosen is None:
+            raise AttributeError(name)
+        return getattr(chosen, name)
+
+    # ------------------------------------------------------------------ 生命周期
+    def start(self) -> None:
+        for plan in self.plans:
+            plan.start()
+        self._alive = list(self.plans)
+
+    def _targets(self) -> list[ExamDrawPlan]:
+        """note_play / end_turn / observe_hand 要同步的计划：锁定后只喂选中的。"""
+        if self._chosen is not None:
+            return [self._chosen]
+        return list(self._alive)
+
+    def begin_turn(self, observed, parameter_type: int | None = None) -> bool:
+        if self._chosen is not None:
+            return self._chosen.begin_turn(observed, parameter_type)
+        if not self._alive or self._retries >= self.max_attempts:
+            return False
+        survivors: list[ExamDrawPlan] = []
+        for plan in self._alive:
+            try:
+                if plan.begin_turn(observed, parameter_type):
+                    survivors.append(plan)
+            except Exception as exc:  # noqa: BLE001 - 单个候选坏了不影响其它候选
+                logging.getLogger(__name__).warning("候选计划 begin_turn 失败：%s", exc)
+        self._attempts += 1
+        self._alive = survivors
+        if not survivors:
+            # 一个都对不上：可能是读屏偶发/数据过期 → 全部重置，下次重来（有次数上限）
+            self._retries += 1
+            for plan in self.plans:
+                plan.reset()
+                self.reset_count += 1
+            self._alive = list(self.plans)
+            return False
+        if len(survivors) == 1:
+            self._chosen = survivors[0]
+            self._locked_at = self._chosen.turn
+        return self._chosen is not None
+
+    def observe_hand(self, observed) -> bool:
+        ok = True
+        for plan in self._targets():
+            try:
+                ok = plan.observe_hand(observed) and ok
+            except Exception as exc:  # noqa: BLE001 - 台账失败不影响出牌
+                logging.getLogger(__name__).warning("候选计划 observe_hand 失败：%s", exc)
+                ok = False
+        return ok
+
+    def note_play(self, card) -> None:
+        for plan in self._targets():
+            plan.note_play(card)
+
+    def end_turn(self, leftover=()) -> None:
+        for plan in self._targets():
+            plan.end_turn(leftover)
+
+    def finish(self) -> None:
+        for plan in self.plans:
+            plan.finish()
+        self._chosen = None
+        self._alive = []
+        self._locked_at = 0
+
+    # ------------------------------------------------------------------ 搜索接口
+    def expect_state_kwargs(self, to_specs=None) -> dict:
+        if self._chosen is None:
+            return {}
+        return self._chosen.expect_state_kwargs(to_specs=to_specs)
+
+    def reshuffle_hook(self):
+        if self._chosen is None:
+            return None
+        return self._chosen.reshuffle_hook()
+
+    def summary(self) -> dict:
+        info: dict = {
+            "status": self.status,
+            "candidates": len(self.plans),
+            "alive": len(self._alive),
+            "attempts": self._attempts,
+            "retries": self._retries,
+            "resets": self.reset_count,
+            "locked_turn": self.locked_turn,
+        }
+        if self._chosen is not None:
+            info.update(self._chosen.summary())
+        else:
+            info["reason"] = self.reason
+        return info

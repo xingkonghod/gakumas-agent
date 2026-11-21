@@ -233,9 +233,35 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 # 1) 先重建数据 + 端到端核对（依赖 C:\GakumasLocal 的采集文件）
 .venv\Scripts\python.exe scripts\build_exam_setup.py
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
-# 2) 真机：policy.json lesson.engine 切 beam，起 bot 时带 --exam-setup
-.venv\Scripts\python.exe scripts\auto_produce.py 340 ep-xxx --skip-home --exam-setup out\exam_setup.json
+# 2) 真机：引擎用 --engine 覆盖（不传时用 policy.json produce.engine=expectimax）
+.venv\Scripts\python.exe scripts\auto_produce.py 340 ep-xxx --skip-home --exam-setup out\exam_setup.json --engine expectimax
 ```
+
+### 二·补六、11-21 深夜二段（T1 真机流程 + 决策可观测性 + T3 实时接线代码）
+
+2026-11-21 晚接手另一个会话的真机 T1 工作，合并并补齐：
+
+```
+✅ T1 真机流程（12 次短跑定位，FAILURES #27-33）：
+   点击坐标双重缩放（撤销 7e58b4b 的预缩放，MaaFramework 原生自己换算）、
+   难度页「レギュラー」按钮中心 (220,915)、「自动编成」确认框误判记录页、
+   外出/事件屏选项行兜底、领卡卡面中心 (230,918)、考试详情浮层文案（得分+/仅限1次）、
+   通信错误弹窗先于 loading 判重试、加载快速路径连续 12 步强制完整 OCR、
+   无可用决策连续 2 步强制 SKIP（不再点中位卡空转）、暂停帧不计入同屏判死
+✅ 决策可观测性 + 引擎接线：
+   真机引擎优先级 --engine > policy.json produce.engine > 默认 rules（lesson.engine 只作
+   LessonPolicy/单测默认）；日志首行 [engine]，每步 "... | eng=… fallback=…" 能看出
+   是 expectimax/beam 在打还是搜索静默退回规则、退回原因（体力/回合/手牌读不到/异常）
+✅ T3 实时接线（代码完成，待真机考试验收）：
+   build_exam_setup.py --current（只读最新 StepAuditionStart，config_turns 输出候选 9/11/12）；
+   reconstruct_deck.build_snapshots() 抽函数可运行时调用；
+   ExamPlanSelector 逐回合用实机手牌收窄候选，唯一剩下即锁定（采集局离线实测第 2 回合锁定）；
+   auto_produce 进入考试时按 mtime 重载 out/exam_setup.json、换场自动换 selector、结束打 summary
+✅ 新增测试：决策可观测性 4 条 + ExamPlanSelector 4 条 + 点击坐标回归 + produce_ui 增补
+```
+
+**仍未做**：T1 整局真机验收（20 分钟内跑完一局）、T3 真机考试日志验收、T2 三引擎 A/B、T4 策略强度。
+**注意**：换一局后的 `[exam-plan] mismatch` 是预期（离线 setup 来自别的采集），不要当 bug 修（FAILURES #33）。
 
 
 ---
@@ -396,11 +422,12 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/ -q` 全绿（**856 条**，含 `tests/test_exam_shuffle.py` 四场考试
+**测试状态**：`pytest tests/ -q` 全绿（**876 条 / 59 文件**，含 `tests/test_exam_shuffle.py` 四场考试
 洗牌回放 + 「实战回合算 K 会错」回归防线 + 三组弃牌堆重洗样本的掷点数/强化增量/重洗手牌对照；
 `tests/test_expectimax_known_draw.py` 8 条 + `tests/test_exam_oracle.py` 6 条完全信息搜索测试；
-`tests/test_expectimax_discard_order.py` 17 条重洗后段全知 + `tests/test_exam_plan.py` 15 条
-生产接线数据层 + `tests/test_policy_beam_engine.py` 7 条 beam/接线策略层），
+`tests/test_expectimax_discard_order.py` 17 条重洗后段全知 + `tests/test_exam_plan.py` 19 条
+（生产接线数据层 + ExamPlanSelector 候选锁定）+ `tests/test_policy_beam_engine.py` 7 条 beam/接线策略层
++ `tests/test_policy_engine.py` 增补 4 条决策可观测性 + `tests/test_device_click_coords.py` 点击坐标回归），
 `ruff check src` 与改动文件的 ruff 通过。
 
 ---

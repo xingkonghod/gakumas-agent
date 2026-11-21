@@ -150,28 +150,37 @@ def fmt(card: dict) -> str:
     return s
 
 
-def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--file", default=str(DEFAULT))
-    parser.add_argument("--verbose", action="store_true")
-    args = parser.parse_args(argv)
-
-    records = []
-    for line in Path(args.file).read_text(encoding="utf-8", errors="replace").splitlines():
+def load_records(path: Path) -> list[dict]:
+    """读 traffic.jsonl（坏行跳过）。"""
+    records: list[dict] = []
+    for line in Path(path).read_text(encoding="utf-8", errors="replace").splitlines():
         try:
             records.append(json.loads(line))
         except json.JSONDecodeError:
             continue
+    return records
 
-    print(f"key bytes = {KEY_BYTES.hex()}  共 {len(records)} 条记录\n")
+
+def build_snapshots(
+    path: Path, *, verbose: bool = False, quiet: bool = False
+) -> list[dict]:
+    """重放 traffic 里的牌组更新，返回每个 ``StepAuditionStart`` 时刻的牌组快照。
+
+    返回元素 ``{"record": traffic 行号, "ts": ..., "deck": [未删除卡片, 按 number 升序]}``。
+    生产接线（``build_exam_setup.py --current``）用它拿「最近一场考试」的牌组；
+    不写文件、不打印（``quiet=True``），可安全在跑局中调用。
+    """
+    records = load_records(path)
+    if not quiet:
+        print(f"key bytes = {KEY_BYTES.hex()}  共 {len(records)} 条记录\n")
     deck: dict[int, dict] = {}  # number -> card
     hits = 0
-    snapshots = []
+    snapshots: list[dict] = []
     for n, rec in enumerate(records):
-        path = rec.get("path", "")
-        is_audition_start = path.endswith("StepAuditionStart")
+        rec_path = rec.get("path", "")
+        is_audition_start = rec_path.endswith("StepAuditionStart")
         # Produce/Start 与 User/Get 下发全量快照 → 整体替换；其余响应按 Number 增量 upsert
-        is_snapshot = path.endswith(("Produce/Start", "User/Get"))
+        is_snapshot = rec_path.endswith(("Produce/Start", "User/Get"))
         for which in ("req_plain_hex", "resp_plain_hex"):
             b = body(rec, which)
             if b is None:
@@ -184,21 +193,39 @@ def main(argv: list[str]) -> int:
                 else:
                     for _, card in cards:
                         deck[card["number"]] = card
-                mode = "快照" if is_snapshot else "增量"
-                print(f"[{n}] {rec.get('ts')} {path} [{which[:4]}] {mode} {len(cards)} 张")
-                if args.verbose or len(cards) <= 6:
-                    for _, card in cards:
-                        print("     " + fmt(card))
+                if not quiet:
+                    mode = "快照" if is_snapshot else "增量"
+                    print(
+                        f"[{n}] {rec.get('ts')} {rec_path} [{which[:4]}] "
+                        f"{mode} {len(cards)} 张"
+                    )
+                    if verbose or len(cards) <= 6:
+                        for _, card in cards:
+                            print("     " + fmt(card))
             if is_audition_start and which == "resp_plain_hex":
                 alive = [c for c in deck.values() if not c.get("deleted")]
                 alive.sort(key=lambda c: c["number"])
                 snapshots.append({"record": n, "ts": rec.get("ts"), "deck": alive})
-                print(f"\n  >>> 考试时刻牌堆（{len(alive)} 张未删除，按 Number 排序）:")
-                for c in alive:
-                    print("      " + fmt(c))
-                print()
-    print(f"共 {hits} 次牌组更新；最终状态 {len(deck)} 个实例，"
-          f"{sum(1 for c in deck.values() if not c.get('deleted'))} 张未删除")
+                if not quiet:
+                    print(f"\n  >>> 考试时刻牌堆（{len(alive)} 张未删除，按 Number 排序）:")
+                    for card in alive:
+                        print("      " + fmt(card))
+                    print()
+    if not quiet:
+        print(
+            f"共 {hits} 次牌组更新；最终状态 {len(deck)} 个实例，"
+            f"{sum(1 for c in deck.values() if not c.get('deleted'))} 张未删除"
+        )
+    return snapshots
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", default=str(DEFAULT))
+    parser.add_argument("--verbose", action="store_true")
+    args = parser.parse_args(argv)
+
+    snapshots = build_snapshots(Path(args.file), verbose=args.verbose)
     out = Path(args.file).parent / "deck_snapshots.json"
     out.write_text(json.dumps(snapshots, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"考试时刻牌堆已写入 {out}")
@@ -207,3 +234,4 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
+

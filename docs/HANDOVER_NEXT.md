@@ -12,11 +12,12 @@
 
 ```
 已完成：采集链路 / 牌序破解 / 完全信息搜索数据链路 / 生产接线接口（本轮 233e9d7）
-未完成：① bot 还没无人值守跑完整局（自动化最后一公里）
+         决策可观测性 + 出牌引擎接线 + T1 流程修复 + T3 实时接线代码（a9537b0 起，见 §4 状态）
+未完成：① bot 还没无人值守跑完整局（流程卡点已修 10 类，差真机整局验收）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
-        ③ 采集进程 ↔ 决策进程没实时打通（全知搜索实战用不上）
+        ③ 采集进程 ↔ 决策进程**代码已接**（--current + ExamPlanSelector），差真机考试验收
         ④ 策略强度：V_leaf 是瓶颈；机制建模缺 P 道具/回忆/附魔/选牌/减益
-最高优先：T1 跑完整局 → T3 采集↔决策打通 → T2 真机 A/B → T4 策略强度
+当前最高优先：T1 真机整局验收 → T3 真机考试验收 → T2 真机 A/B → T4 策略强度
 ```
 
 当前最好成绩对照（都是"初/REGULAR-PRO"路线，口径见 [RUNS.md L229](RUNS.md#L229)）：
@@ -43,6 +44,8 @@
 | 完全信息搜索（搜索侧） | `ExpectState.known_draw` / `discard_order` / `reshuffle` 钩子 | 17 条测试；重洗后段可确定分支 |
 | 生产接线接口 | `LessonPolicy(draw_plan=…)` + `auto_produce --exam-setup` | [verify_exam_wiring.py](../scripts/verify_exam_wiring.py)：36/36 手牌、3/3 重洗、29/29 known_draw |
 | 跨回合 beam 选项 | `lesson.engine="beam"`（`beam_width=4` / `beam_deadline_ms=250`） | 7 条测试；无 known_draw 自动退回回合内搜索 |
+| 决策可观测性 + 引擎接线 | 日志首行 `[engine]`、每步 `| eng=…` / `fallback=…`；真机引擎由 `--engine` > `produce.engine` 决定 | 4 条测试；能回答"到底是不是 rule 在打、为什么退回" |
+| T3 实时接线（代码） | `build_exam_setup.py --current` + `ExamPlanSelector` + `auto_produce` 运行时重载 | 4 条 selector 测试；已用采集局离线验证第 2 回合锁定正确 config_turns |
 | 模拟器 + 评价公式 | [hajime_eval.py](../src/gkagent/sim/hajime_eval.py)、[hajime_data.py](../src/gkagent/sim/hajime_data.py) | 4 局实机逐分回归（9973/10428/8790/12903） |
 | 主数据库 | `data/hiro/vendor/.../catalog.sqlite` | 286 表 / 163,974 行 |
 
@@ -80,7 +83,7 @@ cd D:\Games\gakumas-agent
 
 | 编号 | 缺口 | 现状 / 证据 | 影响 | 对应任务 |
 |---|---|---|---|---|
-| G1 | **自动化完成度**：bot 没跑完整局 | [HANDOVER 四②](HANDOVER.md#L289)：能跑到领卡/外出屏；[FAILURES.md](FAILURES.md#L6) 仍有 #9 窗口最小化只做补救、#11 暂停门自触发、#15 结算页 `regular` 循环未修 | 自动拿分的**前提**；没有它一切策略都只是离线数字 | T1 |
+| G1 | **自动化完成度**：bot 没跑完整局 | 2026-11-21 晚已修 10 类真机卡点（点击双重缩放/难度坐标/自动编成确认框/外出事件/领卡坐标/考试浮层/网络重试弹窗/加载快速路径逃逸/无决策空转/暂停误判同屏卡死，见 [FAILURES #27-32](FAILURES.md#L6)），**还没整局真机验收** | 自动拿分的**前提**；没有它一切策略都只是离线数字 | T1 |
 | G2 | **没有真机 A/B** | 三引擎（rules / expectimax / beam+全知）从没同卡组同账号跑过 | 不知道 search 值不值；无法向用户证明 | T2 |
 | G3 | **采集↔决策未打通**（原 item④） | bot 读离线 `out/exam_setup.json`；换一局/换一场考试就对不上（`ExamDrawPlan` 会安全停用） | 全知搜索（known_draw/beam）**实战用不上**，只在离线核对里有效 | T3 |
 | G4 | **策略强度**：V_leaf 是瓶颈 | [EXPECTIMAX.md](EXPECTIMAX.md)：真实牌组 beam 只 +3.0、构造抽牌牌组 +44.6；leaf 仅 6 特征 vs 官方 AI 50+；learned leaf 两次失败（[EXPECTIMAX L329-377](EXPECTIMAX.md#L262)） | 考试分（评价点的主要来源之一） | T4 |
@@ -101,15 +104,22 @@ cd D:\Games\gakumas-agent
 > 顺序建议：**T1 → T3 → T2 → T4 → T5/T6 → T7 → T8**。
 > "预算"是按成本纪律估的**单次会话 token 量级**；做完一项就更新状态、开新会话（见 §8）。
 
-### T1（P0）无人值守跑完整局 ⬜
+### T1（P0）无人值守跑完整局 🟡（流程卡点已修，差整局真机验收）
 **目标**：bot 从主页起跑，一路到期末考试/结算，**不停机、不白给回合**，一局 ≤20 分钟。
 
-**步骤**
-1. 按 [LIVE_RUN.md](LIVE_RUN.md) §0 做 3 分钟自检（一局只能一个 `auto_produce` 进程、清 `data/STOP`、窗口 540x960、daemon 在线）。
-2. 起跑：`auto_produce.py 300 ep-<名字> --timeout 2400`；20 分钟没结束就记卡点。
-3. 卡住时按优先级抓证据：`data/auto/step_*.png` + 最后一步 + `data/auto/auto_log_<ep>.log`。
-4. 先查已知嫌疑（按 [FAILURES.md](FAILURES.md#L6) 速览）：#15 结算页 `regular` 循环、#11 暂停门、#9 窗口最小化前置检查、领卡/外出/考试介绍页。
-5. 修复写进 `src/gkagent/tasks/produce_ui.py` / `scripts/auto_produce.py`；每个失败写一条 FAILURES.md（现象→根因→修复→教训）。
+**已完成（2026-11-21 晚，a9537b0 起）**
+- 12 次真机短跑定位并修掉 10 类卡点（详见 [FAILURES #27-32](FAILURES.md#L6) + [TROUBLESHOOTING](TROUBLESHOOTING.md)）：
+  点击坐标双重缩放、难度按钮坐标、自动编成确认框误判、外出/事件屏、领卡卡面中心、
+  考试详情浮层（「得分+」/「仅限1次」）、通信错误弹窗重试、加载快速路径定时回看、
+  无可用决策空转（连续 2 步强制 SKIP）、暂停帧计入同屏判死（暂停时 reset 同屏计数）。
+- 出牌引擎接线 + 决策可观测性（见 T2 前置）：`[engine]`/`[training] … | eng=…` 日志能一眼看出
+  这手是 expectimax 还是 rules 退回，以及退回原因（体力/回合/手牌读不到/搜索异常）。
+- 新增回归测试：`tests/test_device_click_coords.py`、`tests/test_produce_ui.py` 增补。
+
+**剩余**
+1. 按 [LIVE_RUN.md](LIVE_RUN.md) §0 做 3 分钟自检；起跑 `auto_produce.py 300 ep-<名字>`（≤20 分钟目标，卡住记卡点）。
+2. 若再卡：抓 `data/auto/step_*.png` + `auto_log_<ep>.log`，先看日志里 `| eng=` 与屏名，再按 [FAILURES](FAILURES.md#L6) 速览对照。
+3. 完成一局后把记录写进 `docs/RUNS.md`。
 
 **改哪儿**：`scripts/auto_produce.py`、`src/gkagent/tasks/produce_ui.py`、`docs/FAILURES.md`、`docs/RUNS.md`
 
@@ -120,34 +130,52 @@ cd D:\Games\gakumas-agent
 
 **预算**：1–2 小时真机 + 30–60k token。
 
-### T3（P0，依赖 T1 的稳定起跑）采集进程 ↔ 决策进程实时打通（原 item④）⬜
-**目标**：bot 进入考试的那一刻，自动从采集数据拿到**当前这一场**的 seed / 支援编成 / 牌堆 / 配置回合，建 `ExamDrawPlan`；每回合手牌核对通过（日志 `[exam-plan] … verified`）。
+### T3（P0，依赖 T1 的稳定起跑）采集进程 ↔ 决策进程实时打通（原 item④）🟡（代码已接，差真机考试验收）
+**目标**：bot 进入考试的那一刻，自动从采集数据拿到**当前这一场**的 seed / 支援编成 / 牌堆 / 配置回合，建 `ExamDrawPlan`；每回合手牌核对通过，2–3 回合内锁定牌序。
 
-**步骤**
-1. `scripts/build_exam_setup.py` 加"当前场"模式（`--current` 或 `--watch`）：只读最新 `StepAuditionStart` 前的数据，**不依赖** `StepAuditionEndExamBattle`（考试还没结束）；输出 `out/exam_setup_current.json`。
-2. config_turns 推断：主数据 `ProduceStepAuditionDifficulty` + 本周 step 信息（优先），或候选 {9,11,12} 用**第一回合手牌核对自动锁定**（`ExamDrawPlan.begin_turn` 已能判定对错）。
-3. 牌堆快照：把 `reconstruct_deck.py` 里"Produce/Start 全量 + 步骤增量 upsert"抽成函数，运行时可调用（不要复制一份逻辑）。
-4. `auto_produce.py` 进入考试时（现有 `exam_plan_cursor` 分支）改成**当次读取**最新 setup 文件，而不是启动时一次性 `load_exam_setups`。
-5. 真机验收：一局考试里 `exam_plan.summary()` 的 `verified == 实战回合数`；日志有 `[exam-plan] 挂上 exam…`；`extract_exams.py` 分数与预测逐张对照（重洗回合也要过）。
+**已完成（2026-11-21 晚，a9537b0 起）**
+1. ✅ `scripts/build_exam_setup.py --current`：只读最新 `StepAuditionStart`（不依赖 EndExamBattle），
+   牌堆用 `reconstruct_deck.build_snapshots()` 现场重放；`config_turns` 输出多个候选（默认 9/11/12）。
+   `--allow-finished` 用于对已结束的采集做离线核对。
+2. ✅ `ExamPlanSelector`（[exam_plan.py](../src/gkagent/sim/exam_plan.py)）：逐回合用实机手牌**收窄候选**，
+   唯一剩下即锁定（第 1 回合可能因 isInitial 卡相同分不出，第 2–3 回合收敛；实测采集局第 2 回合锁定）；
+   全部淘汰会重置重试（有上限），过期数据不会无限烧 CPU。
+3. ✅ `reconstruct_deck.build_snapshots()` 抽成函数（运行时可调用，不复制逻辑）。
+4. ✅ `auto_produce`：进入考试时按文件 mtime **运行时重载** `out/exam_setup.json`、新考试换新 selector、
+   考试结束打 `[exam-plan] summary`（锁定回合/候选/核对回合数）。
 
-**改哪儿**：`scripts/build_exam_setup.py`、`scripts/auto_produce.py`、`scripts/reconstruct_deck.py`（抽函数）、`src/gkagent/sim/exam_plan.py`（如需要 live 入口）
+**剩余（需要游戏+采集进程）**
+1. 开采集（`一键采集启动.bat`）→ 起 bot 到考试 → **考试进行中**另开一个进程跑
+   `build_exam_setup.py --current`（默认输出 `out/exam_setup.json`）→ bot 下一帧自动重载并开始核对；
+2. 验收日志：`[exam-plan] 重载/挂上` + `[exam-plan] summary` 里 `locked_turn` 2–3、`verified == 实战回合数`；
+3. 离线兜底验证（不依赖真机）：`build_exam_setup.py --current --allow-finished` 对一个已结束的采集
+   生成候选，用 truth 逐回合喂 `ExamPlanSelector` 应能锁定正确 `config_turns`（2026-11-21 已实测 12）。
+
+**改哪儿**：`scripts/build_exam_setup.py`、`scripts/auto_produce.py`、`scripts/reconstruct_deck.py`、`src/gkagent/sim/exam_plan.py`
 
 **风险**：traffic.jsonl 写入缓冲/时序；deck 快照与考试开始时刻的对齐；`forceEndScore` 提前结束时 config_turns 仍按配置回合（见 [HANDOVER 二·补二](HANDOVER.md#L113)）。
 **兜底**：对不上就自动停用（现有设计），**绝不能**用错牌序。
 
-**验收（DoD）**：真机一局考试的每回合核对通过 + 新增一条测试（合成 live 数据构造 setup）+ 文档更新。
-**预算**：60–100k token。
+**验收（DoD）**：真机一局考试的每回合核对通过 + selector 单测（已加 4 条）+ 文档更新。
+**预算**：60–100k token（代码已完成，剩真机验收 ~20k）。
 
 ### T2（P0，依赖 T3）三引擎真机 A/B ⬜
 **目标**：同偶像、同卡组、同 seed（能同 seed 最好），各跑 rules / expectimax / beam+全知 一局，比考试分。
 
 **步骤**
-1. `data/knowledge/policy.json` 的 **`lesson.engine`** 改 `rules` / `expectimax` / `beam`（⚠️ `produce.engine` 是死配置，没人读，别改那个）。
-2. 每局跑完：`scripts/extract_exams.py` 记录期中/期末分数、名次、三维；记 `docs/RUNS.md`。
-3. 注意：**beam 只在有 `known_draw` 且核对通过时才生效**（否则自动退回 expectimax）——所以 T3 必须先做，否则测不出 beam。
-4. 结论写回 [EXPECTIMAX.md](EXPECTIMAX.md)（新增"真机 A/B"小节）。
+1. 引擎开关（**已接线**）：真机 bot 读 `--engine` > `policy.json` 的 `produce.engine`；
+   `lesson.engine` 只是 `LessonPolicy` 独立/单测默认（保持 rules，别只改它）。
+   ```powershell
+   auto_produce.py 300 ep-ab-rules   --engine rules
+   auto_produce.py 300 ep-ab-exp     --engine expectimax
+   auto_produce.py 300 ep-ab-beam    --engine beam --exam-setup out\exam_setup.json
+   ```
+2. 每局看日志首行 `[engine]` 和每步 `| eng=…`：确认搜索真的在出牌，退回率（`fallback=`）多少。
+3. 每局跑完：`scripts/extract_exams.py` 记录期中/期末分数、名次、三维；记 `docs/RUNS.md`。
+4. 注意：**beam 只在有 `known_draw` 且核对通过时才生效**（否则自动退回 expectimax）——所以 T3 必须先做，否则测不出 beam。
+5. 结论写回 [EXPECTIMAX.md](EXPECTIMAX.md)（新增"真机 A/B"小节）。
 
-**验收（DoD）**：三局成绩表（考试分 + 评价 + 时长 + 回退/停用次数）+ 明确结论"哪个引擎值得默认"。
+**验收（DoD）**：三局成绩表（考试分 + 评价 + 时长 + `fallback=` 次数）+ 明确结论"哪个引擎值得默认"。
 **预算**：3 局×20 分钟真机 + 30–50k token。
 
 ### T4（P1）策略强度：V_leaf + beam 调优 ⬜
@@ -224,12 +252,16 @@ cd D:\Games\gakumas-agent
 ```powershell
 # 单场/全量考试牌序数据（生产接线用）
 .venv\Scripts\python.exe scripts\build_exam_setup.py
+# T3：当前这场考试的候选（考试进行中也能跑；bot 会运行时重载并逐回合锁定）
+.venv\Scripts\python.exe scripts\build_exam_setup.py --current
+# 离线核对 --current（对已结束的采集；真机没在考试时用）
+.venv\Scripts\python.exe scripts\build_exam_setup.py --current --allow-finished --out out\exam_setup_current_test.json
 # 生产接线端到端核对（36/36 手牌、3/3 重洗）
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
 # 离线配对评测：known_draw / beam / full-info（重洗后段全知）
 .venv\Scripts\python.exe scripts\eval_known_draw.py --games 40 --scenario small --policy beam --full-info
-# 真机跑局（引擎由 policy.json 的 lesson.engine 决定）
-.venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 300 ep-xxx --skip-home --exam-setup out\exam_setup.json" --timeout 2400
+# 真机跑局（引擎：--engine > policy.json produce.engine；不传则用 produce.engine=expectimax）
+.venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 300 ep-xxx --skip-home --exam-setup out\exam_setup.json --engine expectimax" --timeout 2400
 # 考试分数提取（A/B 对比用）
 .venv\Scripts\python.exe scripts\extract_exams.py
 # 一局体检
@@ -245,7 +277,7 @@ cd D:\Games\gakumas-agent
 | 四条铁律 | ① 不碰 `D:\Games\Gakumas\gakumas`（用户在用）；② 采集必须 `GKM_UNLOCK=0 / GKM_FORGE=0 / GKM_STATIC_USER=0`；③ `data/hiro/` 是 AGPL 只参考；④ 成本纪律（见 [HANDOVER 八](HANDOVER.md#L404)） |
 | 真机 | 一局只允许一个 `auto_produce` 进程；窗口 540x960、不能最小化；游戏重启后必须重启 `GDEAgent`；`data/STOP` 要清 |
 | 全知搜索 | 牌序**核对失败自动停用**是设计（宁可用期望模型也不用错牌序）；离线回放里策略出牌与实机不同会在重洗前停用，属正常 |
-| 配置陷阱 | `policy.json` 的 `produce.engine` 是**死配置**（没有代码读）；真正生效的是 `lesson.engine`（rules/expectimax/uinet/beam） |
+| 配置陷阱 | 引擎优先级：`--engine` CLI > `policy.json` 的 `produce.engine`（真机 bot）> 默认 rules；`lesson.engine` 是 `LessonPolicy` 独立/单测默认（保持 rules，别只改它）。每局日志首行 `[engine]` 写明实际用了谁 |
 | 数据 | 主数据缺 11-21 新卡：`verify_shuffle.py` 用 `SUPPLEMENT_*` 兜底，更新主数据后可删；`out/` 不进 git |
 | 时间口径 | 期中考试有 `forceEndScore` 提前结束，但 K（洗牌前 RNG 消耗）**按配置回合**算，不是实战回合 |
 | 提交 | 一次任务一个 `feat(...)` 提交（含测试+文档），再一个 `docs(handover): 补提交记录哈希`；`.gitignore` 已忽略 `out/` |

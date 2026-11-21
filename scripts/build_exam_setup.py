@@ -259,6 +259,129 @@ def build_setup(
     return setup, context
 
 
+# --------------------------------------------------------------------------- 当前场
+DEFAULT_CURRENT_TURNS = (9, 11, 12)
+
+
+def _latest_npc_count(records: list[dict], before: int) -> int:
+    """最近一场已结束考试的 NPC 数（field5 个数）；没有记录时用默认 5。"""
+    for rec in reversed(records[:before]):
+        if not rec.get("path", "").endswith("StepAuditionEndExamBattle"):
+            continue
+        req = vs.body(rec, "req_plain_hex")
+        if req is None:
+            continue
+        count = len(vs.fmap(vs.parse(req)).get(5, []))
+        if count:
+            return count
+    return vs.DEFAULT_NPC_COUNT
+
+
+def build_current_setup(
+    traffic: Path, turns_candidates: list[int], *, allow_finished: bool = False
+) -> dict:
+    """从采集里找**最近一场** ``StepAuditionStart``，生成「当前考试」的候选 setup。
+
+    与 :func:`build_setup` 的区别：考试可能还没结束——没有 truth、也没有
+    ``EndExamBattle`` 可用来推断配置回合数。所以：
+
+    * deck 用当次 Start 时刻的牌组快照（``reconstruct_deck.build_snapshots`` 现场重放）；
+    * ``config_turns`` 输出**多个候选**，每个候选一条 exam 记录；生产侧
+      ``ExamPlanSelector`` 在第 1 回合用实机手牌自动挑对上的那一份；
+    * 不生成 truth、不跑 --check。
+
+    ``allow_finished=False`` 时如果最近一场 Start 之后已经有 EndExamBattle（说明这场
+    已经打完），直接报错——那种情况请用默认的「全量」模式重建整份数据。
+    """
+    import reconstruct_deck as rd
+
+    db = vs.master_db()
+    initial, turn_start_distribute, _card_info, support_filter = vs.load_master_info(db)
+    records = rd.load_records(traffic)
+    starts = [
+        (i, rec)
+        for i, rec in enumerate(records)
+        if rec.get("path", "").endswith("StepAuditionStart")
+    ]
+    if not starts:
+        raise SystemExit("❌ traffic 里没有 StepAuditionStart（采集还没开始/文件不对）")
+    snapshots = {snap["record"]: snap for snap in rd.build_snapshots(traffic, quiet=True)}
+
+    for start_i, start in reversed(starts):
+        finished = any(
+            rec.get("path", "").endswith("StepAuditionEndExamBattle")
+            for rec in records[start_i + 1 :]
+        )
+        if finished and not allow_finished:
+            raise SystemExit(
+                "❌ 最近一场考试已结束（Start 之后有 EndExamBattle）："
+                "等下一场考试开始再跑 --current；或加 --allow-finished 仅供参考"
+            )
+        seed = vs.get_seed(vs.body(start, "resp_plain_hex") or b"")
+        snapshot = snapshots.get(start_i)
+        if seed is None or snapshot is None:
+            continue
+        deck = [
+            (card["id"], int(card["upgrade"]))
+            for card in sorted(snapshot["deck"], key=lambda item: item["number"])
+        ]
+        supports = vs.load_supports(start, support_filter)
+        npc_count = _latest_npc_count(records, start_i)
+        exams: list[dict] = []
+        for index, config_turns in enumerate(turns_candidates):
+            card_variants, missing = build_card_variants(deck, _card_info)
+            if missing:
+                print(f"⚠️ 主数据缺卡（card_variants 用 deck 强化值兜底）：{missing}")
+            lost_keys = [
+                card for card in deck if vs.card_move_position(card, _card_info).endswith("Lost")
+            ]
+            end_lost_keys = [
+                card for card in deck if (_card_info.get(card) or {}).get("end_lost")
+            ]
+            exams.append(
+                {
+                    "index": index,
+                    "ts": start.get("ts"),
+                    "seed": int(seed),
+                    "config_turns": int(config_turns),
+                    "config_turns_ok": False,
+                    "played_turns": 0,
+                    "npc_count": npc_count,
+                    "turn_start_distribute": int(turn_start_distribute),
+                    "hand_limit": DEFAULT_HAND_LIMIT,
+                    "deck": [card_key(card) for card in deck],
+                    "supports": [
+                        {
+                            "id": support["id"],
+                            "number": int(support["number"]),
+                            "permil": int(support["permil"]),
+                            "filter": int(support["filter"]),
+                        }
+                        for support in supports
+                    ],
+                    "initial_keys": [card_key(card) for card in deck if card in initial],
+                    "card_variants": card_variants,
+                    "lost_keys": [card_key(card) for card in lost_keys],
+                    "end_lost_keys": [card_key(card) for card in end_lost_keys],
+                    "truth": [],
+                    "live": True,
+                }
+            )
+        return {
+            "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "mode": "current",
+            "turns_candidates": [int(t) for t in turns_candidates],
+            "source": {
+                "traffic": str(traffic),
+                "master": str(db) if db is not None else "",
+                "traffic_record": int(start_i),
+                "finished": bool(finished),
+            },
+            "exams": exams,
+        }
+    raise SystemExit("❌ 找不到可用的 StepAuditionStart（缺 seed 或牌组快照）")
+
+
 # --------------------------------------------------------------------------- --check
 
 
@@ -419,6 +542,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--truth", default=str(DEFAULT_TRUTH), help="可选 exam_truth.json 路径")
     parser.add_argument("--out", default=str(DEFAULT_OUT), help="输出 exam_setup.json 路径")
     parser.add_argument("--no-check", action="store_true", help="跳过落盘后的 --check 校验")
+    parser.add_argument(
+        "--current",
+        action="store_true",
+        help="只生成「当前这场考试」的候选（考试进行中也能跑；config_turns 给多个候选，"
+        "由 bot 第 1 回合按实机手牌自动挑）",
+    )
+    parser.add_argument(
+        "--turns",
+        default=",".join(str(t) for t in DEFAULT_CURRENT_TURNS),
+        help="--current 的配置回合数候选（逗号分隔），默认 9,11,12",
+    )
+    parser.add_argument(
+        "--allow-finished",
+        action="store_true",
+        help="--current 时允许最近一场考试已经结束（调试/核对用）",
+    )
     args = parser.parse_args(argv)
 
     traffic = Path(args.file)
@@ -427,6 +566,19 @@ def main(argv: list[str] | None = None) -> int:
     if not traffic.is_file():
         print(f"❌ 采集文件不存在: {traffic}")
         return 1
+    if args.current:
+        turns = [int(item) for item in str(args.turns).split(",") if item.strip()]
+        setup = build_current_setup(traffic, turns, allow_finished=args.allow_finished)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(setup, ensure_ascii=False, indent=2), encoding="utf-8")
+        first = setup["exams"][0]
+        print(
+            f"✅ 已写入 {out}：当前考试候选 {len(setup['exams'])} 个"
+            f"（seed=0x{first['seed']:08X}，牌堆 {len(first['deck'])} 张，"
+            f"支援 {len(first['supports'])} 张，config_turns 候选 {turns}）"
+        )
+        print("   bot 考试第 1 回合会按实机手牌自动挑对上的那一份（ExamPlanSelector）")
+        return 0
     if not snap.is_file():
         print(f"❌ 牌堆快照不存在: {snap}（先跑 scripts/reconstruct_deck.py）")
         return 1

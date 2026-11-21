@@ -543,18 +543,21 @@ def main() -> int:
     loading_fast_streak = 0
     # 考试/试镜模式（F#17）：本局是否已进入过考试（只打一次 [exam-mode] 进入日志）
     exam_seen = False
-    # 考试牌序计划：按场次顺序取（期中一场、期末一场）；turns_left 变大 = 换到下一场
+    # 考试牌序计划（T3 实时接线）：启动时先读一次候选；真正的场次在进入考试时由
+    # ExamPlanSelector 用第一回合实机手牌挑（见循环里的 [exam-plan] 分支）。
     exam_plans = (
         [ExamDrawPlan(item) for item in load_exam_setups(exam_setup_path)]
         if exam_setup_path
         else []
     )
-    exam_plan_cursor = 0
+    exam_plan_selector = None
+    exam_setup_mtime: float | None = None
     prev_exam_turns: int | None = None
+    prev_exam_mode = False
     if exam_plans:
         log_lines.append(
-            f"[exam-plan] 载入 {len(exam_plans)} 场考试牌序计划：{exam_setup_path}"
-            f"（engine={lesson_policy.engine}）"
+            f"[exam-plan] 载入 {len(exam_plans)} 个候选：{exam_setup_path}"
+            f"（进入考试时按首回合手牌自动挑，engine={lesson_policy.engine}）"
         )
     # sim 实时出牌的近似牌库（真机拿不到完整牌组，把见过的手牌并进来，最多 12 张）
     sim_deck: list[CardSpec] = []
@@ -1015,8 +1018,9 @@ def main() -> int:
                 lesson_active = True
                 if lesson_state.score is not None and lesson_state.score > 0:
                     last_lesson_score = lesson_state.score
-            # 考试牌序计划：进入考试 / 换到下一场考试时挂上下一场采集数据。
-            # 之后策略每回合调 plan.begin_turn 与实机手牌核对，对不上自动停用。
+            # 考试牌序计划（T3 实时接线）：不在启动时锁定场次——进入考试时把候选
+            # 交给 ExamPlanSelector，用第一回合实机手牌自动挑对上的那一份；
+            # out/exam_setup.json 更新（build_exam_setup --current）会在考试入口自动重载。
             if exam_mode:
                 turns_now = lesson_state.turns_left
                 new_exam = prev_exam_turns is None or (
@@ -1024,22 +1028,50 @@ def main() -> int:
                 )
                 if turns_now is not None:
                     prev_exam_turns = turns_now
-                if (
-                    new_exam
-                    and turns_now is not None
-                    and exam_plan_cursor < len(exam_plans)
-                ):
-                    plan = exam_plans[exam_plan_cursor]
-                    if plan is not lesson_policy.draw_plan:
-                        exam_plan_cursor += 1
-                        lesson_policy.attach_draw_plan(plan)
+                if new_exam and exam_plan_selector is not None:
+                    # 上一场（期中/期末）的候选先收尾，换新的一批
+                    try:
+                        log_lines.append(f"[exam-plan] {exam_plan_selector.summary()}")
+                    except Exception as exc:  # noqa: BLE001 - 复盘日志不能影响跑局
+                        log_lines.append(f"[exam-plan] summary 失败：{exc}")
+                    lesson_policy.attach_draw_plan(None)
+                    exam_plan_selector = None
+                if exam_setup_path:
+                    try:
+                        mtime = Path(exam_setup_path).stat().st_mtime
+                    except OSError:
+                        mtime = None
+                    if mtime is not None and mtime != exam_setup_mtime:
+                        # out/exam_setup.json 更新了（考试前跑 build_exam_setup --current）
+                        exam_setup_mtime = mtime
+                        exam_plans = [
+                            ExamDrawPlan(item)
+                            for item in load_exam_setups(exam_setup_path)
+                        ]
+                        if exam_plan_selector is not None:
+                            lesson_policy.attach_draw_plan(None)
+                            exam_plan_selector = None
                         log_lines.append(
-                            f"{step:03d} [exam-plan] 挂上 exam{plan.setup.index} "
-                            f"seed=0x{plan.setup.seed:08X} 配置{plan.setup.config_turns}回合 "
-                            f"牌堆{len(plan.setup.deck)}张（engine={lesson_policy.engine}）"
+                            f"{step:03d} [exam-plan] 重载 {len(exam_plans)} 个候选：{exam_setup_path}"
                         )
+                if exam_plans and exam_plan_selector is None:
+                    from gkagent.sim.exam_plan import ExamPlanSelector
+
+                    exam_plan_selector = ExamPlanSelector(exam_plans)
+                    lesson_policy.attach_draw_plan(exam_plan_selector)
+                    log_lines.append(
+                        f"{step:03d} [exam-plan] 挂上 {len(exam_plans)} 个候选"
+                        f"（逐回合按实机手牌收窄，engine={lesson_policy.engine}）"
+                    )
             else:
+                if prev_exam_mode and exam_plan_selector is not None:
+                    # 考试结束：停用计划，并把本次挑中的场次/核对结果写进日志
+                    exam_plan_selector.finish()
+                    lesson_policy.attach_draw_plan(None)
+                    log_lines.append(f"[exam-plan] {exam_plan_selector.summary()}")
+                    exam_plan_selector = None
                 prev_exam_turns = None
+            prev_exam_mode = exam_mode
             # 同屏兜底（ep-cplus10：SKIP 点空后同一画面连拍 169 步，25 分钟超时）。
             # 用语义签名而不是像素 digest——角色呼吸/卡面闪光/视频噪点让每帧 hash 都不同。
             turn_signature = lesson_turn_signature(lesson_state)
@@ -1709,11 +1741,15 @@ def main() -> int:
         )
     )
     # 考试牌序计划复盘：核对了几回合 / 是否因不符停用 / 重洗几次
-    for used in exam_plans[:exam_plan_cursor]:
-        try:
-            log_lines.append(f"[exam-plan] {used.summary()}")
-        except Exception as exc:  # noqa: BLE001 - 复盘日志不能影响收尾
-            log_lines.append(f"[exam-plan] summary 失败：{exc}")
+    try:
+        if exam_plan_selector is not None:
+            log_lines.append(f"[exam-plan] {exam_plan_selector.summary()}")
+        elif exam_plans:
+            log_lines.append(
+                f"[exam-plan] 本局没进入考试（{len(exam_plans)} 个候选未使用）"
+            )
+    except Exception as exc:  # noqa: BLE001 - 复盘日志不能影响收尾
+        log_lines.append(f"[exam-plan] summary 失败：{exc}")
     LOG.write_text("\n".join(log_lines), encoding="utf-8")
     # 每局单独留一份，避免被下一局/手工测试覆盖
     (SHOT_DIR / f"auto_log_{episode}.log").write_text("\n".join(log_lines), encoding="utf-8")
