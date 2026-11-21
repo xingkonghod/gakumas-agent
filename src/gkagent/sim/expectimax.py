@@ -52,16 +52,25 @@ V_leaf 先上线**解析式**（不训练）::
 
 from __future__ import annotations
 
+import logging
 import math
 import random
 import time
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, fields, replace
+from dataclasses import field as dataclass_field
 from functools import lru_cache
 from typing import Any, Protocol
 
-from gkagent.sim.lesson import Buffs, CardSpec, DrinkSpec
+from gkagent.sim.lesson import (
+    Buffs,
+    CardSpec,
+    DrinkSpec,
+    LessonConfig,
+    LessonSim,
+    greedy_policy,
+)
 from gkagent.sim.p_items import (
     CARD_PLAY,
     STATUS_GAIN,
@@ -464,6 +473,231 @@ class AnalyticLeafValue:
         return max(mu, 0.0), max(float(self.sigma), 0.0)
 
     # ------------------------------------------------------------- 效用
+    def utility(self, state: ExpectState) -> float:
+        """E[档位效用] = a·P(score ≥ CLEAR) + b·P(score ≥ PERFECT)。"""
+        if state.clear <= 0:
+            return 0.0
+        mu, sigma = self.predict(state)
+        projected = state.score + mu
+        if sigma <= 0:
+            base = (
+                self.a_clear * (1.0 if projected >= state.clear else 0.0)
+                + self.a_perfect * (1.0 if projected >= state.perfect else 0.0)
+            )
+            return base + self._tiebreak_bonus(projected, state)
+        clear_gap = state.clear - state.score
+        perfect_gap = state.perfect - state.score
+        base = self.a_clear * _phi((mu - clear_gap) / sigma) + self.a_perfect * _phi(
+            (mu - perfect_gap) / sigma
+        )
+        return base + self._tiebreak_bonus(projected, state)
+
+
+# ---------------------------------------------------------------- rollout 叶子
+# 背景（T4，2026-11-22）：解析式 V_leaf 的 μ 不准是 beam 的最大短板（真实小牌组
+# beam 111.2 vs 回合内 expectimax 143.1）。这里做最小版「rollout 叶子」：
+# 搜索叶子/beam 端点处用 LessonSim + greedy 把剩余回合快跑一遍，取最终分数增量
+# 当 μ，用多次 rollout（牌序未知时）的标准差当 σ。先验准不准，再谈接进生产。
+def _rollout_seed(state: ExpectState, index: int) -> int:
+    """同一叶子 + 同一 rollout 编号 → 同一牌序（可复现，且各 rollout 不同）。"""
+    return (hash(state.canonical()) & 0xFFFFFFFF) ^ (index * 0x9E3779B1)
+
+
+def sim_from_state(
+    state: ExpectState,
+    *,
+    rng: random.Random | None = None,
+    plan: str = "sense",
+) -> LessonSim:
+    """把搜索里的纯 ``ExpectState`` 快照重建为可跑的 ``LessonSim``（rollout 用）。
+
+    精度取舍（最小版）：
+    - ``known_draw`` 已知 → 牌序 = ``reversed(known_draw)``（LessonSim 从尾部 pop）；
+      未知 → 用 ``rng`` 洗牌，多次 rollout 取均值吸收牌序不确定性；
+    - 搜索叶子常常已被 ``end_turn_state`` 清空手牌（它不抽下一手），这里按
+      ``hand_size`` 从牌堆补一手，近似"下一回合开始"；
+    - 除外区/P 道具/成长计数都从状态带过去，不丢机制。
+    """
+    deck_multiset = list(state.hand) + list(state.deck) + list(state.discard)
+    config = LessonConfig(
+        turns=max(int(state.total_turns), int(state.turns_left), 1),
+        stamina=max(int(state.stamina_max), int(state.stamina), 1),
+        target_clear=max(int(state.clear), 1),
+        target_perfect=int(state.perfect) if state.perfect > 0 else None,
+        hand_size=max(int(state.hand_size), 1),
+        plays_per_turn=max(int(state.play_limit), 1),
+        drinks=tuple(state.drinks),
+        drinks_per_turn=state.drinks_per_turn,
+        stamina_max=max(int(state.stamina_max), 1),
+        attribute_coefficient=float(state.attribute_coefficient),
+        plan=plan,
+        p_items=tuple(state.p_items),
+    )
+    sim = LessonSim(deck_multiset, config, rng_seed=0 if rng is None else rng.randrange(1 << 30))
+    # 牌序：全知时按已知顺序，否则本次 rollout 的随机牌序（构造器已洗过一次，
+    # 这里统一再按 rng 洗，保证不同 rollout 的牌序确实不同）。
+    if state.known_draw:
+        sim.deck = list(reversed(state.known_draw))
+    else:
+        sim.deck = list(state.deck)
+        if rng is not None:
+            rng.shuffle(sim.deck)
+    sim.discard = (
+        list(state.discard_order) if state.discard_order is not None else list(state.discard)
+    )
+    sim.excluded = list(state.excluded)
+    sim.hand = list(state.hand)
+    if not sim.hand and int(state.turns_left) > 0:
+        sim._draw(config.hand_size)
+    sim.score = int(state.score)
+    sim.stamina = int(state.stamina)
+    sim.stamina_max = max(int(state.stamina_max), int(state.stamina), 1)
+    sim.vitality = int(state.vitality)
+    sim.motivation = int(state.motivation)
+    sim.turn_parameter_buff = int(state.parameter_buff)
+    sim.turns_left = max(int(state.turns_left), 0)
+    sim.plays_this_turn = int(state.plays_used)
+    sim.extra_plays = int(state.extra_plays)
+    sim.drinks_used_this_turn = int(state.drinks_used_this_turn)
+    if state.drink_uses:
+        sim.drink_uses = [int(use) for use in state.drink_uses]
+        while len(sim.drink_uses) < len(config.drinks):
+            sim.drink_uses.append(0)
+    sim.cards_played_total = int(state.cards_played_total)
+    sim._save_cards_used = int(state.save_cards_used)
+    sim.buffs = Buffs(
+        condition_turns=int(state.condition_turns),
+        perfect_condition_turns=int(state.perfect_condition_turns),
+        poor_condition_turns=int(state.poor_condition_turns),
+        metamorphosis=str(state.metamorphosis or ""),
+        focus=int(state.focus),
+        impression=int(state.impression),
+        condition_additive=int(state.condition_additive),
+        condition_additive_turns=int(state.condition_additive_turns),
+        review_multiple=int(state.review_multiple),
+        review_multiple_turns=int(state.review_multiple_turns),
+        full_power_lesson_multiple=int(state.full_power_lesson_multiple),
+        full_power_lesson_multiple_turns=int(state.full_power_lesson_multiple_turns),
+    )
+    stance, strong_level, save_level, full_power_point = state.stance
+    sim.stance = StanceState(
+        stance=stance,
+        strong_level=int(strong_level),
+        save_level=int(save_level),
+        full_power_point=int(full_power_point),
+    )
+    for card in (*sim.hand, *sim.deck, *sim.discard, *sim.excluded):
+        uses = int(state.uses_of(card.name))
+        if uses > 0:
+            sim.card_uses[id(card)] = uses
+    sim.p_item_uses = {name: int(count) for name, count in state.p_item_uses}
+    sim._min_cost = min(
+        (int(card.cost) for card in (*sim.hand, *sim.deck, *sim.discard, *sim.excluded)),
+        default=0,
+    )
+    return sim
+
+
+@dataclass(frozen=True)
+class RolloutLeafValue:
+    """rollout 叶子估值：用 ``LessonSim`` + greedy 快跑剩余回合，替代解析式 μ。
+
+    ``predict`` 返回未来得分增量的 ``(μ, σ)``：
+    - μ = 若干次 rollout 的最终分数增量均值；
+    - σ = max(``sigma``, 实测标准差)，避免牌序全知时退化成硬阈值。
+
+    ``utility`` 的档位公式与 ``AnalyticLeafValue`` 一致（CLEAR/PERFECT 正态 cdf）。
+    ``rollouts`` 只影响精度/耗时；牌序未知时建议 ≥3。
+    """
+
+    sigma: float = DEFAULT_SIGMA
+    a_clear: float = 1.0
+    a_perfect: float = 1.0
+    score_tiebreak: float = 0.0
+    rollouts: int = 3
+    plan: str = "sense"
+    # rollout 内部用的策略：greedy=卡面分数/费用基线；within=每回合小预算 expectimax
+    # （强但慢，用于验证“叶子估值要跟执行策略同强度”这个假设）。
+    policy: str = "greedy"
+    rollout_budget_ms: float = 5.0
+    # 叶子会被搜索反复问同一个状态：缓存 canonical → (μ, σ)，避免重复 rollout。
+    _cache: dict[tuple[Any, ...], tuple[float, float]] = dataclass_field(
+        default_factory=dict, compare=False, repr=False
+    )
+
+    def _tiebreak_bonus(self, projected: float, state: ExpectState) -> float:
+        if self.score_tiebreak <= 0.0:
+            return 0.0
+        scale = float(state.perfect if state.perfect > 0 else state.clear)
+        if scale <= 0.0:
+            return 0.0
+        return float(self.score_tiebreak) * projected / scale
+
+    def _rollout_score(self, sim: LessonSim) -> float:
+        """把一局（快照）跑完，返回最终分数。"""
+        if self.policy != "within":
+            final, _ = sim.run(greedy_policy)
+            return float(final)
+        flat = AnalyticLeafValue(sigma=self.sigma, a_clear=self.a_clear, a_perfect=self.a_perfect)
+        while not sim.done:
+            actions = sim.legal_actions()
+            if actions == [None]:
+                sim.step(None)
+                continue
+            state = state_from_sim(sim, known_deck_order=True)
+            result = expectimax_with_stats(
+                state, flat, time_budget_ms=self.rollout_budget_ms
+            )
+            index = None
+            if result.card is not None:
+                index = next(
+                    (i for i, card in enumerate(sim.hand) if card == result.card), None
+                )
+            if index is None:
+                index = greedy_policy(sim)
+            if index is None:
+                break
+            sim.step(index)
+        return float(sim.score)
+
+    def _samples(self, state: ExpectState) -> list[float]:
+        count = max(int(self.rollouts), 1)
+        samples: list[float] = []
+        for index in range(count):
+            rng = random.Random(_rollout_seed(state, index))
+            try:
+                sim = sim_from_state(state, rng=rng, plan=self.plan)
+                final = self._rollout_score(sim)
+            except Exception as exc:  # noqa: BLE001 - rollout 是估值，失败不能拖垮搜索
+                logging.getLogger(__name__).warning("rollout 叶子失败：%s", exc)
+                break
+            samples.append(final - float(state.score))
+        return samples
+
+    def predict(self, state: ExpectState) -> tuple[float, float]:
+        if state.turns_left <= 0:
+            return 0.0, 0.0
+        cache_key = state.canonical()
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+        samples = self._samples(state)
+        if not samples:
+            mu = 0.0
+            sigma = max(float(self.sigma), 0.0)
+        else:
+            mu = sum(samples) / len(samples)
+            if len(samples) > 1:
+                variance = sum((value - mu) ** 2 for value in samples) / (len(samples) - 1)
+                measured = math.sqrt(max(variance, 0.0))
+            else:
+                measured = 0.0
+            sigma = max(float(self.sigma), measured)
+        result = (max(mu, 0.0), sigma)
+        if len(self._cache) < 8192:
+            self._cache[cache_key] = result
+        return result
+
     def utility(self, state: ExpectState) -> float:
         """E[档位效用] = a·P(score ≥ CLEAR) + b·P(score ≥ PERFECT)。"""
         if state.clear <= 0:

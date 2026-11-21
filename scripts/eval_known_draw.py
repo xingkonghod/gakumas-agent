@@ -39,6 +39,7 @@ import eval_expectimax as ee
 
 from gkagent.sim.expectimax import (
     AnalyticLeafValue,
+    RolloutLeafValue,
     expectimax_with_stats,
     reshuffle_from_sim,
     search_beam,
@@ -130,15 +131,29 @@ def play(
     width: int = 4,
     score_tiebreak: float = 0.0,
     branching: int | None = None,
+    leaf: str = "analytic",
+    rollouts: int = 3,
+    rollout_policy: str = "greedy",
+    rollout_budget_ms: float = 5.0,
 ) -> dict:
     """跑一局课程，返回分数与统计（fallback = 搜索给的牌在模拟器里执行不了）。
 
     ``full_info``：弃牌堆顺序 + ``reshuffle_from_sim`` 钩子，重洗后段也全知。
     ``score_tiebreak``：档位效用封顶导致的平手项（0=历史行为）；``branching``：
     beam 每层抽样分支数（None=默认 max(2, min(width, 3))）。
+    ``leaf``：``analytic``=解析式 V_leaf；``rollout``=LessonSim+greedy 快跑剩余回合。
     """
     sim = LessonSim(deck, config, rng_seed=seed)
-    model = AnalyticLeafValue(sigma=sigma, score_tiebreak=score_tiebreak)
+    if leaf == "rollout":
+        model = RolloutLeafValue(
+            sigma=sigma,
+            score_tiebreak=score_tiebreak,
+            rollouts=rollouts,
+            policy=rollout_policy,
+            rollout_budget_ms=rollout_budget_ms,
+        )
+    else:
+        model = AnalyticLeafValue(sigma=sigma, score_tiebreak=score_tiebreak)
     fallbacks = 0
     decisions = 0
     while not sim.done:
@@ -238,6 +253,30 @@ def main(argv: list[str]) -> int:
         action="store_true",
         help="额外跑 full（known_draw + discard_order + reshuffle 钩子，重洗后段全知）",
     )
+    parser.add_argument(
+        "--leaf",
+        choices=("analytic", "rollout"),
+        default="analytic",
+        help="叶子估值：analytic=解析式；rollout=LessonSim+greedy 快跑剩余回合",
+    )
+    parser.add_argument(
+        "--rollouts",
+        type=int,
+        default=3,
+        help="rollout 叶子的采样次数（牌序未知时取均值+标准差）",
+    )
+    parser.add_argument(
+        "--rollout-policy",
+        choices=("greedy", "within"),
+        default="greedy",
+        help="rollout 内部策略：greedy=基线；within=每回合小预算 expectimax（慢）",
+    )
+    parser.add_argument(
+        "--rollout-budget-ms",
+        type=float,
+        default=5.0,
+        help="rollout-policy=within 时每回合 expectimax 的时间预算",
+    )
     args = parser.parse_args(argv)
 
     deck, config = _make_deck_and_config(args.scenario)
@@ -266,6 +305,10 @@ def main(argv: list[str]) -> int:
                     width=args.width,
                     score_tiebreak=args.score_tiebreak,
                     branching=args.branching or None,
+                    leaf=args.leaf,
+                    rollouts=args.rollouts,
+                    rollout_policy=args.rollout_policy,
+                    rollout_budget_ms=args.rollout_budget_ms,
                 )
             )
 
