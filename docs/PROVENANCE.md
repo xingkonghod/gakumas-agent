@@ -82,6 +82,9 @@ flowchart LR
 | UIHorizon / UINet | gkbench 算法 | 见 gkbench | 否 | 外部榜单数字作为参照 |
 | 官方 AI | `gkbench/algos/official_ai.py` | MIT | 否（阅读笔记） | 启发式对照 |
 | QQ 群「初星学园情报处理部」 | 群聊/公开文档（匿名） | — | 否 | 情报引用，见 `QQ_GROUP_NOTES.md` |
+| 《体系建模、随机机制与高分路线优化》论文/精简版.docx | 花吹雪また一年（2K9TNJ8S），2026-09/11 | 公开文档（群内分享） | 否（只引用公式/结论） | 仅本地存档 `group_files/`；引用需标注作者/日期 |
+| GKMSMAA_20261120（魔改 MaaGakumasu + gkmsmaa 执行层） | 20261120 群包 | **AGPL-3.0**（继承 MaaGakumasu） | **禁止拷贝/合并** | 只做架构参考；`D:\GakumasAgentArchive\group_files\` 本地存档，不入库 |
+| launch_gakumas.ps1（DMM 免客户端直启） | 群工具 | 社区脚本（未声明） | 否 | 只借鉴思路（pf_access_token 直启），未拷入仓库 |
 
 **AGPL 隔离**：`data/hiro/`（AGPL 参考代码/数据）在 `.gitignore` 中，不进入提交、不进私有仓库远端；
 本仓库所有代码为自研（clean-room），如需开源必须先移除 `data/hiro/` 相关内容。

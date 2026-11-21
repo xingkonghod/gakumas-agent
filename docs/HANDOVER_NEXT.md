@@ -149,6 +149,12 @@ cd D:\Games\gakumas-agent
   **搜索 SKIP 被直接执行**（主因，已按用户规则全面禁止）。
 - 现在课程/考试里 **SKIP 只在"所有牌都付不起"时发生**；四引擎（rules/expectimax/beam/uinet）统一拦截。
 
+**第三段（2026-11-22 凌晨，采集+真机首次合体）**
+- 采集链路通了（服务 18443/18444、token 刷新、C 盘副本）；4 次短跑 ep-t3-1..4 全部中途停。
+- 已修：培育开场**日文剧情二选一**（布局识别选项气泡 + 补读中下部 OCR，`584f742`，FAILURES #41）。
+- 待修：**#42 舞蹈课程连打 buff → 0 分 FAILED**（禁跳硬打必须保证得分）；**#43 结果页 result-tap 循环**。
+- 群文件情报（论文/2B run/GKMSMAA AGPL）见 HANDOVER 二·补十二；下会话先修 #42/#43 再跑 T3。
+
 **剩余（跑一局验收）**
 1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
    `sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json`
