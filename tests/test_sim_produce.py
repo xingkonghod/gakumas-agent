@@ -1024,3 +1024,25 @@ def test_lesson_trace_contains_per_turn_skip_flags() -> None:
     assert all(isinstance(turn["skipped"], bool) for turn in turns)
     assert detail["skipped"] == any(turn["skipped"] for turn in turns)
 
+
+def test_exam_policy_can_be_injected_for_offline_ab() -> None:
+    """考试内出牌策略可注入（离线 A/B 用）；默认仍是 greedy_policy。"""
+    sim = _sim()
+    assert sim.exam_policy_fn is None
+    calls: list[int] = []
+
+    def policy(inner) -> int | None:
+        calls.append(inner.turns_left)
+        legal = [index for index in inner.legal_actions() if index is not None]
+        return legal[0] if legal else None
+
+    sim.exam_policy_fn = policy
+    exam = sim.exam(0)
+    assert calls, "注入的考试策略没有被调用"
+    assert exam["score"] >= 0
+
+    # 不注入时维持历史口径（greedy_policy），分数应可复现。
+    default = _sim().exam(0)
+    assert default["score"] >= 0
+
+

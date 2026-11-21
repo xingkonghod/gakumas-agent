@@ -438,6 +438,17 @@ def arg_value(name: str, default: str | None = None) -> str | None:
     return default
 
 
+def exceeds_timeout(started_at: float, now: float, max_minutes: float) -> bool:
+    """全局墙钟上限判定：超时返回 True；``max_minutes <= 0`` 表示关闭（不限时）。
+
+    用户规则（2026-11-21）：一局卡住时不能无限空转（见过卡两个多小时还跑到 C）；
+    默认 30 分钟主动停局并写 ``episode-timeout`` failure，留日志/截图复盘。
+    """
+    if max_minutes <= 0:
+        return False
+    return (now - started_at) >= max_minutes * 60.0
+
+
 def restore_window() -> None:
     """最小化/黑屏时恢复游戏窗口（本进程已是管理员）。"""
     script = ROOT / "scripts" / "force_show_game.ps1"
@@ -468,6 +479,9 @@ def main() -> int:
     sys.excepthook = _hook
     steps = int(sys.argv[1]) if len(sys.argv) > 1 else 30
     episode = sys.argv[2] if len(sys.argv) > 2 else time.strftime("ep-%Y%m%d-%H%M%S")
+    # 全局墙钟上限（用户 2026-11-21：见过一局卡两个多小时还跑到 C）。一局目标 ≤20
+    # 分钟，卡住时不能无限空转；默认 30 分钟，`--max-minutes 0` 关闭。
+    max_minutes = float(arg_value("--max-minutes", "30") or 0)
     hwnd = find_game_hwnd()
     if not hwnd:
         print("no game window", file=sys.stderr)
@@ -558,6 +572,7 @@ def main() -> int:
     final_phase = False
     done = False
     stuck_exit = False
+    timed_out = False
     seen_produce = False
     produce_end_seen = False
     started_at = time.time()
@@ -751,6 +766,24 @@ def main() -> int:
     for step in range(1, steps + 1):
         if stop_requested():
             log_lines.append(f"{step:03d} [stop] 急停触发")
+            break
+        if exceeds_timeout(started_at, time.time(), max_minutes):
+            # 卡住（同屏弹窗/点击无响应/OCR 反复失败）时不能无限跑下去：写 failure
+            # 后主动停局，留日志/截图复盘，而不是烧两小时再给个 C。
+            elapsed_min = (time.time() - started_at) / 60.0
+            log_lines.append(
+                f"{step:03d} [timeout] 本局已跑 {elapsed_min:.1f} 分钟"
+                f"（--max-minutes={max_minutes:g}），停止本局"
+            )
+            log_failure(
+                episode,
+                step,
+                "episode-timeout",
+                f"超过 --max-minutes={max_minutes:g}（{elapsed_min:.1f} 分钟）",
+                {"steps": step, "attribute": driver.lesson_attribute, "stamina": last_stamina},
+            )
+            timed_out = True
+            stuck_exit = True
             break
         # F#9：窗口最小化/尺寸被改后，点击全部落到不存在的地方（真机空转 12 次才发现）。
         # 每步决策之前先校验并恢复；恢复不了就等待，绝不带着坏窗口继续点。
@@ -1919,6 +1952,7 @@ def main() -> int:
                 "steps": len(log_lines),
                 "done": done,
                 "stuck": stuck_exit,
+                "timeout": timed_out,
                 "duration_s": round(ended_at - started_at, 1),
                 "avg_total_ms": summary.get("avg_total_ms"),
                 "changed_rate": summary.get("changed_rate"),

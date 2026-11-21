@@ -525,6 +525,10 @@ class ProduceSim:
         self.reward_picks = 0
         self.trace: list[dict] = []       # 每周快照，给前端回放用
         self.training_policy_fn = training_policy  # 可注入真机 LessonPolicy 适配器
+        # 考试内出牌策略：None = greedy_policy（历史默认，分数校准口径不变）。
+        # 可注入真机 LessonPolicy 适配器，供离线 A/B 验证搜索引擎在考试里的表现；
+        # 用户规则（2026-11-21）：bot 不许回退 rules，考试 A/B 前先在模拟器里比。
+        self.exam_policy_fn = None
         self.last_training: dict | None = None
         self.last_exam: dict | None = None
         self._official = (
@@ -880,7 +884,7 @@ class ProduceSim:
             ),
             rng_seed=self.rng.randrange(1_000_000),
         )
-        exam_sim.run(greedy_policy)
+        exam_sim.run(self.exam_policy_fn or greedy_policy)
         exam_score = int(exam_sim.score)
 
         score_tiers = self.config.exam_npc_scores

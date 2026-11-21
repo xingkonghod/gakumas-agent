@@ -331,12 +331,32 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 
 **改后基线（全绿）**
 - `verify_shuffle.py`：4/4 场整段复现（含重洗）
-- `pytest tests/ -q`：**883 passed，1 skipped**（884 条收集 / 59 文件）全绿
+- `pytest tests/ -q`：**887 passed，1 skipped**（888 条收集 / 61 文件）全绿
 - `build_exam_setup.py`：4/4 场、初始段 86/86 张、重洗段 24/24 张
 - `verify_exam_wiring.py`：手牌 36/36 回合、重洗 3/3、known_draw 29/29、策略链路 beam 出牌 28 次
 
 **下一步**：T1 整局真机验收。日志里不应再出现 `fallback=搜索未产出动作，退回规则`；
 若出现 `[engine][BLOCKED]`，说明搜索被真实缺陷挡住——按原因修 OCR/卡表，不许把 rules 加回来兜底。
+
+**上真机前的模拟器整局 A/B（2026-11-21 深夜，本条同时做）**
+- 新增 [sim_engine_ab.py](../scripts/sim_engine_ab.py)：同一批种子跑完整 16 周培育局，
+  训练和考试都注入真 `LessonPolicy.decide`（`ProduceSim.exam_policy_fn` 为本次新增；默认仍 greedy）。
+- 三组种子共 **76 局**（seed 9000/21000，16+30+30 局，rules/expectimax，预算 800ms）：
+  - `RuleFallbackBlocked` **0**、异常 **0**；每局都跑完 16 周 + 2 场考试；
+  - 模拟器口径满局评价 **C+ 率 100%**；P50 评价点 rules **5049** / expectimax **5063**；
+  - 配对差在噪声内（16 局 Δ−15.2、30 局 Δ−4.9；与 EXPECTIMAX「真实牌组 beam 只 +3.0」一致：
+    差距在 V_leaf，不在回退）；
+  - 单局模拟耗时：rules ~0.01s / expectimax ~0.2–0.3s（800ms 预算在小状态上提前完成）。
+  - 边界：模拟器没有 UI/OCR，只能证明**决策层**不卡、不回退；UI 卡屏仍需真机 20 分钟验收。
+- 顺手修掉的模拟器接线坑：考试策略原硬编码 `greedy_policy`（新增 `ProduceSim.exam_policy_fn`）；
+  `LessonSim` 的指針体力修正会让引擎选的牌"实际付不起"（A/B harness 记为 `非法/局` 并用合法动作
+  兜底，属已知 G5 费用模型缺口，不影响"有没有回退 rules"的结论）。
+- 新增回归：`tests/test_strict_engine_sim.py`（整局 8 周 + 考试，必须 0 blocked）、
+  `tests/test_sim_produce.py::test_exam_policy_can_be_injected_for_offline_ab`。
+
+**真机防卡死（同条）**：`auto_produce --max-minutes`（默认 30，0=关闭）。超时写
+`episode-timeout` failure 并主动停局，不再出现"卡两个多小时还跑到 C"；新增
+`tests/test_auto_produce_timeout.py`。整局起跑命令带上它即可。
 
 ---
 

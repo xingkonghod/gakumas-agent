@@ -337,3 +337,43 @@ rich 池 +8 全部来自「再出发」×4 +「冲动」×4；legacy 池 +4 只�
 决不停歇+++ / 锻炼的成果+++ 各 3 张）用旧解析课程 0 分、新解析课程均分 1345——这批卡
 以前在 LessonSim 里效果恒 0，现在能打分了；1345 偏高是因为附魔内层按"立刻结算"近似。
 真实奖励选卡走 `CardTable.value`（auto_produce 侧），不在本次改动范围。
+
+## 10. 2026-11-21 深夜：整局引擎 A/B 接线（考试也能注入真 LessonPolicy）
+
+背景：用户规则「**bot 不许回退 rules**」上线后，上真机前先用模拟器验证搜索引擎在
+**完整培育局（训练 + 考试）** 里不卡、不回退、分数不崩。
+
+**新增**
+- `ProduceSim.exam_policy_fn`（[sim/produce.py](../src/gkagent/sim/produce.py)）：考试内出牌策略
+  可注入，默认仍是 `greedy_policy`（历史校准口径不变）。之前考试写死 greedy，导致
+  `LessonPolicy` 的考试决策没法在整局里 A/B。
+- [scripts/sim_engine_ab.py](../scripts/sim_engine_ab.py)：同一批种子、同一卡组/培育策略，
+  逐引擎跑 16 周完整培育局；训练走 `training_policy_fn`、考试走 `exam_policy_fn`，两边都是
+  真 `LessonPolicy.decide`。统计：总属性、评价点 P50/P90、C+ 率、考试通过、决策数/SKIP 率、
+  `RuleFallbackBlocked` 数、单局耗时。
+  ```powershell
+  .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json
+  ```
+- 回归：`tests/test_strict_engine_sim.py`（8 周 + 1 场考试，rules/expectimax 都必须
+  0 blocked、0 异常、决策数 >10）、`tests/test_sim_produce.py::test_exam_policy_can_be_injected_for_offline_ab`。
+
+**2026-11-21 实测（3 组种子、共 76 局）**
+
+| 口径 | rules | expectimax |
+|---|---:|---:|
+| RuleFallbackBlocked / 异常 | 0 / 0 | 0 / 0 |
+| 满局 C+ 率（模拟器口径） | 100% | 100% |
+| P50 评价点（seed 9000 组，16 局） | 5049 | 5063 |
+| P50 评价点（seed 21000 组，30 局） | 5106 | 5088 |
+| 单局模拟耗时 | ~0.01s | ~0.2–0.3s |
+
+配对差在噪声内（16 局 Δ−15.2、30 局 Δ−4.9），和 [EXPECTIMAX.md](EXPECTIMAX.md) 里
+「真实牌组 beam 只 +3.0」一致：**差距在 V_leaf，不在回退**。beam 在模拟器没有
+`ExamDrawPlan`/`known_draw`，会按设计退回合内 expectimax（不是退 rules），结果与 expectimax 相同。
+
+**已知边界**
+- 模拟器没有 UI/OCR/点击，只能证明**决策层**不卡不回退；真机卡屏仍要靠 20 分钟整局验收 +
+  `auto_produce --max-minutes 30` 墙钟上限兜底。
+- 引擎的牌费模型没建模「指針体力修正/元气抵扣」：引擎选中的牌在 `LessonSim` 里偶尔"
+  实际付不起"，A/B harness 记为 `非法/局` 并用模拟器合法动作兜底（属 G5 机制缺口，
+  两引擎计数接近，不影响"有没有回退 rules"的结论）。

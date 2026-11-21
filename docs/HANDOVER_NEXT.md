@@ -18,6 +18,8 @@
          已落地用户规则：**只有所有牌都付不起（真没体力）才允许 SKIP**（4b07fa7/8a2af2b/b231b3f）
          已落地用户规则：**bot 不许回退 rules**——搜索引擎失败 → [engine][BLOCKED] 中止本局，
          绝不静默改用规则；入口默认 expectimax（见 F#40，本次提交）
+         上真机前模拟器整局 A/B 已绿：76 局 0 blocked / 0 异常 / C+率 100%（sim_engine_ab.py）
+         真机防卡死：auto_produce --max-minutes（默认 30）超时主动停局，不再无限空转
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**，但真机跑局时采集没开 → 全知 0 锁定，差实战验收
@@ -72,7 +74,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 883 passed, 1 skipped（884 条收集 / 59 个测试文件）
+# ② 全量测试：应为 887 passed, 1 skipped（888 条收集 / 61 个测试文件）
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
 # ③ 采集数据 → 考试牌序：应为 4/4 场、初始段 86/86 张、重洗段 24/24 张
@@ -124,6 +126,8 @@ cd D:\Games\gakumas-agent
 > 5. **bot 不许回退 rules**（2026-11-21 追加）：搜索引擎/规划/神经网络失败时不许静默改用 rules。
 >    状态没读全 → `wait` 等下一帧；搜索异常/结果失配 → `[engine][BLOCKED]` 中止本局，去修 OCR/卡表/参数。
 > 6. bot 入口默认 `expectimax`；`--engine rules` 只用于 A/B 对照/离线复现，正常整局跑局不许用。
+> 7. **一局必须有墙钟上限**：`auto_produce --max-minutes 30`（默认 30，0=关闭）。卡住时写
+>    `episode-timeout` 主动停局并留日志，不许再出现"卡两个多小时还跑到 C"。
 
 ### T1（P0）无人值守跑完整局 🟡（流程卡点已修，差整局真机验收）
 **目标**：bot 从主页起跑，一路到期末考试/结算，**不停机、不白给回合**，一局 ≤20 分钟。
@@ -145,13 +149,18 @@ cd D:\Games\gakumas-agent
 - 现在课程/考试里 **SKIP 只在"所有牌都付不起"时发生**；四引擎（rules/expectimax/beam/uinet）统一拦截。
 
 **剩余（跑一局验收）**
-1. 按 [LIVE_RUN.md](LIVE_RUN.md) §0 自检；起跑必须带 `--ignore-user`（人别碰键鼠/别最小化）：
-   `auto_produce.py 300 ep-<名字> --skip-home --engine expectimax --ignore-user`。
-2. 验收点：整局 **不再出现"还有牌却 SKIP"**，也**不再出现 `fallback=…退回规则`**（搜索引擎已禁止回退 rules）；
+1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
+   `sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json`
+   → 验收：0 `RuleFallbackBlocked`、0 error、满局 C+ 率 100%、单局模拟耗时正常；
+   2026-11-21 实测 76 局（3 组种子）全绿，见 [HANDOVER 二·补八](HANDOVER.md)。
+2. 按 [LIVE_RUN.md](LIVE_RUN.md) §0 自检；起跑必须带 `--ignore-user`（人别碰键鼠/别最小化），
+   并带墙钟上限（默认 30 分钟，卡住会写 `episode-timeout` 停局）：
+   `auto_produce.py 300 ep-<名字> --skip-home --engine expectimax --ignore-user --max-minutes 30`。
+3. 验收点：整局 **不再出现"还有牌却 SKIP"**，也**不再出现 `fallback=…退回规则`**（搜索引擎已禁止回退 rules）；
    若出现 `[engine][BLOCKED]`，按后面原因修 OCR/卡表，别把 rules 加回来兜底。
    期中/期末分数、评价、时长记进 `docs/RUNS.md`；若分数仍低，看日志 `| eng=… fallback=…` 与
    `[unknown-card]` 定位是 OCR 还是策略问题。
-3. 完成一局后把记录写进 `docs/RUNS.md`，再决定是否上 T3（开采集）。
+4. 完成一局后把记录写进 `docs/RUNS.md`，再决定是否上 T3（开采集）。
 
 **改哪儿**：`scripts/auto_produce.py`、`src/gkagent/tasks/produce_ui.py`、`docs/FAILURES.md`、`docs/RUNS.md`
 
@@ -193,6 +202,11 @@ cd D:\Games\gakumas-agent
 
 ### T2（P0，依赖 T3）三引擎真机 A/B ⬜
 **目标**：同偶像、同卡组、同 seed（能同 seed 最好），各跑 rules / expectimax / beam+全知 一局，比考试分。
+
+**前置（2026-11-21 已做）**：真机之前先跑**模拟器整局 A/B**（`scripts/sim_engine_ab.py`）——
+训练+考试都注入真 `LessonPolicy`，16 局×3 引擎全绿：0 `RuleFallbackBlocked`、0 error、C+ 率 100%，
+expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟器不覆盖 UI/OCR 卡屏，
+所以真机 A/B 仍要做；但"引擎选牌导致掉分/卡死"这一层已先排掉。
 
 **步骤**
 1. 引擎开关（**已接线**）：真机 bot 读 `--engine` > `policy.json` 的 `produce.engine`；
@@ -290,10 +304,13 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\build_exam_setup.py --current --allow-finished --out out\exam_setup_current_test.json
 # 生产接线端到端核对（36/36 手牌、3/3 重洗）
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
+# 上真机前：模拟器整局 A/B（训练+考试都注入真 LessonPolicy；0 blocked/0 error/C+率）
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json
 # 离线配对评测：known_draw / beam / full-info（重洗后段全知）
 .venv\Scripts\python.exe scripts\eval_known_draw.py --games 40 --scenario small --policy beam --full-info
 # 真机跑局（引擎：--engine > policy.json produce.engine > 默认 expectimax；rules 只用于 A/B 对照）
-.venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 300 ep-xxx --skip-home --exam-setup out\exam_setup.json --engine expectimax" --timeout 2400
+# --max-minutes 默认 30：卡住会写 episode-timeout 主动停局，不再无限空转
+.venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 300 ep-xxx --skip-home --exam-setup out\exam_setup.json --engine expectimax --max-minutes 30" --timeout 2400
 # 考试分数提取（A/B 对比用）
 .venv\Scripts\python.exe scripts\extract_exams.py
 # 一局体检
@@ -308,6 +325,7 @@ cd D:\Games\gakumas-agent
 |---|---|
 | 四条铁律 | ① 不碰 `D:\Games\Gakumas\gakumas`（用户在用）；② 采集必须 `GKM_UNLOCK=0 / GKM_FORGE=0 / GKM_STATIC_USER=0`；③ `data/hiro/` 是 AGPL 只参考；④ 成本纪律（见 [HANDOVER 八](HANDOVER.md#L404)） |
 | 真机 | 一局只允许一个 `auto_produce` 进程；窗口 540x960、不能最小化；游戏重启后必须重启 `GDEAgent`；`data/STOP` 要清 |
+| 卡死上限 | `auto_produce --max-minutes 30`（默认 30，0=关闭）：超时写 `episode-timeout` failure 主动停局，不许无限空转（用户 2026-11-21：见过卡两个多小时还跑到 C） |
 | 跳过红线 | **SKIP 只在所有牌都付不起时允许**（用户 2026-11-21 指定）；读不到分/费用=去修 OCR/卡表，不许跳过补偿。`--ignore-user` 是无人值守跑整局的默认参数 |
 | 规则回退 | **bot 不许回退 rules**（用户 2026-11-21）：搜索失败 = `[engine][BLOCKED]` 中止本局 + 修 OCR/卡表/参数，不许静默改用 rules 兜底；`--engine rules` 仅 A/B/离线；`allow_rule_fallback=True` 只是代码级调试开关（policy.json 不可配） |
 | 快速路径 | 课程/加载帧的模板快速路径会吞掉遮罩弹窗（回合结束确认框、通信错误弹窗）：新增弹窗必须配"同屏重复→强制整屏 OCR"的逃生门 |
@@ -336,7 +354,7 @@ cd D:\Games\gakumas-agent
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md，然后照 docs/HANDOVER_NEXT.md §2 跑四条基线命令（期望：洗牌 4/4、
-pytest 883 passed（1 skipped，884 条收集）、exam_setup 4/4 场 86/86 张、wiring 36/36 手牌 + 3/3 重洗）。
+pytest 887 passed（1 skipped，888 条收集）、exam_setup 4/4 场 86/86 张、wiring 36/36 手牌 + 3/3 重洗）。
 基线绿后按 §4 任务表从最高优先的 ⬜ 开始（建议 T1 → T3 → T2 → T4），一次只做一个任务。
 硬规矩：SKIP 只在真没体力时允许；bot 不许回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局必须 --ignore-user。

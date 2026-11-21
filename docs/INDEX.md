@@ -130,5 +130,9 @@ T3 实时接线代码已接（`build_exam_setup --current` + `ExamPlanSelector` 
 提交 4b07fa7/8a2af2b/b231b3f）。2026-11-21 深夜追加用户规则：**bot 不许回退 rules**——
 搜索引擎失败不再静默改用规则：状态没读全→等下一帧，搜索异常/失配→`[engine][BLOCKED]` 中止本局并去修
 OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，提交见 HANDOVER 二·补八）。
-下一步：重开一局初验收"不再乱跳 + 不再退回规则 + 分数回升" → 开采集上 T3 全知 → 三引擎 A/B。
+上真机前已在模拟器跑整局 A/B（训练+考试都注入真 LessonPolicy）：3 组种子共 76 局，0 `RuleFallbackBlocked`、
+0 异常、满局 C+ 率 100%，expectimax 与 rules 评价点在噪声内（[SIMULATOR §10](SIMULATOR.md)）；真机侧新增
+`auto_produce --max-minutes 30` 墙钟上限，卡住会写 `episode-timeout` 主动停局（不再卡两个多小时）。
+下一步：真机重开一局初验收"不再乱跳 + 不再退回规则 + 分数不崩"（≤20 分钟、超时会被主动停局）→
+开采集上 T3 全知 → 三引擎真机 A/B。
 细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
