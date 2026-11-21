@@ -3,7 +3,10 @@
 模型（实现见 ``src/gkagent/sim/exam_shuffle.py``）：
 
   · 考试开局先消耗随机数：回合属性 ``turns-3`` 次 + NPC 分数 ``npc_count*turns`` 次
-    → 洗牌前 K = (turns-3) + npc_count*turns（produce-001 初 REGULAR 是 5 个 NPC，K = 6*turns-3）
+    → 洗牌前 K = (turns-3) + npc_count*turns（produce-002 プロ是 5 个 NPC，K = 6*turns-3）
+  · 这里的 turns 是**配置回合数**，不是实战回合数：中间考试达到 forceEndScore 会提前结束，
+    但回合属性/NPC 分数在开局仍按配置回合生成（2026-11-21 采集：配置 9 回合、实战 7 回合，
+    K=51 精确复现牌序，见 docs/MASTER_DATA.md 附录）
   · 洗牌 = xorshift32(examSeedValue) advance K 次 → Fisher-Yates 倒序洗「Number 升序」牌堆
   · 第 1 回合先 SetInitialCard：把 isInitial 卡从牌堆抽入手，再补抽到 turnStartDistribute 张
   · 牌堆抽完前，洗后牌序 = 逐回合手牌依次拼接
@@ -12,7 +15,7 @@
 ``p_card-02-men-2_054`` 是 isInitial，首回合它被抽人手牌，之后每一回合都错位。
 修正后：期中 K=51 → 18/18，期末 K=63 → 26/26（两场都回合集合全中）。
 
-用法：python scripts/verify_shuffle.py [--file PATH] [--k N] [--max-k N]
+用法：python scripts/verify_shuffle.py [--file PATH] [--k N]
 """
 
 from __future__ import annotations
@@ -22,6 +25,7 @@ import json
 import sqlite3
 import sys
 import zlib
+from itertools import permutations
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -32,10 +36,11 @@ from dig_deck import body, parse, walk
 from gkagent.sim.exam_shuffle import (
     DEFAULT_NPC_COUNT,
     generate_turn_types,
-    infer_turn_type_pool,
     k_before_shuffle,
     replay_initial_deck,
 )
+
+MAX_CONFIG_TURNS = 30
 
 DEFAULT = Path(r"C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl")
 MASTER_DIR = Path(__file__).resolve().parents[1] / "data/hiro/vendor/gakumas-player/data/master"
@@ -124,21 +129,40 @@ def load_master_info(db: Path | None) -> tuple[set[tuple[str, int]], int]:
 
 
 def load_exams(path: Path, snap_path: Path) -> list[dict]:
+    """把每场考试（StepAuditionEndExamBattle）配到它之前最近一次 StepAuditionStart。
+
+    不能按 starts[i]/ends[i] 下标配对：采集里可能有「只有 Start、没打 End」的半场
+    （2026-11-20 17:19 那局），一对错位后面全错。改按时间顺序取最近的前一个 Start。
+    """
     records = [
         json.loads(line)
         for line in path.read_text(encoding="utf-8", errors="replace").splitlines()
         if line.strip()
     ]
-    starts = [r for r in records if r.get("path", "").endswith("StepAuditionStart")]
-    ends = [r for r in records if r.get("path", "").endswith("StepAuditionEndExamBattle")]
+    starts = [
+        (i, r) for i, r in enumerate(records) if r.get("path", "").endswith("StepAuditionStart")
+    ]
+    ends = [
+        (i, r) for i, r in enumerate(records) if r.get("path", "").endswith("StepAuditionEndExamBattle")
+    ]
     snaps = json.loads(snap_path.read_text(encoding="utf-8"))
+    snap_by_record = {snap["record"]: snap for snap in snaps}
     exams = []
-    for i, end in enumerate(ends):
+    for i, (end_i, end) in enumerate(ends):
+        candidates = [(start_i, r) for start_i, r in starts if start_i < end_i]
+        if not candidates:
+            print(f"⚠️ 考试{i} {end.get('ts')} 找不到对应的 StepAuditionStart，跳过")
+            continue
+        start_i, start = candidates[-1]
+        snap = snap_by_record.get(start_i)
+        if snap is None:
+            print(f"⚠️ 考试{i} {end.get('ts')} 缺少考试时刻牌堆快照（start record {start_i}），跳过")
+            continue
         req = body(end, "req_plain_hex")
-        seed = get_seed(body(starts[i], "resp_plain_hex"))
+        seed = get_seed(body(start, "resp_plain_hex"))
         turns = truth_turns(req) if req is not None else []
         top = fmap(parse(req)) if req is not None else {}
-        deck = [(c["id"], c["upgrade"]) for c in sorted(snaps[i]["deck"], key=lambda c: c["number"])]
+        deck = [(c["id"], c["upgrade"]) for c in sorted(snap["deck"], key=lambda c: c["number"])]
         exams.append(
             {
                 "i": i,
@@ -172,40 +196,102 @@ def match_stats(predicted: list[list[tuple[str, int]]], truth: list[dict]) -> di
     return {"total": total, "id": id_hits, "variant": variant_hits, "sets": (set_hits, set_total)}
 
 
+def turn_type_check(
+    seed: int, types: list[int], config_turns: int
+) -> tuple[bool, list[int] | None, list[int] | None]:
+    """校验回合属性顺序（支持「配置 N 回合但提前结束」的考试）。
+
+    完整考试的属性序列 = 前 ``config_turns - 3`` 个随机 + 末 3 个静态（三种属性各一）。
+    提前结束（forceEndScore）时只能观察到前缀：随机段的一部份 + 静态表的前几个。
+    这里把「静态表顺序」当 6 种排列穷举，用观察到的随机段反推池并要求 offset 0 能复现。
+    返回 ``(ok, pool, suffix)``。
+    """
+    played = len(types)
+    random_count = config_turns - 3
+    if random_count < 0 or played < random_count:
+        # 观察不到完整的随机段，无法反推池（也不影响洗牌验证）
+        return False, None, None
+    prefix = types[:random_count]
+    counts = {t: prefix.count(t) for t in (1, 2, 3)}
+    for suffix in permutations((1, 2, 3)):
+        order = list(reversed(suffix))
+        pool = [t for t in order for _ in range(counts[t])]
+        if generate_turn_types(seed, pool) != prefix:
+            continue
+        static_part = types[random_count:]
+        if static_part and static_part != list(suffix)[: len(static_part)]:
+            continue
+        return True, pool, list(suffix)
+    return False, None, None
+
+
 def report_exam(exam: dict, initial: set[tuple[str, int]], turn_start_distribute: int, k: int | None) -> bool:
     seed = exam["seed"]
     deck = exam["deck"]
     turns = exam["turns"]
     npc = exam["npc_count"]
-    n_turns = len(turns)
+    played = len(turns)
     if seed is None or not deck or not turns:
-        print(f"\n=== 考试{exam['i']} {exam['ts']} 数据不全（seed={seed} 牌堆={len(deck)} 回合={n_turns}）")
+        print(f"\n=== 考试{exam['i']} {exam['ts']} 数据不全（seed={seed} 牌堆={len(deck)} 回合={played}）")
         return False
 
-    # 1) 回合属性验证：前 turns-3 个在 RNG offset 0 复现
-    types = [t["parameterType"] for t in turns]
-    pool = infer_turn_type_pool(types)
-    types_ok = pool is not None and generate_turn_types(seed, pool) == types[:-3]
-    print(f"\n=== 考试{exam['i']} {exam['ts']} seed=0x{seed:08X} 牌堆 {len(deck)} 张 / {n_turns} 回合 ===")
-    print(f"  回合属性: {'✅ offset 0 复现' if types_ok else '⚠️ 未复现'}"
-          f"（池 {pool}，末 3 回合固定 {types[-3:]}）")
-
-    # 2) 洗牌前消耗：回合属性 + NPC
-    k_formula = k_before_shuffle(n_turns, npc)
-    k_use = k_formula if k is None else k
-    print(f"  K = (turns-3) + npc*turns = {max(0, n_turns - 3)} + {npc}*{n_turns} = {k_formula}")
-    if k is not None and k != k_formula:
-        print(f"  使用 --k {k}")
-
     deck_initial = {c for c in deck if c in initial}
-    predicted = replay_initial_deck(
-        seed,
-        deck,
-        k_use,
-        initial_keys=frozenset(deck_initial),
-        turn_start_distribute=turn_start_distribute,
-    )
-    stats = match_stats(predicted, turns)
+    initial_keys = frozenset(deck_initial)
+
+    def replay(turns_cfg: int) -> list[list[tuple[str, int]]]:
+        return replay_initial_deck(
+            seed,
+            deck,
+            k_before_shuffle(turns_cfg, npc),
+            initial_keys=initial_keys,
+            turn_start_distribute=turn_start_distribute,
+        )
+
+    # 1) 洗牌前消耗 K = (turns-3) + npc*turns，其中 turns 是「配置回合数」而不是实战回合数：
+    #    期中考试到 forceEndScore 会提前结束，但回合属性/NPC 分数在开局仍按配置回合数生成。
+    config_turns: int | None = None
+    predicted: list[list[tuple[str, int]]] = []
+    stats: dict | None = None
+    if k is None:
+        for candidate in [played, *range(played + 1, MAX_CONFIG_TURNS + 1)]:
+            probe = replay(candidate)
+            probe_stats = match_stats(probe, turns)
+            if probe_stats["id"] == probe_stats["total"]:
+                config_turns = candidate
+                predicted = probe
+                stats = probe_stats
+                break
+    else:
+        config_turns = played
+        predicted = replay_initial_deck(
+            seed, deck, k, initial_keys=initial_keys, turn_start_distribute=turn_start_distribute
+        )
+        stats = match_stats(predicted, turns)
+
+    print(f"\n=== 考试{exam['i']} {exam['ts']} seed=0x{seed:08X} 牌堆 {len(deck)} 张 / 实战 {played} 回合 ===")
+    if config_turns is None:
+        config_turns = played
+        print(f"  ⚠️ 配置回合 {played}..{MAX_CONFIG_TURNS} 都复现不出，按实战回合 {played} 展示")
+    k_formula = k_before_shuffle(config_turns, npc)
+    print(f"  K = (turns-3) + npc*turns = {max(0, config_turns - 3)} + {npc}*{config_turns} = {k_formula}"
+          + ("" if k is None or k == k_formula else f"（强制 --k {k}）"))
+    if config_turns != played:
+        print(f"  ℹ️ 配置 {config_turns} 回合、实战只打了 {played} 回合：到 forceEndScore 提前结束，"
+              f"K 仍按配置回合算")
+
+    # 2) 回合属性验证：前 config_turns-3 个在 RNG offset 0 复现
+    types = [t["parameterType"] for t in turns]
+    types_ok, pool, suffix = turn_type_check(seed, types, config_turns)
+    if types_ok:
+        extra = f"，静态末 3 回合 {suffix}" if suffix else ""
+        print(f"  回合属性: ✅ offset 0 复现（池 {pool}{extra}）")
+    elif len(types) < config_turns - 3:
+        print(f"  回合属性: ⏭ 实战只到第 {played} 回合（配置随机段 {config_turns - 3} 个），跳过")
+    else:
+        print(f"  回合属性: ⚠️ 未复现（末 3 回合观察值 {types[-3:]}）")
+
+    # 3) 洗牌重放结果
+    assert stats is not None
     ok = stats["id"] == stats["total"]
     mark = "✅" if ok else "❌"
     print(f"  isInitial 卡: {sorted(deck_initial) or '无'}")
@@ -214,7 +300,7 @@ def report_exam(exam: dict, initial: set[tuple[str, int]], turn_start_distribute
     if ok:
         return True
 
-    # 3) 公式不通时按 K 搜索（保留旧的调试能力）
+    # 4) 公式不通时按 K 搜索（保留旧的调试能力）
     if k is None:
         hits = []
         for candidate in range(2001):
@@ -222,14 +308,15 @@ def report_exam(exam: dict, initial: set[tuple[str, int]], turn_start_distribute
                 seed,
                 deck,
                 candidate,
-                initial_keys=frozenset(deck_initial),
+                initial_keys=initial_keys,
                 turn_start_distribute=turn_start_distribute,
             )
             probe = match_stats(pred, turns)
             if probe["id"] == probe["total"]:
                 hits.append(candidate)
         if hits:
-            print(f"  ⚠️ 公式 K={k_use} 不对，但 K={hits[:5]} 可整段复现（记录进 docs/TROUBLESHOOTING.md）")
+            print(f"  ⚠️ 配置回合 3..{MAX_CONFIG_TURNS} 的公式 K 都不对，但 K={hits[:5]} 可整段复现"
+                  f"（记录进 docs/TROUBLESHOOTING.md）")
         else:
             print("  ⚠️ K=0..2000 也复现不出（数据/模型需复查）")
     return False

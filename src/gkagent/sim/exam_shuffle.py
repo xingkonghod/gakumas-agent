@@ -1,10 +1,10 @@
-"""考试洗牌重放模型（2026-11-21 破解，期中/期末两场实机验证）。
+"""考试洗牌重放模型（2026-11-21 破解，四场实机验证）。
 
 客户端考试随机数是 xorshift32（与社区 gakumas_exam.rng 的 NativeRandom 一致）。
 
 **考试开局的 RNG 消耗顺序**（StepAuditionStart → 第 1 回合发牌前）：
 
-1. 回合属性：只有前 ``turns - 3`` 个回合随机，最后 3 个回合固定为「低权重→高权重各一个」。
+1. 回合属性：只有前 ``turns - 3`` 个回合随机，最后 3 个回合固定（静态表按 NPC 权重定序）。
    随机方式 = 按前 ``turns - 3`` 回合的属性池逐个「随机取一个并移除」，消耗 ``turns - 3`` 次抽取。
 2. NPC 分数：``npc_count`` 个 NPC × ``turns`` 个回合，每对消耗 1 次抽取（共 ``npc_count * turns`` 次）。
 3. 洗牌：Fisher-Yates 倒序，消耗 ``len(deck) - 1`` 次抽取。
@@ -13,8 +13,12 @@
 
     K = (turns - 3) + npc_count * turns
 
-produce-001 初 REGULAR 的 audition 是 5 个 NPC，因此 ``K = 6 * turns - 3``：
-期中 9 回合 → K=51、期末 11 回合 → K=63（两场整段精确复现）。
+**turns 是配置回合数，不是实战回合数**：中间考试有 ``forceEndScore``，达到封顶分就提前结束，
+客户端只上传实战回合的 ``ExamTurnEndLog``，但回合属性和 NPC 分数在开局仍按完整配置回合生成。
+例：produce-002 プロ 中间考试配置 9 回合，实战 7 回合到 1700 提前结束，K 仍 = 51（不是 39）。
+
+produce-002 プロ 的 audition 是 5 个 NPC，因此 ``K = 6 * turns - 3``：
+9 回合 → K=51、11 回合 → K=63、12 回合 → K=69（四场都整段精确复现）。
 
 **发牌**：
 
@@ -62,7 +66,10 @@ def shuffle(values: list, rng: NativeRandom) -> None:
 
 
 def k_before_shuffle(turns: int, npc_count: int = DEFAULT_NPC_COUNT) -> int:
-    """洗牌前已消耗的随机数个数：回合属性 (turns-3) + NPC 分数 (npc_count*turns)。"""
+    """洗牌前已消耗的随机数个数：回合属性 (turns-3) + NPC 分数 (npc_count*turns)。
+
+    ``turns`` 要传**配置回合数**（中间考试可能因 forceEndScore 提前结束，实战回合数会更少）。
+    """
     return max(0, turns - 3) + npc_count * turns
 
 

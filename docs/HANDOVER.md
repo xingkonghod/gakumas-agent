@@ -1,4 +1,4 @@
-# 项目交接（2026-11-20 收尾）
+# 项目交接（2026-11-21 深夜更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > 本文只写：现状 + 下一步 + 路径速查 + 注意事项。
@@ -96,7 +96,7 @@ f6b99c0  外出事件屏识别（不再只靠「快进」按钮）
    · 第 1 回合先 SetInitialCard：isInitial 卡从牌堆底→顶扫入手牌，再补抽到 3 张
      （期末的 p_card-02-men-2_054 就是 isInitial，旧模型漏了它才会「期末复现不出」）
    · 结果：期中 18/18（6/6 回合集合）、期末 26/26（8/8）——scripts/verify_shuffle.py
-✅ 回合属性算法在 RNG offset 0 上可逐项复现两场考试（前 turns-3 回合随机、末 3 回合固定）
+✅ 回合属性算法在 RNG offset 0 上可逐项复现四场考试（前 turns-3 回合随机、末 3 回合固定）
 ✅ 洗后弃牌堆重洗：期中 T7 从洗牌后状态再消耗 45 次随机数 → T7-T9 精确 9/9
    （45 应为支援临时强化等掷点；打出后去 Lost 区的卡不进弃牌堆，重洗只洗 Grave 区）
 ```
@@ -107,15 +107,33 @@ dig_deck.py            按 dump.cs 字段号标注解析任意响应（--tree �
 scan_deck_updates.py   扫描图鉴字段 230550472（对照用）
 reconstruct_deck.py    重建考试时刻牌堆 → out/deck_snapshots.json
 decode_exam_actions.py 逐回合手牌/出牌/属性 → out/exam_truth.json（--json）
-verify_shuffle.py      洗牌重放验证：自动读主数据 isInitial + NPC 数，期中/期末都 ✅
+verify_shuffle.py      洗牌重放验证：自动读主数据 isInitial + 尝试配置回合，四场考试都 ✅
 ```
 
+### 二·补二、11-21 晚（PRO 局两场考试：K 公式验证 + 提前结束的坑）
+
+用户用 `i_card-hkne-3-000`（produce-002「プロ」= PRO）跑完一整局，采到期中 7 回合 / 期末 12 回合：
+
+```
+✅ 11-21 期末 seed=0x1E1A740D，配置 12 回合：K=(12-3)+5×12=69 → 27/27 整段精确、回合集合 9/9
+✅ 11-21 期中 seed=0x47E1B2A5，实战 7 回合：按配置 9 回合 K=51 → 15/15 整段精确、5/5
+   ⚠️ 期中到 forceEndScore(1700) 提前结束（配置 9 回合，实战 7 回合）；K 必须按配置回合算，
+      按实战 7 回合算 K=39 会错位 → verify_shuffle.py 已改成「自动试配置回合 ≥ 实战回合」
+✅ 两场的回合属性也能在 RNG offset 0 复现（池/静态末 3 回合自动反推）
+✅ tests/test_exam_shuffle.py 加了这两场作回归（含「实战回合算 K 会错」的防线）
+```
+
+主数据里确认：`ProduceStepAuditionDifficulty` 的中间考试有 `forceEndScore`（produce-002：
+baseScore 1150 → 封顶 1700；1200 → 封顶 1800），期末 `forceEndScore=0`（不提前结束）。
+produce-001 = レギュラー（REGULAR）、produce-002 = プロ（PRO），四场采集都是 produce-002。
+
 **下一会话从这里继续**（先读 MASTER_DATA.md 附录「洗牌重放」）：
-1. **采第三场考试**（另一局期中/期末都行），用 reconstruct_deck + verify_shuffle 跑一遍，
-   确认 `K = (turns-3) + npc_count*turns` 普适（尤其换 produce 类型 / NPC 数不是 5 时）。
-2. **洗后重洗前那张账要记全**：目前期中 T7 重洗前多消耗 45 次随机数（推测是支援卡临时强化
-   的掷点：每「入手的牌 × 支援卡」一次 `integer(0,1000)`）。把这 45 次拆清楚，才能从 seed
-   预测整场（含弃牌堆重洗）的牌序；期末 T9-T11 可当同一模型的验证样本。
+1. ~~采第三场考试确认 K 公式普适~~ → **已确认**（配置 12 回合 K=69、提前结束场景 K 按配置回合 51）。
+   仍缺「非 5 NPC」的 produce 类型样本。
+2. **洗后重洗前那张账要记全**：目前期中（11-20）T7 重洗前多消耗 45 次随机数（推测是支援卡临时强化
+   的掷点：每「入手的牌 × 支援卡」一次 `integer(0,1000)`）。新采的两场有重洗样本：
+   11-21 期中 T6-T7（牌堆 15 张，5 回合抽空）、11-21 期末 T10-T12（27 张，9 回合抽空），
+   可以把三场放在一起拆这 45 次。拆清楚才能从 seed 预测整场（含弃牌堆重洗）的牌序。
 3. 弃牌堆「Grave 顺序」已确认（按入手/打出先后 append；Lost 卡不进 Grave）。
 4. 之后才接「完全信息搜索」：seed + 牌堆 → 整段牌序 → expectimax 叶子。
 
@@ -148,17 +166,23 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
 ```
-✅ 牌堆 = UserData.userProduceProgressProduceCardList (309641228)，已重建（期中18/期末26）
+✅ 牌堆 = UserData.userProduceProgressProduceCardList (309641228)，已重建
 ✅ 逐回合 ground truth = ExamTurnEndLog.field50（每回合开始手牌）
-✅ 洗牌完整破解：K = (turns-3) + npc_count*turns（5 NPC ⇒ 6*turns-3，期中51/期末63）
+✅ 洗牌完整破解：K = (turns-3) + npc_count*turns（5 NPC ⇒ 6*turns-3）
    → xorshift32(examSeedValue) advance K → FY倒序洗 Number升序牌堆
    → 第 1 回合 SetInitialCard 先抽 isInitial 卡，再补抽
-   → 期中 18/18、期末 26/26 整段精确（src/gkagent/sim/exam_shuffle.py）
-✅ 洗后弃牌堆重洗：期中 T7 多消耗 45 次随机数后 T7-T9 精确 9/9
+   → 四场整段精确：11-20 期中 18/18、期末 26/26；11-21 PRO 期中 15/15、期末 27/27
+✅ turns = 配置回合数（中间考试到 forceEndScore 提前结束时也按配置回合算 K；
+   11-21 期中配置 9 回合、实战 7 回合 → K=51）
+✅ 洗后弃牌堆重洗：11-20 期中 T7 多消耗 45 次随机数后 T7-T9 精确 9/9
 ```
 
-**下一步**：① 采第三场考试确认 K 公式普适（换 produce 类型 / NPC 数）；② 拆清洗后重洗前的
-45 次消耗（支援临时强化掷点），才能预测整场牌序；**完成后**：seed+牌堆→精确牌序→完全信息搜索。
+**下一步**：① 拆清洗后重洗前的 45 次消耗（支援临时强化掷点），用 11-21 期中 T6-T7、
+11-21 期末 T10-T12 当验证样本；② 采非 5 NPC 的 produce 类型补充公式样本；
+**完成后**：seed+牌堆→精确牌序→完全信息搜索。
+
+**注意**：中间考试有 `forceEndScore`（produce-002：baseScore 1150→封顶 1700、1200→封顶 1800），
+bot/模拟器要按「达到封顶分即提前结束」处理。
 
 ### ② bot 能无人值守跑完一局
 
@@ -225,9 +249,20 @@ rules / expectimax(ensemble) / uinet
 
 ---
 
-## 七、今天的提交记录
+## 七、最近提交记录
 
 ```
+（2026-11-21）
+58b39d3 feat(seed): 期末洗牌破解——isInitial 首回合 + K=6*turns-3，期中/期末整段复现(18/18, 26/26)
+59d7e07 docs(handover): 期中洗牌破解与期末异常交接
+3ccaed9 feat(seed): 期中洗牌重放精确破解(18/18，advance 51次)；期末异常记录
+61c07e0 docs(index): 铁律加第四条——成本纪律
+ccc2653 docs(handover): 追加成本纪律
+9212cd8 fix(usage): 用量按会话最后一个 totals 统计
+d93a2ac feat(usage): 汇总 DSH 会话 token 用量
+4e3b53c feat(seed): 定位考试牌堆字段(309641228)并重建牌组
+（本次）feat(seed): 第三/四场洗牌验证——配置12回合K=69、forceEndScore提前结束K按配置回合51
+（2026-11-20）
 436b6a8 docs(master): 记录 seed 在流量里的发现与待验证项
 02c20f2 feat(seed): seed 提取 + xorshift32 重放工具
 7230370 docs(master): 主数据库构建（286 表）
@@ -245,8 +280,8 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/ -q` 全绿（795 条，含新的 `tests/test_exam_shuffle.py` 两场考试
-洗牌回放），`ruff check` 通过。
+**测试状态**：`pytest tests/ -q` 全绿（**797 条**，含 `tests/test_exam_shuffle.py` 四场考试
+洗牌回放 + 「实战回合算 K 会错」回归防线），`ruff check src` 与改动文件的 ruff 通过。
 
 ---
 
