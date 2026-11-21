@@ -261,6 +261,23 @@ clear/focus/condition/stance 全部静默读成 0，模型权重塌缩。修好�
 
 ---
 
+### 3.5 把「卡牌图鉴」当成了「考试牌堆」
+
+**现象**：在 StepAuditionStart 响应里找牌堆，只看到 9 种卡；全量 User/Get 里 `userProduceCardList`
+有 155+ 张，含同一 base 的 +0/+1 双变体、跨 p_card-00/01/02/03 多前缀——怎么洗都对不上实战。
+
+**根因**：认错了字段。`userProduceCardList`(230550472) 是**图鉴/收集库**；StepAuditionStart 里的
+9 种卡是 `userProduceProgressSupportCardList`(256246388) = **支援卡**。真正的当前培育牌组是
+`userProduceProgressProduceCardList`(309641228)，每张带唯一 number 和 deleted 标志。
+
+**修法**：按 number 重建牌组，且区分更新语义——Produce/Start、User/Get 是**全量快照**（整体替换），
+其余步骤响应是**增量 upsert**（混用会把上一局的卡混进来）。重建结果与 User/Get 全量快照逐张吻合。
+
+**教训**：protobuf 里名字相近的 repeated 字段语义可能完全不同（图鉴 vs 当前牌组 vs 支援卡）；
+**先用「全量快照」交叉验证重建结果**，再谈下游重放。增量/快照不分，重建必污染。
+
+---
+
 ### 3.3 本地 bench 超时退回贪心，把搜索的优势抹掉
 
 **现象**：expectimax 本地评测 −22%。
@@ -300,7 +317,8 @@ clear/focus/condition/stance 全部静默读成 0，模型权重塌缩。修好�
 
 | 问题 | 现状 |
 |---|---|
-| 考试时刻的「牌堆」字段在哪 | `StepAuditionStart` 响应 9KB 里没找到；需要在 dump.cs 里查字段名映射 |
+| ~~考试时刻的「牌堆」字段在哪~~ | **已解决（11-21）**：`userProduceProgressProduceCardList`(309641228)。230550472 是图鉴、256246388 是支援卡，都不是牌堆。见 MASTER_DATA.md |
+| seed + 牌堆 → 精确牌序 | 牌堆已重建并与快照吻合；但 examSeedValue 直接洗牌复现不出实战牌序（穷举 RNG 偏移/输入序/FY 变体不匹配）。需原生洗牌/种子派生逻辑或枚举反推 seed |
 | bot 完整跑完一局 | 修了 4 个死循环，尚未端到端验证 |
 | `StepAuditionEndExamBattle` 分数与评价用的「最終試験分数」差 618 | 实测 4798，反推评价需要 4180，字段映射未确认 |
 | 52 条定制卡按基础卡处理 | 主数据已入库，可以查真实定义了 |

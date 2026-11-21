@@ -79,6 +79,38 @@ f6b99c0  外出事件屏识别（不再只靠「快进」按钮）
 
 ---
 
+## 二·补、11-21 进展（牌堆字段定位 + 重建）
+
+```
+✅ 牌堆字段定位：UserData.userProduceProgressProduceCardList = 309641228
+   （之前找的 230550472 是图鉴、256246388 是支援卡，都不是牌堆）
+   元素 UserProduceProgressProduceCard: number=2 / produceCardId=3 / upgradeCount=4 / deleted=6
+✅ 更新语义：Produce/Start、User/Get = 全量快照；步骤响应 = 按 number 增量 upsert
+✅ 重建并交叉验证：期中 18 张、期末 26 张（27−删 1），与 User/Get 快照逐张吻合
+✅ ground truth：ExamTurnEndLog.field50 = 每回合开始手牌（=当回合抽的 3 张），field100 = 打出卡
+   期中前 6 回合手牌拼接 = 完整 18 张牌序（强约束，可供 seed 枚举剪枝）
+⚠️ 洗牌重放未对上：examSeedValue 直接 xorshift32 不行；穷举 RNG 偏移 k=0..40 ×
+   输入排序(Number/id 升降) × FY 正反变体 × 输出正逆序 均不匹配（逆推输入序呈随机）
+   → examSeedValue 未必直接是洗牌种子，或洗牌前另有消耗/输入序非自然排序
+```
+
+**新工具**（都在 scripts/，ruff 通过）：
+```
+dig_deck.py            按 dump.cs 字段号标注解析任意响应（--tree 全树）
+scan_deck_updates.py   扫描图鉴字段 230550472（对照用）
+reconstruct_deck.py    重建考试时刻牌堆 → out/deck_snapshots.json
+decode_exam_actions.py 逐回合手牌/出牌/属性 → out/exam_truth.json（--json）
+verify_shuffle.py      洗牌重放验证 harness（当前不匹配，待种子逻辑）
+```
+
+**下一会话从这里继续**：先读 MASTER_DATA.md 附录「考试时刻的牌堆字段已定位」。
+突破口二选一：① frida hook 原生洗牌/种子派生（QQ 群路线，需管理员）；
+② 用快速语言（Rust/C）对 seed 枚举，约束 = 期中 18 张牌序（out/exam_truth.json 前 6 回合手牌拼接），
+输入序先试 Number 升序 + FY 反序（hiro rng.shuffle 同款）。注意期末手牌含支援临时强化（+1/+2），
+对照要用期中（无强化污染）。
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -103,16 +135,22 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 
 ## 四、下一步（按优先级）
 
-### ① 把「考试时刻的牌堆」字段挖出来（最高优先）
+### ① 把「考试时刻的牌堆」字段挖出来（最高优先）—— 字段已定位+重建，洗牌重放剩最后一公里
 
 ```
-已知：seed 在流量里（field 600）
-缺：  StepAuditionStart 响应里「当前牌堆」的字段位置
-      响应 9,027 字节，里面只有 9 种卡（编成用），不是牌堆
-方法： 用 data/reverse/out/dump.cs 里的字段名映射，逐层解析 StepAuditionStart 响应
+✅ 已定位：真正的牌堆 = UserData.userProduceProgressProduceCardList (field 309641228)
+   （230550472 是图鉴、256246388 是支援卡，都不是牌堆——之前找错了字段）
+✅ 已重建：Produce/Start、User/Get 全量快照 + 步骤响应按 number 增量 upsert，deleted=false 即牌堆
+   期中 18 张 / 期末 26 张，均与 User/Get 全量快照逐张吻合（scripts/reconstruct_deck.py）
+✅ ground truth：ExamTurnEndLog.field50 = 每回合开始手牌（= 当回合从牌堆顶抽的 3 张）
+   （scripts/decode_exam_actions.py --json）
+⚠️ 剩：seed + 牌堆 → 精确牌序。已确认每场考试重新洗牌；但 examSeedValue 直接 xorshift32
+   复现不出实战牌序（穷举 RNG 偏移/输入排序/FY 变体均不匹配）。examSeedValue 未必直接是洗牌种子。
 完成标准：用 seed + 牌堆洗牌，结果与实战出牌序列能对上
 ```
 
+**下一步**：拿到原生洗牌/种子派生逻辑（frida hook，QQ 群路线），或用快速语言对 seed 做观测剪枝枚举
+（期中前 6 回合手牌 = 完整 18 张牌序，是强约束）。工具已就绪：scripts/verify_shuffle.py。
 **成功后**：seed + 牌堆 → 精确牌序 → 完全信息搜索（比他们的「反推」省一步）。
 
 ### ② bot 能无人值守跑完一局
@@ -151,6 +189,12 @@ rules / expectimax(ensemble) / uinet
 .venv\Scripts\python.exe scripts\extract_exams.py
 # 挖 seed
 .venv\Scripts\python.exe scripts\find_seed.py
+# 重建考试时刻牌堆（→ out/deck_snapshots.json）
+.venv\Scripts\python.exe scripts\reconstruct_deck.py
+# 逐回合 ground truth：手牌/出牌/属性（→ out/exam_truth.json）
+.venv\Scripts\python.exe scripts\decode_exam_actions.py --json
+# 洗牌重放验证（seed+牌堆 → 牌序，对照实战手牌）
+.venv\Scripts\python.exe scripts\verify_shuffle.py
 # 跑 bot（需游戏停在培育设置界面）
 .venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 340 ep-xxx --skip-home"
 # 全量测试
