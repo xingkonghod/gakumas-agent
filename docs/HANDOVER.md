@@ -358,6 +358,8 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 `episode-timeout` failure 并主动停局，不再出现"卡两个多小时还跑到 C"；新增
 `tests/test_auto_produce_timeout.py`。整局起跑命令带上它即可。
 
+**提交**：`09b9358` feat(sim): 上真机前整局引擎 A/B + 考试策略注入 + auto_produce 墙钟上限
+
 ---
 
 ## 三、社区情报（他们做到哪了）
@@ -484,6 +486,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-21 深夜四段）
+09b9358 feat(sim): 上真机前整局引擎 A/B + 考试策略注入 + auto_produce 墙钟上限
 ae86e1c feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
 （2026-11-21 深夜三段）
 8a9b5aa docs(handover): 二·补七——真机首局战报(C/4242)+禁跳规则+7类卡点+下一步
