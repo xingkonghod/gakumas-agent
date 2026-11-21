@@ -429,6 +429,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-21 深夜三段）
+8a9b5aa docs(handover): 二·补七——真机首局战报(C/4242)+禁跳规则+7类卡点+下一步
 b231b3f fix(policy): 禁跳例外只剩真没体力；费用预览读歪防护（29==体力 视为无效）
 8a2af2b feat(policy): 用户规则——只有真没体力才 SKIP；读不到价值一律硬打 + 搜索回退原因细化
 4b07fa7 fix(bot): 授课答题屏/回合结束弹框/领奖误判/--ignore-user——真机整局卡点收敛
