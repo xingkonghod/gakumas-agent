@@ -504,6 +504,9 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
 **下次开工第一件事**：按 GROUP_FILES_ANALYSIS §2 把 OCR 换成日文模型（先本地用 MAA 模型验证，再选
 PaddleOCR Apache-2.0 版入库），然后重跑真机验 F#41/#42/#43 与 T3。
 
+**总作战计划**：见 [WORKPLAN.md](WORKPLAN.md)（离线全部做完 → 真机 T3→T1→T2 → gkbench 比算法；
+含 A1 OCR / A2 F#42 / A3 F#43 / T4 / T5 / 可靠性 / 数据 / 真机 / gkbench 各阶段与 DoD）。
+
 ---
 
 ## 三、社区情报（他们做到哪了）

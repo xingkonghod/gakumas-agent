@@ -62,6 +62,7 @@
 | 文档 | 内容 |
 |---|---|
 | [../README.md](../README.md) | **项目总览**：来历时间线、架构图、全知链路图、关键结果表、引用致谢 |
+| **[WORKPLAN.md](WORKPLAN.md)** | **总作战计划**：离线全部做完 → 真机 → gkbench；完整任务表/DoD/已完成清单 |
 | [PROVENANCE.md](PROVENANCE.md) | **来历/数据血缘/引用清单/许可证边界**（每个数据从哪来、借了谁什么）|
 | [ARCHIVE.md](ARCHIVE.md) | 私有存档与私有仓库流程 |
 | [GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md) | 群文件分析：OCR 根因（日文模型）、魔改 MAA 结构、手机实验版 APK、许可证边界 |
@@ -83,6 +84,7 @@
 | **INDEX.md** | 本文件，导航 |
 | **../README.md** | 项目总览：来历/架构图/结果/引用 |
 | **PROVENANCE.md** | 来历/数据血缘/引用清单/许可证边界 |
+| **WORKPLAN.md** | 总作战计划（离线→真机→gkbench）|
 | **HANDOVER_NEXT.md** | **交接清单：补什么 · 做什么 · 每个任务的验收（行动型，先看）** |
 | **HANDOVER.md** | 项目现状 + 已完成什么 + 路径速查 + 坑 |
 | **TROUBLESHOOTING.md** | 踩坑记录（采集 9 项 / bot 7 项 / 方法论 4 项）|
