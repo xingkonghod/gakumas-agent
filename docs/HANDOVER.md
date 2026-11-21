@@ -297,7 +297,7 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 - 读不到价值 = OCR/卡表问题 → 去修那个，不许用 SKIP 补偿；
 - 每局日志首行 `[engine]` + 每步 `| eng=… fallback=…`，先看这个再谈分数。
 
-**测试**：`pytest tests/ -q` 全绿（**879 条 / 59 文件**）；新增回归：授课答题屏 2、领奖误判 1、禁跳规则改写 6+。
+**测试**：`pytest tests/ -q` 全绿（**904 条 / 62 文件**）；新增回归：授课答题屏 2、领奖误判 1、禁跳规则改写 6+。
 
 **下一步（二选一，用户决定）**
 - A：直接重开一局初（用修好的策略）→ 验收"不再乱跳 + 分数回升"；
@@ -449,7 +449,7 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
 - 我们验证过的四场考试牌组命中 **0** → 纯牌组，4/4 精确复现成立（与之前结论一致）；
 - `build_exam_setup` 4/4 场、86/86 + 重洗 24/24；`verify_exam_wiring` 36/36、3/3、29/29 不变。
 
-**测试**：新增 `tests/test_exam_risk.py` 8 条（卡表扫描/牌组扫描/序列化往返/计划拒用/摘要格式）。
+**测试**：新增 `tests/test_exam_risk.py` 8 条（卡表扫描/牌组扫描/序列化往返/计划拒用/摘要格式）；全量 `pytest` **904 条收集（1 skipped）全绿**。
 
 ---
 
@@ -584,6 +584,8 @@ rules / expectimax(ensemble) / uinet
 09b9358 feat(sim): 上真机前整局引擎 A/B + 考试策略注入 + auto_produce 墙钟上限
 ae86e1c feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
 （2026-11-22 凌晨四段）
+e820e34 docs(exam): known_draw 事前检测实现记录（169/1829 机制卡、四场牌组 0 命中）
+beec501 feat(exam): known_draw 事前检测——额外 RNG 机制卡扫描（exam_risk）+ ExamSetup.rng_risk + 计划拒用 + bot 跳过候选
 67a1a37 docs(t4): rollout 叶子负结果 + C/4242 整局记录 + 群 MITM 情报更新
 366131a feat(t4): rollout 叶子最小版（ExpectState→LessonSim 快照 + RolloutLeafValue + eval 开关）——实验负结果，默认关闭
 （2026-11-21 深夜三段）
@@ -626,7 +628,7 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/ -q` 全绿（**879 条 / 59 文件**，含 `tests/test_exam_shuffle.py` 四场考试
+**测试状态**：`pytest tests/ -q` 全绿（**904 条 / 62 文件**，含 `tests/test_exam_shuffle.py` 四场考试
 洗牌回放 + 「实战回合算 K 会错」回归防线 + 三组弃牌堆重洗样本的掷点数/强化增量/重洗手牌对照；
 `tests/test_expectimax_known_draw.py` 8 条 + `tests/test_exam_oracle.py` 6 条完全信息搜索测试；
 `tests/test_expectimax_discard_order.py` 17 条重洗后段全知 + `tests/test_exam_plan.py` 19 条
