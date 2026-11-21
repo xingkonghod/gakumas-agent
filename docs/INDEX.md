@@ -87,7 +87,7 @@
 
 ---
 
-## 三、三条铁律（先看，别踩）
+## 三、四条铁律（先看，别踩）
 
 ```
 ① 不要碰 D:\Games\Gakumas\gakumas —— 那是用户正在用的 DMM 客户端
@@ -98,6 +98,11 @@
 
 ③ data/hiro/ 是 AGPL-3.0
    只做参考和对照，不要拷进本项目
+
+④ 成本纪律（详见 HANDOVER.md 第八节）
+   · 派子智能体时机械活用 reasoning_effort: low，实现用 medium
+   · 大文件只 grep，不 read（dump.cs 75MB）
+   · 完成一个子任务就提醒用户开新会话（上下文 >3 小时就该换）
 ```
 
 ---
