@@ -212,7 +212,7 @@ def test_beam_exception_falls_back_to_rules(monkeypatch, tmp_path: Path) -> None
     assert (fallback.kind, fallback.index) == (rules.kind, rules.index)
 
 
-def test_beam_skip_falls_back_when_skip_forbidden(monkeypatch, tmp_path: Path) -> None:
+def test_beam_skip_intercepted_when_cards_affordable(monkeypatch, tmp_path: Path) -> None:
     def fake_beam(state, *args, **kwargs):
         return BeamResult(
             card=None,
@@ -230,7 +230,8 @@ def test_beam_skip_falls_back_when_skip_forbidden(monkeypatch, tmp_path: Path) -
     monkeypatch.setattr("gkagent.sim.expectimax.search_beam", fake_beam, raising=True)
     plan = FakePlan([(SMALL_ID, 0)])
     policy = _policy(tmp_path, engine="beam", draw_plan=plan)
-    assert policy.decide(_state()).kind == "skip"
+    # 2026-11-21 用户规则：beam 建议 SKIP 不算数，有牌就硬打
+    assert policy.decide(_state()).kind == "card"
     action = policy.decide(_state(), allow_skip=False)
     assert action.kind in {"card", "wait"}
 

@@ -131,9 +131,11 @@ def test_expectimax_exception_falls_back_to_rules(monkeypatch, tmp_path: Path) -
     assert (fallback.kind, fallback.index) == (rules.kind, rules.index)
 
 
-def test_expectimax_skip_falls_back_when_skip_forbidden(
+def test_expectimax_skip_intercepted_when_cards_affordable(
     monkeypatch, tmp_path: Path
 ) -> None:
+    """2026-11-21 用户规则：搜索建议 SKIP 不算数——还有付得起的牌就硬打一张。"""
+
     def fake(state, *args, **kwargs):
         return ExpectimaxResult(
             card=None,
@@ -150,9 +152,11 @@ def test_expectimax_skip_falls_back_when_skip_forbidden(
     )
     policy = _policy(tmp_path, engine="expectimax")
     state = _state()
-    # allow_skip=True：引擎说 SKIP 就 SKIP
-    assert policy.decide(state).kind == "skip"
-    # 考试模式（allow_skip=False）：退回规则，绝不 SKIP
+    # allow_skip=True 也不许跳过（有付得起的牌）
+    action = policy.decide(state)
+    assert action.kind == "card"
+    assert "SKIP" in policy.decision_note() or "fallback=" in policy.decision_note()
+    # 考试模式（allow_skip=False）：更不能 SKIP
     action = policy.decide(state, allow_skip=False)
     assert action.kind in {"card", "wait"}
 

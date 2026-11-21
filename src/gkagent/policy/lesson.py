@@ -49,7 +49,9 @@ DEFAULT_POLICY_PATH = Path(__file__).resolve().parents[3] / "data" / "knowledge"
 
 # 字符串型参数的合法取值；文件里写错就回退默认值，不让策略崩。
 _ALLOWED_VALUES: dict[str, frozenset[str]] = {
-    "unknown_score_fallback": frozenset({"cheapest", "skip"}),
+    # 2026-11-21 用户规则：读不到分数不是跳过理由（未知≈OCR 问题，不是 0 分）。
+    # 旧的 "skip" 取值废弃：即使配置写 skip 也按 cheapest 处理。
+    "unknown_score_fallback": frozenset({"cheapest"}),
     "plan": frozenset(VALID_PLANS),
     "engine": frozenset({"rules", "expectimax", "uinet", "beam"}),
 }
@@ -371,6 +373,35 @@ class LessonPolicy:
         elif self.engine == "uinet":
             override = self._try_uinet(state, allow_skip=allow_skip)
             action = override if override is not None else rules_action
+        # 用户规则（2026-11-21）：**只有真没体力/真没付得起的牌才允许 SKIP**。
+        # 搜索/UINet 因"读不到分数 → 价值 0"建议跳过的，一律改打一张（未知≠没用）。
+        if action.kind == "skip" and state.cards:
+            stamina = state.stamina
+            affordable = [
+                card
+                for card in state.cards
+                if stamina is None or card.cost is None or card.cost <= stamina
+            ]
+            if affordable:
+                if rules_action.kind == "card":
+                    action = rules_action
+                else:
+                    cheapest = min(
+                        affordable,
+                        key=lambda card: (
+                            card.cost if card.cost is not None else 99,
+                            card.index,
+                        ),
+                    )
+                    action = LessonAction(
+                        "card",
+                        index=cheapest.index,
+                        point=cheapest.point,
+                        card=cheapest,
+                        expected=0.0,
+                        reason="读不到价值不允许 SKIP，硬打一张",
+                    )
+                self.last_fallback_reason = "SKIP 被拦截（还有付得起的牌）"
         if action is rules_action and self.engine != "rules" and not self.last_fallback_reason:
             self.last_fallback_reason = "搜索未产出动作，退回规则"
         self.last_decision = {
@@ -460,17 +491,9 @@ class LessonPolicy:
             affordable, values, budget, turns, prefer_total=below_perfect
         )
         if best is None:
-            if (
-                self.params["unknown_score_fallback"] == "skip"
-                and allow_skip
-                and not below_perfect
-            ):
-                return LessonAction(
-                    "skip",
-                    point=state.skip_point,
-                    reason="没有值得打的牌，按配置跳过本回合",
-                )
-            # 分数一个都没读到 ≠ 这些牌没用：读不到数字时打最便宜的，别浪费回合（跳课=不涨属性）
+            # 用户规则（2026-11-21）：**只有真没体力/真没付得起的牌才允许 SKIP**。
+            # 读不到分数、分数太低都不是跳过理由——未知分只说明 OCR 有问题，
+            # 跳课 = 白丢一回合属性（真机 ep-finish7 连续 lesson-skip 就是这么来的）。
             fallback = self._cheapest_unknown(affordable)
             if fallback is not None:
                 return LessonAction(
@@ -479,20 +502,10 @@ class LessonPolicy:
                     point=fallback.point,
                     card=fallback,
                     expected=0.0,
-                    reason=f"分数没读到，先打最便宜的「{fallback.name or '卡'}」保成长",
+                    reason=f"分数没读到/太低，禁止跳过——硬打「{fallback.name or '卡'}」",
                 )
-            if not allow_skip:
-                return self._must_play(affordable, values, "考试不允许 SKIP，硬打一张")
-            if below_perfect:
-                # 还没到 PERFECT 线：哪怕这张牌的收益低于 min_gain，也要继续推进，
-                # 不能像以前那样"打够 CLEAR 就收手"。
-                return self._must_play(
-                    affordable, values, "还没到 PERFECT 线，继续打一张"
-                )
-            return LessonAction(
-                "skip",
-                point=state.skip_point,
-                reason="剩下的牌都不值体力",
+            return self._must_play(
+                affordable, values, "禁止因读不到价值跳过，硬打一张"
             )
 
         card, value = best
@@ -693,16 +706,19 @@ class LessonPolicy:
                 reshuffle=reshuffle,
             )
             if result.card is None:
-                reason = (
-                    f"expectimax: SKIP（档位期望 {result.utility:.2f}，"
-                    f"{result.elapsed_ms:.0f}ms）"
+                # 用户规则：读不到价值不是跳过理由（未知≠0 分），只有真没体力才跳过。
+                # 这里不自己 SKIP，交给规则分支：还有付得起的牌就一定硬打一张。
+                # 日志带上搜索是否完整/耗时/节点数，真机才能分清「超时」还是「真的没动作」。
+                self.last_fallback_reason = (
+                    f"搜索无动作（complete={result.complete}，nodes={result.nodes}，"
+                    f"{result.elapsed_ms:.0f}ms）→按规则硬打"
                 )
-            else:
-                reason = (
-                    f"expectimax: {result.card.name}（档位期望 {result.utility:.2f}，"
-                    f"{result.nodes} 节点，{result.elapsed_ms:.0f}ms）"
-                )
-            return self._search_action(
+                return None
+            reason = (
+                f"expectimax: {result.card.name}（档位期望 {result.utility:.2f}，"
+                f"{result.nodes} 节点，{result.elapsed_ms:.0f}ms）"
+            )
+            action = self._search_action(
                 state,
                 play_cards,
                 result.card,
@@ -710,6 +726,9 @@ class LessonPolicy:
                 reason=reason,
                 expected=result.utility,
             )
+            if action is None:
+                self.last_fallback_reason = "搜索结果不在手牌（CardSpec 失配）→按规则硬打"
+            return action
         except Exception as exc:  # noqa: BLE001 - 搜索绝不能让出牌退化
             self.last_fallback_reason = f"expectimax 异常: {exc!r}"
             logging.getLogger(__name__).warning("expectimax 失败，退回规则：%s", exc)
@@ -740,14 +759,14 @@ class LessonPolicy:
                 reshuffle=reshuffle,
             )
             if result.card is None:
-                reason = f"beam: SKIP（V {result.utility:.2f}，{result.elapsed_ms:.0f}ms）"
-            else:
-                reason = (
-                    f"beam: {result.card.name}（V {result.utility:.2f}，宽 {result.width}，"
-                    f"深 {result.depth_reached}/{sim_state.turns_left}，"
-                    f"{result.elapsed_ms:.0f}ms）"
-                )
-            return self._search_action(
+                self.last_fallback_reason = "beam 建议 SKIP → 按规则硬打（读不到价值不算理由）"
+                return None
+            reason = (
+                f"beam: {result.card.name}（V {result.utility:.2f}，宽 {result.width}，"
+                f"深 {result.depth_reached}/{sim_state.turns_left}，"
+                f"{result.elapsed_ms:.0f}ms）"
+            )
+            action = self._search_action(
                 state,
                 play_cards,
                 result.card,
@@ -755,6 +774,9 @@ class LessonPolicy:
                 reason=reason,
                 expected=result.utility,
             )
+            if action is None:
+                self.last_fallback_reason = "beam 结果不在手牌（CardSpec 失配）→按规则硬打"
+            return action
         except Exception as exc:  # noqa: BLE001 - 搜索绝不能让出牌退化
             self.last_fallback_reason = f"beam 异常: {exc!r}"
             logging.getLogger(__name__).warning("beam 失败，退回规则：%s", exc)

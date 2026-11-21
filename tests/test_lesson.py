@@ -100,7 +100,8 @@ def test_policy_skips_unaffordable_cards() -> None:
     assert action.kind == "skip"
 
 
-def test_policy_skips_worthless_cards() -> None:
+def test_policy_never_skips_worthless_cards_when_affordable() -> None:
+    """2026-11-21 用户规则：读不到/分数低不是跳过理由，还有付得起的牌就硬打一张。"""
     policy = LessonPolicy()
     state = _state(
         [_card(0, "元气", 0, 2), _card(1, "护盾", 0, 3)],
@@ -108,7 +109,7 @@ def test_policy_skips_worthless_cards() -> None:
         stamina=20,
     )
     action = policy.decide(state)
-    assert action.kind == "skip"
+    assert action.kind == "card"
 
 
 def test_policy_last_turn_maximises_total_score() -> None:
@@ -299,10 +300,15 @@ def test_policy_plays_cheapest_when_scores_unreadable() -> None:
     assert action.card is not None and action.card.name == "表现的基础"
 
 
-def test_policy_still_skips_when_scores_are_really_zero() -> None:
+def test_policy_only_skips_when_truly_no_affordable_card() -> None:
+    """只有真没体力（所有牌都付不起）才允许 SKIP；分数为 0 也要打。"""
     policy = LessonPolicy()
-    state = _state([_card(0, "元气", 0, 2)], turns_left=3, stamina=20)
-    action = policy.decide(state)
+    # 还有体力：硬打
+    assert policy.decide(
+        _state([_card(0, "元气", 0, 2)], turns_left=3, stamina=20)
+    ).kind == "card"
+    # 真付不起：SKIP
+    action = policy.decide(_state([_card(0, "元气", 0, 2)], turns_left=3, stamina=1))
     assert action.kind == "skip"
 
 

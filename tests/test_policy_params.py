@@ -79,11 +79,11 @@ def test_default_params_match_legacy_behaviour(tmp_path: Path) -> None:
     assert action.kind == "card"
     assert action.card is not None and action.card.name == "聊天时间"
 
-    # 没有正收益的牌 SKIP
+    # 没有正收益的牌也不再 SKIP（2026-11-21 用户规则：读不到价值不算跳过理由）
     action = _policy_without_file(tmp_path).decide(
         _state([_card(0, "元气", 0, 2), _card(1, "护盾", 0, 3)], turns_left=3, stamina=20)
     )
-    assert action.kind == "skip"
+    assert action.kind == "card"
 
     # 分数全没读到 → 打最便宜的保成长
     action = _policy_without_file(tmp_path).decide(
@@ -239,9 +239,11 @@ def test_unknown_score_fallback_skip(tmp_path: Path) -> None:
 
     path = tmp_path / "skip_unknown.json"
     _write_policy(path, {"unknown_score_fallback": "skip"})
-    action = LessonPolicy(params_path=path).decide(state)
-    assert action.kind == "skip"
-    assert action.point == state.skip_point
+    # 2026-11-21 用户规则：旧 "skip" 取值已废弃——读不到分数也不许跳过
+    policy = LessonPolicy(params_path=path)
+    assert policy.params["unknown_score_fallback"] == "cheapest"
+    action = policy.decide(state)
+    assert action.kind == "card"
 
 
 def test_buff_score_guard_controls_opening_buff(tmp_path: Path) -> None:
