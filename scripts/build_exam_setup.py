@@ -66,6 +66,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import verify_shuffle as vs
 
 from gkagent.sim.exam_oracle import ExamDrawOracle
+from gkagent.sim.exam_risk import deck_rng_risks, format_rng_risks
 from gkagent.sim.exam_shuffle import (
     DEFAULT_HAND_LIMIT,
     k_before_shuffle,
@@ -204,6 +205,10 @@ def build_setup(
         end_lost_keys = [
             card for card in deck if (card_info.get(card) or {}).get("end_lost")
         ]
+        # 事前检测：牌组里有额外 RNG 机制卡 → known_draw 不可验（K 无法精确计数）
+        rng_risk = deck_rng_risks([card_key(card) for card in deck])
+        if rng_risk:
+            print(f"⚠️ 考试{index} known_draw 不可验（额外 RNG 机制）：{format_rng_risks(rng_risk)}")
         merge_truth_scores(truth, match_truth_entry(enhancements, index, raw["ts"]))
         records.append(
             {
@@ -230,6 +235,7 @@ def build_setup(
                 "card_variants": card_variants,
                 "lost_keys": [card_key(card) for card in lost_keys],
                 "end_lost_keys": [card_key(card) for card in end_lost_keys],
+                "rng_risk": rng_risk,
                 "truth": [
                     {
                         "turn": int(turn["turn"]),
@@ -328,6 +334,9 @@ def build_current_setup(
         supports = vs.load_supports(start, support_filter)
         npc_count = _latest_npc_count(records, start_i)
         exams: list[dict] = []
+        rng_risk = deck_rng_risks([card_key(card) for card in deck])
+        if rng_risk:
+            print(f"⚠️ 当前场 known_draw 不可验（额外 RNG 机制）：{format_rng_risks(rng_risk)}")
         for index, config_turns in enumerate(turns_candidates):
             card_variants, missing = build_card_variants(deck, _card_info)
             if missing:
@@ -363,6 +372,7 @@ def build_current_setup(
                     "card_variants": card_variants,
                     "lost_keys": [card_key(card) for card in lost_keys],
                     "end_lost_keys": [card_key(card) for card in end_lost_keys],
+                    "rng_risk": rng_risk,
                     "truth": [],
                     "live": True,
                 }

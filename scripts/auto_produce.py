@@ -464,6 +464,20 @@ def restore_window() -> None:
     time.sleep(2.0)
 
 
+def build_exam_plans(path: str | None) -> tuple[list[ExamDrawPlan], int]:
+    """读 setup → ExamDrawPlan；跳过「含额外 RNG 机制、known_draw 不可验」的候选。
+
+    考试牌组里若有随机生成/移动/搜索/恐慌类效果，洗牌 K 无法精确计数（见
+    ``gkagent.sim.exam_risk``），全知会在第一个此类事件处失效——事前跳过，不挂全知，
+    避免"核对失败才停用"和错误计划。返回 ``(plans, skipped)``。
+    """
+    if not path:
+        return [], 0
+    setups = load_exam_setups(path)
+    safe = [setup for setup in setups if setup.known_info_ok]
+    return [ExamDrawPlan(setup) for setup in safe], len(setups) - len(safe)
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     crash_log = ROOT / "data" / "crash.log"
@@ -594,11 +608,11 @@ def main() -> int:
     exam_seen = False
     # 考试牌序计划（T3 实时接线）：启动时先读一次候选；真正的场次在进入考试时由
     # ExamPlanSelector 用第一回合实机手牌挑（见循环里的 [exam-plan] 分支）。
-    exam_plans = (
-        [ExamDrawPlan(item) for item in load_exam_setups(exam_setup_path)]
-        if exam_setup_path
-        else []
-    )
+    exam_plans, skipped_risky = build_exam_plans(exam_setup_path)
+    if skipped_risky:
+        log_lines.append(
+            f"[exam-plan] 跳过 {skipped_risky} 个含额外 RNG 机制的候选（known_draw 不可验）"
+        )
     exam_plan_selector = None
     exam_setup_mtime: float | None = None
     prev_exam_turns: int | None = None
@@ -1154,16 +1168,18 @@ def main() -> int:
                     if mtime is not None and mtime != exam_setup_mtime:
                         # out/exam_setup.json 更新了（考试前跑 build_exam_setup --current）
                         exam_setup_mtime = mtime
-                        exam_plans = [
-                            ExamDrawPlan(item)
-                            for item in load_exam_setups(exam_setup_path)
-                        ]
+                        exam_plans, skipped_risky = build_exam_plans(exam_setup_path)
                         if exam_plan_selector is not None:
                             lesson_policy.attach_draw_plan(None)
                             exam_plan_selector = None
                         log_lines.append(
                             f"{step:03d} [exam-plan] 重载 {len(exam_plans)} 个候选：{exam_setup_path}"
                         )
+                        if skipped_risky:
+                            log_lines.append(
+                                f"{step:03d} [exam-plan] 跳过 {skipped_risky} 个含额外 RNG 机制的候选"
+                                "（known_draw 不可验）"
+                            )
                 if exam_plans and exam_plan_selector is None:
                     from gkagent.sim.exam_plan import ExamPlanSelector
 

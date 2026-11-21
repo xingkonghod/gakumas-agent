@@ -47,6 +47,7 @@ from pathlib import Path
 from typing import Any
 
 from .exam_oracle import ExamDrawOracle
+from .exam_risk import format_rng_risks
 from .exam_shuffle import (
     DEFAULT_HAND_LIMIT,
     DEFAULT_NPC_COUNT,
@@ -95,6 +96,14 @@ class ExamSetup:
     index: int = 0
     ts: str = ""
     truth: tuple[dict, ...] = ()
+    # 牌组里会额外消耗考试 RNG 的机制卡（来自 exam_risk.deck_rng_risks）。
+    # 非空 = 洗牌 K 无法精确计数，known_draw 不可验（ExamDrawPlan 直接停用）。
+    rng_risk: tuple[dict[str, Any], ...] = ()
+
+    @property
+    def known_info_ok(self) -> bool:
+        """牌组是否适合启用全知牌序（无额外 RNG 机制卡）。"""
+        return not self.rng_risk
 
     # ------------------------------------------------------------------ 构造
     @classmethod
@@ -153,6 +162,9 @@ class ExamSetup:
             index=int(raw.get("index") or 0),
             ts=str(raw.get("ts") or ""),
             truth=tuple(dict(item) for item in raw.get("truth") or ()),
+            rng_risk=tuple(
+                dict(item) for item in raw.get("rng_risk") or () if isinstance(item, Mapping)
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -172,6 +184,7 @@ class ExamSetup:
             "card_variants": dict(self.card_variants),
             "lost_keys": [list(card) for card in sorted(self.lost_keys)],
             "end_lost_keys": [list(card) for card in sorted(self.end_lost_keys)],
+            "rng_risk": [dict(item) for item in self.rng_risk],
             "truth": [dict(item) for item in self.truth],
         }
 
@@ -276,6 +289,12 @@ class ExamDrawPlan:
     # ------------------------------------------------------------------ 生命周期
     def start(self) -> None:
         """创建 oracle（可重复调用，已激活时不动）。"""
+        if not self.setup.known_info_ok:
+            self._fail(
+                "牌组含额外 RNG 消耗机制（known_draw 不可验）："
+                + format_rng_risks(self.setup.rng_risk)
+            )
+            return
         if self._oracle is None:
             self._oracle = self.setup.new_oracle()
         if self.status == STATUS_PENDING:
@@ -292,7 +311,8 @@ class ExamDrawPlan:
         if self.status in (STATUS_MISMATCH, STATUS_DONE):
             return False
         self.start()
-        assert self._oracle is not None
+        if self._oracle is None or self.status == STATUS_MISMATCH:
+            return False
         self.turn += 1
         observed_cards = self._resolve(observed)
         if observed_cards is None:
