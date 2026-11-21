@@ -1250,10 +1250,14 @@ def main() -> int:
                     # 选中后右上角显示「体力 X / -Y」：顺手学这张卡的体力费用，
                     # 卡面爱心上的小字 OCR 认不出来也能靠这里补齐。
                     stamina_now, stamina_cost = read_stamina_preview(engine, image)
+                    # 2026-11-21：真机日志出现「体力消耗=29 (当前体力 29)」——
+                    # 这是把右上角体力条读了两次（两个框都读到当前体力），不是费用。
+                    # 费用必须严格小于当前体力才写入缓存；等于当前体力的一律视为读歪，
+                    # 避免把 4 费的牌记成 29 费（ep-finish7 的 [cost] 记录）。
                     plausible = (
                         stamina_now is not None
                         and stamina_cost is not None
-                        and 0 <= stamina_cost <= stamina_now
+                        and 0 <= stamina_cost < stamina_now
                     )
                     if plausible and cost_cache.record(pending_name, stamina_cost):
                         log_lines.append(

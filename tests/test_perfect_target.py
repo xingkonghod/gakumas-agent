@@ -94,7 +94,8 @@ def test_lesson_policy_does_not_skip_below_perfect(tmp_path: Path) -> None:
     assert action.card is not None and action.card.name == "小分"
 
     no_gauge = LessonState(cards=(_card(0, "小分", 3, 1),), turns_left=3, stamina=20, score=0)
-    assert _policy(tmp_path, params={"min_gain": 5.0}).decide(no_gauge).kind == "skip"
+    # 2026-11-21 用户规则：没有 PERFECT 线也不许跳过——分数低不是跳过理由
+    assert _policy(tmp_path, params={"min_gain": 5.0}).decide(no_gauge).kind == "card"
 
 
 # --------------------------------------------------------------------- ProduceSim

@@ -249,7 +249,7 @@ def test_uinet_play_action_maps_back_to_lesson_card(
     assert "uinet" in action.reason
 
 
-def test_uinet_end_action_maps_to_skip(monkeypatch, tmp_path: Path) -> None:
+def test_uinet_end_action_intercepted_to_card(monkeypatch, tmp_path: Path) -> None:
     def fake(obs, **kwargs):
         return uinet.UinetOutput(
             action=("end",), probs=(1.0,), score_quantiles={}, elapsed_ms=1.0
@@ -257,7 +257,8 @@ def test_uinet_end_action_maps_to_skip(monkeypatch, tmp_path: Path) -> None:
 
     monkeypatch.setattr(uinet, "predict", fake)
     policy = _policy(tmp_path, engine="uinet")
-    assert policy.decide(_state()).kind == "skip"
+    # 2026-11-21 用户规则：UINet 说 end 也不算数——还有付得起的牌就硬打
+    assert policy.decide(_state()).kind == "card"
     # 考试模式不允许 SKIP：UINet 说 end 也退回规则
     exam_action = policy.decide(_state(), allow_skip=False)
     assert exam_action.kind in {"card", "wait"}

@@ -86,9 +86,10 @@ def test_stamina_gate_never_skips_in_exam() -> None:
 
 
 def test_policy_never_returns_skip_in_exam() -> None:
-    policy = LessonPolicy(params={"unknown_score_fallback": "skip"})
+    policy = LessonPolicy()
     state = _state([_card(score=0, cost=4)])
-    assert policy.decide(state).kind == "skip"
+    # 2026-11-21 用户规则：读不到/分数低不算跳过理由，还有体力就硬打
+    assert policy.decide(state).kind == "card"
     action = policy.decide(state, allow_skip=False)
     assert action.kind == "card"
     assert action.point == (140, 1000)
@@ -103,7 +104,7 @@ def test_policy_no_affordable_card_waits_in_exam() -> None:
 
 
 def test_decide_lesson_pick_never_clicks_skip_in_exam() -> None:
-    policy = LessonPolicy(params={"unknown_score_fallback": "skip"})
+    policy = LessonPolicy()
     state = _state([_card(score=0)], stamina=20)
     clicks: list[tuple[int, int]] = []
 
@@ -118,11 +119,11 @@ def test_decide_lesson_pick_never_clicks_skip_in_exam() -> None:
     assert done is False
     assert pick is not None and pick.point == (140, 1000)
 
-    # 同样的局面在普通课程里是点 SKIP
+    # 2026-11-21 用户规则：普通课程里读不到分数也不点 SKIP（只有真没体力才跳过）
     pick2, done2 = decide_lesson_pick(None, None, policy, state=state, click=click)
-    assert pick2 is None
-    assert done2 is True
-    assert clicks == [state.skip_point]
+    assert pick2 is not None
+    assert done2 is False
+    assert clicks == []
 
 
 def test_lesson_guard_never_skips_in_exam() -> None:
