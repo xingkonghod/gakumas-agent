@@ -135,23 +135,18 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 
 ## 四、下一步（按优先级）
 
-### ① 把「考试时刻的牌堆」字段挖出来（最高优先）—— 字段已定位+重建，洗牌重放剩最后一公里
+### ① 把「考试时刻的牌堆」字段挖出来（最高优先）—— 期中已端到端破解
 
 ```
-✅ 已定位：真正的牌堆 = UserData.userProduceProgressProduceCardList (field 309641228)
-   （230550472 是图鉴、256246388 是支援卡，都不是牌堆——之前找错了字段）
-✅ 已重建：Produce/Start、User/Get 全量快照 + 步骤响应按 number 增量 upsert，deleted=false 即牌堆
-   期中 18 张 / 期末 26 张，均与 User/Get 全量快照逐张吻合（scripts/reconstruct_deck.py）
-✅ ground truth：ExamTurnEndLog.field50 = 每回合开始手牌（= 当回合从牌堆顶抽的 3 张）
-   （scripts/decode_exam_actions.py --json）
-⚠️ 剩：seed + 牌堆 → 精确牌序。已确认每场考试重新洗牌；但 examSeedValue 直接 xorshift32
-   复现不出实战牌序（穷举 RNG 偏移/输入排序/FY 变体均不匹配）。examSeedValue 未必直接是洗牌种子。
-完成标准：用 seed + 牌堆洗牌，结果与实战出牌序列能对上
+✅ 牌堆 = UserData.userProduceProgressProduceCardList (309641228)，已重建（期中18/期末26）
+✅ 逐回合 ground truth = ExamTurnEndLog.field50（每回合开始手牌）
+✅ 期中洗牌重放精确破解：xorshift32(examSeedValue) 先 advance 51 次 → FY倒序洗 Number升序牌堆
+   → 18/18 整段精确匹配（scripts/verify_shuffle.py）
+⚠️ 期末异常：牌堆多重集正确，但任何 k/输入序/种子变换都复现不出（见 TROUBLESHOOTING 3.6）
 ```
 
-**下一步**：拿到原生洗牌/种子派生逻辑（frida hook，QQ 群路线），或用快速语言对 seed 做观测剪枝枚举
-（期中前 6 回合手牌 = 完整 18 张牌序，是强约束）。工具已就绪：scripts/verify_shuffle.py。
-**成功后**：seed + 牌堆 → 精确牌序 → 完全信息搜索（比他们的「反推」省一步）。
+**下一步**：再采一局（期末或另一局期中）验证「K=51」与期末异常是局特有还是普遍规律；
+若普遍，需 frida hook 原生洗牌/种子派生（QQ 群路线）。**成功后**：seed+牌堆→精确牌序→完全信息搜索。
 
 ### ② bot 能无人值守跑完一局
 
