@@ -198,6 +198,10 @@ cd D:\Games\gakumas-agent
 **风险**：traffic.jsonl 写入缓冲/时序；deck 快照与考试开始时刻的对齐；`forceEndScore` 提前结束时 config_turns 仍按配置回合（见 [HANDOVER 二·补二](HANDOVER.md#L113)）。
 **兜底**：对不上就自动停用（现有设计），**绝不能**用错牌序。
 
+> 2026-11-22 情报补充：考试 RNG 还有恐慌/搜索排序/随机选取/生成卡/随机移动等入口（见
+> [QQ_GROUP_NOTES](QQ_GROUP_NOTES.md) 凌晨条目），我们的 K 模型未覆盖。牌组含这些效果的考试
+> **known_draw 只能用到第一个此类事件**；T3 验收时用"纯牌组"考试跑，或在建 setup 时前置标记不可验。
+
 **验收（DoD）**：真机一局考试的每回合核对通过 + selector 单测（已加 4 条）+ 文档更新。
 **预算**：60–100k token（代码已完成，剩真机验收 ~20k）。
 
