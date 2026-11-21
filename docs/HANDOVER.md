@@ -359,6 +359,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-21 深夜）
+233e9d7 feat(search): 完全信息搜索第二段——生产接线(ExamSetup/ExamDrawPlan) + 重洗后段全知(discard_order) + lesson.engine=beam
 （2026-11-21 晚）
 e0bd668 feat(search): 完全信息搜索第一步——ExamDrawOracle 牌序链路 + ExpectState.known_draw 确定分支 + 配对评测
 c8c4c71 feat(seed): 支援强化掷点+弃牌堆重洗完整破解——三组样本 45/29/46 次掷点后逐张复现
