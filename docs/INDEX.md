@@ -125,5 +125,7 @@
 确定性重洗钩子）+ **`lesson.engine="beam"` 跨回合规划选项**。真机侧：决策可观测性 + 引擎接线
 （`--engine` > `produce.engine`）+ T1 十类流程卡点修复（[FAILURES #27-32](FAILURES.md#L6)）已提交；
 T3 实时接线代码已接（`build_exam_setup --current` + `ExamPlanSelector` + 运行时重载），**差真机考试验收**。
-下一步：真机整局验收（T1）→ 真机考试锁定（T3）→ 三引擎 A/B（T2）→ 策略强度（T4）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补六 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+2026-11-21 22:00 后第一次真机跑完整局：期中 914/第 3 → **最终 C/4242**；根因是"读不到牌价值→搜索建议 SKIP→
+执行跳过"，已按用户规则封死：**只有所有牌都付不起才允许 SKIP**，四引擎统一拦截（[FAILURES #34-39](FAILURES.md#L6)，
+提交 4b07fa7/8a2af2b/b231b3f）。下一步：重开一局初验收"不再乱跳+分数回升" → 开采集上 T3 全知 → 三引擎 A/B。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
