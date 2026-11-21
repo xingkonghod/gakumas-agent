@@ -261,7 +261,7 @@ ccc2653 docs(handover): 追加成本纪律
 9212cd8 fix(usage): 用量按会话最后一个 totals 统计
 d93a2ac feat(usage): 汇总 DSH 会话 token 用量
 4e3b53c feat(seed): 定位考试牌堆字段(309641228)并重建牌组
-（本次）feat(seed): 第三/四场洗牌验证——配置12回合K=69、forceEndScore提前结束K按配置回合51
+1cd6c14 feat(seed): 第三/四场洗牌验证——K 按配置回合算，forceEndScore 提前结束也精确复现
 （2026-11-20）
 436b6a8 docs(master): 记录 seed 在流量里的发现与待验证项
 02c20f2 feat(seed): seed 提取 + xorshift32 重放工具
