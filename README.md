@@ -129,6 +129,11 @@ sequenceDiagram
 
 **全知链路端到端（`verify_exam_wiring.py`）**：手牌核对 **36/36** 回合、重洗 **3/3**、`known_draw` 覆盖 **29/29**。
 
+**已知牌序值多少（同 seed 配对：known vs unknown）**——真实牌组的增益取决于 `V_leaf`，
+构造抽牌牌组才能验证信息本身的价值：
+
+![known vs unknown](docs/images/info_value.png)
+
 **离线配对评测（真实小牌组 14 张 / 5 回合，CLEAR 120 / PERFECT 170）**
 
 | 策略 | 分数均值 |
@@ -139,6 +144,8 @@ sequenceDiagram
 | beam + tiebreak + branching=10 | 111.2 |
 | beam + rollout 叶子（实验，负结果） | 103.0 |
 
+![离线引擎对比](docs/images/eval_engines.png)
+
 **真机跑局**
 
 | 时间 | 谁 | 结果 | 备注 |
@@ -147,6 +154,8 @@ sequenceDiagram
 | 11-20 | 用户手动 + 采集 | **B / 7404** | 期中 569/第3、期末 4798/第2，两场考试数据全采到 |
 | 11-21 | 用户手动 | **A / 10237** | 追赶目标 |
 | 11-21 | bot（接管局） | C / 4242 | 期中 914/第3 → 培育终了；暴露「读不到价值→跳过」主因，已修 |
+
+![真机跑局](docs/images/real_runs.png)
 
 > gkbench 公开口径（**对外部榜单算法的情报，不是我们的成绩**，详情见 docs/QQ_GROUP_NOTES.md）：
 > oracle 基准均值 1,452,088（n=960），UIHorizon 631,129（0.5113×）、UINet 578,722（0.4551×）、官方 AI 232,710（0.2131×）。
