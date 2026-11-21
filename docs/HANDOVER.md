@@ -327,6 +327,8 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 - 测试：expectimax/beam/uinet 的「异常退回 rules」用例全部改写为「必须 blocked」；新增
   skip→按搜索排名硬打、beam 根计划首牌、uinet 概率硬打、wait 语义、显式 engine 写错等回归。
 
+**提交**：`ae86e1c` feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
+
 **改后基线（全绿）**
 - `verify_shuffle.py`：4/4 场整段复现（含重洗）
 - `pytest tests/ -q`：**883 passed，1 skipped**（884 条收集 / 59 文件）全绿
@@ -461,6 +463,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-21 深夜四段）
+ae86e1c feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
 （2026-11-21 深夜三段）
 8a9b5aa docs(handover): 二·补七——真机首局战报(C/4242)+禁跳规则+7类卡点+下一步
 b231b3f fix(policy): 禁跳例外只剩真没体力；费用预览读歪防护（29==体力 视为无效）
