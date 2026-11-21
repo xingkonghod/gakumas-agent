@@ -48,6 +48,109 @@ def test_dialog_confirm_clicks_ok_text() -> None:
     assert agent.device.clicks[-1] == _center(3)
 
 
+def test_net_error_dialog_clicks_retry_before_loading() -> None:
+    """F#27 真机 ep-t1-d：通信错误弹窗（获取资产失败 E203）含「通信」，不能被当成 loading 空等。"""
+    agent = FakeAgent()
+    lines = _lines("通信错误", "获取资产失败", "请在网络环境好的地方再试", "(E203)", "返回标题", "重试")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "net-error"
+    assert result.action == "retry"
+    assert agent.device.clicks[-1] == _center(5)
+
+
+def test_asset_error_without_retry_uses_fixed_point() -> None:
+    agent = FakeAgent()
+    lines = _lines("通信错误", "获取资产失败", "请在网络环境好的地方再试")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "net-error"
+    assert agent.device.clicks[-1] == produce_ui.NET_RETRY
+
+
+def test_loading_still_waits_without_error_keywords() -> None:
+    agent = FakeAgent()
+    lines = _lines("NOW LOADING...")
+    result = _driver().decide(agent, lines)
+    assert result.screen == "loading"
+    assert not agent.device.clicks
+
+
+def test_outing_action_page_is_not_event_choice() -> None:
+    """外出/授课行动页的描述框含「选项」长句，不能被当成事件选项（ep-t1-g 原地循环 10+ 周）。"""
+    agent = FakeAgent()
+    lines = _lines(
+        "外出",
+        "授课",
+        "根据选项会发生各种效果。",
+        "主要为消耗P点数来回复体力。",
+    )
+    result = _driver().decide(agent, lines)
+    assert result.screen == "action"
+    assert result.action == "go-out"
+    assert agent.device.clicks[-1] == (268, 1010)
+
+
+def test_event_choice_still_works_without_action_buttons() -> None:
+    agent = FakeAgent()
+    lines = [
+        OcrLine("外出", 0.9, (40, 60, 200, 40)),
+        OcrLine("戏剧", 0.9, (60, 650, 300, 40)),
+        OcrLine("体育", 0.9, (60, 750, 300, 40)),
+        OcrLine("露营", 0.9, (60, 850, 300, 40)),
+    ]
+    result = _driver().decide(agent, lines)
+    assert result.screen == "event-choice"
+
+
+def test_event_choice_degraded_uses_cost_labels() -> None:
+    """ep-t1-h 真机：选项按钮文字 OCR 只剩 1 个字时，用 P 费标签定位最后一个（免费）选项。"""
+    agent = FakeAgent()
+    lines = [
+        OcrLine("外出", 0.9, (90, 51, 45, 26)),
+        OcrLine("-100", 0.9, (598, 648, 64, 28)),
+        OcrLine("-50", 0.9, (612, 750, 49, 26)),
+        OcrLine("気持", 0.9, (97, 683, 276, 30)),
+        OcrLine("快进", 0.9, (584, 1187, 81, 28)),
+    ]
+    result = _driver().decide(agent, lines)
+    assert result.screen == "event-choice"
+    assert result.action == "last-row"
+    # 最后一个 P 费标签中心 y=763 → 免费选项 y≈901
+    assert agent.device.clicks[-1] == (360, 901)
+
+
+def test_event_choice_without_header_or_fast_forward_still_works() -> None:
+    """ep-t1-h：事件屏标题「外出」/「快进」都漏读时，靠选项行 + P 费/问句兜底识别。"""
+    agent = FakeAgent()
+    lines = [
+        OcrLine("気持ちよかったです", 0.9, (70, 690, 590, 90)),
+        OcrLine("-100", 0.9, (598, 648, 64, 28)),
+        OcrLine("お断りしました", 0.9, (70, 790, 590, 90)),
+        OcrLine("-50", 0.9, (612, 750, 49, 26)),
+        OcrLine("……本当、ですか?", 0.9, (96, 980, 207, 30)),
+    ]
+    result = _driver().decide(agent, lines)
+    assert result.screen == "event-choice"
+
+
+def test_event_choice_confirm_click_after_selection() -> None:
+    """ep-t1-i：选中态那一帧选项文字只剩 1 个字（option_rows=0），仍要能点第二次确认。"""
+    driver = _driver()
+    agent = FakeAgent()
+    driver.event_pending_y = 901
+    lines = [
+        OcrLine("外出", 0.9, (90, 51, 45, 26)),
+        OcrLine("100", 0.9, (608, 650, 53, 25)),
+        OcrLine("-50", 0.9, (614, 750, 46, 26)),
+        OcrLine("気", 0.9, (97, 682, 278, 33)),
+        OcrLine("……本当、ですか?", 0.9, (95, 980, 208, 30)),
+    ]
+    result = driver.decide(agent, lines)
+    assert result.screen == "event-choice"
+    assert result.action == "confirm"
+    assert agent.device.clicks[-1] == (360, 901)
+    assert driver.event_pending_y is None
+
+
 def test_voice_dialog_picks_silent_option() -> None:
     agent = FakeAgent()
     lines = _lines("语音播放确认", "播放语音", "不播放语音", "取消", "确定")
@@ -862,6 +965,18 @@ def test_driver_card_detail_probe_and_name() -> None:
     assert driver.card_detail_name(image) == "流行词"
 
 
+def test_card_detail_text_recognises_exam_wording() -> None:
+    """考试（audition）浮层用「得分+23」「考试·舞台中仅限1次」，旧规则只认「打分+」（ep-t1-e 死循环）。"""
+    from gkagent.tasks.produce_ui import is_card_detail_text
+
+    assert is_card_detail_text("得分+23（集中效果会2倍生效）")
+    assert is_card_detail_text("考试·舞台中仅限1次")
+    assert is_card_detail_text("Active")
+    assert is_card_detail_text("好调状态的时候，可以使用")
+    assert not is_card_detail_text("")
+    assert not is_card_detail_text("剩余回合 5")
+
+
 def test_lesson_hand_signature_ignores_select_label_and_raise() -> None:
     from gkagent.tasks.produce_ui import lesson_hand_signature
     from gkagent.vision.lesson import LessonCard, LessonState
@@ -1084,6 +1199,11 @@ def test_settlement_keywords_recognised() -> None:
     assert not produce_ui.is_settlement_screen("")
     assert not produce_ui.is_memory_photo_screen("请选择行动 授课")
     assert not produce_ui.is_record_screen("选择支援卡 自动 下一步")
+    # 支援卡页「自动」弹出的确认框含「编成支援卡」子串，但不是培育记录页（ep-t1-c 空转 12 次）
+    assert not produce_ui.is_record_screen(
+        "自动编成 将自动编成支援卡 ※当前编成未保存 取消 确定"
+    )
+    assert produce_ui.is_record_screen("培育记录 编成支援卡/回忆 最终持有P道具")
 
 
 def test_memory_photo_screen_selects_first_photo_then_saves() -> None:

@@ -120,6 +120,9 @@ SWP_NOACTIVATE = 0x0010
 WINDOW_RESTORE_ATTEMPTS = 3
 WINDOW_RESTORE_FAIL_LIMIT = 5
 
+# 加载帧快速路径连续多少步后强制完整 OCR（F#27：通信错误弹窗会被加载模板盖住）
+LOADING_FAST_OCR_EVERY = 12
+
 
 def client_size(hwnd: int, user32=None) -> tuple[int, int]:
     """当前窗口 client 尺寸；拿不到返回 ``(0, 0)``（调用方按异常处理）。"""
@@ -475,7 +478,18 @@ def main() -> int:
     # 出牌"眼睛"和"脑子"：读游戏给的分数预览/体力/回合，按分数÷体力出牌
     cost_cache = CardCosts()
     lesson_reader = LessonReader(engine, cards=card_lib, costs=cost_cache)
-    lesson_policy = LessonPolicy(buffs=lesson_reader.buffs)
+    # 真机出牌引擎：--engine 优先，其次 policy.json 的 produce.engine。
+    # `lesson.engine` 是 LessonPolicy 独立使用/单元测试的默认值（保持 rules），
+    # 真机 bot 读 produce 段——之前 produce.engine 是死配置（没人读），这里接上。
+    engine_override = (arg_value("--engine") or "").strip().lower()
+    produce_engine = str(driver._produce_params().get("engine") or "").strip().lower()
+    lesson_engine = engine_override or produce_engine
+    lesson_policy = LessonPolicy(buffs=lesson_reader.buffs, engine=lesson_engine or None)
+    engine_source = (
+        "--engine"
+        if engine_override
+        else ("policy.json produce.engine" if produce_engine else "默认")
+    )
     # 考试牌序计划（完全信息搜索数据源）：--exam-setup 指向 build_exam_setup.py 的产物。
     # 计划挂到策略后，每回合会拿采集推出来的牌序跟实机手牌核对；核对不上自动停用，
     # 行为退回期望搜索（没有采集数据时也完全等价于现状）。
@@ -491,7 +505,10 @@ def main() -> int:
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
 
     log_lines: list[str] = []
+    log_lines.append(f"[engine] 出牌引擎 = {lesson_policy.engine}（来源：{engine_source}）")
     idle = 0
+    # 连续「无可用决策」计数（ep-t1-k：手牌读不到时点中位卡兜底会无限空转）
+    no_decision_streak = 0
     pause_streak = 0
     last_stamina: int | None = None
     burst_count = 0
@@ -522,6 +539,8 @@ def main() -> int:
     drink_used = False
     # 窗口前置检查（F#9）：连续恢复失败就停，不带着"点击全落空"的状态空转到超时
     window_fail_streak = 0
+    # 加载帧快速路径连续计数（F#27）：超过阈值强制 OCR，避免漏看通信错误弹窗
+    loading_fast_streak = 0
     # 考试/试镜模式（F#17）：本局是否已进入过考试（只打一次 [exam-mode] 进入日志）
     exam_seen = False
     # 考试牌序计划：按场次顺序取（期中一场、期末一场）；turns_left 变大 = 换到下一场
@@ -757,10 +776,20 @@ def main() -> int:
                 agent.matcher.find("produce_skip_round", image, threshold=0.85) is not None
                 or agent.matcher.find("produce_health", image, threshold=0.70) is not None
             )
-            # 快速路径 2：加载帧模板命中 → 直接当 loading 等待，不 OCR
+            # 快速路径 2：加载帧模板命中 → 直接当 loading 等待，不 OCR。
+            # 真机 ep-t1-d（F#27）：通信错误弹窗（获取资产失败 E203）盖在加载帧上时模板
+            # 仍然命中，于是每步只走 loading 快速路径、从不 OCR，永远看不到「重试」按钮，
+            # 白烧 200+ 步。连续加载超过 LOADING_FAST_OCR_EVERY 步就强制走一次完整 OCR。
             loading_fast = (not lesson_fast) and (
                 agent.matcher.find("produce_loading", image, threshold=0.90) is not None
             )
+            if loading_fast:
+                loading_fast_streak += 1
+                if loading_fast_streak >= LOADING_FAST_OCR_EVERY:
+                    loading_fast = False
+                    loading_fast_streak = 0
+            else:
+                loading_fast_streak = 0
             if lesson_fast:
                 corner_lines = []
                 corner_text = ""
@@ -1253,6 +1282,8 @@ def main() -> int:
                         exclude=bad_cards,
                     ),
                 )
+                # 决策可观测性：本步到底用哪个引擎、搜索有没有静默退回规则
+                decision_note = lesson_policy.decision_note()
                 if lesson_done:
                     lesson_skip = True
                     name_pick = None
@@ -1264,7 +1295,7 @@ def main() -> int:
                     last_pick_name = None
                     same_pick_count = 0
                     action_name = "lesson-skip"
-                    result = "[training] SKIP 结束回合（剩下的牌不值得体力）"
+                    result = f"[training] SKIP 结束回合（剩下的牌不值得体力） | {decision_note}"
                 if name_pick is not None:
                     # 卡名只剩 SELECT/SEECT/S/A/M 时不能沿用脏名字：按分数/费用重选
                     cleaned_name = clean_card_name(name_pick.name)
@@ -1401,8 +1432,9 @@ def main() -> int:
                         lesson_sig_before_pick = lesson_hand_signature(lesson_state)
                         result = (
                             f"[training] name-pick {name_pick.name} "
-                            f"({name_pick.value:.1f}) at {name_pick.point}"
+                            f"({name_pick.value:.1f}) at {name_pick.point} | {decision_note}"
                         )
+                        no_decision_streak = 0
                         idle = 0
                     action_name = "name-pick"
                 elif not lesson_skip:
@@ -1499,16 +1531,40 @@ def main() -> int:
                             lesson_pending = (play.point, boxes, "")
                             lesson_guard.picked(play.point, "")
                             lesson_sig_before_pick = lesson_hand_signature(lesson_state)
-                            result = f"[training] play card#{play.index} {play.source} at {play.point}"
+                            result = f"[training] play card#{play.index} {play.source} at {play.point} | {decision_note}"
+                            no_decision_streak = 0
                             idle = 0
                     else:
-                        clicked = agent.device.click_force(360, 1000)
-                        time.sleep(0.9)
-                        result = "[training] 无可用决策，点击中位卡兜底"
-                        idle += 1
+                        no_decision_streak += 1
+                        if not exam_mode and no_decision_streak >= 2:
+                            # 连续读不到可出的牌：别无限点中位卡（ep-t1-k 空手牌空转），
+                            # 课程允许 SKIP —— 直接结束回合，下一回合重新读屏。
+                            clicked = agent.device.click_force(
+                                *(lesson_state.skip_point or LESSON_SKIP_POINT)
+                            )
+                            time.sleep(0.8)
+                            lesson_policy.reset_turn()
+                            lesson_guard.reset_turn()
+                            same_screen.reset()
+                            action_name = "force-skip"
+                            result = (
+                                f"[training] 连续 {no_decision_streak} 步无可出牌，点 SKIP 结束回合"
+                                f" | {decision_note}"
+                            )
+                            no_decision_streak = 0
+                            idle = 0
+                        else:
+                            clicked = agent.device.click_force(360, 1000)
+                            time.sleep(0.9)
+                            result = f"[training] 无可用决策，点击中位卡兜底 | {decision_note}"
+                            idle += 1
             # 考试模式给每一步打标记，真机日志里一眼能看出"这步在考试里做了什么"
             if exam_mode and not result.startswith("[exam-mode]"):
                 result = f"[exam-mode] {result}"
+            # 暂停帧不算「同屏卡死」：用户操作/自身输入误判暂停时，画面本来就不该变化，
+            # 若继续累计 same_screen 计数，会从 [pause] 直接滑到 [stuck] 退出（ep-t1-l）。
+            if result.startswith("[pause]"):
+                same_screen.reset()
         else:
             lesson_pending = None
             drink_used = False

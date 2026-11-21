@@ -33,10 +33,12 @@ if TYPE_CHECKING:
 
 # ---- 固定落点（720x1280；实测） -------------------------------------------
 PRODUCE_ENTRY = (359, 1006)  # 主页「プロデュース」
-REGULAR_DIFFICULTY = (359, 900)  # 培育页「レギュラー」
+REGULAR_DIFFICULTY = (220, 915)  # 难度选择页「レギュラー」按钮中心（2026-11-21 实测：旧值
+# (359,900) 落在「レギュラー」和「プロ」两个按钮之间的缝隙，点了没反应）
 NEXT_BUTTON = (398, 1124)  # 编成三步/开始确认 底部主按钮
 AUTO_SUPPORT = (600, 1041)  # 支援卡页「自动」
 DIALOG_OK = (456, 1190)  # 二级确认弹窗「确定/完成/下一步」
+NET_RETRY = (510, 1151)  # 通信错误弹窗「重试」（获取资产失败 E203）
 DIALOG_OK_SMALL = (360, 1163)  # 设置类弹窗「确定」
 VOICE_OFF = (195, 852)  # 语音播放确认「不播放语音」
 TRAIN_VO = (194, 1012)
@@ -147,9 +149,18 @@ _UI_LABEL_RE = re.compile(
     re.IGNORECASE,
 )
 _DETAIL_EFFECT_RE = re.compile(
-    r"(?:打分|元气|体力|好调|集中|指針|やる気|元気|好調|集中|指針)\s*[+＋]"
+    r"(?:打分|得分|元气|体力|好调|集中|指針|やる気|元気|好調|集中|指針)\s*[+＋]"
 )
 _DETAIL_EN_WORDS = ("active", "mental", "support", "trouble")
+# 考试（audition）的卡片详情浮层和课程的文案不同：效果行是「得分+23（集中效果会2倍生效）」，
+# 附加行是「考试·舞台中仅限1次」。旧规则只认「打分+」→ 考试里浮层永远判不出来，
+# 出牌卡在「选牌 → 等下一帧 → 再选牌」循环（真机 ep-t1-e 期中考试 回合5，10 步停机）。
+_DETAIL_CN_MARKERS = (
+    "不满足使用条件",
+    "可以使用",
+    "仅限1次",
+    "舞台中仅限",
+)
 
 # ---- 快速读屏（省掉整屏检测） ------------------------------------------------
 # 常用屏（加载/剧情/事件选项/行动/训练/外出咨询/领奖）的文字都在固定位置。
@@ -216,7 +227,7 @@ def is_card_detail_text(text: str) -> bool:
     value = unicodedata.normalize("NFKC", text or "").strip()
     if not value:
         return False
-    if "不满足使用条件" in value or "可以使用" in value:
+    if any(marker in value for marker in _DETAIL_CN_MARKERS):
         return True
     lowered = value.lower()
     if any(word in lowered for word in _DETAIL_EN_WORDS):
@@ -394,12 +405,19 @@ def is_record_screen(text: str | None) -> bool:
 
     真机 ep-cplus13 的 step_055：这一屏标题含「定期公演『初』 Regular」，被当成培育页
     每步点难度按钮，画面不动，12 次后停机。
+
+    2026-11-21 真机踩坑（ep-t1-c）：支援卡页点「自动」会弹「自动编成」确认框，文案是
+    「将自动编成支援卡 / ※当前编成未保存 / 取消 / 确定」——含「编成支援卡」子串，
+    被误判成记录页 → 每步点记录页底部的 X（(360,1197) 正好落在两个按钮之间）空转 12 次。
+    这种「自动编成」确认框必须先排除。
     """
     value = _screen_text(text)
     if not value:
         return False
     if "培育记录" in value or "育成记录" in value:
         return True
+    if "自动编成" in value or "当前编成未保存" in value:
+        return False
     return "编成支援卡" in value or "最终持有P道具" in value
 
 
@@ -1725,6 +1743,21 @@ class ProduceDriver:
             self.sleep(0.8)
             return TickResult("blank", "wait")
 
+        # 0.4) 网络/资产下载错误弹窗（真机 ep-t1-d：获取资产失败 E203 + 重试/返回标题）。
+        # 必须排在 0.5 的 loading 之前：这屏文案含「通信」，旧顺序会判成 loading 空等。
+        if (
+            "通信错误" in text
+            or "获取资产失败" in text
+            or ("获取资产" in text and "失败" in text)
+            or ("重试" in text and "返回标题" in text)
+        ):
+            retry = self.find_button(lines, ("重试",))
+            if retry is not None:
+                self._click_line(agent, retry)
+            else:
+                self._click(agent, NET_RETRY)
+            return TickResult("net-error", "retry")
+
         # 0.5) 加载/转场：只等待，不当作「无可执行动作」
         upper = text.upper()
         if "LOADING" in upper or "加载" in text or "下载" in text or "通信" in text:
@@ -1927,21 +1960,51 @@ class ProduceDriver:
         ]
         # 事件屏不一定能 OCR 到「快进」（按钮小/灰），「外出」标题 + 多个选项也视为事件屏；
         # 行动选择页同样有「外出」但有「请选择行动」，已被这个条件排除。
-        if (
-            ("快进" in text or "外出" in text)
-            and "请选择行动" not in text
-            and len(option_rows) >= 2
-        ):
-            if self.event_pending_y is not None:
-                y = self.event_pending_y
-                self.event_pending_y = None
-                self._click(agent, (360, y))
-                return TickResult("event-choice", "confirm")
-            target = max(option_rows, key=lambda line: self.center(line)[1])
-            y = self.center(target)[1]
+        # 2026-11-21 真机 ep-t1-g：外出/授课 二选一的行动页里没有「请选择行动」，
+        # 只有描述框「根据选项会发生各种效果／主要为消耗P点数来回复体力」——
+        # 这行 tooltip 被当成事件选项 → 每步点空，外出永远执行不了，10+ 周原地循环。
+        # 2026-11-21 真机 ep-t1-h：事件屏的标题「外出」和「快进」OCR 都会漏读，
+        # 只剩选项行 → 事件屏被当成 result-tap/gain（选项里的 P-100 命中飘字正则），
+        # 点屏幕中央 10 步不动停机。所以标题读不到时，用选项行 + 负 P 费/对话标点兜底。
+        action_page_hint = any(word in text for word in ("授课", "咨询", "训练", "休息"))
+        p_cost = re.search(r"[-－−]\s*\d{2,3}", text) is not None
+        dialogue = any(mark in text for mark in ("……", "…", "？", "?"))
+        event_choice = (
+            "请选择行动" not in text
+            and not action_page_hint
+            and "根据选项会发生各种效果" not in text
+            and ("快进" in text or "外出" in text or p_cost or dialogue)
+        )
+        # 上一帧已经点过选项 → 本帧是「确认选择」的第二次点击。
+        # 注意：选中态那一帧的选项文字常被读成 1 个字（len 过滤后 option_rows=0），
+        # 不能用 option_rows 判断，只看「还像事件选择屏」的弱特征（P 费/快进/外出/对话）。
+        if self.event_pending_y is not None and event_choice:
+            y = self.event_pending_y
+            self.event_pending_y = None
+            self._click(agent, (360, y))
+            return TickResult("event-choice", "confirm")
+        if event_choice and (len(option_rows) >= 2 or (p_cost and len(option_rows) >= 1)):
+            if len(option_rows) >= 2:
+                target = max(option_rows, key=lambda line: self.center(line)[1])
+                y = self.center(target)[1]
+                detail = ""
+            else:
+                # 选项按钮文字 OCR 只剩 1 个字（日文浅底按钮很容易读残）：
+                # 用右侧「P -100 / P -50」费用标签定位，最后一个带费用标签的选项
+                # 下方 ~138px 就是无费用的那个选项（默认高亮、通常是免费项）。
+                cost_rows = [
+                    line
+                    for line in lines
+                    if re.fullmatch(r"\s*[-－−]\s*\d{2,3}\s*", (line.text or "").strip())
+                ]
+                if cost_rows:
+                    y = self.center(max(cost_rows, key=lambda line: self.center(line)[1]))[1] + 138
+                else:
+                    y = 905
+                detail = f"选项行 OCR 只有 {len(option_rows)} 条，用 P 费标签兜底"
             self.event_pending_y = y
             self._click(agent, (360, y))
-            return TickResult("event-choice", "last-row")
+            return TickResult("event-choice", "last-row", detail=detail)
 
         # 5) 培养主界面：选择行动（三训练 / 授课+活动奖励 / 外出+咨询 / 休息）
         # 必须排在通用「+N 飘字」之前：行动页常驻 +12.9% 之类的属性数字
@@ -2122,7 +2185,10 @@ class ProduceDriver:
                     # 「推荐」标签在卡牌下缘，点它选不中卡；向上 60px 点到卡身
                     self._click(agent, (cx, max(60, cy - 60)))
                 else:
-                    self._click(agent, (240, 960))  # 三选一的第一张（卡身中心）
+                    # 三选一的第一张：点**卡面美术中心**。真机 ep-t1-f 用 (240,960)
+                    # （卡框下缘/费用徽章附近）时点不中，领取按钮一直是灰的 → 10 步死循环；
+                    # 实测 (230,918)（卡面中心）一点就选中、领取点亮。
+                    self._click(agent, (230, 918))
             # 选卡后「领取」按钮要等一小段才点亮，直接连点会点空 → 反复重进本分支
             self.sleep(0.6)
             claim = self.find(lines, "领取")

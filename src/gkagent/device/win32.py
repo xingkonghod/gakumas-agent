@@ -142,6 +142,17 @@ class Win32Device:
     def click(self, x: int, y: int, delay: float = 0.35, respect_user: bool = True) -> bool:
         """点击：默认 SendMessageWithCursorPos（后台消息，光标短暂移到目标再还原）。
 
+        坐标约定：**直接传 720x1280 设计坐标，不要预缩放**。
+        ``Win32Controller.post_click`` 的坐标系是截图/识别坐标系（720x1280），
+        原生代码内部会按窗口客户区大小换算到客户区像素/屏幕像素再发送
+        （实测：post_click(360,1090) 会把光标移到客户区 (270,819) = 360*540/720）。
+
+        2026-11-21 真机踩坑（TROUBLESHOOTING 2.1 的复发变种）：窗口客户区是
+        540x960 时，这里曾把设计坐标**先**缩放成客户区像素再交给 controller，
+        被原生代码**再**缩放一次（0.75×0.75），点击实际落在设计坐标 ×0.75 处
+        ——主页点「プロデュース」全落空、bot 连点 60 步画面不动。7e58b4b 的
+        预缩放是误诊（当时窗口尺寸/坐标空间没对齐），现已撤销。
+
         ``respect_user``：用户正在用键鼠时不点（等待最多 ~1.2s 后返回 False）。
         返回是否真的点下去了。
         """
@@ -151,14 +162,6 @@ class Win32Device:
                 if time.monotonic() >= deadline:
                     return False
                 time.sleep(0.12)
-        # 设计坐标是 720x1280，但游戏窗口可能被缩放到更小（例如 540x960）。
-        # 之前直接把设计坐标当窗口像素发给 controller，点击全部落空。
-        rect = wintypes.RECT()
-        USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
-        cw, ch = rect.right, rect.bottom
-        if cw > 0 and ch > 0 and (cw != 720 or ch != 1280):
-            x = round(int(x) * cw / 720.0)
-            y = round(int(y) * ch / 1280.0)
         self.controller.post_click(int(x), int(y)).wait()
         if delay:
             time.sleep(delay)
@@ -188,7 +191,14 @@ class Win32Device:
             time.sleep(delay)
 
     def click_raw(self, x: int, y: int, delay: float = 0.4) -> None:
-        """旧的自算坐标点击（调试用）：短暂聚焦+移动光标，点完恢复光标位置。"""
+        """真实鼠标点击（Seize 等价）：设计坐标 → 客户区像素 → 屏幕坐标，自己算。
+
+        和 ``click`` 的区别：这里绕过 MaaFramework，直接用 SetCursorPos + mouse_event
+        发真实输入，所以**必须自己把 720x1280 设计坐标缩放到客户区像素**（这一步对
+        原生 post_click 是多余的，对真实鼠标输入是必需的）。用于 SendMessage 点击
+        不生效的兜底（例如某些需要真实输入状态的界面），会短暂抢前台/移动光标，
+        点完恢复光标位置。
+        """
         rect = wintypes.RECT()
         USER32.GetClientRect(self.hwnd, ctypes.byref(rect))
         cw, ch = rect.right, rect.bottom

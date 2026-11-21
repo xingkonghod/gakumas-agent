@@ -161,6 +161,9 @@ class LessonPolicy:
         self._plan_hand: list[str] = []
         self._plan_played: list[str] = []
         self._plan_reverse: dict[tuple[str, int], str] = {}
+        # 决策可观测性（真机日志用）：最近一次决策用的引擎 / 搜索回退原因
+        self.last_decision: dict[str, Any] = {}
+        self.last_fallback_reason = ""
         if draw_plan is not None:
             self.attach_draw_plan(draw_plan)
 
@@ -349,20 +352,41 @@ class LessonPolicy:
 
         挂了 ``draw_plan``（``ExamDrawPlan``）时先把当前手牌喂给计划：新回合做一次
         牌序核对，核对通过后搜索用 ``known_draw`` / ``discard_order``（完全信息）。
+
+        决策可观测性：每次返回前把「实际用哪个引擎、搜索为什么退回规则」记到
+        ``last_decision`` / ``last_fallback_reason``，真机日志用 :meth:`decision_note`
+        打出来，避免"到底是不是 rule 在打"说不清。
         """
+        self.last_fallback_reason = ""
         self._sync_turn(state.turns_left)
         self._sync_exam_plan(state)
         rules_action = self._decide_rules(state, allow_skip=allow_skip)
+        action = rules_action
         if self.engine == "expectimax":
             override = self._try_expectimax(state, allow_skip=allow_skip)
-            return override if override is not None else rules_action
-        if self.engine == "beam":
+            action = override if override is not None else rules_action
+        elif self.engine == "beam":
             override = self._try_beam(state, allow_skip=allow_skip)
-            return override if override is not None else rules_action
-        if self.engine == "uinet":
+            action = override if override is not None else rules_action
+        elif self.engine == "uinet":
             override = self._try_uinet(state, allow_skip=allow_skip)
-            return override if override is not None else rules_action
-        return rules_action
+            action = override if override is not None else rules_action
+        if action is rules_action and self.engine != "rules" and not self.last_fallback_reason:
+            self.last_fallback_reason = "搜索未产出动作，退回规则"
+        self.last_decision = {
+            "engine": self.engine,
+            "kind": action.kind,
+            "reason": action.reason,
+            "fallback": self.last_fallback_reason,
+        }
+        return action
+
+    def decision_note(self) -> str:
+        """最近一次决策的紧凑说明（真机日志用）：``eng=expectimax fallback=…``。"""
+        info = self.last_decision or {}
+        engine = str(info.get("engine") or self.engine)
+        fallback = str(info.get("fallback") or "")
+        return f"eng={engine}" + (f" fallback={fallback}" if fallback else "")
 
     def _decide_rules(
         self, state: LessonState, *, allow_skip: bool = True
@@ -547,12 +571,15 @@ class LessonPolicy:
         from gkagent.sim.play_choice import specs_from_hand
 
         if not state.cards:
+            self.last_fallback_reason = "手牌为空"
             return None
         stamina = state.stamina
         if stamina is None:
+            self.last_fallback_reason = "体力未知"
             return None
         turns_left = state.turns_left
         if turns_left is None or turns_left <= 0:
+            self.last_fallback_reason = "剩余回合未知"
             return None
         gauge = state.gauge
         # 用户要求：禁用规则回退。读不到 CLEAR 基准时用经验默认值（250），
@@ -561,6 +588,7 @@ class LessonPolicy:
             gauge = int(self.params.get("default_clear_gauge") or 250)
         play_cards = specs_from_hand(state.cards, table=self._card_table())
         if not play_cards:
+            self.last_fallback_reason = "手牌无法转成卡表规格"
             return None
         perfect = math.ceil(
             float(gauge) * float(self.params["perfect_target_multiplier"])
@@ -682,7 +710,9 @@ class LessonPolicy:
                 reason=reason,
                 expected=result.utility,
             )
-        except Exception:  # noqa: BLE001 - 搜索绝不能让出牌退化
+        except Exception as exc:  # noqa: BLE001 - 搜索绝不能让出牌退化
+            self.last_fallback_reason = f"expectimax 异常: {exc!r}"
+            logging.getLogger(__name__).warning("expectimax 失败，退回规则：%s", exc)
             return None
 
     def _try_beam(self, state: LessonState, *, allow_skip: bool) -> LessonAction | None:
@@ -698,6 +728,7 @@ class LessonPolicy:
                 return None
             sim_state, play_cards, reshuffle = prepared
             if not sim_state.known_draw:
+                self.last_fallback_reason = "beam 无 known_draw，退回回合内 expectimax"
                 return self._try_expectimax(state, allow_skip=allow_skip)
             from gkagent.sim.expectimax import search_beam
 
@@ -724,7 +755,9 @@ class LessonPolicy:
                 reason=reason,
                 expected=result.utility,
             )
-        except Exception:  # noqa: BLE001 - 搜索绝不能让出牌退化
+        except Exception as exc:  # noqa: BLE001 - 搜索绝不能让出牌退化
+            self.last_fallback_reason = f"beam 异常: {exc!r}"
+            logging.getLogger(__name__).warning("beam 失败，退回规则：%s", exc)
             return None
 
     def _try_uinet(
@@ -791,7 +824,9 @@ class LessonPolicy:
                 )
             # 饮料等真机还没有对应操作：退回规则。
             return None
-        except Exception:  # noqa: BLE001 - 神经网络绝不能让出牌退化
+        except Exception as exc:  # noqa: BLE001 - 神经网络绝不能让出牌退化
+            self.last_fallback_reason = f"uinet 异常: {exc!r}"
+            logging.getLogger(__name__).warning("uinet 失败，退回规则：%s", exc)
             return None
 
     def _card_table(self):

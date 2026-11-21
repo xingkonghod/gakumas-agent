@@ -155,3 +155,60 @@ def test_expectimax_skip_falls_back_when_skip_forbidden(
     # 考试模式（allow_skip=False）：退回规则，绝不 SKIP
     action = policy.decide(state, allow_skip=False)
     assert action.kind in {"card", "wait"}
+
+
+# ---------------------------------------------------------------- 决策可观测性
+
+
+def test_decision_note_reports_engine(monkeypatch, tmp_path: Path) -> None:
+    def fake(state, *args, **kwargs):
+        return ExpectimaxResult(
+            card=state.hand[0],
+            utility=0.9,
+            skip_utility=0.5,
+            actions=(),
+            nodes=3,
+            elapsed_ms=1.0,
+            complete=True,
+        )
+
+    monkeypatch.setattr(
+        "gkagent.sim.expectimax.expectimax_with_stats", fake, raising=True
+    )
+    policy = _policy(tmp_path, engine="expectimax")
+    policy.decide(_state())
+    note = policy.decision_note()
+    assert "eng=expectimax" in note
+    assert "fallback=" not in note
+    assert policy.last_decision["engine"] == "expectimax"
+
+
+def test_decision_note_reports_search_failure(monkeypatch, tmp_path: Path) -> None:
+    def boom(*args, **kwargs):
+        raise RuntimeError("sim exploded")
+
+    monkeypatch.setattr(
+        "gkagent.sim.expectimax.expectimax_with_stats", boom, raising=True
+    )
+    policy = _policy(tmp_path, engine="expectimax")
+    action = policy.decide(_state())
+    # 搜索异常不能影响出牌，但要能看出「这手其实是规则打的」
+    assert action.kind == "card"
+    note = policy.decision_note()
+    assert "eng=expectimax" in note
+    assert "fallback=" in note and "异常" in note
+
+
+def test_decision_note_reports_missing_state(tmp_path: Path) -> None:
+    """体力读不到 → 搜索用不了，decision_note 里必须写明原因。"""
+    policy = _policy(tmp_path, engine="expectimax")
+    action = policy.decide(_state(stamina=None))
+    assert action.kind in {"card", "wait"}
+    note = policy.decision_note()
+    assert "fallback=体力未知" in note
+
+
+def test_decision_note_rules_engine(tmp_path: Path) -> None:
+    policy = _policy(tmp_path)
+    policy.decide(_state())
+    assert policy.decision_note() == "eng=rules"
