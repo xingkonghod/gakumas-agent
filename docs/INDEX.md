@@ -4,6 +4,9 @@
 > 「读 `docs/INDEX.md`，然后按里面的清单继续做」
 >
 > 本文件只做**导航**，不写内容。具体内容在各专题文档里。
+>
+> **要动手做事，先看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（交接清单：补什么 · 做什么 · 每个任务的验收标准）。
+> 只想了解现状看 [HANDOVER.md](HANDOVER.md)，想知道还差什么/下一步做什么看 HANDOVER_NEXT。
 
 ---
 
@@ -13,19 +16,22 @@
 
 | 顺序 | 文档 | 读什么 |
 |---|---|---|
-| 1 | [HANDOVER.md](HANDOVER.md) | 现状 + 下一步（**先读这个**）|
+| 0 | [HANDOVER_NEXT.md](HANDOVER_NEXT.md) | **补什么 · 做什么 · 任务验收**（行动型交接，先看这个）|
+| 1 | [HANDOVER.md](HANDOVER.md) | 现状 + 已完成什么（二·补五）|
 | 2 | [MASTER_DATA.md](MASTER_DATA.md) | 主数据库怎么建的、seed 字段在哪 |
 | 3 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md) | 社区怎么反推 seed 的（信息论口径）|
 | 4 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 采集链路的坑（改之前必看）|
+| 5 | [EXPECTIMAX.md](EXPECTIMAX.md) | 搜索/全知牌序/beam 与已知限制 |
 
-### 想修 bot（出牌/点击/卡死）
+### 想继续做「自动化 bot 跑完整局 / 真机 A/B」
 
 | 顺序 | 文档 | 读什么 |
 |---|---|---|
-| 1 | [HANDOVER.md](HANDOVER.md) | 当前 bot 状态 |
-| 2 | [FAILURES.md](FAILURES.md) | **真机失败记录**（现象→根因→修复→教训）|
-| 3 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 屏幕识别/点击类的坑 |
-| 4 | [LIVE_CHECK.md](LIVE_CHECK.md) | 真机检查清单 |
+| 0 | [HANDOVER_NEXT.md](HANDOVER_NEXT.md) | 任务 T1/T2/T3（跑完整局 → 实时打通 → A/B）|
+| 1 | [LIVE_RUN.md](LIVE_RUN.md) | **真机跑局操作手册**（自检清单、起跑、跑完三件事）|
+| 2 | [FAILURES.md](FAILURES.md) | 真机失败记录（现象→根因→修复→教训）|
+| 3 | [RUNS.md](RUNS.md) | 历史跑局与成绩对照（bot 最好 C+/5992，手动 A/10237）|
+| 4 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 屏幕识别/点击类的坑 |
 
 ### 想改模拟器 / 评价公式
 
@@ -60,7 +66,8 @@
 | 文档 | 一句话 |
 |---|---|
 | **INDEX.md** | 本文件，导航 |
-| **HANDOVER.md** | 项目现状 + 下一步 + 路径速查 + 坑 |
+| **HANDOVER_NEXT.md** | **交接清单：补什么 · 做什么 · 每个任务的验收（行动型，先看）** |
+| **HANDOVER.md** | 项目现状 + 已完成什么 + 路径速查 + 坑 |
 | **TROUBLESHOOTING.md** | 踩坑记录（采集 9 项 / bot 7 项 / 方法论 4 项）|
 | **FAILURES.md** | 真机失败记录（现象→根因→修复→教训）|
 | **CAPTURE_PIPELINE.md** | 采集链路：结构、配置、四个坑、已采数据 |

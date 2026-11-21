@@ -1,7 +1,8 @@
 # 项目交接（2026-11-21 深夜更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
-> 本文只写：现状 + 下一步 + 路径速查 + 注意事项。
+> **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
+> 本文只写：现状 + 已完成什么 + 路径速查 + 注意事项。
 
 ## 一、这个项目在做什么
 
@@ -227,7 +228,7 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 `out/exam_setup.json`（可在考试期间重新生成），进入考试时从 traffic.jsonl 取「当前这场」seed 还要接线。
 已知限制见 [EXPECTIMAX.md](EXPECTIMAX.md) 末节（考试内生成卡 / 同局多次重洗 / 离线回放出牌与实机不同）。
 
-**下一会话从这里继续**：
+**下一会话从这里继续**（完整任务表 / 验收标准见 **[HANDOVER_NEXT.md](HANDOVER_NEXT.md)**）：
 ```powershell
 # 1) 先重建数据 + 端到端核对（依赖 C:\GakumasLocal 的采集文件）
 .venv\Scripts\python.exe scripts\build_exam_setup.py
@@ -262,6 +263,9 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 ---
 
 ## 四、下一步（按优先级）
+
+> **任务拆分、验收标准、依赖顺序见 [HANDOVER_NEXT.md](HANDOVER_NEXT.md) §4**（T1 → T3 → T2 → T4 …）。
+> 本节只记"大方向 + 已经完成的项"。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
