@@ -79,35 +79,38 @@ f6b99c0  外出事件屏识别（不再只靠「快进」按钮）
 
 ---
 
-## 二·补、11-21 进展（牌堆字段定位 + 重建）
+## 二·补、11-21 进展（牌堆定位 + 期中洗牌破解）
 
 ```
 ✅ 牌堆字段定位：UserData.userProduceProgressProduceCardList = 309641228
-   （之前找的 230550472 是图鉴、256246388 是支援卡，都不是牌堆）
+   （230550472 是图鉴、256246388 是支援卡，都不是牌堆）
    元素 UserProduceProgressProduceCard: number=2 / produceCardId=3 / upgradeCount=4 / deleted=6
 ✅ 更新语义：Produce/Start、User/Get = 全量快照；步骤响应 = 按 number 增量 upsert
 ✅ 重建并交叉验证：期中 18 张、期末 26 张（27−删 1），与 User/Get 快照逐张吻合
 ✅ ground truth：ExamTurnEndLog.field50 = 每回合开始手牌（=当回合抽的 3 张），field100 = 打出卡
-   期中前 6 回合手牌拼接 = 完整 18 张牌序（强约束，可供 seed 枚举剪枝）
-⚠️ 洗牌重放未对上：examSeedValue 直接 xorshift32 不行；穷举 RNG 偏移 k=0..40 ×
-   输入排序(Number/id 升降) × FY 正反变体 × 输出正逆序 均不匹配（逆推输入序呈随机）
-   → examSeedValue 未必直接是洗牌种子，或洗牌前另有消耗/输入序非自然排序
+✅ 期中洗牌精确破解（18/18）：
+     xorshift32(examSeedValue) 先 advance 51 次 → Fisher-Yates 倒序洗「Number 升序」牌堆
+     → 每回合从牌堆顶抽 3 张。seed=0x504C4509，整段精确 18/18、回合集合 6/6
+⚠️ 期末异常（TROUBLESHOOTING 3.6）：牌堆多重集正确，但 k=0..2000 × 输入序 × 种子变换
+     都复现不出（集合口径最好 1/8）。期中→期末牌堆经历「删1+加9+强化2」，疑为跨考试顺序差异
 ```
 
-**新工具**（都在 scripts/，ruff 通过）：
+**新工具**（scripts/，ruff 通过）：
 ```
 dig_deck.py            按 dump.cs 字段号标注解析任意响应（--tree 全树）
 scan_deck_updates.py   扫描图鉴字段 230550472（对照用）
 reconstruct_deck.py    重建考试时刻牌堆 → out/deck_snapshots.json
 decode_exam_actions.py 逐回合手牌/出牌/属性 → out/exam_truth.json（--json）
-verify_shuffle.py      洗牌重放验证 harness（当前不匹配，待种子逻辑）
+verify_shuffle.py      洗牌重放验证：期中 ✅ k=51 18/18，期末自动报异常
 ```
 
-**下一会话从这里继续**：先读 MASTER_DATA.md 附录「考试时刻的牌堆字段已定位」。
-突破口二选一：① frida hook 原生洗牌/种子派生（QQ 群路线，需管理员）；
-② 用快速语言（Rust/C）对 seed 枚举，约束 = 期中 18 张牌序（out/exam_truth.json 前 6 回合手牌拼接），
-输入序先试 Number 升序 + FY 反序（hiro rng.shuffle 同款）。注意期末手牌含支援临时强化（+1/+2），
-对照要用期中（无强化污染）。
+**下一会话从这里继续**（先读 MASTER_DATA.md 附录「洗牌重放：期中已精确破解」）：
+1. **采一局新考试**（期末或另一局期中），用现有工具跑 `reconstruct_deck.py` + `verify_shuffle.py`，
+   看 K 是否仍为 51。数据一多即可判定：期末异常是局特有，还是 K 随考试结构变化。
+2. 若新样本仍 K=51 → 大概率是牌堆输入序/跨考试演化问题，继续用逆推法查；
+   若 K 变化 → 找 K 与「回合数/牌堆大小/NPC 数」的关系（期中：9 回合/18 张 → K=51）。
+3. 都不通再上 frida hook 原生 Shuffle/种子派生（QQ 群路线，需管理员）。
+注意：期末手牌含支援临时强化（+1/+2），精确对照优先用期中；集合口径对 id 匹配免疫强化。
 
 ---
 
