@@ -23,7 +23,8 @@
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**，但真机跑局时采集没开 → 全知 0 锁定，差实战验收
-        ④ 策略强度：V_leaf 是瓶颈；机制建模缺 P 道具/回忆/附魔/选牌/减益
+        ④ 策略强度：V_leaf 是瓶颈（2026-11-22 已定位：档位效用平手项 + beam 采样分支可 +20，
+           但仍比回合内 expectimax 低 22%；下一步 rollout 叶子）；机制建模缺 P 道具/回忆/附魔/选牌/减益
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
 当前最高优先：T1 重跑整局（禁跳 + 禁回退 rules 验证）→ 开采集 + T3 实战 → T2 真机 A/B → T4 策略强度
 ```
@@ -74,7 +75,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 887 passed, 1 skipped（888 条收集 / 61 个测试文件）
+# ② 全量测试：应为 889 passed, 1 skipped（890 条收集 / 61 个测试文件）
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
 # ③ 采集数据 → 考试牌序：应为 4/4 场、初始段 86/86 张、重洗段 24/24 张
@@ -224,8 +225,21 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 **验收（DoD）**：三局成绩表（考试分 + 评价 + 时长 + `fallback=` 次数）+ 明确结论"哪个引擎值得默认"。
 **预算**：3 局×20 分钟真机 + 30–50k token。
 
-### T4（P1）策略强度：V_leaf + beam 调优 ⬜
+### T4（P1）策略强度：V_leaf + beam 调优 🟡（已定位平手项/采样；主因 μ 不准，下一步 rollout 叶子）
 **目标**：让"全知 + beam"的离线优势变成分数。当前证据：构造抽牌牌组 beam known−unknown **+44.6**，但真实牌组只有 **+3.0**，因为 leaf 估不准（[EXPECTIMAX L399-417](EXPECTIMAX.md#L399)）。
+
+**2026-11-22 凌晨已做（实验，默认关闭，生产不变）**
+- 诊断：真实小牌组上 beam 91.3 vs 回合内 expectimax 143.1——档位效用封顶 2.0 导致大量平手，
+  搜索平手 tie-break 优先存体力/出牌位；σ 扫描无影响，beam `branching` 有影响。
+- 加了 `AnalyticLeafValue.score_tiebreak`（默认 0）破平手 + `eval_known_draw.py` 的
+  `--score-tiebreak` / `--branching`；配对 60 局：beam **+14.3**（CI [7.9,20.6]）→ 再加
+  branching=10 共 **+19.9**（CI [12.8,27.1]），within 基本不变（+0.3）。
+- **但 beam 仍比 within 低 22.3%（111.2 vs 143.1），T4 决策门未达成**；生产默认仍 expectimax/leaf tiebreak=0。
+
+**下一步（按性价比）**
+1. **rollout 叶子估值**：叶子用 `LessonSim`/greedy 快跑剩余回合取均值，替代解析式 μ（优先，比线性特征靠谱）；
+2. 继续扫 `eval_expectimax.py --sweep` 的 beam 宽度 + 新 `--branching`；draw 场景跑 `--full-info` 看全知增益；
+3. 决策门不变：真实牌组 beam 显著优于 expectimax（P50 提升 + 不回退）再进真机。
 
 **步骤**
 1. 先读 [EXPECTIMAX.md L329-377](EXPECTIMAX.md#L262) 里两次 learned leaf 失败的教训（搜索/模拟器不同源、权重塌缩）。
@@ -354,7 +368,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md，然后照 docs/HANDOVER_NEXT.md §2 跑四条基线命令（期望：洗牌 4/4、
-pytest 887 passed（1 skipped，888 条收集）、exam_setup 4/4 场 86/86 张、wiring 36/36 手牌 + 3/3 重洗）。
+pytest 889 passed（1 skipped，890 条收集）、exam_setup 4/4 场 86/86 张、wiring 36/36 手牌 + 3/3 重洗）。
 基线绿后按 §4 任务表从最高优先的 ⬜ 开始（建议 T1 → T3 → T2 → T4），一次只做一个任务。
 硬规矩：SKIP 只在真没体力时允许；bot 不许回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局必须 --ignore-user。

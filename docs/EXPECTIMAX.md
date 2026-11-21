@@ -507,3 +507,47 @@ policy.json  {"lesson": {"engine": "beam", "beam_width": 4, "beam_deadline_ms": 
 - 同一局两次弃牌重洗时，`oracle.reshuffle` 用同一个 RNG 快照（第二次起可能偏）；现有四场最多重洗一次。
 - 考试内生成的卡（重洗/抽牌效果产生）不在 oracle 牌堆里：出现即核对失败 → 停用（安全）。
 
+## T4 起点：档位效用封顶的平手项（2026-11-22 凌晨，实验）
+
+T4 目标是让「全知 + beam」的离线优势变成分数，决策门是真实牌组上 beam 显著优于回合内
+expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170）诊断 beam 为什么
+还不如回合内搜索（87.9 vs 144）。
+
+### 诊断
+- 解析档位效用 `a·P(CLEAR) + b·P(PERFECT)` **封顶 2.0**：深搜里大量「稳过」分支打成
+  平手；平手时搜索的 `_action_tiebreak` 优先保留出牌位/体力（= 存资源），beam 的 plan 排序
+  在平手时退化成枚举顺序 → 实测偏好"少打牌/存体力"。
+- 单独扫 σ（10~80）对 within/beam 决策完全无影响；beam 的 `branching` 从 3 提到 6/10
+  有明显提升 → 抽样噪声也是原因之一。
+
+### 改动（默认关闭，生产行为不变）
+- `AnalyticLeafValue.score_tiebreak`（默认 0）：>0 时在档位效用上加极小的
+  `预测总分 / PERFECT 线` 项，给平手一个「分数/进度」排序；默认 0 逐位保持历史行为。
+- `scripts/eval_known_draw.py` 新增 `--score-tiebreak` / `--branching` 供配对评测。
+
+### 配对评测（small、beam、unknown、60 局同 seed、budget 200ms）
+
+| 策略 | 均值 | P50 | CLEAR | PERFECT |
+|---|---:|---:|---:|---:|
+| 回合内 expectimax（within） | 143.1 | 145 | 83.3% | 13.3% |
+| within + tiebreak=1e-3 | 143.4 | 145 | 83.3% | 13.3% |
+| beam（width 4，默认） | 91.3 | 85 | 28.3% | 0% |
+| beam + tiebreak=1e-3 | 105.5 | 104 | 28.3% | 0% |
+| beam + tiebreak + branching=10 | **111.2** | 111 | 36.7% | 3.3% |
+
+- 配对差（同 seed）：beam+tiebreak vs beam **+14.3（95% CI [+7.9, +20.6]）**；
+  再加 branching=10 **+19.9（CI [+12.8, +27.1]）**；within+tiebreak vs within
+  +0.3（CI [−0.0, +0.6]），基本无副作用。
+- **但 beam 最好仍比 within 低 22.3%**：T4 DoD 未达成，`score_tiebreak` 保持默认 0，
+  生产不切 beam 默认。
+
+### 结论与下一步
+1. 平手项证明「效用封顶导致 SKIP 偏置」是真因之一，但**主因仍是 V_leaf 的 μ 不准**：
+   beam 的深层 V 让"存体力"看起来比"现在打大牌"更值钱，实际 5 回合内体力/回合约束下不成立。
+2. 下一步优先做 **rollout 叶子估值**（叶子用 `LessonSim`/greedy 快跑剩余回合取均值，替代解析式）；
+   三次 learned 线性 V 失败说明"线性特征+回归"这条路不通。
+3. beam 抽样分支配套：`branching=10` 有显著收益，继续加宽收益饱和（width 8/16/32 试验约 101~112）。
+4. 仍按 T4 决策门：真实牌组 beam 显著优于 expectimax 之前，不改生产默认。
+
+命令：`python scripts/eval_known_draw.py --games 60 --scenario small --policy beam --score-tiebreak 0.001 --branching 10`
+

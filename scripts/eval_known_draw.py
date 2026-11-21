@@ -128,13 +128,17 @@ def play(
     budget_ms: float = 200.0,
     sigma: float = 60.0,
     width: int = 4,
+    score_tiebreak: float = 0.0,
+    branching: int | None = None,
 ) -> dict:
     """跑一局课程，返回分数与统计（fallback = 搜索给的牌在模拟器里执行不了）。
 
     ``full_info``：弃牌堆顺序 + ``reshuffle_from_sim`` 钩子，重洗后段也全知。
+    ``score_tiebreak``：档位效用封顶导致的平手项（0=历史行为）；``branching``：
+    beam 每层抽样分支数（None=默认 max(2, min(width, 3))）。
     """
     sim = LessonSim(deck, config, rng_seed=seed)
-    model = AnalyticLeafValue(sigma=sigma)
+    model = AnalyticLeafValue(sigma=sigma, score_tiebreak=score_tiebreak)
     fallbacks = 0
     decisions = 0
     while not sim.done:
@@ -154,6 +158,7 @@ def play(
             model,
             width=width,
             deadline_ms=budget_ms * 2,
+            branching=branching,
             # 每次决策都从 sim.rng 当前状态取快照（重洗前的 RNG 状态）
             reshuffle=reshuffle_from_sim(sim) if full_info else None,
         )
@@ -214,6 +219,21 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--budget-ms", type=float, default=200.0)
     parser.add_argument("--width", type=int, default=4)
     parser.add_argument(
+        "--score-tiebreak",
+        type=float,
+        default=0.0,
+        help=(
+            "档位效用封顶的平手项（0=历史行为）。2026-11-21 T4 实验：小牌组 beam "
+            "unknown 87.9 → 100.2（tiebreak=1e-3），仍低于回合内 expectimax。"
+        ),
+    )
+    parser.add_argument(
+        "--branching",
+        type=int,
+        default=0,
+        help="beam 每层抽样分支数（0=默认 max(2, min(width, 3))；实验 6~10 提升明显）",
+    )
+    parser.add_argument(
         "--full-info",
         action="store_true",
         help="额外跑 full（known_draw + discard_order + reshuffle 钩子，重洗后段全知）",
@@ -227,7 +247,8 @@ def main(argv: list[str]) -> int:
     print(
         f"scenario={args.scenario} deck={len(deck)} turns={config.turns} "
         f"policy={args.policy} games={args.games} budget={args.budget_ms:.0f}ms "
-        f"width={args.width} full_info={args.full_info}"
+        f"width={args.width} full_info={args.full_info} "
+        f"score_tiebreak={args.score_tiebreak:g} branching={args.branching or '默认'}"
     )
     rows = {kind: [] for kind in kinds}
     for offset in range(args.games):
@@ -243,6 +264,8 @@ def main(argv: list[str]) -> int:
                     full_info=kind == "full",
                     budget_ms=args.budget_ms,
                     width=args.width,
+                    score_tiebreak=args.score_tiebreak,
+                    branching=args.branching or None,
                 )
             )
 

@@ -387,6 +387,21 @@ class AnalyticLeafValue:
     a_clear: float = 1.0
     a_perfect: float = 1.0
     condition_multiplier: float = 1.5
+    # 档位效用是**封顶**的（P(CLEAR)+P(PERFECT) ≤ 2）：深搜里大量"稳过"分支会打成
+    # 平手，beam 的 plan 排序在平手时退化成枚举顺序，实测会偏好少打牌/存体力
+    # （2026-11-21 T4 实验：小牌组 beam 87.9 → 加 tie-break 100.2）。
+    # >0 时在效用上加一个极小的「预测总分」项，让平手按分数/进度排开；
+    # 默认 0 = 历史行为完全不变（生产仍用 0，等配对评测达标再开）。
+    score_tiebreak: float = 0.0
+
+    def _tiebreak_bonus(self, projected: float, state: ExpectState) -> float:
+        """平手用的极小分数项（无量纲：预测总分 / PERFECT 线）。"""
+        if self.score_tiebreak <= 0.0:
+            return 0.0
+        scale = float(state.perfect if state.perfect > 0 else state.clear)
+        if scale <= 0.0:
+            return 0.0
+        return float(self.score_tiebreak) * projected / scale
 
     # ------------------------------------------------------------- 特征
     def mean_card_score(self, state: ExpectState) -> float:
@@ -456,15 +471,17 @@ class AnalyticLeafValue:
         mu, sigma = self.predict(state)
         projected = state.score + mu
         if sigma <= 0:
-            return (
+            base = (
                 self.a_clear * (1.0 if projected >= state.clear else 0.0)
                 + self.a_perfect * (1.0 if projected >= state.perfect else 0.0)
             )
+            return base + self._tiebreak_bonus(projected, state)
         clear_gap = state.clear - state.score
         perfect_gap = state.perfect - state.score
-        return self.a_clear * _phi((mu - clear_gap) / sigma) + self.a_perfect * _phi(
+        base = self.a_clear * _phi((mu - clear_gap) / sigma) + self.a_perfect * _phi(
             (mu - perfect_gap) / sigma
         )
+        return base + self._tiebreak_bonus(projected, state)
 
 
 def expected_tier_utility(

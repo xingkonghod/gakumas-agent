@@ -133,6 +133,9 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 上真机前已在模拟器跑整局 A/B（训练+考试都注入真 LessonPolicy）：3 组种子共 76 局，0 `RuleFallbackBlocked`、
 0 异常、满局 C+ 率 100%，expectimax 与 rules 评价点在噪声内（[SIMULATOR §10](SIMULATOR.md)）；真机侧新增
 `auto_produce --max-minutes 30` 墙钟上限，卡住会写 `episode-timeout` 主动停局（不再卡两个多小时）。
+按用户要求暂不跑真机、先补「我们 vs 别人的差距」：**T4 策略强度**已起步——诊断出档位效用封顶
+导致的 beam 平手/存体力偏置，配对评测 beam +14.3/+19.9（CI 均为正），但仍比回合内 expectimax
+低 22.3%，T4 决策门未达成（生产 leaf 默认不变；下一步 rollout 叶子估值，详见 [EXPECTIMAX](EXPECTIMAX.md)）。
 下一步：真机重开一局初验收"不再乱跳 + 不再退回规则 + 分数不崩"（≤20 分钟、超时会被主动停局）→
 开采集上 T3 全知 → 三引擎真机 A/B。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

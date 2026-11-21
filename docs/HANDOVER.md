@@ -362,6 +362,38 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 
 ---
 
+### 二·补九、11-22 凌晨（T4 起点：V_leaf 平手项 + beam 采样分支）
+
+**背景**：用户要求先补「我们 vs 别人的差距」、暂不跑真机。按 [HANDOVER_NEXT §9](HANDOVER_NEXT.md)，
+差距主要在策略强度（T4 V_leaf）与机制覆盖（T5），先动 T4。
+
+**诊断（真实小牌组 14 张 / 5 回合，CLEAR 120 / PERFECT 170）**
+- beam 明显不如回合内 expectimax（91.3 vs 143.1，60 局同 seed）：解析档位效用封顶 2.0 →
+  深搜里大量「稳过」分支打平 → 搜索的平手 tie-break 优先保留出牌位/体力（存资源）→
+  beam 少打牌、存体力。
+- σ 从 10 扫到 80 对两者决策完全无影响；beam 的抽样分支 `branching` 从 3 提到 10 有明显提升。
+
+**改动（默认关闭，生产行为不变）**
+- `AnalyticLeafValue.score_tiebreak`（默认 0）：>0 时在档位效用上加极小的
+  `预测总分 / PERFECT 线`，给平手一个分数排序；默认 0 逐位保持历史行为。
+- `scripts/eval_known_draw.py` 新增 `--score-tiebreak` / `--branching`。
+
+**配对评测（60 局同 seed）**
+- beam：91.3 → **105.5**（+14.3，95% CI [+7.9, +20.6]）→ **111.2**（再加 branching=10，
+  +19.9，CI [+12.8, +27.1]）；CLEAR 28.3% → 36.7%。
+- within：143.1 → 143.4（+0.3，CI [−0.0, +0.6]，基本无副作用）。
+- **beam 最好仍比 within 低 22.3%**：T4 DoD 未达成，`score_tiebreak` 保持默认 0，生产不默认 beam。
+
+**结论/下一步**：平手项是真因之一，但主因仍是 **V_leaf 的 μ 不准**（存体力被高估）；
+下一步做 **rollout 叶子估值**（叶子用 `LessonSim`/greedy 快跑剩余回合），再按 T4 决策门考核；
+三次 learned 线性 V 失败说明"线性特征+回归"不通。细节见 [EXPECTIMAX.md](EXPECTIMAX.md) 同名小节。
+
+**测试**：`pytest` 全绿（**889 passed / 1 skipped，890 条收集 / 61 文件**）；新增 2 条 leaf tie-break 回归。
+
+**提交**：本次 feat 提交（哈希由后续 docs(handover) 补记）
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

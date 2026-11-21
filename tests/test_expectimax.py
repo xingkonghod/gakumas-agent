@@ -12,6 +12,7 @@ import random
 import pytest
 
 from gkagent.sim.expectimax import (
+    AnalyticLeafValue,
     ExpectState,
     apply_card,
     available_drinks,
@@ -673,4 +674,29 @@ def test_p_item_interface_is_present_but_not_fabricated() -> None:
         rng_seed=0,
     )
     assert plain.p_items == ()
+
+
+# ---------------------------------------------------------------- 档位效用封顶的 tie-break
+def test_score_tiebreak_default_off_keeps_tier_utility() -> None:
+    """默认 score_tiebreak=0：档位效用与历史口径逐位一致（生产行为不变）。"""
+    model = AnalyticLeafValue(sigma=0.0)
+    assert model.score_tiebreak == 0.0
+    below = _state(score=90, clear=100, perfect=200)
+    clear_only = _state(score=150, clear=100, perfect=200)
+    assert model.utility(below) == pytest.approx(0.0)
+    assert model.utility(clear_only) == pytest.approx(1.0)
+
+
+def test_score_tiebreak_breaks_saturated_ties_by_projected_score() -> None:
+    """效用封顶后大量「稳 CLEAR」局面打平；tie-break>0 时按预测总分排开。"""
+    low = _state(score=150, clear=100, perfect=200)
+    high = _state(score=180, clear=100, perfect=200)
+    model = AnalyticLeafValue(sigma=0.0, score_tiebreak=1e-3)
+    assert model.utility(high) > model.utility(low) > 1.0
+    assert model.utility(low) == pytest.approx(1.0 + 1e-3 * 150 / 200)
+    assert model.utility(high) == pytest.approx(1.0 + 1e-3 * 180 / 200)
+    # 主项仍主导：毫秒级 tie-break 不会把「没过 CLEAR」抬到「稳过」之上
+    below = _state(score=50, clear=100, perfect=200)
+    assert model.utility(low) > model.utility(below)
+
 
