@@ -558,6 +558,9 @@ rules / expectimax(ensemble) / uinet
 （2026-11-21 深夜四段）
 09b9358 feat(sim): 上真机前整局引擎 A/B + 考试策略注入 + auto_produce 墙钟上限
 ae86e1c feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
+（2026-11-22 凌晨四段）
+67a1a37 docs(t4): rollout 叶子负结果 + C/4242 整局记录 + 群 MITM 情报更新
+366131a feat(t4): rollout 叶子最小版（ExpectState→LessonSim 快照 + RolloutLeafValue + eval 开关）——实验负结果，默认关闭
 （2026-11-21 深夜三段）
 8a9b5aa docs(handover): 二·补七——真机首局战报(C/4242)+禁跳规则+7类卡点+下一步
 b231b3f fix(policy): 禁跳例外只剩真没体力；费用预览读歪防护（29==体力 视为无效）
