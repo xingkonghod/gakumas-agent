@@ -64,6 +64,22 @@ class CardTable:
         value = row.get("cost")
         return int(value) if isinstance(value, int) else None
 
+    def name_of(self, card_id: str, upgrade: int = 0) -> str | None:
+        """``(ProduceCardId, upgrade)`` → 卡名；查不到返回 None。
+
+        考试牌序（``ExamDrawPlan``）里全是 id/upgrade，把它转成搜索用的
+        ``CardSpec`` 需要先找卡名（卡表按名字索引）。索引懒建一次。
+        """
+        index = getattr(self, "_reverse_index", None)
+        if index is None:
+            index = {}
+            for name, row in self._cards.items():
+                row_id = row.get("id")
+                if isinstance(row_id, str) and row_id:
+                    index.setdefault((row_id, int(row.get("upgrade") or 0)), name)
+            self._reverse_index = index
+        return index.get((str(card_id), int(upgrade)))
+
     def meta(self, name: str) -> CardMeta | None:
         row = self.get(name)
         if row is None:

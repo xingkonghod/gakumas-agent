@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -50,7 +51,7 @@ DEFAULT_POLICY_PATH = Path(__file__).resolve().parents[3] / "data" / "knowledge"
 _ALLOWED_VALUES: dict[str, frozenset[str]] = {
     "unknown_score_fallback": frozenset({"cheapest", "skip"}),
     "plan": frozenset(VALID_PLANS),
-    "engine": frozenset({"rules", "expectimax", "uinet"}),
+    "engine": frozenset({"rules", "expectimax", "uinet", "beam"}),
 }
 
 
@@ -105,12 +106,16 @@ class LessonPolicy:
         # 目标函数按 PERFECT 而不是 CLEAR：没到线就不收手（真机 CLEAR 只拿半档属性）。
         "perfect_target_multiplier": 2.0,
         # 出牌引擎：rules=固定优先级规则（默认，行为不变）；expectimax=回合内搜索；
-        # uinet=GKMSUINet 神经网络（ONNX，UIObs v1）。后两者异常/状态不完整/
-        # 模型缺失时都自动退回 rules。
+        # uinet=GKMSUINet 神经网络（ONNX，UIObs v1）；beam=跨回合 beam 规划
+        # （需要 ExamDrawPlan 给 known_draw 才有意义，没有全知数据时退回回合内搜索）。
+        # 后几者异常/状态不完整/模型缺失时都自动退回 rules。
         "engine": "rules",
         # expectimax 的 anytime 预算与 V_leaf σ；规则模式不读。
         "expectimax_budget_ms": 800.0,
         "expectimax_sigma": 80.0,
+        # beam（跨回合规划）：宽度 + 单次决策预算（本地评测均值 ~100ms/回合）。
+        "beam_width": 4,
+        "beam_deadline_ms": 250.0,
     }
 
     def __init__(
@@ -124,6 +129,7 @@ class LessonPolicy:
         params: dict | None = None,
         params_path: str | Path | None = None,
         engine: str | None = None,
+        draw_plan=None,
     ) -> None:
         self.buffs = buffs or BuffLibrary.load()
         self.plans = plans or default_plan_library()
@@ -148,6 +154,15 @@ class LessonPolicy:
         # 「手牌整体换了一批」两个信号兜底重置，避免计数器卡死导致满体力一直 SKIP。
         self._await_turn_reset = False
         self._last_hand_sig: tuple[str, ...] = ()
+        # 考试牌序计划（可空）：给了就把 known_draw / discard_order / 重洗钩子
+        # 喂进搜索（见 gkagent.sim.exam_plan.ExamDrawPlan）。
+        self.draw_plan = None
+        self._plan_turn_key: tuple[int | None, int | None] | None = None
+        self._plan_hand: list[str] = []
+        self._plan_played: list[str] = []
+        self._plan_reverse: dict[tuple[str, int], str] = {}
+        if draw_plan is not None:
+            self.attach_draw_plan(draw_plan)
 
     # ------------------------------------------------------------------ 参数
     @property
@@ -180,8 +195,27 @@ class LessonPolicy:
 
     @property
     def engine(self) -> str:
-        """当前出牌引擎：``rules``（默认）/ ``expectimax`` / ``uinet``。"""
+        """当前出牌引擎：``rules``（默认）/ ``expectimax`` / ``uinet`` / ``beam``。"""
         return str(self.params.get("engine") or "rules")
+
+    def attach_draw_plan(self, plan) -> None:
+        """挂上考试牌序计划（``gkagent.sim.exam_plan.ExamDrawPlan`` 或 None）。
+
+        计划激活时，``expectimax`` / ``beam`` 会把 ``known_draw`` / ``discard_order``
+        与确定性重洗钩子并进搜索；计划没激活（没采到数据 / 核对失败）时行为不变。
+        """
+        self.draw_plan = plan
+        self._plan_turn_key = None
+        self._plan_hand = []
+        self._plan_played = []
+        if plan is not None:
+            start = getattr(plan, "start", None)
+            if callable(start):
+                try:
+                    start()
+                except Exception as exc:  # noqa: BLE001 - 计划起不来就当没有
+                    logging.getLogger(__name__).warning("考试牌序计划启动失败：%s", exc)
+                    self.draw_plan = None
 
     @property
     def min_gain(self) -> float:
@@ -296,18 +330,34 @@ class LessonPolicy:
         self._plays_this_turn += 1
         if card.buff:
             self._buff_played_this_turn = True
+        plan = getattr(self, "draw_plan", None)
+        if plan is not None and getattr(plan, "active", False):
+            name = card.name or ""
+            if name:
+                self._plan_played.append(name)
+                try:
+                    plan.note_play(name)
+                except Exception as exc:  # noqa: BLE001 - 台账坏了不能影响出牌
+                    logging.getLogger(__name__).warning("draw_plan.note_play 失败：%s", exc)
 
     def decide(self, state: LessonState, *, allow_skip: bool = True) -> LessonAction:
-        """按 ``engine`` 选择规则 / expectimax / UINet；异常或局面不完整退回规则。
+        """按 ``engine`` 选择规则 / expectimax / beam / UINet；异常或局面不完整退回规则。
 
         默认 ``engine="rules"``，行为与旧版逐位一致；``policy.json`` 的
-        ``lesson.engine`` 或构造参数 ``engine="expectimax"`` / ``engine="uinet"``
-        才启用搜索 / 神经网络。
+        ``lesson.engine`` 或构造参数 ``engine="expectimax"`` / ``engine="beam"`` /
+        ``engine="uinet"`` 才启用搜索 / 跨回合规划 / 神经网络。
+
+        挂了 ``draw_plan``（``ExamDrawPlan``）时先把当前手牌喂给计划：新回合做一次
+        牌序核对，核对通过后搜索用 ``known_draw`` / ``discard_order``（完全信息）。
         """
         self._sync_turn(state.turns_left)
+        self._sync_exam_plan(state)
         rules_action = self._decide_rules(state, allow_skip=allow_skip)
         if self.engine == "expectimax":
             override = self._try_expectimax(state, allow_skip=allow_skip)
+            return override if override is not None else rules_action
+        if self.engine == "beam":
+            override = self._try_beam(state, allow_skip=allow_skip)
             return override if override is not None else rules_action
         if self.engine == "uinet":
             override = self._try_uinet(state, allow_skip=allow_skip)
@@ -438,108 +488,241 @@ class LessonPolicy:
         )
 
     # ------------------------------------------------------------------ 内部
+    def _sync_exam_plan(self, state: LessonState) -> None:
+        """把当前手牌喂给 ``ExamDrawPlan``：新回合核对 + 回合内抽牌跟踪。"""
+        plan = getattr(self, "draw_plan", None)
+        if plan is None or not getattr(plan, "active", False):
+            return
+        names = [card.name for card in state.cards if card.name]
+        if not names:
+            return
+        key = (state.turns_left, state.total_turns)
+        try:
+            if key != self._plan_turn_key:
+                if self._plan_hand:
+                    plan.end_turn(_remove_played(self._plan_hand, self._plan_played))
+                self._plan_turn_key = key
+                self._plan_hand = list(names)
+                self._plan_played = []
+                from gkagent.sim.exam_plan import PARAMETER_TYPES
+
+                parameter = PARAMETER_TYPES.get(state.attribute or "")
+                plan.begin_turn(list(names), parameter)
+            elif names != self._plan_hand:
+                plan.observe_hand(list(names))
+                self._plan_hand = list(names)
+        except Exception as exc:  # noqa: BLE001 - 牌序计划坏了不能影响出牌
+            logging.getLogger(__name__).warning("考试牌序计划同步失败，已停用：%s", exc)
+            self.draw_plan = None
+            self._plan_turn_key = None
+
+    def _plan_card_specs(self, cards):
+        """牌序里的 ``(id, upgrade)`` → 搜索用 ``CardSpec``（借卡表补卡面数值）。"""
+        from gkagent.sim.lesson import CardSpec
+        from gkagent.sim.play_choice import specs_from_hand
+
+        table = self._card_table()
+        lesson_cards = [
+            LessonCard(
+                index=index,
+                box=(0, 0, 0, 0),
+                point=(0, 0),
+                name=table.name_of(card[0], card[1]) or card[0],
+            )
+            for index, card in enumerate(cards)
+        ]
+        play_cards = specs_from_hand(lesson_cards, table=table)
+        if len(play_cards) != len(cards):
+            return [CardSpec(name=card[0], cost=1, score=10) for card in cards]
+        return [item.spec for item in play_cards]
+
+    def _search_state(self, state: LessonState):
+        """``LessonState`` → ``(ExpectState, play_cards, reshuffle)``；不可用返回 None。
+
+        只映射读屏能确认的字段（手牌/体力/剩余回合/分数/CLEAR 基准）；卡表能补费用
+        与效果。挂了激活的 ``draw_plan`` 时把 known_draw / discard_order / 确定性
+        重洗钩子一并喂进搜索（完全信息搜索）。
+        """
+        from gkagent.sim.expectimax import ExpectState
+        from gkagent.sim.play_choice import specs_from_hand
+
+        if not state.cards:
+            return None
+        stamina = state.stamina
+        if stamina is None:
+            return None
+        turns_left = state.turns_left
+        if turns_left is None or turns_left <= 0:
+            return None
+        gauge = state.gauge
+        # 用户要求：禁用规则回退。读不到 CLEAR 基准时用经验默认值（250），
+        # 只保留"手牌为空 / 体力未知 / 回合未知"这类无法决策的硬性回退。
+        if gauge is None or gauge <= 0:
+            gauge = int(self.params.get("default_clear_gauge") or 250)
+        play_cards = specs_from_hand(state.cards, table=self._card_table())
+        if not play_cards:
+            return None
+        perfect = math.ceil(
+            float(gauge) * float(self.params["perfect_target_multiplier"])
+        )
+        kwargs: dict = {}
+        reshuffle = None
+        plan = getattr(self, "draw_plan", None)
+        if plan is not None and getattr(plan, "active", False):
+            try:
+                kwargs = plan.expect_state_kwargs(to_specs=self._plan_card_specs)
+                if kwargs:
+                    hook = getattr(plan, "reshuffle_hook", None)
+                    reshuffle = hook() if callable(hook) else None
+            except Exception as exc:  # noqa: BLE001 - 全知数据注入失败退回期望搜索
+                logging.getLogger(__name__).warning("known_draw 注入失败：%s", exc)
+                kwargs, reshuffle = {}, None
+        sim_state = ExpectState(
+            hand=tuple(card.spec for card in play_cards),
+            stamina=max(int(stamina), 0),
+            score=max(int(state.score or 0), 0),
+            turns_left=max(int(turns_left), 1),
+            total_turns=max(int(state.total_turns or turns_left), 1),
+            plays_used=max(int(self._plays_this_turn), 0),
+            play_limit=3,
+            clear=int(gauge),
+            perfect=max(int(perfect), int(gauge)),
+            hand_size=len(play_cards),
+            **kwargs,
+        )
+        return sim_state, play_cards, reshuffle
+
+    def _leaf_value(self):
+        """叶子估值：解析式；有 ``v_leaf.json`` 时用 ensemble（analytic + learned）。"""
+        from gkagent.sim.expectimax import AnalyticLeafValue
+
+        leaf = AnalyticLeafValue(sigma=float(self.params["expectimax_sigma"]))
+        try:
+            v_leaf_path = Path("data/knowledge/v_leaf.json")
+            if v_leaf_path.exists():
+                from gkagent.sim.v_leaf import EnsembleLeafValue, LinearLeafValue
+
+                leaf = EnsembleLeafValue(
+                    primary=leaf,
+                    secondary=LinearLeafValue.load(v_leaf_path),
+                    weight=0.5,
+                )
+        except Exception as exc:  # noqa: BLE001 - 模型坏了退回解析式，不能让出牌崩
+            logging.getLogger(__name__).warning("v_leaf 加载失败，退回解析式叶子: %s", exc)
+        return leaf
+
+    @staticmethod
+    def _search_action(
+        state: LessonState,
+        play_cards,
+        card,
+        *,
+        allow_skip: bool,
+        reason: str,
+        expected: float,
+    ) -> LessonAction | None:
+        """把搜索结果（``CardSpec``）映射回 ``LessonAction``（原手牌对象/坐标）。"""
+        if card is None:
+            if not allow_skip:
+                return None
+            return LessonAction("skip", point=state.skip_point, reason=reason)
+        picked = next((item for item in play_cards if item.spec == card), None)
+        if picked is None:
+            return None
+        original = next(
+            (item for item in state.cards if item.index == picked.index),
+            state.cards[picked.index],
+        )
+        return LessonAction(
+            "card",
+            index=picked.index,
+            point=picked.point,
+            card=original,
+            expected=expected,
+            reason=reason,
+        )
+
     def _try_expectimax(
         self, state: LessonState, *, allow_skip: bool
     ) -> LessonAction | None:
         """用真机 ``LessonState`` 构造模拟状态并跑回合内 expectimax。
 
-        只映射读屏能确认的字段（手牌/体力/剩余回合/分数/CLEAR 基准）；卡表能补
-        费用与效果。读不到总回合数时用剩余回合兜底；身份不明的牌/异常一律返回
-        ``None``，调用方退回规则，绝不让出牌退化。
+        挂了激活的 ``draw_plan``（``ExamDrawPlan``）时，``known_draw`` 让抽牌机会
+        节点退化成确定分支；``discard_order`` + 重洗钩子让弃牌堆重洗后也能全知。
+        身份不明的牌/异常一律返回 ``None``，调用方退回规则，绝不让出牌退化。
         """
         try:
-            if not state.cards:
+            prepared = self._search_state(state)
+            if prepared is None:
                 return None
-            gauge = state.gauge
-            turns_left = state.turns_left
-            stamina = state.stamina
-            # 用户要求：禁用规则回退。读不到 CLEAR 基准时用经验默认值（250），
-            # 只保留"手牌为空 / 体力未知 / 回合未知"这类无法决策的硬性回退。
-            if gauge is None or gauge <= 0:
-                gauge = int(self.params.get("default_clear_gauge") or 250)
-            if turns_left is None or turns_left <= 0:
-                return None
-            if stamina is None:
-                return None
-            from gkagent.sim.expectimax import (
-                AnalyticLeafValue,
-                ExpectState,
-                expectimax_with_stats,
-            )
-            from gkagent.sim.play_choice import specs_from_hand
+            sim_state, play_cards, reshuffle = prepared
+            from gkagent.sim.expectimax import expectimax_with_stats
 
-            play_cards = specs_from_hand(state.cards, table=self._card_table())
-            if not play_cards:
-                return None
-            perfect = math.ceil(
-                float(gauge) * float(self.params["perfect_target_multiplier"])
-            )
-            sim_state = ExpectState(
-                hand=tuple(card.spec for card in play_cards),
-                stamina=max(int(stamina), 0),
-                score=max(int(state.score or 0), 0),
-                turns_left=max(int(turns_left), 1),
-                total_turns=max(int(state.total_turns or turns_left), 1),
-                plays_used=max(int(self._plays_this_turn), 0),
-                play_limit=3,
-                clear=int(gauge),
-                perfect=max(int(perfect), int(gauge)),
-                hand_size=len(play_cards),
-            )
-            # 叶子：有拟合模型就用 ensemble（analytic + learned 平均），否则纯解析式。
-            # 真机默认走 ensemble —— 本地评测里它比任一单模型都强（+13.2% 配对几何）。
-            leaf = AnalyticLeafValue(sigma=float(self.params["expectimax_sigma"]))
-            try:
-                from pathlib import Path as _Path
-
-                v_leaf_path = _Path("data/knowledge/v_leaf.json")
-                if v_leaf_path.exists():
-                    from gkagent.sim.v_leaf import EnsembleLeafValue, LinearLeafValue
-
-                    leaf = EnsembleLeafValue(
-                        primary=leaf,
-                        secondary=LinearLeafValue.load(v_leaf_path),
-                        weight=0.5,
-                    )
-            except Exception as exc:  # noqa: BLE001 - 模型坏了退回解析式，不能让出牌崩
-                import logging
-
-                logging.getLogger(__name__).warning("v_leaf 加载失败，退回解析式叶子: %s", exc)
             result = expectimax_with_stats(
                 sim_state,
-                leaf,
+                self._leaf_value(),
                 time_budget_ms=float(self.params["expectimax_budget_ms"]),
+                reshuffle=reshuffle,
             )
             if result.card is None:
-                if not allow_skip:
-                    return None
-                return LessonAction(
-                    "skip",
-                    point=state.skip_point,
-                    reason=(
-                        f"expectimax: SKIP（档位期望 {result.utility:.2f}，"
-                        f"{result.elapsed_ms:.0f}ms）"
-                    ),
+                reason = (
+                    f"expectimax: SKIP（档位期望 {result.utility:.2f}，"
+                    f"{result.elapsed_ms:.0f}ms）"
                 )
-            picked = next(
-                (card for card in play_cards if card.spec == result.card), None
-            )
-            if picked is None:
-                return None
-            original = next(
-                (card for card in state.cards if card.index == picked.index),
-                state.cards[picked.index],
-            )
-            return LessonAction(
-                "card",
-                index=picked.index,
-                point=picked.point,
-                card=original,
-                expected=result.utility,
-                reason=(
-                    f"expectimax: {picked.name}（档位期望 {result.utility:.2f}，"
+            else:
+                reason = (
+                    f"expectimax: {result.card.name}（档位期望 {result.utility:.2f}，"
                     f"{result.nodes} 节点，{result.elapsed_ms:.0f}ms）"
-                ),
+                )
+            return self._search_action(
+                state,
+                play_cards,
+                result.card,
+                allow_skip=allow_skip,
+                reason=reason,
+                expected=result.utility,
+            )
+        except Exception:  # noqa: BLE001 - 搜索绝不能让出牌退化
+            return None
+
+    def _try_beam(self, state: LessonState, *, allow_skip: bool) -> LessonAction | None:
+        """跨回合 beam（``engine="beam"``）：按 V_leaf 规划整段，出计划首牌。
+
+        必须有 ``draw_plan`` 给的 known_draw 才有意义（知道后面几张真实好牌，
+        才谈得上替它保留体力/出牌位）；没有全知数据时退回回合内 expectimax，
+        保证 ``engine="beam"`` 在任何数据条件下都不比现状差。
+        """
+        try:
+            prepared = self._search_state(state)
+            if prepared is None:
+                return None
+            sim_state, play_cards, reshuffle = prepared
+            if not sim_state.known_draw:
+                return self._try_expectimax(state, allow_skip=allow_skip)
+            from gkagent.sim.expectimax import search_beam
+
+            result = search_beam(
+                sim_state,
+                self._leaf_value(),
+                width=max(int(self.params["beam_width"]), 1),
+                deadline_ms=float(self.params["beam_deadline_ms"]),
+                reshuffle=reshuffle,
+            )
+            if result.card is None:
+                reason = f"beam: SKIP（V {result.utility:.2f}，{result.elapsed_ms:.0f}ms）"
+            else:
+                reason = (
+                    f"beam: {result.card.name}（V {result.utility:.2f}，宽 {result.width}，"
+                    f"深 {result.depth_reached}/{sim_state.turns_left}，"
+                    f"{result.elapsed_ms:.0f}ms）"
+                )
+            return self._search_action(
+                state,
+                play_cards,
+                result.card,
+                allow_skip=allow_skip,
+                reason=reason,
+                expected=result.utility,
             )
         except Exception:  # noqa: BLE001 - 搜索绝不能让出牌退化
             return None
@@ -897,6 +1080,21 @@ class LessonPolicy:
 def turn_gain_expected(score: float) -> float:
     """留个钩子：以后按"还差多少分"判断值不值，现在只是把 0 分挡掉。"""
     return float(score)
+
+
+def _remove_played(hand: list[str], played: list[str]) -> list[str]:
+    """手牌里扣掉本回合打出的牌（同名多张只扣一张），保持手牌顺序。
+
+    ``ExamDrawPlan.end_turn(leftover)`` 要的是「回合末剩下的手牌顺序」——
+    客户端就是按这个顺序把剩余手牌 append 进弃牌堆的。
+    """
+    remaining = list(hand)
+    for name in played:
+        try:
+            remaining.remove(name)
+        except ValueError:
+            continue
+    return remaining
 
 
 def _as_float(value: object) -> float | None:

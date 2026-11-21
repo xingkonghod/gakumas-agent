@@ -187,12 +187,55 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 ```
 
 **下一步（完全信息搜索第二段）**：
-1. 生产接线：`auto_produce` 用采集到的 seed/牌组/支援编成/配置回合建 `ExamDrawOracle`，
-   每回合与实机抽牌核对后把 `known_draw` 写进 `ExpectState`；
-2. 重洗后段全知：给 `ExpectState` 加 `discard_order`（现在只有多重集），
-   第一次重洗后也能用 oracle 的 `reshuffle(grave)`；
-3. 生产策略：把 beam/全信息规划接成 `lesson.engine` 选项（beam ~100ms/回合）；
-4. 打通 MITM 采集进程与 bot 决策进程（seed 数据在 traffic.jsonl 里）。
+1. ~~生产接线：`auto_produce` 用采集到的 seed/牌组/支援编成/配置回合建 `ExamDrawOracle`，
+   每回合与实机抽牌核对后把 `known_draw` 写进 `ExpectState`~~ → **已完成，见二·补五**；
+2. ~~重洗后段全知：给 `ExpectState` 加 `discard_order`（现在只有多重集），
+   第一次重洗后也能用 oracle 的 `reshuffle(grave)`~~ → **已完成，见二·补五**；
+3. ~~生产策略：把 beam/全信息规划接成 `lesson.engine` 选项（beam ~100ms/回合）~~ → **已完成，见二·补五**；
+4. 打通 MITM 采集进程与 bot 决策进程（seed 数据在 traffic.jsonl 里）——**只剩这一项**。
+
+### 二·补五、11-21 深夜（完全信息搜索第二段：生产接线 + 重洗后段全知 + beam 选项 ✅）
+
+```
+✅ ② 重洗后段全知：ExpectState.discard_order（None=未知 / ()=已知为空）+ 搜索 reshuffle 钩子
+   · apply_card / end_turn_state 全程维护弃牌堆顺序；_draw_distribution / sample_draws 在牌堆
+     抽空时用 reshuffle(discard_order) 走确定分支；多重集对不上自动退回期望（绝不用错牌序）
+   · ExamDrawOracle.reshuffle(grave) 纯预览（不推进考试 RNG）；
+     reshuffle_from_sim(sim) 适配 LessonSim（尾部 pop → 抽牌顺序 = reversed(shuffled)）
+   · 新测试 17 条 tests/test_expectimax_discard_order.py；eval_known_draw.py 加 --full-info
+
+✅ ① 生产接线：采集数据 → ExamSetup → ExamDrawPlan → LessonPolicy → ExpectState
+   · scripts/build_exam_setup.py：traffic.jsonl + deck_snapshots.json + 主数据 → out/exam_setup.json
+     （4 场：seed / 牌堆 / 支援编成 / config_turns / isInitial / card_variants / Lost + 逐回合 truth）
+     自带 --check：ExamDrawOracle 逐回合重放 4/4 场、86/86 张；重洗段 24/24 张
+   · src/gkagent/sim/exam_plan.py：ExamSetup + ExamDrawPlan
+     每回合 begin_turn 预测手牌 vs 实机逐张核对 → 过了就喂 known_draw/discard_order/重洗钩子；
+     核对失败就地停用并记原因（搜索退回期望模型，绝不用错信息）
+   · LessonPolicy(draw_plan=...) / attach_draw_plan：expectimax 与 beam 自动吃到全知牌序
+   · auto_produce 加 --exam-setup（默认 out/exam_setup.json；缺文件 = 不启用，行为与旧版一致）
+   · scripts/verify_exam_wiring.py 端到端：4/4 场、手牌 36/36 回合逐张命中、
+     重洗样本 3/3（T7/T6/T10）、known_draw 覆盖下一手 29/29；
+     真 LessonPolicy(engine=beam) 核对 28 回合、出牌 28 次
+
+✅ ③ lesson.engine = "beam"：跨回合 beam 接进生产策略
+   · policy.json 的 lesson.engine 新增 "beam"；参数 beam_width=4 / beam_deadline_ms=250
+   · 没有 known_draw 时自动退回回合内 expectimax；搜索异常退回 rules（绝不退化）
+   · 新测试 7 条 tests/test_policy_beam_engine.py
+```
+
+**仍未接（唯一剩下的）**：采集进程 ↔ 决策进程实时打通——现在 bot 读的是离线生成的
+`out/exam_setup.json`（可在考试期间重新生成），进入考试时从 traffic.jsonl 取「当前这场」seed 还要接线。
+已知限制见 [EXPECTIMAX.md](EXPECTIMAX.md) 末节（考试内生成卡 / 同局多次重洗 / 离线回放出牌与实机不同）。
+
+**下一会话从这里继续**：
+```powershell
+# 1) 先重建数据 + 端到端核对（依赖 C:\GakumasLocal 的采集文件）
+.venv\Scripts\python.exe scripts\build_exam_setup.py
+.venv\Scripts\python.exe scripts\verify_exam_wiring.py
+# 2) 真机：policy.json lesson.engine 切 beam，起 bot 时带 --exam-setup
+.venv\Scripts\python.exe scripts\auto_produce.py 340 ep-xxx --skip-home --exam-setup out\exam_setup.json
+```
+
 
 ---
 
@@ -236,8 +279,9 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 ```
 
 **下一步**：① 采非 5 NPC 的 produce 类型补充 K 公式样本；② 11-20 期末 T9「回合内重洗」样本
-（有考试内生成卡，未建模）；③ 完全信息搜索第二段：生产接线 + 跨回合规划 + 重洗后段全知
-（见二·补四）；**完成后**：seed+牌堆+支援编成+回合属性+出牌序列→精确牌序→完全信息搜索。
+（有考试内生成卡，未建模）；③ ~~完全信息搜索第二段：生产接线 + 跨回合规划 + 重洗后段全知~~
+**已完成（见二·补五）**；④ 采集进程 ↔ 决策进程实时打通（traffic.jsonl → policy 进程）。
+**完成后**：seed+牌堆+支援编成+回合属性+出牌序列→精确牌序→完全信息搜索。
 
 **注意**：中间考试有 `forceEndScore`（produce-002：baseScore 1150→封顶 1700、1200→封顶 1800），
 bot/模拟器要按「达到封顶分即提前结束」处理。
@@ -268,8 +312,9 @@ rules / expectimax(ensemble) / uinet
 采集数据          C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl
 主数据库          D:\Games\gakumas-agent\data\hiro\vendor\gakumas-player\data\master
 元数据 dump       D:\Games\gakumas-agent\data\reverse\out\dump.cs（75MB，勿读全文）
-策略配置          D:\Games\gakumas-agent\data\knowledge\policy.json（lesson.engine）
-当前引擎          rules
+策略配置          D:\Games\gakumas-agent\data\knowledge\policy.json（lesson.engine：rules/expectimax/uinet/beam）
+当前引擎          rules（想用完全信息规划：lesson.engine=beam + auto_produce --exam-setup）
+考试牌序数据      D:\Games\gakumas-agent\out\exam_setup.json（scripts/build_exam_setup.py 生成）
 ```
 
 **常用命令**：
@@ -278,14 +323,18 @@ rules / expectimax(ensemble) / uinet
 .venv\Scripts\python.exe scripts\extract_exams.py
 # 挖 seed
 .venv\Scripts\python.exe scripts\find_seed.py
-# 重建考试时刻牌堆（→ out/deck_snapshots.json）
+# 重建考试时刻牌堆（→ deck_snapshots.json）
 .venv\Scripts\python.exe scripts\reconstruct_deck.py
-# 逐回合 ground truth：手牌/出牌/属性（→ out/exam_truth.json）
+# 逐回合 ground truth：手牌/出牌/属性（→ exam_truth.json）
 .venv\Scripts\python.exe scripts\decode_exam_actions.py --json
 # 洗牌重放验证（seed+牌堆 → 牌序，对照实战手牌）
 .venv\Scripts\python.exe scripts\verify_shuffle.py
-# 跑 bot（需游戏停在培育设置界面）
-.venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 340 ep-xxx --skip-home"
+# 采集数据 → 考试牌序（生产接线用；--check 顺带逐回合重放核对）
+.venv\Scripts\python.exe scripts\build_exam_setup.py
+# 生产接线端到端核对（手牌 36/36、重洗 3/3、策略链路 beam）
+.venv\Scripts\python.exe scripts\verify_exam_wiring.py
+# 跑 bot（需游戏停在培育设置界面）；--exam-setup 不传则自动用 out/exam_setup.json
+.venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 340 ep-xxx --skip-home --exam-setup out\exam_setup.json"
 # 全量测试
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-xxx
 ```
@@ -341,9 +390,11 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/ -q` 全绿（**817 条**，含 `tests/test_exam_shuffle.py` 四场考试
+**测试状态**：`pytest tests/ -q` 全绿（**856 条**，含 `tests/test_exam_shuffle.py` 四场考试
 洗牌回放 + 「实战回合算 K 会错」回归防线 + 三组弃牌堆重洗样本的掷点数/强化增量/重洗手牌对照；
-`tests/test_expectimax_known_draw.py` 8 条 + `tests/test_exam_oracle.py` 6 条完全信息搜索测试），
+`tests/test_expectimax_known_draw.py` 8 条 + `tests/test_exam_oracle.py` 6 条完全信息搜索测试；
+`tests/test_expectimax_discard_order.py` 17 条重洗后段全知 + `tests/test_exam_plan.py` 15 条
+生产接线数据层 + `tests/test_policy_beam_engine.py` 7 条 beam/接线策略层），
 `ruff check src` 与改动文件的 ruff 通过。
 
 ---

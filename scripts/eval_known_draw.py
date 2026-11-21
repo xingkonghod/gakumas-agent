@@ -1,11 +1,14 @@
 """完全信息搜索 vs 期望搜索：同牌组 / 同 seed 配对评测。
 
-对比两种搜索输入：
+对比三种搜索输入：
 
 * ``unknown``：现状——``ExpectState`` 只知牌库**多重集**，抽牌是期望机会节点；
 * ``known``：把 ``LessonSim`` 的真实剩余牌序写进 ``ExpectState.known_draw``
   （``state_from_sim(known_deck_order=True)``）。抽牌机会节点退化成确定分支；
   ``--policy beam`` 时跨回合 beam 能看到**后面几个回合的真实手牌**（完全信息规划）。
+* ``full``（``--full-info``）：在 known 基础上再把 ``LessonSim`` 的弃牌堆真实顺序
+  写进 ``ExpectState.discard_order``，并用 ``reshuffle_from_sim(sim)`` 当重洗钩子
+  ——牌堆第一次抽空后的重洗与后续抽牌也按真实顺序走（重洗后段全知）。
 
 两种出牌策略：
 
@@ -19,6 +22,7 @@
 
 用法：python scripts/eval_known_draw.py [--games 100] [--scenario small|large]
                                       [--policy within|beam] [--seed 0] [--width 4]
+                                      [--full-info]
 """
 
 from __future__ import annotations
@@ -36,10 +40,11 @@ import eval_expectimax as ee
 from gkagent.sim.expectimax import (
     AnalyticLeafValue,
     expectimax_with_stats,
+    reshuffle_from_sim,
     search_beam,
     state_from_sim,
 )
-from gkagent.sim.lesson import LessonSim, greedy_policy
+from gkagent.sim.lesson import CardSpec, LessonConfig, LessonSim, greedy_policy
 
 
 def _percentile(values: list[float], q: float) -> float:
@@ -57,7 +62,9 @@ def _card_index(sim: LessonSim, card) -> int | None:
     return None
 
 
-def _play_within(sim: LessonSim, model, *, known: bool, budget_ms: float) -> int:
+def _play_within(
+    sim: LessonSim, model, *, known: bool, full_info: bool, budget_ms: float
+) -> int:
     """回合内 expectimax：每个出牌点搜一次，返回回退次数。"""
     fallbacks = 0
     actions = sim.legal_actions()
@@ -65,7 +72,12 @@ def _play_within(sim: LessonSim, model, *, known: bool, budget_ms: float) -> int
         sim.step(None)
         return fallbacks
     state = state_from_sim(sim, known_deck_order=known)
-    result = expectimax_with_stats(state, model, time_budget_ms=budget_ms)
+    result = expectimax_with_stats(
+        state,
+        model,
+        time_budget_ms=budget_ms,
+        reshuffle=reshuffle_from_sim(sim) if full_info else None,
+    )
     index = _card_index(sim, result.card) if result.card is not None else None
     if index is None or index not in actions:
         if result.card is not None:
@@ -112,11 +124,15 @@ def play(
     *,
     known: bool,
     policy: str,
+    full_info: bool = False,
     budget_ms: float = 200.0,
     sigma: float = 60.0,
     width: int = 4,
 ) -> dict:
-    """跑一局课程，返回分数与统计（fallback = 搜索给的牌在模拟器里执行不了）。"""
+    """跑一局课程，返回分数与统计（fallback = 搜索给的牌在模拟器里执行不了）。
+
+    ``full_info``：弃牌堆顺序 + ``reshuffle_from_sim`` 钩子，重洗后段也全知。
+    """
     sim = LessonSim(deck, config, rng_seed=seed)
     model = AnalyticLeafValue(sigma=sigma)
     fallbacks = 0
@@ -128,10 +144,19 @@ def play(
             continue
         decisions += 1
         if policy == "within":
-            fallbacks += _play_within(sim, model, known=known, budget_ms=budget_ms)
+            fallbacks += _play_within(
+                sim, model, known=known, full_info=full_info, budget_ms=budget_ms
+            )
             continue
         state = state_from_sim(sim, known_deck_order=known)
-        result = search_beam(state, model, width=width, deadline_ms=budget_ms * 2)
+        result = search_beam(
+            state,
+            model,
+            width=width,
+            deadline_ms=budget_ms * 2,
+            # 每次决策都从 sim.rng 当前状态取快照（重洗前的 RNG 状态）
+            reshuffle=reshuffle_from_sim(sim) if full_info else None,
+        )
         fallbacks += _execute_plan(sim, list(result.sequence))
     return {
         "score": float(sim.score),
@@ -156,34 +181,66 @@ def summarize(rows: list[dict]) -> dict:
     }
 
 
+DRAW_SCENARIO = {"turns": 5, "stamina": 34, "clear": 120, "perfect": 170}
+
+
+def _draw_scenario() -> tuple[list[CardSpec], LessonConfig]:
+    """抽牌多的构造牌组：回合内抽牌会把牌堆抽空 → 直接量「重洗后段全知」的增量。"""
+    draw = CardSpec("抽1", 2, 0, draw=1)
+    big = CardSpec("大", 2, 40)
+    mid = CardSpec("中", 1, 15)
+    deck = [draw] * 6 + [big] * 2 + [mid] * 6
+    config = LessonConfig(
+        turns=int(DRAW_SCENARIO["turns"]),
+        stamina=int(DRAW_SCENARIO["stamina"]),
+        target_clear=int(DRAW_SCENARIO["clear"]),
+        target_perfect=int(DRAW_SCENARIO["perfect"]),
+    )
+    return deck, config
+
+
+def _make_deck_and_config(scenario: str):
+    if scenario == "draw":
+        return _draw_scenario()
+    return ee.build_deck(scenario), ee.make_config(scenario)
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--games", type=int, default=100)
-    parser.add_argument("--scenario", choices=("small", "large"), default="small")
+    parser.add_argument("--scenario", choices=("small", "large", "draw"), default="small")
     parser.add_argument("--policy", choices=("within", "beam"), default="within")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--budget-ms", type=float, default=200.0)
     parser.add_argument("--width", type=int, default=4)
+    parser.add_argument(
+        "--full-info",
+        action="store_true",
+        help="额外跑 full（known_draw + discard_order + reshuffle 钩子，重洗后段全知）",
+    )
     args = parser.parse_args(argv)
 
-    deck = ee.build_deck(args.scenario)
-    config = ee.make_config(args.scenario)
+    deck, config = _make_deck_and_config(args.scenario)
+    kinds = ["unknown", "known"]
+    if args.full_info:
+        kinds.append("full")
     print(
         f"scenario={args.scenario} deck={len(deck)} turns={config.turns} "
         f"policy={args.policy} games={args.games} budget={args.budget_ms:.0f}ms "
-        f"width={args.width}"
+        f"width={args.width} full_info={args.full_info}"
     )
-    rows = {"unknown": [], "known": []}
+    rows = {kind: [] for kind in kinds}
     for offset in range(args.games):
         seed = args.seed + offset
-        for kind, known in (("unknown", False), ("known", True)):
+        for kind in kinds:
             rows[kind].append(
                 play(
                     deck,
                     config,
                     seed,
-                    known=known,
+                    known=kind != "unknown",
                     policy=args.policy,
+                    full_info=kind == "full",
                     budget_ms=args.budget_ms,
                     width=args.width,
                 )
@@ -193,7 +250,7 @@ def main(argv: list[str]) -> int:
     print(
         f"{'策略':<10}{'均值':>8}{'P10':>8}{'P50':>8}{'P90':>8}{'CLEAR':>8}{'PERFECT':>9}{'回退':>6}"
     )
-    for kind in ("unknown", "known"):
+    for kind in kinds:
         stat = stats[kind]
         print(
             f"{kind:<10}{stat['mean']:>8.1f}{stat['p10']:>8.0f}{stat['p50']:>8.0f}"
@@ -205,6 +262,13 @@ def main(argv: list[str]) -> int:
         f"\nknown - unknown：均值 {diff:+.1f}，"
         f"P50 {stats['known']['p50'] - stats['unknown']['p50']:+.1f}"
     )
+    if args.full_info:
+        full_diff = stats["full"]["mean"] - stats["known"]["mean"]
+        print(
+            f"full - known：均值 {full_diff:+.1f}，"
+            f"P50 {stats['full']['p50'] - stats['known']['p50']:+.1f}"
+            "（重洗后段全知的增量）"
+        )
     return 0
 
 

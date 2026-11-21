@@ -418,10 +418,92 @@ L3 配对（150 局）：
 
 ### 还没接的（下一步）
 
-1. **生产接线**：`auto_produce` 拿采集到的 seed/牌组/支援编成/配置回合建 `ExamDrawOracle`，每回合
-   `draw_next_turn(param)` 与实机抽牌核对后把 `known_draw` 写进 `ExpectState`（目前只有离线评测入口）；
-2. **重洗后段全知**：`ExpectState.discard` 现在是多重集，丢掉进弃牌堆顺序 → 第一次重洗后只能退回期望。
-   要全知需要把 `discard_order` 带进状态（搜索/模拟器同步改），再配合 oracle 的 `reshuffle(grave)`；
-3. **生产策略**：把 beam/全信息规划接成 `lesson.engine` 的一个选项，按耗时（beam 均值 ~100ms/回合）取舍；
+1. ~~**生产接线**：`auto_produce` 拿采集到的 seed/牌组/支援编成/配置回合建 `ExamDrawOracle`，每回合
+   `draw_next_turn(param)` 与实机抽牌核对后把 `known_draw` 写进 `ExpectState`~~ → **已接，见下一节**；
+2. ~~**重洗后段全知**：`ExpectState.discard` 现在是多重集，丢掉进弃牌堆顺序 → 第一次重洗后只能退回期望。
+   要全知需要把 `discard_order` 带进状态（搜索/模拟器同步改），再配合 oracle 的 `reshuffle(grave)`~~
+   → **已接，见下一节**；
+3. ~~**生产策略**：把 beam/全信息规划接成 `lesson.engine` 的一个选项~~ → **已接 `engine="beam"`，见下一节**；
 4. 真机 `LessonState` 读不到牌库/回合属性之外的隐藏状态——seed 数据来自 MITM 采集，需要把采集进程和
-   bot 决策进程的数据打通（traffic.jsonl → policy 进程）。
+   bot 决策进程的数据打通（traffic.jsonl → policy 进程）。**仍未接**：现在用离线生成的
+   `out/exam_setup.json` 喂 bot（见下节），实时打通是下一步。
+
+## 完全信息搜索：第二段（生产接线 + 重洗后段全知 + beam 选项，2026-11-21 晚）
+
+### ② 重洗后段全知：`ExpectState.discard_order` + 确定性重洗钩子
+
+| 模块 | 作用 |
+|---|---|
+| `ExpectState.discard_order` | 已知**弃牌堆顺序**（进弃牌堆先后，旧 → 新）。`None` = 未知（默认，行为不变）；`()` = 已知为空。`apply_card` / `end_turn_state` 全程维护；`canonical()` 按原样入键（顺序影响重洗结果） |
+| 搜索入口 `reshuffle=` | `expectimax_with_stats` / `expectimax` / `best_turn_sequence` / `search_beam` 都接受 `ReshuffleFn`（`Callable[[grave], list[CardSpec]]`，返回重洗后的**抽牌顺序**）。牌堆抽空时：`_draw_distribution` / `sample_draws` 用 `reshuffle(discard_order)` 走**确定分支**；多重集对不上（搜索模拟的弃牌堆和真实线不同）自动退回期望模型 |
+| `ExamDrawOracle.reshuffle(grave)` | 纯预览：用考试 RNG **当前状态的副本**做 Fisher-Yates，不推进全局 RNG（搜索每个分支都能复现） |
+| `reshuffle_from_sim(sim)` | `LessonSim` 适配：它的抽牌是 `deck.pop()`（尾部），所以重洗后的抽牌顺序 = `reversed(shuffled_discard)` |
+
+测试：`tests/test_expectimax_discard_order.py`（17 条，含顺序维护、确定分支、多重集不符/钩子返回坏值退回期望、
+`oracle.reshuffle` 纯函数、`reshuffle_from_sim` 与 `LessonSim` 真实重洗逐张一致）。
+`scripts/eval_known_draw.py --full-info` 增加 full 行（known_draw + discard_order + 重洗钩子）：
+构造抽牌牌组 beam 评测里 **计划执行回退 4 → 0**（决策与真实模拟器一致），分数上限场景无额外增益。
+
+### ① 生产接线：采集数据 → `ExamSetup` → `ExamDrawPlan` → `LessonPolicy`
+
+```
+scripts/build_exam_setup.py      traffic.jsonl + deck_snapshots.json + 主数据 catalog
+                                 → out/exam_setup.json（每场：seed / deck / supports / config_turns /
+                                   initial_keys / card_variants / lost_keys / 逐回合 truth）
+                                 --check 用 ExamDrawOracle 逐回合重放：4/4 场、86/86 张（+ 重洗段 24/24）
+src/gkagent/sim/exam_plan.py     ExamSetup（类型化视图）+ ExamDrawPlan（在线牌序计划）
+scripts/verify_exam_wiring.py    端到端核对（生产同一套 ExamDrawPlan）
+```
+
+`ExamDrawPlan` 的语义：
+
+1. 每回合 `begin_turn(手牌, 属性)`：`ExamDrawOracle` 预测本回合真实手牌（含支援强化掷点），
+   与实机读屏手牌**逐张核对**（id 多重集一致即可；升级次数允许实机更高）；
+2. 核对通过 → `expect_state_kwargs()` 给 `deck` / `known_draw` / `discard` / `discard_order`，
+   `reshuffle_hook()` 给纯重洗钩子；
+3. 核对失败（卡表查不到 / 手牌不符 / 牌堆空缺 grave）→ **就地停用**（`status="mismatch"`，记原因），
+   搜索退回「只知多重集」。**宁可不用信息，也不能用错信息**；
+4. `note_play` / `end_turn(leftover)` 维护真实弃牌堆顺序（[`scripts/auto_produce.py`] 里由策略的
+   `note_play` 与回合切换驱动）。
+
+`LessonPolicy` 侧：`LessonPolicy(draw_plan=plan)` / `attach_draw_plan(plan)`。`_sync_exam_plan` 在每次
+`decide` 前把当前手牌喂给计划（新回合做核对、回合内抽牌跟踪手牌张数差），`_search_state` 把
+计划给的全知字段并进 `ExpectState`。`auto_produce` 新增 `--exam-setup`（默认 `out/exam_setup.json`，
+文件不存在 = 不启用，行为与旧版完全一致）。
+
+**端到端结果**（`scripts/verify_exam_wiring.py`，4 场采集全量核对）：
+
+| 项 | 结果 |
+|---|---|
+| 逐回合手牌核对 | **36/36 回合** 逐张命中（4 场） |
+| 弃牌堆重洗样本（T7 / T6 / T10） | **3/3** 组经生产链路核对通过（等价 verify_shuffle 的三组重洗样本） |
+| `known_draw` 覆盖下一手 | **29/29**（下一回合没有回合内抽牌时，已知牌序前几张 = 实机下一手） |
+| 真 `LessonPolicy(engine="beam")` 链路 | 计划核对 28 回合、beam 出牌 28 次；离线回放里策略打出的牌与实机不同，重洗前 grave 对不上时计划自动停用（安全回退，符合设计） |
+
+数据限制：11-20 期末 T8 打出**考试内生成卡**（`p_card-00-men-3_003`），grave 无法从日志唯一重建 →
+该场核对到 T8；11-21 期末 T12 同样（但 12 回合已核完）。回合内重洗（T9）仍未建模。
+
+### ③ `lesson.engine = "beam"`：跨回合 beam 接进生产策略
+
+```
+policy.json  {"lesson": {"engine": "beam", "beam_width": 4, "beam_deadline_ms": 250}}
+```
+
+- `_try_beam`：`LessonPolicy` → `ExpectState`（含计划给的全知字段）→ `search_beam`（V_leaf 排序），
+  出计划首牌；`beam_width` / `beam_deadline_ms` 从 `policy.json` 读（默认 4 / 250ms）。
+- **没有 known_draw 时自动退回回合内 expectimax**（beam 跨回合没有信息优势，不做无谓预算消耗）；
+  `search_beam` 异常退回 `rules`，绝不退化。
+- 测试：`tests/test_policy_beam_engine.py`（7 条：policy.json 开关 / 参数解析、known_draw 注入
+  `ExpectState`、无牌序退回 expectimax、异常退回 rules、SKIP 在考试模式不输出、计划驱动
+  `begin_turn/end_turn`）。
+
+### 仍未接/已知限制
+
+- **采集进程 ↔ 决策进程实时打通**（item④）：现在 bot 读的是离线生成的 `out/exam_setup.json`
+  （`build_exam_setup.py` 可在考试中/后重新生成）；真机实战前需要把「进入考试时从 traffic.jsonl
+  取当前这场的 seed」接上。
+- `ExamDrawPlan` 依赖**真实打出顺序**记 grave：策略选牌与实机点击必须一致（生产里本来就是同一进程；
+  离线回放会因策略与实机出牌不同而在重洗处停用，属预期安全行为）。
+- 同一局两次弃牌重洗时，`oracle.reshuffle` 用同一个 RNG 快照（第二次起可能偏）；现有四场最多重洗一次。
+- 考试内生成的卡（重洗/抽牌效果产生）不在 oracle 牌堆里：出现即核对失败 → 停用（安全）。
+

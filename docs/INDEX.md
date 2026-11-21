@@ -112,6 +112,8 @@
 **采集链路已通、主数据已入库、seed 在流量里、考试牌堆已定位重建；洗牌模型完整破解并经四场实机验证——
 回合属性/NPC 消耗 + Fisher-Yates 全对上，配置 9/11/12 回合与提前结束场景都精确复现（期中 18/18、
 期末 26/26、PRO 期中 15/15、PRO 期末 27/27）。支援强化掷点 + 弃牌堆重洗也已完整建模：三组重洗样本
-重洗前掷点 45/29/46 次，洗后手牌 9/9、6/6、9/9 逐张复现。完全信息搜索已接第一步
-（`ExamDrawOracle` 牌序链路 + `ExpectState.known_draw` 确定分支 + 配对评测）。
-下一步：生产接线 + 跨回合规划 + 重洗后段全知。** 细节见 [HANDOVER.md](HANDOVER.md)。
+重洗前掷点 45/29/46 次，洗后手牌 9/9、6/6、9/9 逐张复现。完全信息搜索第二段已接完：
+**生产接线**（采集数据 → `ExamSetup`/`ExamDrawPlan` → `LessonPolicy` → `ExpectState.known_draw`，
+端到端 4/4 场、手牌 36/36 回合、重洗 3/3）+ **重洗后段全知**（`ExpectState.discard_order` +
+确定性重洗钩子）+ **`lesson.engine="beam"` 跨回合规划选项**。下一步：采集进程 ↔ 决策进程实时打通
+（traffic.jsonl → policy 进程）+ 真机 A/B。** 细节见 [HANDOVER.md](HANDOVER.md) 二·补五。

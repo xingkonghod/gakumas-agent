@@ -48,3 +48,6 @@ data/reverse/*.log
 # è§†é¢‘/éŸ³é¢‘/æŠ½å¸§ï¼ˆä½“ç§¯å¤§ï¼Œä¸å…¥åº“ï¼›åˆ†æç»“è®ºè§ docs/LOCAL_DEPLOY_VIDEO.mdï¼‰
 data/video/
 data/hiro/
+
+# ±¾µØ²úÎï£º²É¼¯Êı¾İÉú³ÉµÄ¿¼ÊÔÅÆĞò£¨scripts/build_exam_setup.py ¿ÉÖØ½¨£©
+out/

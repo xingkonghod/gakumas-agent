@@ -22,6 +22,17 @@
 - 除外：``CardSpec.once``（卡面「訓練中1回」）用掉后本场消失，推进牌库压缩；
 - ``ExpectState.deck`` / ``discard`` 都是已知多重集，顺序未知；抽牌只依赖组成。
 
+**完全信息（考试牌序已破解）的两个可选输入**（默认都关闭，行为与旧版逐位一致）：
+
+- ``ExpectState.known_draw``：已知的后续抽牌顺序（下标 0 = 下一张）。非空时抽牌机会
+  节点退化成确定分支；与 ``deck`` 长度不一致（牌被效果移动过）时自动退回多重集期望。
+- ``ExpectState.discard_order``：已知的**弃牌堆顺序**（进弃牌堆先后，旧 → 新）。
+  ``None`` = 未知（默认，多重集语义）；``()`` = 已知为空。配合搜索入口的
+  ``reshuffle`` 钩子（``Callable[[grave], list[CardSpec]]``，返回**洗后的抽牌顺序**）
+  时，牌堆抽空后的重洗也是**确定分支**：新牌堆 = ``reshuffle(discard_order)``。
+  钩子拿到的 grave 就是搜索自己模拟出来的弃牌顺序（调用方通常用
+  ``ExamDrawOracle.reshuffle`` / ``reshuffle_from_sim`` 生成，纯函数、不推进 RNG）。
+
 可行性与结算（与 ``sim/lesson.py`` 对齐，纯函数、无 RNG）：
 
 - 合法 = ``stamina + vitality >= cost`` 且 ``plays_used < play_limit + extra_plays``；
@@ -78,6 +89,7 @@ __all__ = [
     "ExpectimaxConfig",
     "ExpectimaxResult",
     "LeafValue",
+    "ReshuffleFn",
     "apply_card",
     "available_drinks",
     "best_turn_sequence",
@@ -91,6 +103,7 @@ __all__ = [
     "fire_p_items",
     "is_legal",
     "legal_cards",
+    "reshuffle_from_sim",
     "run_sequence",
     "sample_apply_card",
     "sample_draws",
@@ -112,6 +125,10 @@ DEFAULT_TIME_BUDGET_MS = 800.0
 DEFAULT_BEAM_DEADLINE_MS = 500.0
 # 好印象/好调等持续 buff 的"永久"哨兵（卡表 turn=-1）。
 _PERMANENT = -1
+
+# 确定性重洗钩子：给「已知弃牌堆顺序」，返回重洗后的**抽牌顺序**（下标 0 = 牌堆顶）。
+# 调用方负责保证不推进全局 RNG（如 ``ExamDrawOracle.reshuffle`` 用当前状态的副本）。
+ReshuffleFn = Callable[[tuple[CardSpec, ...]], list[CardSpec]]
 
 
 class _Deadline(Exception):
@@ -162,6 +179,9 @@ class ExpectState:
     # 非空时要求它的多重集 == ``deck``；抽牌机会节点退化成确定分支。
     # 空 = 原来「只知多重集」的期望模型（默认，行为不变）。
     known_draw: tuple[CardSpec, ...] = ()
+    # 已知弃牌堆顺序（进弃牌堆的先后，旧 → 新）；None = 顺序未知（默认多重集语义），
+    # () = 已知为空。配合搜索的 ``reshuffle`` 钩子让重洗后的牌序也变成确定分支。
+    discard_order: tuple[CardSpec, ...] | None = None
     stamina: int = 0
     stamina_max: int = 0
     vitality: int = 0
@@ -267,6 +287,8 @@ class ExpectState:
             # known_draw 的顺序会影响未来抽牌，所以按原样入键（不能只按多重集）
             self.known_draw,
             _counts_key(self.discard),
+            # discard_order 的顺序决定重洗结果，也按原样入键（None/() 有区别）
+            self.discard_order,
             _counts_key(self.excluded),
             self.stamina,
             self.stamina_max,
@@ -914,21 +936,65 @@ def _draw_sequential(
     ]
 
 
+def _discard_push(state: ExpectState, card: CardSpec) -> ExpectState:
+    """一张牌进弃牌堆：多重集 + 已知顺序（顺序未知时保持 ``None``）。"""
+    order = state.discard_order
+    return replace(
+        state,
+        discard=state.discard + (card,),
+        discard_order=None if order is None else order + (card,),
+    )
+
+
+def _reshuffle_successor(
+    state: ExpectState, need: int, reshuffle: ReshuffleFn | None
+) -> ExpectState | None:
+    """牌堆空时用「已知弃牌顺序 + 确定性重洗钩子」抽 ``need`` 张；信息不足返回 None。
+
+    要求 ``discard_order`` 与 ``discard`` 多重集一致（不一致 = 搜索模拟的弃牌堆和
+    真实线不同，钩子的结果不再可信），钩子返回的牌堆多重集也必须等于弃牌堆。
+    """
+    order = state.discard_order
+    if reshuffle is None or order is None or not state.discard:
+        return None
+    if Counter(order) != Counter(state.discard):
+        return None
+    reshuffled = tuple(reshuffle(tuple(order)))
+    if Counter(reshuffled) != Counter(state.discard):
+        return None
+    take = min(max(int(need), 0), len(reshuffled))
+    remaining = reshuffled[take:]
+    return replace(
+        state,
+        hand=state.hand + reshuffled[:take],
+        deck=remaining,
+        known_draw=remaining,
+        discard=(),
+        discard_order=(),
+    )
+
+
 def _draw_distribution(
     state: ExpectState,
     count: int,
     *,
     enum_limit: int = DEFAULT_DRAW_ENUM_LIMIT,
+    reshuffle: ReshuffleFn | None = None,
 ) -> list[tuple[float, ExpectState]]:
     """抽 ``count`` 张牌的精确机会节点 ``[(概率, 后继状态)]``。
 
     ``state.known_draw`` 非空（完全信息搜索）时退化成**确定分支**：按已知顺序取前
-    ``count`` 张；已知段不够要继续抽时，之后要洗弃牌（顺序依赖未知的出牌顺序），
-    这一段退回多重集期望。``known_draw`` 与 ``deck`` 长度不一致时也退回期望模型
+    ``count`` 张；已知段不够、牌堆抽空时：若给了确定性重洗钩子（``reshuffle``）且
+    ``discard_order`` 已知，就用钩子把弃牌堆洗成已知牌堆继续抽（重洗后段也全知）；
+    否则这一段退回多重集期望。``known_draw`` 与 ``deck`` 长度不一致时也退回期望模型
     （防御：牌被效果移动过，已知顺序已失效）。
     """
     if count <= 0:
         return [(1.0, state)]
+    if reshuffle is not None and not state.deck:
+        exact = _reshuffle_successor(state, count, reshuffle)
+        if exact is not None:
+            return [(1.0, exact)]
     known = state.known_draw
     if known and len(known) == len(state.deck):
         take = min(count, len(known))
@@ -942,13 +1008,19 @@ def _draw_distribution(
         )
         if count <= take:
             return [(1.0, base)]
+        exact = _reshuffle_successor(base, count - take, reshuffle)
+        if exact is not None:
+            return [(1.0, exact)]
         if not base.discard:
             return [(1.0, base)]
         # 已知段抽完、牌库空：剩余抽牌要洗弃牌，顺序不可知 → 退回多重集期望
-        return _draw_distribution(replace(base, known_draw=()), count - take)
+        return _draw_distribution(
+            replace(base, known_draw=()), count - take, reshuffle=reshuffle
+        )
     deck = Counter(state.deck)
     discard = Counter(state.discard)
-    if not deck and discard:
+    swapped = not deck and bool(discard)
+    if swapped:
         deck, discard = discard, Counter()
     if not deck:
         return [(1.0, state)]
@@ -971,6 +1043,9 @@ def _draw_distribution(
                         hand=state.hand + _counts_tuple(drawn),
                         deck=_counts_tuple(remaining),
                         discard=_counts_tuple(discard),
+                        # 走到期望分支 = 牌序不可知，旧的已知顺序不再成立
+                        known_draw=(),
+                        discard_order=() if swapped else state.discard_order,
                     ),
                 )
             )
@@ -980,6 +1055,12 @@ def _draw_distribution(
     for probability, drawn, left_deck, left_discard in _draw_sequential(
         deck, discard, count
     ):
+        # 抽牌途中洗过弃牌 → 剩下的弃牌堆顺序不可知（牌堆顺序也已随机化）
+        refilled = swapped or (bool(state.discard) and total < count)
+        if refilled:
+            order: tuple[CardSpec, ...] | None = () if not left_discard else None
+        else:
+            order = state.discard_order
         outcomes.append(
             (
                 probability,
@@ -988,16 +1069,21 @@ def _draw_distribution(
                     hand=state.hand + _counts_tuple(drawn),
                     deck=_counts_tuple(left_deck),
                     discard=_counts_tuple(left_discard),
+                    known_draw=(),
+                    discard_order=order,
                 ),
             )
         )
     return outcomes
 
 
-def apply_card(state: ExpectState, card: CardSpec) -> list[tuple[float, ExpectState]]:
+def apply_card(
+    state: ExpectState, card: CardSpec, *, reshuffle: ReshuffleFn | None = None
+) -> list[tuple[float, ExpectState]]:
     """打出一张牌，返回抽牌机会节点的后继分布 ``[(p, state)]``。
 
     打出的牌在抽牌结算**之后**才进弃牌堆/除外区（与 LessonSim.step 一致）。
+    ``reshuffle`` 见 :data:`ReshuffleFn`（重洗后段全知用，默认关）。
     """
     if card not in state.hand:
         raise ValueError(f"牌不在手牌里：{card.name}")
@@ -1011,7 +1097,7 @@ def apply_card(state: ExpectState, card: CardSpec) -> list[tuple[float, ExpectSt
     hand = list(after.hand)
     hand.remove(card)
     after = replace(after, hand=tuple(hand))
-    outcomes = _draw_distribution(after, draw)
+    outcomes = _draw_distribution(after, draw, reshuffle=reshuffle)
     results: list[tuple[float, ExpectState]] = []
     for probability, successor in outcomes:
         successor = replace(
@@ -1027,7 +1113,7 @@ def apply_card(state: ExpectState, card: CardSpec) -> list[tuple[float, ExpectSt
         if card.once:
             successor = replace(successor, excluded=successor.excluded + (card,))
         else:
-            successor = replace(successor, discard=successor.discard + (card,))
+            successor = _discard_push(successor, card)
         results.append((probability, successor))
     return results
 
@@ -1046,55 +1132,71 @@ def run_sequence(state: ExpectState, cards: Iterable[CardSpec]) -> ExpectState:
     return current
 
 
-def sample_draws(state: ExpectState, count: int, rng: random.Random) -> ExpectState:
+def sample_draws(
+    state: ExpectState,
+    count: int,
+    rng: random.Random,
+    *,
+    reshuffle: ReshuffleFn | None = None,
+) -> ExpectState:
     """从真实剩余多重集**无放回抽样** ``count`` 张（牌库空则把弃牌洗回）。
 
-    ``state.known_draw`` 非空（完全信息搜索）时先按已知顺序取牌；已知段不够时
-    剩余抽牌要洗弃牌，那一段仍按多重集随机（顺序不可知）。
+    ``state.known_draw`` 非空（完全信息搜索）时先按已知顺序取牌；已知段不够、
+    牌库抽空时：给了确定性重洗钩子（``reshuffle``）且 ``discard_order`` 已知 →
+    重洗后按已知顺序继续抽（重洗后段也全知）；否则剩余抽牌按多重集随机
+    （顺序不可知，``known_draw`` / ``discard_order`` 随之失效）。
     """
     count = max(int(count), 0)
+    if count <= 0:
+        return state
+    # 牌堆已空：能确定性重洗就直接按已知顺序抽（不消耗 rng）
+    if reshuffle is not None and not state.deck:
+        exact = _reshuffle_successor(state, count, reshuffle)
+        if exact is not None:
+            return exact
+    hand = list(state.hand)
     known = state.known_draw
-    if known and len(known) == len(state.deck):
-        take = min(count, len(known))
-        drawn = known[:take]
-        remaining = known[take:]
-        hand = list(state.hand) + list(drawn)
-        deck = Counter(remaining)
-        discard = Counter(state.discard)
-        for _ in range(count - take):
-            if not deck:
-                if not discard:
-                    break
-                deck, discard = discard, Counter()
-            total = sum(deck.values())
-            pick = rng.randrange(total)
-            chosen: CardSpec | None = None
-            for card, available in deck.items():
-                if pick < available:
-                    chosen = card
-                    break
-                pick -= available
-            if chosen is None:
-                break
-            deck[chosen] -= 1
-            if deck[chosen] <= 0:
-                del deck[chosen]
-            hand.append(chosen)
-        return replace(
-            state,
-            hand=tuple(hand),
-            deck=_counts_tuple(deck),
-            discard=_counts_tuple(discard),
-            known_draw=remaining,
-        )
     deck = Counter(state.deck)
     discard = Counter(state.discard)
-    hand = list(state.hand)
-    for _ in range(max(int(count), 0)):
+    discard_order = state.discard_order
+    known_after: tuple[CardSpec, ...] = ()
+    left = count
+    if known and len(known) == len(state.deck):
+        take = min(left, len(known))
+        hand.extend(known[:take])
+        left -= take
+        known_after = known[take:]
+        deck = Counter()
+        if left == 0:
+            return replace(
+                state,
+                hand=tuple(hand),
+                deck=known_after,
+                known_draw=known_after,
+            )
+        # 已知段抽完、牌堆空：先试确定性重洗（顺序已知）
+        exact = _reshuffle_successor(
+            replace(
+                state,
+                hand=tuple(hand),
+                deck=(),
+                known_draw=known_after,
+                discard=_counts_tuple(discard),
+                discard_order=discard_order,
+            ),
+            left,
+            reshuffle,
+        )
+        if exact is not None:
+            return exact
+    # 多重集随机（原逻辑）：牌序不可知，旧 known_draw / discard_order 失效
+    swapped = False
+    for _ in range(left):
         if not deck:
             if not discard:
                 break
             deck, discard = discard, Counter()
+            swapped = True
         total = sum(deck.values())
         pick = rng.randrange(total)
         chosen: CardSpec | None = None
@@ -1109,16 +1211,24 @@ def sample_draws(state: ExpectState, count: int, rng: random.Random) -> ExpectSt
         if deck[chosen] <= 0:
             del deck[chosen]
         hand.append(chosen)
+    if swapped:
+        discard_order = () if not discard else None
     return replace(
         state,
         hand=tuple(hand),
         deck=_counts_tuple(deck),
         discard=_counts_tuple(discard),
+        known_draw=(),
+        discard_order=discard_order,
     )
 
 
 def sample_apply_card(
-    state: ExpectState, card: CardSpec, rng: random.Random
+    state: ExpectState,
+    card: CardSpec,
+    rng: random.Random,
+    *,
+    reshuffle: ReshuffleFn | None = None,
 ) -> ExpectState:
     """打出一张牌并按真实剩余多重集抽样一个抽牌结果（beam 用）。"""
     if card not in state.hand:
@@ -1129,7 +1239,7 @@ def sample_apply_card(
     hand = list(after.hand)
     hand.remove(card)
     after = replace(after, hand=tuple(hand))
-    after = sample_draws(after, draw, rng)
+    after = sample_draws(after, draw, rng, reshuffle=reshuffle)
     after = replace(after, cards_played_total=state.cards_played_total + 1)
     after = fire_p_items(
         after,
@@ -1140,7 +1250,7 @@ def sample_apply_card(
     )
     if card.once:
         return replace(after, excluded=after.excluded + (card,))
-    return replace(after, discard=after.discard + (card,))
+    return _discard_push(after, card)
 
 
 _P_ITEM_GROUP_CACHE: dict[int, tuple[tuple[PItemSpec, ...], dict[str, tuple[PItemSpec, ...]]]] = {}
@@ -1302,6 +1412,7 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     full_power_turns = _tick_turns(state.full_power_lesson_multiple_turns)
     full_power_multiple = state.full_power_lesson_multiple if full_power_turns != 0 else 0
     next_stance = end_turn(state.stance_state)
+    hand_order = state.discard_order
     next_state = replace(
         state,
         score=score,
@@ -1318,6 +1429,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         parameter_buff=0,
         hand=(),
         discard=state.discard + state.hand,
+        # 回合末弃手牌：进弃牌堆的顺序 = 手牌顺序（已知顺序时继续累积）
+        discard_order=None if hand_order is None else hand_order + state.hand,
         turns_left=state.turns_left - 1,
         plays_used=0,
         extra_plays=0,
@@ -1355,11 +1468,13 @@ class _Search:
         *,
         clock: Callable[[], float],
         deadline: float | None,
+        reshuffle: ReshuffleFn | None = None,
     ) -> None:
         self.value = value
         self.config = config
         self.clock = clock
         self.deadline = deadline
+        self.reshuffle = reshuffle
         self.memo: dict[tuple[Any, ...], float] = {}
         self.choice_memo: dict[tuple[Any, ...], CardSpec | None] = {}
         self.drink_choice_memo: dict[tuple[Any, ...], int | None] = {}
@@ -1430,7 +1545,7 @@ class _Search:
         return best
 
     def action_value(self, state: ExpectState, card: CardSpec) -> float:
-        outcomes = apply_card(state, card)
+        outcomes = apply_card(state, card, reshuffle=self.reshuffle)
         return sum(
             probability * self.search(next_state)
             for probability, next_state in outcomes
@@ -1535,8 +1650,13 @@ def expectimax_with_stats(
     draw_enum_limit: int | None = None,
     max_nodes: int | None = None,
     allow_drinks: bool | None = None,
+    reshuffle: ReshuffleFn | None = None,
 ) -> ExpectimaxResult:
-    """完整决策：返回动作、价值、节点数、耗时、是否完整（anytime 截止）。"""
+    """完整决策：返回动作、价值、节点数、耗时、是否完整（anytime 截止）。
+
+    ``reshuffle``（可选）：确定性重洗钩子，配合 ``ExpectState.discard_order``
+    让牌堆抽空后的重洗也变成确定分支（见 :data:`ReshuffleFn`）。
+    """
     config = _config_with_overrides(
         config,
         a_clear=a_clear,
@@ -1553,7 +1673,7 @@ def expectimax_with_stats(
     started = clock()
     if deadline is None and config.time_budget_ms is not None:
         deadline = started + max(float(config.time_budget_ms), 0.0) / 1000.0
-    search = _Search(model, config, clock=clock, deadline=deadline)
+    search = _Search(model, config, clock=clock, deadline=deadline, reshuffle=reshuffle)
     try:
         best_value, best_card, best_drink, actions = search.root(state)
     except _Deadline:
@@ -1644,10 +1764,17 @@ def best_turn_sequence(
     *,
     clock: Callable[[], float] = time.perf_counter,
     deadline: float | None = None,
+    reshuffle: ReshuffleFn | None = None,
 ) -> tuple[list[CardSpec], ExpectState, bool]:
     """本回合的最优**有序出牌序列**（抽牌取最大概率后继；beam 规划用）。"""
     model = value or AnalyticLeafValue()
-    search = _Search(model, ExpectimaxConfig(), clock=clock, deadline=deadline)
+    search = _Search(
+        model,
+        ExpectimaxConfig(),
+        clock=clock,
+        deadline=deadline,
+        reshuffle=reshuffle,
+    )
     cards: list[CardSpec] = []
     current = state
     complete = True
@@ -1657,7 +1784,7 @@ def best_turn_sequence(
             card = search.choice_memo.get(current.canonical())
             if card is None:
                 break
-            outcomes = apply_card(current, card)
+            outcomes = apply_card(current, card, reshuffle=reshuffle)
             if not outcomes:
                 break
             outcomes.sort(key=lambda item: item[0], reverse=True)
@@ -1712,6 +1839,7 @@ def _top_turn_plans(
     rng: random.Random,
     clock: Callable[[], float],
     deadline: float,
+    reshuffle: ReshuffleFn | None = None,
 ) -> list[_TurnPlan]:
     """本回合按 V_leaf 取 top-limit 个**不同出牌序列**（beam 根分支用）。
 
@@ -1724,7 +1852,14 @@ def _top_turn_plans(
     if limit == 1 or has_draw or has_drinks:
         # 单计划/有抽牌/有饮料：直接用 expectimax 的最佳序列（比枚举快）
         return [
-            _plan_turn(state, value, rng, clock=clock, deadline=deadline)
+            _plan_turn(
+                state,
+                value,
+                rng,
+                clock=clock,
+                deadline=deadline,
+                reshuffle=reshuffle,
+            )
             for _ in range(limit)
         ]
 
@@ -1751,7 +1886,7 @@ def _top_turn_plans(
         if current.plays_left <= 0 or not current.hand:
             return
         for card in legal_cards(current):
-            outcomes = apply_card(current, card)
+            outcomes = apply_card(current, card, reshuffle=reshuffle)
             if len(outcomes) != 1:
                 # 手牌里没有 draw 卡时不应出现分支；防御性跳过
                 continue
@@ -1769,6 +1904,7 @@ def _plan_turn(
     *,
     clock: Callable[[], float],
     deadline: float,
+    reshuffle: ReshuffleFn | None = None,
 ) -> _TurnPlan:
     """一个回合的最佳序列；有抽牌卡时按真实剩余多重集抽样推进。"""
     has_draw = any(card.draw > 0 for card in state.hand)
@@ -1778,7 +1914,7 @@ def _plan_turn(
     complete = True
     if not has_draw and not has_drinks:
         cards, current, complete = best_turn_sequence(
-            state, value, clock=clock, deadline=deadline
+            state, value, clock=clock, deadline=deadline, reshuffle=reshuffle
         )
         names = [card.name for card in cards]
         first_card = cards[0] if cards else None
@@ -1787,7 +1923,11 @@ def _plan_turn(
         try:
             while current.plays_left > 0 and current.hand:
                 result = expectimax_with_stats(
-                    current, value, clock=clock, deadline=deadline
+                    current,
+                    value,
+                    clock=clock,
+                    deadline=deadline,
+                    reshuffle=reshuffle,
                 )
                 if result.card is None and result.drink is None:
                     break
@@ -1802,7 +1942,9 @@ def _plan_turn(
                 if first_card is None:
                     first_card = result.card
                 names.append(result.card.name)
-                current = sample_apply_card(current, result.card, rng)
+                current = sample_apply_card(
+                    current, result.card, rng, reshuffle=reshuffle
+                )
                 if not result.complete:
                     complete = False
                     break
@@ -1829,6 +1971,7 @@ def search_beam(
     clock: Callable[[], float] = time.perf_counter,
     rng: random.Random | int | None = None,
     branching: int | None = None,
+    reshuffle: ReshuffleFn | None = None,
 ) -> BeamResult:
     """跨回合 beam：每层一个回合，节点是回合末状态，按 V_leaf 保留 top-width。
 
@@ -1836,6 +1979,9 @@ def search_beam(
     剩余多重集**无放回抽样**新一手牌（``sample_draws``），回合内用 expectimax
     产出该回合最佳序列。最终按**最深一层**的 V_leaf 回溯根动作——这样"先铺 buff
     的投资线"不会因为当前分数低被剪掉。到 ``deadline_ms`` 返回当前最优。
+
+    ``reshuffle``（可选）：确定性重洗钩子；``state.discard_order`` 已知时，
+    牌堆抽空后的重洗与后续抽牌也按真实顺序走（配合 known_draw 的完全信息规划）。
     """
     model = value or AnalyticLeafValue()
     if time_budget_ms is not None:
@@ -1873,11 +2019,14 @@ def search_beam(
             rng=rng,
             clock=clock,
             deadline=deadline,
+            reshuffle=reshuffle,
         )
     except _Deadline:
         complete = False
     if not root_plans:
-        result = expectimax_with_stats(state, model, clock=clock, deadline=deadline)
+        result = expectimax_with_stats(
+            state, model, clock=clock, deadline=deadline, reshuffle=reshuffle
+        )
         return BeamResult(
             card=result.card,
             utility=result.utility,
@@ -1911,7 +2060,10 @@ def search_beam(
                 if timed_out():
                     break
                 start = sample_draws(
-                    node.plan.end_state, node.plan.end_state.hand_size, rng
+                    node.plan.end_state,
+                    node.plan.end_state.hand_size,
+                    rng,
+                    reshuffle=reshuffle,
                 )
                 start = start_turn_state(start)
                 try:
@@ -1922,6 +2074,7 @@ def search_beam(
                         rng=rng,
                         clock=clock,
                         deadline=deadline,
+                        reshuffle=reshuffle,
                     )
                 except _Deadline:
                     complete = False
@@ -1968,8 +2121,11 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
 
     ``known_deck_order=True`` 时把 ``sim.deck`` 的**真实顺序**写成 ``known_draw``
     （``LessonSim`` 从列表尾部 ``pop()`` 抽牌，所以抽牌顺序 = ``reversed(sim.deck)``），
-    用来离线评测「完全信息搜索」：搜索知道接下来的抽牌顺序；牌库抽空后要洗弃牌，
-    那一段顺序仍不可知（退回多重集期望）。
+    用来离线评测「完全信息搜索」。
+
+    ``discard_order`` 总是从 ``sim.discard`` 带过来（``LessonSim`` 的弃牌堆是
+    append 顺序 = 进弃牌堆先后）。配合 :func:`reshuffle_from_sim` 的钩子，搜索在
+    牌堆抽空后也能按真实顺序重洗 →「重洗后段全知」的离线评测入口。
     """
     buffs = getattr(sim, "buffs", Buffs())
     stance = getattr(sim, "stance", StanceState())
@@ -1987,6 +2143,7 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         discard=tuple(sim.discard),
         excluded=tuple(getattr(sim, "excluded", ())),
         known_draw=(tuple(reversed(sim.deck)) if known_deck_order else ()),
+        discard_order=tuple(sim.discard),
         stamina=max(int(sim.stamina), 0),
         stamina_max=max(int(getattr(sim, "stamina_max", 0)), 0),
         vitality=max(int(sim.vitality), 0),
@@ -2037,3 +2194,23 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         drinks_per_turn=getattr(config, "drinks_per_turn", None) if config else None,
         card_uses=tuple(sorted(card_uses.items())),
     )
+
+
+def reshuffle_from_sim(sim: Any) -> ReshuffleFn:
+    """用 ``LessonSim.rng`` 的**当前状态**造一个纯重洗钩子（不推进 ``sim.rng``）。
+
+    ``LessonSim`` 抽牌是 ``deck.pop()``（尾部）：牌堆抽空时把弃牌堆直接 shuffle
+    再从尾部 pop，所以**重洗后的抽牌顺序 = reversed(shuffled_discard)**。
+    钩子只在模拟器真正重洗前（期间不消耗 rng）与真实重洗完全一致；同一局多次
+    重洗时每次都按同一快照算（第二次起可能不准，考试里通常只重洗一次）。
+    """
+    rng_state = sim.rng.getstate()
+
+    def reshuffle(grave: tuple[CardSpec, ...]) -> list[CardSpec]:
+        rng = random.Random()
+        rng.setstate(rng_state)
+        cards = list(grave)
+        rng.shuffle(cards)
+        return list(reversed(cards))
+
+    return reshuffle

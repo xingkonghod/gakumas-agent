@@ -33,6 +33,7 @@ from .exam_shuffle import (
     DEFAULT_NPC_COUNT,
     DEFAULT_TURN_START_DISTRIBUTE,
     Card,
+    NativeRandom,
     k_before_shuffle,
     opening_deck_and_rng,
     reshuffle_grave,
@@ -85,11 +86,17 @@ class ExamDrawOracle:
         self._hand_limit = max(int(hand_limit), 1)
         self._upgradeable = upgradeable
         self._turn = 0
+        self._reshuffles = 0
 
     @property
     def turn(self) -> int:
         """已经抽过牌的回合数（0 = 考试还没开始）。"""
         return self._turn
+
+    @property
+    def reshuffles(self) -> int:
+        """已经发生过几次「弃牌堆洗回牌堆」（0 = 还没重洗过）。"""
+        return self._reshuffles
 
     @property
     def remaining(self) -> list[Card]:
@@ -104,6 +111,20 @@ class ExamDrawOracle:
     def peek(self, count: int) -> list[Card]:
         """看牌堆顶接下来 ``count`` 张（不消耗、不推进 RNG）。"""
         return list(self._deck[: max(int(count), 0)])
+
+    def reshuffle(self, grave: tuple[Card, ...] | list[Card]) -> list[Card]:
+        """预览「牌堆抽空时洗弃牌堆」的结果（**纯函数**，不推进考试 RNG）。
+
+        返回重洗后的**抽牌顺序**（下标 0 = 牌堆顶）。搜索侧直接把它当
+        ``expectimax`` / ``search_beam`` 的 ``reshuffle`` 钩子用：配合
+        ``ExpectState.discard_order`` 让重洗后的牌序也变成确定分支。
+
+        注意：钩子用当前 RNG 状态的副本；两次重洗之间若真实考试又掷过支援强化
+        （RNG 前进），第二次预览会偏。现在验证过的重洗样本都是「牌堆抽空时
+        下一条 RNG 就是洗牌」，这一档完全精确。
+        """
+        rng = NativeRandom(self._rng.state)
+        return reshuffle_grave(rng, list(grave))
 
     def draw_next_turn(self, parameter_type: int, *, grave: list[Card] | None = None) -> list[Card]:
         """抽下一回合的手牌并结算支援强化掷点。
@@ -141,6 +162,7 @@ class ExamDrawOracle:
                         "牌堆已空，抽牌需要洗弃牌堆：请传 grave（进弃牌堆先后顺序）"
                     )
                 self._deck = reshuffle_grave(self._rng, grave)
+                self._reshuffles += 1
             drawn_batch.append(self._deck.pop(0))
         # 支援强化掷点：两批各自判一次，共用本回合的「已成功支援」集合
         if self._supports:

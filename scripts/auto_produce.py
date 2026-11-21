@@ -44,6 +44,7 @@ from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
 from gkagent.runtime.replay import ReplayDB
 from gkagent.sim.exam_estimate import SimCard, estimate_score
+from gkagent.sim.exam_plan import ExamDrawPlan, load_exam_setups
 from gkagent.sim.lesson import CardSpec
 from gkagent.sim.play_choice import MAX_APPROX_DECK, plan_pick
 from gkagent.tasks.produce import ProduceTask
@@ -418,6 +419,17 @@ def stop_requested() -> bool:
     return bool(USER32.GetAsyncKeyState(0x7B) & 0x8000)
 
 
+def arg_value(name: str, default: str | None = None) -> str | None:
+    """从 ``sys.argv`` 里取 ``--name value`` / ``--name=value``（这个脚本一直用裸 argv）。"""
+    prefix = name + "="
+    for index, item in enumerate(sys.argv):
+        if item == name and index + 1 < len(sys.argv):
+            return sys.argv[index + 1]
+        if item.startswith(prefix):
+            return item[len(prefix) :]
+    return default
+
+
 def restore_window() -> None:
     """最小化/黑屏时恢复游戏窗口（本进程已是管理员）。"""
     script = ROOT / "scripts" / "force_show_game.ps1"
@@ -426,8 +438,9 @@ def restore_window() -> None:
             ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script)],
             timeout=30,
             capture_output=True,
+            check=False,
         )
-    except Exception:
+    except Exception:  # noqa: BLE001, S110 - 窗口恢复失败不阻断跑局
         pass
     time.sleep(2.0)
 
@@ -463,12 +476,16 @@ def main() -> int:
     cost_cache = CardCosts()
     lesson_reader = LessonReader(engine, cards=card_lib, costs=cost_cache)
     lesson_policy = LessonPolicy(buffs=lesson_reader.buffs)
+    # 考试牌序计划（完全信息搜索数据源）：--exam-setup 指向 build_exam_setup.py 的产物。
+    # 计划挂到策略后，每回合会拿采集推出来的牌序跟实机手牌核对；核对不上自动停用，
+    # 行为退回期望搜索（没有采集数据时也完全等价于现状）。
+    exam_setup_path = arg_value("--exam-setup", str(ROOT / "out" / "exam_setup.json"))
     # 开局先回主页：上一轮可能停在支援卡/偶像/强化页面，否则前 8 步全是 unknown-tap
     # --skip-home：已经手动摆好在"选择偶像/支援卡"界面时跳过，否则会被拽回主页
     if "--skip-home" not in sys.argv:
         try:
             Navigator(agent, engine).ensure_home()
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110 - 回主页失败交给后续 unknown-tap
             pass
     metrics = MetricsLog(METRICS)
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
@@ -507,6 +524,19 @@ def main() -> int:
     window_fail_streak = 0
     # 考试/试镜模式（F#17）：本局是否已进入过考试（只打一次 [exam-mode] 进入日志）
     exam_seen = False
+    # 考试牌序计划：按场次顺序取（期中一场、期末一场）；turns_left 变大 = 换到下一场
+    exam_plans = (
+        [ExamDrawPlan(item) for item in load_exam_setups(exam_setup_path)]
+        if exam_setup_path
+        else []
+    )
+    exam_plan_cursor = 0
+    prev_exam_turns: int | None = None
+    if exam_plans:
+        log_lines.append(
+            f"[exam-plan] 载入 {len(exam_plans)} 场考试牌序计划：{exam_setup_path}"
+            f"（engine={lesson_policy.engine}）"
+        )
     # sim 实时出牌的近似牌库（真机拿不到完整牌组，把见过的手牌并进来，最多 12 张）
     sim_deck: list[CardSpec] = []
     # 期末估分（run_exam_estimate）先停用：它要逐张点开手牌，一局多花 10-20s，等速度达标再接回来
@@ -789,7 +819,7 @@ def main() -> int:
                 from gkagent.data.calibration import record as _record_attrs
 
                 _record_attrs(attrs_now, tag="run")
-        except Exception:  # noqa: BLE001 - 标定失败不影响培育
+        except Exception:  # noqa: BLE001, S110 - 标定失败不影响培育
             pass
         finally:
             ocr_ms += (time.perf_counter() - t_attrs) * 1000
@@ -956,6 +986,31 @@ def main() -> int:
                 lesson_active = True
                 if lesson_state.score is not None and lesson_state.score > 0:
                     last_lesson_score = lesson_state.score
+            # 考试牌序计划：进入考试 / 换到下一场考试时挂上下一场采集数据。
+            # 之后策略每回合调 plan.begin_turn 与实机手牌核对，对不上自动停用。
+            if exam_mode:
+                turns_now = lesson_state.turns_left
+                new_exam = prev_exam_turns is None or (
+                    turns_now is not None and turns_now > prev_exam_turns
+                )
+                if turns_now is not None:
+                    prev_exam_turns = turns_now
+                if (
+                    new_exam
+                    and turns_now is not None
+                    and exam_plan_cursor < len(exam_plans)
+                ):
+                    plan = exam_plans[exam_plan_cursor]
+                    if plan is not lesson_policy.draw_plan:
+                        exam_plan_cursor += 1
+                        lesson_policy.attach_draw_plan(plan)
+                        log_lines.append(
+                            f"{step:03d} [exam-plan] 挂上 exam{plan.setup.index} "
+                            f"seed=0x{plan.setup.seed:08X} 配置{plan.setup.config_turns}回合 "
+                            f"牌堆{len(plan.setup.deck)}张（engine={lesson_policy.engine}）"
+                        )
+            else:
+                prev_exam_turns = None
             # 同屏兜底（ep-cplus10：SKIP 点空后同一画面连拍 169 步，25 分钟超时）。
             # 用语义签名而不是像素 digest——角色呼吸/卡面闪光/视频噪点让每帧 hash 都不同。
             turn_signature = lesson_turn_signature(lesson_state)
@@ -1480,7 +1535,7 @@ def main() -> int:
                 if mapped_action is not None:
                     week_value, week_phase = driver.read_week(image, text)
                     start_week_action(mapped_action, week_value, week_phase)
-            elif tick.screen not in ("pause", "loading", "blank"):
+            elif tick.screen not in ("pause", "loading", "blank"):  # noqa: SIM102 - 保持原逻辑
                 if pending_week is not None:
                     pending_action_advanced = True
             if tick.screen == "stuck":
@@ -1597,6 +1652,12 @@ def main() -> int:
             progress_markers=markers[:10],
         )
     )
+    # 考试牌序计划复盘：核对了几回合 / 是否因不符停用 / 重洗几次
+    for used in exam_plans[:exam_plan_cursor]:
+        try:
+            log_lines.append(f"[exam-plan] {used.summary()}")
+        except Exception as exc:  # noqa: BLE001 - 复盘日志不能影响收尾
+            log_lines.append(f"[exam-plan] summary 失败：{exc}")
     LOG.write_text("\n".join(log_lines), encoding="utf-8")
     # 每局单独留一份，避免被下一局/手工测试覆盖
     (SHOT_DIR / f"auto_log_{episode}.log").write_text("\n".join(log_lines), encoding="utf-8")
