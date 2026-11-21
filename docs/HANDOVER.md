@@ -487,6 +487,25 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
 
 ---
 
+### 二·补十三、11-22 凌晨二段（群文件解包：OCR 根因证实 + 魔改 MAA/手机实验版结构）
+
+**结论（重要）**：我们的 OCR 问题根因 = **RapidOCR 默认中文模型（ch_PP-OCRv4，字典无假名）**，日文 UI 只剩碎片；
+换成魔改 MAA 包自带的**日文 OCR 模型 + keys（18,708 行，含假名）**后，同一截图能完整读出
+「ヨーグルトパフェ／つくねハンバーグ／ドリンクバー／そこまで真剣だと…」。管理员"没问题"是因为 MaaGakumasu
+自带日文模型（也可能用 Localify 中文化客户端）。**这是能一次性修好大量文本分支的 P0**。
+
+- 群文件结构/许可证/实测命令/修复方案：见 **[GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md)**；
+- `GKMSMAA_20261120.zip`（AGPL-3.0，MaaGakumasu 魔改）：station（127.0.0.1:8765）出计划 → `gkmsmaa`
+  执行层按屏点（follow/produce-follow/probe/ranking；大量 tap 确认/重试/提权逻辑）→ 只学架构不拷代码；
+- `GKMS小白鼠实验版.apk.1`（LSPatch 打包）：origin.apk + **Localify 模块**（master 中文翻译，81 MB）+
+  **gkms-phone 模块**（`libgkms-gadget.so` 24 MB + portal/pem/identity → 手机端 gadget 桥）；
+- 解包位置：`D:\GakumasAgentArchive\group_files\{GKMSMAA, GKMS实验版APK}`（**不入库**）。
+
+**下次开工第一件事**：按 GROUP_FILES_ANALYSIS §2 把 OCR 换成日文模型（先本地用 MAA 模型验证，再选
+PaddleOCR Apache-2.0 版入库），然后重跑真机验 F#41/#42/#43 与 T3。
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

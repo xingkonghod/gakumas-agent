@@ -153,7 +153,9 @@ cd D:\Games\gakumas-agent
 - 采集链路通了（服务 18443/18444、token 刷新、C 盘副本）；4 次短跑 ep-t3-1..4 全部中途停。
 - 已修：培育开场**日文剧情二选一**（布局识别选项气泡 + 补读中下部 OCR，`584f742`，FAILURES #41）。
 - 待修：**#42 舞蹈课程连打 buff → 0 分 FAILED**（禁跳硬打必须保证得分）；**#43 结果页 result-tap 循环**。
-- 群文件情报（论文/2B run/GKMSMAA AGPL）见 HANDOVER 二·补十二；下会话先修 #42/#43 再跑 T3。
+- 群文件情报（论文/2B run/GKMSMAA AGPL）见 HANDOVER 二·补十二；**下会话先做 OCR 换日文模型**
+  （根因已证实：我们默认中文字典→日文碎片；见 [GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md)），
+  再重跑验 F#41/#42/#43 与 T3。
 
 **剩余（跑一局验收）**
 1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
