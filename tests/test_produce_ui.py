@@ -1348,3 +1348,39 @@ def test_class_quiz_detection_ignores_reward_popup() -> None:
     )
     result = _driver().decide(agent, lines)
     assert result.screen != "class-quiz"
+
+def test_story_choice_bubbles_clicked_before_fast_forward() -> None:
+    """真机 ep-t3-1：培育开场剧情有两行选项气泡（飲み物/慣れてきましたか?），
+    旧逻辑只点「快进」→ 选项永远点不到，剧情原地循环 100+ 步。"""
+    agent = FakeAgent()
+    # 坐标取自真机 step_025.png 的 OCR 输出（对白框 y=977/1019，选项目 y≈785/885）
+    lines = [
+        OcrLine("期中截止 6周", 0.95, (20, 80, 150, 40)),
+        OcrLine("飲み物を持ってきました", 0.95, (97, 785, 342, 30)),
+        OcrLine("慣れてきましたか?", 0.95, (97, 885, 268, 33)),
+        OcrLine("おはようございます、プロデューサー。", 0.95, (76, 977, 458, 35)),
+        OcrLine("本日もお願いします。", 0.95, (78, 1019, 250, 27)),
+        OcrLine("快进", 0.9, (584, 1187, 81, 28)),
+    ]
+    result = _driver().decide(agent, lines)
+    assert result.screen == "story"
+    assert result.action == "choice"
+    assert agent.device.clicks[-1] == (268, 800)
+
+def test_story_fast_streak_falls_back_to_layout_choice() -> None:
+    """日文剧情 OCR 只剩碎片时（真机 ep-t3-3），连点多次快进后按布局点选项气泡。"""
+    agent = FakeAgent()
+    driver = _driver()
+    lines = [
+        OcrLine("快进", 0.9, (584, 1187, 81, 28)),
+        OcrLine("物持", 0.9, (97, 785, 342, 30)),
+        OcrLine("？", 0.9, (97, 885, 267, 33)),
+        OcrLine("、。", 0.9, (77, 979, 456, 32)),
+    ]
+    result = None
+    for _ in range(5):
+        result = driver.decide(agent, lines)
+    assert result is not None
+    assert result.screen == "story"
+    assert result.action == "choice-by-layout"
+    assert agent.device.clicks[-1] == (268, 800)

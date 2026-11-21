@@ -187,6 +187,10 @@ FAST_P_BOX = (315, 105, 110, 45)  # P 41（P 点）
 FAST_LOADING_BOX = (20, 1185, 220, 55)  # 正在下载数据
 FAST_LOADING_EN_BOX = (540, 1175, 170, 55)  # NOW LOADING... / 快进
 FAST_EVENT_FAST_BOX = (545, 1165, 170, 65)  # 快进（文字实际位置略高，兜底再读一次）
+# 剧情选项/底部对白区域：快速路径的窄行 OCR 会把日文长句截成 1-2 个字
+# （真机 ep-t3-3：选项气泡 785/885、对白 977/1019 全被截断 → 剧情选项永远点不到）。
+# 有「快进」的帧补读这一条区域，供 decide 判断「剧情选项」。
+FAST_DIALOGUE_AREA = (0, 600, 720, 540)
 FAST_EVENT_ROW_BOXES: tuple[tuple[int, int, int, int], ...] = (
     (70, 690, 590, 90),
     (70, 790, 590, 90),
@@ -855,6 +859,8 @@ class ProduceDriver:
     retry_count: int = field(default=0, init=False)
     gain_waits: int = field(default=0, init=False)
     drink_scroll: int = field(default=0, init=False)
+    # 连续「剧情快进」步数：日文剧情 OCR 只剩碎片时，按布局点选项气泡的兜底计数
+    story_fast_streak: int = field(default=0, init=False)
     # 「定期公演」兜底分支的连续计数：结算/培育记录页也含「定期公演」，点难度按钮空转
     scenario_sig: str | None = field(default=None, init=False)
     scenario_streak: int = field(default=0, init=False)
@@ -1079,6 +1085,14 @@ class ProduceDriver:
 
         event_lines, fast_text = self._event_probe(image)
         if event_lines is not None:
+            # 剧情选项气泡/底部对白：窄行 OCR 日文常被截断，补读中部+底部整条区域；
+            # 事件屏同样多一次区域 OCR（~0.3s），由 decide 自己的分支区分。
+            try:
+                dialogue_lines = self.engine().read(image, FAST_DIALOGUE_AREA)
+            except Exception:  # noqa: BLE001 - 区域 OCR 失败就退回原行为
+                dialogue_lines = []
+            if dialogue_lines:
+                event_lines = [*event_lines, *dialogue_lines]
             return self._remember_frame(event_lines)
 
         status = self._probe_text(image, FAST_STATUS_BOX)
@@ -1739,6 +1753,8 @@ class ProduceDriver:
 
     def _decide(self, agent, lines: list[OcrLine], image=None) -> TickResult:
         text = self.text_of(lines)
+        if "快进" not in text and "SKIP" not in text:
+            self.story_fast_streak = 0
 
         # 0) 空白/纯色转场：等待，不当作「无可执行动作」
         if len(text.strip()) <= 3:
@@ -1947,6 +1963,36 @@ class ProduceDriver:
             end = self.find(lines, "结束")
             self._click_line(agent, end) if end else self._click(agent, (640, 1165))
             return TickResult("shop", "exit")
+
+        # 4.45) 剧情「选项气泡」：快进/SKIP 仍在，屏幕中部有 2–3 行选项，且**底部有对白长句**
+        # ——这是培育开场的剧情二选一（真机 ep-t3-1：飲み物を持ってきました / 慣れてきましたか?），
+        # 不是外出事件（事件屏选项带 P/体力费用标签，且没有底部对白）。旧逻辑先点快进 →
+        # 选项永远点不到，剧情原地循环 100+ 步。
+        if "快进" in text or "SKIP" in text:
+            # 底部对白框：真机 OCR 行 y 实测在 977/1019（不是 1010 以下），阈值取 950。
+            bottom_dialogue = any(
+                self.center(line)[1] >= 950
+                and len(line.text.strip()) >= 8
+                and any(mark in line.text for mark in ("。", "！", "？", "…"))
+                for line in lines
+            )
+            cost_hint = any(
+                _EVENT_ROW_COST_RE.search(line.text)
+                for line in lines
+                if 600 <= self.center(line)[1] <= 1150
+            )
+            choices = [
+                line
+                for line in lines
+                if 650 <= self.center(line)[1] <= 1010
+                and 4 <= len(line.text.strip()) <= 40
+                and "快进" not in line.text
+                and "SKIP" not in line.text
+            ]
+            if bottom_dialogue and not cost_hint and len(choices) >= 2:
+                target = min(choices, key=lambda line: self.center(line)[1])
+                self._click_line(agent, target)
+                return TickResult("story", "choice")
 
         # 4.4) 外出/事件选择：点最下面那个选项（默认高亮、通常是免费项），再点一次确认
         # 实测两种布局：戏剧/体育/露营（短标签），以及「平时都做些什么工作呢？」这种长句选项；
@@ -2288,6 +2334,25 @@ class ProduceDriver:
             self._click_line(agent, line) if line else self._click(agent, DIALOGUE_SKIP)
             return TickResult("story", "skip-live")
         if "SKIP" in text or "快进" in text:
+            # 真机 ep-t3-3：育成开场剧情是日文「快进 + 二选项气泡」，而 OCR 字典是中文，
+            # 选项/对白只剩碎片（'物持' / '？' / '、。'），按文本判断选不出来。
+            # 兜底：连续多次都只能点快进 → 按布局点最上面的**选项气泡**
+            #（中部 700–1010、宽 200–700 的白色气泡框）。
+            self.story_fast_streak += 1
+            if self.story_fast_streak >= 5:
+                bubbles = [
+                    line
+                    for line in lines
+                    if 700 <= self.center(line)[1] <= 1010
+                    and 200 <= line.box[2] <= 700
+                    and line.box[3] <= 90
+                    and "快进" not in line.text
+                ]
+                if len(bubbles) >= 2:
+                    self.story_fast_streak = 0
+                    target = min(bubbles, key=lambda line: self.center(line)[1])
+                    self._click_line(agent, target)
+                    return TickResult("story", "choice-by-layout")
             fast = self.find(lines, "快进")
             if fast is not None:
                 self._click_line(agent, fast)
