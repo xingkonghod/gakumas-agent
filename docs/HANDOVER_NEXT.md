@@ -358,6 +358,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 | 数据 | 主数据缺 11-21 新卡：`verify_shuffle.py` 用 `SUPPLEMENT_*` 兜底，更新主数据后可删；`out/` 不进 git |
 | 时间口径 | 期中考试有 `forceEndScore` 提前结束，但 K（洗牌前 RNG 消耗）**按配置回合**算，不是实战回合 |
 | 提交 | 一次任务一个 `feat(...)` 提交（含测试+文档），再一个 `docs(handover): 补提交记录哈希`；`.gitignore` 已忽略 `out/` |
+| 存档 | 私有存档/私有仓库见 [ARCHIVE.md](ARCHIVE.md)：`scripts\archive_private.ps1`（bundle+裸仓库+采集数据备份，`-Push` 推 Gitee 私有仓）；**只能私有** |
 
 ---
 

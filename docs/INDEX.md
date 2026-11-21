@@ -51,6 +51,12 @@
 | 3 | [UNLOCK_ADAPT.md](UNLOCK_ADAPT.md) | hook 机制、版本适配 |
 | 4 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 踩过的坑 |
 
+### 想备份 / 存档 / 私有仓库
+
+| 文档 | 内容 |
+|---|---|
+| [ARCHIVE.md](ARCHIVE.md) | 私有存档：本地裸仓库 + bundle + 采集数据备份 + Gitee/GitHub 私有仓库推送与恢复 |
+
 ### 想了解社区在做什么
 
 | 文档 | 内容 |
@@ -82,6 +88,7 @@
 | **HIRO_VIDEO_NOTES.md** | hiro 项目视频要点 |
 | **OFFICIAL_AI_NOTES.md** | 官方 AI 的策略启发式 |
 | **RUNS.md** | 实机跑局记录 |
+| **ARCHIVE.md** | 私有存档/私有仓库（bundle、裸仓库、采集数据备份、推送/恢复）|
 | **LIVE_CHECK.md** | 真机检查清单 |
 | **LIVE_RUN.md** | 真机跑局流程 |
 | **ARCHITECTURE.md** | 架构与 ADR |
