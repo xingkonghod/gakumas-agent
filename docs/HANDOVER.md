@@ -390,7 +390,7 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 
 **测试**：`pytest` 全绿（**889 passed / 1 skipped，890 条收集 / 61 文件**）；新增 2 条 leaf tie-break 回归。
 
-**提交**：本次 feat 提交（哈希由后续 docs(handover) 补记）
+**提交**：`4c9f024` feat(eval): T4 起点——档位效用平手项 + beam 采样分支（实验，默认关闭）
 
 ---
 
@@ -517,6 +517,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 凌晨）
+4c9f024 feat(eval): T4 起点——档位效用平手项 + beam 采样分支（实验，默认关闭）
 （2026-11-21 深夜四段）
 09b9358 feat(sim): 上真机前整局引擎 A/B + 考试策略注入 + auto_produce 墙钟上限
 ae86e1c feat(policy): 禁用 rules 回退——搜索引擎失败必须暴露，不许静默改用规则
