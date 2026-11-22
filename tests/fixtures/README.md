@@ -32,6 +32,28 @@
   （证明「1 张」不是手牌不够）；2 张的 7 个回合里 **3 个**首张牌带额外出牌效果，
   其余 4 个按 **P 道具追加**（采集不含 P 道具数据，只能说明不超过 2 张）。
 
+## 非图片素材：考试属性倍率（审查倍率）回归（WORKPLAN B4 / T5①）
+
+`t5_exam_multipliers.json` 不是截图，是 **2026-11-20 采集局期中/期末两场的属性倍率快照**：
+每场记录偶像卡 id / 剧本 id / 考试开始三维、主数据考试配置（回合数、审查基准
+`vocal/dance/visual`、分数表分段节点 `[parameter, vocalPermil, dancePermil, visualPermil]`）、
+以及用客户端公式算出的三项倍率与中间量（components / penalties / common）。用于
+[`tests/test_exam_multiplier.py`](../test_exam_multiplier.py) 的「分段折线 + 联动惩罚」回归。
+
+- 来源：`C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl`（`Produce/Start` 的偶像卡、
+  `StepAuditionStart` 响应的培育三维 `UserProduceProgress.vocal/dance/visual`）+
+  主数据 `catalog.sqlite`（gakumasu-diff 快照：`ProduceStepAuditionDifficulty` →
+  `ProduceExamBattleConfig` → `ProduceExamBattleScoreConfig` + `Setting` 惩罚上下限 100/250）。
+- 生成：`.venv\Scripts\python.exe scripts\export_exam_multipliers.py`
+  （`--check` 只校验不落盘；主数据/采集不在时脚本报错退出，不影响 pytest —— fixture 已提交）。
+- 事实：期中三维 373/218/187 → Vo/Da/Vi **4.09 / 2.20 / 2.60×**（Vi 187 < 审查基准 192 →
+  罚 103‰，`common=897` 把三项一起压低＝联动惩罚）；期末 842/350/629 →
+  **6.97 / 2.85 / 4.96×**（Vo/Da 两项不达标）。
+- 跳过的两场：2026-11-21 的 `i_card-hkne-3-000` 不在主数据快照里（新卡），夹具显式记录
+  `skipped` —— 生产侧不依赖主数据，直接读屏幕倍率（真机帧「舞蹈 207%」→ 搜索 2.07）。
+- 注意：这是**主数据计算结果**的回归快照，不是官方逐分真值；真机逐分回放还差 P 道具附魔/
+  考试内生成卡等未建模机制（见 RULES_REFERENCE §5.1 的「剩余差距」）。
+
 ## 缺的真机帧：回合结束确认框（F#8/F#36）
 
 `step_NNN.png` 是**轮转覆盖**的，含「回合结束 / 尚可使用技能卡 / 确定要结束回合吗？」的

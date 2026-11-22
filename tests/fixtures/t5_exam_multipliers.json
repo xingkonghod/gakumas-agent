@@ -1,0 +1,184 @@
+{
+ "format": "gkagent.exam_multipliers.v1",
+ "source": {
+  "traffic": "C:\\GakumasLocal\\GakumasUnlock\\out\\traffic.jsonl",
+  "master_db": "D:\\Games\\gakumas-agent\\data\\hiro\\vendor\\gakumas-player\\data\\master\\d31baf6608ee4553091f28446f628cd3ad66ff01\\catalog.sqlite",
+  "generated_by": "scripts/export_exam_multipliers.py",
+  "note": "主数据表：ProduceStepAuditionDifficulty → ProduceExamBattleConfig → ProduceExamBattleScoreConfig，惩罚上下限来自 Setting；分段折线 + 联动惩罚公式见 src/gkagent/sim/exam_multiplier.py。采集/主数据都在仓库外或 gitignore，本夹具只是计算结果的回归快照。"
+ },
+ "attribute_order": [
+  "vocal",
+  "dance",
+  "visual"
+ ],
+ "exams": [
+  {
+   "index": 0,
+   "ts": "2026-11-20T12:37:42.992",
+   "idol_card_id": "i_card-hmsz-3-018",
+   "produce_id": "produce-002",
+   "step_type": "mid",
+   "played_turns": 9,
+   "params": {
+    "vocal": 373,
+    "dance": 218,
+    "visual": 187
+   },
+   "start_stamina": 27,
+   "start_max_stamina": 35,
+   "config": {
+    "id": "p_exam_battle_config-vovi-01-produce-002-1-2",
+    "turn": 9,
+    "criteria": {
+     "vocal": 320,
+     "dance": 128,
+     "visual": 192
+    },
+    "penalty_min_permil": 100,
+    "penalty_max_permil": 250,
+    "score_table": [
+     [
+      0,
+      1071,
+      71,
+      536
+     ],
+     [
+      128,
+      1925,
+      925,
+      1389
+     ],
+     [
+      192,
+      2351,
+      1212,
+      1816
+     ],
+     [
+      320,
+      3205,
+      1787,
+      2390
+     ],
+     [
+      3000,
+      15236,
+      13818,
+      14421
+     ]
+    ]
+   },
+   "expected": {
+    "permil": {
+     "vocal": 4090,
+     "dance": 2200,
+     "visual": 2600
+    },
+    "components": {
+     "vocal": 3443,
+     "dance": 1329,
+     "visual": 1783
+    },
+    "penalties": {
+     "vocal": 0,
+     "dance": 0,
+     "visual": 103
+    },
+    "common_permil": 897
+   }
+  },
+  {
+   "index": 1,
+   "ts": "2026-11-20T15:10:47.154",
+   "idol_card_id": "i_card-hmsz-3-018",
+   "produce_id": "produce-002",
+   "step_type": "final",
+   "played_turns": 11,
+   "params": {
+    "vocal": 842,
+    "dance": 350,
+    "visual": 629
+   },
+   "start_stamina": 25,
+   "start_max_stamina": 35,
+   "config": {
+    "id": "p_exam_battle_config-vovi-01-produce-002-2-2",
+    "turn": 11,
+    "criteria": {
+     "vocal": 961,
+     "dance": 384,
+     "visual": 576
+    },
+    "penalty_min_permil": 100,
+    "penalty_max_permil": 250,
+    "score_table": [
+     [
+      0,
+      2143,
+      71,
+      1071
+     ],
+     [
+      384,
+      4703,
+      2631,
+      3631
+     ],
+     [
+      576,
+      5983,
+      3493,
+      4911
+     ],
+     [
+      961,
+      8550,
+      5221,
+      6640
+     ],
+     [
+      3000,
+      17703,
+      14375,
+      15794
+     ]
+    ]
+   },
+   "expected": {
+    "permil": {
+     "vocal": 6970,
+     "dance": 2850,
+     "visual": 4960
+    },
+    "components": {
+     "vocal": 7757,
+     "dance": 2405,
+     "visual": 5150
+    },
+    "penalties": {
+     "vocal": 118,
+     "dance": 113,
+     "visual": 0
+    },
+    "common_permil": 769
+   }
+  }
+ ],
+ "skipped": [
+  {
+   "index": 2,
+   "ts": "2026-11-21T17:28:52.172",
+   "idol_card_id": "i_card-hkne-3-000",
+   "produce_id": "produce-002",
+   "reason": "mid: 主数据缺偶像卡 'i_card-hkne-3-000'（新卡未进快照）：这场考试只能用屏幕倍率；final: 主数据缺偶像卡 'i_card-hkne-3-000'（新卡未进快照）：这场考试只能用屏幕倍率"
+  },
+  {
+   "index": 3,
+   "ts": "2026-11-21T17:38:59.097",
+   "idol_card_id": "i_card-hkne-3-000",
+   "produce_id": "produce-002",
+   "reason": "mid: 主数据缺偶像卡 'i_card-hkne-3-000'（新卡未进快照）：这场考试只能用屏幕倍率；final: 主数据缺偶像卡 'i_card-hkne-3-000'（新卡未进快照）：这场考试只能用屏幕倍率"
+  }
+ ]
+}

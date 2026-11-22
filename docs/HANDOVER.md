@@ -1001,6 +1001,69 @@ RULES_REFERENCE §0 前加「官方规则版本口径」；HANDOVER_NEXT §0/§1
 **下一步**：**F0 收尾完成** → T5 剩余机制（审查倍率分段+联动惩罚、熱意、温存解除额外次数、
 fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
 
+### 二·补二十五、11-22（B4 / T5① 审查倍率分段 + 联动惩罚：常量 4.11 → 客户端真实公式 + 屏幕倍率接线）
+
+**背景**：T5 剩余机制里影响最大的一项——考试每回合顶部「歌唱 411%」类的属性倍率
+（审查倍率）我们一直用常量 `4.11`（C+/5577 反推的平均值）。本会话把它换成**客户端真实公式**：
+分数表分段折线 × 审查基准**联动惩罚** × 单精度取整，并让真机搜索直接用屏幕读到的真实倍率。
+
+**机制（原生客户端行为）**：
+1. **分段折线**：每个属性在自己的培育属性值上，按主数据
+   `ProduceExamBattleScoreConfig` 的节点表（本次两张表都是 5 节点：0/128/192/320/3000，
+   表中 `vocalPermil/dancePermil/visualPermil` 三列）折线插值 → `component_permil`；
+2. **联动惩罚**：每项低于本场 `ProduceExamBattleConfig` 的审查基准（如期中 Vo/Da/Vi =
+   320/128/192）时按 `GetPenaltyPermil` 线性罚分（全局 `Setting`
+   `produceExamBattleScorePenaltyMinPermil/MaxPermil` = 100/250‰）；
+   **`common = 1000 − Σpenalties`，三项共用**——一项不达标会把三项倍率一起压低；
+3. **归一化**：`bonus = 1000 + (component × common / 1000)` 向上取整到 10 的倍数；
+4. **取整**：出牌分/回合末好印象 `ceil(f32(f32(bonus/1000) × amount) − f32(1e-4))`
+   （客户端 `CalcCurrentTurnBattleBonus`；单精度，不是 double）。
+证据/口径来源：gakumas-tools（BSD-3）`typeMultipliers.js` 的同结构公式；hiro-gakumas-hero
+（AGPL，`data/hiro/` 只参考）vendor 里 `gakumas_produce/attributes.py` 的客户端反编译还原实现
+（`calculate` / `normalize_bonus` / `battle_bonus_score`）；主数据四张表（gakumasu-diff 快照）。
+**按语义重写，没有拷贝 AGPL 代码**。
+
+**落地**：
+- `src/gkagent/sim/exam_multiplier.py`：纯公式（`calculate_bonus` / `normalize_bonus` /
+  `battle_bonus_score` / `f32` / 分段插值 / 罚分）；
+- `src/gkagent/data/exam_bonus.py`：主数据解析（`IdolCard.produceStepAuditionDifficultyId` →
+  `ProduceStepAuditionDifficulty`（produceId+stepType）→ `ProduceExamBattleConfig` →
+  `ProduceExamBattleScoreConfig` + `Setting`）；缺数据**显式抛错**（新偶像卡不在快照里等），
+  不静默退回 4.11；
+- 模拟器：`LessonConfig.attribute_bonuses`（Vo/Da/Vi 千分比）+ `turn_attributes`
+  （`ExamTurnEndLog.parameterType` 1/2/3）→ 按当前回合属性乘；出牌分**含好印象/元气/全力值
+  依赖分**一起乘（参考引擎里依赖分也是普通 `score +=`）、回合末好印象合成结算也乘；不配这两项
+  时行为与旧版逐位相同（单标量 `attribute_coefficient` 路径保留）；
+- 生产：`policy.audition_coefficient`——真机考试帧顶部读到的「舞蹈 207%」= 2.07 →
+  `ExpectState.attribute_coefficient`；决策日志 `decision_note` 加 `attr=2.07`（真机能看出
+  搜索用的倍率）；读不到时不传（保持旧行为，不猜）；
+- 夹具：`scripts/export_exam_multipliers.py`（traffic + 主数据 → 夹具，支持 `--check`）→
+  `tests/fixtures/t5_exam_multipliers.json`：
+  - **11-20 采集局（`i_card-hmsz-3-018` / produce-002）期中**：三维 373/218/187 →
+    Vo/Da/Vi = **4.09 / 2.20 / 2.60×**（Vi 187 < 基准 192 → 罚 103‰，common 897 把三项一起压低）；
+  - **同局期末**：842/350/629 → **6.97 / 2.85 / 4.96×**（Vo 842<961、Da 350<384 两项不达标）；
+  - 11-21 的 `i_card-hkne-3-000` 不在主数据快照 → 夹具显式 `skipped`（生产只用屏幕倍率）。
+
+**测试**：`tests/test_exam_multiplier.py` 21 条——分段/边界/超上限、联动惩罚把三项一起压低、
+归一化到 10、客户端取整黄金值（250% 9→23 等）、模拟器按回合属性乘（3 回合 Vo/Vi/Da）、
+回合末好印象吃倍率、默认路径逐位不变、生产屏幕倍率→搜索系数（含真机帧 OCR「舞蹈 207%」→2.07）、
+主数据解析器（缺偶像卡显式报错）。
+
+**基线复核（改完再跑，退出码均 0）**：① 4/4 + 3/3；② **1006 passed / 1 skipped**
+（1007 收集 / 73 文件；唯一 skip 仍 `tests/test_produce_ui.py:1181`）；③ 4/4 场 86/86 + 24/24；
+④ 36/36 + 3/3 + known_draw 29/29 + beam 28；⑤ gkbench 366/384=95.3% / 97.4% 逐张。
+
+**如实记录的剩余差距**：本轮只保证**倍率本身**与客户端公式/主数据一致；真机**逐分回放**还差
+P 道具考试开始附魔（如 hmsz-3-018 的 `enchant-...-336-0` 好印象触发）、`ExamStatusEnchant`
+附魔触发、考试内生成卡、`ExamReviewMultiple`「次数」语义（我们按千分比）——这些补完后才能把
+4 场 39 回合逐分锁死（T5 剩余机制/后续会话）。
+
+**文档**：RULES_REFERENCE §0/§2/§5.1/§6/§7（含许可口径）；WORKPLAN B4；HANDOVER_NEXT §0/§1/§2/§4/§8；
+INDEX/COMPARE/PROVENANCE/fixtures README 同步。
+
+**下一步**：T5 剩余机制（熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→
+阶段 C/D 离线收尾 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -1056,8 +1119,12 @@ B2 旧模型失效需按新规则重训）。**F 阶段数据 + F0 预检 ✅**�
 起点校准 turn=1/score=0/stamina 96.1%=starting_stamina/rules=55，见 [GKBENCH §4.5](GKBENCH.md)）。
 **开工基线复核 ✅ 2026-11-22 17:2x**（二·补二十三：四条基线全绿——① 4/4+3/3、② 985/1、
 ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28，与文档期望逐项一致）。
-**下一步：T5 剩余机制**（审查倍率分段/联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、
-P 道具数据接入）→ 阶段 C/D 离线收尾 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
+**B4 / T5① 审查倍率分段 + 联动惩罚 ✅ 2026-11-22**（二·补二十五：常量 4.11 → 客户端真实公式
+「分段折线 × 审查基准联动惩罚 × 单精度取整」；模拟器按回合属性乘、生产读屏倍率进搜索
+（日志 `attr=2.07`）；真机夹具期中 4.09/2.20/2.60×、期末 6.97/2.85/4.96×；21 条测试，
+全量 pytest 1006/1（1007 收集 / 73 文件））。
+**下一步：T5 剩余机制**（熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）
+→ 阶段 C/D 离线收尾 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
 总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
@@ -1247,7 +1314,7 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/` **985 passed / 1 skipped**（986 条收集 / 72 个测试文件），含
+**测试状态**：`pytest tests/` **1006 passed / 1 skipped**（1007 条收集 / 73 个测试文件），含
 `tests/test_exam_shuffle.py` 四场考试洗牌回放 + 「实战回合算 K 会错」回归防线 +
 三组弃牌堆重洗样本对照；`tests/test_expectimax_known_draw.py` 8 条 +
 `tests/test_exam_oracle.py` 6 条完全信息搜索；`tests/test_expectimax_discard_order.py` 17 条
@@ -1261,9 +1328,12 @@ add71dc docs(reverse): 元数据解包验证
 `tests/test_b2_leaf.py` 11 条 B2（叶子特征/叶子状态快照与标签/MLP 存取/搜索接线/生产
 `leaf_model` 缓存与兜底/合成训练收敛）+
 `tests/test_t5_turn_rules.py` 9 条 B3（真机 39 回合回合规则配对）+ `tests/test_sim_lesson.py`
-实机回放黄金值 2 条；`tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
-四条开工基线（2026-11-22 17:2x 复核全绿）：① 4/4 场 + 3/3 重洗、② 本行数字、
-③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28；唯一 skip =
+实机回放黄金值 2 条；`tests/test_ocr_jp_model.py` 4 条日文 OCR 真图；
+**`tests/test_exam_multiplier.py` 21 条 B4（分段折线/联动惩罚/归一化/客户端取整/模拟器回合倍率/
+生产屏幕倍率接线/真机帧「舞蹈 207%」/主数据解析）+ `tests/fixtures/t5_exam_multipliers.json`
+真机采集局夹具**；`ruff check` 对改动文件通过；
+四条开工基线（2026-11-22 19:2x B4 后复核全绿）：① 4/4 场 + 3/3 重洗、② 本行数字、
+③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28；⑤ gkbench 366/384=95.3%；唯一 skip =
 `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写，非行动页）。
 
 ---

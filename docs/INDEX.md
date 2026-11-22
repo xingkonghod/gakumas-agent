@@ -230,7 +230,15 @@ UINet 578,722=0.4551 / official-ai 232,710=0.2131）；F0 预检用官方 `check
 **无一洗牌错误**）；起点校准 `check.turn=1 / score=0 / stamina 96.1%=starting_stamina / rules=55`
 （15 组体力差=偶像卡 P 道具考试开始附魔常量）→ 基准复算用 `check.stamina` 覆盖 loadout。
 细节见 [GKBENCH.md §4.5](GKBENCH.md) / [COMPARE.md](COMPARE.md) / HANDOVER 二·补二十四。
-阶段 A 全部完成、B1/B2/B3/F0 完成、F 数据已下；下一步 **T5 剩余机制**
-（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
+**同日 B4（T5①）已完成**（审查倍率分段 + 联动惩罚）：考试每回合的属性倍率不再是常量 4.11，
+改为客户端真实公式——主数据分数表**分段折线** × 审查基准**联动惩罚**（`common=1000−Σpenalties`
+三项共乘）× 单精度取整，落地 `sim/exam_multiplier.py` + 主数据解析 `data/exam_bonus.py`；
+模拟器按回合属性乘（含依赖分/回合末好印象）、生产搜索改用屏幕读到的真实倍率
+（真机帧「舞蹈 207%」→ `attr=2.07` 进日志）；真机采集局夹具期中 Vo/Da/Vi
+**4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**（低于审查基准的联动惩罚已对上）；
+`tests/test_exam_multiplier.py` 21 条；全量 pytest **1006 passed / 1 skipped**
+（1007 收集 / 73 文件）。细节见 [RULES_REFERENCE §5.1](RULES_REFERENCE.md) / HANDOVER 二·补二十五。
+阶段 A 全部完成、B1/B2/B3/B4/F0 完成、F 数据已下；下一步 **T5 剩余机制**
+（熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

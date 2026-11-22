@@ -194,6 +194,8 @@ class LessonPolicy:
         # 决策可观测性（真机日志用）：最近一次决策用的引擎 / 搜索回退原因
         self.last_decision: dict[str, Any] = {}
         self.last_fallback_reason = ""
+        # 最近一次搜索用的考试属性倍率（屏幕读数；None = 非考试/没读到）
+        self._last_coefficient: float | None = None
         if draw_plan is not None:
             self.attach_draw_plan(draw_plan)
 
@@ -400,6 +402,7 @@ class LessonPolicy:
         打出来。
         """
         self.last_fallback_reason = ""
+        self._last_coefficient = None
         self._sync_turn(state.turns_left)
         self._sync_exam_plan(state)
         if self.engine == "rules":
@@ -426,6 +429,9 @@ class LessonPolicy:
             "reason": action.reason,
             "fallback": self.last_fallback_reason,
         }
+        if self._last_coefficient is not None:
+            # 考试属性倍率（屏幕「舞蹈 207%」= 2.07）：真机日志能看出搜索用的倍率
+            self.last_decision["attr_multiplier"] = self._last_coefficient
         return action
 
     def _decide_search(self, state: LessonState, *, allow_skip: bool) -> LessonAction:
@@ -454,11 +460,15 @@ class LessonPolicy:
         return LessonAction("wait", reason=f"{reason}：等下一帧重读（禁止回退 rules）")
 
     def decision_note(self) -> str:
-        """最近一次决策的紧凑说明（真机日志用）：``eng=expectimax fallback=…``。"""
+        """最近一次决策的紧凑说明（真机日志用）：``eng=expectimax attr=2.07 fallback=…``。"""
         info = self.last_decision or {}
         engine = str(info.get("engine") or self.engine)
         fallback = str(info.get("fallback") or "")
-        return f"eng={engine}" + (f" fallback={fallback}" if fallback else "")
+        note = f"eng={engine}"
+        coefficient = info.get("attr_multiplier")
+        if coefficient is not None:
+            note += f" attr={float(coefficient):.2f}"
+        return note + (f" fallback={fallback}" if fallback else "")
 
     def _decide_rules(
         self, state: LessonState, *, allow_skip: bool = True
@@ -662,6 +672,13 @@ class LessonPolicy:
             except Exception as exc:  # noqa: BLE001 - 全知数据注入失败退回期望搜索
                 logging.getLogger(__name__).warning("known_draw 注入失败：%s", exc)
                 kwargs, reshuffle = {}, None
+        coefficient = audition_coefficient(state)
+        if coefficient is not None:
+            # 考试真实属性倍率（读屏「舞蹈 207%」）：同回合内排序基本不变，但 beam
+            # 跨回合与叶子绝对分估值要吃真实倍率（T5 2026-11-22）。读不到不加参数，
+            # 保持 ExpectState 默认 1.0（旧行为）。
+            kwargs["attribute_coefficient"] = coefficient
+            self._last_coefficient = coefficient
         sim_state = ExpectState(
             hand=tuple(card.spec for card in play_cards),
             stamina=max(int(stamina), 0),
@@ -1453,6 +1470,36 @@ class LessonPolicy:
 def turn_gain_expected(score: float) -> float:
     """留个钩子：以后按"还差多少分"判断值不值，现在只是把 0 分挡掉。"""
     return float(score)
+
+
+# 考试/舞台的读屏 kind（与 ``sim/play_choice.AUDITION_KINDS`` 同口径）
+AUDITION_KINDS = frozenset({"audition", "exam", "stage"})
+
+
+def audition_coefficient(state) -> float | None:
+    """``LessonState`` → 考试/舞台属性倍率系数（屏幕「舞蹈 207%」= 2.07）。
+
+    T5 2026-11-22：真机考试每回合顶部显示的倍率就是本回合的**真实**属性倍率
+    （主数据分段曲线 × 审查基准联动惩罚算出来的值；见 ``sim/exam_multiplier.py``）。
+    读到就喂给搜索；不是考试/读不到返回 None（保持旧行为，不猜、不设默认 4.11）。
+    ``LessonReader`` 只接受 10~999 的读数，这里再夹一次合理区间。
+    """
+    kind = str(getattr(state, "kind", "") or "").strip().lower()
+    if kind not in AUDITION_KINDS:
+        return None
+    raw = getattr(state, "multiplier", None)
+    if raw is None:
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(value) or value <= 0:
+        return None
+    coefficient = value / 100.0
+    if not 0.1 <= coefficient <= 9.99:
+        return None
+    return coefficient
 
 
 def _remove_played(hand: list[str], played: list[str]) -> list[str]:

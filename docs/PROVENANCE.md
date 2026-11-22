@@ -48,6 +48,7 @@ flowchart LR
 | `data/bench_local/*` | 本地 gkbench clone（MIT） | 本地裁判跑分报告 | 否（`.gitignore`） |
 | `data/knowledge/v_leaf.json` | 自研（模拟器 rollout/拟合） | 训练/拟合产出（多次 learned 失败，当前生产用解析式） | 是（若存在） |
 | `data/knowledge/b2_leaf_mlp_small.json` | 自研（B2）：`LessonSim` 全知 beam 自对弈 26.5k 叶子样本 + numpy MLP 训练 | 输入只有仓库内代码与卡表数值（`CardSpec`），不含游戏资源；`scripts/train_b2_leaf.py` 可重建 | 是（0.33 MB） |
+| `tests/fixtures/t5_exam_multipliers.json` | 自有 MITM 采集（三维/偶像卡）+ 主数据 gakumasu-diff 快照（考试配置/分数表） | `scripts/export_exam_multipliers.py`：按客户端公式（分段折线 + 审查基准联动惩罚 + 单精度取整）算出的三项倍率**回归快照**（不是官方逐分真值；采集/主数据均不入库） | 是（仅计算结果；可重跑） |
 | `data/runs/*.json` | 真机跑局 | `auto_produce` 写盘 | 否（`.gitignore`；私有存档备份） |
 
 **数据不含**：账号密码/token、玩家个人信息、游戏客户端本体、官方私有服务器数据。
@@ -63,6 +64,7 @@ flowchart LR
 | 信息论口径（seed 空间/观测收敛） | QQ 群「初星学园情报处理部」公开讨论（匿名） | 仅用作背景口径；我们的收敛是逐回合手牌核对 |
 | 档位效用/期望搜索 | 通用决策理论 + 自研公式 | `EXPECTIMAX.md` |
 | 结算公式/排期 | 社区 wiki、gakumas-tools、leafierlemon 模拟器口径 | 只对口径，代码自写（`RULES_REFERENCE.md`） |
+| 考试属性倍率（审查倍率：分段折线 + 联动惩罚） | 客户端行为：gakumas-tools（BSD-3）`typeMultipliers.js` 同结构公式；hiro-gakumas-hero（AGPL，本地参考）`gakumas_produce/attributes.py` 的客户端反编译还原实现 | **按语义重写** `sim/exam_multiplier.py`（自写 f32/ceil/归一化），数据来自主数据表；**未拷贝 AGPL 代码**（见 RULES_REFERENCE §5.1/许可） |
 | 官方 AI 启发式（H1–H10） | gkbench `algos/official_ai.py`（MIT） | 阅读笔记（`OFFICIAL_AI_NOTES.md`），对照而非搬运 |
 | 工程原则（分层/纯函数/预算下一帧） | hiro-gakumas-hero（AGPL-3.0）视频/仓库笔记 | 只学原则，**未拷贝代码**（ADR-007） |
 | 考试 RNG 全部消费入口 | QQ 群 2026-11-22 公开文档（匿名） | 归档对照（`QQ_GROUP_NOTES.md`）；用于标注模型缺口，未使用其代码 |

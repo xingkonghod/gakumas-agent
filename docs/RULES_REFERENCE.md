@@ -31,12 +31,13 @@
 > 只按本表逐条对齐「机制」；F1 用官方种子做同题同种子复算时，起点状态用 `check`（turn/score/stamina），
 > 并注明对比的 rules 版本。
 
-## 0. 一句话结论（B3 后）
+## 0. 一句话结论（B3 + T5① 后）
 
 分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
-**跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）都已按参考引擎/真机对齐；
-最大剩余差距是 **审查倍率（分段 + 联动惩罚）仍是常量 4.11**、**熱意（enthusiasm）**
-与 **温存解除的额外次数/元气**、**P 道具**、**fresh buff 的差一回合衰减**。
+**跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**
+都已按参考引擎/客户端语义/真机对齐；剩余差距是 **熱意（enthusiasm）** 与
+**温存解除的额外次数/元气**、**P 道具/附魔**、**fresh buff 的差一回合衰减**、
+**依赖分结算顺序**（我们保守口径）等。
 
 ---
 
@@ -88,9 +89,9 @@
 | メタモルフォーゼ：披露 +25% / 支度 ×0.75 | `resolveScore` f/g；实机回放 100→ceil(125)、100→ceil(75) | `Buffs.metamorphosis` | ✅ 分数；❌ 支度→披露半场翻转未做 | `test_lesson_rules_reference.py` |
 | 不调 ×0.67 | `resolveScore` h | `Buffs.poor_condition_turns` | ✅ | `test_poor_condition_multiplies_by_0_67`（40×0.67→27） |
 | **取整时机**：加算后 ceil、buff 段后 ceil、回合倍率后 ceil | `resolveScore` c/i/④ 的 `safeCeil`（整数附近取整、否则 ceil）；实机回放 9→23、5→8、2→3 | `safe_ceil`（B3 补）：buff 段一次 + 回合倍率一次 | ✅ | 实机回放黄金值 6 条（课程）+ 6 条（考试） |
-| 回合属性倍率（审查倍率） | `typeMultipliers.js`：按 3 维参数**分段**（`param+3000` / `2p+1800` / `3p+900` / `4p+300` / `5p`…，随 season 变）+ `criteria` + **shortfallRate 联动惩罚**（每个参数低于 `900×criterion` 时扣 `0.0979+0.1512×(1−比值)`）+ `getParamCap(season)`，再 `ceil` 两次 | 常量 `attribute_coefficient`（默认 4.11，来自 C+/5577 反推） | ❌ 最大分数差距；不能只看单一百分比 | 实机回放 250%/400% 场景已能对上固定倍率；分段倍率待数据（T5/T6） |
-| 依赖分（好印象/元气/全力值折算）是否吃倍率 | 参考引擎里 `score+=goodImpressionTurns*…` 也是普通 `score+=`，**会吃**好调/指針/回合倍率 | 我们按保守口径**不吃**（只加白值一段） | ⚠️ 可能低估（卡表没给依赖分结算顺序；实机回放里能验） | `test_depend_*` |
-| 单精度舍入（JS double vs Python float） | 两边都是 IEEE-754 double；参考 `safeCeil` 有 1e-9 epsilon | `safe_ceil` 同实现 | ✅ | 实机黄金值 |
+| 回合属性倍率（审查倍率） | 客户端：按 3 维参数在**分数表分段折线**插值（`ProduceExamBattleScoreConfig`）→ 低于 `ProduceExamBattleConfig` 审查基准时按 `GetPenaltyPermil` 罚分（`Setting` 100~250‰）→ `common=1000−Σpenalties` **三项共乘（联动惩罚）** → `1000+component×common/1000` 归一化到 10；每回合按属性取倍率，`ceil(f32(f32(bonus/1000)×amount)−1e-4)` | `sim/exam_multiplier.py`（纯公式）+ `data/exam_bonus.py`（主数据解析）+ `LessonConfig.attribute_bonuses`/`turn_attributes`；生产侧读屏幕「舞蹈 207%」直接喂 `ExpectState.attribute_coefficient`；旧常量 4.11 仅作无读数时的历史默认 | ✅ 公式/主数据对齐（2026-11-22 T5①）；真机逐分回放还差 P 道具附魔/生成卡等未建模项 | `tests/test_exam_multiplier.py` 21 条 + `tests/fixtures/t5_exam_multipliers.json`（11-20 采集局期中 4.09/2.20/2.60×、期末 6.97/2.85/4.96×）+ 真机帧「舞蹈 207%」→2.07 |
+| 依赖分（好印象/元气/全力值折算）是否吃倍率 | 参考引擎里 `score+=goodImpressionTurns*…` 也是普通 `score+=`，**会吃**好调/指針/回合倍率 | 旧路径保守不吃；**T5① 考试真实倍率路径已把依赖分并进属性倍率**（出牌分先加依赖段、乘 buff/审查基准、最后乘属性倍率）；单标量路径保持旧行为 | ⚠️ 两条路径口径不同（生产读屏走标量路径仍保守；模拟器真实倍率路径已对） | `test_dependent_scores_ignore_attribute_coefficient`（旧路径）+ `test_sim_applies_per_turn_attribute_bonus`（新路径） |
+| 单精度舍入（JS double vs Python float） | 两边都是 IEEE-754 double；参考 `safeCeil` 有 1e-9 epsilon；属性倍率乘用**单精度**（`CalcCurrentTurnBattleBonus`） | `safe_ceil` 同实现；`exam_multiplier.f32`/`battle_bonus_score` 用 struct 模拟 f32 | ✅ | 实机黄金值 + `test_battle_bonus_score_matches_client_rounding` |
 | growth（成长表） | `resolveScore` ① 用 growth 表的**加算**（g.score 等） | `grow_score` 是卡面百分比乘白值；数据为空 → 恒 0 | ❌ 数据缺口（`ProduceCardGrowEffect` 未下载） | — |
 
 ## 3. Buff 生命周期 / 好印象年金 W(r,T)
@@ -144,16 +145,37 @@
 - `tests/test_sim_produce.py` 400 局标定带：三维总和均值 650–1100 → **950–1450**（≈1198），
   原因是 1 张/回合 + 跳过回体力让 16 周能打更多训练；这是口径变化，不是真机吻合度提升。
 
+### 5.1 T5 ① 审查倍率分段 + 联动惩罚（2026-11-22 完成）
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **分段折线 + 联动惩罚 + 客户端取整**的纯公式 | [sim/exam_multiplier.py](../src/gkagent/sim/exam_multiplier.py) | 原生客户端语义：分段表插值 → 低审查基准罚分 → `common = 1000−Σpenalties` 三项共乘 → `1000 + component×common/1000` 归一化；出牌/好印象 `ceil(f32(f32(bonus/1000)×amount) − f32(1e-4))`（hiro vendor `gakumas_produce/attributes.py` 从其客户端反编译还原；gakumas-tools `typeMultipliers.js` 同结构） | `tests/test_exam_multiplier.py`（分段/惩罚/归一化/取整 golden） |
+| **主数据解析**：偶像卡 → 考试配置 → 分数表 | [data/exam_bonus.py](../src/gkagent/data/exam_bonus.py) | `IdolCard.produceStepAuditionDifficultyId` → `ProduceStepAuditionDifficulty`（produceId+stepType）→ `ProduceExamBattleConfig`（turn/审查基准/分数表 id）→ `ProduceExamBattleScoreConfig`（节点表）+ `Setting` 惩罚上下限（100/250） | 夹具 + `test_resolver_*`（主数据可用时） |
+| **真机配对夹具**（11-20 采集局期中/期末） | [scripts/export_exam_multipliers.py](../scripts/export_exam_multipliers.py) → [tests/fixtures/t5_exam_multipliers.json](../tests/fixtures/t5_exam_multipliers.json) | 采集三维 Vo373/Da218/Vi187（期中）→ **4.09/2.20/2.60×**（Vi 187<基准 192 罚 103‰，common 897 把三项一起压低＝联动惩罚）；期末 Vo842/Da350/Vi629 → **6.97/2.85/4.96×**（Vo/Da 两项不达标） | `test_captured_exam_*` |
+| **模拟器按回合属性乘**（出牌分 + 回合末好印象） | [sim/lesson.py](../src/gkagent/sim/lesson.py) `LessonConfig.attribute_bonuses` + `turn_attributes` | 出牌分含好印象/元气/全力值依赖分一起乘（参考引擎里依赖分也是普通 `score +=`）；回合末好印象合成 `ExamLesson` 结算同样吃倍率；不配这两项时行为逐位不变 | `test_sim_applies_per_turn_attribute_bonus` 等 6 条 |
+| **生产接线：屏幕倍率进搜索** | [policy/lesson.py](../src/gkagent/policy/lesson.py) `audition_coefficient` + `_search_state` | 真机考试顶部「舞蹈 207%」是真实本回合倍率（原生公式算出来的值）→ `ExpectState.attribute_coefficient=2.07`；日志 `decision_note` 变 `eng=… attr=2.07 …` | 真机帧 `exam_card_overlay_20261115.png` 回放：OCR 读数 207 → 2.07；`test_audition_coefficient_*` |
+
+**口径与剩余差距（如实记录）**：
+- 旧常量 `AUDITION_ATTRIBUTE_COEFFICIENT=4.11` 是 C+/5577 反推的**平均值**；真实考试三项倍率不同
+  （本次采集：Vo 4.09 / Da 2.20 / Vi 2.60），且**低于审查基准会联动压低三项**，固定 4.11 换账号/参数
+  不足时会偏很多。
+- 主数据缺 2026-11-21 新偶像卡 `i_card-hkne-3-000` → 该场只能靠屏幕倍率（生产侧本来就只读屏幕）；
+  夹具把它记进 `skipped`，不猜配置。
+- **真机逐分回放仍差几项**：P 道具考试开始附魔（如 hmsz-3-018 的 `enchant-...-336-0` 好印象触发）、
+  `ExamStatusEnchant` 附魔触发、考试内生成卡、`ExamReviewMultiple`「次数」语义（我们按千分比）。
+  这轮只保证**倍率本身**与客户端公式/主数据一致，逐分回放等这些机制补齐后再锁。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 
-1. **审查倍率分段 + 联动惩罚**（`typeMultipliers.js`）：现在的常量 4.11 只在当前账号参数附近成立；
-   换账号/换 season/参数不足 900×criterion 时会偏很多。
+1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
+   剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
 2. **熱意（enthusiasm）**：需要独立资源字段（分数加算 + 来源：温存解除 +5/+8、其它卡）。
 3. **温存解除的额外出牌次数/元气**：异常（アノマリー）方案核心机制。
 4. **fresh buff 保护**（差一回合）：好调/好印象/绝好调持续时间可能整体少 1 回合，需真机逐回合截图核实。
 5. **P 道具数据接入**（produce 侧 P 道具列表未采集；`p_items.json` 有 1068 条效果模板）。
 6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
-7. **好印象/元气依赖分是否吃倍率**：参考引擎的实现说明会吃；我们保守不吃，待实机回放逐分核对。
+7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
+   生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。
 8. **抽牌上限 5 / handDecrease / 保留牌（held cards）**。
 9. **自尊 pride / growth 成长表 / 支度→披露半场翻转**（小项）。
 
@@ -174,9 +196,20 @@
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800
 .venv\Scripts\python.exe scripts\eval_t4_b1.py --games 60
 .venv\Scripts\python.exe scripts\eval_b2.py --leaf-model data\knowledge\b2_leaf_mlp_small.json --games 120 --seed 3000
+
+# T5① 审查倍率（公式 + 主数据夹具 + 真机帧屏幕倍率）
+.venv\Scripts\python.exe scripts\export_exam_multipliers.py          # 从采集+主数据重导夹具
+.venv\Scripts\python.exe scripts\export_exam_multipliers.py --check  # 只校验夹具没漂
+.venv\Scripts\python.exe -m pytest tests\test_exam_multiplier.py -q
 ```
 
 ## 许可
 
 `gakumas-tools` 是 **BSD-3-Clause**：本表引用的公式/常量与实机回放值需保留版权声明；
 我们只引用口径并重写实现，不拷贝代码。
+
+T5① 的「分段折线 + 联动惩罚 + `normalize_bonus`/`battle_bonus_score` 算术语义」参考了
+`hiro-gakumas-hero`（AGPL-3.0，`data/hiro/` 仅本地参考）里 `vendor/.../gakumas_produce/
+attributes.py` 从其客户端反编译还原的实现；我们**按语义重写**（`src/gkagent/sim/exam_multiplier.py`），
+没有把 AGPL 代码拷进本项目。主数据（`ProduceExamBattleConfig` 等）来自社区 gakumasu-diff 快照，
+夹具只保存计算结果的回归快照（见 `tests/fixtures/t5_exam_multipliers.json` 的 `source` 字段）。

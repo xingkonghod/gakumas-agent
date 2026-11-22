@@ -50,6 +50,15 @@
   （保守口径，卡表没给出依赖分是否参与倍率）。倍率 ≠ 1.0 时按真机**显示值**
   四舍五入：37 分 + 集中 10 + 好调 → 47 × 1.5 × 4.11 = 289.755 → 290
   （真机实测约 290；课程倍率 1.0 仍沿用 ``floor``，保持既有校准）；
+- **考试真实属性倍率（分段 + 联动惩罚，T5 2026-11-22）**：
+  ``LessonConfig.attribute_bonuses``（Vo/Da/Vi 三项千分比，来自
+  ``sim.exam_multiplier.calculate_bonus``：主数据分数表折线 × 审查基准联动惩罚）
+  + ``LessonConfig.turn_attributes``（每回合 ``ExamTurnEndLog.parameterType``：
+  1=歌唱 / 2=舞蹈 / 3=视觉）时，按**当前回合属性**取倍率，并用客户端
+  ``CalcCurrentTurnBattleBonus`` 的取整口径（``ceil(f32(f32(乘) − 1e-4))``）结算：
+  出牌分（含好印象/元气/全力值依赖分——参考引擎里依赖分也是普通 ``score +=``，
+  会吃属性倍率）与回合末好印象分都乘。不给这两项时行为与旧版逐位相同
+  （单标量 ``attribute_coefficient`` 路径保留给生产：屏幕直接读当前回合倍率）；
 - ``parameter_buff``：审查基准加成，近似成"本次打分额外乘
   ``parameter_buff/1000`` 倍"（1500 = ×1.5）。本牌自带的加成叠在**本牌最终分**
   （白值 + 依赖分）上；``parameter_buff_turns > 1`` 时在本回合内持续，同一回合
@@ -164,6 +173,7 @@ from gkagent.data.plans import (
     default_plan_library,
     normalize_plan,
 )
+from gkagent.sim.exam_multiplier import battle_bonus_score
 from gkagent.sim.p_items import (
     CARD_PLAY,
     STATUS_GAIN,
@@ -393,6 +403,13 @@ class LessonConfig:
     stamina_max: int | None = None
     # 属性倍率：考试/舞台屏幕上的「歌唱 411%」= 4.11；课程 ≈ 1.0（默认）
     attribute_coefficient: float = 1.0
+    # 考试真实属性倍率（T5 2026-11-22）：Vo/Da/Vi 三项千分比（4110 = 4.11×），
+    # 来自 ``sim.exam_multiplier.calculate_bonus``（分段折线 + 审查基准联动惩罚）。
+    # 配合 ``turn_attributes`` 按当前回合属性取倍率；None = 旧行为。
+    attribute_bonuses: tuple[int, int, int] | None = None
+    # 每回合考试属性（``ExamTurnEndLog.parameterType``：1=Vo / 2=Da / 3=Vi）；
+    # 与 ``attribute_bonuses`` 一起用。空 = 没有逐回合属性信息。
+    turn_attributes: tuple[int, ...] = ()
     # 指針体力代价（温存减半/強気双倍/2段穿透）；False = 旧口径（仅 ablation）
     stance_costs: bool = True
     # 方案（プラン）：sense=感性 / logic=理性 / anomaly=非凡；未知值退回 sense。
@@ -804,6 +821,12 @@ class LessonSim:
         ``resolveScore`` 的顺序/取整口径一致（两次都是 ``safeCeil``）。课程倍率 1.0
         时就是 buff 段取整一次。
 
+        配了 ``attribute_bonuses`` + ``turn_attributes``（考试真实倍率，T5）时改用
+        当前回合属性对应的千分比，并按客户端 ``CalcCurrentTurnBattleBonus`` 的
+        ``ceil(f32(f32(bonus/1000)×amount) − f32(1e-4))`` 取整；此时
+        ``attribute_coefficient`` 不参与（两者互斥，避免乘两次）。``parameter_buff``
+        （审查基准加成）先乘、属性倍率最后乘，与参考引擎 ③ 在 f/g 之后一致。
+
         ``parameter_buff``（含本回合遗留的 ``turn_parameter_buff``）在**最终分**
         上叠加倍率 ``int(最终分 × 加成 / 1000)``；1000 = ×1.0（不加不减），
         1500 = ×1.5。两者同一口径，取较大者只乘一次。
@@ -811,6 +834,7 @@ class LessonSim:
         后续牌继续吃（回合结束清零）。
         """
         award = 0
+        turn_bonus = self._turn_bonus_permil()
         base_score = card.score
         if base_score > 0 and card.grow_score > 0 and uses > 0:
             base_score = base_score * (100 + uses * card.grow_score) / 100
@@ -835,6 +859,9 @@ class LessonSim:
             if self.buffs.poor_condition_turns > 0:
                 raw *= 0.67
             coefficient = self.config.attribute_coefficient
+            if turn_bonus is not None:
+                # 考试真实倍率路径：属性倍率最后统一乘（含依赖分），这里先不乘
+                coefficient = 1.0
             # 取整口径对齐参考引擎 resolveScore（BSD-3）：buff/指針/不调乘完后
             # 先 ceil 一次；回合属性倍率（考试/舞台）乘完再 ceil 一次。
             award = safe_ceil(raw)
@@ -860,7 +887,26 @@ class LessonSim:
             award = int(award * parameter_buff / 1000)
         if card.parameter_buff > 0 and card.parameter_buff_turns > 1:
             self.turn_parameter_buff = max(self.turn_parameter_buff, card.parameter_buff)
+        if turn_bonus is not None and award > 0:
+            # 考试真实属性倍率（分段 + 联动惩罚）：客户端 CalcCurrentTurnBattleBonus
+            award = battle_bonus_score(award, turn_bonus)
         return award
+
+    def _turn_bonus_permil(self) -> int | None:
+        """当前回合的属性倍率（千分比）；没配 ``attribute_bonuses``/``turn_attributes``
+        时返回 None（旧行为：走单标量 ``attribute_coefficient``）。"""
+        bonuses = self.config.attribute_bonuses
+        attributes = self.config.turn_attributes
+        if not bonuses or not attributes:
+            return None
+        index = max(self.total_turns - self.turns_left, 0)
+        index = min(index, len(attributes) - 1)
+        parameter_type = int(attributes[index])
+        if parameter_type not in (1, 2, 3):
+            raise ValueError(
+                f"turn_attributes 只支持 1(Vo)/2(Da)/3(Vi)：{parameter_type}"
+            )
+        return int(bonuses[parameter_type - 1])
 
     def _apply_card_stance(self, card: CardSpec) -> None:
         """结算本牌的指針效果（在算分与 buff 之后，所以本牌不吃自己刚切的倍率）。
@@ -1109,6 +1155,10 @@ class LessonSim:
                 impression_score = int(
                     impression_score * (1000 + self.buffs.review_multiple) / 1000
                 )
+            turn_bonus = self._turn_bonus_permil()
+            if turn_bonus is not None and impression_score > 0:
+                # 参考引擎把回合末好印象合成一张 ExamLesson 结算，因此同样吃属性倍率
+                impression_score = battle_bonus_score(impression_score, turn_bonus)
             self.score += impression_score
             # 不在这里 -1：下一回合开始时扣（见 _draw_hand）
         if self.buffs.condition_turns > 0:
