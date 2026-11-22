@@ -36,7 +36,7 @@
 | 2026-11-21 | 完全信息搜索第一/二段：`known_draw`、重洗后段全知、`ExamSetup/ExamDrawPlan` 生产接线、beam 选项 | `e0bd668`、`233e9d7` |
 | 2026-11-21 | 真机 T1 流程修复（10+ 类界面卡点）+ 引擎接线 + 决策可观测性；**首局完整跑完：C / 4242** | `a9537b0`、`4b07fa7` |
 | 2026-11-21 | 用户规则落地：**只有真没体力才 SKIP**、**禁止回退 rules**；模拟器整局 A/B 76 局全绿 | `8a2af2b`、`ae86e1c` |
-| 2026-11-22 | T4 叶子实验（rollout 叶子负结果）+ 私有存档/私有仓库 + 群公开的考试 RNG 入口清单归档 | `366131a`、`4f948da` |
+| 2026-11-22 | T4 叶子实验（rollout 叶子）+ 私有存档/私有仓库 + 群公开的考试 RNG 入口清单归档；后由 **B1 查出评测执行器丢回合 bug**，beam 旧负结果作废、beam 实际已强于 within | `366131a`、`4f948da`、B1（见 HANDOVER 二·补十九） |
 | 2026-11-22 | **A1 OCR 换官方 PP-OCRv6 多语言模型（Apache-2.0）**：日文剧情/选项整句可读，中文 UI 不受影响 | `aae2647`、`884272f` |
 | 2026-11-22 | **A2 课程硬打必须得分（F#42）**：修掉课程 HUD 语义（属性值/还差分）与「每回合默认 1 张牌」两个模型错误 | `b388274`、`31c0491` |
 
@@ -136,15 +136,19 @@ sequenceDiagram
 
 ![known vs unknown](docs/images/info_value.png)
 
-**离线配对评测（真实小牌组 14 张 / 5 回合，CLEAR 120 / PERFECT 170）**
+**离线配对评测（真实小牌组 14 张 / 5 回合，CLEAR 120 / PERFECT 170；60 局同 seed）**
 
 | 策略 | 分数均值 |
 |---|---:|
 | 回合内 expectimax（within） | **143.1** |
-| beam 默认 | 91.3 |
-| beam + 平手项 tiebreak | 105.5 |
-| beam + tiebreak + branching=10 | 111.2 |
-| beam + rollout 叶子（实验，负结果） | 103.0 |
+| beam（unknown，tiebreak=1e-3） | **164.0**（+20.9，95% CI [+14.4,+27.3]） |
+| beam（known，tiebreak=1e-3） | **165.5**（+22.4，CI [+16.5,+28.4]） |
+| beam + 受控 frontier 叶子 | 164.0 / 165.5（与普通 beam 相同，中性） |
+
+> ⚠️ 旧 README/EXPECTIMAX 里的 beam 91.3 / 105.5 / 111.2 是评测执行器
+> `_execute_plan` 白丢回合的 bug，已作废；within 143.1 与 tiebreak 方向仍有效。
+> B1 决策门（beam ≥ within 90%）→ PASS（114.6%/115.7%）。见
+> [docs/HANDOVER.md](docs/HANDOVER.md) 二·补十九。
 
 ![离线引擎对比](docs/images/eval_engines.png)
 
@@ -260,15 +264,18 @@ sequenceDiagram
 **已完成**：采集链路 / 洗牌模型（4/4 实战）/ 牌序全知数据链路 / 生产接线 / 决策引擎与可观测性 /
 真机流程修复（10+ 类卡点）/ 模拟器整局 A/B / 私有存档与私有仓库 / A1（OCR 日文模型）/ A2（F#42 课程硬打必须得分）/
 A3（F#43 结果页空转）/ A4（离线回放素材：真机关键帧归档 + 帧回放测试）/
-A5（T3 离线预演：`--current` 候选 + `ExamPlanSelector` 逐回合锁定，最新场 T2 锁定 config_turns=12）。
+A5（T3 离线预演：`--current` 候选 + `ExamPlanSelector` 逐回合锁定，最新场 T2 锁定 config_turns=12）/
+B1（T4 修正：评测执行器丢回合 bug 修正后，60 局配对 beam unknown 164.0 / known 165.5 vs
+within 143.1，决策门 PASS；受控 frontier 叶子中性）。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **阶段 A 收口完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅；下一项 **B1（T4 受控 policy-evaluation 叶子）**；
+0. **离线阶段 A 收口完成、B1 完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅；下一项 **B2（全知数据训练叶子/小模型）**；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
    （A5：最新场 T2 锁定 config_turns=12、四场 sweep 全部选对真值），差真机考试里 `locked_turn=2~3 / verified=N` 的验收；
 3. **T2 三引擎真机 A/B**：expectimax / beam+全知 / rules 对照；
-4. **T4 叶子估值**：beam 111 vs within 143，rollout 叶子负结果，下一步受控 policy-evaluation / rollout 监督 `v_leaf`；
+4. **T4 学习型叶子（B2）**：解析式 beam 已由 B1 证明强于 within（评测 bug 修正后），学习型 V_leaf / rollout
+   监督仍需用修正后的 harness 重测；三次 learned 线性 V 失败是独立记录；
 5. **T5 机制建模**：P 道具/回忆/附魔/选牌/减益；考试内恐慌/随机生成/随机移动等 RNG 入口（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
    模拟器 `plays_per_turn=3` 待对齐真机「每回合 1 张 + 额外出牌」（A2 遗留）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。

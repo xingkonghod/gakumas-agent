@@ -24,6 +24,7 @@
 | A3 F#43 结果页空转（真根因：日文饮料选择事件屏 + P 费标签命中飘字正则） | `tests/test_produce_ui_f43.py` 7 条（真机帧回放 3 + 合成 4）；全量 pytest 941/1（942 收集 / 67 文件）；`docs/HANDOVER` 二·补十六 |
 | A4 离线回放素材（六类关键屏真机帧归档 + 回放测试 + 挑帧工具） | `tests/fixtures/` 8 张真机帧 + `README.md` 溯源表；`tests/test_frames_replay_a4.py` 9 条；`scripts/scan_frames.py`；顺带修 `_checkbox_bands` 真机 TypeError（F#44）；全量 pytest **950/1（951 收集 / 68 文件）**；`docs/HANDOVER` 二·补十七 |
 | A5 T3 离线预演（`--current` 候选 + `ExamPlanSelector` 逐回合锁定） | `scripts/verify_exam_plan_offline.py`：最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值；候选收敛到 1、`locked_turn<=3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；`docs/HANDOVER` 二·补十八 |
+| B1 T4 修正（评测执行器 bug + 受控 frontier 叶子） | `tests/test_beam_frontier.py` 6 条；`scripts/eval_t4_b1.py` 60 局配对：beam unknown **164.0** / known **165.5** vs within **143.1**（+20.9 / +22.4，CI 全正；决策门 114.6%/115.7% PASS）；frontier 叶子中性；全量 pytest **964/1（965 收集 / 70 文件）**；`docs/EXPECTIMAX` T4 修正 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -193,9 +194,28 @@
 
 ## 阶段 B：策略强度与机制（离线，可与 A 并行）
 
-### B1. T4 受控 policy-evaluation 叶子
+### B1. T4 受控 policy-evaluation 叶子 ✅ 2026-11-22 完成
 - 只对 beam 最深端点 rollout、用执行同策略（within）+ 缓存 + 小预算；决策门：真实牌组 beam ≥ within 的 90% 再谈生产。
 - DoD：配对评测数字（60 局）+ `EXPECTIMAX.md` 更新 + 单测。
+
+**落地（2026-11-22）**
+- **先查出并修掉真正的瓶颈：评测执行器 bug**。`LessonSim.step` 在「手牌打空」时自动结束
+  本回合；旧 `eval_known_draw._execute_plan` 在按 beam 计划打光 3 张后又补了一个 SKIP，
+  把**下一整个回合**白丢 → 旧 beam 数字（111.2）被系统性低估；within 不走该执行器所以
+  一直是真实的 143.1。修法：记 `start_turns_left`，同回合才补 SKIP（回归测试 2 条）。
+- **受控 policy-evaluation 叶子**：`search_beam(frontier_value=...)` 只对预算截断后的最深
+  端点用 `within` rollout（每回合 5ms、`canonical` 缓存）重排，终局端点用精确档位效用、
+  不 rollout；默认 `None` 行为逐位不变（测试 4 条）。
+- **60 局配对**（small，同牌组同 seed；`scripts/eval_t4_b1.py --games 60`）：
+  within 143.1；beam **unknown 164.0**（+20.9，CI [+14.4,+27.3]）、
+  **known 165.5**（+22.4，CI [+16.5,+28.4]）；决策门 **114.6% / 115.7% → PASS**（≥90%）。
+  `beam+frontier` 与普通 beam 逐位相同（前沿收敛到同状态，叶子中性）。
+- **消融**：起作用的是 `score_tiebreak=1e-3`（+15.4 / +11.8），branching=10 修正后无显著
+  收益（旧 +19.9 是 bug 副产物）。生产默认（expectimax / tiebreak=0）本任务不改，T2 真机
+  A/B 时再把 `beam + tiebreak` 作为候选。
+- 测试 `tests/test_beam_frontier.py` 6 条；全量 pytest **964 passed / 1 skipped**
+  （965 收集 / 70 文件）；`EXPECTIMAX.md` 新增「T4 修正」并给旧 beam 表加作废标注。
+- 下一步：**B2**（rollout/全知数据训练叶子，必须用修正后的 harness 重测）。
 
 ### B2. T4 数据驱动：用全知数据训练叶子/小模型（新增方向）
 - 用采集的 exact（state, action, score, deck/seed）数据构造监督样本；teacher = 全知搜索/真值；
@@ -288,6 +308,9 @@ A4（离线回放素材）也已完成（8 张真机帧归档 + 9 条真机帧�
 A5（T3 离线预演）也已完成：`scripts/verify_exam_plan_offline.py`——最新场 3 候选第 2 回合锁定
 config_turns=12（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值，候选收敛到 1、locked_turn≤3；
 见 WORKPLAN A5 / HANDOVER 二·补十八。
-基线绿后按 WORKPLAN 从 B1 开始：B1 T4 受控 policy-evaluation 叶子 → B2/B3 → 阶段 C → 阶段 D，
+B1（T4 修正）已于 2026-11-22 完成：查出评测执行器 `_execute_plan` 白丢回合 bug；
+修正后 60 局配对 beam unknown 164.0 / known 165.5 vs within 143.1（+20.9/+22.4，CI 全正；
+决策门 114.6%/115.7% PASS），受控 frontier 叶子中性；见 WORKPLAN B1 / HANDOVER 二·补十九。
+基线绿后从 **B2**（全知数据训练叶子/小模型；必须用修正后的 harness）开始 → B3 → 阶段 C → D，
 全部离线做完再上真机（T3→T1→T2），最后 gkbench。
 ```

@@ -558,7 +558,80 @@ policy.json  {"lesson": {"engine": "beam", "beam_width": 4, "beam_deadline_ms": 
   「默认每回合 1 张 + 额外出牌」不一致；生产搜索已改 1，`sim_engine_ab` 的整局 A/B 与模拟器评分
   需要重新标定（见 [WORKPLAN](WORKPLAN.md) T5/B3 与 FAILURES #42 遗留）。
 
+## T4 修正（B1，2026-11-22）：评测执行器 bug + beam 实际强于 within
+
+**结论先行**：T4 之前「beam 仍比 within 低 22.3%」的结论是**评测 bug**，不是 V_leaf 的能力
+上限。修掉 bug 后，同牌组 / 同 seed 的 60 局配对：beam **164.0（unknown）/ 165.5（known）**
+vs within **143.1**，配对差 **+20.9 / +22.4**（95% CI 全正），**B1 决策门 PASS**
+（beam/within = 114.6% / 115.7%，门槛 90%）。
+
+### 根因：`eval_known_draw._execute_plan` 白丢一整回合
+
+`LessonSim.step` 在「手牌打空」时会**自动结束本回合**（`lesson.py`：「手牌打空：本回合自然
+结束」）。beam 的根回合计划通常就是把 3 张手牌打光；旧评测执行器在按计划出完牌后，又按
+「如果还能出牌就 SKIP 结束回合」补了一刀 `sim.step(None)`——此时已经进入下一回合，这一
+SKIP 把**下一整个回合**白丢。于是每个 beam 决策都少打一回合，分数被系统性拉低（旧表 beam
+≈ 111）；within 走的是逐张决策，不经过该执行器，所以数字不受影响——旧实验把「执行器
+bug」误读成了「V_leaf 的 μ 不准」。
+
+修法（`scripts/eval_known_draw.py`）：执行计划前记 `start_turns_left`；计划把当前手牌打空时
+循环后**不再**补 SKIP，短计划才在同一回合补一次。回归测试
+`tests/test_beam_frontier.py::test_execute_plan_does_not_skip_next_turn_when_hand_empties`
+与 `test_execute_plan_ends_turn_once_for_short_plan`。
+
+### 修正后的配对评测（`scripts/eval_t4_b1.py`，60 局）
+
+small = 真实牌组 14 张 / 5 回合 / CLEAR 120 / PERFECT 170；within = 当前生产回合内
+expectimax（budget 200ms）；beam = width 4 / budget 100ms / `score_tiebreak=1e-3` /
+branching 默认；`beam+frontier` = 只对 beam 最深端点做 within rollout 重排。
+
+| 策略 | 信息 | 均值 | P50 | CLEAR | PERFECT | vs within | 95% CI | 胜/平/负 |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| within | unknown / known | 143.1 | 145 | 83.3% | 13.3% | — | — | — |
+| beam | unknown | **164.0** | 162 | 98.3% | 33.3% | **+20.9** | [+14.4, +27.3] | 47/5/8 |
+| beam | known | **165.5** | 165 | 100.0% | 38.3% | **+22.4** | [+16.5, +28.4] | 47/4/9 |
+| beam+frontier | unknown | 164.0 | 162 | 98.3% | 33.3% | +20.9 | [+14.4, +27.3] | 47/5/8 |
+| beam+frontier | known | 165.5 | 165 | 100.0% | 38.3% | +22.4 | [+16.5, +28.4] | 47/4/9 |
+
+**决策门（WORKPLAN B1）**：未知/已知两种信息条件下 beam 都 ≥ within 的 90% → **PASS**。
+注意这里 **unknown 也赢**：跨回合 beam 的期望抽样规划本身就比单回合解析叶子强，不依赖
+known_draw；known 只是额外 +1.5。
+
+### 消融：起作用的是 `score_tiebreak`，不是 branching（60 局，同 seed）
+
+| beam 配置 | unknown 均值 | known 均值 | vs 默认（unknown） | vs 默认（known） |
+|---|---:|---:|---|---|
+| 默认（tiebreak=0，branching=默认） | 148.6 | 153.8 | — | — |
+| **+ score_tiebreak=1e-3** | **164.0** | **165.5** | **+15.4 [+11.2,+19.7]** | **+11.8 [+7.6,+15.9]** |
+| + branching=10（tiebreak=0） | 151.2 | 153.8 | +2.7 [−2.4,+7.8] | +0.1 [−2.5,+2.6] |
+| + tiebreak + branching=10 | 161.6 | 164.8 | +13.1 [+7.4,+18.8] | +11.0 [+6.8,+15.1] |
+
+旧结论「branching=10 贡献 +19.9」是同一个 bug 的副产物；修正后 **branching 无显著收益**，
+`score_tiebreak=1e-3` 仍是真收益（方向与旧实验一致）。生产默认（expectimax /
+tiebreak=0）本任务不改；T2 真机 A/B 时建议把 `beam + tiebreak` 作为候选。
+
+### 受控 policy-evaluation 叶子（B1 交付）在中性
+
+`search_beam(frontier_value=...)`：beam 被预算截断后，只对**最深端点**
+（`end_state.turns_left > 0`）用执行同策略（`within`）rollout 重排；终局端点直接用精确档位
+效用、不 rollout；默认 `None` = 历史行为逐位不变。60 局配对 **与普通 beam 逐位相同**。
+原因：small 真实牌组上 beam 的 4 个根计划会收敛到同一个前沿状态（同 `canonical`），
+rollout 值相同，重排自然无差；`turns_left=1` 的截断本来就接近精确。结论：实现保留
+（默认关闭、有单测），但 **T4 的瓶颈不在叶子，而在评测执行器**；当前唯一可复现的
+beam 增益是 `score_tiebreak`。
+
+复现命令：
+
+```powershell
+.venv\Scripts\python.exe scripts\eval_t4_b1.py --games 60 --json out\t4_b1_tb.json
+# 消融（tiebreak / branching 各开）见 HANDOVER 二·补十九 的命令清单
+```
+
 ## T4 起点：档位效用封顶的平手项（2026-11-22 凌晨，实验）
+
+> ⚠️ **2026-11-22 B1 复核：本节 beam 列（91.3 / 105.5 / 111.2 等）已作废**——它们由
+> `_execute_plan` 丢回合 bug 产生。修正后 beam unknown 164.0 / known 165.5，已高于 within
+> 143.1（见上一节）。within 列、tiebreak 方向与诊断记录仍有效，保留作历史。
 
 T4 目标是让「全知 + beam」的离线优势变成分数，决策门是真实牌组上 beam 显著优于回合内
 expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170）诊断 beam 为什么
@@ -589,20 +662,28 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 - 配对差（同 seed）：beam+tiebreak vs beam **+14.3（95% CI [+7.9, +20.6]）**；
   再加 branching=10 **+19.9（CI [+12.8, +27.1]）**；within+tiebreak vs within
   +0.3（CI [−0.0, +0.6]），基本无副作用。
-- **但 beam 最好仍比 within 低 22.3%**：T4 DoD 未达成，`score_tiebreak` 保持默认 0，
-  生产不切 beam 默认。
+- **（2026-11-22 B1 复核）以上 beam 列全部作废**：它们来自 `_execute_plan` 白丢回合 bug；
+  修正后 beam unknown 164.0 / known 165.5（+20.9/+22.4）已**超过** within 143.1，
+  原「beam 低于 within 22.3%、决策门未达成」不成立。`score_tiebreak` 的真收益方向保留，
+  branching 修正后无显著收益；生产默认本任务不改。
 
 ### 结论与下一步
-1. 平手项证明「效用封顶导致 SKIP 偏置」是真因之一，但**主因仍是 V_leaf 的 μ 不准**：
-   beam 的深层 V 让"存体力"看起来比"现在打大牌"更值钱，实际 5 回合内体力/回合约束下不成立。
-2. 下一步优先做 **rollout 叶子估值**（叶子用 `LessonSim`/greedy 快跑剩余回合取均值，替代解析式）；
-   三次 learned 线性 V 失败说明"线性特征+回归"这条路不通。
+1. ~~平手项证明「效用封顶导致 SKIP 偏置」是真因之一，但**主因仍是 V_leaf 的 μ 不准**~~
+   （2026-11-22 B1 复核：诊断建立在丢回合 bug 上，已不成立；B1 修正后解析式 beam 已超 within）。
+2. ~~下一步优先做 rollout 叶子估值~~ → B1 已做受控 frontier 版：**中性**；旧 rollout 叶子
+   beam 侧负结果同样作废，learned V 留 B2 用修正 harness 重测。
 3. beam 抽样分支配套：`branching=10` 有显著收益，继续加宽收益饱和（width 8/16/32 试验约 101~112）。
 4. 仍按 T4 决策门：真实牌组 beam 显著优于 expectimax 之前，不改生产默认。
 
 命令：`python scripts/eval_known_draw.py --games 60 --scenario small --policy beam --score-tiebreak 0.001 --branching 10`
 
 ## rollout 叶子实验（T4，2026-11-22 凌晨，**负结果**）
+
+> ⚠️ **2026-11-22 B1 复核：本节 beam 侧数字（111.3 / 111.4 / 103.0 / 104.1 与各变体
+> 78.8~89.0）已作废**——同一 `_execute_plan` 丢回合 bug。修正后解析式 beam 基线为
+> 164.0/165.5（见上一节），旧「rollout 叶子负结果」不能当作路线否定证据；受控 frontier
+> 叶子已按 B1 重测为中性。within 策略侧结论（within + rollout 叶子 ≈ 中性：145.4 vs 143.2）
+> 不经过该执行器，仍然有效。
 
 **动机**：T4 诊断结论是"V_leaf 的 μ 不准"（真实小牌组 beam 111.2 vs 回合内 expectimax 143.1）。
 解析式 μ 高估"存体力"，于是做最小版 rollout 叶子：叶子用 `LessonSim` 把剩余回合快跑一遍，
@@ -633,19 +714,19 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 
 **为什么没继续硬啃**
 1. 用执行同强度策略做 policy-evaluation 叶子，成本 = 每叶子"剩余回合 × 每回合 expectimax"，
-   在 beam 的数百个端点上是十几倍的耗时，当前 CPU 预算内不可行；
+   在 beam 的数百个端点上是十几倍的耗时；B1 的受控版（只对最深端点）已实测为中性；
 2. 三次 learned 线性 V 失败说明"线性特征+回归"也不通，需要新信息（rollout 数据拟合/机制建模）；
-3. 现有解析式 + tiebreak 在 beam 上已经是 111.2（比 beam 默认 91.3 好很多），先把 T4 的收益
-   限定在"平手项+采样"，把 μ 的修复留给下一步。
+3. ~~现有解析式 + tiebreak 在 beam 上已经是 111.2~~（旧 bug 口径；修正后解析式 + tiebreak
+   已经是 164.0/165.5，不靠 rollout 叶子也超过 within）——T4 的收益先落在评测修正 + 平手项。
 
 **下一步（按性价比）**
-1. **策略评价叶子（受控成本）**：只对 beam 最深一层的端点做 rollout，且用执行同策略（within）
-   + 缓存 + 小预算，验证 μ 排序是否变好；
+1. ~~**策略评价叶子（受控成本）**：只对 beam 最深一层端点做 rollout~~ → **B1 已做：中性**
+   （见上一节 T4 修正）；
 2. **rollout 数据 → 学 V_leaf**：用 rollout 的（状态, 最终分）样本重训 `v_leaf.json`
-   （比纯解析特征多一个"自我对弈"监督信号）；
+   （比纯解析特征多一个"自我对弈"监督信号；B2 方向，需用修正后的 harness 重测）；
 3. 同时补 T5 机制建模（P 道具/回忆/附魔/选牌/减益），否则 rollout 再准也只是模拟器内准。
 
-命令（复现负结果）：
+命令（复现旧负结果；beam 侧数字已被 B1 判定作废，仅作历史）：
 ```powershell
 .venv\Scripts\python.exe scripts\eval_known_draw.py --games 60 --scenario small --policy beam \
   --width 4 --budget-ms 100 --branching 10 --score-tiebreak 0.001 \

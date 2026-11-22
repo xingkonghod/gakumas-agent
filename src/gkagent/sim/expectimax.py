@@ -2223,6 +2223,7 @@ def search_beam(
     rng: random.Random | int | None = None,
     branching: int | None = None,
     reshuffle: ReshuffleFn | None = None,
+    frontier_value: LeafValue | None = None,
 ) -> BeamResult:
     """跨回合 beam：每层一个回合，节点是回合末状态，按 V_leaf 保留 top-width。
 
@@ -2233,6 +2234,11 @@ def search_beam(
 
     ``reshuffle``（可选）：确定性重洗钩子；``state.discard_order`` 已知时，
     牌堆抽空后的重洗与后续抽牌也按真实顺序走（配合 known_draw 的完全信息规划）。
+
+    ``frontier_value``（可选，受控 policy evaluation）：只在 beam **最深端点**
+    （预算截断后的前沿，``end_state.turns_left > 0``）用更强的叶子重排一次，
+    替代浅层解析式 V 决定最终根动作。已经到终局（``turns_left == 0``）的端点
+    直接用精确档位效用，不浪费 rollout。默认 ``None`` = 历史行为逐位不变。
     """
     model = value or AnalyticLeafValue()
     if time_budget_ms is not None:
@@ -2351,10 +2357,31 @@ def search_beam(
         if not complete:
             break
 
+    # 受控 policy evaluation：beam 被预算截断时，最深端点（前沿）只有解析式 V，
+    # 平手项/存体力偏置会直接把根动作带偏。这里只对前沿做一次更强叶子重排；
+    # 终局端点用精确档位效用，不 rollout。
+    if frontier_value is not None:
+        polished: list[tuple[float, _BeamNode]] = []
+        for node in beam:
+            end_state = node.plan.end_state
+            if end_state.turns_left > 0:
+                score = float(frontier_value.utility(end_state))
+            else:
+                score = node.plan.utility
+            polished.append((score, node))
+        best_score, best_node = polished[0]
+        for score, node in polished[1:]:
+            # 严格大于：同分保留原 analytic 顺序（稳定、可复现）
+            if score > best_score:
+                best_score = score
+                best_node = node
+    else:
+        best_score = best_node.plan.utility
+
     # 最终按最深层 V 回溯根回合计划（不是按当前分数/根回合叶子）
     return BeamResult(
         card=best_node.root_plan.first_card,
-        utility=best_node.plan.utility,
+        utility=best_score,
         skip_utility=model.utility(end_turn_state(state)),
         sequence=best_node.root_plan.sequence,
         end_state=best_node.plan.end_state,

@@ -260,7 +260,8 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 ✅ 新增测试：决策可观测性 4 条 + ExamPlanSelector 4 条 + 点击坐标回归 + produce_ui 增补
 ```
 
-**仍未做**：T1 整局真机验收（20 分钟内跑完一局）、T3 真机考试日志验收、T2 三引擎 A/B、T4 策略强度。
+**仍未做**：T1 整局真机验收（20 分钟内跑完一局）、T3 真机考试日志验收、T2 三引擎 A/B、T4 策略强度
+（T4 已由 B1 完成离线升级，见二·补十九；真机 A/B 仍待 T2）。
 **注意**：换一局后的 `[exam-plan] mismatch` 是预期（离线 setup 来自别的采集），不要当 bug 修（FAILURES #33）。
 
 
@@ -364,6 +365,10 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 
 ### 二·补九、11-22 凌晨（T4 起点：V_leaf 平手项 + beam 采样分支）
 
+> ⚠️ **2026-11-22 B1 复核：本节 beam 数字（91.3 / 105.5 / 111.2）作废**——评测执行器
+> `_execute_plan` 白丢回合 bug；修正后 beam unknown 164.0 / known 165.5（二·补十九）。
+> within 列（143.1）与 tiebreak 方向仍有效。
+
 **背景**：用户要求先补「我们 vs 别人的差距」、暂不跑真机。按 [HANDOVER_NEXT §9](HANDOVER_NEXT.md)，
 差距主要在策略强度（T4 V_leaf）与机制覆盖（T5），先动 T4。
 
@@ -395,6 +400,10 @@ reshuffle_grave(rng, grave)           弃牌堆 FY 重洗（返回新牌堆顺�
 ---
 
 ### 二·补十、11-22 凌晨（T4 rollout 叶子：实现完成，结果负）
+
+> ⚠️ **2026-11-22 B1 复核：本节 beam 侧数字作废**（同一 `_execute_plan` bug）；within 侧
+> rollout 叶子 ≈ 中性（145.4 vs 143.2）仍有效。修正后 B1 的受控 frontier 叶子为中性，
+> 见二·补十九。
 
 **做了什么**（`src/gkagent/sim/expectimax.py` + `scripts/eval_known_draw.py`）
 - `sim_from_state()`：把搜索的纯 `ExpectState` 快照重建成可跑的 `LessonSim`
@@ -699,6 +708,54 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
 
 ---
 
+### 二·补十九、11-22（WORKPLAN B1 落地：T4 评测 bug 修正 + 受控 frontier 叶子 ✅）
+
+**目标（B1）**：只对 beam 最深端点做 rollout（执行同策略 within + 缓存 + 小预算），决策门：
+真实牌组 beam ≥ within 的 90% 再谈生产。
+
+**先查到真正的瓶颈：评测执行器白丢回合（不是 V_leaf）**
+- `LessonSim.step` 在「手牌打空」时会自动结束本回合；旧 `scripts/eval_known_draw.py::_execute_plan`
+  在按 beam 计划打光 3 张后又补了一刀 `sim.step(None)`——此时已进入下一回合，**白丢下一整个回合**。
+  每个 beam 决策都少打一回合，旧 beam 数字（91.3→111.2）被系统性低估；within 逐张决策不走该
+  执行器，所以它的 143.1 一直是真实的。旧结论「V_leaf μ 是主因」实为测量 bug。
+- 修法：执行前记 `start_turns_left`，只有仍在同一回合时才补 SKIP；短计划才正常结束回合。
+  回归测试 `tests/test_beam_frontier.py::test_execute_plan_*` 2 条。
+
+**受控 policy-evaluation 叶子（B1 交付）**
+- `src/gkagent/sim/expectimax.py`：`search_beam(frontier_value=...)` 只对预算截断后的**最深端点**
+  （`end_state.turns_left > 0`）用 `frontier_value.utility` 重排根动作；终局端点直接用精确档位
+  效用、不 rollout；`frontier_value=None`（默认）行为逐位不变。
+- `scripts/eval_known_draw.py` 新增 `--frontier-rollout` / `--frontier-budget-ms` / `--beam-depth`；
+  新增 `scripts/eval_t4_b1.py`（B1 配对评测脚本，退出码 = 决策门）。
+
+**60 局配对（small，同牌组同 seed；`--games 60`）**
+
+| 策略 | 信息 | 均值 | P50 | CLEAR | PERFECT | vs within | 95% CI |
+|---|---|---:|---:|---:|---:|---:|---|
+| within | unknown/known | 143.1 | 145 | 83.3% | 13.3% | — | — |
+| beam | unknown | **164.0** | 162 | 98.3% | 33.3% | **+20.9** | [+14.4,+27.3] |
+| beam | known | **165.5** | 165 | 100.0% | 38.3% | **+22.4** | [+16.5,+28.4] |
+| beam+frontier | unknown/known | 164.0 / 165.5 | 162/165 | 同 beam | 同 beam | 同 beam | — |
+
+- **决策门 PASS**：114.6%（unknown）/ 115.7%（known），门槛 90%；57/60 与 56/60 局不劣于 within。
+- **受控叶子中性**：frontier 与普通 beam 逐位相同。原因是 small 真实牌组上 4 个根计划收敛到
+  同一前沿状态（同 `canonical`），rollout 值相同；`turns_left=1` 的截断本来也接近精确。
+- **消融**（60 局）：beam 默认 148.6/153.8；`score_tiebreak=1e-3` 164.0/165.5（+15.4/+11.8）；
+  `branching=10` 151.2/153.8（+2.7/+0.1，无显著收益）；两者同开 161.6/164.8。
+  旧「branching=10 贡献 +19.9」是 bug 副产物。
+- **生产默认不改**（expectimax / tiebreak=0）；T2 真机 A/B 时把 `beam + tiebreak` 作为候选。
+  旧 rollout 叶子的 beam 侧负结果同样作废（within 侧 ≈ 中性仍有效），B2 需用修正 harness 重测。
+
+**测试 / 基线**
+- 新增 `tests/test_beam_frontier.py` 6 条（前沿重排、终局不 rollout、默认行为不变、只问最深层、
+  执行器不再丢回合 2 条）；`ruff check` 对改动文件通过。
+- 全量 pytest **964 passed / 1 skipped**（965 收集 / 70 个测试文件）；
+  ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、④ wiring 36/36 + 3/3 + known_draw 29/29
+  + beam 28 全部不变（B1 只动 beam 评测/搜索可选参数 + 测试/文档）。
+- **提交**：见 [七、最近提交记录](#七最近提交记录)（feat + docs 两个提交）。
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -736,7 +793,9 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 
 **离线阶段 A 收口（2026-11-22 完成 ✅）**：A1 OCR 日文模型 ✅（二·补十四）→ A2 F#42 课程硬打必须得分 ✅
 （二·补十五）→ A3 F#43 结果页空转 ✅（二·补十六）→ A4 离线回放素材 ✅（二·补十七）→
-**A5 T3 离线预演 ✅**（二·补十八）；阶段 A 全部完成。下一项 **B1 T4 受控 policy-evaluation 叶子**；
+**A5 T3 离线预演 ✅**（二·补十八）；阶段 A 全部完成。**B1 T4 修正 ✅**（二·补十九：评测执行器
+bug 修正后 beam unknown 164.0 / known 165.5 vs within 143.1，决策门 PASS；frontier 叶子中性）。
+下一项 **B2（全知数据训练叶子/小模型，必须用修正后的 harness）**；
 B/C/D 全部离线收尾后才上真机（T3→T1→T2），最后 gkbench。总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
@@ -907,7 +966,7 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/` **958 passed / 1 skipped**（959 条收集 / 69 个测试文件），含
+**测试状态**：`pytest tests/` **964 passed / 1 skipped**（965 条收集 / 70 个测试文件），含
 `tests/test_exam_shuffle.py` 四场考试洗牌回放 + 「实战回合算 K 会错」回归防线 +
 三组弃牌堆重洗样本对照；`tests/test_expectimax_known_draw.py` 8 条 +
 `tests/test_exam_oracle.py` 6 条完全信息搜索；`tests/test_expectimax_discard_order.py` 17 条
@@ -917,6 +976,7 @@ add71dc docs(reverse): 元数据解包验证
 `tests/test_produce_ui_f43.py` 7 条 F#43 真机外出帧回放/静态页兜底 +
 `tests/test_frames_replay_a4.py` 9 条六类关键屏真机帧回放（A4）+
 `tests/test_exam_plan_offline.py` 8 条 T3 离线预演（A5：--current 候选 + 四场 sweep）+
+`tests/test_beam_frontier.py` 6 条 B1（前沿 policy-evaluation + 评测执行器丢回合回归）+
 `tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
 四条开工基线：① 4/4 场 + 3/3 重洗、② 本行数字、③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28。
 

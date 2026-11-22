@@ -37,21 +37,25 @@
          2026-11-22 A5：T3 离线预演——scripts/verify_exam_plan_offline.py：最新场 3 候选第 2 回合锁定
          config_turns=12（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值（候选→1、locked_turn≤3，
          见 HANDOVER 二·补十八 / EXPECTIMAX §④）
-         全量 pytest 958 passed / 1 skipped（959 收集 / 69 文件）
+         2026-11-22 B1：T4 修正——查出评测执行器 `_execute_plan` 在「手牌打空自动结束回合」后又补
+          SKIP、白丢下一回合的 bug；修正后 60 局配对 beam unknown 164.0 / known 165.5 vs within 143.1
+          （+20.9/+22.4，CI 全正；决策门 114.6%/115.7% PASS）；受控 frontier 叶子中性；
+          见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」
+         全量 pytest 964 passed / 1 skipped（965 收集 / 70 文件）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**、离线预演已通（A5），但真机跑局时采集没开 → 全知 0 锁定，差实战验收
-        ④ 策略强度：V_leaf 是瓶颈（2026-11-22 已定位：档位效用平手项 + beam 采样分支可 +20，
-           但仍比回合内 expectimax 低 22%；下一步受控 policy-evaluation / rollout 监督 v_leaf）；机制建模缺 P 道具/回忆/附魔/选牌/减益
+        ④ 策略强度：B1 已推翻「beam 不如 within」的旧结论（是评测 bug）；修正后 beam 已显著强于 within
+           （B1 决策门 PASS）。剩余：rollout/全知数据训练叶子（B2）、机制建模（B3）；生产默认仍 expectimax
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
         ⑥ A4 缺一张真机帧：「回合结束确认框」旧截图被 step_NNN 轮转覆盖（扫 1352 张 0 命中）；
            分支已用真机课程帧文字 + F#36 文案回放，下次真机跑局出现时补拍 fixture
-当前最高优先：**阶段 B 离线**（B1 T4 受控 policy-evaluation 叶子 → B2/B3）→ 阶段 C/D →
-真机 T3→T1→T2 → gkbench（总计划见 WORKPLAN.md；阶段 A 已全部完成）
+当前最高优先：**阶段 B 离线**（B2 全知数据训练叶子 → B3 机制）→ 阶段 C/D →
+真机 T3→T1→T2 → gkbench（总计划见 WORKPLAN.md；阶段 A 全部完成、B1 已完成）
 ```
 
 > **新会话先读 [WORKPLAN.md](WORKPLAN.md)**：总顺序 = **离线全部做完 → 真机（T3→T1→T2）→ 去 gkbench 比算法**。
-> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / A4 回放素材 ✅ / A5 T3 离线预演 ✅ / B T4·T5 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
+> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / A4 回放素材 ✅ / A5 T3 离线预演 ✅ / B1 T4 修正 ✅ / B2·B3 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
 > 和「已完成不要重做」清单。
 
 > **2026-11-21 用户硬规矩（不许破）**：SKIP 只在"所有牌都付不起"时允许；读不到分数/费用不是跳过理由，
@@ -93,6 +97,7 @@
 | A3 F#43 结果页空转 | [produce_ui.py](../src/gkagent/tasks/produce_ui.py) `_GAIN_RE` 只认正收益 + 事件屏 P 费标签兜底 + 静态页第 3 次找按钮 | `tests/test_produce_ui_f43.py` 7 条（真机帧回放 3 + 合成 4）；见 HANDOVER 二·补十六 |
 | A4 离线回放素材 | [tests/fixtures/README.md](../tests/fixtures/README.md) 8 张真机帧溯源 + [scan_frames.py](../scripts/scan_frames.py) 批量挑帧 | `tests/test_frames_replay_a4.py` 9 条（六类关键屏真帧回放；回合结束确认框用真机课程帧文字 + F#36 文案，真机帧已被轮转覆盖）；全量 pytest **950/1（951 收集 / 68 文件）**；F#44 `_checkbox_bands` 修复；见 HANDOVER 二·补十七 |
 | A5 T3 离线预演 | [verify_exam_plan_offline.py](../scripts/verify_exam_plan_offline.py)：`--current` 候选（--refresh 现场重建）+ 四场 sweep，truth 驱动 `ExamPlanSelector` | 最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12）；四场 sweep T1–T2 锁定、选中 = 9/11/9/12 全对；候选→1、`locked_turn≤3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；见 HANDOVER 二·补十八 |
+| B1 T4 修正（评测 bug + 受控 frontier 叶子） | [eval_t4_b1.py](../scripts/eval_t4_b1.py)：`_execute_plan` 白丢回合修复 + `search_beam(frontier_value=…)` | 60 局配对：beam unknown **164.0** / known **165.5** vs within **143.1**（+20.9 / +22.4，CI 全正），决策门 **114.6%/115.7% PASS**；frontier 中性；`tests/test_beam_frontier.py` 6 条；全量 pytest **964/1（965 收集 / 70 文件）**；见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」 |
 
 **改动以上任何部分的规矩**：先跑 §2 四条基线命令；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
@@ -105,7 +110,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 958 passed, 1 skipped（959 条收集 / 69 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条）
+# ② 全量测试：应为 964 passed, 1 skipped（965 条收集 / 70 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -135,7 +140,7 @@ cd D:\Games\gakumas-agent
 | G1 | **自动化完成度**：bot 没跑完整局 | 2026-11-21 晚已修 10 类真机卡点（点击双重缩放/难度坐标/自动编成确认框/外出事件/领卡坐标/考试浮层/网络重试弹窗/加载快速路径逃逸/无决策空转/暂停误判同屏卡死，见 [FAILURES #27-32](FAILURES.md#L6)），**还没整局真机验收** | 自动拿分的**前提**；没有它一切策略都只是离线数字 | T1 |
 | G2 | **没有真机 A/B** | 三引擎（rules / expectimax / beam+全知）从没同卡组同账号跑过 | 不知道 search 值不值；无法向用户证明 | T2 |
 | G3 | **采集↔决策未打通**（原 item④） | bot 读离线 `out/exam_setup.json`；换一局/换一场考试就对不上（`ExamDrawPlan` 会安全停用） | 全知搜索（known_draw/beam）**实战用不上**，只在离线核对里有效 | T3 |
-| G4 | **策略强度**：V_leaf 是瓶颈 | [EXPECTIMAX.md](EXPECTIMAX.md)：真实牌组 beam 只 +3.0、构造抽牌牌组 +44.6；leaf 仅 6 特征 vs 官方 AI 50+；learned leaf 两次失败（[EXPECTIMAX L329-377](EXPECTIMAX.md#L262)） | 考试分（评价点的主要来源之一） | T4 |
+| G4 | **策略强度**：已由 B1 修正（不再是 beam<within） | [EXPECTIMAX.md](EXPECTIMAX.md)「T4 修正」：旧 beam 111 是评测执行器 bug；修正后 60 局 beam unknown 164.0 / known 165.5 vs within 143.1（CI 全正）。剩余：learned leaf 三次失败（[EXPECTIMAX L273-377](EXPECTIMAX.md#L273)）、frontier 叶子中性、机制缺口 | 考试分（评价点主要来源之一） | B2 / T2 |
 | G5 | **机制建模缺口** | [OFFICIAL_AI_NOTES §3/§5](OFFICIAL_AI_NOTES.md#L330)：P 道具/回忆/附魔、选牌评估器、饮料、考试减益、考试内生成卡；回合内重洗（11-20 期末 T9）、同局多次重洗 RNG 快照未建模 | 模拟器与实战偏差 → 搜索决策偏 | T5 / T6 |
 | G6 | **工程可靠性**：无互验/复盘 | 对照 hiro 三条原则（[HIRO_VIDEO_NOTES L32](HIRO_VIDEO_NOTES.md#L32)）：动作前预算下一帧、纯函数状态、自动复盘页——我们都没有 | 排障慢、回归靠人肉 | T7 |
 | G7 | **情报跟踪** | hiro Windows 版进展、QQ 群 seed 口径都在变（[QQ_GROUP_NOTES](QQ_GROUP_NOTES.md#L59)） | 方向判断；低成本 | T8 |
@@ -195,8 +200,10 @@ cd D:\Games\gakumas-agent
   见 HANDOVER 二·补十六 / FAILURES #43）；**A4 离线回放素材已完成**（2026-11-22，8 张真机帧 +
   9 条回放测试 + scan_frames 挑帧工具，见 HANDOVER 二·补十七 / WORKPLAN A4）；**A5 T3 离线预演已完成**
   （2026-11-22，`--current` 3 候选第 2 回合锁定 `config_turns=12`、四场 sweep T1–T2 锁定且选对真值，
-  见 HANDOVER 二·补十八 / WORKPLAN A5）。按 WORKPLAN 顺序进入**阶段 B（B1 T4 受控 policy-evaluation
-  叶子）**，再上真机重验 F#42/#43 与 T3。
+  见 HANDOVER 二·补十八 / WORKPLAN A5）。**B1 T4 修正已完成**（2026-11-22：评测执行器丢回合
+  bug 修正后 beam unknown 164.0 / known 165.5 vs within 143.1，决策门 PASS；frontier 叶子中性；
+  见 HANDOVER 二·补十九 / WORKPLAN B1）。按 WORKPLAN 顺序进入 **B2（全知数据训练叶子，必须用
+  修正后的 harness）**，再上真机重验 F#42/#43 与 T3。
 
 **剩余（跑一局验收）**
 1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
@@ -284,40 +291,36 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 **验收（DoD）**：三局成绩表（考试分 + 评价 + 时长 + `fallback=` 次数）+ 明确结论"哪个引擎值得默认"。
 **预算**：3 局×20 分钟真机 + 30–50k token。
 
-### T4（P1）策略强度：V_leaf + beam 调优 🟡（已定位平手项/采样；主因 μ 不准，下一步 rollout 叶子）
-**目标**：让"全知 + beam"的离线优势变成分数。当前证据：构造抽牌牌组 beam known−unknown **+44.6**，但真实牌组只有 **+3.0**，因为 leaf 估不准（[EXPECTIMAX L399-417](EXPECTIMAX.md#L399)）。
+### T4（P1）策略强度：V_leaf + beam 调优 ✅（B1 完成：评测 bug 修正后 beam 已显著强于 within；learned leaf 留 B2）
+**目标**：让"全知 + beam"的离线优势变成分数。~~当前证据：构造抽牌牌组 beam known−unknown **+44.6**，但真实牌组只有 **+3.0**，因为 leaf 估不准~~（旧口径；B1 已推翻"beam 弱于 within"的前提）。
 
-**2026-11-22 凌晨已做（实验，默认关闭，生产不变）**
-- 诊断：真实小牌组上 beam 91.3 vs 回合内 expectimax 143.1——档位效用封顶 2.0 导致大量平手，
-  搜索平手 tie-break 优先存体力/出牌位；σ 扫描无影响，beam `branching` 有影响。
-- 加了 `AnalyticLeafValue.score_tiebreak`（默认 0）破平手 + `eval_known_draw.py` 的
-  `--score-tiebreak` / `--branching`；配对 60 局：beam **+14.3**（CI [7.9,20.6]）→ 再加
-  branching=10 共 **+19.9**（CI [12.8,27.1]），within 基本不变（+0.3）。
-- **但 beam 仍比 within 低 22.3%（111.2 vs 143.1），T4 决策门未达成**；生产默认仍 expectimax/leaf tiebreak=0。
+**B1 完成（2026-11-22，见 [EXPECTIMAX](EXPECTIMAX.md)「T4 修正」/ HANDOVER 二·补十九）**
+- 查到旧 beam 数字被评测执行器坑了：`eval_known_draw._execute_plan` 在「手牌打空自动结束回合」后
+  又补一个 SKIP，**白丢下一整个回合**；within 不走该执行器，所以它的 143.1 是真的。
+- 修正后 60 局配对（small，同牌组同 seed，`scripts/eval_t4_b1.py --games 60`）：
+  beam unknown **164.0**（+20.9，CI [+14.4,+27.3]）、known **165.5**（+22.4，CI [+16.5,+28.4]）
+  vs within **143.1**；决策门 **114.6% / 115.7% → PASS**（门槛 90%）。
+- 受控 policy-evaluation 叶子（只对 beam 最深端点 rollout，within 策略 + canonical 缓存 + 5ms/回合）
+  **中性**：与普通 beam 逐位相同。消融：`score_tiebreak=1e-3` 是真增益（+15.4/+11.8），
+  branching=10 修正后无显著收益（旧 +19.9 是 bug 副产物）。
+- 生产默认不改（expectimax / tiebreak=0）；T2 真机 A/B 时再把 `beam + tiebreak` 作为候选。
+- **旧实验记录（已作废，勿引用 beam 列）**：2026-11-22 凌晨「beam 91.3→105.5→111.2」与
+  rollout 叶子「analytic 111.3 / rollout 103.0」都来自同一条 bug 执行器。within 列、
+  tiebreak 方向、learned leaf 三次失败（不走该执行器）仍有效。
 
-**2026-11-22 凌晨（rollout 叶子，负结果，代码保留但默认关闭）**
-- 实现 `RolloutLeafValue` + `sim_from_state`（`expectimax.py`），eval 加 `--leaf rollout --rollouts
-  --rollout-policy {greedy,within}`；叶子用 `LessonSim` 跑完剩余回合取 μ。
-- 60 局 small：analytic beam unknown/known 111.3/111.4；rollout greedy r=3 只有 103.0/104.1
-  （**−8.3/−7.3**）；rollout 无 tiebreak / within-policy 更差（78.8~89.0）。
-- 结论：rollout 策略（greedy）弱于执行策略（within），leaf μ 排序与实际执行错位；
-  rollout 次数 1/3/6 不改变结论。细节见 [HANDOVER 二·补十](HANDOVER.md#L397)。
-
-**下一步（按性价比）**
-1. **受控 policy-evaluation 叶子**：只对 beam 最深端点做 rollout，且用执行同策略（within）+ 缓存 + 小预算，
-   验证 μ 排序是否变好（不要全叶子 rollout，成本爆炸）；
-2. **rollout 数据 → 学 V_leaf**：用 rollout 的（状态, 最终分）样本重训 `v_leaf.json`（新增监督信号）；
-3. 继续扫 `eval_expectimax.py --sweep` 的 beam 宽度 + `--branching`；draw 场景跑 `--full-info`；
-4. 决策门不变：真实牌组 beam 显著优于 expectimax（P50 提升 + 不回退）再进真机。
+**下一步（B2，P1/P2）**
+1. **rollout 叶子用修正 harness 重测**：旧负结果作废，先判定它是否值得当监督信号；
+2. **rollout/全知数据 → 学 V_leaf**：用（状态, 最终分）样本重训 `v_leaf.json`（新增监督信号）；
+3. 继续扫 `eval_expectimax.py --sweep` 的 beam 宽度；draw 场景跑 `--full-info`。
+4. 生产默认在 T2/T3 前保持 expectimax；真机考试分不低于 rules 由 T2 验证。
 
 **步骤**
-1. 先读 [EXPECTIMAX.md L329-377](EXPECTIMAX.md#L262) 里两次 learned leaf 失败的教训（搜索/模拟器不同源、权重塌缩）。
+1. 先读 [EXPECTIMAX.md L273-377](EXPECTIMAX.md#L273) 里三次 learned leaf 失败的教训（搜索/模拟器不同源、权重塌缩）。
 2. leaf 加特征（官方 AI 的 H4/H8/H9）：`extra_plays`、层数 × 剩余回合、指针切换次数、累计全力值；`AnalyticLeafValue` 或重训 `v_leaf.json`。
-3. 用 `scripts/eval_expectimax.py --sweep` 扫 beam 宽度；用 `scripts/eval_known_draw.py --scenario small --policy beam --full-info` 看真实牌组增益。
-4. 决策门：真实牌组 beam 相比 expectimax 的配对提升要有统计意义（P50 提升 + 不回退），再进真机。
+3. 用 `scripts/eval_expectimax.py --sweep` 扫 beam 宽度；用 `scripts/eval_t4_b1.py --games 60` 做修正 harness 下的配对评测。
 
 **改哪儿**：`src/gkagent/sim/expectimax.py`（leaf）、`src/gkagent/sim/v_leaf.py`、`data/knowledge/v_leaf.json`、`scripts/eval_*.py`
-**验收（DoD）**：配对评测数字写进 EXPECTIMAX.md；`pytest` 全绿；真机考试分不低于 rules（T2 验证）。
+**验收（DoD）**：B1 已交（60 局配对 + EXPECTIMAX 更新 + 单测）；B2 需给出学习叶子的配对增益或可复现负结果。
 **预算**：80–150k token（这是最难的一块，别一次会话硬啃）。
 
 ### T5（P1/P2）机制建模补齐（按官方 AI 对比表挑）⬜
@@ -403,8 +406,10 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 .venv\Scripts\python.exe scripts\scan_event_frames.py data\auto --keywords ドリンク ヨーグルト
 # 上真机前：模拟器整局 A/B（训练+考试都注入真 LessonPolicy；0 blocked/0 error/C+率）
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json
-# 离线配对评测：known_draw / beam / full-info（重洗后段全知）
+# 离线配对评测：known_draw / beam / full-info（重洗后段全知；注意 beam 必须用修正后的执行器）
 .venv\Scripts\python.exe scripts\eval_known_draw.py --games 40 --scenario small --policy beam --full-info
+# B1 T4 修正后的配对评测（within / beam / beam+frontier；退出码 = 决策门）
+.venv\Scripts\python.exe scripts\eval_t4_b1.py --games 60 --json out\t4_b1_tb.json
 # 真机跑局（引擎：--engine > policy.json produce.engine > 默认 expectimax；rules 只用于 A/B 对照）
 # --max-minutes 默认 30：卡住会写 episode-timeout 主动停局，不再无限空转
 .venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 300 ep-xxx --skip-home --exam-setup out\exam_setup.json --engine expectimax --max-minutes 30" --timeout 2400
@@ -455,7 +460,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线。
-期望：洗牌 4/4 场 + 3/3 重洗；pytest 958 passed / 1 skipped（959 条收集 / 69 文件）；
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 964 passed / 1 skipped（965 条收集 / 70 文件）；
 exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28。
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6 Apache-2.0，见 WORKPLAN A1 / HANDOVER 二·补十四）；
 A2（F#42 课程硬打必须得分）也已完成（HUD 语义 + 每回合 1 张 + 硬打保分，见 WORKPLAN A2 / HANDOVER 二·补十五）；
@@ -463,8 +468,11 @@ A3（F#43 结果页空转）也已完成（真根因：日文饮料选择事件�
 A4（离线回放素材）也已完成（8 张真机帧归档 + 9 条真机帧回放测试 + scan_frames 挑帧工具，见 WORKPLAN A4 / HANDOVER 二·补十七）。
 A5（T3 离线预演）也已完成（--current 3 候选第 2 回合锁定 config_turns=12、四场 sweep T1–T2 锁定且选对真值；
 见 WORKPLAN A5 / HANDOVER 二·补十八）。
-基线绿后按 WORKPLAN 从 B1 开始：B1 T4 受控 policy-evaluation 叶子
-→ B2/B3，再到阶段 C/D，全部离线做完再上真机（T3→T1→T2），最后 gkbench。
+B1（T4 修正）已于 2026-11-22 完成：评测执行器 `_execute_plan` 白丢回合 bug；修正后 60 局配对
+beam unknown 164.0 / known 165.5 vs within 143.1（+20.9/+22.4，CI 全正；决策门 PASS），
+受控 frontier 叶子中性（见 WORKPLAN B1 / HANDOVER 二·补十九）。
+基线绿后从 **B2**（全知数据训练叶子/小模型，必须用修正后的 harness）开始 → B3 → 阶段 C/D，
+全部离线做完再上真机（T3→T1→T2），最后 gkbench。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。
 ```
@@ -479,6 +487,6 @@ A5（T3 离线预演）也已完成（--current 3 候选第 2 回合锁定 confi
 | **QQ 群「初星学园情报处理部」**（[QQ_GROUP_NOTES](QQ_GROUP_NOTES.md)） | seed 反推（2^31 枚举+观测剪枝）信息论口径清晰（3 回合收敛 ~1000 候选）；nodejs 实现 | 自己定规矩**实战不用 seed**；uihorizon/uinet "到头了"（10× 训练量反而倒退）；无公开成绩 |
 | **官方 AI**（GKMS 私有，[OFFICIAL_AI_NOTES](OFFICIAL_AI_NOTES.md)） | 真实牌序 + 50+ 特征评估 + 计划重放 + 限深/命令预算；考试机制覆盖最全 | 私有、不可移植、需 GKMS 原生核心；我们拿不到权重 |
 | **MaaGakumasu**（[MAA_INTEGRATION](MAA_INTEGRATION.md)） | 手和眼：截屏/识别/点击/日常/汉化完整 | 出牌只到启发式；我们只做决策层（ADR-001） |
-| **我们** | **唯一**把 MITM 采集→seed→整段牌序（含弃牌重洗）做成生产接口并经实机逐张验证；纯 Python/Windows 原生；0 token | 自动化最后一公里（T1）、无 A/B（T2）、全知未实时接通（T3）、leaf 弱（T4） |
+| **我们** | **唯一**把 MITM 采集→seed→整段牌序（含弃牌重洗）做成生产接口并经实机逐张验证；纯 Python/Windows 原生；0 token；B1 修正评测后 beam 已显著强于 within | 自动化最后一公里（T1）、无 A/B（T2）、全知未实时接通（T3）、学习型叶子未落地（B2） |
 
 **定位一句话**：信息维度我们领先，执行与策略强度落后 hiro；先把"能无人值守跑完整局 + 真机 A/B"做出来，故事才完整。

@@ -89,9 +89,18 @@ def _play_within(
 
 
 def _execute_plan(sim: LessonSim, names: list[str]) -> int:
-    """按 beam 计划的整回合序列执行；执行不动就回退 greedy（返回回退次数）。"""
+    """按 beam 计划的整回合序列执行；执行不动就回退 greedy（返回回退次数）。
+
+    注意：``LessonSim.step`` 在**手牌打空时自动结束本回合**（``lesson.py`` 的
+    "手牌打空：本回合自然结束"）。计划把当前手牌全打光时，循环结束已经进入下一
+    回合，这里不能再补一个 SKIP——否则会白丢一整个回合（T4 早期评测的 beam
+    数字就是这么被低估的）。
+    """
     fallbacks = 0
+    start_turns_left = sim.turns_left
     for name in names:
+        if sim.done or sim.turns_left != start_turns_left:
+            break
         if name.startswith("drink:"):
             drink_name = name.split(":", 1)[1]
             drinks = sim.legal_drinks()
@@ -113,7 +122,11 @@ def _execute_plan(sim: LessonSim, names: list[str]) -> int:
             if index is None:
                 break
         sim.step(index)
-    if not sim.done and sim.legal_actions() != [None]:
+    if (
+        not sim.done
+        and sim.turns_left == start_turns_left
+        and sim.legal_actions() != [None]
+    ):
         sim.step(None)
     return fallbacks
 
@@ -135,6 +148,9 @@ def play(
     rollouts: int = 3,
     rollout_policy: str = "greedy",
     rollout_budget_ms: float = 5.0,
+    beam_depth: int = 0,
+    frontier_rollout: bool = False,
+    frontier_budget_ms: float = 5.0,
 ) -> dict:
     """跑一局课程，返回分数与统计（fallback = 搜索给的牌在模拟器里执行不了）。
 
@@ -142,6 +158,9 @@ def play(
     ``score_tiebreak``：档位效用封顶导致的平手项（0=历史行为）；``branching``：
     beam 每层抽样分支数（None=默认 max(2, min(width, 3))）。
     ``leaf``：``analytic``=解析式 V_leaf；``rollout``=LessonSim+greedy 快跑剩余回合。
+    ``beam_depth``：beam 层数（0=跑满剩余回合；>0 用于受控截断 + 前沿 policy evaluation）。
+    ``frontier_rollout``：只对 beam 最深端点用执行同策略（within）rollout 重排
+    （B1 受控 policy evaluation；终局端点不 rollout）。
     """
     sim = LessonSim(deck, config, rng_seed=seed)
     if leaf == "rollout":
@@ -154,6 +173,15 @@ def play(
         )
     else:
         model = AnalyticLeafValue(sigma=sigma, score_tiebreak=score_tiebreak)
+    frontier_model = None
+    if frontier_rollout:
+        frontier_model = RolloutLeafValue(
+            sigma=sigma,
+            score_tiebreak=score_tiebreak,
+            rollouts=1,
+            policy="within",
+            rollout_budget_ms=frontier_budget_ms,
+        )
     fallbacks = 0
     decisions = 0
     while not sim.done:
@@ -172,10 +200,12 @@ def play(
             state,
             model,
             width=width,
+            depth=beam_depth or None,
             deadline_ms=budget_ms * 2,
             branching=branching,
             # 每次决策都从 sim.rng 当前状态取快照（重洗前的 RNG 状态）
             reshuffle=reshuffle_from_sim(sim) if full_info else None,
+            frontier_value=frontier_model,
         )
         fallbacks += _execute_plan(sim, list(result.sequence))
     return {
@@ -277,6 +307,23 @@ def main(argv: list[str]) -> int:
         default=5.0,
         help="rollout-policy=within 时每回合 expectimax 的时间预算",
     )
+    parser.add_argument(
+        "--beam-depth",
+        type=int,
+        default=0,
+        help="beam 层数（0=跑满剩余回合；>0 受控截断，与 --frontier-rollout 配合）",
+    )
+    parser.add_argument(
+        "--frontier-rollout",
+        action="store_true",
+        help="只对 beam 最深端点用执行同策略（within）rollout 重排（B1 受控 policy evaluation）",
+    )
+    parser.add_argument(
+        "--frontier-budget-ms",
+        type=float,
+        default=5.0,
+        help="frontier rollout 内每回合 expectimax 的时间预算",
+    )
     args = parser.parse_args(argv)
 
     deck, config = _make_deck_and_config(args.scenario)
@@ -287,7 +334,9 @@ def main(argv: list[str]) -> int:
         f"scenario={args.scenario} deck={len(deck)} turns={config.turns} "
         f"policy={args.policy} games={args.games} budget={args.budget_ms:.0f}ms "
         f"width={args.width} full_info={args.full_info} "
-        f"score_tiebreak={args.score_tiebreak:g} branching={args.branching or '默认'}"
+        f"score_tiebreak={args.score_tiebreak:g} branching={args.branching or '默认'} "
+        f"leaf={args.leaf} beam_depth={args.beam_depth or '满'} "
+        f"frontier_rollout={args.frontier_rollout}"
     )
     rows = {kind: [] for kind in kinds}
     for offset in range(args.games):
@@ -309,6 +358,9 @@ def main(argv: list[str]) -> int:
                     rollouts=args.rollouts,
                     rollout_policy=args.rollout_policy,
                     rollout_budget_ms=args.rollout_budget_ms,
+                    beam_depth=args.beam_depth,
+                    frontier_rollout=args.frontier_rollout,
+                    frontier_budget_ms=args.frontier_budget_ms,
                 )
             )
 

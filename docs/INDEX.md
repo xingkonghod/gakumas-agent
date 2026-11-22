@@ -153,9 +153,10 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 上真机前已在模拟器跑整局 A/B（训练+考试都注入真 LessonPolicy）：3 组种子共 76 局，0 `RuleFallbackBlocked`、
 0 异常、满局 C+ 率 100%，expectimax 与 rules 评价点在噪声内（[SIMULATOR §10](SIMULATOR.md)）；真机侧新增
 `auto_produce --max-minutes 30` 墙钟上限，卡住会写 `episode-timeout` 主动停局（不再卡两个多小时）。
-按用户要求暂不跑真机、先补「我们 vs 别人的差距」：**T4 策略强度**已起步——诊断出档位效用封顶
-导致的 beam 平手/存体力偏置，配对评测 beam +14.3/+19.9（CI 均为正），但仍比回合内 expectimax
-低 22.3%，T4 决策门未达成（生产 leaf 默认不变；下一步 rollout 叶子估值，详见 [EXPECTIMAX](EXPECTIMAX.md)）。
+按用户要求暂不跑真机、先补「我们 vs 别人的差距」：**T4 策略强度**在 B1 修正——旧结论
+「beam 比 within 低 22.3%」是评测执行器 `_execute_plan` 白丢回合的 bug；修正后 60 局配对
+**beam unknown 164.0 / known 165.5 vs within 143.1**（+20.9/+22.4，CI 全正），决策门 PASS；
+受控 frontier 叶子中性，`score_tiebreak=1e-3` 是真增益（详见 [EXPECTIMAX](EXPECTIMAX.md)「T4 修正」）。
 **2026-11-22 A1 已完成**：OCR 换官方 **PP-OCRv6 small 多语言模型（Apache-2.0）**——日文剧情/选项
 完整可读（`ヨーグルトパフェ`/`つくねハンバーグ`/`ドリンクバー` + 整句对白），中文 UI 不受影响；
 `scripts/download_ocr_models.py` 下载+sha256 校验，`OcrEngine` 自动加载 `configs/ocr_jp.yaml`
@@ -178,7 +179,12 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 --current --allow-finished` 对最新场生成 3 个 `config_turns` 候选（9/11/12），用采集 truth 驱动
 `ExamPlanSelector`：**第 2 回合锁定 config_turns=12（真值 12）**、锁定后逐回合核对 11/11、
 `known_draw` 覆盖下一手 9/9；四场 sweep 也全部 T1–T2 锁定且选中真值，候选收敛到 1、`locked_turn≤3`。
-全量 pytest **958 passed / 1 skipped**（959 收集 / 69 文件）。细节见 HANDOVER 二·补十八 / EXPECTIMAX §④。
-阶段 A 全部完成；下一步按 [WORKPLAN](WORKPLAN.md) 进**阶段 B：B1 T4 受控 policy-evaluation 叶子**
-→ B2/B3 → 阶段 C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+**同日 B1 已完成**（T4 修正）：查出 `scripts/eval_known_draw.py::_execute_plan` 在「手牌打空自动
+结束回合」后又补 SKIP、白丢下一回合的评测 bug；修后 60 局配对 beam unknown 164.0 / known 165.5
+vs within 143.1（+20.9/+22.4，CI 全正；决策门 114.6%/115.7% PASS）；新增 `scripts/eval_t4_b1.py`
+与 `tests/test_beam_frontier.py` 6 条（含受控 frontier 叶子，实测中性）。
+全量 pytest **964 passed / 1 skipped**（965 收集 / 70 文件）。细节见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」。
+阶段 A 全部完成、B1 完成；下一步按 [WORKPLAN](WORKPLAN.md) 进**阶段 B：B2（全知数据训练叶子/小模型，
+必须用修正后的 harness）** → B3 → 阶段 C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，
+只能交不看 seed 的算法）。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
