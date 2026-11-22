@@ -120,6 +120,52 @@ def _episode_is_secret_error(exc: urllib.error.HTTPError) -> bool:
     return exc.code in (401, 403)
 
 
+def scan_output(out: Path, algos: list[str]) -> dict:
+    """按磁盘实际文件重建 manifest（多次/断点续传后仍然准确）。"""
+    summary = {"bytes": 0, "files": 0, "sets": {}}
+    for set_dir in sorted(p for p in out.iterdir() if p.is_dir()):
+        runs_file = set_dir / "runs.json"
+        if not runs_file.is_file():
+            continue
+        runs = json.loads(runs_file.read_text(encoding="utf-8"))
+        by_algo: dict[str, int] = {}
+        for run in runs:
+            algo = str(run.get("algo"))
+            if algo in algos:
+                by_algo[algo] = by_algo.get(algo, 0) + 1
+        episodes = set_dir / "episodes"
+        ep_count = sum(1 for _ in episodes.rglob("*.json")) if episodes.is_dir() else 0
+        run_index_count = (
+            sum(1 for _ in (set_dir / "runs").glob("*.json"))
+            if (set_dir / "runs").is_dir()
+            else 0
+        )
+        set_summary: dict = {
+            "runs_total": len(runs),
+            "target_runs": sum(by_algo.values()),
+            "by_algo": by_algo,
+            "run_index_files": run_index_count,
+            "episodes_downloaded": ep_count,
+        }
+        seeds_file = set_dir / "seeds.json"
+        if seeds_file.is_file():
+            seeds = json.loads(seeds_file.read_text(encoding="utf-8")).get("problems") or {}
+            set_summary["seeds_problems"] = len(seeds)
+            set_summary["seeds_total"] = sum(len(rows) for rows in seeds.values())
+        saves_file = set_dir / "saves.jsonl"
+        if saves_file.is_file():
+            set_summary["saves_bytes"] = saves_file.stat().st_size
+            set_summary["saves_lines"] = sum(
+                1 for line in saves_file.read_text(encoding="utf-8").splitlines() if line.strip()
+            )
+        size = sum(p.stat().st_size for p in set_dir.rglob("*") if p.is_file())
+        set_summary["bytes"] = size
+        summary["bytes"] += size
+        summary["files"] += sum(1 for _ in set_dir.rglob("*") if _.is_file())
+        summary["sets"][set_dir.name] = set_summary
+    return summary
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", default=BASE)
@@ -132,10 +178,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--with-episodes",
         action="store_true",
-        help="显式下逐局 steps（默认就下；与 --no-episodes 相斥，后者优先）",
+        help="显式下逐局 steps（默认就下固定种子 run 的；与 --no-episodes 相斥，后者优先）",
+    )
+    parser.add_argument(
+        "--runs",
+        default="",
+        help="只给这些 run id 下逐局 steps（逗号分隔；含保密种子 run，需令牌），默认只下 fixed run",
     )
     parser.add_argument("--no-saves", action="store_true", help="不下题模板存档 NDJSON")
     parser.add_argument("--no-leaderboard", action="store_true")
+    parser.add_argument(
+        "--no-seeds",
+        action="store_true",
+        help="不下开发集固定种子（/api/sets/<set>/seeds；需要令牌或题集 public_seeds）",
+    )
     parser.add_argument(
         "--variants",
         action="store_true",
@@ -144,6 +200,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     algos = [a.strip() for a in args.algos.split(",") if a.strip()]
+    force_runs = {x.strip() for x in args.runs.split(",") if x.strip()}
     tokens = [
         a.split(":", 1)[-1].lower().replace("_", "-") for a in algos
     ]
@@ -159,15 +216,7 @@ def main(argv: list[str] | None = None) -> int:
     client = Client(args.base, args.token, args.sleep)
 
     sets_doc = client.get_json("/api/sets")
-    manifest: dict = {
-        "base": args.base,
-        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "algos": algos,
-        "with_token": bool(args.token),
-        "sets": {},
-        "bytes": 0,
-        "need_login_episodes": [],
-    }
+    need_login: list[dict] = []
     bytes_total = write_json(out / "sets.json", sets_doc)
     print(f"题集 {len(sets_doc)} 个 → {out / 'sets.json'}")
 
@@ -200,6 +249,20 @@ def main(argv: list[str] | None = None) -> int:
             "episodes_downloaded": 0,
             "episodes_login_required": 0,
         }
+        # 开发集固定种子（seed + fixed_id + check{turn,score,stamina,hand,rules}）：
+        # hif 的 public_seeds=false，要令牌；没有令牌时 401 跳过（不报错）。
+        if not args.no_seeds:
+            try:
+                seeds_doc = client.get_json(f"/api/sets/{set_name}/seeds")
+                bytes_total += write_json(set_dir / "seeds.json", seeds_doc)
+                probs = seeds_doc.get("problems") or {}
+                summary["seeds_problems"] = len(probs)
+                summary["seeds_total"] = sum(len(rows) for rows in probs.values())
+            except urllib.error.HTTPError as exc:
+                if exc.code in (401, 403):
+                    summary["seeds_need_token"] = True
+                else:
+                    print(f"⚠️ {set_name} seeds 失败：{exc}")
         for run in targets:
             algo = str(run.get("algo"))
             summary["by_algo"][algo] = summary["by_algo"].get(algo, 0) + 1
@@ -212,7 +275,8 @@ def main(argv: list[str] | None = None) -> int:
                 bytes_total += write_json(dest, doc)
             episodes = doc.get("episodes") or []
             fixed = str(run.get("kind")) == "fixed"
-            if args.no_episodes or not fixed or not episodes:
+            do_episodes = bool(run_id in force_runs) if force_runs else fixed
+            if args.no_episodes or not do_episodes or not episodes:
                 summary["run_episodes"] = summary.get("run_episodes", 0) + len(episodes)
                 continue
             ep_dir = set_dir / "episodes" / _safe_name(run_id)
@@ -230,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
                 except urllib.error.HTTPError as exc:
                     if _episode_is_secret_error(exc):
                         summary["episodes_login_required"] += 1
-                        manifest["need_login_episodes"].append(
+                        need_login.append(
                             {"set": set_name, "run": run_id, "id": pid, "seed_index": si}
                         )
                         continue
@@ -252,20 +316,30 @@ def main(argv: list[str] | None = None) -> int:
                 except urllib.error.HTTPError as exc:
                     print(f"⚠️ {set_name} saves 失败：{exc}")
 
-        manifest["sets"][set_name] = summary
         print(
             f"[{set_name}] runs={len(runs)} 目标运行={len(targets)} "
             f"逐局={summary['episodes_downloaded']} 需登录={summary['episodes_login_required']} "
             f"by_algo={summary['by_algo']}"
         )
 
-    manifest["bytes"] = bytes_total
-    manifest["requests"] = client.calls
+    scan = scan_output(out, algos)
+    manifest = {
+        "base": args.base,
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "algos": algos,
+        "variants": bool(args.variants),
+        "with_token": bool(args.token),
+        "last_run_requests": client.calls,
+        "need_login_episodes": need_login,
+    }
+    manifest.update(scan)
     write_json(out / "manifest.json", manifest)
     print(
-        f"\n完成：{client.calls} 次请求，{bytes_total / 1e6:.1f} MB → {out}\n"
-        f"需登录才能看的逐局记录 {len(manifest['need_login_episodes'])} 条（换 token 后重跑同一命令补齐）"
+        f"\n完成：本次 {client.calls} 次请求；磁盘共 {scan['files']} 文件 / "
+        f"{scan['bytes'] / 1e6:.1f} MB → {out}"
     )
+    if need_login:
+        print(f"需登录的逐局记录 {len(need_login)} 条（带 token 重跑同一命令补齐）")
     return 0
 
 

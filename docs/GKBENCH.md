@@ -66,9 +66,12 @@ sets.json                     # /api/sets
 manifest.json                 # 请求数/字节数/需要登录的逐局清单（断点续传依据）
 ```
 
-## 4. 2026-11-22 已下载（公开部分）
+## 4. 2026-11-22 已下载
 
-`hif` 题集（505 题 / 190 runs）：**176 次请求、39.4 MB**。
+`hif` 题集（505 题 / 190 runs）：公开部分 **176 次请求、39.4 MB**；拿到用户令牌后补了
+**`seeds.json`（329 题 / 384 组开发种子 + 官方 `check`）**，以及 5 个主参考 run 的逐局 steps
+的**抽样**（保密种子逐局接口服务端要扫整个 run 文件，实测 ≈20 s/局，全量 4,797 局不现实；
+本次只下了 27 局，之后按需抽样）。
 
 | 算法 | 精确匹配 runs | 备注 |
 |---|---:|---|
@@ -79,11 +82,48 @@ manifest.json                 # 请求数/字节数/需要登录的逐局清单�
 | `external:oracle` | 2 | 理论上限（固定种子 70 局 + template） |
 | 变体（`--variants`） | 13 | UINet 2.1 native/hud/roster/uiobs、UIHorizon v2.0/v2.2 等 |
 
-- 目标 run 索引里**带 route 的局合计 36,350**（含保密种子局；索引公开 route，逐步 obs 需登录）。
-- 固定种子（公开）逐局 steps：**79 局**（uinet 70 + uihorizon lockprobe 9）。
+- 目标 run 索引里**带 route 的局合计 36,350**（含保密种子局；索引公开 route，逐步 obs 需令牌）。
+- 固定种子（公开）逐局 steps：**79 局**（uinet 70 + uihorizon lockprobe 9）；拿令牌另下了
+  uinet template run 前 27 局（`episodes/20261112-040508-hif-template-uinet-matto/`）。
 - 题模板存档：505 题（公开答只有 `external:uinet` 5 题/160 行——保密种子答不进公开存档）。
+- **开发集种子 + check**：`hif/seeds.json`——`{problems: {AS-XXXX: [{index, seed, split:"dev",
+  label, fixed_id, check:{turn,score,stamina,hand,rules,commit}}]}}`，共 **329 题 / 384 组**，
+  这是 F0 洗牌交叉验证的官方基准。
 
-## 5. 参考分（2026-11-22 抓取，hif）
+
+## 4.5 F0 初步验证（2026-11-22）：我们的洗牌模型 vs 官方 `check.hand`
+
+F0 的第一步：用官方 `seeds.json` 里的 `check.hand`（官方引擎 GKMS native core 算的
+**第 1 回合开局手牌**）核对我们的 `exam_shuffle`（xorshift32 先消耗 K 次 + Fisher-Yates）。
+**修正口径**：K = `(turns-3) + npc*turns`，`turns` 取模板 `meta.turns`；`npc` 不是固定 5——
+H.I.F **選抜**是 6 人制（5 个对手），**本戦** 是 3 人制（2 个对手）：
+
+| stage | npc | K（turns=meta） | 精确命中（牌序 as_given） |
+|---|---:|---:|---:|
+| hif.sel1 | 5 | 57（turns=10） | **60/60** |
+| hif.sel2 | 5 | 69（turns=12） | 47/55 |
+| hif.sel3 | 5 | 69（turns=12） | 44/57 |
+| hif.main1 | 2 | 24（turns=9） | 64/97 |
+| hif.main2 | 2 | 33（turns=12） | 71/115 |
+| 合计 | — | — | **286/384 = 74.5%** |
+
+（不区分 stage、一律 npc=5 时只有 152/384；按 stage 给 npc 后 74.5%。牌序按
+`loadout.deck_cards` 原顺序；按主数据 `order` 重排反而 1/384——说明 gkbench 的编成顺序
+就是真机牌序，不要重排。）
+
+**不一致样本的初步归因**（留给 F0 收尾）：
+1. **`initial_add` 自定义**：牌组里带 `p_card_custom-070-g_effect-initial_add`（训练开始时
+   加入手牌）的卡，官方引擎会**强制放进开局手牌**；我们首轮没把它算 initial，症状是
+   「官方手牌 = [X] + 我们的前 2 张」，X 正是 initial_add 卡（8 个样例里 5 个为此）；
+2. **isInitial 的升级变体**：主数据 `isInitial` 可能只标了基础变体，而牌组用 `+1` 变体；
+   应按卡 id（或修正变体映射）处理（样例 1 个为此）；
+3. 其余少量可能是牌组顺序/来源（`meta.source` = capture/history）或 turnStartDistribute /
+   初始卡机制差异，F0 逐题归因。
+
+下一步（F0 正式任务）：把 initial 集合修正为「主数据 isInitial（按 id）+ deck 里
+`initial_add` 自定义」后重跑，输出逐题逐张命中率/根因，再校准 `check.stamina/turn/rules`。
+
+## 5. 参考分（2026-11-22 抓取，`public_seeds=false` 时的公开部分）
 
 **固定种子榜（fixed；70 题一套，oracle-30s 当分母）**
 
