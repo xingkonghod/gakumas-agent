@@ -127,6 +127,8 @@
 ### A4. 离线回归素材（为"全部离线做完再跑真机"服务）
 - 把本次真机截图（`data/auto/step_*.png`、`fail_*`）挑关键屏归档成 `tests/fixtures/*.png`（或 `data/replays/`，
   `.gitignore` 已有 `data/replays/*`），做**截图回放测试**：OCR→decide→期望动作；
+- 挑帧工具（A3 已随手落地）：`scripts/scan_event_frames.py` 扫截图找事件选项屏；
+  `scripts/probe_frame_decide.py <step>` 把单帧走一遍生产链路（read_fast→decide）看判定/点击；
 - DoD：至少覆盖：日文剧情二选一、课程 buff 场景、结果页、外出事件、考试浮层、回合结束确认框。
 
 ### A5. T3 离线预演（不碰真机）

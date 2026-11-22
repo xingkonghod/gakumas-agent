@@ -29,7 +29,8 @@
          与「游戏默认每回合 1 张牌」两个模型错误；硬打先打正分牌（HANDOVER 二·补十五 / FAILURES #42）
          2026-11-22 A3：F#43 结果页空转——真根因是**日文饮料选择事件屏**（不是结果页）：中文 OCR
          读不出假名选项 + 飘字正则把 P 费标签「-100」当 +N → 点中央空转；修法与真机帧回放 7 条见
-         HANDOVER 二·补十六 / FAILURES #43
+         HANDOVER 二·补十六 / FAILURES #43（提交 106ef2b / cdf7fca；复现脚本 scripts/probe_frame_decide.py
+         + scripts/scan_event_frames.py）
          全量 pytest 941 passed / 1 skipped（942 收集 / 67 文件）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
@@ -174,8 +175,8 @@ cd D:\Games\gakumas-agent
 **第三段（2026-11-22 凌晨，采集+真机首次合体）**
 - 采集链路通了（服务 18443/18444、token 刷新、C 盘副本）；4 次短跑 ep-t3-1..4 全部中途停。
 - 已修：培育开场**日文剧情二选一**（布局识别选项气泡 + 补读中下部 OCR，`584f742`，FAILURES #41）。
-- 待修（→ WORKPLAN A2/A3）：**#42 舞蹈课程连打 buff → 0 分 FAILED**（禁跳硬打必须保证得分）；
-  **#43 结果页 result-tap 循环**。
+- 当时待修（→ WORKPLAN A2/A3，**现均已修**：A2 `b388274` / A3 `106ef2b`）：**#42 舞蹈课程连打 buff
+  → 0 分 FAILED**（禁跳硬打必须保证得分）；**#43 结果页 result-tap 循环**。
 - 群文件情报（论文/2B run/GKMSMAA AGPL）见 HANDOVER 二·补十二；**A1 OCR 换日文模型已完成**
   （2026-11-22，官方 PP-OCRv6 Apache-2.0，见 HANDOVER 二·补十四 / WORKPLAN A1）；
   **A2 F#42 已完成**（2026-11-22，课程 HUD 语义 + 每回合 1 张 + 硬打保分，见 HANDOVER 二·补十五 /
@@ -370,6 +371,10 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 .venv\Scripts\python.exe -m pytest tests\test_lesson_play_f42.py -q
 # F#43 结果页空转回归（真机外出饮料帧 → read_fast → decide 必须点选项行；P 费不当飘字）
 .venv\Scripts\python.exe -m pytest tests\test_produce_ui_f43.py -q
+# 任意真机帧走生产链路（OCR→decide）看判定/点击：离线复现"某一步为什么点这里"
+.venv\Scripts\python.exe scripts\probe_frame_decide.py 21
+# 扫本地截图找事件选项屏（A4 挑离线回放 fixture 用，命中才打印）
+.venv\Scripts\python.exe scripts\scan_event_frames.py data\auto --keywords ドリンク ヨーグルト
 # 上真机前：模拟器整局 A/B（训练+考试都注入真 LessonPolicy；0 blocked/0 error/C+率）
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json
 # 离线配对评测：known_draw / beam / full-info（重洗后段全知）

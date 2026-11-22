@@ -1,4 +1,4 @@
-# 项目交接（2026-11-22 A2 更新）
+# 项目交接（2026-11-22 A3 更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
@@ -614,6 +614,8 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
 - **教训**：**先看截图再信日志的屏幕分类**——日志写"结果页"，实际是日文选择屏；
   「P 费负数」和「+N 飘字」长得一样，正则里一个符号之差就是 10 步空转。日文 OCR（A1）把这类
   「读不到选项」的屏一次性修好一大片，但**不能只靠模型**，事件屏识别要有不依赖 OCR 的兜底。
+- **提交**：`106ef2b`（fix：代码+真机帧回放测试+fixture）、`cdf7fca`（docs：补哈希）、
+  `1a4b7f8`（chore：`scripts/probe_frame_decide.py` + `scripts/scan_event_frames.py` + gitignore）。
 
 ---
 
@@ -753,7 +755,9 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
-（2026-11-22 A3 F#43 结果页空转）
+（2026-11-22 A3 收尾：复现脚本 + 交接同步）
+1a4b7f8 chore(tools): A3 复现脚本（帧回放 / 事件屏扫描）+ gitignore 过滤 pytest 临时产物
+cdf7fca docs(handover): 补 A3 F#43 提交哈希（106ef2b）
 106ef2b fix(ui): F#43 结果页空转——真根因日文饮料选择屏 + P 费标签误判飘字（真机帧回放 7 条）
 （2026-11-22 A2 F#42 课程硬打必须得分）
 b388274 fix(lesson): F#42 课程硬打必须得分（HUD 语义 + 每回合 1 张 + 硬打保分）
