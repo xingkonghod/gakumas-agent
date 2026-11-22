@@ -183,8 +183,18 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 结束回合」后又补 SKIP、白丢下一回合的评测 bug；修后 60 局配对 beam unknown 164.0 / known 165.5
 vs within 143.1（+20.9/+22.4，CI 全正；决策门 114.6%/115.7% PASS）；新增 `scripts/eval_t4_b1.py`
 与 `tests/test_beam_frontier.py` 6 条（含受控 frontier 叶子，实测中性）。
-全量 pytest **964 passed / 1 skipped**（965 收集 / 70 文件）。细节见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」。
-阶段 A 全部完成、B1 完成；下一步按 [WORKPLAN](WORKPLAN.md) 进**阶段 B：B2（全知数据训练叶子/小模型，
-必须用修正后的 harness）** → B3 → 阶段 C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，
-只能交不看 seed 的算法）。
+全量 pytest **975 passed / 1 skipped**（976 收集 / 71 文件）。细节见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」。
+**同日 B2 已完成**（全知数据训练 MLP 叶子）：`scripts/build_b2_dataset.py` 用 beam **全知**自对弈在
+**叶子状态**（`end_turn_state` 形态）采 26.5k 样本（标签 = on-policy 实际后续得分），
+`src/gkagent/sim/leaf_mlp.py` 104 维结构化特征 + MLP 104→96→48（val r²=0.943），
+`scripts/eval_b2.py` 用 **B1 修正 harness** 配对评测：选择段 seed 2000–2079 beam 解析式
+166.8 → **learned 173.7（+6.8）/ ensemble 0.25 174.4（+7.5）**；**确认段 seed 3000–3119
+（120 局，未参与选择）beam 157.8 → 165.5（+7.7，CI [+4.2,+11.2]）/ ensemble 0.5 166.9
+（+9.0，CI [+5.8,+12.2]）**，CLEAR 95→98.3%、PERFECT 33.3→50%；known 条件同向（+7.2~+7.8）。
+within 用 learned 叶子显著变差 −3.3（负结果：教师策略收益偏乐观，**只对 engine=beam 有益**）；
+生产 `LessonPolicy` 已加可选 `leaf_model`/`leaf_model_weight`（默认 None = 行为不变、缓存），
+T2 真机 A/B 再决定是否打开。细节见 [EXPECTIMAX](EXPECTIMAX.md)「B2 学习叶子」/ HANDOVER 二·补二十。
+阶段 A 全部完成、B1/B2 完成；下一步按 [WORKPLAN](WORKPLAN.md) 进**阶段 B：B3（T5 机制建模：
+模拟器 plays_per_turn 对齐真机 1 张 + RULES_REFERENCE 核验表）** → 阶段 C/D → 真机 T3→T1→T2 → gkbench
+比算法（ranked 禁 seed，只能交不看 seed 的算法）。
 细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

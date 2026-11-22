@@ -1,4 +1,4 @@
-# 项目交接（2026-11-22 A5 更新）
+# 项目交接（2026-11-22 B2 更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
@@ -744,7 +744,8 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
   `branching=10` 151.2/153.8（+2.7/+0.1，无显著收益）；两者同开 161.6/164.8。
   旧「branching=10 贡献 +19.9」是 bug 副产物。
 - **生产默认不改**（expectimax / tiebreak=0）；T2 真机 A/B 时把 `beam + tiebreak` 作为候选。
-  旧 rollout 叶子的 beam 侧负结果同样作废（within 侧 ≈ 中性仍有效），B2 需用修正 harness 重测。
+  旧 rollout 叶子的 beam 侧负结果同样作废（within 侧 ≈ 中性仍有效），B2 需用修正 harness 重测
+（**B2 已完成**：学习叶子在 beam 上显著 +7.7，见二·补二十）。
 
 **测试 / 基线**
 - 新增 `tests/test_beam_frontier.py` 6 条（前沿重排、终局不 rollout、默认行为不变、只问最深层、
@@ -752,6 +753,67 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
 - 全量 pytest **964 passed / 1 skipped**（965 收集 / 70 个测试文件）；
   ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、④ wiring 36/36 + 3/3 + known_draw 29/29
   + beam 28 全部不变（B1 只动 beam 评测/搜索可选参数 + 测试/文档）。
+- **提交**：见 [七、最近提交记录](#七最近提交记录)（feat + docs 两个提交）。
+
+---
+
+### 二·补二十、11-22（WORKPLAN B2 落地：全知数据训练 MLP 叶子 ✅）
+
+**目标（B2）**：用全知（exact/known_draw）数据训练叶子/小模型，teacher = 全知搜索，
+student = V_leaf，用 B1 **修正后的 harness** 做配对评测；DoD：显著优于解析式 leaf（或可复现负结果）。
+
+**数据（这次和三次历史失败的关键区别）**
+- `scripts/build_b2_dataset.py` + `src/gkagent/sim/leaf_data.py::RecordingLessonSim`：
+  beam **全知**自对弈（teacher 看得到牌序），在每次 `_draw_hand` 入口记录**叶子状态**——
+  与 `expectimax._Search.leaf` 的输入 `end_turn_state(state)` 同形态（手牌已进弃牌堆、好印象已结算
+  并 -1、好调/持续 buff 已倒计时、回合 -1）。旧 `fit_v_leaf` 在**回合开始手牌还在手上**采样，
+  `hand_*` 训练/推理不同分布，是失败原因之一。
+- 标签 = 该局最终分 − 叶子状态分数（**on-policy 实际后续得分**，不是贪心轨迹）；自然打满回合补
+  `turns_left=0` 终局样本（y=0）。
+- 三批 teacher：width4/100ms 1500 + 3000 局、width8/300ms 800 局 → **26,500 叶子样本**
+  （`out/b2_leaf_beam_*.npz`，gitignore、可重建）。
+
+**模型**
+- `src/gkagent/sim/leaf_mlp.py`：104 维结构化特征（状态/分数缺口/体力、buff 计时、指針、
+  饮料/P 道具、**牌库 vs 弃牌堆拆分**、牌库效果聚合、交互项）+ MLP 104→96→48；
+  μ 用 MSE、σ 用残差头高斯 NLL；实现 `LeafValue` 协议（`predict`/`utility`），搜索代码零改动。
+- `scripts/train_b2_leaf.py`：按 seed 分组 9:1 切分；held-out **r²=0.943 / MAE=8.8 / corr=0.971**
+  （旧 35 维线性 r²≈0.91、MAE≈9.5；ridge 0.933）。
+- 模型入库：`data/knowledge/b2_leaf_mlp_small.json`（335KB，可 `train_b2_leaf.py` 重建）。
+
+**评测（`scripts/eval_b2.py`，复用 B1 修正 harness；同牌组同 seed 配对 + 95% CI）**
+- 选择段 seed 2000–2079（80 局，unknown）：beam 解析式 **166.8** → learned **173.7
+  （+6.8，CI [+3.2,+10.4]）** / ensemble 0.25 **174.4（+7.5，CI [+3.7,+11.4]）**。
+- **确认段 seed 3000–3119（120 局，未参与选择）**：
+  - unknown：beam 解析式 157.8 → learned **165.5（+7.7，CI [+4.2,+11.2]）** /
+    ensemble 0.5 **166.9（+9.0，CI [+5.8,+12.2]）**；
+  - known：159.9 → learned **167.1（+7.2，CI [+3.7,+10.7]）** / ensemble 0.25 **167.7（+7.8）**；
+  - CLEAR 95.0%→98.3%、PERFECT 33.3%→50.0%。
+- B1 基线逐位复现（seed 0–59：within 143.1 / beam 164.0/165.5；`out/b2_sanity_b1.json`）。
+- **DoD 达成**（beam 上显著优于解析式叶子）。
+
+**负结果（如实记录，详见 EXPECTIMAX）**
+- **within 用 learned 叶子显著变差 −3.3**（CI [−5.6,−1.1]）：V 的标签来自更强 beam 策略，
+  对 within 执行偏乐观；within 只拿叶子做动作排序，策略改进收益拿不到 → **只对 engine=beam 有益**。
+- within 自对弈叶子（正确策略标签）≈ 中性（+0.9 n.s.）——解析式叶子不是 within 瓶颈。
+- 档位概率头（logistic P(CLEAR)/P(PERFECT)）在 beam 上灾难性变差（−42~−46）：teacher 叶子
+  98.7% CLEAR → P(CLEAR) 饱和，排序失去平滑 μ 信号。
+- 第二轮专家迭代（teacher=beam+learned）未超过第一轮（+5.7 vs +6.8，选择段）。
+
+**生产接线（未默认打开）**
+- `LessonPolicy.DEFAULT_PARAMS` 新增可选 `leaf_model`（默认 `None` = 行为不变）+
+  `leaf_model_weight`（默认 0.5）；`_leaf_value()` 显式配置时构 ensemble 并**缓存**（旧实现每决策
+  重读 JSON），坏路径 warning 退回解析式。
+- **不要给 expectimax（within）打开**；T2 真机 A/B 候选 = `engine=beam` +
+  `leaf_model=data/knowledge/b2_leaf_mlp_small.json`（建议 weight 0.25）。真机收益取决于 B3
+  机制对齐（`LessonSim plays_per_turn=3` vs 真机 1、P 道具/饮料/减益等），离线数字不是真机保证。
+
+**测试 / 基线 / 提交**
+- `tests/test_b2_leaf.py` 11 条（特征契约/叶子快照与标签/模型存取/搜索接线/生产 loader 缓存与兜底/
+  合成训练收敛）；`ruff check` 通过。
+- 全量 pytest **975 passed / 1 skipped**（976 收集 / 71 文件）；
+  ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、④ wiring 36/36 + 3/3 + known_draw 29/29
+  + beam 28 全部不变（B2 只增模块/脚本 + `eval_known_draw.play` 两个可选参数 + 生产可选参数/缓存）。
 - **提交**：见 [七、最近提交记录](#七最近提交记录)（feat + docs 两个提交）。
 
 ---
@@ -795,8 +857,11 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 （二·补十五）→ A3 F#43 结果页空转 ✅（二·补十六）→ A4 离线回放素材 ✅（二·补十七）→
 **A5 T3 离线预演 ✅**（二·补十八）；阶段 A 全部完成。**B1 T4 修正 ✅**（二·补十九：评测执行器
 bug 修正后 beam unknown 164.0 / known 165.5 vs within 143.1，决策门 PASS；frontier 叶子中性）。
-下一项 **B2（全知数据训练叶子/小模型，必须用修正后的 harness）**；
-B/C/D 全部离线收尾后才上真机（T3→T1→T2），最后 gkbench。总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
+**B2 全知数据训练 MLP 叶子 ✅**（二·补二十：B1 修正 harness 上确认段 120 局 beam 157.8 →
+165.5（+7.7，CI [+4.2,+11.2]）/ ensemble 166.9（+9.0）；within 用 learned 变差为已记录负结果，
+只对 engine=beam 有益）。下一项 **B3（T5 机制建模：模拟器 plays_per_turn 对齐真机 1 张 +
+RULES_REFERENCE 核验表）**；B/C/D 全部离线收尾后才上真机（T3→T1→T2），最后 gkbench。
+总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
@@ -895,6 +960,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 B2 全知数据训练 MLP 叶子）
+ccabd0a feat(b2): 全知数据训练 MLP 叶子——叶子状态样本 + 104 维结构化特征（B1 修正 harness 配对确认段 beam +7.7）
 （2026-11-22 B1 T4 修正）
 4512836 docs(handover): B1 完成交接——状态/基线数字(964/1)/决策门 PASS/下一步 B2
 fda7b90 feat(b1): T4 修正——评测执行器白丢回合 bug + 受控 frontier 叶子（60 局 beam 已超 within，决策门 PASS）

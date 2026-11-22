@@ -39,6 +39,7 @@
 | 2026-11-22 | T4 叶子实验（rollout 叶子）+ 私有存档/私有仓库 + 群公开的考试 RNG 入口清单归档；后由 **B1 查出评测执行器丢回合 bug**，beam 旧负结果作废、beam 实际已强于 within | `366131a`、`4f948da`、B1（见 HANDOVER 二·补十九） |
 | 2026-11-22 | **A1 OCR 换官方 PP-OCRv6 多语言模型（Apache-2.0）**：日文剧情/选项整句可读，中文 UI 不受影响 | `aae2647`、`884272f` |
 | 2026-11-22 | **A2 课程硬打必须得分（F#42）**：修掉课程 HUD 语义（属性值/还差分）与「每回合默认 1 张牌」两个模型错误 | `b388274`、`31c0491` |
+| 2026-11-22 | **B1 T4 修正 + B2 全知数据 MLP 叶子**：修掉评测执行器白丢回合 bug 后 beam 已强于 within；B2 学习叶子在 beam 上再 +7.7（确认段 120 局，CI 全正），within 为负（只对 engine=beam 有益） | 见 HANDOVER 二·补十九/二·补二十、EXPECTIMAX「B2 学习叶子」 |
 
 完整 chronology、数据血缘、引用清单见 **[docs/PROVENANCE.md](docs/PROVENANCE.md)**。
 当前 330+ 个提交（持续增长）。
@@ -150,6 +151,20 @@ sequenceDiagram
 > B1 决策门（beam ≥ within 90%）→ PASS（114.6%/115.7%）。见
 > [docs/HANDOVER.md](docs/HANDOVER.md) 二·补十九。
 
+**B2 学习叶子（全知 beam 自对弈 26.5k 叶子样本 → 104 维 MLP，val r²=0.943）**——
+B1 修正 harness 配对（small 真实牌组，同 seed）：
+
+| 策略 | 确认段 seed 3000–3119（120 局） | vs 解析式 beam | 95% CI |
+|---|---:|---:|---|
+| beam（解析式叶子） | 157.8（unknown）/ 159.9（known） | — | — |
+| **beam + learned leaf** | **165.5 / 167.1** | **+7.7 / +7.2** | [+4.2,+11.2] / [+3.7,+10.7] |
+| beam + ensemble(analytic, learned, 0.5) | **166.9 / 167.4** | **+9.0 / +7.5** | [+5.8,+12.2] / [+4.1,+10.9] |
+
+> CLEAR 95.0%→98.3%、PERFECT 33.3%→50.0%；选择段 seed 2000–2079 上同样显著（166.8→173.7）。
+> **负结果**：within 引擎用 learned 叶子显著变差（−3.3）——教师策略收益对 within 偏乐观，
+> 学习叶子只对 `engine=beam` 有益。生产 `leaf_model` 默认关闭，T2 真机 A/B 再定。
+> 见 [docs/EXPECTIMAX.md](docs/EXPECTIMAX.md)「B2 学习叶子」/ HANDOVER 二·补二十。
+
 ![离线引擎对比](docs/images/eval_engines.png)
 
 **真机跑局**
@@ -167,7 +182,7 @@ sequenceDiagram
 > oracle 基准均值 1,452,088（n=960），UIHorizon 631,129（0.5113×）、UINet 578,722（0.4551×）、官方 AI 232,710（0.2131×）。
 > 榜单规则禁止 seed/牌序，我们的全知路线**不适用于榜单**，只用于真机实战/离线研究。
 
-**测试**：`pytest tests/` → **935 条收集 / 934 passed / 1 skipped**；`verify_shuffle` 4/4 场；
+**测试**：`pytest tests/` → **976 条收集 / 975 passed / 1 skipped**；`verify_shuffle` 4/4 场；
 `build_exam_setup` 86/86 + 重洗 24/24；`verify_exam_wiring` 36/36 + 3/3 + 29/29。
 
 ---
@@ -180,7 +195,7 @@ sequenceDiagram
 | `src/gkagent/vision/` | OCR、模板匹配、课程/考试读屏、手牌识别、卡面识别 |
 | `src/gkagent/tasks/` | 真机分屏决策（`produce_ui`：课程/考试/领奖/事件/剧情…） |
 | `src/gkagent/policy/` | `lesson.py`：规则 / expectimax / beam / UINet 引擎路由 + 决策观测 |
-| `src/gkagent/sim/` | `lesson`/`produce` 模拟器、`expectimax`、`v_leaf`、`exam_shuffle` 洗牌模型、`exam_oracle`/`exam_plan` 全知接线 |
+| `src/gkagent/sim/` | `lesson`/`produce` 模拟器、`expectimax`、`v_leaf`、`leaf_mlp`/`leaf_data`（B2 学习叶子与叶子状态采集）、`exam_shuffle` 洗牌模型、`exam_oracle`/`exam_plan` 全知接线 |
 | `src/gkagent/data/` | 主数据、卡表、费用/属性、场景配置 |
 | `src/gkagent/knowledge/` | wiki/官方排期双源、公式口径 |
 | `scripts/` | `auto_produce` 真机跑局、`build_exam_setup` 牌序数据、`verify_*` 验证、`eval_*` 评测、`archive_private` 私有存档 |
@@ -266,16 +281,20 @@ sequenceDiagram
 A3（F#43 结果页空转）/ A4（离线回放素材：真机关键帧归档 + 帧回放测试）/
 A5（T3 离线预演：`--current` 候选 + `ExamPlanSelector` 逐回合锁定，最新场 T2 锁定 config_turns=12）/
 B1（T4 修正：评测执行器丢回合 bug 修正后，60 局配对 beam unknown 164.0 / known 165.5 vs
-within 143.1，决策门 PASS；受控 frontier 叶子中性）。
+within 143.1，决策门 PASS；受控 frontier 叶子中性）/ **B2（全知数据训练 MLP 叶子：确认段 120 局
+beam 157.8→165.5（+7.7，CI 全正）/ ensemble 166.9（+9.0）；within 用 learned 变差为负结果，
+只对 engine=beam 有益；生产默认未打开）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1 完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅；下一项 **B2（全知数据训练叶子/小模型）**；
+0. **离线阶段 A 收口完成、B1/B2 完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅；
+   下一项 **B3（T5 机制建模：模拟器 plays_per_turn 对齐真机 + RULES_REFERENCE 核验表）**；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
    （A5：最新场 T2 锁定 config_turns=12、四场 sweep 全部选对真值），差真机考试里 `locked_turn=2~3 / verified=N` 的验收；
 3. **T2 三引擎真机 A/B**：expectimax / beam+全知 / rules 对照；
-4. **T4 学习型叶子（B2）**：解析式 beam 已由 B1 证明强于 within（评测 bug 修正后），学习型 V_leaf / rollout
-   监督仍需用修正后的 harness 重测；三次 learned 线性 V 失败是独立记录；
+4. **T4 学习型叶子（B2，已完成离线）**：B1 修正 harness 上，beam 全知自对弈数据训练的 MLP 叶子
+   在 beam 上显著 +7.7（确认段），within 上为负（只对 engine=beam 有益）；生产 `leaf_model` 默认 None，
+   T2 真机 A/B 再决定是否打开；下一步是把机制建模（T5/B3）对齐后再谈真机收益；
 5. **T5 机制建模**：P 道具/回忆/附魔/选牌/减益；考试内恐慌/随机生成/随机移动等 RNG 入口（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
    模拟器 `plays_per_turn=3` 待对齐真机「每回合 1 张 + 额外出牌」（A2 遗留）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。

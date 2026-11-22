@@ -41,17 +41,24 @@
           SKIP、白丢下一回合的 bug；修正后 60 局配对 beam unknown 164.0 / known 165.5 vs within 143.1
           （+20.9/+22.4，CI 全正；决策门 114.6%/115.7% PASS）；受控 frontier 叶子中性；
           见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」
-         全量 pytest 964 passed / 1 skipped（965 收集 / 70 文件）
+         2026-11-22 B2：全知数据训练 MLP 叶子——beam 全知自对弈 26.5k 叶子样本（叶子状态分布 +
+         on-policy 后续得分标签）→ 104 维 MLP（val r²=0.943）；B1 修正 harness 配对：选择段
+         seed 2000–2079 beam 166.8→173.7（+6.8）/ensemble 174.4（+7.5）；确认段 seed 3000–3119
+         （120 局）beam 157.8→165.5（+7.7 CI[+4.2,+11.2]）/ensemble 0.5 166.9（+9.0 CI[+5.8,+12.2]），
+         known 同向；within 用 learned 变差 −3.3（负结果，只对 engine=beam 有益）；
+         见 HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」
+         全量 pytest 975 passed / 1 skipped（976 收集 / 71 文件）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**、离线预演已通（A5），但真机跑局时采集没开 → 全知 0 锁定，差实战验收
-        ④ 策略强度：B1 已推翻「beam 不如 within」的旧结论（是评测 bug）；修正后 beam 已显著强于 within
-           （B1 决策门 PASS）。剩余：rollout/全知数据训练叶子（B2）、机制建模（B3）；生产默认仍 expectimax
+        ④ 策略强度：B1 已推翻「beam 不如 within」的旧结论；B2 已把全知数据蒸馏进 MLP 叶子并在
+           beam 上显著 +7.7（仅离线模拟器；生产未打开 leaf_model，T2 真机 A/B 再决定）。
+           剩余：机制建模（B3，模拟器 plays_per_turn 对齐真机）
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
         ⑥ A4 缺一张真机帧：「回合结束确认框」旧截图被 step_NNN 轮转覆盖（扫 1352 张 0 命中）；
            分支已用真机课程帧文字 + F#36 文案回放，下次真机跑局出现时补拍 fixture
-当前最高优先：**阶段 B 离线**（B2 全知数据训练叶子 → B3 机制）→ 阶段 C/D →
-真机 T3→T1→T2 → gkbench（总计划见 WORKPLAN.md；阶段 A 全部完成、B1 已完成）
+当前最高优先：**阶段 B 收尾（B3 机制建模）** → 阶段 C/D → 真机 T3→T1→T2 → gkbench
+（总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2 已完成）
 ```
 
 > **新会话先读 [WORKPLAN.md](WORKPLAN.md)**：总顺序 = **离线全部做完 → 真机（T3→T1→T2）→ 去 gkbench 比算法**。
@@ -98,6 +105,7 @@
 | A4 离线回放素材 | [tests/fixtures/README.md](../tests/fixtures/README.md) 8 张真机帧溯源 + [scan_frames.py](../scripts/scan_frames.py) 批量挑帧 | `tests/test_frames_replay_a4.py` 9 条（六类关键屏真帧回放；回合结束确认框用真机课程帧文字 + F#36 文案，真机帧已被轮转覆盖）；全量 pytest **950/1（951 收集 / 68 文件）**；F#44 `_checkbox_bands` 修复；见 HANDOVER 二·补十七 |
 | A5 T3 离线预演 | [verify_exam_plan_offline.py](../scripts/verify_exam_plan_offline.py)：`--current` 候选（--refresh 现场重建）+ 四场 sweep，truth 驱动 `ExamPlanSelector` | 最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12）；四场 sweep T1–T2 锁定、选中 = 9/11/9/12 全对；候选→1、`locked_turn≤3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；见 HANDOVER 二·补十八 |
 | B1 T4 修正（评测 bug + 受控 frontier 叶子） | [eval_t4_b1.py](../scripts/eval_t4_b1.py)：`_execute_plan` 白丢回合修复 + `search_beam(frontier_value=…)` | 60 局配对：beam unknown **164.0** / known **165.5** vs within **143.1**（+20.9 / +22.4，CI 全正），决策门 **114.6%/115.7% PASS**；frontier 中性；`tests/test_beam_frontier.py` 6 条；全量 pytest **964/1（965 收集 / 70 文件）**；见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」 |
+| B2 全知数据训练 MLP 叶子 | [build_b2_dataset.py](../scripts/build_b2_dataset.py) + [leaf_data.py](../src/gkagent/sim/leaf_data.py)（叶子状态快照）+ [leaf_mlp.py](../src/gkagent/sim/leaf_mlp.py)（104 维 MLP 叶子）+ [train_b2_leaf.py](../scripts/train_b2_leaf.py) + [eval_b2.py](../scripts/eval_b2.py) | 26.5k 全知 beam 自对弈样本，val r²=0.943 / MAE 8.8；B1 修正 harness 配对：选择段 seed 2000–2079 beam **166.8→173.7（+6.8）** / ensemble 174.4（+7.5）；**确认段 seed 3000–3119（120 局）beam 157.8→165.5（+7.7 CI[+4.2,+11.2]）/ ensemble 0.5 166.9（+9.0 CI[+5.8,+12.2]）**，known 同向；within 用 learned 变差 −3.3（负结果、只对 engine=beam 有益）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件）**；见 HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」 |
 
 **改动以上任何部分的规矩**：先跑 §2 四条基线命令；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
@@ -110,7 +118,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 964 passed, 1 skipped（965 条收集 / 70 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条）
+# ② 全量测试：应为 975 passed, 1 skipped（976 条收集 / 71 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 11 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -140,7 +148,7 @@ cd D:\Games\gakumas-agent
 | G1 | **自动化完成度**：bot 没跑完整局 | 2026-11-21 晚已修 10 类真机卡点（点击双重缩放/难度坐标/自动编成确认框/外出事件/领卡坐标/考试浮层/网络重试弹窗/加载快速路径逃逸/无决策空转/暂停误判同屏卡死，见 [FAILURES #27-32](FAILURES.md#L6)），**还没整局真机验收** | 自动拿分的**前提**；没有它一切策略都只是离线数字 | T1 |
 | G2 | **没有真机 A/B** | 三引擎（rules / expectimax / beam+全知）从没同卡组同账号跑过 | 不知道 search 值不值；无法向用户证明 | T2 |
 | G3 | **采集↔决策未打通**（原 item④） | bot 读离线 `out/exam_setup.json`；换一局/换一场考试就对不上（`ExamDrawPlan` 会安全停用） | 全知搜索（known_draw/beam）**实战用不上**，只在离线核对里有效 | T3 |
-| G4 | **策略强度**：已由 B1 修正（不再是 beam<within） | [EXPECTIMAX.md](EXPECTIMAX.md)「T4 修正」：旧 beam 111 是评测执行器 bug；修正后 60 局 beam unknown 164.0 / known 165.5 vs within 143.1（CI 全正）。剩余：learned leaf 三次失败（[EXPECTIMAX L273-377](EXPECTIMAX.md#L273)）、frontier 叶子中性、机制缺口 | 考试分（评价点主要来源之一） | B2 / T2 |
+| G4 | **策略强度**：B1 修正 + B2 学习叶子（beam） | B1：旧 beam<within 是评测执行器 bug，修正后 beam unknown 164.0 / known 165.5 vs within 143.1（CI 全正）。B2：全知自对弈 26.5k 样本训练 104 维 MLP 叶子，确认段 120 局 beam 157.8→165.5（+7.7）/ ensemble 166.9（+9.0）；within 用 learned 变差（负结果）。剩余：机制建模（B3）→ 真机 A/B（T2） | 考试分（评价点主要来源之一） | B3 / T2 |
 | G5 | **机制建模缺口** | [OFFICIAL_AI_NOTES §3/§5](OFFICIAL_AI_NOTES.md#L330)：P 道具/回忆/附魔、选牌评估器、饮料、考试减益、考试内生成卡；回合内重洗（11-20 期末 T9）、同局多次重洗 RNG 快照未建模 | 模拟器与实战偏差 → 搜索决策偏 | T5 / T6 |
 | G6 | **工程可靠性**：无互验/复盘 | 对照 hiro 三条原则（[HIRO_VIDEO_NOTES L32](HIRO_VIDEO_NOTES.md#L32)）：动作前预算下一帧、纯函数状态、自动复盘页——我们都没有 | 排障慢、回归靠人肉 | T7 |
 | G7 | **情报跟踪** | hiro Windows 版进展、QQ 群 seed 口径都在变（[QQ_GROUP_NOTES](QQ_GROUP_NOTES.md#L59)） | 方向判断；低成本 | T8 |
@@ -202,8 +210,11 @@ cd D:\Games\gakumas-agent
   （2026-11-22，`--current` 3 候选第 2 回合锁定 `config_turns=12`、四场 sweep T1–T2 锁定且选对真值，
   见 HANDOVER 二·补十八 / WORKPLAN A5）。**B1 T4 修正已完成**（2026-11-22：评测执行器丢回合
   bug 修正后 beam unknown 164.0 / known 165.5 vs within 143.1，决策门 PASS；frontier 叶子中性；
-  见 HANDOVER 二·补十九 / WORKPLAN B1）。按 WORKPLAN 顺序进入 **B2（全知数据训练叶子，必须用
-  修正后的 harness）**，再上真机重验 F#42/#43 与 T3。
+  见 HANDOVER 二·补十九 / WORKPLAN B1）。**B2 全知数据训练 MLP 叶子也已完成**（2026-11-22：
+  B1 修正 harness 确认段 120 局 beam 157.8→165.5（+7.7 CI[+4.2,+11.2]）/ ensemble 0.5 166.9
+  （+9.0）；within 用 learned 变差为负结果，只对 engine=beam 有益；生产 `leaf_model` 默认 None
+  未打开，T2 A/B 再定；见 HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」）。
+  按 WORKPLAN 顺序进入 **B3（T5 机制建模）**，再上真机重验 F#42/#43 与 T3。
 
 **剩余（跑一局验收）**
 1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
@@ -291,7 +302,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 **验收（DoD）**：三局成绩表（考试分 + 评价 + 时长 + `fallback=` 次数）+ 明确结论"哪个引擎值得默认"。
 **预算**：3 局×20 分钟真机 + 30–50k token。
 
-### T4（P1）策略强度：V_leaf + beam 调优 ✅（B1 完成：评测 bug 修正后 beam 已显著强于 within；learned leaf 留 B2）
+### T4（P1）策略强度：V_leaf + beam 调优 ✅（B1 修评测 bug；B2 学习叶子：beam 再 +7.7）
 **目标**：让"全知 + beam"的离线优势变成分数。~~当前证据：构造抽牌牌组 beam known−unknown **+44.6**，但真实牌组只有 **+3.0**，因为 leaf 估不准~~（旧口径；B1 已推翻"beam 弱于 within"的前提）。
 
 **B1 完成（2026-11-22，见 [EXPECTIMAX](EXPECTIMAX.md)「T4 修正」/ HANDOVER 二·补十九）**
@@ -308,19 +319,26 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
   rollout 叶子「analytic 111.3 / rollout 103.0」都来自同一条 bug 执行器。within 列、
   tiebreak 方向、learned leaf 三次失败（不走该执行器）仍有效。
 
-**下一步（B2，P1/P2）**
-1. **rollout 叶子用修正 harness 重测**：旧负结果作废，先判定它是否值得当监督信号；
-2. **rollout/全知数据 → 学 V_leaf**：用（状态, 最终分）样本重训 `v_leaf.json`（新增监督信号）；
-3. 继续扫 `eval_expectimax.py --sweep` 的 beam 宽度；draw 场景跑 `--full-info`。
-4. 生产默认在 T2/T3 前保持 expectimax；真机考试分不低于 rules 由 T2 验证。
+**B2 完成（2026-11-22，见 [EXPECTIMAX](EXPECTIMAX.md)「B2 学习叶子」/ HANDOVER 二·补二十）**
+- 数据：beam **全知**自对弈，叶子状态分布（`end_turn_state` 形态）+ on-policy 后续得分标签，
+  26.5k 样本；模型 104 维结构化特征 MLP（val r²=0.943）。
+- 评测（B1 修正 harness）：选择段 seed 2000–2079 beam 解析式 **166.8 → learned 173.7（+6.8）/
+  ensemble 0.25 174.4（+7.5）**；**确认段 seed 3000–3119（120 局）beam 157.8 → 165.5
+  （+7.7，CI [+4.2,+11.2]）/ ensemble 0.5 166.9（+9.0，CI [+5.8,+12.2]）**；CLEAR 95→98.3%、
+  PERFECT 33.3→50.0%；known 同向（+7.2~+7.8）。
+- 负结果：within 用 learned 叶子 −3.3（只对 engine=beam 有益）；within 自对弈叶子中性；
+  档位概率头在 beam 上灾难性变差；第二轮专家迭代未超过第一轮。
+- 生产接线：`LessonPolicy` 新增可选 `leaf_model`/`leaf_model_weight`（**默认 None 不开**，
+  加缓存）；T2 真机 A/B 候选（仅 engine=beam，建议 weight 0.25）。
 
-**步骤**
-1. 先读 [EXPECTIMAX.md L273-377](EXPECTIMAX.md#L273) 里三次 learned leaf 失败的教训（搜索/模拟器不同源、权重塌缩）。
-2. leaf 加特征（官方 AI 的 H4/H8/H9）：`extra_plays`、层数 × 剩余回合、指针切换次数、累计全力值；`AnalyticLeafValue` 或重训 `v_leaf.json`。
-3. 用 `scripts/eval_expectimax.py --sweep` 扫 beam 宽度；用 `scripts/eval_t4_b1.py --games 60` 做修正 harness 下的配对评测。
+**下一步（T2 真机 A/B 的前置）**
+1. B3 机制建模（模拟器 `plays_per_turn=3` vs 真机 1、P 道具/饮料/减益）——不先对齐，真机叶子收益不可保证；
+2. T2 真机 A/B：同卡组 rules / expectimax / beam+全知(+learned leaf) 各一局；
+3. 生产默认在 T2/T3 前保持 expectimax（leaf_model 不开）。
 
-**改哪儿**：`src/gkagent/sim/expectimax.py`（leaf）、`src/gkagent/sim/v_leaf.py`、`data/knowledge/v_leaf.json`、`scripts/eval_*.py`
-**验收（DoD）**：B1 已交（60 局配对 + EXPECTIMAX 更新 + 单测）；B2 需给出学习叶子的配对增益或可复现负结果。
+**改哪儿**：`src/gkagent/sim/expectimax.py`（leaf）、`src/gkagent/sim/v_leaf.py`、`src/gkagent/sim/leaf_mlp.py`、`data/knowledge/b2_leaf_mlp_small.json`、`scripts/eval_*.py`
+**验收（DoD）**：B1 已交（60 局配对 + EXPECTIMAX 更新 + 单测）；**B2 已交**（学习叶子配对增益
+`beam 157.8→165.5（+7.7，CI 全正）`，负结果如实记录；`data/knowledge/b2_leaf_mlp_small.json` + 3 个脚本 + 11 条单测）。
 **预算**：80–150k token（这是最难的一块，别一次会话硬啃）。
 
 ### T5（P1/P2）机制建模补齐（按官方 AI 对比表挑）⬜
@@ -410,6 +428,12 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 .venv\Scripts\python.exe scripts\eval_known_draw.py --games 40 --scenario small --policy beam --full-info
 # B1 T4 修正后的配对评测（within / beam / beam+frontier；退出码 = 决策门）
 .venv\Scripts\python.exe scripts\eval_t4_b1.py --games 60 --json out\t4_b1_tb.json
+# B2 学习叶子：采数据（beam 全知自对弈）→ 训练 MLP → 配对评测（退出码 = B2 判定）
+.venv\Scripts\python.exe scripts\build_b2_dataset.py --games 3000 --policy beam --known --out out\b2_leaf_beam_known2.npz --seed 600000
+.venv\Scripts\python.exe scripts\train_b2_leaf.py --data out\b2_leaf_beam_known.npz out\b2_leaf_beam_known2.npz out\b2_leaf_beam_strong.npz --out data\knowledge\b2_leaf_mlp_small.json --hidden 96 48 --epochs 700
+.venv\Scripts\python.exe scripts\eval_b2.py --leaf-model data\knowledge\b2_leaf_mlp_small.json --games 120 --seed 3000 --info unknown known --ensembles 0.25 0.5 --json out\b2_eval.json
+# B2 单测（叶子特征/快照标签/模型存取/生产接线）
+.venv\Scripts\python.exe -m pytest tests\test_b2_leaf.py -q
 # 真机跑局（引擎：--engine > policy.json produce.engine > 默认 expectimax；rules 只用于 A/B 对照）
 # --max-minutes 默认 30：卡住会写 episode-timeout 主动停局，不再无限空转
 .venv\Scripts\python.exe scripts\agent_cmd.py shell --command "D:\Games\gakumas-agent\.venv\Scripts\python.exe D:\Games\gakumas-agent\scripts\auto_produce.py 300 ep-xxx --skip-home --exam-setup out\exam_setup.json --engine expectimax --max-minutes 30" --timeout 2400
@@ -471,8 +495,13 @@ A5（T3 离线预演）也已完成（--current 3 候选第 2 回合锁定 confi
 B1（T4 修正）已于 2026-11-22 完成：评测执行器 `_execute_plan` 白丢回合 bug；修正后 60 局配对
 beam unknown 164.0 / known 165.5 vs within 143.1（+20.9/+22.4，CI 全正；决策门 PASS），
 受控 frontier 叶子中性（见 WORKPLAN B1 / HANDOVER 二·补十九）。
-基线绿后从 **B2**（全知数据训练叶子/小模型，必须用修正后的 harness）开始 → B3 → 阶段 C/D，
-全部离线做完再上真机（T3→T1→T2），最后 gkbench。
+B2（全知数据训练 MLP 叶子）已于 2026-11-22 完成：beam 全知自对弈 26.5k 叶子样本 → 104 维
+MLP（val r²=0.943）；B1 修正 harness 确认段 120 局 beam 157.8 → 165.5（+7.7 CI[+4.2,+11.2]）/
+ensemble 0.5 166.9（+9.0），CLEAR 95→98.3%、PERFECT 33.3→50%；within 用 learned 变差为已记录
+负结果（只对 engine=beam 有益；生产 leaf_model 默认 None 未打开，T2 真机 A/B 再定）；
+见 WORKPLAN B2 / HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」。
+基线绿后从 **B3**（T5 机制建模：模拟器 plays_per_turn 对齐真机 1 张 + RULES_REFERENCE 核验表）；
+阶段 C/D 离线做完再上真机（T3→T1→T2），最后 gkbench。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。
 ```
@@ -487,6 +516,6 @@ beam unknown 164.0 / known 165.5 vs within 143.1（+20.9/+22.4，CI 全正；决
 | **QQ 群「初星学园情报处理部」**（[QQ_GROUP_NOTES](QQ_GROUP_NOTES.md)） | seed 反推（2^31 枚举+观测剪枝）信息论口径清晰（3 回合收敛 ~1000 候选）；nodejs 实现 | 自己定规矩**实战不用 seed**；uihorizon/uinet "到头了"（10× 训练量反而倒退）；无公开成绩 |
 | **官方 AI**（GKMS 私有，[OFFICIAL_AI_NOTES](OFFICIAL_AI_NOTES.md)） | 真实牌序 + 50+ 特征评估 + 计划重放 + 限深/命令预算；考试机制覆盖最全 | 私有、不可移植、需 GKMS 原生核心；我们拿不到权重 |
 | **MaaGakumasu**（[MAA_INTEGRATION](MAA_INTEGRATION.md)） | 手和眼：截屏/识别/点击/日常/汉化完整 | 出牌只到启发式；我们只做决策层（ADR-001） |
-| **我们** | **唯一**把 MITM 采集→seed→整段牌序（含弃牌重洗）做成生产接口并经实机逐张验证；纯 Python/Windows 原生；0 token；B1 修正评测后 beam 已显著强于 within | 自动化最后一公里（T1）、无 A/B（T2）、全知未实时接通（T3）、学习型叶子未落地（B2） |
+| **我们** | **唯一**把 MITM 采集→seed→整段牌序（含弃牌重洗）做成生产接口并经实机逐张验证；纯 Python/Windows 原生；0 token；B1 修正评测后 beam 已显著强于 within；B2 全知数据 MLP 叶子在 beam 上再 +7.7（确认段离线） | 自动化最后一公里（T1）、无 A/B（T2）、全知未实时接通（T3）、学习叶子只离线验证（生产未打开，待 T2） |
 
 **定位一句话**：信息维度我们领先，执行与策略强度落后 hiro；先把"能无人值守跑完整局 + 真机 A/B"做出来，故事才完整。

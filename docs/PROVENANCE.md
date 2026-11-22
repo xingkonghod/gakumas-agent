@@ -47,6 +47,7 @@ flowchart LR
 | `C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl` | 游戏客户端 ↔ 官服明文流量（自有账号） | MITM 本地代理解密落盘 | 否（敏感；仅本地存档） |
 | `data/bench_local/*` | 本地 gkbench clone（MIT） | 本地裁判跑分报告 | 否（`.gitignore`） |
 | `data/knowledge/v_leaf.json` | 自研（模拟器 rollout/拟合） | 训练/拟合产出（多次 learned 失败，当前生产用解析式） | 是（若存在） |
+| `data/knowledge/b2_leaf_mlp_small.json` | 自研（B2）：`LessonSim` 全知 beam 自对弈 26.5k 叶子样本 + numpy MLP 训练 | 输入只有仓库内代码与卡表数值（`CardSpec`），不含游戏资源；`scripts/train_b2_leaf.py` 可重建 | 是（0.33 MB） |
 | `data/runs/*.json` | 真机跑局 | `auto_produce` 写盘 | 否（`.gitignore`；私有存档备份） |
 
 **数据不含**：账号密码/token、玩家个人信息、游戏客户端本体、官方私有服务器数据。
