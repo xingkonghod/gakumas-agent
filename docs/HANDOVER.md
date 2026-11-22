@@ -950,6 +950,57 @@ P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）→
 
 ---
 
+### 二·补二十四、11-22（F0 收尾：官方种子核洗牌模型 286 → 366/384 + 考试起点校准）
+
+**背景**：F0 预检（二·补二十二）用官方 `check.hand` 只到 286/384=74.5%，根因初步归为
+initial_add / isInitial 变体。本会话按 [HANDOVER_NEXT §4 F0](HANDOVER_NEXT.md) 做收尾：
+修 initial 集合 → 逐题逐张命中率/根因 → 用 `check` 校准考试起点。
+
+**新增**：`scripts/verify_gkbench_shuffle.py`——只读本地 `data/bench_local/gkbench_dl/hif/` +
+主数据（catalog.sqlite），不联网、不读令牌；`--json/--verbose/--stage-npc/--variant-initial`。
+
+**口径修正（两条）**：
+1. **initial 按 base 卡 id**：主数据 `isInitial` 在 +0/+1/+2/+3 各变体上都有记录，旧口径按
+   `(id, upgradeCount)` 精确匹配，deck 写 `...+1` 的卡漏判；现按 base id 命中所有变体，再把
+   deck 里 `g_effect-initial_add` 自定义的卡并进 initial（考试开始强制入手）。
+2. **npc 人数按 idol 卡，不是 stage 常数**：`IdolCard.produceStepAuditionDifficultyId` →
+   `ProduceStepAuditionDifficulty(produceId, stepType)` → `produceExamBattleNpcGroupId` → NPC 行数。
+   **選抜一律 6 人制（npc=5）**；**本戦按培育角色**——多数 3 人制（npc=2，135 张 idol 卡）、
+   **十王星南 jsna 4 人制（npc=3，13 张）**、**藤田ことね fktn 2 人制（npc=1，12 张）**；
+   部分采集 loadout 没有 `step_type/step_id`，用 `round`（mid1/mid2/final）兜底。旧口径 main
+   写死 npc=2 → 26 组对不上。
+
+**结果（384 组 = 329 题 × 1–2 个开发种子；逐张=按位置）**：
+- 旧口径 **286/384（74.5%，逐张 913/1155=79.0%）** → 只修 initial **338/384（88.0%，1060/1155=91.8%）**
+  → 再修 npc+round 兜底 **366/384（95.3%，逐张 1125/1155=97.4%）**；
+- 按 stage：sel1 **60/60**、sel2 **55/55**、sel3 56/57、main1 96/97、main2 99/115；
+  逐题 **311/329 题的全部种子命中**；
+- 剩余 18 组根因：**initial 0 / turnStartDistribute 0 / 牌序 0 / 其他 18**——
+  15 组「考试初始牌组 `ExamInitialDeck` 未建模」（produce-008 沿用
+  `initial_deck-produce_007-concentration/lesson_buff/review`，12/2/1 组）、
+  3 组「考试开始额外 +1 手牌」（都是 `kllj-3-005`，第 4 张=牌堆下一张）。
+  **没有一组是洗牌模型本身错**——K 与 Fisher-Yates 在 366 组上全对。
+
+**考试起点校准**（`check.turn/score/stamina/rules/commit`）：
+- `turn=1`×384、`score=0`×384 → 考试从第 1 回合开始、起点分 0（与 `LessonSim` 一致）；
+- `rules=55`×384、`commit=f4d9e6e6148d`×339（45 组空=随机 40 + 实机 5）；官方榜上 run 现在跨
+  **rules 55/59/65** 三档 → F1 裁判对齐要标版本，别默认最新；
+- `stamina` **369/384=96.1% 等于 `loadout.starting_stamina`**，15 组差异是**偶像卡自带 P 道具的
+  考试开始附魔常量**（shro-3-016 −28×5、atbm-3-015 +5×4、kllj-3-005 −1×3、ssmk-3-002 +6、
+  kcna-3-019 +6、shro-3-007 +1）→ **基准复算用 `check.stamina` 覆盖 `loadout.starting_stamina`**。
+
+**文档**：GKBENCH §4.5 重写（方法/消融表/逐 stage/根因/起点校准）；COMPARE §1/§2.3/§5/§6/§7 同步；
+RULES_REFERENCE §0 前加「官方规则版本口径」；HANDOVER_NEXT §0/§1/§2/§4 F0/§8 状态；INDEX/WORKPLAN/README 同步。
+
+**基线复核**（改完再跑，四条全绿、退出码 0）：① 4/4+3/3；② **985 passed / 1 skipped**（986 收集）；
+③ 4/4、初始 86/86、重洗 24/24；④ 36/36、重洗 3/3、known_draw 29/29、beam 28。
+无 src/tests 改动（只加脚本 + 文档）→ pytest 数字不变。
+
+**提交**：随本次提交（脚本+文档），哈希见 §七。
+
+**下一步**：**F0 收尾完成** → T5 剩余机制（审查倍率分段+联动惩罚、熱意、温存解除额外次数、
+fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -999,10 +1050,13 @@ B2 旧模型失效需按新规则重训）。**F 阶段数据 + F0 预检 ✅**�
 批量下载 80 run/36,350 条路线/329 题官方种子+check/505 题存档/两种榜单 + 参考分；用官方
 `check.hand` 核对洗牌模型 **286/384=74.5%** 精确命中，npc 按 stage：選抜 5、本戦 2；
 不一致根因=initial_add 自定义 + isInitial 变体，见 [GKBENCH.md](GKBENCH.md)）。
+**F0 收尾 ✅**（二·补二十四：initial 按 base id（含强化变体）+ initial_add、npc 按 idol 卡
+（本戦 jsna 4 人制/fktn 2 人制/其余 3 人制）→ 官方 `check.hand` **366/384=95.3%**
+精确 / 97.4% 逐张，選抜 100%；剩余 18 组全是考试开始加卡机制、无一洗牌错误；
+起点校准 turn=1/score=0/stamina 96.1%=starting_stamina/rules=55，见 [GKBENCH §4.5](GKBENCH.md)）。
 **开工基线复核 ✅ 2026-11-22 17:2x**（二·补二十三：四条基线全绿——① 4/4+3/3、② 985/1、
 ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28，与文档期望逐项一致）。
-**下一步：F0 收尾**（修 initial 集合 → 逐题命中率/根因 → 校准起点 stamina/turn/rules），
-然后 T5 剩余机制（审查倍率分段/联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、
+**下一步：T5 剩余机制**（审查倍率分段/联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、
 P 道具数据接入）→ 阶段 C/D 离线收尾 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
 总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 

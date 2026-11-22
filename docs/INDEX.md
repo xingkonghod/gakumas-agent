@@ -216,14 +216,21 @@ expectimax 从噪声内变**显著强于 rules**（+342~+429 评价点）；B1 6
 **命令行令牌**（存仓库外 `~/.config/gkbench/token`，可随时网页吊销）→ 新增 `scripts/bench_download.py`
 （公开 API + 令牌、断点续传）：已下 hif **80 run / 36,350 条对局路线**、**329 题官方开发种子 + `check`**、
 505 题模板存档、fixed/template 两种榜单与参考分（best-known 1,452,088 / UIHorizon 631,129=0.5113 /
-UINet 578,722=0.4551 / official-ai 232,710=0.2131）；并用官方 `check.hand` 核我们的洗牌模型：
-**286/384=74.5% 精确命中**，发现 **npc 按 stage 不同**（選抜 6 人制=5、本戦 3 人制=2，K=24/33），
-不一致根因 = `initial_add` 自定义 + `isInitial` 升级变体 → **下一步 F0 收尾**（修 initial → 逐题命中率/
-根因 → 校准官方起点）。细节见 [GKBENCH.md](GKBENCH.md) / HANDOVER 二·补二十二。
+UINet 578,722=0.4551 / official-ai 232,710=0.2131）；F0 预检用官方 `check.hand` 核洗牌模型
+**286/384=74.5%**（npc 按 stage：選抜 5、本戦 2；不一致根因 = `initial_add` + `isInitial` 变体，
+后由 F0 收尾修正）。细节见 [GKBENCH.md](GKBENCH.md) / HANDOVER 二·补二十二。
 **同日 17:2x 新会话开工基线复核四项全绿**：① 4/4+3/3、② 985/1、③ 86/86+24/24、
 ④ 36/36+3/3+29/29+beam 28，与文档期望逐项一致；② 唯一 skip = `tests/test_produce_ui.py:1181`
 （`step_047` 被真机跑局覆写、当前不是行动页，属预期）。见 HANDOVER 二·补二十三。
-阶段 A 全部完成、B1/B2/B3 完成、F 数据已下；下一步 **F0 gkbench 官方种子校准收尾** → T5 剩余机制
+**同日 F0 收尾完成**（gkbench 官方种子校准）：新增 `scripts/verify_gkbench_shuffle.py`（只读本地
+种子+主数据）——**initial 按 base 卡 id（含强化变体）+ `initial_add`、npc 按 idol 卡**
+（本戦 jsna 4 人制=3 / fktn 2 人制=1 / 其余 3 人制=2；缺 step 字段用 round 兜底）；官方
+`check.hand` 核洗牌模型 **286/384（74.5%）→ 366/384=95.3% 精确 / 97.4% 逐张**（選抜 100%，
+逐题 311/329 全中；剩余 18 组全是考试开始加卡机制：`ExamInitialDeck` 15 + kllj 开局 +1 手牌 3，
+**无一洗牌错误**）；起点校准 `check.turn=1 / score=0 / stamina 96.1%=starting_stamina / rules=55`
+（15 组体力差=偶像卡 P 道具考试开始附魔常量）→ 基准复算用 `check.stamina` 覆盖 loadout。
+细节见 [GKBENCH.md §4.5](GKBENCH.md) / [COMPARE.md](COMPARE.md) / HANDOVER 二·补二十四。
+阶段 A 全部完成、B1/B2/B3/F0 完成、F 数据已下；下一步 **T5 剩余机制**
 （审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

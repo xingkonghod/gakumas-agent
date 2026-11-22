@@ -66,6 +66,9 @@ sets.json                     # /api/sets
 manifest.json                 # 请求数/字节数/需要登录的逐局清单（断点续传依据）
 ```
 
+拿到 `seeds.json` 后的核对/校准用 `scripts/verify_gkbench_shuffle.py`（见 §4.5）：
+官方 `check.hand` 逐张对照洗牌模型 + `check.turn/score/stamina/rules` 起点校准，只读本地数据。
+
 ## 4. 2026-11-22 已下载
 
 `hif` 题集（505 题 / 190 runs）：公开部分 **176 次请求、39.4 MB**；拿到用户令牌后补了
@@ -91,37 +94,87 @@ manifest.json                 # 请求数/字节数/需要登录的逐局清单�
   这是 F0 洗牌交叉验证的官方基准。
 
 
-## 4.5 F0 初步验证（2026-11-22）：我们的洗牌模型 vs 官方 `check.hand`
+## 4.5 F0 收尾（2026-11-22）：洗牌模型 vs 官方 `check.hand`——286 → 366/384 + 考试起点校准
 
-F0 的第一步：用官方 `seeds.json` 里的 `check.hand`（官方引擎 GKMS native core 算的
-**第 1 回合开局手牌**）核对我们的 `exam_shuffle`（xorshift32 先消耗 K 次 + Fisher-Yates）。
-**修正口径**：K = `(turns-3) + npc*turns`，`turns` 取模板 `meta.turns`；`npc` 不是固定 5——
-H.I.F **選抜**是 6 人制（5 个对手），**本戦** 是 3 人制（2 个对手）：
+用官方 `seeds.json` 的 `check`（**官方 GKMS 原生引擎算的开场局面**：第 1 回合手牌/回合/分数/体力/
+规则版本/引擎提交）核对我们的 `exam_shuffle`（xorshift32 先消耗 K 次 + Fisher-Yates + 第 1 回合
+SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗牌模型的外部独立回归集**——不依赖
+我们的采集/账号，是 F0 的核心产物。
 
-| stage | npc | K（turns=meta） | 精确命中（牌序 as_given） |
-|---|---:|---:|---:|
-| hif.sel1 | 5 | 57（turns=10） | **60/60** |
-| hif.sel2 | 5 | 69（turns=12） | 47/55 |
-| hif.sel3 | 5 | 69（turns=12） | 44/57 |
-| hif.main1 | 2 | 24（turns=9） | 64/97 |
-| hif.main2 | 2 | 33（turns=12） | 71/115 |
-| 合计 | — | — | **286/384 = 74.5%** |
+复跑（只读本地数据 + 主数据，不联网、不读令牌）::
 
-（不区分 stage、一律 npc=5 时只有 152/384；按 stage 给 npc 后 74.5%。牌序按
-`loadout.deck_cards` 原顺序；按主数据 `order` 重排反而 1/384——说明 gkbench 的编成顺序
-就是真机牌序，不要重排。）
+```powershell
+.venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py                 # 核对 + 起点校准
+.venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py --verbose       # 打印逐条不一致样本
+.venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py --json data\bench_local\f0_gkbench.json
+.venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py --stage-npc     # 消融：NPC 按 stage 常数
+.venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py --variant-initial --stage-npc  # 复现 F0 预检旧口径（286/384）
+```
 
-**不一致样本的初步归因**（留给 F0 收尾）：
-1. **`initial_add` 自定义**：牌组里带 `p_card_custom-070-g_effect-initial_add`（训练开始时
-   加入手牌）的卡，官方引擎会**强制放进开局手牌**；我们首轮没把它算 initial，症状是
-   「官方手牌 = [X] + 我们的前 2 张」，X 正是 initial_add 卡（8 个样例里 5 个为此）；
-2. **isInitial 的升级变体**：主数据 `isInitial` 可能只标了基础变体，而牌组用 `+1` 变体；
-   应按卡 id（或修正变体映射）处理（样例 1 个为此）；
-3. 其余少量可能是牌组顺序/来源（`meta.source` = capture/history）或 turnStartDistribute /
-   初始卡机制差异，F0 逐题归因。
+### 口径（2026-11-22 修正后）
 
-下一步（F0 正式任务）：把 initial 集合修正为「主数据 isInitial（按 id）+ deck 里
-`initial_add` 自定义」后重跑，输出逐题逐张命中率/根因，再校准 `check.stamina/turn/rules`。
+| 项 | 口径 |
+|---|---|
+| `turns` / `K` | `turns` = 模板 `meta.turns`（官方引擎 `limit_turn`，**配置回合数**，提前结束也按配置算）；`K = (turns-3) + npc*turns` |
+| **npc 人数** | **按 idol 卡，不是 stage 常数**：`IdolCard.produceStepAuditionDifficultyId` → `ProduceStepAuditionDifficulty(produceId, stepType)` → `produceExamBattleNpcGroupId` → NPC 行数。**選抜一律 6 人制 = 5**；**本戦按培育角色不同**——多数 3 人制（npc=2，135 张 idol 卡）、**十王星南 jsna 4 人制 = 3（13 张）**、**藤田ことね fktn 2 人制 = 1（12 张）**；loadout 缺 `step_type/step_id` 时按 `round`（mid1/mid2/final）兜底，仍取不到才退回 stage 常数 |
+| initial 集合 | 主数据 `isInitial`（**按 base 卡 id，命中 +0/+1/+2/+3 全部强化变体**，deck 写 `...+1` 同样算）+ deck 里带 `g_effect-initial_add` 自定义的卡（考试开始强制入手） |
+| 牌序 | `loadout.deck_cards` **原顺序**（按主数据 `order` 重排只有 1/384，错） |
+
+### 结果
+
+| 口径 | 精确命中 | 逐张命中（按位置） |
+|---|---:|---:|
+| F0 预检旧口径（variant initial + stage npc） | 286/384 = 74.5% | 913/1155 = 79.0% |
+| 只修 initial（base id + initial_add） | 338/384 = 88.0% | 1060/1155 = 91.8% |
+| **再修 npc（按 idol）+ round 兜底步（最终）** | **366/384 = 95.3%** | **1125/1155 = 97.4%** |
+
+（npc 口径先只读 `step_type` 字段时是 360/384；384 组里 26 题的 loadout 没有 `step_type/step_id`，
+补 `round`（mid1/mid2/final）兜底后又修回 6 组 → 366。）
+
+| stage | 精确 | 逐张 |
+|---|---:|---:|
+| hif.sel1 | **60/60 = 100%** | 180/180 = 100% |
+| hif.sel2 | **55/55 = 100%** | 165/165 = 100% |
+| hif.sel3 | 56/57 = 98.2% | 171/172 = 99.4% |
+| hif.main1 | 96/97 = 99.0% | 291/292 = 99.7% |
+| hif.main2 | 99/115 = 86.1% | 318/346 = 91.9% |
+
+逐题：**311/329 题的全部种子都命中**（其余 18 题的种子一致地落在同一类缺口上，见下）。
+
+### 剩余 18 组不一致的根因
+
+| 根因 | 组数 | 说明 |
+|---|---:|---|
+| initial | 0 | isInitial（按 id 含强化变体）+ initial_add 修正后不再有此类不一致 |
+| turnStartDistribute | 0 | 没有 handDecrease/发牌张数差异 |
+| 牌序 | 0 | 没有「洗牌/RNG 消耗对不上」的样本——366 组命中说明 K 与 Fisher-Yates 全对 |
+| **其他** | **18** | **① 15 组：考试初始牌组 `ExamInitialDeck` 未建模**——实机手牌的卡来自 idol 的考试初始牌组（`produce-008` 沿用 `initial_deck-produce_007-concentration/lesson_buff/review`，12/2/1 组），但这些卡不在 `loadout.deck_cards` 里；官方起点引擎加入初始牌组卡的**具体规则**（全量/部分、加到手牌还是牌堆、是否参与洗牌）还没定论，留给 F1（需官方引擎或更多样本）。**② 3 组：考试开始额外加牌**——手牌 4 张 = 预测 3 张 + 1 张，**第 4 张恰好是牌堆下一张**（= 考试开始额外抽 1 张；都出现在 `i_card-kllj-3-005`，疑为该 idol 卡 P 道具的考试开始附魔）。 |
+
+结论：**洗牌模型本身（K + 洗牌 + 首回合发牌）在官方种子上已无失败样本**；剩余 18 组全部是
+「考试开始阶段的加卡」类机制，属模拟器/起点状态建模缺口，不影响 MITM seed→牌序链路。
+
+### 考试起点校准（`check.turn/score/stamina/rules/commit`）
+
+| check 字段 | 官方值（384 组） | 校准结论 |
+|---|---|---|
+| `turn` | 1 × 384 | 考试从**第 1 回合**开始（不是 0）；与 `LessonSim` 现有口径一致 |
+| `score` | 0 × 384 | 起点分 0 |
+| `rules` | **55 × 384** | 官方原生引擎规则版本 **55**（check 生成时）；榜上 run 现在跨 **rules 55/59/65** 三档 → F1 裁判对齐要标版本，别默认最新 |
+| `commit` | `f4d9e6e6148d` × 339；空 × 45（随机 40 + 实机 5） | GKMS 引擎提交；与 rules=55 配对 |
+| `stamina` | **369/384 = 96.1% 等于 `loadout.starting_stamina`**；15 组差异**按 idol 卡固定** | 起点体力 = `starting_stamina` + **偶像卡自带 P 道具的考试开始附魔**（常量偏移：shro-3-016 **−28**×5、atbm-3-015 **+5**×4、kllj-3-005 **−1**×3、ssmk-3-002 **+6**、kcna-3-019 **+6**、shro-3-007 **+1**）。**基准复算请用 `check.stamina` 覆盖** `loadout.starting_stamina`，别盲用 loadout 值 |
+
+种子来源：`label` 上传 314 / 随机 60 / 实机 10（上传的 check 是服务器建种子时用当时引擎算的，
+所以 rules/commit 是快照值）。
+
+### 影响 / 下一步
+
+- F0 DoD（逐题逐张命中率 + 根因 + 起点校准）已达成：**95.3% 精确 / 97.4% 逐张**，選抜 100%；
+  剩余 18 组根因已分类，**没有一组是洗牌模型本身错**。
+- **不改变对外口径**：ranked 仍禁 seed；这些官方种子只做本地校准/理论上限分母。
+- 给 F1 的输入：本地复算「同题同种子」时起点用 `check`（turn/score/stamina/rules/commit），
+  洗牌/发牌模型已外部验证，可直接当「已知牌序」；`local_bench.py` 目前用 `starting_stamina`，
+  接官方 check 时要覆盖（15/384 会差 −28…+6 体力）。
+- 已知待补（F1）：`ExamInitialDeck` 加卡机制、`kllj-3-005` 开局 +1 手牌。
 
 ## 5. 参考分（2026-11-22 抓取，`public_seeds=false` 时的公开部分）
 
@@ -151,10 +204,11 @@ H.I.F **選抜**是 6 人制（5 个对手），**本戦** 是 3 人制（2 个�
 
 > 这些数字与 README/COMPARE 里引用的一致（README 的 631k/579k/233k 是 template 榜口径）。
 
-## 6. 还缺（要令牌，F0 用）
+## 6. 还缺（要令牌）
 
-1. **`/api/sets/hif/seeds`**：开发集固定种子 + `check`（回合/分数/体力/**手牌**/规则版本）——
-   F0 用它**交叉验证我们的洗牌模型**（`seed`+牌组 → 开局手牌/回合属性 vs 官方引擎的 `check.hand`）。
+1. ~~**`/api/sets/hif/seeds`**：开发集固定种子 + `check`~~ ✅ 已下（2026-11-22）：
+   329 题 / 384 组 + `check{turn,score,stamina,hand,rules,commit}`；F0 用它交叉验证了洗牌模型
+   （286 → **366/384 = 95.3%**，逐张 97.4%）并校准起点，见 §4.5。
 2. **保密种子的逐局 `steps`**：uinet/uihorizon/official-ai/best-known 的 template runs 只有 route
    索引，逐步观测要登录；拿到后可做行为分析/教师数据（不用于 ranked 提交）。
 3. **`saves?fixed=1` 的固定种子存档**（含 `check`），同样要种子权限。
@@ -163,7 +217,9 @@ H.I.F **選抜**是 6 人制（5 个对手），**本戦** 是 3 人制（2 个�
 
 ## 7. 与 F 阶段的关系
 
-- **F0（先做）**：官方种子/`check` → 洗牌模型交叉验证 + 考试起点/规则版本校准；
+- **F0（先做）✅ 已完成（2026-11-22）**：官方种子/`check` → 洗牌模型外部验证
+  **366/384 = 95.3% 精确 / 97.4% 逐张**（選抜 100%；剩余 18 组全是考试开始加卡机制，非洗牌错误）
+  + 考试起点校准（turn=1 / score=0 / stamina 96.1% 等于 starting_stamina / rules=55）→ 见 §4.5；
 - **F1**：用同题同种子把我们的 `LessonSim` 判官和官方分对齐（口径校准，先分清裁判差异）；
 - **F2**：public-safe 适配器（不看 seed）→ 托管提交 → 按 ranked 榜口径（vs best-known 几何平均）对比；
 - **离线研究**：公开 route/步骤可当 UINet/UIHorizon/官方 AI 的行为参照（教师数据方向，注意不用于 ranked）。

@@ -333,15 +333,18 @@
   我们能提交的是"只看 UIObs 的算法"（rules/expectimax/学习模型），**不能**带 MITM/known_draw；
   下载到的固定种子题（开发集）**只用于本地跑/理论上限当分母**，官方页面也不把它单列排行
   （`privileged` = 看种子的理论上限，只作分母）。
-- **F0（新，先做）：官方种子交叉验证 + 口径校准**
-  1. 下载固定种子题（`GET /api/sets/<set>/saves?fixed=1` 的 NDJSON，或题集页「下载存档/固定种子」
-     按钮；每个存档 = `gkms.audition_save.v2`，`loadout.seed` + `check{turn,score,stamina,hand,rules}`）；
-     公开 API / 批量下载工具 / 参考分见 [GKBENCH.md](GKBENCH.md)（`scripts/bench_download.py`）；
-  2. **用我们的洗牌模型从 `seed`+牌组预测开局手牌/回合属性，和 `check.hand` 逐张对照**——
-     这是对「MITM seed→洗牌」最核心资产的外部独立校验（几百道 H.I.F 题的免费回归集）；
-  3. 用 `check` 的 `turn/score/stamina/rules` 校准我们的考试起点状态与规则版本；
-  4. 对照榜上参考分/理论上限（oracle 分母），分清"裁判口径差异"和"算法差距"；
-  - DoD：洗牌预测命中率（逐题逐张）+ 不一致样本根因 + 报告写进 [GKBENCH.md](GKBENCH.md) / [COMPARE.md](COMPARE.md)。
+- **F0（先做）✅ 已完成（2026-11-22）：官方种子交叉验证 + 口径校准**
+  1. 下载固定种子题/开发种子（`/api/sets/<set>/seeds` + `check`）；公开 API / 批量下载工具 /
+     参考分见 [GKBENCH.md](GKBENCH.md)（`scripts/bench_download.py`）；
+  2. **用洗牌模型从 `seed`+牌组预测开局手牌，和 `check.hand` 逐张对照** → `scripts/verify_gkbench_shuffle.py`：
+     **286/384（74.5%）→ 366/384=95.3% 精确 / 97.4% 逐张**（initial 按 base id 含强化变体 +
+     initial_add；**npc 按 idol 卡**：本戦 jsna 4 人制/fktn 2 人制/其余 3 人制；round 兜底），
+     選抜 100%、逐题 311/329 全中；剩余 18 组全是考试开始加卡机制（`ExamInitialDeck` 15 +
+     kllj 开局 +1 手牌 3），无一洗牌错误；
+  3. 用 `check` 的 `turn/score/stamina/rules/commit` 校准起点：turn=1、score=0、
+     stamina 96.1%=starting_stamina（15 组差=偶像卡 P 道具考试开始附魔常量，基准复算用
+     `check.stamina` 覆盖）、rules=55（commit `f4d9e6e6148d`）；见 GKBENCH §4.5 / HANDOVER 二·补二十四；
+  4. ~~对照榜上参考分/oracle 分母~~ → 留给 F1/F2（本节任务 4）。
 - 任务：
   1. 读 `data/bench_repo`（MIT 本地克隆）确认提交协议（动作 `p<i>/d<i>/e/s<i,j>`、UIObs 字段、裁判口径）；
   2. 写一个 **public-safe 适配器**（自包含、不用 seed、不读本公司私有数据），本地裁判跑分；
@@ -391,10 +394,12 @@ B3（T5 机制建模）已于 2026-11-22 完成：模拟器对齐真机「每回
 B3 前是噪声内），B1 60 局 within 89.1→beam 95.7（+6.6，决策门 PASS），**B2 旧模型失效
 （重测显著负）需按新规则重训**；全量 pytest 985/1（986 收集 / 72 文件）；见 WORKPLAN B3 /
 HANDOVER 二·补二十一 / RULES_REFERENCE / SIMULATOR §11。
-下一步从 **F0 gkbench 官方种子校准收尾**开始（用户已登录 gkbench 并给了命令行令牌，数据已下：
-80 run/36,350 条路线、329 题官方种子+check；F0 预检用官方 check.hand 核洗牌模型 286/384=74.5%，
-npc 按 stage 選抜 5/本戦 2；见 GKBENCH.md / HANDOVER 二·补二十二）→ T5 剩余机制
-（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）
-→ 阶段 C（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
-（ranked 禁 seed，只能交不看 seed 的算法）。
+**F0 gkbench 官方种子校准也已完成（2026-11-22）**：`scripts/verify_gkbench_shuffle.py` 用 384 组
+官方 `check.hand` 核洗牌模型 → initial 按 base id（含强化变体）+ initial_add、**npc 按 idol 卡**
+（本戦 jsna 4 人制/fktn 2 人制/其余 3 人制）+ round 兜底 → **286/384 → 366/384=95.3% 精确、
+97.4% 逐张**（選抜 100%；剩余 18 组全是考试开始加卡机制、无一洗牌错误）；起点校准
+turn=1/score=0/stamina 96.1%=starting_stamina/rules=55；见 GKBENCH §4.5 / HANDOVER 二·补二十四。
+下一步从 **T5 剩余机制** 开始（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff
+差一回合、P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2
+→ F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```

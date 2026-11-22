@@ -59,6 +59,11 @@
           329 题官方种子+check、505 题存档、两种榜单与参考分；用官方 check.hand 核洗牌模型
           **286/384=74.5%**（npc 按 stage：選抜 5、本戦 2；不一致根因=initial_add 自定义 +
           isInitial 变体）；见 HANDOVER 二·补二十二 / GKBENCH.md（数据在 data/bench_local/gkbench_dl/，gitignore）
+          2026-11-22 F0 收尾 ✅：新增 scripts/verify_gkbench_shuffle.py（只读本地种子+主数据）——
+          initial 按 base id（含强化变体）+ initial_add、**npc 按 idol 卡**（本戦 jsna 4 人制/fktn 2 人制/
+          其余 3 人制）+ round 兜底；官方 check.hand **366/384=95.3% 精确 / 97.4% 逐张**（選抜 100%，
+          逐题 311/329 全中；剩余 18 组全是考试开始加卡机制、无一洗牌错误）；起点校准
+          turn=1/score=0/stamina 96.1%=starting_stamina/rules=55；见 HANDOVER 二·补二十四 / GKBENCH §4.5
           全量 pytest 985 passed / 1 skipped（986 收集 / 72 文件）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
@@ -69,11 +74,11 @@
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
         ⑥ A4 缺一张真机帧：「回合结束确认框」旧截图被 step_NNN 轮转覆盖（扫 1352 张 0 命中）；
            分支已用真机课程帧文字 + F#36 文案回放，下次真机跑局出现时补拍 fixture
-         ⑦ F0 收尾：修 initial 集合（isInitial 按 id + initial_add 自定义）后重跑洗牌命中率/根因，
-            再校准官方起点 state（见 GKBENCH.md §4.5/§6）
-当前最高优先：**F0 gkbench 官方种子校准收尾** → T5 剩余机制 → 阶段 C（执行层可靠性）/ D（补采集）
+         ⑦ ~~F0 收尾~~ ✅ 2026-11-22 已完成（366/384 + 起点校准；剩余 18 组=考试初始牌组/开局加牌，
+            见 GKBENCH.md §4.5 / HANDOVER 二·补二十四）
+当前最高优先：**T5 剩余机制** → 阶段 C（执行层可靠性）/ D（补采集）
 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
-（总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2/B3 已完成、F 数据已下）
+（总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2/B3/F0 已完成、F 数据已下）
 **与 hiro / QQ 群 / 官方 AI 的进度对比**：见 [COMPARE.md](COMPARE.md)（口径、数字、唯一可比路径）。
 ```
 
@@ -124,6 +129,7 @@
 | B2 全知数据训练 MLP 叶子 | [build_b2_dataset.py](../scripts/build_b2_dataset.py) + [leaf_data.py](../src/gkagent/sim/leaf_data.py)（叶子状态快照）+ [leaf_mlp.py](../src/gkagent/sim/leaf_mlp.py)（104 维 MLP 叶子）+ [train_b2_leaf.py](../scripts/train_b2_leaf.py) + [eval_b2.py](../scripts/eval_b2.py) | 26.5k 全知 beam 自对弈样本，val r²=0.943 / MAE 8.8；B1 修正 harness 配对：选择段 seed 2000–2079 beam **166.8→173.7（+6.8）** / ensemble 174.4（+7.5）；**确认段 seed 3000–3119（120 局）beam 157.8→165.5（+7.7 CI[+4.2,+11.2]）/ ensemble 0.5 166.9（+9.0 CI[+5.8,+12.2]）**，known 同向；within 用 learned 变差 −3.3（负结果、只对 engine=beam 有益）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件，B3 前口径）**；**B3 后旧模型失效，待按 1 张/回合规则重训**；见 HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」 |
 | B3 T5 机制建模（回合规则 + 核验表） | [RULES_REFERENCE.md](RULES_REFERENCE.md) 重写为逐条核验表 + [export_t5_turn_rules.py](../scripts/export_t5_turn_rules.py)（真机 39 回合摘要）+ [t5_exam_turn_rules.json](../tests/fixtures/t5_exam_turn_rules.json) + `safe_ceil`（`sim/lesson.py`） | 模拟器对齐真机：每回合基础 **1 张** + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`；实机回放黄金值 12 条；真机 39 回合配对回归（32×1 张 / 7×2 张 / 手牌全 3 张）；重标定：sim_engine_ab expectimax 显著强于 rules（+342~+429 评价点）、B1 60 局 within 89.1→beam 95.7（+6.6，门 107.4% PASS）、B2 旧模型 FAIL 待重训；`tests/test_t5_turn_rules.py` 9 条；全量 pytest **985/1（986 收集 / 72 文件）**；见 HANDOVER 二·补二十一 / SIMULATOR §11 |
 | F 阶段数据 + F0 预检（gkbench） | [bench_download.py](../scripts/bench_download.py)（公开 API + 令牌批量下载，断点续传）+ [GKBENCH.md](GKBENCH.md)（API/令牌边界/下载清单/参考分/F0） | hif 已下 80 run / **36,350 条对局路线** / 329 题官方种子+check / 505 题存档 / fixed+template 榜单；**官方 check.hand 核洗牌模型 286/384=74.5%**（npc 按 stage：選抜 5、本戦 2；sel1 60/60）；不一致根因=initial_add 自定义 + isInitial 变体（F0 收尾）；数据在 `data/bench_local/gkbench_dl/`（gitignore）；令牌在仓库外 `~/.config/gkbench/token`；见 HANDOVER 二·补二十二 |
+| **F0 收尾（gkbench 官方种子校准）** | [verify_gkbench_shuffle.py](../scripts/verify_gkbench_shuffle.py)（384 组 check.hand 核对 + 起点校准，只读本地数据）+ [GKBENCH §4.5](GKBENCH.md) | **initial 按 base id（含强化变体）+ initial_add、npc 按 idol 卡（jsna 4 人制/fktn 2 人制/其余 3 人制）+ round 兜底** → **366/384=95.3% 精确 / 97.4% 逐张**（sel1 60/60、sel2 55/55、main1 96/97；逐题 311/329 全中）；剩余 18 组全是考试开始加卡机制（ExamInitialDeck 15 + kllj 开局 +1 手牌 3），**无一洗牌错误**；起点校准 turn=1/score=0/stamina 96.1%=starting_stamina/rules=55(commit f4d9e6e6148d)；见 HANDOVER 二·补二十四 |
 
 **改动以上任何部分的规矩**：先跑 §2 四条基线命令；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
@@ -145,11 +151,16 @@ cd D:\Games\gakumas-agent
 
 # ④ 生产接线端到端：应为手牌 36/36 回合、重洗 3/3、known_draw 29/29、策略链路 beam 出牌 28 次
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
+
+# ⑤（可选，F0 已收尾后新增）gkbench 官方种子核洗牌模型：应为 366/384 精确（95.3%）、逐张 1125/1155
+#    需要 data/bench_local/gkbench_dl/hif/（gitignore，缺数据可跳过；只读本地、不联网）
+.venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-22 17:2x，HANDOVER 二·补二十三）**：四条命令全绿、退出码 0，数字与上面
-期望值完全一致（① 4/4+3/3、② 985/1、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28）。② 唯一 skip =
-`tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、当前不是行动页），属预期。
+**最近一次复核（2026-11-22 17:2x + F0 收尾后复跑）**：①②③④ 全绿、退出码 0，数字与上面
+期望值完全一致（① 4/4+3/3、② 985/1、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28）；⑤ 366/384。
+② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
+当前不是行动页），属预期。F0 收尾见 HANDOVER 二·补二十四 / [GKBENCH §4.5](GKBENCH.md)。
 
 **环境前提**：
 
@@ -403,26 +414,27 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 **验收（DoD）**：新增测试（互验的假观测序列）；一局自动复盘页样例；`LIVE_RUN.md` 更新。
 **预算**：60–120k token。
 
-### F0（P0，2026-11-22 新增）gkbench 官方种子校准收尾 ⬜（数据与预检已完成）
+### F0（P0，2026-11-22 新增）gkbench 官方种子校准收尾 ✅（2026-11-22 完成：366/384）
 **目标**：用 gkbench 官方固定种子题的 `check.hand` 把我们的洗牌模型命中率从 74.5% 推近 100%，
 并校准考试起点（`check.stamina/turn/rules`）——这是 F1/F2 之前的口径基础。
 
-**已有**（见 [GKBENCH.md](GKBENCH.md) §4/§4.5；数据在 `data/bench_local/gkbench_dl/`，gitignore）：
-`hif/seeds.json` 329 题 / 384 组开发种子 + 官方 check；下载工具 `scripts/bench_download.py`；
-预检发现 **npc 数按 stage 不同**（選抜 6 人制 npc=5、本戦 3 人制 npc=2；K=24/33），
-牌序用 `loadout.deck_cards` 原顺序；286/384=74.5% 精确命中。
-
-**步骤**：
-1. 修 initial 集合：主数据 `isInitial` 按卡 id（覆盖升级变体）+ deck 里带
-   `p_card_custom-…-initial_add`（训练开始时加入手牌）自定义的卡；
-2. 重跑逐题逐张命中率；剩余不一致逐题归因（`meta.source` capture/history、牌组顺序、
-   turnStartDistribute/初始卡机制等）；
-3. 用 `check.stamina/turn/rules/commit` 校准我们的考试起点与规则版本（对照 `RULES_REFERENCE`）；
-4. 报告写回 [GKBENCH.md](GKBENCH.md)（命中率/根因/结论）+ 需要时补单测
-   （`tests/test_gkbench_shuffle.py`：fixture 里放若干 official seed+check，不依赖网络）。
-
-**验收（DoD）**：逐题逐张命中率数字（目标 ≥99% 或给出剩余样本根因）+ 起点校准结论 + 报告。
-**预算**：30–60k token（数据已就绪，主要是 initial 修正与逐题归因）。
+**已完成**（详见 [GKBENCH.md §4.5](GKBENCH.md) / HANDOVER 二·补二十四；数据在
+`data/bench_local/gkbench_dl/`，gitignore）：
+- 新增 [verify_gkbench_shuffle.py](../scripts/verify_gkbench_shuffle.py)：384 组官方 `check.hand`
+  逐张核对 + 起点校准（只读本地种子+主数据，不联网/不读令牌；`--json/--verbose/--stage-npc/--variant-initial`）。
+- **initial 修正**：主数据 `isInitial` 按 **base 卡 id**（覆盖 +1 等强化变体）+ deck 里
+  `g_effect-initial_add` 自定义卡；**npc 修正**：人数不是 stage 常数，按 idol 卡
+  （`IdolCard.produceStepAuditionDifficultyId` → `ProduceStepAuditionDifficulty` → NPC 组行数）——
+  選抜=5，本戦多数 3 人制=2、**jsna 4 人制=3、fktn 2 人制=1**；缺 step 字段用 `round` 兜底。
+- 结果：**286/384（74.5%）→ 366/384（95.3%，逐张 1125/1155=97.4%）**；按 stage sel1 60/60、
+  sel2 55/55、sel3 56/57、main1 96/97、main2 99/115；逐题 311/329 全中。
+- 剩余 18 组根因：**initial 0 / turnStartDistribute 0 / 牌序 0 / 其他 18**（15 组考试初始牌组
+  `ExamInitialDeck` 未建模；3 组 `kllj-3-005` 开局 +1 手牌）——没有一组是洗牌模型错。
+- 起点校准：`check.turn=1/score=0`（全部）；`rules=55`（全部，commit `f4d9e6e6148d` 339 组）；
+  `stamina` 369/384 == `starting_stamina`，15 组差 = 偶像卡 P 道具考试开始附魔常量
+  （shro-3-016 −28、atbm-3-015 +5、kllj −1、ssml/kcna +6、shro-3-007 +1）→ 基准复算用
+  `check.stamina` 覆盖 loadout 值。
+- DoD 达成；剩余 `ExamInitialDeck`/开局加牌机制留给 F1（需官方引擎或更多样本），不阻塞 F1/F2。
 
 ### T8（P3，低成本）情报与决策记录 ⬜
 - 每完成一个任务：更新 `QQ_GROUP_NOTES.md` / `HIRO_VIDEO_NOTES.md`（有变化时）、写一条 ADR（`ARCHITECTURE.md`）。
@@ -563,11 +575,13 @@ SKIP 回 2 体力 + 取整 safeCeil」，RULES_REFERENCE 重写为逐条核验�
 见 WORKPLAN B3 / HANDOVER 二·补二十一 / RULES_REFERENCE / SIMULATOR §11。
 F 阶段数据 + F0 预检已于 2026-11-22 完成：用户登录 gkbench 并给了命令行令牌（存在
 ~/.config/gkbench/token，仓库外）；scripts/bench_download.py 批量下 hif 80 run/36,350 条路线、
-329 题官方种子+check、505 题存档、fixed/template 榜单；用官方 check.hand 核洗牌模型
-**286/384=74.5%**（npc 按 stage：選抜 5、本戦 2；不一致根因=initial_add 自定义 + isInitial 变体）。
-见 HANDOVER 二·补二十二 / GKBENCH.md。
-下一步做 **F0 收尾**（修 initial 集合 → 逐题命中率/根因 → 校准起点 stamina/turn/rules；
-数据已就绪）；之后 T5 剩余机制（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff
+329 题官方种子+check、505 题存档、fixed/template 榜单；见 HANDOVER 二·补二十二 / GKBENCH.md。
+**F0 收尾也已于 2026-11-22 完成**：scripts/verify_gkbench_shuffle.py 用 384 组官方 check.hand
+核洗牌模型——initial 按 base id（含强化变体）+ initial_add、npc 按 idol 卡（本戦 jsna 4 人制/
+fktn 2 人制/其余 3 人制）+ round 兜底 → **366/384=95.3% 精确 / 97.4% 逐张**（選抜 100%；逐题
+311/329 全中；剩余 18 组全是考试开始加牌机制、无一洗牌错误）；起点校准 turn=1/score=0/
+stamina 96.1%=starting_stamina/rules=55（见 HANDOVER 二·补二十四 / GKBENCH §4.5）。
+下一步做 **T5 剩余机制**（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff
 差一回合、P 道具数据）→ 阶段 C/D 离线做完 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。
