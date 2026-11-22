@@ -896,6 +896,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 B1 T4 修正）
+4512836 docs(handover): B1 完成交接——状态/基线数字(964/1)/决策门 PASS/下一步 B2
 fda7b90 feat(b1): T4 修正——评测执行器白丢回合 bug + 受控 frontier 叶子（60 局 beam 已超 within，决策门 PASS）
 （2026-11-22 A5 T3 离线预演）
 3bb6a6e docs(handover): A5 完成交接——状态/基线数字(958/1)/提交记录同步，下一项 B1
