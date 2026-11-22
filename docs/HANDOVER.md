@@ -737,7 +737,7 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
 | beam | known | **165.5** | 165 | 100.0% | 38.3% | **+22.4** | [+16.5,+28.4] |
 | beam+frontier | unknown/known | 164.0 / 165.5 | 162/165 | 同 beam | 同 beam | 同 beam | — |
 
-- **决策门 PASS**：114.6%（unknown）/ 115.7%（known），门槛 90%；57/60 与 56/60 局不劣于 within。
+- **决策门 PASS**：114.6%（unknown）/ 115.7%（known），门槛 90%；逐局不劣于 within 为 52/60、51/60。
 - **受控叶子中性**：frontier 与普通 beam 逐位相同。原因是 small 真实牌组上 4 个根计划收敛到
   同一前沿状态（同 `canonical`），rollout 值相同；`turns_left=1` 的截断本来也接近精确。
 - **消融**（60 局）：beam 默认 148.6/153.8；`score_tiebreak=1e-3` 164.0/165.5（+15.4/+11.8）；
