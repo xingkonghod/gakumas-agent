@@ -54,3 +54,9 @@ out/
 
 # 本地日文 OCR 模型配置（scripts/download_ocr_models.py 生成；OcrEngine 默认加载）
 configs/ocr_jp.yaml
+# pytest per-run temp dirs/logs (data/pytest-tmp-<date>*, created per session)
+data/pytest-tmp*/
+data/pytest-*.txt
+
+# agent_cmd.py launch scratch result
+data/agent_result.json
