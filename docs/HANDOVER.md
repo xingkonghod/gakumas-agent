@@ -501,9 +501,11 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
   **gkms-phone 模块**（`libgkms-gadget.so` 24 MB + portal/pem/identity → 手机端 gadget 桥）；
 - 解包位置：`D:\GakumasAgentArchive\group_files\{GKMSMAA, GKMS实验版APK}`（**不入库**）。
 
-**A1 已完成**（2026-11-22，见二·补十四）：OCR 换官方 PP-OCRv6 多语言模型，日文完整可读；
-接着按 WORKPLAN 阶段 A 做 A2（F#42 课程硬打必须得分）→ A3（F#43 结果页空转）→ A4（离线回放素材）
-→ A5（T3 离线预演），全部离线做完再上真机。
+**A1 已完成**（2026-11-22，见二·补十四）：OCR 换官方 PP-OCRv6 多语言模型，日文完整可读。
+**A2 也已完成**（2026-11-22，见二·补十五）：F#42 课程硬打必须得分——修掉课程 HUD 语义
+（右上属性值/圆环还差分）与"每回合默认 1 张牌"两个模型错误，硬打保证得分。
+接着按 WORKPLAN 阶段 A 做 A3（F#43 结果页空转）→ A4（离线回放素材）→ A5（T3 离线预演），
+全部离线做完再上真机。
 
 **总作战计划**：见 [WORKPLAN.md](WORKPLAN.md)（离线全部做完 → 真机 T3→T1→T2 → gkbench 比算法；
 含 A1 OCR / A2 F#42 / A3 F#43 / T4 / T5 / 可靠性 / 数据 / 真机 / gkbench 各阶段与 DoD）。
@@ -537,6 +539,45 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
   `read_calls` 不再为 0，改为断言只补读 `FAST_DIALOGUE_AREA`、不整屏 OCR）。
   全量 `pytest tests/`：**926 passed / 1 skipped**（927 条收集 / 65 个测试文件，212s）；`ruff` 通过。
 - **真机日志**：`auto_produce.py` 首行新增 `[ocr] 模型 = …`——上真机先确认不是内置中文模型。
+
+### 二·补十五、11-22（WORKPLAN A2 落地：F#42 课程硬打必须得分 ✅）
+
+**结论**：F#42 不是"硬打排序不好"这么简单，是**两个课程模型假设和真机不一致**叠在一起：
+
+1. **课程 HUD 语义读反**：右上角是**培育属性值**（图标+评级+数字），不是课程分；正中圆环
+   「CLEAR截止 / PERFECT截止 N」是**还差 N 分**到当前档位（过了 CLEAR 换成 PERFECT）。
+   旧代码把属性值当课程分、把还差分当过关线 → 真机帧「属性 90 / CLEAR截止 30」被当成
+   "分数 90 ≥ 过关线 30，已经 PERFECT" → expectimax 档位效用全封顶（动作全 2.00 平手）→
+   每回合建议 SKIP → 禁跳规则按动作排序硬打 → 稳定挑 buff 牌 → 整节课 0 分 FAILED。
+2. **每回合出牌上限写死 3**：游戏**默认每回合只能出 1 张牌**（一手 3 张是"选 1 张"；
+   额外出牌来自卡效果/P 道具）。证据：四场采集考试 39 个实战回合里 32 回合正好 1 张、
+   7 回合 2 张（2 张的都是卡效果 `ExamPlayableValueAdd`）；课程实拍"打 1 张 → 剩余回合 -1"；
+   社区/维基口径一致。旧搜索 `play_limit=3` 让"buff + 两刀"永远划算 → 每回合先铺 buff。
+
+- **代码**：
+  - `vision/lesson.py`：`LessonReader` 读圆环档位 + 按"属性值 − 开课属性值"换算课程分；
+    过关线 = 已得分 + 圆环还差分；满分线查档位表（普通/SP = 2×，追い込み 90→360、165→600）。
+    `LessonState` 新增 `perfect` / `goal` / `attr` 字段（`score` 语义改为**本课已得分**），
+    `reset_lesson()` 每课重置属性基线；`auto_produce.py` 在课程开始处调用。
+  - `policy/lesson.py`：`_search_state` 改 `play_limit=1`（每次决策只建模"现在打 1 张"，
+    额外出牌下一帧重新读屏再决策；`plays_used` 不再喂搜索，避免 plays_left=0 假死），
+    满分线用读屏换算值；**硬打保证得分**：搜索建议 SKIP 时先筛"屏幕分数预览 > 0"的牌
+    （buff 牌记 0）按（搜索价值, 屏幕分）硬打；一张正分牌都没有才退回原排序。
+  - `auto_produce.py`：`lesson_score` 记**真课程分**（0 分也记，旧日志把属性值写成 lesson_score）。
+- **实测**（真机帧 `data/auto/step_001.png` = ep-t3-4 step1，与 ep-t3-3 step286 同屏；
+  `tests/fixtures/lesson_ep_t3_4_step001.png` 已归档）：修复前 `name-pick 表情的基础`（buff，0 分）；
+  修复后回放该帧 → `name-pick 魅力的基础`（29 分，硬打保分）。前一回合帧（turns=2）修复前也会
+  先铺 buff，修复后直接打 `击掌+`（23 分）。
+- **测试**：`tests/test_lesson_play_f42.py` 3 条（HUD 换算 / DoD 回放 / "buff 多、分数少"）+
+  `tests/test_lesson.py` 4 条 HUD 换算假 OCR 单测 + `test_hardplay_prefers_scoring_card_on_flat_tie`；
+  修复过程中还发现并修掉一个连带问题：搜索把 `plays_used` 喂进去后，模拟器 A/B 同一回合第二次
+  决策会 `plays_left=0` → `RuleFallbackBlocked`（`tests/test_strict_engine_sim.py` 抓到）。
+- **基线复核**：全量 pytest **934 passed / 1 skipped**（935 收集 / 66 文件）；四条基线里
+  ② 的期望值从 926/1 变成本数字；①③ 未变；④ `verify_exam_wiring.py` 仍 4/4、36/36、3/3、
+  known_draw 29/29、beam 出牌 28 次（`play_limit=1` 不改变离线核对口径）。
+- **遗留（不属于 A2，已记 WORKPLAN T5/B3 / FAILURES #42）**：`sim/lesson.py` 的
+  `plays_per_turn` 默认 3 也要对齐真机（默认 1 张 + 额外出牌），模拟器整局 A/B 与评分要重标；
+  每回合 1 张对**考试**同样成立（本修复顺带改了考试搜索的出牌上限）。
 
 ---
 
@@ -671,6 +712,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 A2 F#42 课程硬打必须得分）
+b388274 fix(lesson): F#42 课程硬打必须得分（HUD 语义 + 每回合 1 张 + 硬打保分）
 （2026-11-22 A1 OCR 日文模型）
 1496370 docs(handover): A1 日文 OCR 落地记录 + 提交哈希（aae2647/884272f）
 8823bb7 docs(handover): A1 补中文 UI/性能回归数字（bench_ocr --verify 5/5、行动页 189ms）
@@ -730,13 +773,15 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/ -q` 全绿（**904 条 / 62 文件**，含 `tests/test_exam_shuffle.py` 四场考试
-洗牌回放 + 「实战回合算 K 会错」回归防线 + 三组弃牌堆重洗样本的掷点数/强化增量/重洗手牌对照；
-`tests/test_expectimax_known_draw.py` 8 条 + `tests/test_exam_oracle.py` 6 条完全信息搜索测试；
-`tests/test_expectimax_discard_order.py` 17 条重洗后段全知 + `tests/test_exam_plan.py` 19 条
-（生产接线数据层 + ExamPlanSelector 候选锁定）+ `tests/test_policy_beam_engine.py` 7 条 beam/接线策略层
-+ `tests/test_policy_engine.py` 增补 4 条决策可观测性 + `tests/test_device_click_coords.py` 点击坐标回归），
-`ruff check src` 与改动文件的 ruff 通过。
+**测试状态**：`pytest tests/` **934 passed / 1 skipped**（935 条收集 / 66 个测试文件），含
+`tests/test_exam_shuffle.py` 四场考试洗牌回放 + 「实战回合算 K 会错」回归防线 +
+三组弃牌堆重洗样本对照；`tests/test_expectimax_known_draw.py` 8 条 +
+`tests/test_exam_oracle.py` 6 条完全信息搜索；`tests/test_expectimax_discard_order.py` 17 条
+重洗后段全知 + `tests/test_exam_plan.py` 19 条（生产接线数据层 + ExamPlanSelector）+
+`tests/test_policy_beam_engine.py` 7 条 beam/接线策略层 + `tests/test_policy_engine.py`
+决策可观测性 + F#42 硬打保分 + `tests/test_lesson_play_f42.py` 3 条真机课程帧回放 +
+`tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
+四条开工基线：① 4/4 场 + 3/3 重洗、② 本行数字、③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28。
 
 ---
 

@@ -20,6 +20,7 @@
 | T4 平手项/beam 采样实验（+19.9，但 beam 仍低于 within 22%） | `EXPECTIMAX.md`；rollout 叶子负结果也记录在案 |
 | T1 真机流程 10+ 类卡点 + F#41（日文剧情二选一）修复 | `FAILURES.md` #27-41；`584f742` |
 | A1 OCR 换日文/多语言模型（官方 PP-OCRv6，Apache-2.0） | `tests/test_ocr_jp_model.py` 真图 4 条 + `test_ocr_config.py` 17 条；全量 pytest 926/1；`docs/HANDOVER` 二·补十四 |
+| A2 课程硬打必须得分（F#42：HUD 语义 + 每回合 1 张 + 硬打保分） | `tests/test_lesson_play_f42.py` 真图回放 3 条 + `test_lesson.py` HUD 换算 4 条 + `test_hardplay_prefers_scoring_card_on_flat_tie`；全量 pytest 934/1（935 收集 / 66 文件）；`docs/HANDOVER` 二·补十五 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -60,16 +61,42 @@
   行动页单步 ≈189ms、课程页读屏 ≈402ms、全屏 read ≈752ms（目标 ≤1500ms）。
 - 全量 pytest：**926 passed, 1 skipped**（927 条收集 / 65 个测试文件；见 HANDOVER_NEXT §2）。
 
-### A2. F#42 课程策略：硬打必须保证得分（用户现场发现）
+### A2. F#42 课程策略：硬打必须保证得分（用户现场发现）✅ 2026-11-22 完成
 - 现象：舞蹈课程连续打 buff（表情的基础 2.0）→ `lesson_score=90` → FAILED。
 - 修法：禁跳规则下"强制出牌"必须优先 `score>0` 且付得起的牌；buff 与打分按剩余回合/缺口平衡；
   连续 N 张 0 分牌降级为"直接补 CLEAR 的牌"；用真机课程截图做离线回放单测。
 - DoD：用 ep-t3-4 课程截图回放不再选 buff；单测覆盖"buff 多/分数少"场景。
-- **素材/注意（2026-11-22 A1 交接补充）**：真机课程帧混在 `data/auto/step_*.png`（ep-t3-1..4 多轮，
-  按修改时间 + `data/auto/stdout_ep-t3-*.log` 步号定位课程屏）；稳定帧另有 `data/live_lesson.png`
-  （聊天时间 84 分/6 费）、`data/lesson_now.png`（124 分/1 回合）、`data/exam_c.png`。
-  **OCR 已换日文模型**：回放单测里 `OcrEngine()` 会自动加载 `configs/ocr_jp.yaml`，断言要按新文本写，
-  不要再依赖"中文模型只读碎片"的旧行为。A4 会把这些帧正式归档成回放用例。
+
+**落地（2026-11-22）**
+- **真根因比初判更深**（两层，都是"模型以为"和"屏幕实际"不一致）：
+  1. **课程 HUD 语义读错**：右上角是**培育属性值**（不是课程分）；正中圆环
+     「CLEAR截止 / PERFECT截止 N」是**还差 N 分**（过了 CLEAR 换成 PERFECT）。旧读法把
+     属性值当课程分、把还差分当过关线：真机帧「属性 90 / CLEAR截止 30」被当成
+     "分数 90 ≥ 过关线 30 → 已经 PERFECT" → expectimax 档位效用封顶（全部动作 2.00
+     平手）→ 每回合建议 SKIP → 禁跳规则按动作价值硬打 → 稳定挑 buff 牌。
+  2. **每回合出牌上限写死 3**：游戏**默认每回合只能出 1 张牌**（一手 3 张是"选 1 张"；
+     额外出牌次数来自卡效果/P 道具）。证据：四场采集考试共 39 个实战回合，32 回合正好
+     1 张、7 回合 2 张（2 张的都是卡效果 `ExamPlayableValueAdd`）；课程实拍同样"打 1 张
+     回合数 -1"；社区/维基口径一致。旧搜索写死 `play_limit=3`（"手牌 3 张"的误读），
+     于是"buff + 两刀"在模型里永远划算 → 每回合先铺 buff，整节课 0 分。
+- 修法：
+  - `vision/lesson.py`：`LessonReader` 读圆环档位（`CLEAR截止` / `PERFECT截止`）+ 按
+    "属性值 − 开课属性值"换算课程分；过关线 = 已得分 + 圆环还差分；满分线查档位表
+    （普通/SP = 2× 过关线；追い込み 90→360、165→600）。`LessonState` 新增
+    `perfect/goal/attr`，`score` 语义改为"本课已得分"；`reset_lesson()` 每课重置属性基线。
+  - `policy/lesson.py`：`_search_state` 改 `play_limit=1`（额外出牌走 `extra_plays`），
+    满分线用读屏换算值；**硬打保证得分**——搜索建议 SKIP 时，先筛"屏幕分数预览 > 0"的
+    牌（buff 牌记 0）按（搜索价值, 屏幕分）排序硬打（搜索在"反正到不了 CLEAR"的回合会
+    把动作打成平手，旧排序会挑中 buff）。
+  - `auto_produce.py`：每节课开始 `lesson_reader.reset_lesson()`；`lesson_score` 现在记
+    **真课程分**（0 分也记，不再把属性值 90 写成 `lesson_score=90`）。
+- 测试：`tests/test_lesson_play_f42.py` 3 条（真机帧 HUD 换算 + DoD 回放"最后一回合必须
+  选魅力的基础 29、不选 buff" + "buff 多/分数少"合成场景）+
+  `test_policy_engine.py::test_hardplay_prefers_scoring_card_on_flat_tie` +
+  `test_lesson.py` 4 条假 OCR HUD 换算（属性基线/新开课重置/档位读不到沿用/满分线档位表）。
+- **遗留（不属于 A2，已记 FAILURES #42 与 T5/B3）**：`sim/lesson.py` 的
+  `plays_per_turn` 默认 3 也要对齐真机规则（默认 1 张 + 额外出牌），模拟器整局 A/B
+  数字要重新标定；考试侧同样受影响（不是只课程）。
 
 ### A3. F#43 静态结果页空转
 - 现象：`result-tap/gain` 连点 10 次被自保护停局。
@@ -176,5 +203,6 @@
 最后 阶段 F 去 gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules；真机整局 --ignore-user。
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6；见 WORKPLAN A1 / HANDOVER 二·补十四）。
-今天做 A2（F#42 课程硬打必须得分：用 ep-t3-4 课程截图回放 + 单测）。
+A2（F#42 课程硬打必须得分）已于 2026-11-22 完成（HUD 语义 + 每回合 1 张 + 硬打保分；
+见 WORKPLAN A2 / HANDOVER 二·补十五）。今天做 A3（F#43 静态结果页空转：找「下一步/继续/完成/领取」，回归测试）。
 ```

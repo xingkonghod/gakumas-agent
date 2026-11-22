@@ -159,7 +159,12 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 **2026-11-22 A1 已完成**：OCR 换官方 **PP-OCRv6 small 多语言模型（Apache-2.0）**——日文剧情/选项
 完整可读（`ヨーグルトパフェ`/`つくねハンバーグ`/`ドリンクバー` + 整句对白），中文 UI 不受影响；
 `scripts/download_ocr_models.py` 下载+sha256 校验，`OcrEngine` 自动加载 `configs/ocr_jp.yaml`
-（缺失直接报错，不静默回退中文模型），真机日志 `[ocr] 模型=` 可确认。全量 pytest 926 passed / 1 skipped。
-下一步按 [WORKPLAN](WORKPLAN.md)：**离线阶段 A 收尾**（A2 F#42 / A3 F#43 / A4 回放素材 / A5 T3 离线预演）
+（缺失直接报错，不静默回退中文模型），真机日志 `[ocr] 模型=` 可确认。
+**同日 A2 已完成**（F#42 课程硬打必须得分）：查出并修掉两个课程/考试模型错误——课程右上角是
+**培育属性值**（不是课程分）、正中圆环「CLEAR截止 N」是**还差 N 分**（不是过关线）；且游戏
+**默认每回合只能出 1 张牌**（旧搜索写死 3 → 每回合先打 buff → 整节课 0 分 FAILED）。
+现在硬打保证得分（正分牌优先），真机课程帧回放从"选 buff"变成"选魅力的基础 29 分"。
+全量 pytest **934 passed / 1 skipped**（935 收集 / 66 文件）。细节见 HANDOVER 二·补十五 / FAILURES #42。
+下一步按 [WORKPLAN](WORKPLAN.md)：**离线阶段 A 收尾**（A3 F#43 / A4 回放素材 / A5 T3 离线预演）
 → 阶段 B/C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四/二·补十五 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

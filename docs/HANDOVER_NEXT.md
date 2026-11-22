@@ -73,6 +73,8 @@ A5 T3 离线预演）→ 阶段 B/C/D → 真机 T3→T1→T2 → gkbench（总�
 | T3 实时接线（代码） | `build_exam_setup.py --current` + `ExamPlanSelector` + `auto_produce` 运行时重载 | 4 条 selector 测试；已用采集局离线验证第 2 回合锁定正确 config_turns |
 | 模拟器 + 评价公式 | [hajime_eval.py](../src/gkagent/sim/hajime_eval.py)、[hajime_data.py](../src/gkagent/sim/hajime_data.py) | 4 局实机逐分回归（9973/10428/8790/12903） |
 | 主数据库 | `data/hiro/vendor/.../catalog.sqlite` | 286 表 / 163,974 行 |
+| A1 日文 OCR 模型 | `configs/ocr_jp.example.yaml` + `scripts/download_ocr_models.py` | 真图 4 条 + 配置 17 条；见 HANDOVER 二·补十四 |
+| A2 课程硬打必须得分（F#42） | [vision/lesson.py](../src/gkagent/vision/lesson.py) 课程 HUD 换算 + [policy/lesson.py](../src/gkagent/policy/lesson.py) 每回合 1 张/硬打保分 | `tests/test_lesson_play_f42.py` 真图回放 3 条 + HUD 换算 4 条 + flat-tie 硬打 1 条；见 HANDOVER 二·补十五 |
 
 **改动以上任何部分的规矩**：先跑 §2 四条基线命令；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
@@ -85,7 +87,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 926 passed, 1 skipped（927 条收集 / 65 个测试文件；含 A1 日文 OCR 21 条）
+# ② 全量测试：应为 934 passed, 1 skipped（935 条收集 / 66 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条）
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
 # ③ 采集数据 → 考试牌序：应为 4/4 场、初始段 86/86 张、重洗段 24/24 张
