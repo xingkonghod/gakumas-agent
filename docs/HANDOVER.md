@@ -1363,7 +1363,8 @@ WORKPLAN 增 B7/C0/E0 候选节。用户要求「开新对话做」，一次会�
 README/INDEX/COMPARE/GKBENCH/SIMULATOR/EXPECTIMAX/OFFICIAL_AI_NOTES/PROVENANCE/I18N_TODO/
 LOCAL_LAUNCHER_20261122；本文件二·补二十九。
 
-**提交**：feat `ca83800`（代码 + 数据 + 测试 + 文档），见 [七、最近提交记录](#七最近提交记录)。
+**提交**：feat `ca83800`（代码 + 数据 + 测试 + 文档）+ docs `9dfcc40`（哈希/交接记录），
+见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
 
@@ -1542,6 +1543,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 T9-B7 P 道具 47 条补全：p_items.json 1068→1115、gkbench 未知 id 清零、条件未知段保守跳过）
+9dfcc40 docs(handover): 补 B7 提交哈希（ca83800）+ 最近交接记录
 ca83800 feat(t9): B7 P 道具 47 条补全——catalog 1068→1115 + 条件未知保守跳过（3 条测试）
 （2026-11-22 交接：作者整合包帮助评估 + 候选任务 T9（B7/C0/E0，开新对话做））
 508aa34 docs(handover): 记录作者 11-22 整合包的帮助评估 + 新增候选任务 T9（B7/C0/E0，开新对话做）
