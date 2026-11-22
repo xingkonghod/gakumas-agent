@@ -1511,8 +1511,8 @@ modifier 类、`ExamPreservation`/`ExamConcentration` 直给式、**好调依赖
 **文档**：RULES_REFERENCE §0/§5.3/§6；WORKPLAN B8/§0/尾部；HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；
 INDEX；README；COMPARE；EXPECTIMAX；OFFICIAL_AI_NOTES；本文件二·补三十一。
 
-**提交**：feat `126e411`（代码 + 数据 + 测试 + 文档）+ docs 交接记录提交（哈希见
-[七、最近提交记录](#七最近提交记录)）。
+**提交**：feat `126e411`（代码 + 数据 + 测试 + 文档）+ docs `a61b7b0`（哈希/交接记录），
+见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
 
@@ -1707,6 +1707,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 交接：B8 完成记录 + 提交哈希 126e411）
+a61b7b0 docs(handover): 记录 B8 / T5④ 完成交接（条件/效果语义第一批，pytest 1067/1，greedy A/B +225.2）+ 提交哈希 126e411
 （2026-11-22 B8 / T5④ P 道具条件/效果语义第一批：新语法 trigger id 解析 + 依赖换算/固定体力 + 5 类新触发，pytest 1067/1（1068 收集 / 77 文件），greedy A/B +225.2）
 126e411 feat(b8): T5④ P 道具条件/效果语义第一批——新语法 trigger id 解析 + 依赖换算/固定体力 + 5 类新触发（19 条测试）
 （2026-11-22 交接：C0 完成记录 + 提交哈希 e52bedc）
