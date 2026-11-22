@@ -1,4 +1,4 @@
-# 交接清单：补什么 · 做什么（GDE / gakumas-agent）
+﻿# 交接清单：补什么 · 做什么（GDE / gakumas-agent）
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
@@ -568,7 +568,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 （**1006/1（1007 收集 / 73 文件）**、4/4+3/3、86/86+24/24、36/36+3/3+29/29+beam 28、⑤ 366/384）。
 下一项继续 **T5 剩余机制**（熱意 / 温存解除 / fresh buff / P 道具）。详见
 [HANDOVER 二·补二十五](HANDOVER.md) 与 [RULES_REFERENCE §5.1](RULES_REFERENCE.md)。
-提交 `6b4beae`（代码 + 测试 + 夹具 + 文档）/ `fcc2a88`（哈希记录）。
+提交 `6b4beae`（代码 + 测试 + 夹具 + 文档）/ `bb8171a`（哈希记录）。
 
 **新会话开场白（复制）**
 
