@@ -1433,8 +1433,8 @@ master 结构、`http1_bridge` 头丢失、票据 865/833、上游端口、停�
 **文档**：TROUBLESHOOTING §四/§5–6 编号；CAPTURE_PIPELINE；LOCAL_LAUNCHER §5；WORKPLAN C0/§0/
 尾部下一步；HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；INDEX；README；本文件二·补三十。
 
-**提交**：docs `TBD1`（判据吸收：TROUBLESHOOTING/CAPTURE_PIPELINE/LOCAL_LAUNCHER + 状态文档）+
-docs `TBD2`（哈希/交接记录），见 [七、最近提交记录](#七最近提交记录)。
+**提交**：docs `e52bedc`（判据吸收：TROUBLESHOOTING/CAPTURE_PIPELINE/LOCAL_LAUNCHER + 状态文档），
+见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
 
@@ -1621,6 +1621,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 T9-C0 采集/更新断链排障判据吸收：TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新后自检 8 步，纯文档无代码改动）
+e52bedc docs(t9): C0 采集/更新断链排障判据吸收——TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新后自检 8 步（纯文档）
 （2026-11-22 T9-B7 P 道具 47 条补全：p_items.json 1068→1115、gkbench 未知 id 清零、条件未知段保守跳过）
 9dfcc40 docs(handover): 补 B7 提交哈希（ca83800）+ 最近交接记录
 ca83800 feat(t9): B7 P 道具 47 条补全——catalog 1068→1115 + 条件未知保守跳过（3 条测试）
