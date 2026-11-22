@@ -38,9 +38,16 @@ from gkagent.vision.ocr import OcrEngine
 @dataclass
 class FakeDevice:
     clicks: list[tuple[int, int]] = field(default_factory=list)
+    swipes: list[tuple[int, int, int, int]] = field(default_factory=list)
 
     def click_force(self, x: int, y: int) -> None:
         self.clicks.append((int(x), int(y)))
+
+    def click(self, x: int, y: int) -> None:
+        self.clicks.append((int(x), int(y)))
+
+    def swipe(self, x1: int, y1: int, x2: int, y2: int) -> None:
+        self.swipes.append((int(x1), int(y1), int(x2), int(y2)))
 
 
 @dataclass

@@ -1474,6 +1474,7 @@ class ProduceDriver:
                 return ((first + second) // 2, (top + bottom) // 2)
         return None
 
+    @staticmethod
     def _checkbox_bands(image) -> list[tuple[int, int]]:
         """在勾选框列（x 610-655）扫描，返回每行勾选框的 (top, bottom)。"""
         if image is None:
