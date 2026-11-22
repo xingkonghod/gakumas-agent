@@ -804,7 +804,7 @@ CI[+66.3,+1697.9]）**；off 与 B9 逐位相同，不可直接比 B9 auto（触
 hold 保留区张数条件（2 件）、微熱ノスタルジー♡ 无 origin 字段不算偶像固有。
 下一项候选：**B2 按 B3 规则重训**（旧模型 FAIL）或 T5 剩余（fresh buff 需真机截图 /
 随机生成卡 RNG 需 T6 补采）→ 真机 T3→T1→T2。详见 [HANDOVER 二·补三十三](HANDOVER.md) /
-[RULES_REFERENCE §5.3](RULES_REFERENCE.md)。提交 `feat` + `docs`（哈希见 HANDOVER 七、最近提交记录）。
+[RULES_REFERENCE §5.3](RULES_REFERENCE.md)。提交 `feat fdcfe44` + `docs 56e8f95`（哈希见 HANDOVER 七、最近提交记录）。
 
 **上一轮交接记录（2026-11-22，B9 / T5④ P 道具持久倍率 / modifier 类效果）**：纯离线代码任务。
 语义来源 = gakumas-tools（BSD-3）`Executor/resolvers.js::resolveScore` f/g、`resolveCost`、
