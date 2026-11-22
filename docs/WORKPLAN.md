@@ -28,6 +28,7 @@
 | B2 全知数据训练 MLP 叶子 | `scripts/build_b2_dataset.py` + `train_b2_leaf.py` + `eval_b2.py`；beam 全知自对弈 26.5k 叶子样本 → MLP 104→96→48（val r²=0.943）；**确认段 120 局配对：beam 157.8 → 165.5（learned，+7.7 CI[+4.2,+11.2]）/ 166.9（ensemble 0.5，+9.0 CI[+5.8,+12.2]）**；CLEAR 95→98.3%、PERFECT 33.3→50%；within 用 learned 变差 −3.3（负结果记录）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件）**；`docs/EXPECTIMAX` B2 学习叶子（**B3 后旧模型失效，待重训**） |
 | B3 T5 机制建模（回合规则 + 核验表） | 模拟器对齐真机：每回合基础 **1 张** + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`（`sim/lesson`、`sim/expectimax`、`sim/uiobs` 等）；真机 39 回合配对回归（`tests/fixtures/t5_exam_turn_rules.json` + `scripts/export_t5_turn_rules.py`）；`RULES_REFERENCE.md` 重写逐条核验表；实机回放黄金值 12 条；重标定：`sim_engine_ab` expectimax 显著强于 rules（+342~+429 评价点）、B1 60 局 within 89.1→beam 95.7（+6.6，门 107.4% PASS）、B2 旧模型 FAIL 待重训；全量 pytest **985/1（986 收集 / 72 文件）**；`docs/HANDOVER` 二·补二十一 |
 | B4 T5① 审查倍率分段 + 联动惩罚 | `src/gkagent/sim/exam_multiplier.py`（分段折线 + 联动惩罚 + 客户端 f32/ceil 取整）+ `src/gkagent/data/exam_bonus.py`（主数据 → 配置）+ `LessonConfig.attribute_bonuses/turn_attributes`（模拟器按回合属性乘，含依赖分与回合末好印象）+ `policy.audition_coefficient`（真机屏幕「舞蹈 207%」→ 搜索倍率，日志 `attr=2.07`）；夹具 `tests/fixtures/t5_exam_multipliers.json`（11-20 采集局期中 Vo/Da/Vi **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**；Vi/Vo/Da 低于审查基准的联动惩罚已对上）；`tests/test_exam_multiplier.py` 21 条；全量 pytest **1006 passed / 1 skipped（1007 收集 / 73 文件）**；`docs/RULES_REFERENCE` §5.1 |
+| B5 T5② 熱意 + 温存解除 | `src/gkagent/sim/enthusiasm.py`（熱意获得/回合末清零/延長/温存解除纯规则）+ `LessonSim`/`ExpectState` 熱意字段与算分（集中之后、好调/指針之前；整数获得时 ceil）；温存解除 1 段 +5 熱意/2 段 +8 熱意 +5 固定元気 + 解除当回合 **+1 出牌次数**（同回合可重复）；卡牌效果 `ExamEnthusiasticAdditive/Multiple`（熱意追加/増加 buff）、`ExamEnthusiasticTurnAdd`（延長）、`ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）接入 `sim_produce`（MODELED_EFFECTS 29→32）与生产卡表 `play_choice`；回合边界 温存→全力 也结算解除收益；`tests/test_t5_enthusiasm.py` 16 条 + sim_produce/play_choice/mechanism 更新；全量 pytest **1023 passed / 1 skipped（1024 收集 / 74 文件）**；`docs/RULES_REFERENCE` §5.2 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -283,8 +284,9 @@
   650–1100→950–1450。
 - **测试/基线**：全量 pytest **985 passed / 1 skipped**（986 收集 / 72 文件）；
   ① 洗牌 4/4+3/3、③ 4/4 场 86/86+24/24、④ 36/36+3/3+29/29+beam 28 全部不变。
-- **下一步（T5 剩余）**：~~审查倍率分段+联动惩罚~~ ✅ B4；熱意（独立资源）、温存解除 +1 出牌/元气、
-  fresh buff 差一回合（真机截图核实）、P 道具数据接入；然后阶段 C/D。
+- **下一步（T5 剩余）**：~~审查倍率分段+联动惩罚~~ ✅ B4；~~熱意（独立资源）~~ ✅ B5；
+  ~~温存解除 +1 出牌/元气~~ ✅ B5；剩 fresh buff 差一回合（需真机截图核实）、P 道具数据接入；
+  然后阶段 C/D。
 
 ### B4. T5① 审查倍率分段 + 联动惩罚 ✅ 2026-11-22 完成
 - 目标：把「考试每回合属性倍率」从常量 4.11 换成客户端真实公式（分数表分段折线 + 审查基准
@@ -312,6 +314,32 @@
 - **如实记录的剩余差距**：真机逐分回放仍差 P 道具考试开始附魔 / `ExamStatusEnchant` 附魔触发 /
   考试内生成卡 / `ExamReviewMultiple`「次数」语义；本轮只锁「倍率本身与客户端公式一致」。
 - 细节见 [RULES_REFERENCE §5.1](RULES_REFERENCE.md) / HANDOVER 二·补二十五。
+
+### B5. T5② 熱意（enthusiasm）+ 温存解除额外次数/元气 ✅ 2026-11-22 完成
+- 目标：把「温存解除≈好调回合」的旧近似换成参考引擎的真实机制——熱意是独立整数分数资源
+  （出牌分加算），温存解除给 5/8 熱意 + 1 次出牌 + 2 段固定元気 5，回合末清零（有熱意延長则延長）；
+  并接入卡牌的熱意追加/増加/延長/本牌適用倍数效果。
+- **机制**（参考引擎 gakumas-tools BSD-3 `constants.js`/`resolvers.js`/`TurnManager.js`
+  + 官方 wiki 温存条）：熱意 1 点 = 本牌分数 +1（集中之后、好调/指針倍率之前）；
+  获得量 `(熱意追加 + N) × (1 + 熱意増加‰)`，`WHOLE_FIELDS` 获得时 ceil；温存 1 段解除
+  熱意+5 / 2 段 +8 + 固定元気+5，都会 **出牌次数+1**（同回合可重复解除叠加）；温存→温存2 升级不触发；
+  回合末熱意归 0（有熱意延長则 -1 保留）；温存→全力的回合边界切换也触发解除收益。
+- **落地**：`src/gkagent/sim/enthusiasm.py`（纯规则：`release_on_stance_change` / `enthusiasm_gain` /
+  `turn_end_enthusiasm`）；`LessonSim.enthusiasm/enthusiasm_extension_turns` + `Buffs` 熱意 buff；
+  `_card_award` 加熱意（含本牌 `enthusiasm_multiplier`）；`_apply_card_buffs` 登记熱意追加/増加/延長；
+  `_end_turn` 好印象加熱意后清零/延長 + 回合边界解除；`ExpectState` 镜像（字段/canonical/
+  `_card_award`/`_apply_card_effects`/`end_turn_state`/`state_from_sim`/`sim_from_state`）；
+  `CardSpec` 新增 5 个熱意字段；`sim_produce._effect_fields` + `play_choice._effect_fields`
+  把 `ExamEnthusiasticAdditive`（熱意追加）/`ExamEnthusiasticMultiple`（熱意増加）/
+  `ExamEnthusiasticTurnAdd`（延長）/`ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）
+  映射成字段，`MODELED_EFFECTS` 29→32。
+- **测试**：`tests/test_t5_enthusiasm.py` 16 条（纯规则/温存1/2解除/+1出牌/固定元気不吃やる気/
+  同回合重复解除/熱意算分/纯 buff 牌不加/回合末好印象加熱意/熱意追加/増加 buff/延長跨回合/
+  回合边界解除/本牌適用倍数/ExpectState 镜像）；`test_sim_produce.py` / `test_play_choice.py` /
+  `test_mechanism_corrections.py` 同步更新（旧「解除温存给好调回合」断言删除）。
+- **未建模（如实记录）**：のんびり（leisure）指針及其解除规则、全力回合額外出牌/保留牌回手、
+  P 道具/附魔来源的熱意、生产读屏未读熱意图标（每步从 0 估，同现有 buff 口径）。
+- 细节见 [RULES_REFERENCE §5.2](RULES_REFERENCE.md) / HANDOVER 二·补二十六。
 
 ---
 
@@ -433,7 +461,15 @@ turn=1/score=0/stamina 96.1%=starting_stamina/rules=55；见 GKBENCH §4.5 / HAN
 真机采集局夹具：期中 Vo/Da/Vi **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**（联动惩罚已对上）；
 `tests/test_exam_multiplier.py` 21 条，全量 pytest **1006/1（1007 收集 / 73 文件）**；
 见 WORKPLAN B4 / HANDOVER 二·补二十五 / RULES_REFERENCE §5.1。
-下一步继续 **T5 剩余机制**（熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）
+**B5（T5② 熱意 + 温存解除）也已完成（2026-11-22）**：`sim/enthusiasm.py` 纯规则 + `LessonSim`/
+`ExpectState` 熱意独立资源（出牌分加算、获得时 ceil、回合末清零/熱意延長）；温存解除
+1 段 +5 熱意 / 2 段 +8 熱意 +5 固定元気 + 解除当回合 **+1 出牌次数**（同回合可重复、温存→全力
+回合边界也触发）；卡牌效果 `ExamEnthusiasticAdditive/Multiple/TurnAdd` 与
+`ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）接入 `sim_produce`（MODELED_EFFECTS 29→32）
+与生产卡表；`tests/test_t5_enthusiasm.py` 16 条；全量 pytest **1023 passed / 1 skipped
+（1024 收集 / 74 文件）**（见 HANDOVER 二·补二十六）。
+未建模：のんびり指針、全力回合額外出牌/保留牌、P 道具/附魔来源、生产读屏未读熱意。
+下一步继续 **T5 剩余机制**（fresh buff 差一回合（需真机截图）、P 道具数据接入）
 → 阶段 C（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```

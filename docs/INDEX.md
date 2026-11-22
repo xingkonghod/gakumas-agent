@@ -238,7 +238,14 @@ UINet 578,722=0.4551 / official-ai 232,710=0.2131）；F0 预检用官方 `check
 **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**（低于审查基准的联动惩罚已对上）；
 `tests/test_exam_multiplier.py` 21 条；全量 pytest **1006 passed / 1 skipped**
 （1007 收集 / 73 文件）。细节见 [RULES_REFERENCE §5.1](RULES_REFERENCE.md) / HANDOVER 二·补二十五。
-阶段 A 全部完成、B1/B2/B3/B4/F0 完成、F 数据已下；下一步 **T5 剩余机制**
-（熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
+**同日 B5（T5②）已完成**（熱意 + 温存解除）：熱意改为**独立整数分数资源**（出牌分在集中之后加算、
+获得时向上取整、回合末清零/有「熱意延長」则保留）；温存解除 1 段 +5 熱意 / 2 段 +8 熱意
++5 固定元気（不吃やる気）+ 解除当回合 **+1 出牌次数**（同回合可重复、温存→全力回合边界也触发）；
+卡牌熱意追加/増加/延長/本牌適用倍数 ×2 接入 `sim_produce`（MODELED_EFFECTS 29→32）与生产卡表；
+`sim/enthusiasm.py` 纯规则 + `LessonSim`/`ExpectState` 镜像；`tests/test_t5_enthusiasm.py` 16 条；
+全量 pytest **1023 passed / 1 skipped（1024 收集 / 74 文件）**。
+细节见 [RULES_REFERENCE §5.2](RULES_REFERENCE.md) / HANDOVER 二·补二十六 / WORKPLAN B5。
+阶段 A 全部完成、B1/B2/B3/B4/B5/F0 完成、F 数据已下；下一步 **T5 剩余机制**
+（fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

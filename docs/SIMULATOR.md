@@ -414,3 +414,25 @@ A2（F#42）已把生产搜索改成 1 张；B3 把模拟器/评测/整局 A/B �
 - 400 局培育标定带 650–1100 → 950–1450（口径变化，见上）。
 
 
+
+## 15. 2026-11-22 B5：熱意（enthusiasm）+ 温存解除（MODELED_EFFECTS 29 → 32）
+
+**机制**（参考引擎 gakumas-tools BSD-3 `constants.js`/`resolvers.js`/`TurnManager.js` + 官方 wiki）：
+
+- **熱意 = 独立整数分数资源**：出牌分在集中加算之后、好调/指針倍率之前
+  `score += 熱意 × 本牌熱意適用倍数`；获得量 `(熱意追加 + N) × (1 + 熱意増加‰)`，
+  获得时向上取整（`WHOLE_FIELDS` ceil）；回合末归 0，有「熱意延長」则保留并 -1；
+- **温存解除**：1 段階 → 熱意 +5、出牌次数 +1；2 段階 → 熱意 +8、固定元気 +5（不吃やる気）、
+  出牌次数 +1；同回合重复解除可叠加；温存→温存2 升级不触发；温存→全力的回合边界切换也触发；
+- **来源**：`ExamEnthusiasticAdditive`（熱意追加 buff）/ `ExamEnthusiasticMultiple`（熱意増加‰ buff）/
+  `ExamEnthusiasticTurnAdd`（熱意延長）/ `ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）。
+
+**改动**：`sim/enthusiasm.py` 纯规则；`LessonSim`/`ExpectState` 熱意字段与算分、卡牌 buff、
+回合末清零/延長、回合边界解除（旧「温存解除≈好调回合」`_save_cards_used` 删除）；
+`CardSpec` 新增 6 个熱意字段；`sim_produce._effect_fields`（MODELED_EFFECTS 29→32）与
+`play_choice._effect_fields` 生产卡表映射。
+
+**回归**：`tests/test_t5_enthusiasm.py` 16 条；全量 pytest **1023 passed / 1 skipped
+（1024 收集 / 74 文件）**。未建模：のんびり指針、全力回合额外出牌/保留牌、P 道具/附魔来源、
+生产读屏未读熱意（每步按回合开始 0 估）。细节见 [RULES_REFERENCE §5.2](RULES_REFERENCE.md) /
+HANDOVER 二·补二十六。

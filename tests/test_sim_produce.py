@@ -652,7 +652,8 @@ def test_parameter_buff_condition_only_helps_later_cards() -> None:
 
 
 def test_new_effect_types_are_modeled() -> None:
-    """2026-11-16 新卡池 16 种效果全部进 MODELED_EFFECTS（13 → 29），旧集合不变。"""
+    """2026-11-16 新卡池 16 种效果全部进 MODELED_EFFECTS（13 → 29）；
+    T5② 2026-11-22 再加熱意追加/増加 → 31，旧集合不变。"""
     import sys
     from pathlib import Path
 
@@ -678,7 +679,14 @@ def test_new_effect_types_are_modeled() -> None:
         "ExamCardPlayAggressive",
     }
     assert new_types <= sp.MODELED_EFFECTS
-    assert len(sp.MODELED_EFFECTS) == 29
+    assert len(sp.MODELED_EFFECTS) == 32
+    # T5② 2026-11-22 熱意：追加/増加/本牌適用倍数 三种效果接入（熱意延長 2026-11-16 已在）
+    enthusiasm_types = {
+        "ExamEnthusiasticAdditive",
+        "ExamEnthusiasticMultiple",
+        "ExamMultipleEnthusiasticLesson",
+    }
+    assert enthusiasm_types <= sp.MODELED_EFFECTS
     assert not (new_types & sp.LEGACY_MODELED_EFFECTS)
     assert sp.LEGACY_MODELED_EFFECTS == {"ExamLesson", "ExamBlock", "ExamLessonBuff"}
 
@@ -817,7 +825,7 @@ def test_review_additive_and_full_power_lesson_turns_parse() -> None:
 
 
 def test_enthusiastic_grow_and_aggressive_parse() -> None:
-    """热意延长 → 好调回合；成长（values 空 → 0）；出牌干劲 → motivation。"""
+    """熱意延長/追加/増加、成长（values 空 → 0）、出牌干劲 → motivation。"""
     import sys
     from pathlib import Path
 
@@ -827,7 +835,28 @@ def test_enthusiastic_grow_and_aggressive_parse() -> None:
     enthusiastic = sp._effect_fields(
         {"effects": [{"type": "ExamEnthusiasticTurnAdd", "values": [1]}]}
     )
-    assert enthusiastic[1] == 1
+    assert enthusiastic[29] == 1  # T5② 熱意延長（不再并进好调回合数）
+    assert enthusiastic[1] == 0
+
+    additive = sp._effect_fields(
+        {"effects": [{"type": "ExamEnthusiasticAdditive", "values": [5], "turn": -1}]}
+    )
+    assert (additive[25], additive[26]) == (5, -1)  # 熱意追加 +5 永久
+
+    multiple = sp._effect_fields(
+        {"effects": [{"type": "ExamEnthusiasticMultiple", "values": [1000], "turn": 3}]}
+    )
+    assert (multiple[27], multiple[28]) == (1000, 3)  # 熱意増加 +1000‰ 3 回合
+
+    lesson = sp._effect_fields(
+        {
+            "effects": [
+                {"type": "ExamMultipleEnthusiasticLesson", "values": [3, 1000]}
+            ]
+        }
+    )
+    # 本牌直接打分 +3、本牌熱意適用倍数 1000+1000‰ = ×2
+    assert (lesson[0], lesson[30]) == (3, 2000)
 
     empty_grow = sp._effect_fields({"effects": [{"type": "ExamAddGrowEffect", "values": []}]})
     assert empty_grow[23] == 0
@@ -845,7 +874,7 @@ def test_enthusiastic_grow_and_aggressive_parse() -> None:
 
 
 def test_all_new_fields_pass_through_spec_from_row() -> None:
-    """25 元组后 11 个新字段全部能穿过 _spec_from_row，不再被静默丢掉。"""
+    """30 元组后 16 个新字段全部能穿过 _spec_from_row，不再被静默丢掉。"""
     import sys
     from pathlib import Path
 
@@ -880,6 +909,12 @@ def test_all_new_fields_pass_through_spec_from_row() -> None:
         full_power_lesson_multiple_turns=1,
         grow_score=50,
         motivation=4,
+        enthusiasm_bonus=5,
+        enthusiasm_bonus_turns=-1,
+        enthusiasm_multiple=1000,
+        enthusiasm_multiple_turns=3,
+        enthusiasm_extension=1,
+        enthusiasm_multiplier=2000,
     )
     spec = sp._spec_from_row(row)
     assert (
@@ -894,7 +929,13 @@ def test_all_new_fields_pass_through_spec_from_row() -> None:
         spec.full_power_lesson_multiple_turns,
         spec.grow_score,
         spec.motivation,
-    ) == (7, 800, True, 900, 3, 2, 2, 100, 1, 50, 4)
+        spec.enthusiasm_bonus,
+        spec.enthusiasm_bonus_turns,
+        spec.enthusiasm_multiple,
+        spec.enthusiasm_multiple_turns,
+        spec.enthusiasm_extension,
+        spec.enthusiasm_multiplier,
+    ) == (7, 800, True, 900, 3, 2, 2, 100, 1, 50, 4, 5, -1, 1000, 3, 1, 2000)
     # 旧字段不受影响
     assert (spec.score, spec.condition, spec.focus, spec.draw, spec.vitality) == (10, 2, 3, 4, 6)
 
@@ -944,7 +985,18 @@ def test_real_new_cards_parse_to_expected_fields() -> None:
     assert (encore[16], encore[17]) == (1, 500)  # 再演 / 好印象强化 +50%
 
     now = sp._effect_fields(table["作为结果的现在"])
-    assert (now[14], now[1]) == (4, 1)  # 回复 4 体力 / 热意延长 1 回合
+    assert (now[14], now[29]) == (4, 1)  # 回复 4 体力 / 熱意延長 1 回合
+
+    # T5② 熱意真实卡：新生的光芒（温存2 + 熱意追加 +5 永久）
+    fresh = sp._effect_fields(table["新生的光芒"])
+    assert (fresh[6], fresh[25], fresh[26]) == (2, 5, -1)
+    # 火力全开（温存1 + 熱意増加 +1000‰ 3 回合）
+    throttle = sp._effect_fields(table["火力全开"])
+    assert (throttle[6], throttle[27], throttle[28]) == (1, 1000, 3)
+    # 手を伸ばした先に（本牌打分 +1、熱意適用倍数 1000+1000‰ = ×2）
+    reach = sp._effect_fields(table["伸手所向之处"])
+    assert (reach[0], reach[30]) == (1, 2000)
+    assert sp._spec_from_row(sp._rich_row("新生的光芒", 4, fresh)).enthusiasm_bonus == 5
 
     wind = sp._effect_fields(table["我就是、风！"])
     assert (wind[0], wind[15], wind[21]) == (2, 1200, 100)  # 固定分 / 折算 / 全力强化

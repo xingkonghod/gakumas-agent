@@ -31,12 +31,14 @@
 > 只按本表逐条对齐「机制」；F1 用官方种子做同题同种子复算时，起点状态用 `check`（turn/score/stamina），
 > 并注明对比的 rules 版本。
 
-## 0. 一句话结论（B3 + T5① 后）
+## 0. 一句话结论（B3 + T5① + T5② 后）
 
 分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
-**跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**
-都已按参考引擎/客户端语义/真机对齐；剩余差距是 **熱意（enthusiasm）** 与
-**温存解除的额外次数/元气**、**P 道具/附魔**、**fresh buff 的差一回合衰减**、
+**跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**、
+**熱意（enthusiasm）与温存解除**（熱意 +5/+8、2 段固定元気 +5、解除当回合 +1 出牌次数、
+熱意算分/获得取整/回合末清零与延長、本牌熱意適用倍数）
+都已按参考引擎/客户端语义/真机对齐；剩余差距是 **P 道具/附魔**、
+**fresh buff 的差一回合衰减**、**のんびり（leisure）指針与全力回合額外出牌/保留牌**、
 **依赖分结算顺序**（我们保守口径）等。
 
 ---
@@ -51,7 +53,7 @@
 | 额外出牌 = 使用次数 +N | `ExamPlayableValueAdd` 效果（卡 / P 道具）加 `cardUsesRemaining`；真机 7 个 2 张回合里 3 个首张牌带该效果 | `CardSpec.extra_play` → `LessonSim.extra_plays` / `ExpectState.extra_plays` | ✅ 卡效果；⚠️ P 道具数据未接入 | `test_extra_play_keeps_turn_open_then_auto_ends`、fixture |
 | 每回合开始抽 3 张（手牌 3） | `TurnManager.startTurn`: `cardsToDraw = max(3 - handDecrease, 0)` | `LessonConfig.hand_size=3`，每回合 `_draw_hand` | ✅（handDecrease 未建模 ⚠️） | `test_sim_lesson.py` 各回合测试 |
 | 抽牌/手牌**上限 5** | `CardManager.drawCard`: `if handCards.length >= 5 return` | `LessonSim._draw` 不设上限 | ⚠️ 只有抽牌卡溢出时才不同 | — |
-| 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | 只把熱意近似成「好调回合 = 温存期间打出数+1」，不加额外次数/元气 | ❌ 待补（T5） | `test_save_release_gives_heat_turns`（旧近似） |
+| 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | T5②（2026-11-22）按参考引擎实现：熱意独立资源 +5/+8、2 段**固定元気 +5**（不吃やる気）、解除当回合 **+1 出牌次数**；回合末熱意清零（有熱意延長则保留）；同回合重复解除可叠加 | ✅（のんびり/全力回合额外出牌未建模） | `tests/test_t5_enthusiasm.py`（纯规则 + LessonSim） |
 | 全力回合：+1 次出牌、保留牌回手 | `constants.js FULL_POWER_EFFECTS` / `FULL_POWER_CHANGED_EFFECTS` | 只建模全力 ×3 分数与全力值消耗 | ⚠️ 额外次数/保留牌未建模 | `test_full_power_point_triggers_triple_next_turn` |
 | 饮料不占出牌次数 | 真机 UI/用户确认 | `use_drink` 不动 `plays_this_turn` | ✅ | `test_mechanism_corrections.py::test_drinking_does_not_consume_play_slots` |
 | `turnSkipped` 是独立触发时机（P 道具） | `PHASES` 含 `turnSkipped`；master 里 12 个 turn_skip P 道具 | P 道具接口只触发 turn_start/turn_end/card_play/status_gain | ⚠️ 跳过类 P 道具未触发 | — |
@@ -80,7 +82,7 @@
 |---|---|---|---|---|
 | 集中加在白值上（乘之前） | `resolveScore` a；实机 250% 情熱ターン 集中 0/3/6 → 28/35/43 | `_card_award`: `(base + focus) × …` | ✅ | `test_audition_multiplier_matches_captured_real_machine_scores` |
 | やる気（motivation）→ **元气获得量** | `resolveGenki`: `genki += motivation × multiplier`；实机回放 やる気 放大元气 | `motivation` 字段：获得元气时 `vitality += value + motivation` | ✅ | `test_mechanism_corrections.py::test_motivation_and_vitality_are_separate_and_persist` |
-| 熱意（enthusiasm）→ **本牌分数加算** | `resolveScore` b：`score += enthusiasm × multiplier`；温存解除给 5/8 熱意 | 没有独立熱意资源；温存解除近似成好调回合 | ❌ 待补（会高估/低估分数，方向不定） | — |
+| 熱意（enthusiasm）→ **本牌分数加算** | `resolveScore` b：`score += enthusiasm × enthusiasmMultiplier`；温存解除给 5/8；熱意属 `WHOLE_FIELDS`，获得时向上取整；`ExamMultipleEnthusiasticLesson` 本牌倍数 ×2 | `sim/enthusiasm.py` + `LessonSim.enthusiasm` / `ExpectState.enthusiasm`（整数）；`CardSpec.enthusiasm_bonus / enthusiasm_multiple / enthusiasm_extension / enthusiasm_multiplier`；生产卡表 `_effect_fields` 映射 | ✅（のんびり/P 道具来源未建模） | `tests/test_t5_enthusiasm.py` 16 条 |
 | 好调倍率 `1+(0.5+绝好调0.1×g)×倍率` | `resolveScore` d；wiki `1.5+0.1×好调回合`（绝好调） | `Buffs.condition_turns/perfect_condition_turns` 同式 | ✅ | `test_lesson_rules_reference.py` |
 | 指針倍率（0.5/0.25/2/2.5/3） | `resolveScore` e；实机回放 強気 9→18、温存 9→5/15→8 | `sim/stance.py MULTIPLIER` | ✅ | `test_preservation_card_halves_later_scores`、实机黄金值 |
 | 指針牌费（温存减半/強気双倍/強気2 穿透 1） | `resolveCost`（费用是负数，`floor(-cost×m)` = 绝对值向上取整） | `_effective_cost` 用 `ceil(cost×m)`（同语义） | ✅ | `test_mechanism_corrections.py::test_stance_cost_modifiers_and_strong_pierce` |
@@ -102,6 +104,7 @@
 | 好印象回合推进 -1 | `BuffManager.decrementBuffTurns`（`EOT_DECREMENT_FIELDS` 含 goodImpressionTurns） | 下一回合开始时 -1（最低 0） | ✅ | `test_depend_exam_review_*` |
 | 年金 `W(r,T) = r+(r-1)+…` | 上述逐回合结算的闭式；解析叶子用它估未来分 | `AnalyticLeafValue.impression_annuity` | ✅（与参考同语义） | `tests/test_expectimax.py` 相关用例 |
 | 好调/绝好调/不调回合数衰减 | `EOT_DECREMENT_FIELDS` | `_end_turn` / `end_turn_state` 各 -1 | ✅ | `test_new_condition_buffs_tick_down_at_turn_end_in_both_engines` |
+| 熱意回合末清零 / 熱意延長 | `TurnManager.endTurn`：好印象结算之后，`enthusiasmExtensionTurns>0` 则 -1、否则 `enthusiasm=0`；好印象结算在清零之前（会加熱意） | `enthusiasm.turn_end_enthusiasm`；`LessonSim._end_turn` / `ExpectState.end_turn_state` | ✅ | `test_enthusiasm_extension_keeps_enthusiasm_across_turn_end`、`test_turn_end_good_impression_adds_enthusiasm` |
 | **fresh buff 保护**：获得 buff 的当回合末不扣 1（回合末从 0→正 的字段打 fresh 标记跳过衰减） | `Executor/index.js` L271-279「Protect fresh stats from decrement」+ `BuffManager.decrementBuffTurns` | 我们的 buff 当回合末就 -1（**少 1 回合持续**） | ❌/⚠️ 未真机核实；参考引擎的 fidelity 截图常省略回合末 buff 数 | 待真机逐回合截图验证（T6） |
 | 好印象强化 / 好调加算 / 全力强化 持续回合 | `ExamReviewMultiple` / `ExamParameterBuffAdditiveFix` / `ExamFullPowerLessonMultipleAdditive` | `Buffs.review_multiple` 等 + `_tick_buff_turns` | ✅ | `test_review_multiple_*`、`test_condition_additive_*` |
 | メタモルフォーゼ 支度→披露（半场自动翻转） | `TurnManager.endTurn`: `turnsElapsed >= floor(turnCount/2)` | 只有外部设置的 `Buffs.metamorphosis`，不自动翻转 | ❌ 小（需要偶像特性数据） | — |
@@ -165,12 +168,37 @@
   `ExamStatusEnchant` 附魔触发、考试内生成卡、`ExamReviewMultiple`「次数」语义（我们按千分比）。
   这轮只保证**倍率本身**与客户端公式/主数据一致，逐分回放等这些机制补齐后再锁。
 
+### 5.2 T5② 熱意 + 温存解除（2026-11-22 完成）
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **熱意独立资源**：整数、回合内有效；出牌分在集中之后、好调/指針倍率之前加算（`score += 熱意 × 本牌熱意適用倍数`）；回合末归 0 | `sim/enthusiasm.py`（纯规则）+ `LessonSim.enthusiasm` + `ExpectState.enthusiasm` | 参考引擎 `Executor/resolvers.js:131-132`（resolveScore b）、`TurnManager.js:160-164`（延長/清零）；官方 wiki 温存描述 | `tests/test_t5_enthusiasm.py` |
+| **温存解除**：1 段階 熱意+5 / 2 段階 熱意+8 + **固定元気+5**（不吃やる気）+ 解除当回合 **出牌次数+1**；同回合重复解除可叠加；温存段階升级（save→save2）不触发 | `sim/enthusiasm.py::release_on_stance_change`；`LessonSim.step` / `ExpectState._apply_card_effects` | `constants.js STANCE_CHANGED_EFFECTS`（:49-56）、`BuffManager.setStance`（:285-290）同步触发 | 同上 |
+| **熱意获得公式**：`(熱意追加 + N) × (1 + 熱意増加‰)`，获得时向上取整（WHOLE_FIELDS ceil） | `sim/enthusiasm.py::enthusiasm_gain` | `resolveEnthusiasm`（resolvers.js:339-349）+ `WHOLE_FIELDS` 处理（Executor/index.js:493-500）；wiki「計算後切り上げ」 | 同上 |
+| **卡牌来源接入**：`ExamEnthusiasticAdditive`（熱意追加 buff）/ `ExamEnthusiasticMultiple`（熱意増加 buff‰）/ `ExamEnthusiasticTurnAdd`（熱意延長）/ `ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2，卡面「熱意效果会2倍生效」） | `scripts/sim_produce.py`（CardRow/`_effect_fields`，MODELED_EFFECTS 29→32）+ `sim/play_choice.py`（生产卡表 → CardSpec） | 主数据 `ProduceExamEffect.yaml` 实例（`-0005-inf` 等）+ 官方 wiki 词条；卡例「あたらしい光」「フルスロットル」「結果としての今」「手を伸ばした先に」 | `test_sim_produce.py` / `test_play_choice.py` |
+| **回合边界解除**：温存→全力（全力值攒满）在回合末切换时也结算解除收益（+5 熱意 / +1 新回合出牌次数；2 段 +5 元気） | `LessonSim._end_turn` / `ExpectState.end_turn_state` | 参考引擎 `TurnManager.startTurn` 的 `FULL_POWER_EFFECTS`（setStance(fullPower) 触发 STANCE_CHANGED_EFFECTS） | `test_save_release_at_turn_boundary_grants_next_turn_extra_play` |
+
+**口径与剩余差距（如实记录）**：
+
+- のんびり（leisure）指針本模拟器没建模：其解除规则（固定元気+5、熱意+10、のんびり→全力
+  `g.score+10`）未实现；全力回合的 +1 出牌次数/保留牌回手也未建模（这两项在 §1 仍标 ⚠️）。
+- 参考引擎 fidelity 的实机黄金值只用于口径核对（`training-fidelity.md`：温存 9/2/15→5/1/8 +
+  「leaving 温存 grants 5 熱意 and an extra use」；`contest-fidelity.md`：温存 2 段解除给
+  5 元気/8 熱意/额外出牌、のんびり→強気 元気+5 熱意+10）；我们没有逐帧 fixture JSON，未做逐分回放。
+- 生产读屏还没读熱意图标/当前温存段階：`policy/lesson.py::_search_state` 每步按回合开始（熱意 0）建模，
+  同回合第二张（額外出牌）时不会带上上一张刚获得的熱意——与现有「不读好调/集中层数」同口径；
+  真机逐分核对留到 T6/读屏补强。
+- B2 学习叶子的 104 维特征里 `save_cards_used` 已废弃（恒 0），重训时再换熱意特征；模型本来就要重训。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
    剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
-2. **熱意（enthusiasm）**：需要独立资源字段（分数加算 + 来源：温存解除 +5/+8、其它卡）。
-3. **温存解除的额外出牌次数/元气**：异常（アノマリー）方案核心机制。
+2. ~~**熱意（enthusiasm）**~~ ✅ **2026-11-22 T5② 完成**：独立整数资源（出牌分加算 +
+   温存解除 +5/+8 等来源 + 熱意追加/増加/延長/本牌適用倍数卡牌效果 + 回合末清零/延長）；
+   见 §5.2。剩余来源（のんびり/P 道具）未建模。
+3. ~~**温存解除的额外出牌次数/元气**~~ ✅ **2026-11-22 T5② 完成**：+1 出牌次数、2 段 +5 固定元気、
+   同回合重复解除可叠加；见 §5.2。全力回合額外次数/保留牌仍未建模。
 4. **fresh buff 保护**（差一回合）：好调/好印象/绝好调持续时间可能整体少 1 回合，需真机逐回合截图核实。
 5. **P 道具数据接入**（produce 侧 P 道具列表未采集；`p_items.json` 有 1068 条效果模板）。
 6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
@@ -201,6 +229,9 @@
 .venv\Scripts\python.exe scripts\export_exam_multipliers.py          # 从采集+主数据重导夹具
 .venv\Scripts\python.exe scripts\export_exam_multipliers.py --check  # 只校验夹具没漂
 .venv\Scripts\python.exe -m pytest tests\test_exam_multiplier.py -q
+
+# T5② 熱意 + 温存解除（纯规则 / LessonSim / ExpectState 镜像 / 生产卡表映射）
+.venv\Scripts\python.exe -m pytest tests\test_t5_enthusiasm.py -q
 ```
 
 ## 许可

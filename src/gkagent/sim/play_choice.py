@@ -113,6 +113,19 @@ def _default_table() -> CardTable:
 _DEPENDENT_BUFF_FLOOR = 1
 
 
+def _effect_turns(effect: dict) -> int:
+    """持续类效果的回合：``turn < 0`` = 永久（-1），否则至少 1 回合。"""
+    turn = int(effect.get("turn") or 0)
+    return -1 if turn < 0 else max(1, turn)
+
+
+def _merge_effect_turns(current: int, new: int) -> int:
+    """合并同类型持续效果的回合：任一永久则永久，否则取更长。"""
+    if current < 0 or new < 0:
+        return -1
+    return max(current, new)
+
+
 def _effect_fields(row: dict) -> dict[str, int]:
     """卡表 effects → CardSpec 的附加字段（只认战斗里已建模的效果）。"""
     fields: dict[str, int] = {
@@ -128,6 +141,13 @@ def _effect_fields(row: dict) -> dict[str, int]:
         "preservation": 0,
         "full_power_point": 0,
         "strong_level": 0,
+        # T5② 熱意（enthusiasm）：追加/増加是 buff（带回合），延長是回合数
+        "enthusiasm_bonus": 0,
+        "enthusiasm_bonus_turns": 0,
+        "enthusiasm_multiple": 0,
+        "enthusiasm_multiple_turns": 0,
+        "enthusiasm_extension": 0,
+        "enthusiasm_multiplier": 1000,
     }
     mapping = {
         "ExamLessonBuff": "condition",
@@ -152,6 +172,32 @@ def _effect_fields(row: dict) -> dict[str, int]:
             # 好调层数依赖 parameter buff，模拟器没有该状态：按下限 1 回合记。
             fields["condition"] = max(fields["condition"], _DEPENDENT_BUFF_FLOOR)
             continue
+        if kind in ("ExamEnthusiasticAdditive", "ExamEnthusiasticMultiple"):
+            # 熱意追加（加算）/ 熱意増加（千分比）：buff 持续回合来自 effect.turn
+            field = (
+                "enthusiasm_bonus"
+                if kind == "ExamEnthusiasticAdditive"
+                else "enthusiasm_multiple"
+            )
+            turns_field = f"{field}_turns"
+            fields[field] = max(fields[field], int(values[0]))
+            fields[turns_field] = _merge_effect_turns(
+                fields[turns_field], _effect_turns(effect)
+            )
+            continue
+        if kind == "ExamEnthusiasticTurnAdd":
+            # 熱意延長：回合末不清零的回合数（直接累加）
+            fields["enthusiasm_extension"] = max(
+                fields["enthusiasm_extension"], int(values[0])
+            )
+            continue
+        if kind == "ExamMultipleEnthusiasticLesson":
+            # 本牌熱意適用倍数：values[1] = 追加千分比（1000 → ×2）
+            if len(values) >= 2:
+                fields["enthusiasm_multiplier"] = max(
+                    fields["enthusiasm_multiplier"], 1000 + int(values[1])
+                )
+            continue
         field = mapping.get(kind)
         if field is None:
             continue
@@ -160,11 +206,16 @@ def _effect_fields(row: dict) -> dict[str, int]:
 
 
 def _score_from_row(name: str, table: CardTable) -> float:
-    """卡面打分数值：卡表 ExamLesson（多段 count 要乘上）。"""
+    """卡面打分数值：卡表 ExamLesson（多段 count 要乘上）。
+
+    ``ExamMultipleEnthusiasticLesson`` 的 ``values[0]`` 也是本牌直接打分加算
+    （T5② 熱意適用倍数牌，如「手を伸ばした先に」），一并计入。
+    """
     row = table.get(name) or {}
     best = 0
     for effect in row.get("effects") or []:
-        if effect.get("type") != "ExamLesson":
+        kind = str(effect.get("type") or "")
+        if kind not in ("ExamLesson", "ExamMultipleEnthusiasticLesson"):
             continue
         values = [value for value in effect.get("values") or [] if value]
         if not values:

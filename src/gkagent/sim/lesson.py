@@ -123,8 +123,12 @@
 - ``ExamFullPowerLessonMultipleAdditive`` → ``full_power_lesson_multiple`` /
   ``..._turns``：全力强化，放大 ``ExamLessonFullPowerPoint`` 折算出的分数
   （``int(分 × (1000 + 值) / 1000)``，卡表 100 = 卡面 +10%）；
-- ``ExamEnthusiasticTurnAdd`` → 解析进 ``condition``：好调回合数 +``values[0]``
-  （模拟器没有独立的「热意」资源，按任务口径并进好调回合数）；
+- ``ExamEnthusiasticTurnAdd`` → ``enthusiasm_extension``：熱意延長，回合末不把
+  本回合的熱意清零、改为消耗 1 层延長（参考引擎 ``TurnManager.endTurn``）；
+- ``ExamEnthusiasticAdditive`` → ``enthusiasm_bonus`` / ``..._turns``：熱意追加
+  加算 buff（获得熱意时 ``+值``）；
+- ``ExamEnthusiasticMultiple`` → ``enthusiasm_multiple`` / ``..._turns``：熱意増加
+  千分比 buff（获得熱意时 ``×(1+值/1000)``）；
 - ``ExamAddGrowEffect`` → ``grow_score``：成长。同一张牌第 k 次使用（k 从 1 起）
   时按 ``score × (1 + (k-1) × grow_score / 100)`` 计分，计数器按牌对象记在
   ``LessonSim.card_uses``。**数据缺口**：卡表里该效果的 ``values`` 为空
@@ -153,6 +157,19 @@
   +N；真机可能是限时/按次数，这里按永久，长期战斗**高估**元气收益
   （课程里元气只抵牌费，对分数影响小）。
 
+**熱意（enthusiasm）+ 温存解除（T5② 2026-11-22）**：独立的回合内分数资源，
+不再是以前「温存解除≈好调回合」的近似——``LessonSim.enthusiasm`` 保存当前值，
+本牌算分时 ``score += 熱意 × 本牌熱意適用倍数``（在集中之后、好调/指針倍率之前，同参考引擎
+``resolveScore`` b；熱意是整数、获得时向上取整；倍数默认 ×1，``ExamMultipleEnthusiasticLesson``
+的牌是 ×2）；回合末归 0（有 ``enthusiasm_extension`` 则消耗 1 层延長并保留）。
+温存解除按参考引擎 ``constants.js STANCE_CHANGED_EFFECTS`` 结算：1 段階解除
+熱意 +5、2 段階 +8，解除当回合出牌次数 +1，2 段階还额外 +5 固定元気（不吃干劲）。
+获得量 ``(熱意追加 + 基础值) × (1 + 熱意増加‰)``，常量与口径见
+``sim/enthusiasm.py``（BSD-3 参考引擎 + 官方 wiki 描述；wiki 的 ceil 与参考引擎
+不取整的差异记录在那里）。**未建模**：のんびり（leisure）指針的解除规则、
+P 道具/附魔触发的熱意、以及同一张牌里「温存→強気→温存」这种净指針不变的
+中间解除（我们只看本牌结算前后指針，中间状态看不到）。
+
 接口约定：``legal_actions()`` / ``step(action)`` 里的 ``Action`` 是
 **手牌下标（int）或 None**，``None`` 表示 SKIP（结束本回合）；饮料是独立接口
 ``legal_drinks()`` / ``use_drink(index)``，不混进 ``Action``。
@@ -172,6 +189,11 @@ from gkagent.data.plans import (
     Plan,
     default_plan_library,
     normalize_plan,
+)
+from gkagent.sim.enthusiasm import (
+    enthusiasm_gain,
+    release_on_stance_change,
+    turn_end_enthusiasm,
 )
 from gkagent.sim.exam_multiplier import battle_bonus_score
 from gkagent.sim.p_items import (
@@ -300,6 +322,17 @@ class CardSpec:
       按 ``score × (1 + (k-1) × grow_score/100)`` 计分；卡表该效果 ``values``
       为空（成长量在未下载的 ProduceCardGrowEffect 表里），所以真实卡现在
       恒为 0，机制留给有数据时使用。
+
+    T5②（2026-11-22）熱意字段（全部默认 0 = 旧行为）：
+
+    - ``enthusiasm_bonus`` / ``enthusiasm_bonus_turns``：``ExamEnthusiasticAdditive``
+      熱意追加（获得熱意时加算；``turns=-1`` 永久）；
+    - ``enthusiasm_multiple`` / ``enthusiasm_multiple_turns``：
+      ``ExamEnthusiasticMultiple`` 熱意増加（千分比，获得熱意时 ×(1+值/1000)）；
+    - ``enthusiasm_extension``：``ExamEnthusiasticTurnAdd`` 熱意延長（本場次回合末
+      不清零、改为消耗 1 层延長）；
+    - ``enthusiasm_multiplier``：``ExamMultipleEnthusiasticLesson`` 本牌熱意適用倍数
+      （千分比，默认 1000 = ×1；卡面「熱意效果会2倍生效」= 2000）。
     """
 
     name: str
@@ -343,6 +376,18 @@ class CardSpec:
     # 「レッスン中1回」：本场用掉后进除外区，不再回牌库/弃牌堆（牌库压缩）。
     # 卡表/读屏给不出这个属性时默认 False（按可重复卡处理，保守口径见模块 docstring）。
     once: bool = False
+    # ---- T5② 2026-11-22：熱意资源（默认 0 = 旧行为，见模块 docstring 与 enthusiasm.py）----
+    # ExamEnthusiasticAdditive：熱意追加（获得熱意时加算），turns=-1 永久
+    enthusiasm_bonus: int = 0
+    enthusiasm_bonus_turns: int = 0
+    # ExamEnthusiasticMultiple：熱意増加（获得熱意时乘 1+值/1000），turns=-1 永久
+    enthusiasm_multiple: int = 0
+    enthusiasm_multiple_turns: int = 0
+    # ExamEnthusiasticTurnAdd：熱意延長（回合末不清零，延長回合数 +值）
+    enthusiasm_extension: int = 0
+    # ExamMultipleEnthusiasticLesson：本牌熱意適用倍数（千分比，1000 = ×1；
+    # 卡面「熱意效果会2倍生效」= 2000）
+    enthusiasm_multiplier: int = 1000
 
 
 @dataclass(frozen=True)
@@ -439,6 +484,11 @@ class Buffs:
     review_multiple_turns: int = 0
     full_power_lesson_multiple: int = 0  # 全力强化千分比（ExamFullPowerLessonMultipleAdditive）
     full_power_lesson_multiple_turns: int = 0
+    # T5② 熱意 buff：熱意追加（加算）/ 熱意増加（千分比）；turns=0 未激活、-1 永久
+    enthusiasm_bonus: int = 0
+    enthusiasm_bonus_turns: int = 0
+    enthusiasm_multiple: int = 0
+    enthusiasm_multiple_turns: int = 0
 
 
 class LessonSim:
@@ -484,8 +534,11 @@ class LessonSim:
         self.extra_plays: int = 0
         # 非凡指針：温存 / 強気 / 全力 的倍率状态（纯函数模块 stance.py）
         self.stance = StanceState()
-        # 温存期间打出的牌数：解除温存时按「使用数 + 1」给热意（近似成好调回合）
-        self._save_cards_used: int = 0
+        # 熱意（enthusiasm）：回合内分数资源（整数，获得时向上取整），回合末归 0；
+        # 温存解除给 5/8（见 enthusiasm.py）
+        self.enthusiasm: int = 0
+        # 熱意延長（ExamEnthusiasticTurnAdd）：>0 时回合末保留熱意并把延長 -1
+        self.enthusiasm_extension_turns: int = 0
         # 方案（プラン）：greedy_policy 按它决定先铺哪些 buff；未知值退回 sense。
         self.plan = normalize_plan(getattr(config, "plan", DEFAULT_PLAN)) or DEFAULT_PLAN
         self.plan_config: Plan = default_plan_library().get(self.plan)
@@ -533,7 +586,6 @@ class LessonSim:
         self.rng.shuffle(self.deck)
         self.discard.clear()
         self.excluded.clear()
-        self._save_cards_used = 0
         self._min_cost = min((card.cost for card in self.deck), default=0)
 
     # ------------------------------------------------------------------ 状态
@@ -706,7 +758,7 @@ class LessonSim:
 
         self.hand.pop(action)
         self.plays_this_turn += 1
-        previous_stance = self.stance.stance
+        previous_stance = self.stance
         # 再演（ExamStatusEnchantEncore）：本牌直接效果执行两次；牌费只付一次，
         # 成长计数器仍按"打出这张牌一次"计。倍率类字段不翻倍（避免百分比乘方）。
         effect_card = self._encore_card(card) if card.encore else card
@@ -722,13 +774,22 @@ class LessonSim:
             )
         self._apply_card_buffs(effect_card)
         self._apply_card_stance(effect_card)
-        # 温存解除时给热意（近似成好调回合）：使用数 + 1
+        # 温存解除（参考引擎 STANCE_CHANGED_EFFECTS）：熱意 +5/+8、2 段階固定元気 +5、
+        # 当回合出牌次数 +1；同回合内反复「温存→強気」按次数重复触发。旧实现把熱意
+        # 近似成好调回合，T5② 2026-11-22 改为独立熱意资源（见 enthusiasm.py）。
         if getattr(self.config, "stance_costs", True):
-            if self.stance.stance == "save":
-                self._save_cards_used += 1
-            elif previous_stance == "save":
-                self.buffs.condition_turns += self._save_cards_used + 1
-                self._save_cards_used = 0
+            release_enthusiasm, release_genki, release_plays = (
+                release_on_stance_change(previous_stance, self.stance)
+            )
+            if release_enthusiasm or release_genki or release_plays:
+                self.enthusiasm += enthusiasm_gain(
+                    release_enthusiasm,
+                    bonus=self.buffs.enthusiasm_bonus,
+                    multiple_permil=self.buffs.enthusiasm_multiple,
+                )
+                # 固定元気：不吃「やる気」加成（参考引擎 resolveFixedGenki）
+                self.vitality += release_genki
+                self.extra_plays += release_plays
         # 本牌结算后追加本回合可出牌次数（本牌本身仍占一次）
         if effect_card.extra_play > 0:
             self.extra_plays += effect_card.extra_play
@@ -790,10 +851,13 @@ class LessonSim:
             full_power_point=card.full_power_point * 2,
             extra_play=card.extra_play * 2,
             stamina_recover=card.stamina_recover * 2,
+            # 熱意追加是加算层数、熱意延長是回合数：再演执行两次 → 数值翻倍
+            enthusiasm_bonus=card.enthusiasm_bonus * 2,
+            enthusiasm_extension=card.enthusiasm_extension * 2,
         )
 
     def _card_award(self, card: CardSpec, *, uses: int = 0) -> int:
-        """本牌的得分：``(score + focus) × 好调倍率 × 属性倍率 × 指針倍率``
+        """本牌的得分：``(score + focus + 熱意) × 好调倍率 × 属性倍率 × 指針倍率``
         + 好印象依赖分 + 元气依赖分 + 全力值折算分，最后再乘审查基准加成，
         逐段向下取整。
 
@@ -849,7 +913,15 @@ class LessonSim:
                 multiplier = 1.0 + condition_bonus
             else:
                 multiplier = 1.0
-            raw = (base_score + self.buffs.focus) * multiplier * score_multiplier(self.stance)
+            # 熱意（T5②）：集中加算之后、好调/指針倍率之前加进白值（参考引擎
+            # resolveScore b 的 ``score += enthusiasm × enthusiasmMultiplier``；
+            # 乘完后统一 safeCeil 一次，与参考引擎在 buff 段 ceil 的口径一致）。
+            enthusiasm_score = self.enthusiasm * card.enthusiasm_multiplier / 1000.0
+            raw = (
+                (base_score + self.buffs.focus + enthusiasm_score)
+                * multiplier
+                * score_multiplier(self.stance)
+            )
             # メタモルフォーゼ：披露 +25% 分数增益；支度 ×0.75（作用在减益基数上）
             if self.buffs.metamorphosis == "performance":
                 raw *= 1.25
@@ -955,7 +1027,10 @@ class LessonSim:
           好调；本模拟器把延迟好调也近似成本回合给，见模块 docstring）；
         - 好调回合数 = ``condition`` + 当前生效的 ``condition_additive``；
         - 元气获得量 = ``vitality + motivation``；``motivation`` 来自
-          ``ExamCardPlayAggressive``（近似为永久干劲，见模块 docstring）。
+          ``ExamCardPlayAggressive``（近似为永久干劲，见模块 docstring）；
+        - ``ExamEnthusiasticAdditive`` / ``ExamEnthusiasticMultiple`` 登记成熱意
+          追加/増加 buff（影响**之后**的温存解除等熱意获得）；
+          ``ExamEnthusiasticTurnAdd`` 直接累加 ``enthusiasm_extension_turns``。
         """
         if card.condition_additive > 0:
             self.buffs.condition_additive = max(
@@ -981,6 +1056,29 @@ class LessonSim:
                 if card.full_power_lesson_multiple_turns
                 else 1,
             )
+        # 熱意系（T5② 2026-11-22）：追加=加算、増加=千分比、延長=回合数。
+        # 同类型多来源时取最大值（参考引擎是加算叠加；卡池里极少同场两张，
+        # 这里与其它持续 buff 保持同一保守口径，见模块 docstring）。
+        if card.enthusiasm_bonus > 0:
+            self.buffs.enthusiasm_bonus = max(
+                self.buffs.enthusiasm_bonus, card.enthusiasm_bonus
+            )
+            self.buffs.enthusiasm_bonus_turns = _merge_buff_turns(
+                self.buffs.enthusiasm_bonus_turns,
+                card.enthusiasm_bonus_turns if card.enthusiasm_bonus_turns else 1,
+            )
+        if card.enthusiasm_multiple > 0:
+            self.buffs.enthusiasm_multiple = max(
+                self.buffs.enthusiasm_multiple, card.enthusiasm_multiple
+            )
+            self.buffs.enthusiasm_multiple_turns = _merge_buff_turns(
+                self.buffs.enthusiasm_multiple_turns,
+                card.enthusiasm_multiple_turns
+                if card.enthusiasm_multiple_turns
+                else 1,
+            )
+        if card.enthusiasm_extension > 0:
+            self.enthusiasm_extension_turns += card.enthusiasm_extension
 
         condition_gain = card.condition
         if condition_gain > 0 and self.buffs.condition_additive > 0:
@@ -1137,6 +1235,11 @@ class LessonSim:
         所以层数不再扣——这一点和旧实现不同，旧实现会在最终回合也扣掉。
         ``ExamReviewMultiple``（好印象强化）在这里放大本回合的好印象结算分。
 
+        T5②（2026-11-22）：好印象结算也会加**熱意**（参考引擎里它走同一个
+        ``resolveScore``；我们只在熱意 > 0 时改旧取整路径）；熱意在本回合结束
+        归 0，有「熱意延長」则保留并消耗 1 层；温存→全力的**回合边界**指針切换
+        也结算解除收益（熱意 / 固定元気 / 新回合 +1 出牌次数）。
+
         SKIP / 手牌自然打空（付不起牌）走同一条结算路径：剩余手牌直接进弃牌堆，
         下一回合补满 ``hand_size`` 张。**回合末体力回复**：若本回合出牌次数没
         用完（``plays_this_turn < plays_per_turn + extra_plays``，也就是 SKIP 或
@@ -1155,6 +1258,10 @@ class LessonSim:
                 impression_score = int(
                     impression_score * (1000 + self.buffs.review_multiple) / 1000
                 )
+            # 熱意（T5②）：参考引擎里回合末好印象也走 resolveScore、会加熱意；
+            # 只在熱意 > 0 时改旧取整路径（对旧行为逐位不变）。
+            if self.enthusiasm > 0:
+                impression_score = safe_ceil(impression_score + self.enthusiasm)
             turn_bonus = self._turn_bonus_permil()
             if turn_bonus is not None and impression_score > 0:
                 # 参考引擎把回合末好印象合成一张 ExamLesson 结算，因此同样吃属性倍率
@@ -1182,6 +1289,21 @@ class LessonSim:
         )
         if self.buffs.full_power_lesson_multiple_turns == 0:
             self.buffs.full_power_lesson_multiple = 0
+        # 熱意追加/増加 buff 的剩余回合：到 0 后同时清掉数值，永久（-1）保持
+        self.buffs.enthusiasm_bonus_turns = _tick_buff_turns(
+            self.buffs.enthusiasm_bonus_turns
+        )
+        if self.buffs.enthusiasm_bonus_turns == 0:
+            self.buffs.enthusiasm_bonus = 0
+        self.buffs.enthusiasm_multiple_turns = _tick_buff_turns(
+            self.buffs.enthusiasm_multiple_turns
+        )
+        if self.buffs.enthusiasm_multiple_turns == 0:
+            self.buffs.enthusiasm_multiple = 0
+        # 熱意：回合末归 0；有「熱意延長」则保留并消耗 1 层（参考引擎 TurnManager.endTurn）
+        self.enthusiasm, self.enthusiasm_extension_turns = turn_end_enthusiasm(
+            self.enthusiasm, self.enthusiasm_extension_turns
+        )
         # 审查基准加成只在本回合内持续
         self.turn_parameter_buff = 0
         # P 道具：回合结束（好印象/好调结算后、弃手牌前）
@@ -1203,9 +1325,25 @@ class LessonSim:
         self.hand.clear()
         self.turns_left -= 1
         # 回合结束结算全力值：攒满 10 点则下一回合进入「全力」
+        previous_stance = self.stance
         self.stance = end_turn(self.stance)
         if self.turns_left > 0:
             self._draw_hand()
+            # 温存→全力 的**回合边界**切换也触发解除收益（参考引擎 startTurn 的
+            # FULL_POWER_EFFECTS 里 setStance(fullPower) 会触发 STANCE_CHANGED_EFFECTS）。
+            # _draw_hand 已把 extra_plays 清零，所以 +1 次数加在新回合的基础次数上。
+            if getattr(self.config, "stance_costs", True):
+                release_enthusiasm, release_genki, release_plays = (
+                    release_on_stance_change(previous_stance, self.stance)
+                )
+                if release_enthusiasm or release_genki or release_plays:
+                    self.enthusiasm += enthusiasm_gain(
+                        release_enthusiasm,
+                        bonus=self.buffs.enthusiasm_bonus,
+                        multiple_permil=self.buffs.enthusiasm_multiple,
+                    )
+                    self.vitality += release_genki
+                    self.extra_plays += release_plays
 
     def _draw_hand(self) -> None:
         # 新手牌 = 新回合：好印象在**下一回合开始时** -1（回合末已按当前层数加分）
@@ -1259,6 +1397,7 @@ def greedy_policy(sim: LessonSim) -> Action:
     指針牌（温存 / 強気 / 全力值）常常 ``score=0``，纯按卡面分数效率恒为 0，
     永远不会被选中；这里把这类牌的效率固定按 ``_STANCE_CARD_EFFICIENCY``
     计，让基线也会打它们（实际收益仍由 LessonSim 的指針结算决定）。
+    熱意 buff 牌（熱意追加/増加/延長，T5②）同样常常 ``score=0``，并入这一档。
     「可出牌次数 +N」牌同理，固定按 ``_EXTRA_PLAY_CARD_EFFICIENCY`` 计，
     否则 score=0 的加次数牌永远不会被选中。
     「依赖元气分（``block_scale``）/ 审查基准加成（``parameter_buff``）」的牌
@@ -1285,7 +1424,14 @@ def greedy_policy(sim: LessonSim) -> Action:
         card = sim.hand[index]
         # 指針会改实际牌费（温存减半/強気双倍）；基线也要按实际费用比
         cost = sim._effective_cost(card)
-        if card.preservation > 0 or card.full_power_point > 0 or card.strong_level > 0:
+        if (
+            card.preservation > 0
+            or card.full_power_point > 0
+            or card.strong_level > 0
+            or card.enthusiasm_bonus > 0
+            or card.enthusiasm_multiple > 0
+            or card.enthusiasm_extension > 0
+        ):
             return (_STANCE_CARD_EFFICIENCY, _STANCE_CARD_EFFICIENCY, -cost, -index)
         if card.extra_play > 0:
             return (

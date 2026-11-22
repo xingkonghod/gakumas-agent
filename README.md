@@ -296,11 +296,14 @@ beam 157.8→165.5（+7.7，CI 全正）/ ensemble 166.9（+9.0）；within 用 
 只对 engine=beam 有益；生产默认未打开；**B3 后旧模型失效待重训**）/ **B3（T5 机制建模：
 模拟器对齐真机「每回合基础 1 张 + 打完自动结束回合 + SKIP 回 2 体力 + 取整 safeCeil」，
 RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定后整局 A/B 里 expectimax
-显著强于 rules（+342~+429 评价点），B1 60 局 within 89.1→beam 95.7）**。
+显著强于 rules（+342~+429 评价点），B1 60 局 within 89.1→beam 95.7）** /
+**B4（T5① 审查倍率分段 + 联动惩罚：客户端真实公式 + 主数据 + 生产屏幕倍率进搜索）** /
+**B5（T5② 熱意 + 温存解除：独立熱意资源、+5/+8 熱意、固定元気+5、+1 出牌次数、
+回合末清零/延長、卡牌熱意效果接入）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / F0 收尾 ✅；
-   下一项 **T5 剩余机制**（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）；
+0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / F0 收尾 ✅；
+   下一项 **T5 剩余机制**（fresh buff 差一回合、P 道具数据接入）；
    F0 收尾（官方 gkbench 384 组开发种子核洗牌模型 366/384=95.3%、逐张 97.4%、起点校准）见 [GKBENCH §4.5](docs/GKBENCH.md) / [HANDOVER 二·补二十四](docs/HANDOVER.md)；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
@@ -309,8 +312,8 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
 4. **T4 学习型叶子（B2，离线结论已作废）**：B2 模型训练数据是旧 3 张/回合口径，B3 规则下重测显著变差
    （确认段 beam −27.9）→ 必须按 B3 规则重采数据重训（建议等 T5 剩余机制补齐后一次重训）；
    生产 `leaf_model` 默认 None 保持关闭；
-5. **T5 机制建模**：回合规则/取整/核验表已由 B3 完成；剩余：审查倍率（`calculateTypeMultipliers` 分段 +
-   shortfall 联动惩罚）、熱意 enthusiasm、温存解除 +1 出牌/元气、fresh buff 差一回合、P 道具/回忆/附魔/减益、
+5. **T5 机制建模**：回合规则/取整/核验表已由 B3 完成；审查倍率（分段 + shortfall 联动惩罚）✅ B4；
+   熱意（enthusiasm）+ 温存解除 +1 出牌/固定元気 ✅ B5；剩余：fresh buff 差一回合、P 道具/回忆/附魔/减益、
    考试内生成卡/额外 RNG（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 

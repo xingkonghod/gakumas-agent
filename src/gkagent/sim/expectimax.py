@@ -63,6 +63,11 @@ from dataclasses import field as dataclass_field
 from functools import lru_cache
 from typing import Any, Protocol
 
+from gkagent.sim.enthusiasm import (
+    enthusiasm_gain,
+    release_on_stance_change,
+    turn_end_enthusiasm,
+)
 from gkagent.sim.lesson import (
     Buffs,
     CardSpec,
@@ -225,8 +230,17 @@ class ExpectState:
     parameter_buff: int = 0
     # StanceState 的冻结快照：(stance, strong_level, save_level, full_power_point)
     stance: tuple[str, int, int, int] = ("normal", 0, 0, 0)
-    # 温存期间已打出牌数：解除温存时按「使用数 + 1」给热意
+    # 温存期间已打出牌数：旧「温存解除≈好调回合」近似的状态位，T5② 起不再使用
+    # （保留字段只为 B2 学习叶子 104 维特征的兼容，恒为 0；新训练应改用熱意特征）。
     save_cards_used: int = 0
+    # T5② 2026-11-22 熱意（enthusiasm）：回合内分数资源（整数，获得时向上取整），
+    # 出牌分加算；回合末归 0；有熱意延長时保留并 -1。温存解除给 5/8（见 sim/enthusiasm.py）。
+    enthusiasm: int = 0
+    enthusiasm_extension_turns: int = 0
+    enthusiasm_bonus: int = 0
+    enthusiasm_bonus_turns: int = 0
+    enthusiasm_multiple: int = 0
+    enthusiasm_multiple_turns: int = 0
     attribute_coefficient: float = 1.0
     hand_size: int = 3
     min_cost: int = 0
@@ -330,6 +344,12 @@ class ExpectState:
             self.parameter_buff,
             self.stance,
             self.save_cards_used,
+            self.enthusiasm,
+            self.enthusiasm_extension_turns,
+            self.enthusiasm_bonus,
+            self.enthusiasm_bonus_turns,
+            self.enthusiasm_multiple,
+            self.enthusiasm_multiple_turns,
             float(self.attribute_coefficient),
             self.hand_size,
             self.min_cost,
@@ -568,7 +588,8 @@ def sim_from_state(
         while len(sim.drink_uses) < len(config.drinks):
             sim.drink_uses.append(0)
     sim.cards_played_total = int(state.cards_played_total)
-    sim._save_cards_used = int(state.save_cards_used)
+    sim.enthusiasm = int(state.enthusiasm)
+    sim.enthusiasm_extension_turns = int(state.enthusiasm_extension_turns)
     sim.buffs = Buffs(
         condition_turns=int(state.condition_turns),
         perfect_condition_turns=int(state.perfect_condition_turns),
@@ -582,6 +603,10 @@ def sim_from_state(
         review_multiple_turns=int(state.review_multiple_turns),
         full_power_lesson_multiple=int(state.full_power_lesson_multiple),
         full_power_lesson_multiple_turns=int(state.full_power_lesson_multiple_turns),
+        enthusiasm_bonus=int(state.enthusiasm_bonus),
+        enthusiasm_bonus_turns=int(state.enthusiasm_bonus_turns),
+        enthusiasm_multiple=int(state.enthusiasm_multiple),
+        enthusiasm_multiple_turns=int(state.enthusiasm_multiple_turns),
     )
     stance, strong_level, save_level, full_power_point = state.stance
     sim.stance = StanceState(
@@ -890,6 +915,9 @@ def _encore_card(card: CardSpec) -> CardSpec:
         full_power_point=card.full_power_point * 2,
         extra_play=card.extra_play * 2,
         stamina_recover=card.stamina_recover * 2,
+        # 熱意追加是加算层数、熱意延長是回合数：再演执行两次 → 数值翻倍
+        enthusiasm_bonus=card.enthusiasm_bonus * 2,
+        enthusiasm_extension=card.enthusiasm_extension * 2,
     )
 
 
@@ -922,8 +950,11 @@ def _card_award(
             multiplier = 1.0 + condition_bonus
         else:
             multiplier = 1.0
+        # 熱意（T5②）：集中加算之后、好调/指針倍率之前加进白值
+        # （参考引擎 resolveScore b；与 LessonSim._card_award 同口径，含本牌適用倍数）。
+        enthusiasm_score = state.enthusiasm * card.enthusiasm_multiplier / 1000.0
         raw = (
-            (base_score + state.focus)
+            (base_score + state.focus + enthusiasm_score)
             * multiplier
             * score_multiplier(state.stance_state)
         )
@@ -966,7 +997,7 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     award, next_parameter_buff = _card_award(state, effect_card, uses=uses)
     state = replace(state, score=state.score + award, parameter_buff=next_parameter_buff)
     # 付牌费：先按指針修正实际费用，強気 2 段階穿透 1 点元气（直接扣体力）
-    previous_stance = state.stance_state.stance
+    previous_stance = state.stance_state
     cost = effective_cost(state, played)
     pierce = min(cost, stamina_pierce(state.stance_state))
     if pierce:
@@ -1020,6 +1051,37 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
                 if effect_card.full_power_lesson_multiple_turns
                 else 1,
             ),
+        )
+    # 熱意系（T5②）：追加=加算 buff、増加=千分比 buff、延長=回合数
+    if effect_card.enthusiasm_bonus > 0:
+        state = replace(
+            state,
+            enthusiasm_bonus=max(state.enthusiasm_bonus, effect_card.enthusiasm_bonus),
+            enthusiasm_bonus_turns=_merge_turns(
+                state.enthusiasm_bonus_turns,
+                effect_card.enthusiasm_bonus_turns
+                if effect_card.enthusiasm_bonus_turns
+                else 1,
+            ),
+        )
+    if effect_card.enthusiasm_multiple > 0:
+        state = replace(
+            state,
+            enthusiasm_multiple=max(
+                state.enthusiasm_multiple, effect_card.enthusiasm_multiple
+            ),
+            enthusiasm_multiple_turns=_merge_turns(
+                state.enthusiasm_multiple_turns,
+                effect_card.enthusiasm_multiple_turns
+                if effect_card.enthusiasm_multiple_turns
+                else 1,
+            ),
+        )
+    if effect_card.enthusiasm_extension > 0:
+        state = replace(
+            state,
+            enthusiasm_extension_turns=state.enthusiasm_extension_turns
+            + effect_card.enthusiasm_extension,
         )
     condition_gain = effect_card.condition
     if condition_gain > 0 and state.condition_additive > 0:
@@ -1091,13 +1153,23 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
             status="full_power_point",
             amount=effect_card.full_power_point,
         )
-    if stance.stance == "save":
-        state = replace(state, save_cards_used=state.save_cards_used + 1)
-    elif previous_stance == "save":
+    # 温存解除（参考引擎 STANCE_CHANGED_EFFECTS）：熱意 +5/+8、2 段階固定元気 +5、
+    # 当回合出牌次数 +1。_apply_card_effects 只看本牌结算前后指針（中间切换不可见）。
+    release_enthusiasm, release_genki, release_plays = release_on_stance_change(
+        previous_stance, stance
+    )
+    if release_enthusiasm or release_genki or release_plays:
         state = replace(
             state,
-            condition_turns=state.condition_turns + state.save_cards_used + 1,
-            save_cards_used=0,
+            enthusiasm=state.enthusiasm
+            + enthusiasm_gain(
+                release_enthusiasm,
+                bonus=state.enthusiasm_bonus,
+                multiple_permil=state.enthusiasm_multiple,
+            ),
+            # 固定元気：不吃「やる気」加成（参考引擎 resolveFixedGenki）
+            vitality=state.vitality + release_genki,
+            extra_plays=state.extra_plays + release_plays,
         )
     if effect_card.grow_score > 0:
         uses_map = dict(state.card_uses)
@@ -1646,6 +1718,10 @@ def end_turn_state(state: ExpectState) -> ExpectState:
 
     不抽下一手牌：下一回合的牌序属于未知，由 V_leaf 的解析式吸收。
 
+    T5②（2026-11-22）：好印象结算加**熱意**（与 LessonSim 同口径）；熱意回合末
+    归 0（有「熱意延長」则保留并 -1）；温存→全力 的回合边界指針切换结算解除
+    收益（熱意 / 固定元気 / 新回合 +1 出牌次数）。
+
     **回合末体力回复**（参考引擎 ``TurnManager.endTurn``）：回合结束时本回合
     出牌次数还有剩（``plays_left > 0``，即 SKIP / 手牌为空 / 付不起牌）→ 体力
     +2、封顶 ``stamina_max``；出牌次数用尽后结束的回合（含自动结束）不回体力。
@@ -1660,6 +1736,10 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         value = float(impression)
         if state.review_multiple > 0:
             value = int(impression * (1000 + state.review_multiple) / 1000)
+        # 熱意（T5②）：参考引擎回合末好印象也走 resolveScore、会加熱意；
+        # 只在熱意 > 0 时改旧取整路径（与 LessonSim._end_turn 同口径）。
+        if state.enthusiasm > 0:
+            value = float(safe_ceil(value + state.enthusiasm))
         score += int(value)
         impression -= 1
     condition_turns = state.condition_turns - 1 if state.condition_turns > 0 else 0
@@ -1675,6 +1755,17 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     review_multiple = state.review_multiple if review_multiple_turns != 0 else 0
     full_power_turns = _tick_turns(state.full_power_lesson_multiple_turns)
     full_power_multiple = state.full_power_lesson_multiple if full_power_turns != 0 else 0
+    # 熱意追加/増加 buff 倒计时；熱意本身回合末归 0（有延長则保留并 -1）
+    enthusiasm_bonus_turns = _tick_turns(state.enthusiasm_bonus_turns)
+    enthusiasm_bonus = state.enthusiasm_bonus if enthusiasm_bonus_turns != 0 else 0
+    enthusiasm_multiple_turns = _tick_turns(state.enthusiasm_multiple_turns)
+    enthusiasm_multiple = (
+        state.enthusiasm_multiple if enthusiasm_multiple_turns != 0 else 0
+    )
+    enthusiasm, enthusiasm_extension_turns = turn_end_enthusiasm(
+        state.enthusiasm, state.enthusiasm_extension_turns
+    )
+    previous_stance = state.stance_state
     next_stance = end_turn(state.stance_state)
     hand_order = state.discard_order
     next_state = replace(
@@ -1691,6 +1782,12 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         review_multiple_turns=review_multiple_turns,
         full_power_lesson_multiple=full_power_multiple,
         full_power_lesson_multiple_turns=full_power_turns,
+        enthusiasm=enthusiasm,
+        enthusiasm_extension_turns=enthusiasm_extension_turns,
+        enthusiasm_bonus=enthusiasm_bonus,
+        enthusiasm_bonus_turns=enthusiasm_bonus_turns,
+        enthusiasm_multiple=enthusiasm_multiple,
+        enthusiasm_multiple_turns=enthusiasm_multiple_turns,
         parameter_buff=0,
         hand=(),
         discard=state.discard + state.hand,
@@ -1707,6 +1804,24 @@ def end_turn_state(state: ExpectState) -> ExpectState:
             next_stance.full_power_point,
         ),
     )
+    # 温存→全力 的回合边界切换也触发解除收益（参考引擎 startTurn 的
+    # FULL_POWER_EFFECTS → setStance(fullPower)）；次数加在新回合基础次数上。
+    if next_state.turns_left > 0:
+        release_enthusiasm, release_genki, release_plays = release_on_stance_change(
+            previous_stance, next_stance
+        )
+        if release_enthusiasm or release_genki or release_plays:
+            next_state = replace(
+                next_state,
+                enthusiasm=next_state.enthusiasm
+                + enthusiasm_gain(
+                    release_enthusiasm,
+                    bonus=next_state.enthusiasm_bonus,
+                    multiple_permil=next_state.enthusiasm_multiple,
+                ),
+                vitality=next_state.vitality + release_genki,
+                extra_plays=next_state.extra_plays + release_plays,
+            )
     # P 道具：回合结束（好印象/好调结算后、弃手牌前）
     return fire_p_items(next_state, TURN_END)
 
@@ -2460,6 +2575,14 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         review_multiple_turns=int(buffs.review_multiple_turns),
         full_power_lesson_multiple=max(int(buffs.full_power_lesson_multiple), 0),
         full_power_lesson_multiple_turns=int(buffs.full_power_lesson_multiple_turns),
+        enthusiasm=int(getattr(sim, "enthusiasm", 0) or 0),
+        enthusiasm_extension_turns=max(
+            int(getattr(sim, "enthusiasm_extension_turns", 0) or 0), 0
+        ),
+        enthusiasm_bonus=max(int(buffs.enthusiasm_bonus), 0),
+        enthusiasm_bonus_turns=int(buffs.enthusiasm_bonus_turns),
+        enthusiasm_multiple=max(int(buffs.enthusiasm_multiple), 0),
+        enthusiasm_multiple_turns=int(buffs.enthusiasm_multiple_turns),
         parameter_buff=max(int(getattr(sim, "turn_parameter_buff", 0)), 0),
         stance=(
             stance.stance,
@@ -2467,7 +2590,7 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
             int(stance.save_level),
             int(stance.full_power_point),
         ),
-        save_cards_used=max(int(getattr(sim, "_save_cards_used", 0)), 0),
+        save_cards_used=0,
         attribute_coefficient=float(
             getattr(config, "attribute_coefficient", 1.0) if config else 1.0
         ),

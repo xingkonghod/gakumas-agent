@@ -28,6 +28,7 @@ CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
 # （体力回复/全力折算/再演/好印象强化/好调加算/全力强化/热意延长/成长），
 # 8 种保守近似（检索/生成/移动→抽 1；延迟→立刻；附魔外层展开内层；低下无效
 # 与训练无关；出牌干劲→motivation）。近似口径与误差方向见 sim/lesson.py 模块 docstring。
+# 2026-11-22 T5②：熱意追加/増加/適用倍数 三种接入 → 32 种。
 MODELED_EFFECTS = {
     "ExamLesson",
     "ExamBlock",
@@ -59,6 +60,10 @@ MODELED_EFFECTS = {
     "ExamAntiDebuff",
     "ExamReviewMultiple",
     "ExamCardPlayAggressive",
+    # ---- T5② 2026-11-22 熱意（enthusiasm）----
+    "ExamEnthusiasticAdditive",
+    "ExamEnthusiasticMultiple",
+    "ExamMultipleEnthusiasticLesson",
 }
 # 卡表里的效果名和卡面语义容易对反，以下以游戏 master 的卡面文本（卡名 + 效果）为准：
 #   准备运动「打分+6 / 集中+2」     -> ExamLessonBuff [2]       = 集中
@@ -116,6 +121,13 @@ class CardRow(NamedTuple):
     full_power_lesson_multiple_turns: int = 0
     grow_score: int = 0               # ExamAddGrowEffect（卡表 values 常为空）
     motivation: int = 0               # ExamCardPlayAggressive（近似成干劲层数）
+    # ---- T5② 2026-11-22 熱意（enthusiasm）----
+    enthusiasm_bonus: int = 0         # ExamEnthusiasticAdditive（熱意追加，加算）
+    enthusiasm_bonus_turns: int = 0
+    enthusiasm_multiple: int = 0      # ExamEnthusiasticMultiple（熱意増加，千分比）
+    enthusiasm_multiple_turns: int = 0
+    enthusiasm_extension: int = 0     # ExamEnthusiasticTurnAdd（熱意延長，回合数）
+    enthusiasm_multiplier: int = 1000  # ExamMultipleEnthusiasticLesson（本牌熱意適用倍数‰）
 
 
 def _buff_turns(effect: dict) -> int:
@@ -134,13 +146,13 @@ def _merge_turns(current: int, new: int) -> int:
 def _effect_fields(row: dict) -> tuple[int, ...]:
     """从卡表一行的 ``effects`` 提取可喂给 ``CardSpec`` 的字段。
 
-    返回 25 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
+    返回 31 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
 
     =====  ============================================================
     索引   字段
     =====  ============================================================
     0      ``score``（ExamLesson）
-    1      ``condition``（好调回合数；ExamParameterBuff* 的 turn + 热意延长）
+    1      ``condition``（好调回合数；ExamParameterBuff* 的 turn）
     2      ``focus``（ExamLessonBuff = 集中）
     3      ``draw``（ExamCardDraw；检索/生成/移动近似 +1）
     4      ``impression``（ExamReview 好印象层数）
@@ -164,6 +176,12 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     22     ``full_power_lesson_multiple_turns``
     23     ``grow_score``（ExamAddGrowEffect；卡表 values 为空 → 0）
     24     ``motivation``（ExamCardPlayAggressive，近似成干劲层数）
+    25     ``enthusiasm_bonus``（ExamEnthusiasticAdditive 熱意追加，加算量）
+    26     ``enthusiasm_bonus_turns``
+    27     ``enthusiasm_multiple``（ExamEnthusiasticMultiple 熱意増加，千分比）
+    28     ``enthusiasm_multiple_turns``
+    29     ``enthusiasm_extension``（ExamEnthusiasticTurnAdd 熱意延長，回合数）
+    30     ``enthusiasm_multiplier``（ExamMultipleEnthusiasticLesson 本牌熱意適用倍数‰）
     =====  ============================================================
 
     字段语义以游戏 master 卡面文本为准，effect 名容易误读：
@@ -198,6 +216,13 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
       长期**高估**）；
     - ``ExamLessonFullPowerPoint`` 的双值形态是 ``[固定打分, 折算千分比]``：
       固定打分并入 ``score``，末位作为 ``full_power_scale``（同理单值直接是倍率）。
+
+    T5②（2026-11-22）熱意三种 buff 效果（卡表 ``turn`` 是 buff 持续回合，-1 = 永久）：
+    ``ExamEnthusiasticAdditive`` 是**獲得熱意时的加算 buff**（不是立刻加分），
+    ``ExamEnthusiasticMultiple`` 是獲得熱意时的**千分比乘数**（+1000‰ = ×2），
+    ``ExamEnthusiasticTurnAdd`` 是熱意延長回合数；規則见 ``sim/enthusiasm.py``。
+    ``ExamMultipleEnthusiasticLesson`` 是**本牌**熱意適用倍数（values[0]=本牌直接
+    打分加算、values[1]=倍数追加‰，1000 → ×2；卡面「熱意效果会2倍生效」）。
     """
     score = condition = focus = draw = impression = impression_scale = 0
     preservation = full_power_point = extra_play = 0
@@ -210,6 +235,10 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     condition_additive = condition_additive_turns = 0
     full_power_lesson_multiple = full_power_lesson_multiple_turns = 0
     grow_score = motivation = 0
+    enthusiasm_bonus = enthusiasm_bonus_turns = 0
+    enthusiasm_multiple = enthusiasm_multiple_turns = 0
+    enthusiasm_extension = 0
+    enthusiasm_multiplier = 1000
     approx_draw = 0
 
     def absorb(effects: list[dict]) -> None:
@@ -220,6 +249,9 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         nonlocal review_multiple_turns, condition_additive, condition_additive_turns
         nonlocal full_power_lesson_multiple, full_power_lesson_multiple_turns
         nonlocal grow_score, motivation, approx_draw
+        nonlocal enthusiasm_bonus, enthusiasm_bonus_turns
+        nonlocal enthusiasm_multiple, enthusiasm_multiple_turns
+        nonlocal enthusiasm_extension, enthusiasm_multiplier
         for effect in effects or []:
             kind = effect.get("type")
             values = [v for v in effect.get("values") or [] if v]
@@ -275,8 +307,32 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
                 )
                 continue
             if kind == "ExamEnthusiasticTurnAdd":
-                # 热意延长：模拟器没有独立热意资源，按任务口径并进好调回合数
-                condition += value
+                # 熱意延長（T5②）：回合末不清零，改为消耗延長回合数
+                enthusiasm_extension = max(enthusiasm_extension, value)
+                continue
+            if kind == "ExamEnthusiasticAdditive":
+                # 熱意追加（T5②）：獲得熱意時的加算 buff（不是立刻加熱意）
+                enthusiasm_bonus = max(enthusiasm_bonus, value)
+                enthusiasm_bonus_turns = _merge_turns(
+                    enthusiasm_bonus_turns, _buff_turns(effect)
+                )
+                continue
+            if kind == "ExamEnthusiasticMultiple":
+                # 熱意増加（T5②）：獲得熱意時的千分比乘数 buff
+                enthusiasm_multiple = max(enthusiasm_multiple, value)
+                enthusiasm_multiple_turns = _merge_turns(
+                    enthusiasm_multiple_turns, _buff_turns(effect)
+                )
+                continue
+            if kind == "ExamMultipleEnthusiasticLesson":
+                # 本牌熱意適用倍数（T5②）：values[0] = 本牌直接打分加算，
+                # values[1] = 熱意適用倍数的追加千分比（1000 → ×2；
+                # 卡面「熱意效果会2倍生效」，如「手を伸ばした先に」）
+                score = max(score, value)
+                if len(values) >= 2:
+                    enthusiasm_multiplier = max(
+                        enthusiasm_multiplier, 1000 + int(values[1])
+                    )
                 continue
             if kind == "ExamCardPlayAggressive":
                 motivation = max(motivation, value)
@@ -352,6 +408,12 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         full_power_lesson_multiple_turns,
         grow_score,
         motivation,
+        enthusiasm_bonus,
+        enthusiasm_bonus_turns,
+        enthusiasm_multiple,
+        enthusiasm_multiple_turns,
+        enthusiasm_extension,
+        enthusiasm_multiplier,
     )
 
 
@@ -399,7 +461,7 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
 
 
 def _rich_row(name: str, cost: int, fields: tuple[int, ...]) -> CardRow:
-    """把 ``_effect_fields`` 的 25 元组按顺序转成 rich ``CardRow``。"""
+    """把 ``_effect_fields`` 的 31 元组按顺序转成 rich ``CardRow``。"""
     return CardRow(name, cost, *fields)
 
 
@@ -415,8 +477,9 @@ def build_pool(
     否则模拟器会"每节课都拿 155 分彩卡"，训练平均 320 分，和真机 60-180 完全不符。
 
     ``rich=False`` 时只收旧集合里的效果类型并返回旧 5 元组（其它脚本兼容）；
-    ``rich=True`` 时使用完整 ``MODELED_EFFECTS``（2026-11-16 起 29 种：含温存/
-    全力值/可出牌次数/元气依赖分/好调回合数/元气，以及新卡池 16 种）并返回
+    ``rich=True`` 时使用完整 ``MODELED_EFFECTS``（2026-11-16 起 29 种、T5② 后
+    32 种：含温存/全力值/可出牌次数/元气依赖分/好调回合数/元气，以及新卡池 16 种、
+    熱意追加/増加/適用倍数）并返回
     带 draw/impression/preservation/full_power_point/extra_play/block_scale/
     parameter_buff/strong_level/vitality/stamina_recover/full_power_scale/... 的
     CardRow。
@@ -485,6 +548,12 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
             full_power_lesson_multiple_turns=row.full_power_lesson_multiple_turns,
             grow_score=row.grow_score,
             motivation=row.motivation,
+            enthusiasm_bonus=row.enthusiasm_bonus,
+            enthusiasm_bonus_turns=row.enthusiasm_bonus_turns,
+            enthusiasm_multiple=row.enthusiasm_multiple,
+            enthusiasm_multiple_turns=row.enthusiasm_multiple_turns,
+            enthusiasm_extension=row.enthusiasm_extension,
+            enthusiasm_multiplier=row.enthusiasm_multiplier,
         )
     name, cost, score, condition, focus = row
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)

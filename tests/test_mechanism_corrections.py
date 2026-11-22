@@ -287,17 +287,21 @@ def test_stance_cost_modifiers_and_strong_pierce() -> None:
         assert sim.vitality == 0
 
 
-def test_save_release_gives_heat_turns() -> None:
-    """解除温存给热意（近似好调回合）：温存期间使用数 + 1。"""
+def test_save_release_gives_enthusiasm_not_condition_turns() -> None:
+    """解除温存（T5②）：熱意 +5 / 額外出牌次数 +1，不再近似成好调回合。"""
     save = CardSpec("温存", 0, 0, preservation=1)
     strong = CardSpec("强气", 0, 0, strong_level=1)
     filler = CardSpec("占位", 0, 0)
     sim = LessonSim(
         [save, strong, filler],
-        _config(turns=1, stamina=10, hand_size=3),
+        _config(turns=2, stamina=10, hand_size=3),
         rng_seed=0,
     )
-    sim.step([card.name for card in sim.hand].index("温存"))
-    sim.step([card.name for card in sim.hand].index("强气"))
+    sim.hand = [save, strong, filler]
+    sim.step(0)  # 切到温存 1 段階：还没有熱意
+    assert sim.enthusiasm == 0
+    sim.step(0)  # 温存→強気 解除：熱意 +5、本回合多 1 次出牌
     assert sim.stance.stance != "save"
-    assert sim.buffs.condition_turns >= 2
+    assert sim.enthusiasm == 5
+    assert sim.extra_plays == 1
+    assert sim.buffs.condition_turns == 0

@@ -183,6 +183,51 @@ def test_specs_from_hand_uses_table_cost_and_marks_estimated() -> None:
     assert unknown.estimated is True  # 卡表查不到 → 期望分只是估计
 
 
+def test_specs_from_hand_maps_enthusiasm_effects() -> None:
+    """T5② 熱意：卡表 effect → CardSpec 熱意字段（含 buff 回合 / 延長）。"""
+    table = FakeTable(
+        {
+            "火力全开": {
+                "cost": 2,
+                "effects": [
+                    {"type": "ExamPreservation", "values": [1]},
+                    {"type": "ExamEnthusiasticMultiple", "values": [1000], "turn": 3},
+                ],
+            },
+            "作为结果的现在": {
+                "cost": 0,
+                "effects": [{"type": "ExamEnthusiasticTurnAdd", "values": [1]}],
+            },
+            "新生的光芒": {
+                "cost": 4,
+                "effects": [
+                    {"type": "ExamEnthusiasticAdditive", "values": [5], "turn": -1}
+                ],
+            },
+            "伸手所向之处": {
+                "cost": 6,
+                "effects": [
+                    {"type": "ExamMultipleEnthusiasticLesson", "values": [1, 1000]}
+                ],
+            },
+        }
+    )
+    specs = {
+        name: specs_from_hand([_card(0, name)], table=table)[0].spec
+        for name in table.rows
+    }
+    throttle = specs["火力全开"]
+    assert (throttle.enthusiasm_multiple, throttle.enthusiasm_multiple_turns) == (1000, 3)
+    assert throttle.preservation == 1
+    assert specs["作为结果的现在"].enthusiasm_extension == 1
+    fresh = specs["新生的光芒"]
+    assert (fresh.enthusiasm_bonus, fresh.enthusiasm_bonus_turns) == (5, -1)
+    reach = specs["伸手所向之处"]
+    assert (reach.enthusiasm_multiplier, reach.score) == (2000, 1.0)
+    # 没有熱意效果的卡保持默认 0（旧行为逐位不变）
+    assert specs_from_hand([_card(0, "试行错误+", cost=5, score=42, hits=2)], table=TABLE)[0].spec.enthusiasm_bonus == 0
+
+
 def test_best_index_ties_by_score_then_index() -> None:
     estimates = [
         CardEstimate(index=2, name="b", cost=4, score=25, expected=10.0, episodes=1),
