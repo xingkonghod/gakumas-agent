@@ -4,7 +4,7 @@
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
 > 新会话第一句话：
 > 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑四条基线，
-> 再从 WORKPLAN 阶段 B 的下一项（B1）开始。」
+> 再从 WORKPLAN 阶段 B 的下一项（B2）开始。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
