@@ -324,16 +324,29 @@
 
 ## 阶段 F：gkbench 算法对比（最后）
 
-> 先确认"那个网站"= gkbench（`hiro.matto.top/gkbench`）还是群内自建榜；两者规则可能不同。
+> 已确认：就是 **gkbench（`hiro.matto.top/gkbench`）**；本地克隆 `data/bench_repo`（MIT）。
+> **2026-11-22 用户已登录 gkbench，可以下载公开的「固定种子题」（开发集种子，含 `loadout.seed`
+> 和起点核对 `check`）——这改变了 F 的做法**：以前只能拿题模板（无种子）本地跑，现在可以
+> 用官方种子做**独立交叉验证 + 理论上限分母**。
 
-- **规则红线**：gkbench ranked **禁止 seed/牌序**；我们能提交的是"只看 UIObs 的算法"（rules/expectimax/学习模型），
-  **不能**带 MITM/known_draw；oracle/看牌序是单独类别，只作上限参照。
+- **规则红线**：gkbench ranked **禁止 seed/牌序**（ranked 用保密种子，只托管跑、算法只看画面）；
+  我们能提交的是"只看 UIObs 的算法"（rules/expectimax/学习模型），**不能**带 MITM/known_draw；
+  下载到的固定种子题（开发集）**只用于本地跑/理论上限当分母**，官方页面也不把它单列排行
+  （`privileged` = 看种子的理论上限，只作分母）。
+- **F0（新，先做）：官方种子交叉验证 + 口径校准**
+  1. 下载固定种子题（`GET /api/sets/<set>/saves?fixed=1` 的 NDJSON，或题集页「下载存档/固定种子」
+     按钮；每个存档 = `gkms.audition_save.v2`，`loadout.seed` + `check{turn,score,stamina,hand,rules}`）；
+  2. **用我们的洗牌模型从 `seed`+牌组预测开局手牌/回合属性，和 `check.hand` 逐张对照**——
+     这是对「MITM seed→洗牌」最核心资产的外部独立校验（几百道 H.I.F 题的免费回归集）；
+  3. 用 `check` 的 `turn/score/stamina/rules` 校准我们的考试起点状态与规则版本；
+  4. 对照榜上参考分/理论上限（oracle 分母），分清"裁判口径差异"和"算法差距"；
+  - DoD：洗牌预测命中率（逐题逐张）+ 不一致样本根因 + 报告写进 `docs/COMPARE.md` / 新 `docs/GKBENCH.md`。
 - 任务：
   1. 读 `data/bench_repo`（MIT 本地克隆）确认提交协议（动作 `p<i>/d<i>/e/s<i,j>`、UIObs 字段、裁判口径）；
   2. 写一个 **public-safe 适配器**（自包含、不用 seed、不读本公司私有数据），本地裁判跑分；
   3. 对齐公开数字：UIHorizon ≈631k（0.511×oracle）、UINet ≈579k（0.455×）、官方 AI ≈233k（0.213×），
      oracle 基准 ≠ 最优（1.45M 为多起点 best-known 分母）；
-  4. 若能提交（需账号/token/规则确认）：提交并记录 host 返回；否则写本地对照报告并注明口径差异；
+  4. 若托管提交（需账号/token/规则确认）：提交并记录 host 返回；否则写本地对照报告并注明口径差异；
 - DoD：本地/托管的同口径分数 + 一页对照表（我们 vs UIHorizon vs UINet vs 官方 AI；标注是否用 seed）。
 
 ---
