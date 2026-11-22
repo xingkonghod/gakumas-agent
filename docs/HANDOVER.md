@@ -1059,7 +1059,9 @@ P 道具考试开始附魔（如 hmsz-3-018 的 `enchant-...-336-0` 好印象触
 4 场 39 回合逐分锁死（T5 剩余机制/后续会话）。
 
 **文档**：RULES_REFERENCE §0/§2/§5.1/§6/§7（含许可口径）；WORKPLAN B4；HANDOVER_NEXT §0/§1/§2/§4/§8；
-INDEX/COMPARE/PROVENANCE/fixtures README 同步。
+INDEX/COMPARE/EXPECTIMAX B4/PROVENANCE/fixtures README 同步。
+
+**提交**：feat `6b4beae`（代码 + 测试 + 夹具 + 文档；哈希记录提交随后补）。
 
 **下一步**：T5 剩余机制（熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→
 阶段 C/D 离线收尾 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
@@ -1224,6 +1226,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 B4 / T5① 审查倍率分段 + 联动惩罚：常量 4.11 → 客户端真实公式 + 屏幕倍率进搜索）
+6b4beae feat(t5): B4 审查倍率分段+联动惩罚——客户端公式 + 主数据解析 + 屏幕倍率进搜索（21 条测试）
 （2026-11-22 F0 收尾：官方 gkbench 384 组种子核洗牌模型 286→366/384 + 起点校准）
 2e4deee docs(handover): 补二·补二十四提交哈希（83f1f96）+ 最近提交记录
 83f1f96 feat(f): F0 收尾——官方 gkbench 384 组种子核洗牌模型 286→366/384 + 考试起点校准
