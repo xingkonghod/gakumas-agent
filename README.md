@@ -1,4 +1,4 @@
-﻿# gkagent — 学マス（Gakumas）私有研究仓库
+# gkagent — 学マス（Gakumas）私有研究仓库
 
 > 从「读屏 + 规则 bot」一路做到「**MITM 牌序全知 + 完全信息搜索 + 真机出牌**」的研究栈。
 > 本仓库是**私有研究记录**：包含采集链路、洗牌模型、搜索引擎、决策 bot、实验与失败记录。
@@ -301,11 +301,15 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
 **B5（T5② 熱意 + 温存解除：独立熱意资源、+5/+8 熱意、固定元気+5、+1 出牌次数、
 回合末清零/延長、卡牌熱意效果接入）** /
 **B6（T5③ P 道具数据接入：loadout `produce_item_ids` → `PItemSpec`、exam_start 触发时机、
-`ExamPlayableValueAdd → extra_plays`、local_bench/提交适配器接线；离线 A/B greedy +3.36%）**。
+`ExamPlayableValueAdd → extra_plays`、local_bench/提交适配器接线；离线 A/B greedy +3.36%）** /
+**B7（T9 P 道具 47 条补全：catalog 1068→1115 件、spec 1764→1849、已实现 421→445；
+gkbench 505 题模板 83 唯一 id 全已知/未知 0；新增 47 条条件未解析段保守不触发；
+离线 A/B greedy +128.9 与 B6 逐位相同——新道具目前 0 分贡献）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / F0 收尾 ✅；
-   下一项 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具效果覆盖/真机培育侧列表随后）；
+0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / F0 收尾 ✅；
+   下一项 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具**条件/效果语义**——
+   数据缺口已被 B7 清掉）；T9 剩 C0（低成本纯文档）/ E0（需真机独立副本实验，先问用户）；
    F0 收尾（官方 gkbench 384 组开发种子核洗牌模型 366/384=95.3%、逐张 97.4%、起点校准）见 [GKBENCH §4.5](docs/GKBENCH.md) / [HANDOVER 二·补二十四](docs/HANDOVER.md)；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
@@ -316,7 +320,8 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
    生产 `leaf_model` 默认 None 保持关闭；
 5. **T5 机制建模**：回合规则/取整/核验表已由 B3 完成；审查倍率（分段 + shortfall 联动惩罚）✅ B4；
    熱意（enthusiasm）+ 温存解除 +1 出牌/固定元気 ✅ B5；P 道具**数据接入**（loadout → PItemSpec、
-   exam_start + extra_plays）✅ B6；剩余：fresh buff 差一回合、P 道具效果覆盖/真机培育侧列表、
+   exam_start + extra_plays）✅ B6；P 道具 **47 条补全**（catalog 1115 件、gkbench 未知 id 清零）✅ B7；
+   剩余：fresh buff 差一回合、P 道具**条件/效果语义**（445/1849 段已实现）、真机培育侧列表、
    回忆/附魔/减益、考试内生成卡/额外 RNG（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 

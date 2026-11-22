@@ -9,13 +9,16 @@ P 道具**。真机采集的 ``traffic.jsonl`` 里没有 produce 编成字段（
 不涉及种子。
 
 数据来源：``data/knowledge/p_items.json``（``scripts/build_p_items.py`` 解析
-``ProduceItem.json`` + gakumasu-diff ``ProduceItem.yaml`` 生成，1068 件道具）。
+``ProduceItem.json`` + gakumasu-diff ``ProduceItem.yaml`` 生成，**1115 件道具**：
+本地中文 master 1068 件 + 2026-11 上游新增 47 件——新增件卡名用仓库自译表、
+描述只有日文、条件未知的 spec 保守不触发，见 ``PItemSpec.condition_known``）。
 
 口径（不猜、不静默）：
 
 - **id 精确匹配**：``pitem_02-3-293-0`` 就是 catalog 里的同名行；不做「去掉 -N 后缀
   当强化前版本」之类的兜底（强化变体数值不同，猜错会凭空加减分）。catalog 快照
-  2026-09-16 之后新增的道具/研究事件道具会落进 ``unknown_ids``，由调用方**显式上报**。
+  2026-11-22（B7）已覆盖上游 1115 件；仍不在 catalog 里的 id 会落进 ``unknown_ids``，
+  由调用方**显式上报**。
 - **缺失数据文件直接抛错**（:class:`PItemDataUnavailable`），不当"没有 P 道具"。
 - 一个道具记录的每个 ``effects`` 分段展开成一条 ``PItemSpec``（``record_to_specs``
   同口径），未实现的 effect_type 保留为 ``implemented=False`` 的 no-op，便于统计覆盖率。
@@ -130,6 +133,7 @@ class PItemLoadout:
             "specs": stats["specs"],
             "implemented": stats["implemented"],
             "noop": stats["noop"],
+            "condition_unknown": stats["condition_unknown"],
             "noop_reasons": stats["noop_reasons"],
             "implemented_effect_types": stats["implemented_effect_types"],
             "noop_effect_types": stats["noop_effect_types"],
@@ -187,6 +191,7 @@ def catalog_coverage(catalog: PItemCatalog) -> dict:
         "specs": stats["specs"],
         "implemented": stats["implemented"],
         "noop": stats["noop"],
+        "condition_unknown": stats["condition_unknown"],
         "noop_reasons": stats["noop_reasons"],
     }
 

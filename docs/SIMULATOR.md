@@ -440,18 +440,22 @@ HANDOVER 二·补二十六。
 ### 11.4 T5③ 2026-11-22：P 道具数据接入（exam_start + extra_plays）
 
 - **数据层**：`src/gkagent/data/p_items_db.py`——对局 loadout 的 `produce_item_ids`
-  精确匹配 `data/knowledge/p_items.json`（1068 件，2026-09-16 快照）；未知/重复 id
+  精确匹配 `data/knowledge/p_items.json`（B7 起 **1115 件**：本地中文 master 1068 +
+  上游新增 47，后者的中文描述缺失处保留日文并显式标记）；未知/重复 id
   显式上报、缺数据抛 `PItemDataUnavailable`；真实来源 = gkbench 505 题模板（83 唯一 id /
-  72 已知 / 11 未知），离线 A/B 用 `scripts/local_bench.py --p-items auto/off`。
+  **83 已知 / 0 未知**），离线 A/B 用 `scripts/local_bench.py --p-items auto/off`。
 - **新触发时机 `exam_start`**：`LessonSim.__init__` 在抽第 1 手牌**之前**结算一次
   （`_fire_p_items(EXAM_START)`），随后 `_draw_hand(keep_extra_plays=True)` 触发 turn_start
   ——顺序「训练/考试开始 → 回合开始」；exam_start 给的额外出牌次数属于第 1 回合。
 - **新效果 `ExamPlayableValueAdd → extra_plays`**：`PItemDelta.extra_plays`，
   `LessonSim._fire_p_items` / `ExpectState.fire_p_items` 都加到当回合额外次数
   （卡效果同口径，见 §11 的 B3 回合规则）。
-- **覆盖率（如实）**：catalog 1764 段 spec 已实现 421 段；gkbench 已知道具 131 段 spec
-  实现 31 段。未实现 `effect_type` 仍是 no-op（不抛异常、报告里统计）。
-- **回归**：`tests/test_p_items_db.py`（10）/ `test_p_items_integration.py`（+4）/
-  `test_local_bench.py`（+4）；离线 A/B hif 30 题×2 seed 配对：greedy +128.9（+3.36%）、
-  expectimax +149.6（+3.98%）。细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) /
-  HANDOVER 二·补二十七。
+- **B7 条件保守**：上游新增 47 条的新触发 id 在本地 masterTrans 里没有中文触发句 →
+  `condition_known=False`（22 件 / 46 段 spec），`apply_passive` 跳过（不猜条件）。
+- **覆盖率（如实）**：catalog 1849 段 spec 已实现 445 段；gkbench 已知道具 153 段 spec
+  实现 34 段（10 段条件未知不触发）。未实现 `effect_type` 仍是 no-op（不抛异常、报告里统计）。
+- **回归**：`tests/test_p_items_db.py`（11）/ `test_p_items_integration.py`（+4）/
+  `test_p_items.py`（+2 condition_known）/ `test_local_bench.py`（+4）；离线 A/B
+  （B7 重跑，hif 30 题×2 seed）：greedy 3840.7→3969.7（+128.9，CI[+9.5,+248.4]，
+  与 B6 逐位相同）、expectimax 3732.0→3953.6（+221.5，CI[−71.4,+514.4]，受墙钟预算抖动）。
+  细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补二十九。

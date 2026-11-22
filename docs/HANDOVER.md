@@ -1293,6 +1293,78 @@ C0（采集更新可靠性经验吸收）/ E0（离线培育测试台实验）�
 WORKPLAN 增 B7/C0/E0 候选节。用户要求「开新对话做」，一次会话只做 1 个；**默认建议先 B7**
 （纯离线、收益明确：47 条补全、gkbench 未知 id 清零）。当前 T5/阶段 C/D 主线不变。
 
+### 二·补二十九、11-22（T9-B7 落地：P 道具 47 条补全，p_items.json 1068→1115、gkbench 未知 id 清零）
+
+**背景**：B6 把 P 道具数据管线接进了模拟器/评测/提交，但 `data/knowledge/p_items.json` 还是
+2026-09-16 的本地中文 master 快照（1068 件）；上游 gakumasu-diff `ProduceItem.yaml` 已到
+**1115 件**（缺 47 条，其中含 B6 里 gkbench 的 11 个「未知 id」）。作者 11-22 整合包只给了
+1115 个 id、没有效果数据（[二·补二十八](#二补二十八11-22外部情报作者-11-22-四游戏整合启动器包只读分析衍生候选任务-t9)），
+所以本任务走「新 yaml 结构 + 仓库自译表」的正路，纯离线、不碰真机/账号。
+
+**做法（`scripts/build_p_items.py`）**：
+
+1. 生成口径从「只遍历本地 masterTrans」改为**合并**：本地 1068 件仍走原分段对齐逻辑
+   （中文描述+数值取本地化文本），yaml 独有的 47 件走**纯 yaml 口径**
+   （`_extract_effects_yaml`：结构化字段/数值来自 yaml 分段，不猜）。
+2. **中文缺口显式标记**：47 条的卡名用仓库已提交的自译表
+   `data/i18n/translation_new.json`（47/47 命中，含「+」强化变体按基础名+`+`匹配）；
+   **描述没有中文**→ `text_zh=""`、`text_ja` 保留 yaml 日文、记录标
+   `i18n_text_source="ja"`（不臆造译文）。
+3. **条件未知保守处理**：新道具用的新触发 id 在本地 masterTrans 的触发表里没有中文触发句，
+   无法解析条件（如「剩余5回合内/体力80%以上/手牌特定卡」）→ 记录标 `condition_known=False`
+   （22 件），`PItemSpec.condition_known` 传给 `apply_passive` **跳过**——
+   宁可不触发，也不把带条件的道具当无条件结算。`summarize` 单列 `condition_unknown` 计数，
+   不混进 implemented/noop 口径。
+4. `stats`/`source` 增加显式计数：`items_local_master` / `items_from_yaml` /
+   `items_i18n_name_ja` / `items_i18n_text_ja` / `items_condition_unknown`；
+   `local_bench` 报告也带 `condition_unknown_specs`（不再把「未知 id」当快照缺行）。
+
+**数据结果（如实）**：
+
+| 指标 | B6（1068） | B7（1115） |
+|---|---:|---:|
+| catalog 件数 | 1068 | **1115**（本地 1068 + yaml 新增 47） |
+| spec 段数 | 1764 | **1849**（+85：80 段效果 + 5 段无效果 unknown） |
+| 已实现段数 | 421 | **445**（+24） |
+| no-op 段 | 1343 | 1404（effect_type 1026 / 触发时机 207 / 无值 171） |
+| 条件未知段（另计） | 0 | **46**（22 件；新增 47 条里条件没解析出来的） |
+| gkbench 505 题模板唯一 id | 83（72 已知/11 未知） | 83（**83 已知/0 未知**） |
+| gkbench 唯一 id spec 段 | 131（实现 31） | 153（**实现 34**、条件未知 10） |
+
+- 47 条新增都能解析出 ≥1 段 spec（5 条育成期道具没有考试效果 → unknown no-op 段）；
+  新增 id 与 yaml/包内 1115 id 清单完全一致（`yaml 缺 id = 0`）。
+- 样本覆盖（A/B 的 30 题）：147 id / **147 已知 / 0 未知**（B6 130/8）、198 段 spec
+  （B6 174）、已实现 35 段（B6 33）、条件未知 9 段。
+
+**离线 A/B（`scripts/local_bench.py`；hif 30 题×2 seed、seed 1000/1001、`--budget-ms 100`、
+同题同 seed 配对；CI = mean±1.96·SE，与 B6 同口径）**：
+
+| 算法 | off | auto | 配对 Δ | 95% CI | 变化局（胜/负/平） |
+|---|---:|---:|---:|---|---|
+| greedy | 3840.7 | **3969.7** | **+128.9（+3.36%）** | [+9.5,+248.4] | 8/60（8/0/52） |
+| expectimax(analytic) | 3732.0 | **3953.6** | **+221.5（+5.94%）** | [−71.4,+514.4] | 13/60（10/3/47） |
+
+- **greedy 与 B6 逐位相同**（连 CI 都相同）：新增 47 条里 22 条条件未知、其余多是
+  未实现效果类型/育成期触发 → 不触发。所以 B7 的 A/B 变化来自「数据更全」而非「新效果生效」，
+  +128.9 仍然是 B6 数据接入的收益；**新增 47 条目前对分数贡献 0**。
+- expectimax 差异受墙钟预算抖动影响（B6 同 harness 是 3759.3→3908.9，+149.6；
+  本次 3732.0→3953.6，+221.5），两次 CI 都含 0，只作方向记录。
+- 结论：DoD「catalog 1115 / gkbench 未知 0 / pytest 全绿 / A/B 数字记录 / 文档同步」达成；
+  下一步的分数空间在**条件/效果语义**（`condition_known` + 未实现 effect_type），
+  不再是数据缺失。
+
+**测试/基线（改完复跑，退出码均 0）**：新增 3 条测试（`test_p_items_db.py` +1：
+47 条新增全覆盖/未知清零/条件未知计数；`test_p_items.py` +2：`condition_known`
+保守跳过、`summarize` 计数；`test_p_items_integration.py` 触发候选过滤加
+`condition_known`）；全量 pytest **1054 passed / 1 skipped（1055 收集 / 76 文件）**；
+基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+
+**文档**：RULES_REFERENCE §0/§3/§5.3/§6；WORKPLAN B7；HANDOVER_NEXT §0/§1/§2/§4/§8；
+README/INDEX/COMPARE/GKBENCH/SIMULATOR/EXPECTIMAX/OFFICIAL_AI_NOTES/PROVENANCE/I18N_TODO/
+LOCAL_LAUNCHER_20261122；本文件二·补二十九。
+
+**提交**：见 [七、最近提交记录](#七最近提交记录)（feat + docs 两个提交）。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

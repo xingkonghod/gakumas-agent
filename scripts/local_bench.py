@@ -191,7 +191,9 @@ class PItemStats:
     """一道题 ``loadout.produce_item_ids`` 的解析结果（T5③ P 道具数据接入）。
 
     ``mode="off"`` 时全部为 0/空（A/B 对照用：不结算 P 道具）；``unknown`` 是
-    ``p_items.json`` 快照里没有的 id（显式上报，不猜、不影响这道题可映射）。
+    ``p_items.json`` 里仍没有的 id（显式上报，不猜、不影响这道题可映射）——B7 起
+    catalog 覆盖上游 1115 件，正常应为空；``condition_unknown`` 是条件没解析出来的
+    spec 段数（新增道具的新触发 id，``apply_passive`` 保守跳过）。
     """
 
     mode: str = "auto"
@@ -201,6 +203,7 @@ class PItemStats:
     duplicate: tuple[str, ...] = ()
     specs: int = 0
     implemented: int = 0
+    condition_unknown: int = 0
 
 
 @dataclass(frozen=True)
@@ -463,6 +466,7 @@ def build_problem(
             duplicate=tuple(summary["duplicate_ids"]),
             specs=int(summary["specs"]),
             implemented=int(summary["implemented"]),
+            condition_unknown=int(summary.get("condition_unknown") or 0),
         )
     config = LessonConfig(
         turns=turns,
@@ -1190,6 +1194,7 @@ def run_bench(
     p_item_known = sum(st.known for st in p_item_stats)
     p_item_specs = sum(st.specs for st in p_item_stats)
     p_item_implemented = sum(st.implemented for st in p_item_stats)
+    p_item_condition_unknown = sum(st.condition_unknown for st in p_item_stats)
     p_item_problems = sum(1 for st in p_item_stats if st.ids)
     unmodeled = Counter(
         effect for spec in specs for effect in spec.deck_stats.unmodeled_types
@@ -1285,9 +1290,11 @@ def run_bench(
             "duplicate_ids": p_item_duplicate,
             "specs": p_item_specs,
             "implemented_specs": p_item_implemented,
+            "condition_unknown_specs": p_item_condition_unknown,
             "note": (
-                "未知 id = p_items.json（2026-09-16 主数据快照）之后新增的道具，"
-                "显式列出不作猜测；未实现效果类型仍是 no-op（见 sim/p_items.py）。"
+                "未知 id = p_items.json（1115 件，覆盖到 2026-11 上游）里都没有的道具，"
+                "显式列出不作猜测；未实现效果类型仍是 no-op；新增 47 条里条件未解析的 "
+                "spec 保守不触发（condition_unknown_specs，见 sim/p_items.py）。"
             ),
         },
         "algorithms": {row["name"]: row for row in algorithms},
@@ -1398,10 +1405,11 @@ def main(argv: list[str] | None = None) -> int:
             f"P 道具（{p_items.get('mode')}）：{p_items.get('problems_with_items', 0)} 题带道具，"
             f"id {p_items.get('ids', 0)} 个（已知 {p_items.get('known_ids', 0)} / "
             f"未知 {len(unknown)}），spec {p_items.get('specs', 0)} 段"
-            f"（已实现 {p_items.get('implemented_specs', 0)} 段）"
+            f"（已实现 {p_items.get('implemented_specs', 0)} 段，"
+            f"条件未知不触发 {p_items.get('condition_unknown_specs', 0)} 段）"
         )
         if unknown:
-            print(f"  [P 道具未知 id] {len(unknown)} 个（快照缺行，不猜）：{', '.join(unknown)}")
+            print(f"  [P 道具未知 id] {len(unknown)} 个（catalog 缺行，不猜）：{', '.join(unknown)}")
     for row in summary.get("skipped_algorithms") or []:
         print(f"  [算法跳过] {row['name']}: {row['reason']}")
     header = (

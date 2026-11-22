@@ -95,7 +95,8 @@
 ### 2.3.1 T5③ 2026-11-22：P 道具数据接入（loadout → `PItemSpec`）
 
 - 数据层：`src/gkagent/data/p_items_db.py`——对局 loadout 的 `produce_item_ids` 精确匹配
-  `data/knowledge/p_items.json`（1068 件，2026-09-16 快照）；未知/重复 id 显式上报，
+  `data/knowledge/p_items.json`（B7 起 **1115 件**：本地中文 master 1068 + gakumasu-diff yaml
+  新增 47，后者的中文描述缺失处保留日文并显式标记）；未知/重复 id 显式上报，
   缺文件抛 `PItemDataUnavailable`（**不静默当没有 P 道具**）。
 - 新触发/效果：`exam_start`（288 段素材；训练/考试开始时，`LessonSim` 构造时结算一次，
   顺序先于 turn_start、额外出牌次数保第 1 回合）；`ExamPlayableValueAdd → extra_plays`
@@ -104,13 +105,15 @@
 - 消费方：`scripts/local_bench.py`（gkbench 题模板 loadout → `LessonConfig.p_items`；
   `--p-items auto/off` A/B；报告 `p_items` 覆盖率）+ `submissions/expectimax/algo.py`
   （`ctx.loadout`，base.py 明说「开局配置（不含种子）」）。
-- 覆盖（如实）：catalog 1764 段 spec 已实现 421 段；gkbench 已知 72 道具 → 131 段 spec
-  已实现 31 段；11 个快照外新 id 显式未知。离线 A/B（hif 30 题×2 seed 配对）：
-  greedy 3840.7→**3969.7（+128.9，+3.36%，CI[+9.5,+248.4]）**、expectimax 3759.3→
-  3908.9（+149.6，+3.98%）；其余局逐位不变。
-- 测试：`tests/test_p_items_db.py` 10 条 + `test_gkbench_submission_p_items.py` 6 条 +
-  `test_p_items*.py` 增 9 条 + `test_local_bench.py` 增 4 条；细节见 RULES_REFERENCE §5.3 /
-  HANDOVER 二·补二十七。
+- 覆盖（B7 后，如实）：catalog **1115 件 → 1849 段 spec 已实现 445 段**；gkbench
+  **83 个已知道具 → 153 段 spec 已实现 34 段**（新增 47 条里条件未解析的 22 件/46 段记
+  `condition_known=False` 保守不触发）；gkbench 未知 id **0**（B6 时 11 个）。
+  离线 A/B（B7 重跑，hif 30 题×2 seed 配对）：greedy 3840.7→**3969.7（+128.9，+3.36%，
+  CI[+9.5,+248.4]）**（与 B6 逐位相同——新道具目前 0 分贡献）、expectimax 3732.0→3953.6
+  （+221.5，CI[−71.4,+514.4]，受墙钟预算抖动）。
+- 测试：`tests/test_p_items_db.py` 11 条 + `test_gkbench_submission_p_items.py` 6 条 +
+  `test_p_items*.py` 增 11 条 + `test_local_bench.py` 增 4 条；细节见 RULES_REFERENCE §5.3 /
+  HANDOVER 二·补二十七（B6）/ 二·补二十九（B7）。
 
 ### 饮料作为搜索动作
 
@@ -130,7 +133,7 @@
 
 | 项 | before | after | 差异 |
 |---|---:|---:|---:|
-| P 道具（全部 1764 spec，upper bound）P50 | 5096 | 11270 | **+6174** |
+| P 道具（全部 1764 spec，upper bound；B6 口径）P50 | 5096 | 11270 | **+6174** |
 | P 道具（同上）均值 | 5055.0 | 11267.1 | +6212.1 |
 | 饮料可搜索（带 3 瓶×3 次）P50 | 151 | 239 | **+88** |
 | 饮料可搜索 均值 | 138.2 | 254.8 | +116.6 |
@@ -935,8 +938,9 @@ B3 把模拟器从"每回合 3 张"改成真机规则（每回合基础 1 张、
 - **结论**：生产接线保持默认关闭（本来就没开）；B2 的有效结论作废，**重训留到 T5 机制
   （审查倍率/熱意/P 道具）补齐后**，否则重训一次还要再废一次。JSON：
   `out/b3_eval_b2_select.json` / `out/b3_eval_b2_confirm.json`。
-  （2026-11-22 进展：B4 倍率 / B5 熱意 / B6 P 道具**数据接入**已补；仍缺 P 道具
-  **效果覆盖**（31/131 段）与 fresh buff → 重训继续等这两项。）
+  （2026-11-22 进展：B4 倍率 / B5 熱意 / B6 P 道具**数据接入** / B7 P 道具 47 条补全
+  （数据缺口清零）已补；仍缺 P 道具**条件/效果语义**（445/1849 段）与 fresh buff →
+  重训继续等这两项。）
 
 ### 整局 A/B（`scripts/sim_engine_ab.py`，76 局）：expectimax 从"噪声内"变"显著更强"
 
@@ -974,8 +978,9 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
    注意：**不要**为了离线评测好看而把倍率写成 1.0 或常数 4.11，真机是逐回合不同的。
 
 **与 B2 重训的关系**：B2 旧模型的特征/标签是"分数"量级，B3 改规则 + B4 改倍率后旧模型更不可用；
-**重训仍等 T5 剩余机制（fresh buff / P 道具效果覆盖）补齐后一次做完**（避免再废一次；
-熱意已于 B5 补齐，P 道具**数据接入**已于 B6 完成、效果覆盖 31/131 段仍待补），
+**重训仍等 T5 剩余机制（fresh buff / P 道具条件与效果语义）补齐后一次做完**（避免再废一次；
+熱意已于 B5 补齐，P 道具**数据接入** B6、**47 条补全/未知 id 清零** B7 已完成，
+但条件/效果语义只实现 445/1849 段仍待补），
 生产 `leaf_model` 保持关闭。
 
 **基线**：`tests/test_exam_multiplier.py` 21 条；全量 pytest 1006 passed / 1 skipped

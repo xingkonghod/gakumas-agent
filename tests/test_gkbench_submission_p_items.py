@@ -38,7 +38,7 @@ def algo():
     return module
 
 
-#: p_items.json（2026-09-16 快照）里一个「训练/考试开始时」道具。
+#: p_items.json（1115 件；2026-09-16 中文 master + 上游新增 47）里一个「训练/考试开始时」道具。
 EXAM_START_ITEM_ID = "pitem_02-3-293-0"
 
 

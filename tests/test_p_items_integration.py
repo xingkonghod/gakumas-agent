@@ -15,6 +15,7 @@ def _free(trigger: str) -> list[PItemSpec]:
         for item in ITEMS
         if item.trigger == trigger
         and item.implemented
+        and item.condition_known
         and not item.condition
         and not item.card_filter
         and not item.lesson_filter
@@ -257,6 +258,7 @@ def test_real_exam_start_item_fires_once() -> None:
         for item in ITEMS
         if item.trigger == EXAM_START
         and item.implemented
+        and item.condition_known
         and not item.condition
         and not item.lesson_filter
         and item.target != "stamina"

@@ -6,10 +6,16 @@
     普通文本段 + ``ProduceExamEffectType`` 标签段（打分/元气/体力回复…）+
     ``Exam`` 数值段（``CustomizeEffectValue1`` 等标记里带数值）。
   * 结构化字段：``data/cache/ProduceItem.yaml``（vertesan/gakumasu-diff 上游 diff 出的
-    原始 master，21MB）。本地 master 里**没有** rarity 和 trigger/effect 关联，
-    这两个只能从 yaml 的 ``rarity`` / ``originProduceExamTriggerId`` 拿；
-    yaml 与本地同 id 空间，脚本会断言 1068/1068 全覆盖。
-  * 触发时机中文：``masterTrans/ProduceExamTrigger.json``（``e_trigger-*`` 的中文描述）
+    原始 master，21MB / **1115 件**）。本地 master 里**没有** rarity 和 trigger/effect
+    关联，这两个只能从 yaml 的 ``rarity`` / ``originProduceExamTriggerId`` 拿。
+  * **本地 master 没有、yaml 才有的 47 个新 id（2026-11 上游新增）**：结构化字段 +
+    日文描述来自 yaml；卡名优先用仓库里的自译表 ``data/i18n/translation_new.json``
+    （只有名字），没有就保留日文名并在记录上标 ``i18n_name_source="ja"``；
+    **中文描述缺失**时 ``text_zh`` 留空、``text_ja`` 保留 yaml 原文，并标
+    ``i18n_text_source="ja"``——不猜效果、不臆造译文。
+  * 触发时机中文：``masterTrans/ProduceExamTrigger.json``（``e_trigger-*`` 的中文描述）。
+    本地 masterTrans 是 2026-09-16 快照，新 id 用的新触发 id 没有中文触发句 →
+    ``condition_known=False``（条件未知时**保守不触发**，见 ``sim/p_items.py``）。
   * 效果类型中文：``masterTrans/ProduceDescriptionExamEffect.json``
 
 效果 / 数值的抽取口径（实测验证过）：
@@ -34,12 +40,16 @@ import json
 import re
 import sys
 from collections import Counter
+from collections.abc import Mapping
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = Path(r"D:\Games\Gakumas\gakumas\gakumas-local\local-files\masterTrans")
 YAML = ROOT / "data" / "cache" / "ProduceItem.yaml"
 OUT = ROOT / "data" / "knowledge" / "p_items.json"
+# 仓库里已提交的自译表（P0 59 条：3 张卡的 12 变体 + 47 个 P 道具的名字）。
+# 只用来给「本地 masterTrans 没有的新 id」补中文**卡名**；描述仍是日文，不猜。
+I18N_NAMES = ROOT / "data" / "i18n" / "translation_new.json"
 
 TAG = re.compile(r"<[^>]+>")
 WS = re.compile(r"\s+")
@@ -464,59 +474,154 @@ def produce_trigger_text(zh_text: str) -> str:
     return ""
 
 
+def load_i18n_names(path: Path = I18N_NAMES) -> dict[str, str]:
+    """读仓库里的自译表（``data/i18n/translation_new.json``）：日文名 → 中文名。
+
+    只用于「本地 masterTrans 没有、yaml 才有的新 id」的**卡名**（描述不译、不猜）。
+    文件缺失/格式不对 → 空表（重建时退化成 yaml 日文名并在记录里标记，不报错）。
+    """
+    if not path.is_file():
+        return {}
+    try:
+        entries = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    names: dict[str, str] = {}
+    if isinstance(entries, Mapping):
+        for jp, cn in entries.items():
+            if jp and isinstance(cn, str) and cn:
+                names[str(jp)] = cn
+    elif isinstance(entries, list):
+        for entry in entries:
+            if not isinstance(entry, Mapping):
+                continue
+            jp = entry.get("jp")
+            cn = entry.get("cn")
+            if isinstance(jp, str) and jp and isinstance(cn, str) and cn:
+                names[jp] = cn
+    return names
+
+
+def chinese_name(japanese: str, names: Mapping[str, str]) -> tuple[str, str]:
+    """(显示名, 来源)。强化变体名以 ``+`` 结尾：用基础名的译名 + ``+``。
+
+    译表里没有的保留日文名，来源记 ``"ja"``（明确标记，不臆造）。
+    """
+    if not japanese:
+        return "", "missing"
+    if japanese in names:
+        return names[japanese], "translation_new.json"
+    if japanese.endswith("+") and japanese[:-1] in names:
+        return names[japanese[:-1]] + "+", "translation_new.json"
+    return japanese, "ja"
+
+
+def build_record(
+    *,
+    item_id: str,
+    local_descs: list[dict] | None,
+    yaml_item: dict,
+    name: str,
+    trigger_cn: Mapping[str, str],
+    effect_labels: Mapping[str, str],
+) -> dict:
+    """组装一条 catalog 记录（本地 1068 条与 yaml 新增 47 条共用一套口径）。
+
+    ``local_descs=None`` 表示本地 masterTrans 没有这一行：效果退回纯 yaml 口径
+    （``_extract_effects_yaml``），中文描述缺失（``text_zh=""``，日文留在 ``text_ja``）。
+    """
+    yaml_descs = yaml_item.get("descriptions", [])
+    zh_text = render(local_descs) if local_descs is not None else ""
+    ja_text = render(yaml_descs)
+
+    desc_triggers = [d.get("originProduceExamTriggerId", "").strip('"') for d in yaml_descs]
+    desc_triggers = [t for t in desc_triggers if t]
+    if desc_triggers:
+        trigger_id = desc_triggers[0]
+        trigger_text = trigger_cn.get(trigger_id, "")
+    else:
+        trigger_id = yaml_item.get("produceTriggerId", "").strip('"')
+        trigger_text = produce_trigger_text(zh_text)
+
+    canonical, family, domain = classify_trigger(trigger_id, trigger_text)
+    condition = strip_base(trigger_text, canonical) if domain == "exam" else ""
+    # 中文触发句缺失的考试类触发 id（本地 masterTrans 快照早于该 id）→ 条件未知。
+    # 不能当成"无条件"结算（会把带条件的道具凭空触发），由 sim/p_items.py 保守跳过。
+    condition_known = not (domain == "exam" and trigger_id and not trigger_text)
+    params = trigger_params(trigger_id, canonical, family, trigger_text)
+    if local_descs is None:
+        effects = _extract_effects_yaml(yaml_descs, zh_text)
+    else:
+        effects = extract_effects(local_descs, yaml_descs, zh_text)
+    for eff in effects:
+        eff["label"] = effect_labels.get(f"ProduceExamEffectType_{eff['type']}", "")
+    primary = primary_effect(effects)
+    value, unit = primary_value(effects)
+
+    record = {
+        "id": item_id,
+        "name": name,
+        "rarity": RARITY.get(yaml_item.get("rarity", ""), "unknown"),
+        "trigger": canonical,
+        "trigger_family": family,
+        "trigger_id": trigger_id,
+        "trigger_text": trigger_text,
+        "trigger_domain": domain,
+        "trigger_params": params,
+        "condition": condition,
+        "effect_type": primary["type"] if primary else "unknown",
+        "effect_label": primary["label"] if primary else "",
+        "effect_text": primary["text"] if primary else "",
+        "value": value,
+        "value_unit": unit,
+        "max_uses": max((e["max_uses"] for e in effects), default=0),
+        "effects": effects,
+        "text_zh": zh_text,
+        "text_ja": ja_text,
+    }
+    if not condition_known:
+        record["condition_known"] = False
+    return record
+
+
 def build() -> dict:
     local = load_master("ProduceItem.json")
     yaml_items = parse_yaml_items(YAML)
     trigger_cn, effect_labels = label_tables()
+    names = load_i18n_names()
 
+    local_ids = {row["id"] for row in local}
     missing = [row["id"] for row in local if row["id"] not in yaml_items]
-    records = []
-    for row in local:
-        yaml_item = yaml_items.get(row["id"], {})
-        zh_text = render(row.get("produceDescriptions", []))
-        ja_text = render(yaml_item.get("descriptions", []))
+    new_ids = [item_id for item_id in yaml_items if item_id not in local_ids]
 
-        desc_triggers = [d.get("originProduceExamTriggerId", "").strip('"') for d in yaml_item.get("descriptions", [])]
-        desc_triggers = [t for t in desc_triggers if t]
-        if desc_triggers:
-            trigger_id = desc_triggers[0]
-            trigger_text = trigger_cn.get(trigger_id, "")
-        else:
-            trigger_id = yaml_item.get("produceTriggerId", "").strip('"')
-            trigger_text = produce_trigger_text(zh_text)
-
-        canonical, family, domain = classify_trigger(trigger_id, trigger_text)
-        condition = strip_base(trigger_text, canonical) if domain == "exam" else ""
-        params = trigger_params(trigger_id, canonical, family, trigger_text)
-        effects = extract_effects(row.get("produceDescriptions", []), yaml_item.get("descriptions", []), zh_text)
-        for eff in effects:
-            eff["label"] = effect_labels.get(f"ProduceExamEffectType_{eff['type']}", "")
-        primary = primary_effect(effects)
-        value, unit = primary_value(effects)
-
-        records.append(
-            {
-                "id": row["id"],
-                "name": row.get("name", ""),
-                "rarity": RARITY.get(yaml_item.get("rarity", ""), "unknown"),
-                "trigger": canonical,
-                "trigger_family": family,
-                "trigger_id": trigger_id,
-                "trigger_text": trigger_text,
-                "trigger_domain": domain,
-                "trigger_params": params,
-                "condition": condition,
-                "effect_type": primary["type"] if primary else "unknown",
-                "effect_label": primary["label"] if primary else "",
-                "effect_text": primary["text"] if primary else "",
-                "value": value,
-                "value_unit": unit,
-                "max_uses": max((e["max_uses"] for e in effects), default=0),
-                "effects": effects,
-                "text_zh": zh_text,
-                "text_ja": ja_text,
-            }
+    records = [
+        build_record(
+            item_id=row["id"],
+            local_descs=row.get("produceDescriptions", []),
+            yaml_item=yaml_items.get(row["id"], {}),
+            name=row.get("name", ""),
+            trigger_cn=trigger_cn,
+            effect_labels=effect_labels,
         )
+        for row in local
+    ]
+    i18n_ja_names = 0
+    for item_id in new_ids:
+        yaml_item = yaml_items[item_id]
+        name, name_source = chinese_name(yaml_item.get("name", ""), names)
+        if name_source == "ja":
+            i18n_ja_names += 1
+        record = build_record(
+            item_id=item_id,
+            local_descs=None,
+            yaml_item=yaml_item,
+            name=name,
+            trigger_cn=trigger_cn,
+            effect_labels=effect_labels,
+        )
+        record["i18n_name_source"] = name_source
+        record["i18n_text_source"] = "ja"
+        records.append(record)
 
     triggers = Counter(r["trigger"] for r in records)
     effects_all = Counter(e["type"] for r in records for e in r["effects"])
@@ -536,13 +641,20 @@ def build() -> dict:
         "items_with_max_uses": sum(1 for r in records if r["max_uses"]),
         "items_missing_yaml": len(missing),
         "items_missing_trigger_text": sum(1 for r in records if r["trigger_id"] and not r["trigger_text"]),
+        # B7：本地 masterTrans（2026-09-16）之外的新 id 与中文缺口，全部显式计数。
+        "items_local_master": len(local),
+        "items_from_yaml": len(new_ids),
+        "items_i18n_name_ja": i18n_ja_names,
+        "items_i18n_text_ja": len(new_ids),
+        "items_condition_unknown": sum(1 for r in records if r.get("condition_known") is False),
     }
     return {
         "source": {
             "master": "masterTrans/ProduceItem.json",
-            "master_version": "2026-09-16",
+            "master_version": "2026-09-16（1068 件）",
             "master_size": "8.69MB",
-            "structured": "data/cache/ProduceItem.yaml (vertesan/gakumasu-diff)",
+            "structured": "data/cache/ProduceItem.yaml (vertesan/gakumasu-diff，1115 件)",
+            "name_i18n": "data/i18n/translation_new.json（新增 47 条只补卡名；描述仍是日文）",
             "trigger_labels": "masterTrans/ProduceExamTrigger.json",
             "effect_labels": "masterTrans/ProduceDescriptionExamEffect.json",
         },
@@ -570,6 +682,12 @@ def report(payload: dict) -> None:
         f"有条件 {stats['items_with_condition']} / 有次数上限 {stats['items_with_max_uses']}"
     )
     print(f"trigger 中文缺失 {stats['items_missing_trigger_text']} / yaml 缺 id {stats['items_missing_yaml']}")
+    print(
+        f"本地 masterTrans {stats['items_local_master']} 件 + yaml 新增 {stats['items_from_yaml']} 件 = "
+        f"{stats['count']} 件；其中名字用自译表 {stats['items_from_yaml'] - stats['items_i18n_name_ja']} / "
+        f"日文 {stats['items_i18n_name_ja']}，描述日文（中文缺失）{stats['items_i18n_text_ja']}；"
+        f"条件未知（保守不触发）{stats['items_condition_unknown']} 件"
+    )
 
 
 def main(argv: list[str]) -> int:

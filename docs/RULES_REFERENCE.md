@@ -38,7 +38,8 @@
 **熱意（enthusiasm）与温存解除**（熱意 +5/+8、2 段固定元気 +5、解除当回合 +1 出牌次数、
 熱意算分/获得取整/回合末清零与延長、本牌熱意適用倍数）
 都已按参考引擎/客户端语义/真机对齐；剩余差距是 **P 道具效果覆盖/附魔**
-（数据管线已接 gkbench loadout，见 §5.3；效果只实现语义确定的 421/1764 段）、
+（数据管线已接 gkbench loadout，catalog 已补到上游 1115 件，见 §5.3；效果只实现语义确定的
+445/1849 段，新增 47 条的条件未知段保守不触发）、
 **fresh buff 的差一回合衰减**、**のんびり（leisure）指針与全力回合額外出牌/保留牌**、
 **依赖分结算顺序**（我们保守口径）等。
 
@@ -110,7 +111,7 @@
 | 好印象强化 / 好调加算 / 全力强化 持续回合 | `ExamReviewMultiple` / `ExamParameterBuffAdditiveFix` / `ExamFullPowerLessonMultipleAdditive` | `Buffs.review_multiple` 等 + `_tick_buff_turns` | ✅ | `test_review_multiple_*`、`test_condition_additive_*` |
 | メタモルフォーゼ 支度→披露（半场自动翻转） | `TurnManager.endTurn`: `turnsElapsed >= floor(turnCount/2)` | 只有外部设置的 `Buffs.metamorphosis`，不自动翻转 | ❌ 小（需要偶像特性数据） | — |
 | 饮料（体力/集中/好调/直接分） | 参考引擎 `p_drinks.csv`；实机每回合 1 瓶（用户确认无上限） | `LessonSim.use_drink`：4 种效果，不占出牌次数 | ✅ 已建模的 4 种；⚠️ 其余 20+ 种效果报错不静默 | `test_drink_*` |
-| P 道具（被动，按触发时机） | `p_items.csv` + 参考引擎 `PItems`；exam_start/turn_start/card_play/turn_skip 等 | `sim/p_items.py` 接口（6 种触发：exam_start/turn_start/turn_end/card_play/status_gain + 间隔）；T5③ 数据接入：`data/p_items_db.py` 把对局 loadout 的 `produce_item_ids` 解析成 `PItemSpec`（gkbench 505 题模板 83 唯一 id / 72 已知 / 11 未知）；`LessonSim` 构造时结算 exam_start | ✅ 数据接入（gkbench/离线；catalog 1764 段 spec 已实现 421 段）；⚠️ 真机培育侧 P 道具列表未采集（T6/D1）、部分效果类型仍 no-op | `tests/test_p_items.py` / `test_p_items_integration.py` / `test_p_items_db.py` / `test_gkbench_submission_p_items.py`；§5.3 |
+| P 道具（被动，按触发时机） | `p_items.csv` + 参考引擎 `PItems`；exam_start/turn_start/card_play/turn_skip 等 | `sim/p_items.py` 接口（6 种触发：exam_start/turn_start/turn_end/card_play/status_gain + 间隔）；T5③ 数据接入：`data/p_items_db.py` 把对局 loadout 的 `produce_item_ids` 解析成 `PItemSpec`（B7 起 catalog 1115 件，gkbench 505 题模板 83 唯一 id **83 已知 / 0 未知**）；`LessonSim` 构造时结算 exam_start | ✅ 数据接入（gkbench/离线；catalog 1849 段 spec 已实现 445 段；47 条新增里条件未解析的 46 段保守不触发）；⚠️ 真机培育侧 P 道具列表未采集（T6/D1）、部分效果类型仍 no-op | `tests/test_p_items.py` / `test_p_items_integration.py` / `test_p_items_db.py` / `test_gkbench_submission_p_items.py`；§5.3 |
 
 ## 4. 考试 / 牌序机制（已真机验证）
 
@@ -200,20 +201,53 @@
 | **新增效果 `ExamPlayableValueAdd` → `extra_plays`**（51 段素材，N 在 `count` 列）：`PItemDelta` 增加 `extra_plays`，`LessonSim`/`ExpectState` 镜像 | [sim/p_items.py](../src/gkagent/sim/p_items.py)、[sim/expectimax.py](../src/gkagent/sim/expectimax.py) | 卡效果同类型早已映射 `CardSpec.extra_play`（B3 真机 39 回合证据）；P 道具数据 51 段全 `count=1` | `test_extra_play_effect_adds_action_slot` / `test_record_to_specs_uses_count_for_playable_add` / `test_exam_start_extra_play_keeps_first_turn_open` |
 | **离线跑分/提交接线**：`local_bench` 从题模板 loadout 接入（`--p-items auto/off`、报告 `p_items` 覆盖率）；gkbench 提交从 `ctx.loadout` 接入（缺数据 meta 记原因） | [scripts/local_bench.py](../scripts/local_bench.py)、[submissions/expectimax/algo.py](../submissions/expectimax/algo.py) | hif 30 题 × 2 seed 配对 A/B：greedy 3840.7 → **3969.7（+128.9，+3.36%，CI95 [+9.5,+248.4]）**；expectimax 3759.3 → 3908.9（+149.6，+3.98%，CI95 [−171.0,+470.2]）；其余局逐位不变（33/174 段已实现） | `tests/test_local_bench.py`（+4 条）/ `tests/test_gkbench_submission_p_items.py`（6 条） |
 
+**B7（2026-11-22 完成）：catalog 补到上游 1115 件（gkbench 未知 id 清零）**
+
+- [build_p_items.py](../scripts/build_p_items.py) 改为「本地中文 masterTrans（2026-09-16，1068 件，
+  逐段对齐）+ gakumasu-diff `ProduceItem.yaml` 独有 47 条」合并生成：新 id 的结构化字段/数值
+  来自 yaml（`_extract_effects_yaml` 兜底口径），卡名用仓库自译表
+  `data/i18n/translation_new.json`（47/47 命中），**中文描述缺失**处 `text_zh=""`、
+  `text_ja` 保留日文并标 `i18n_text_source="ja"`（不猜、不臆造译文）。
+- 新 id 的触发 id 本地 masterTrans 里没有中文触发句（快照早于新表）→
+  `condition_known=False`（22 件 / 46 段 spec）；`apply_passive` **保守跳过**，不把带条件的
+  道具当无条件结算（`PItemSpec.condition_known`，`summarize` 单列计数，不混进 implemented）。
+- 数据：**1068 → 1115 件**；spec 1764 → **1849 段**，已实现 421 → **445 段**
+  （no-op 1404：effect_type 不支持 1026 / 触发时机不支持 207 / 无值 171；条件未知 46 段另计）；
+  gkbench 505 题模板：2686 个 id / 83 唯一 / **83 已知 / 0 未知**（唯一口径 153 段 spec，
+  实现 34 段、条件未知 10 段）。
+- 离线 A/B（同 harness：hif 30 题 × 2 seed = seed 1000/1001，`--budget-ms 100`，
+  `local_bench --p-items off/auto`，同题同 seed 配对，CI = mean±1.96·SE）：
+
+| 算法 | off | auto | 配对 Δ | 95% CI | 变化局（胜/负/平） |
+|---|---:|---:|---:|---|---|
+| greedy | 3840.7 | **3969.7** | **+128.9（+3.36%）** | [+9.5,+248.4] | 8/60（8/0/52） |
+| expectimax(analytic) | 3732.0 | **3953.6** | **+221.5（+5.94%）** | [−71.4,+514.4] | 13/60（10/3/47） |
+
+  - **greedy 与 B6 逐位相同**：新增 47 条里 22 条条件未知、其余多为未实现类型/育成期触发
+    → 不触发，所以 +128.9 仍是「数据接入」本身的收益；expectimax 受墙钟预算抖动
+    （B6 同 harness 为 3759.3→3908.9，+149.6，两次 CI 都含 0），只作方向记录。
+  - 样本覆盖（30 题）：147 id / **147 已知 / 0 未知**（B6：130/8）、198 段 spec（B6 174）、
+    已实现 35 段（B6 33）、条件未知 9 段。
+- 回归：`test_p_items_db.py` +1（47 条新增全覆盖 / 未知清零 / 条件未知计数）、
+  `test_p_items.py` +2（condition_known 保守跳过 / summarize 计数）、
+  `test_p_items_integration.py` 触发候选过滤加 `condition_known`；
+  全量 pytest **1054 passed / 1 skipped（1055 收集 / 76 文件）**。
+
 **口径与剩余差距（如实记录）**：
 
 - 真机采集 `traffic.jsonl`（3.2MB）全文件 0 命中 produce 编成字段 → **真机培育侧**
   P 道具列表未采集（T6/D1 补采 produce 开始 API/存盘）；本轮接的是 gkbench 题模板的
   loadout（离线、公开配置）。
-- 效果覆盖：catalog 1068 件 → 1764 段 spec，已实现 **421 段**；gkbench 72 个已知道具 →
-  131 段 spec，已实现 **31 段**。未实现大户：`ExamLessonValueMultiple`（打分上升量）、
+- 效果覆盖：catalog **1115 件 → 1849 段 spec，已实现 445 段**（B7 前 1068→1764/421）；
+  gkbench 83 个已知道具 → 153 段 spec，已实现 **34 段**（其中 10 段条件未知不触发）。
+  未实现大户：`ExamLessonValueMultiple`（打分上升量）、
   `ExamParameterBuff`（好调/审查基准两种口径未定）、`ExamStaminaReduceFix`（百分比且数据
   缺值）、`ExamCardCreateId`（生成卡）、`ExamConcentration/ExamPreservation`（指針）、
   `ExamReviewMultiple` 等 → 需要参考引擎语义 + 主数据文本重解析（如「最大体力的 N%」）再补，
   **不猜**。
-- 11 个未知 id（`pitem_01-3-349-0`、`pitem_02-3-336-1`、`pitem_03-3-334/337/345-*`、
-  `pitem_3-258-research-event-008/009/010` 等）= p_items.json 快照（2026-09-16）之后
-  新增道具 → 刷新 gkumasu-diff 快照后重生成。
+- **11 个未知 id 已清零**（B7，2026-11-22）：`pitem_01-3-349-0`、`pitem_02-3-336-1`、
+  `pitem_03-3-334/337/345-*`、`pitem_3-258-research-event-008/009/010` 等已进 catalog；
+  但它们的**条件未知/效果未实现** → 保守不触发（0 分贡献），开放点变成「条件与效果语义」。
 - gkbench 提交侧 `obs` 没有 P 道具已用次数 → 保守从 0 开始（可能高估剩余次数）；
   主道具附魔 `main_item_enchant_ids` / 回忆 `memory_ability_ids` 未接入。
 - 生产真机（`policy/lesson.py` 读屏路径）**没接**：屏幕读不到 P 道具 id 清单，仍按空
@@ -230,8 +264,11 @@
    同回合重复解除可叠加；见 §5.2。全力回合額外次数/保留牌仍未建模。
 4. **fresh buff 保护**（差一回合）：好调/好印象/绝好调持续时间可能整体少 1 回合，需真机逐回合截图核实。
 5. ~~**P 道具数据接入**~~ ✅ **2026-11-22 T5③ 完成（§5.3）**：gkbench/离线 loadout 的
-   `produce_item_ids` → `PItemSpec` 已接入模拟器/评测/提交；exam_start 与 extra_plays 新支持。
-   **剩余**：真机培育侧列表（T6/D1 补采）、效果覆盖（gkbench 已知 31/131 段）、主道具附魔/回忆。
+   `produce_item_ids` → `PItemSpec` 已接入模拟器/评测/提交；exam_start 与 extra_plays 新支持；
+   **B7（T9）已把 catalog 补到上游 1115 件、gkbench 未知 id 清零**（1068→1115 件、
+   spec 1764→1849、已实现 421→445；新增 47 条条件未解析段保守不触发）。
+   **剩余**：真机培育侧列表（T6/D1 补采）、**条件/效果语义**（catalog 445/1849 段、
+   gkbench 34/153 段）、主道具附魔/回忆。
 6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
 7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。

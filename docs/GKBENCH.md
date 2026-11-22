@@ -176,10 +176,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   接官方 check 时要覆盖（15/384 会差 −28…+6 体力）。
 - **B6/T5③（2026-11-22）起 `local_bench.py` 已把题模板 `loadout.produce_item_ids` 接入
   `LessonSim`**（`--p-items auto/off` 可 A/B；报告 `p_items` 覆盖率），提交适配器也从
-  `ctx.loadout` 接入；但 `p_items.json` 快照（2026-09-16）缺 11 个新 id、效果覆盖
-  72 个已知道具里 131 段 spec 只实现 31 段（见 RULES_REFERENCE §5.3）。
+  `ctx.loadout` 接入；**B7（2026-11-22）把 `p_items.json` 补到上游 1115 件**——本数据源
+  83 个唯一 id **全部已知、0 未知**，但新增 47 条的条件/效果大多未建模（条件未知段保守
+  不触发）；效果覆盖：catalog 1849 段 spec 实现 445 段、本数据 83 道具 153 段实现 34 段
+  （见 RULES_REFERENCE §5.3）。
 - 已知待补（F1）：`ExamInitialDeck` 加卡机制、`kllj-3-005` 开局 +1 手牌；
-  `loadout.produce_item_ids` 的 11 个快照外新道具与主道具附魔 `main_item_enchant_ids`。
+  主道具附魔 `main_item_enchant_ids`、P 道具条件/效果语义（B7 后已无未知 id）。
 
 ## 5. 参考分（2026-11-22 抓取，`public_seeds=false` 时的公开部分）
 

@@ -388,6 +388,48 @@ def test_record_to_specs_uses_count_for_playable_add() -> None:
     assert specs[0].max_uses == 1
 
 
+def test_record_to_specs_carries_condition_known_and_ja_text() -> None:
+    """B7：新增道具的记录带 ``condition_known=False`` + ``i18n_text_source="ja"``。
+
+    - 条件未知的 spec **不触发**（别把带条件的道具当无条件结算）；
+    - 中文描述缺失时 ``text`` 回退 yaml 日文（调试可见），不是空串。
+    """
+    record = {
+        "id": "pitem_new-001",
+        "name": "新道具",
+        "rarity": "SSR",
+        "trigger": TURN_START,
+        "condition": "",
+        "condition_known": False,
+        "max_uses": 0,
+        "trigger_params": {},
+        "effects": [{"type": "ExamBlock", "label": "元气", "values": {"value1": 7}, "max_uses": 0}],
+        "text_zh": "",
+        "text_ja": "ターン開始時、元気+7",
+        "i18n_text_source": "ja",
+    }
+    specs = record_to_specs(record)
+    assert len(specs) == 1
+    assert specs[0].condition_known is False
+    assert specs[0].text == "ターン開始時、元気+7"
+    # data 层仍算 implemented（效果/触发/数值都清楚），但 apply_passive 保守跳过。
+    assert specs[0].implemented is True
+    delta = apply_passive([specs[0]], PassiveEvent(kind=TURN_START), PassiveState(turn=1))
+    assert delta.is_zero() is True
+    # 同一条件已知的 spec 会正常触发（对照组）。
+    known = record_to_specs({**record, "condition_known": True})[0]
+    assert apply_passive([known], PassiveEvent(kind=TURN_START), PassiveState(turn=1)).stacks == {"vitality": 7}
+
+
+def test_summarize_counts_condition_unknown() -> None:
+    """``summarize`` 单独统计条件未知的 spec（不混进 implemented/noop 口径）。"""
+    known = make_spec(effect_type="ExamBlock", value=5)
+    unknown = make_spec(effect_type="ExamBlock", value=5, condition_known=False)
+    summary = summarize([known, unknown])
+    assert summary["condition_unknown"] == 1
+    assert summary["implemented"] == 2  # 效果/触发/数值都清楚；触发与否由 apply_passive 决定
+
+
 def test_real_data_playable_add_count_is_extracted() -> None:
     """真数据里 51 条 ExamPlayableValueAdd 全是 count=1；不能退化成 0 值 no-op。"""
     specs = [spec for spec in load_p_items() if spec.effect_type == "ExamPlayableValueAdd"]
@@ -398,7 +440,7 @@ def test_real_data_playable_add_count_is_extracted() -> None:
 
 
 def test_load_real_data_and_never_raise() -> None:
-    """真数据（1068 件道具）能加载，四种事件全过一遍都不抛异常。"""
+    """真数据（1115 件道具 = 本地 1068 + 上游新增 47）能加载，四种事件全过一遍都不抛异常。"""
     specs = load_p_items()
     assert len(specs) > 1000
     assert all(isinstance(spec, PItemSpec) for spec in specs)
@@ -456,3 +498,10 @@ def test_data_file_stats_are_consistent() -> None:
         for effect in item["effects"]:
             rebuilt[effect["type"]] = rebuilt.get(effect["type"], 0) + 1
     assert rebuilt == stats["effect_types"]
+    # B7：本地 master 件数 + yaml 新增件数 = 总数；中文缺失/条件未知都显式计数。
+    assert stats["items_local_master"] + stats["items_from_yaml"] == len(items)
+    assert sum(1 for item in items if item.get("i18n_text_source") == "ja") == stats["items_i18n_text_ja"]
+    assert (
+        sum(1 for item in items if item.get("condition_known") is False)
+        == stats["items_condition_unknown"]
+    )

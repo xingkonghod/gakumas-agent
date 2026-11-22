@@ -2,11 +2,12 @@
 
 真机课程右上角的 P 道具是**被动**的：满足条件自动触发，不需要玩家动作，但会影响
 分数 / 体力 / 层数 / 当回合可出牌次数。数据来自 ``data/knowledge/p_items.json``
-（由 ``scripts/build_p_items.py`` 解析 ``ProduceItem.json`` + gakumasu-diff 的
-``ProduceItem.yaml`` 生成）；真实对局带哪些 P 道具由
-``gkagent.data.p_items_db`` 从 loadout 的 ``produce_item_ids`` 解析（T5③
-2026-11-22 接入：gkbench 505 题模板共 83 个唯一 id，72 个在 2026-09-16 主数据
-快照里，未知 id 显式上报、不猜）。
+（由 ``scripts/build_p_items.py`` 解析 ``masterTrans/ProduceItem.json`` + gakumasu-diff
+的 ``ProduceItem.yaml`` 生成，**1115 件**：本地中文 master 1068 件 + 上游新增 47 件）。
+真实对局带哪些 P 道具由 ``gkagent.data.p_items_db`` 从 loadout 的
+``produce_item_ids`` 解析（B7 起 catalog 覆盖到上游 1115 件，gkbench 505 题模板
+的 83 个唯一 id 全部已知；上游新增 47 件的描述/中文触发句缺失 → 卡名用仓库自译表、
+描述日文、条件未知的保守不触发，见 ``PItemSpec.condition_known``）。
 
 设计边界（有意保守）：
 
@@ -118,6 +119,9 @@ class PItemSpec:
     effect_type: str
     value: int = 0
     condition: str = ""
+    # 条件是否已知：新增道具的新触发 id 没有中文触发句时 = False（条件没解析出来），
+    # apply_passive 会保守跳过（宁可不触发，也不把带条件的道具当无条件结算）。
+    condition_known: bool = True
     item_id: str = ""
     rarity: str = ""
     label: str = ""  # effect_type 的中文名（打分/元气/…）
@@ -352,6 +356,8 @@ def apply_passive(
     for spec in items:
         if not _trigger_matches(spec, event, state):
             continue
+        if not spec.condition_known:
+            continue  # 条件未解析（新道具的新触发 id）：保守不触发，见 condition_known
         if evaluate_condition(spec.condition, state) is not True:
             continue
         target = spec.target
@@ -397,6 +403,7 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
         "name": record.get("name", ""),
         "trigger": record.get("trigger", ""),
         "condition": record.get("condition", ""),
+        "condition_known": bool(record.get("condition_known", True)),
         "item_id": record.get("id", ""),
         "rarity": record.get("rarity", ""),
         "interval": int(params.get("interval") or 0),
@@ -408,7 +415,7 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
         "final_turn": bool(params.get("final_turn")),
         "card_filter": params.get("card_filter", ""),
         "lesson_filter": params.get("lesson_filter", ""),
-        "text": record.get("text_zh", ""),
+        "text": record.get("text_zh") or record.get("text_ja", ""),
     }
     if not effects:
         return [PItemSpec(effect_type="unknown", label="", value=0, max_uses=int(record.get("max_uses") or 0), **common)]
@@ -470,6 +477,9 @@ def summarize(items: Sequence[PItemSpec]) -> dict:
         "specs": len(items),
         "implemented": len(implemented),
         "noop": len(noop),
+        # B7：条件未知（新增道具的新触发 id 没有中文触发句）——这些 spec 不会触发，
+        # 单独计数，不混进 implemented/noop 口径里假装建模完成。
+        "condition_unknown": sum(1 for spec in items if not spec.condition_known),
         "noop_reasons": noop_reasons,
         "implemented_with_unparsed_condition": len(unparsed),
         "implemented_effect_types": _count(spec.effect_type for spec in implemented),

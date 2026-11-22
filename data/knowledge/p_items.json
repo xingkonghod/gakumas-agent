@@ -1,45 +1,46 @@
 {
  "source": {
   "master": "masterTrans/ProduceItem.json",
-  "master_version": "2026-09-16",
+  "master_version": "2026-09-16（1068 件）",
   "master_size": "8.69MB",
-  "structured": "data/cache/ProduceItem.yaml (vertesan/gakumasu-diff)",
+  "structured": "data/cache/ProduceItem.yaml (vertesan/gakumasu-diff，1115 件)",
+  "name_i18n": "data/i18n/translation_new.json（新增 47 条只补卡名；描述仍是日文）",
   "trigger_labels": "masterTrans/ProduceExamTrigger.json",
   "effect_labels": "masterTrans/ProduceDescriptionExamEffect.json"
  },
  "stats": {
-  "count": 1068,
+  "count": 1115,
   "rarity": {
-   "N": 345,
-   "R": 105,
-   "SR": 171,
-   "SSR": 447
+   "N": 357,
+   "R": 107,
+   "SR": 178,
+   "SSR": 473
   },
   "trigger_domain": {
-   "exam": 839,
-   "produce": 229
+   "exam": 876,
+   "produce": 239
   },
   "trigger": {
-   "turn_start": 191,
-   "card_play_interval": 60,
-   "card_play": 115,
+   "turn_start": 196,
+   "card_play_interval": 65,
+   "card_play": 120,
    "turn_interval": 16,
-   "turn_start_after": 39,
+   "turn_start_after": 43,
    "produce_start_shop": 7,
    "produce_end_audition": 2,
-   "turn_end": 54,
+   "turn_end": 56,
    "status_gain": 40,
    "produce_produce_start": 6,
-   "produce_end_step_event_school": 7,
+   "produce_end_step_event_school": 8,
    "produce_end_present": 18,
    "produce_start_customize": 19,
    "produce_end_step_event_activity": 21,
    "exam_start": 145,
    "produce_end_lesson": 15,
    "produce_end_before_audition_refresh": 15,
-   "card_played": 85,
-   "produce_upgrade_produce_card": 4,
-   "produce_get_produce_card": 63,
+   "card_played": 93,
+   "produce_upgrade_produce_card": 8,
+   "produce_get_produce_card": 65,
    "produce_end_shop": 6,
    "produce_end_lesson_before_present": 1,
    "produce_end_step_event_business": 21,
@@ -48,37 +49,38 @@
    "buff_consume": 9,
    "card_play_interval_after": 7,
    "produce_start_lesson": 18,
-   "produce_start_present": 4,
-   "exam_start_after": 3,
+   "produce_start_present": 7,
+   "exam_start_after": 7,
    "status_gain_interval": 4,
    "stamina_reduce": 13,
    "turn_end_interval": 4,
    "produce_start_audition": 1,
    "turn_skip": 12,
-   "card_moved_out": 6
+   "card_moved_out": 6,
+   "other": 4
   },
   "trigger_family": {
    "exam_turn_timer": 55,
-   "exam_start_turn": 172,
-   "exam_play_turn_count_interval": 21,
-   "exam_card_play": 115,
+   "exam_start_turn": 177,
+   "exam_play_turn_count_interval": 24,
+   "exam_card_play": 120,
    "exam_turn_interval": 16,
-   "start_play": 39,
+   "start_play": 43,
    "start_shop": 7,
    "end_audition": 2,
-   "exam_end_turn": 54,
+   "exam_end_turn": 56,
    "exam_status_change": 40,
    "produce_start": 6,
-   "end_step_event_school": 7,
+   "end_step_event_school": 8,
    "end_present": 18,
    "start_customize": 19,
    "end_step_event_activity": 21,
    "exam_start_exam": 109,
    "end_lesson": 15,
    "end_before_audition_refresh": 15,
-   "exam_card_play_after": 85,
-   "upgrade_produce_card": 4,
-   "get_produce_card": 63,
+   "exam_card_play_after": 93,
+   "upgrade_produce_card": 8,
+   "get_produce_card": 65,
    "end_shop": 6,
    "end_lesson_before_present": 1,
    "end_step_event_business": 21,
@@ -87,45 +89,46 @@
    "exam_buff_consume": 9,
    "exam_play_count_interval_after": 7,
    "start_lesson": 18,
-   "start_present": 4,
-   "exam_play_count_interval": 39,
-   "start_exam_play": 3,
+   "start_present": 7,
+   "exam_play_count_interval": 41,
+   "start_exam_play": 7,
    "exam_aggressive_up_interval": 4,
    "exam_stamina_reduce": 13,
    "exam_end_turn_interval": 4,
    "start_audition": 1,
    "exam_turn_skip": 12,
-   "exam_card_move_lost": 6
+   "exam_card_move_lost": 6,
+   "exam_review_up_interval": 4
   },
-  "trigger_kinds": 36,
+  "trigger_kinds": 37,
   "effect_types": {
-   "ExamLesson": 120,
-   "ExamBlock": 161,
-   "ExamLessonValueMultiple": 87,
+   "ExamLesson": 126,
+   "ExamBlock": 173,
+   "ExamLessonValueMultiple": 93,
    "ExamPlayableValueAdd": 51,
    "ExamStaminaConsumptionAddFix": 32,
    "ExamGimmickParameterDebuff": 8,
    "ExamStaminaConsumptionAdd": 14,
-   "ExamLessonBuff": 114,
-   "ExamReview": 137,
-   "ExamStaminaReduceFix": 87,
-   "ExamCardPlayAggressive": 123,
+   "ExamLessonBuff": 122,
+   "ExamReview": 140,
+   "ExamStaminaReduceFix": 91,
+   "ExamCardPlayAggressive": 129,
    "ExamStaminaDamage": 2,
-   "ExamParameterBuff": 109,
+   "ExamParameterBuff": 113,
    "ExamStaminaRecoverFix": 46,
-   "ExamConcentration": 32,
-   "ExamFullPower": 30,
+   "ExamConcentration": 33,
+   "ExamFullPower": 31,
    "ExamBlockFix": 12,
    "ExamAntiDebuff": 11,
-   "ExamPreservation": 44,
+   "ExamPreservation": 47,
    "ExamCardUpgrade": 5,
-   "ExamStaminaConsumptionDownFix": 26,
+   "ExamStaminaConsumptionDownFix": 28,
    "ExamStaminaConsumptionDown": 21,
    "ExamLessonBuffAdditive": 10,
-   "ExamLessonBuffMultiple": 4,
-   "ExamParameterBuffMultiplePerTurn": 19,
+   "ExamLessonBuffMultiple": 6,
+   "ExamParameterBuffMultiplePerTurn": 20,
    "ExamLessonBuffReduce": 4,
-   "ExamLessonValueMultipleDown": 34,
+   "ExamLessonValueMultipleDown": 36,
    "ExamGimmickSlump": 11,
    "ExamBlockRestriction": 15,
    "ExamExtraTurn": 12,
@@ -133,17 +136,17 @@
    "ExamCardCreateId": 17,
    "ExamParameterBuffAdditive": 4,
    "ExamReviewAdditive": 7,
-   "ExamReviewMultiple": 7,
+   "ExamReviewMultiple": 9,
    "ExamAggressiveReduce": 5,
    "ExamLessonValueMultipleDependReviewOrAggressive": 2,
    "ExamReviewReduce": 5,
    "ExamBlockAddDown": 14,
    "ExamAggressiveAdditive": 5,
-   "ExamEnthusiasticAdditive": 8,
+   "ExamEnthusiasticAdditive": 9,
    "ExamEnthusiasticMultiple": 6,
-   "ExamFullPowerPoint": 32,
+   "ExamFullPowerPoint": 36,
    "ExamFullPowerPointReduce": 4,
-   "ExamFullPowerPointAdditive": 6,
+   "ExamFullPowerPointAdditive": 8,
    "ExamFullPowerLessonMultipleAdditive": 3,
    "ExamStanceReset": 1,
    "ExamOverPreservation": 2,
@@ -153,25 +156,28 @@
    "ExamGimmickSleepy": 6,
    "ExamGimmickStartTurnCardDrawDown": 12,
    "ExamCardDuplicate": 6,
-   "ExamDebuffRecover": 6
+   "ExamDebuffRecover": 6,
+   "ExamBuffConsumptionAdd": 4,
+   "ExamMetamorphose": 2,
+   "ExamReviewCountAdd": 4
   },
-  "effect_type_kinds": 55,
+  "effect_type_kinds": 58,
   "primary_effect_type": {
-   "ExamLesson": 42,
-   "ExamLessonValueMultiple": 72,
+   "ExamLesson": 44,
+   "ExamLessonValueMultiple": 76,
    "ExamPlayableValueAdd": 22,
-   "unknown": 208,
-   "ExamLessonBuff": 72,
-   "ExamReview": 97,
-   "ExamBlock": 107,
-   "ExamCardPlayAggressive": 80,
+   "unknown": 213,
+   "ExamLessonBuff": 80,
+   "ExamReview": 99,
+   "ExamBlock": 117,
+   "ExamCardPlayAggressive": 84,
    "ExamStaminaDamage": 2,
-   "ExamParameterBuff": 80,
+   "ExamParameterBuff": 82,
    "ExamStaminaRecoverFix": 33,
    "ExamConcentration": 18,
-   "ExamFullPower": 17,
+   "ExamFullPower": 18,
    "ExamBlockFix": 9,
-   "ExamPreservation": 19,
+   "ExamPreservation": 20,
    "ExamCardUpgrade": 1,
    "ExamStaminaConsumptionDown": 14,
    "ExamLessonBuffAdditive": 8,
@@ -186,32 +192,38 @@
    "ExamReviewMultiple": 4,
    "ExamBlockRestriction": 2,
    "ExamLessonValueMultipleDependReviewOrAggressive": 2,
-   "ExamStaminaReduceFix": 12,
+   "ExamStaminaReduceFix": 13,
    "ExamExtraTurn": 7,
    "ExamReviewReduce": 1,
    "ExamAggressiveReduce": 1,
    "ExamAggressiveAdditive": 4,
    "ExamLessonValueMultipleDown": 21,
    "ExamStaminaConsumptionAdd": 3,
-   "ExamEnthusiasticAdditive": 8,
+   "ExamEnthusiasticAdditive": 9,
    "ExamEnthusiasticMultiple": 5,
-   "ExamFullPowerPoint": 17,
+   "ExamFullPowerPoint": 19,
    "ExamFullPowerPointReduce": 2,
    "ExamFullPowerLessonMultipleAdditive": 3,
    "ExamStanceReset": 1,
-   "ExamFullPowerPointAdditive": 2,
+   "ExamFullPowerPointAdditive": 4,
    "ExamConcentrationLessonMultipleAdditive": 2,
    "ExamAntiDebuff": 10,
    "ExamDebuffRecover": 6,
    "ExamCardDuplicate": 5,
-   "ExamStaminaConsumptionAddFix": 1
+   "ExamStaminaConsumptionAddFix": 1,
+   "ExamReviewCountAdd": 2
   },
-  "items_with_effects": 860,
-  "items_with_value": 716,
-  "items_with_condition": 348,
+  "items_with_effects": 902,
+  "items_with_value": 752,
+  "items_with_condition": 354,
   "items_with_max_uses": 9,
   "items_missing_yaml": 0,
-  "items_missing_trigger_text": 6
+  "items_missing_trigger_text": 38,
+  "items_local_master": 1068,
+  "items_from_yaml": 47,
+  "items_i18n_name_ja": 0,
+  "items_i18n_text_ja": 47,
+  "items_condition_unknown": 22
  },
  "items": [
   {
@@ -37700,6 +37712,1877 @@
    ],
    "text_zh": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，回合追加+1（训练内9次）",
    "text_ja": "アクティブスキルカード使用時、直前にメンタルスキルカードを使用した状態の場合、ターン追加+1（レッスン内9回）"
+  },
+  {
+   "id": "pitem_01-0-001-0-022",
+   "name": "初星摆件（银）",
+   "rarity": "N",
+   "trigger": "card_play_interval",
+   "trigger_family": "exam_play_turn_count_interval",
+   "trigger_id": "e_trigger-exam_play_turn_count_interval-2-remaining_turn-5-p_card_search-target",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "interval": 2,
+    "interval_scope": "turn"
+   },
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中+",
+   "value": 4,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonBuff",
+     "values": {
+      "value1": 4
+     },
+     "text": "集中+",
+     "max_uses": 0,
+     "label": "集中"
+    },
+    {
+     "type": "ExamLessonBuffMultiple",
+     "values": {
+      "percent1": 15
+     },
+     "text": "集中強化%（レッスン内5回）",
+     "max_uses": 0,
+     "label": "集中强化"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "残り5ターン以内の場合、ターン内にスキルカードを2回使用するごとに、集中+4集中強化15%（レッスン内5回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-0-001-0-023",
+   "name": "初星摆件（银）",
+   "rarity": "N",
+   "trigger": "card_play_interval",
+   "trigger_family": "exam_play_turn_count_interval",
+   "trigger_id": "e_trigger-exam_play_turn_count_interval-2-remaining_turn-5-p_card_search-target",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "interval": 2,
+    "interval_scope": "turn"
+   },
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中+",
+   "value": 4,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonBuff",
+     "values": {
+      "value1": 4
+     },
+     "text": "集中+",
+     "max_uses": 0,
+     "label": "集中"
+    },
+    {
+     "type": "ExamLessonBuffMultiple",
+     "values": {
+      "percent1": 15
+     },
+     "text": "集中強化%（レッスン内5回）",
+     "max_uses": 0,
+     "label": "集中强化"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "残り5ターン以内の場合、ターン内にスキルカードを2回使用するごとに、集中+4集中強化15%（レッスン内5回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-0-001-0-024",
+   "name": "初星摆件（银）",
+   "rarity": "N",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-parameter_buff_up-8-p_card_search-mental_skill-target-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中+ターン後、",
+   "value": 6,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonBuff",
+     "values": {
+      "value1": 6
+     },
+     "text": "集中+ターン後、",
+     "max_uses": 0,
+     "label": "集中"
+    },
+    {
+     "type": "ExamLesson",
+     "values": {
+      "value1": 10
+     },
+     "text": "パラメータ+ターン後、",
+     "max_uses": 0,
+     "label": "打分"
+    },
+    {
+     "type": "ExamLesson",
+     "values": {
+      "value1": 10
+     },
+     "text": "パラメータ+（レッスン内3回）",
+     "max_uses": 0,
+     "label": "打分"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "メンタルスキルカード使用後、好調が8ターン以上の場合、集中+65ターン後、パラメータ+106ターン後、パラメータ+10（レッスン内3回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-0-005-0-030",
+   "name": "初星摆件（紫）",
+   "rarity": "N",
+   "trigger": "turn_start",
+   "trigger_family": "exam_start_turn",
+   "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-2-p_card_search-trouble-not_lost",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamLessonValueMultiple",
+   "effect_label": "打分上升量增加",
+   "effect_text": "パラメータ上昇量増加%",
+   "value": 50,
+   "value_unit": "percent1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonValueMultiple",
+     "values": {
+      "percent1": 50
+     },
+     "text": "パラメータ上昇量増加%",
+     "max_uses": 0,
+     "label": "打分上升量增加"
+    },
+    {
+     "type": "ExamParameterBuffMultiplePerTurn",
+     "values": {
+      "turn": 3
+     },
+     "text": "絶好調ターン（レッスン内2回）",
+     "max_uses": 0,
+     "label": "绝好调"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "ターン開始時、除外以外にあるトラブルカードが2枚以上の場合、パラメータ上昇量増加50%絶好調3ターン（レッスン内2回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-1-100-0",
+   "name": "随从的必需品",
+   "rarity": "R",
+   "trigger": "exam_start_after",
+   "trigger_family": "start_exam_play",
+   "trigger_id": "e_trigger-start_exam_play",
+   "trigger_text": "训练开始后，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中+",
+   "value": 2,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonBuff",
+     "values": {
+      "value1": 2
+     },
+     "text": "集中+",
+     "max_uses": 0,
+     "label": "集中"
+    },
+    {
+     "type": "ExamLessonValueMultipleDown",
+     "values": {
+      "percent1": 10,
+      "turn": 2
+     },
+     "text": "パラメータ上昇量減少%（ターン）（レッスン内1回）",
+     "max_uses": 0,
+     "label": "打分上升量减少"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "レッスン開始後、集中+2パラメータ上昇量減少10%（2ターン）（レッスン内1回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-1-100-1",
+   "name": "随从的必需品+",
+   "rarity": "R",
+   "trigger": "exam_start_after",
+   "trigger_family": "start_exam_play",
+   "trigger_id": "e_trigger-start_exam_play",
+   "trigger_text": "训练开始后，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中+",
+   "value": 3,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonBuff",
+     "values": {
+      "value1": 3
+     },
+     "text": "集中+",
+     "max_uses": 0,
+     "label": "集中"
+    },
+    {
+     "type": "ExamLessonValueMultipleDown",
+     "values": {
+      "percent1": 10,
+      "turn": 2
+     },
+     "text": "パラメータ上昇量減少%（ターン）（レッスン内1回）",
+     "max_uses": 0,
+     "label": "打分上升量减少"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "レッスン開始後、集中+3パラメータ上昇量減少10%（2ターン）（レッスン内1回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-2-095-0",
+   "name": "慰劳咖啡",
+   "rarity": "SR",
+   "trigger": "produce_start_present",
+   "trigger_family": "start_present",
+   "trigger_id": "p_trigger-start_present-visual-0700_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "unknown",
+   "effect_label": "",
+   "effect_text": "",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [],
+   "text_zh": "",
+   "text_ja": "Pポイント+25ビジュアル上昇+10（プロデュース中2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-2-135-0",
+   "name": "藏王子的南瓜",
+   "rarity": "SR",
+   "trigger": "produce_upgrade_produce_card",
+   "trigger_family": "upgrade_produce_card",
+   "trigger_id": "p_trigger-upgrade_produce_card-0000_0000-p_card_search-deck_all-effect_group-visible-exam_parameter_buff-000-dance-0700_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamParameterBuff",
+   "effect_label": "好调",
+   "effect_text": "好調ダンス上昇+20Pポイント+10（プロデュース中3回）",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {},
+     "text": "好調ダンス上昇+20Pポイント+10（プロデュース中3回）",
+     "max_uses": 0,
+     "label": "好调"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "好調ダンス上昇+20Pポイント+10（プロデュース中3回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-2-137-0",
+   "name": "打扫的成果",
+   "rarity": "SR",
+   "trigger": "produce_end_step_event_school",
+   "trigger_family": "end_step_event_school",
+   "trigger_id": "p_trigger-end_step_event_school-visual-0700_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "unknown",
+   "effect_label": "",
+   "effect_text": "",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [],
+   "text_zh": "",
+   "text_ja": "スキルカードを選択して強化ビジュアル上昇+15（プロデュース中1回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-2-171-0",
+   "name": "回礼发饰",
+   "rarity": "SR",
+   "trigger": "turn_end",
+   "trigger_family": "exam_end_turn",
+   "trigger_id": "e_trigger-exam_end_turn-remaining_turn-2",
+   "trigger_text": "剩余2回合内的回合结束时，",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "remaining_turns": 2
+   },
+   "condition": "",
+   "effect_type": "ExamLesson",
+   "effect_label": "打分",
+   "effect_text": "パラメータ+（レッスン内2回）",
+   "value": 3,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLesson",
+     "values": {
+      "value1": 3
+     },
+     "text": "パラメータ+（レッスン内2回）",
+     "max_uses": 0,
+     "label": "打分"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "残り2ターン以内のターン終了時、パラメータ+3（レッスン内2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-2-171-1",
+   "name": "回礼发饰+",
+   "rarity": "SR",
+   "trigger": "turn_end",
+   "trigger_family": "exam_end_turn",
+   "trigger_id": "e_trigger-exam_end_turn-remaining_turn-2",
+   "trigger_text": "剩余2回合内的回合结束时，",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "remaining_turns": 2
+   },
+   "condition": "",
+   "effect_type": "ExamLesson",
+   "effect_label": "打分",
+   "effect_text": "パラメータ+（レッスン内2回）",
+   "value": 5,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLesson",
+     "values": {
+      "value1": 5
+     },
+     "text": "パラメータ+（レッスン内2回）",
+     "max_uses": 0,
+     "label": "打分"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "残り2ターン以内のターン終了時、パラメータ+5（レッスン内2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-346-0",
+   "name": "天生的才能",
+   "rarity": "SSR",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hand-p_card-00-acc-0_002-p_card_search-target-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamParameterBuff",
+   "effect_label": "好调",
+   "effect_text": "好調の%分",
+   "value": 30,
+   "value_unit": "percent1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {
+      "percent1": 30
+     },
+     "text": "好調の%分",
+     "max_uses": 0,
+     "label": "好调"
+    },
+    {
+     "type": "ExamLesson",
+     "values": {},
+     "text": "パラメータ上昇",
+     "max_uses": 0,
+     "label": "打分"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "スキルカード使用後、手札の眠気が1枚以上の場合、好調の30%分パラメータ上昇",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-346-1",
+   "name": "天生的才能+",
+   "rarity": "SSR",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hand-p_card-00-acc-0_002-p_card_search-target-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+",
+   "value": 1,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 1
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {
+      "percent1": 50
+     },
+     "text": "好調の%分",
+     "max_uses": 0,
+     "label": "好调"
+    },
+    {
+     "type": "ExamLesson",
+     "values": {},
+     "text": "パラメータ上昇",
+     "max_uses": 0,
+     "label": "打分"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "スキルカード使用後、手札の眠気が1枚以上の場合、元気+1好調の50%分パラメータ上昇",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-349-0",
+   "name": "迷倒世界的模样",
+   "rarity": "SSR",
+   "trigger": "turn_start_after",
+   "trigger_family": "start_play",
+   "trigger_id": "e_trigger-start_play-remaining_turn-4",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+除外にある獲物はあなた1枚を手札に移動",
+   "value": 1,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 1
+     },
+     "text": "元気+除外にある獲物はあなた1枚を手札に移動",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamStaminaReduceFix",
+     "values": {
+      "value1": 1
+     },
+     "text": "固定体力消費",
+     "max_uses": 0,
+     "label": "体力消耗"
+    },
+    {
+     "type": "ExamBuffConsumptionAdd",
+     "values": {
+      "turn": 1
+     },
+     "text": "強化状態コスト増加ターン（レッスン内4回）",
+     "max_uses": 0,
+     "label": ""
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "残り4ターン以内のターン開始後、元気+1除外にある獲物はあなた1枚を手札に移動固定体力消費1強化状態コスト増加1ターン（レッスン内4回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-349-1",
+   "name": "迷倒世界的模样+",
+   "rarity": "SSR",
+   "trigger": "turn_start_after",
+   "trigger_family": "start_play",
+   "trigger_id": "e_trigger-start_play-remaining_turn-5",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+除外にある獲物はあなた1枚を手札に移動",
+   "value": 2,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 2
+     },
+     "text": "元気+除外にある獲物はあなた1枚を手札に移動",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamStaminaReduceFix",
+     "values": {
+      "value1": 1
+     },
+     "text": "固定体力消費",
+     "max_uses": 0,
+     "label": "体力消耗"
+    },
+    {
+     "type": "ExamBuffConsumptionAdd",
+     "values": {
+      "turn": 1
+     },
+     "text": "強化状態コスト増加ターン（レッスン内5回）",
+     "max_uses": 0,
+     "label": ""
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "残り5ターン以内のターン開始後、元気+2除外にある獲物はあなた1枚を手札に移動固定体力消費1強化状態コスト増加1ターン（レッスン内5回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-355-0",
+   "name": "邀请券",
+   "rarity": "SSR",
+   "trigger": "produce_start_present",
+   "trigger_family": "start_present",
+   "trigger_id": "p_trigger-start_present-vocal-0700_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "unknown",
+   "effect_label": "",
+   "effect_text": "",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [],
+   "text_zh": "",
+   "text_ja": "体力回復4ボーカル上昇+10（プロデュース中4回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-356-0",
+   "name": "大小姐外出套装",
+   "rarity": "SSR",
+   "trigger": "produce_get_produce_card",
+   "trigger_family": "get_produce_card",
+   "trigger_id": "p_trigger-get_produce_card-0000_0000-p_card_search-deck_all-effect_group-visible-exam_lesson_buff-000-vocal-0900_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中Pポイント+20ボーカル上昇+20（プロデュース中3回）",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonBuff",
+     "values": {},
+     "text": "集中Pポイント+20ボーカル上昇+20（プロデュース中3回）",
+     "max_uses": 0,
+     "label": "集中"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "集中Pポイント+20ボーカル上昇+20（プロデュース中3回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-362-0",
+   "name": "好友相册",
+   "rarity": "SSR",
+   "trigger": "produce_start_present",
+   "trigger_family": "start_present",
+   "trigger_id": "p_trigger-start_present-vocal-0400_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "unknown",
+   "effect_label": "",
+   "effect_text": "",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [],
+   "text_zh": "",
+   "text_ja": "ボーカル上昇+20体力回復3（プロデュース中2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-393-0",
+   "name": "改变的预感",
+   "rarity": "SSR",
+   "trigger": "exam_start_after",
+   "trigger_family": "start_exam_play",
+   "trigger_id": "e_trigger-start_exam_play",
+   "trigger_text": "训练开始后，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中+（レッスン内1回）",
+   "value": 1,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamMetamorphose",
+     "values": {},
+     "text": "メタモルフォーゼ（支度）",
+     "max_uses": 0,
+     "label": ""
+    },
+    {
+     "type": "ExamLessonBuff",
+     "values": {
+      "value1": 1
+     },
+     "text": "集中+（レッスン内1回）",
+     "max_uses": 0,
+     "label": "集中"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "レッスン開始後、メタモルフォーゼ（支度）集中+1（レッスン内1回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_01-3-393-1",
+   "name": "改变的预感+",
+   "rarity": "SSR",
+   "trigger": "exam_start_after",
+   "trigger_family": "start_exam_play",
+   "trigger_id": "e_trigger-start_exam_play",
+   "trigger_text": "训练开始后，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中+",
+   "value": 1,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamMetamorphose",
+     "values": {},
+     "text": "メタモルフォーゼ（支度）",
+     "max_uses": 0,
+     "label": ""
+    },
+    {
+     "type": "ExamLessonBuff",
+     "values": {
+      "value1": 1
+     },
+     "text": "集中+",
+     "max_uses": 0,
+     "label": "集中"
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {
+      "turn": 1
+     },
+     "text": "好調ターン（レッスン内1回）",
+     "max_uses": 0,
+     "label": "好调"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "レッスン開始後、メタモルフォーゼ（支度）集中+1好調1ターン（レッスン内1回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-0-002-0-023",
+   "name": "初星应援灯（橙）",
+   "rarity": "N",
+   "trigger": "other",
+   "trigger_family": "exam_review_up_interval",
+   "trigger_id": "e_trigger-exam_review_up_interval-4-exam_review",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamReview",
+   "effect_label": "好印象",
+   "effect_text": "好印象+",
+   "value": 7,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamReview",
+     "values": {
+      "value1": 7
+     },
+     "text": "好印象+",
+     "max_uses": 0,
+     "label": "好印象"
+    },
+    {
+     "type": "ExamReviewCountAdd",
+     "values": {
+      "value1": 1,
+      "turn": 1
+     },
+     "text": "好印象追加発動+（ターン）（レッスン内4回）",
+     "max_uses": 0,
+     "label": "好印象追加发动"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "直接効果で好印象が4回増加時、好印象+7好印象追加発動+1（1ターン）（レッスン内4回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-0-002-0-024",
+   "name": "初星应援灯（橙）",
+   "rarity": "N",
+   "trigger": "other",
+   "trigger_family": "exam_review_up_interval",
+   "trigger_id": "e_trigger-exam_review_up_interval-4-exam_review",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamReview",
+   "effect_label": "好印象",
+   "effect_text": "好印象+",
+   "value": 7,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamReview",
+     "values": {
+      "value1": 7
+     },
+     "text": "好印象+",
+     "max_uses": 0,
+     "label": "好印象"
+    },
+    {
+     "type": "ExamReviewCountAdd",
+     "values": {
+      "value1": 1,
+      "turn": 1
+     },
+     "text": "好印象追加発動+（ターン）（レッスン内4回）",
+     "max_uses": 0,
+     "label": "好印象追加发动"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "直接効果で好印象が4回増加時、好印象+7好印象追加発動+1（1ターン）（レッスン内4回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-0-006-0-033",
+   "name": "初星应援灯（紫）",
+   "rarity": "N",
+   "trigger": "card_play",
+   "trigger_family": "exam_card_play",
+   "trigger_id": "e_trigger-exam_card_play-stamina_up_multiple-800-p_card_search-active_skill-playing-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+",
+   "value": 6,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 6
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamCardPlayAggressive",
+     "values": {
+      "value1": 8
+     },
+     "text": "やる気+（レッスン内3回）",
+     "max_uses": 0,
+     "label": "干劲"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "アクティブスキルカード使用時、体力が80%以上の場合、元気+6やる気+8（レッスン内3回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-0-006-0-034",
+   "name": "初星应援灯（紫）",
+   "rarity": "N",
+   "trigger": "card_play",
+   "trigger_family": "exam_card_play",
+   "trigger_id": "e_trigger-exam_card_play-stamina_up_multiple-800-p_card_search-active_skill-playing-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+",
+   "value": 6,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 6
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamCardPlayAggressive",
+     "values": {
+      "value1": 8
+     },
+     "text": "やる気+（レッスン内3回）",
+     "max_uses": 0,
+     "label": "干劲"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "アクティブスキルカード使用時、体力が80%以上の場合、元気+6やる気+8（レッスン内3回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-2-136-0",
+   "name": "手制贴身服装",
+   "rarity": "SR",
+   "trigger": "produce_upgrade_produce_card",
+   "trigger_family": "upgrade_produce_card",
+   "trigger_id": "p_trigger-upgrade_produce_card-0000_0000-p_card_search-deck_all-effect_group-visible-exam_card_play_aggressive-000-dance-0700_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamCardPlayAggressive",
+   "effect_label": "干劲",
+   "effect_text": "やる気ダンス上昇+20Pポイント+10（プロデュース中3回）",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamCardPlayAggressive",
+     "values": {},
+     "text": "やる気ダンス上昇+20Pポイント+10（プロデュース中3回）",
+     "max_uses": 0,
+     "label": "干劲"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "やる気ダンス上昇+20Pポイント+10（プロデュース中3回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-3-336-0",
+   "name": "统御群星的光辉",
+   "rarity": "SSR",
+   "trigger": "other",
+   "trigger_family": "exam_review_up_interval",
+   "trigger_id": "e_trigger-exam_review_up_interval-4-exam_review",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamReviewCountAdd",
+   "effect_label": "好印象追加发动",
+   "effect_text": "好印象追加発動+（ターン）",
+   "value": 1,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamReviewCountAdd",
+     "values": {
+      "value1": 1,
+      "turn": 2
+     },
+     "text": "好印象追加発動+（ターン）",
+     "max_uses": 0,
+     "label": "好印象追加发动"
+    },
+    {
+     "type": "ExamReviewMultiple",
+     "values": {
+      "percent1": 10,
+      "turn": 2
+     },
+     "text": "好印象強化+%（ターン）",
+     "max_uses": 0,
+     "label": "好印象强化"
+    },
+    {
+     "type": "ExamStaminaReduceFix",
+     "values": {
+      "value1": 1
+     },
+     "text": "固定体力消費",
+     "max_uses": 0,
+     "label": "体力消耗"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "直接効果で好印象が4回増加時、好印象追加発動+1（2ターン）好印象強化+10%（2ターン）固定体力消費1",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-3-336-1",
+   "name": "统御群星的光辉+",
+   "rarity": "SSR",
+   "trigger": "other",
+   "trigger_family": "exam_review_up_interval",
+   "trigger_id": "e_trigger-exam_review_up_interval-4-exam_review",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamReviewCountAdd",
+   "effect_label": "好印象追加发动",
+   "effect_text": "好印象追加発動+（ターン）",
+   "value": 1,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamReviewCountAdd",
+     "values": {
+      "value1": 1,
+      "turn": 2
+     },
+     "text": "好印象追加発動+（ターン）",
+     "max_uses": 0,
+     "label": "好印象追加发动"
+    },
+    {
+     "type": "ExamReviewMultiple",
+     "values": {
+      "percent1": 10,
+      "turn": 2
+     },
+     "text": "好印象強化+%（ターン）",
+     "max_uses": 0,
+     "label": "好印象强化"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "直接効果で好印象が4回増加時、好印象追加発動+1（2ターン）好印象強化+10%（2ターン）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-3-348-0",
+   "name": "破格的魅力",
+   "rarity": "SSR",
+   "trigger": "card_play_interval",
+   "trigger_family": "exam_play_count_interval",
+   "trigger_id": "e_trigger-exam_play_count_interval-2-card_play_aggressive_up-5-p_card_search-mental_skill-target",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "interval": 2,
+    "interval_scope": "exam"
+   },
+   "condition": "",
+   "effect_type": "ExamCardPlayAggressive",
+   "effect_label": "干劲",
+   "effect_text": "やる気+",
+   "value": 4,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamCardPlayAggressive",
+     "values": {
+      "value1": 4
+     },
+     "text": "やる気+",
+     "max_uses": 0,
+     "label": "干劲"
+    },
+    {
+     "type": "ExamStaminaConsumptionDownFix",
+     "values": {
+      "value1": 1
+     },
+     "text": "消費体力削減（レッスン内2回）",
+     "max_uses": 0,
+     "label": "削减消耗体力"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "やる気が5以上の場合、メンタルスキルカードを2回使用するごとに、やる気+4消費体力削減1（レッスン内2回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-3-348-1",
+   "name": "破格的魅力+",
+   "rarity": "SSR",
+   "trigger": "card_play_interval",
+   "trigger_family": "exam_play_count_interval",
+   "trigger_id": "e_trigger-exam_play_count_interval-2-card_play_aggressive_up-5-p_card_search-mental_skill-target",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "interval": 2,
+    "interval_scope": "exam"
+   },
+   "condition": "",
+   "effect_type": "ExamCardPlayAggressive",
+   "effect_label": "干劲",
+   "effect_text": "やる気+",
+   "value": 5,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamCardPlayAggressive",
+     "values": {
+      "value1": 5
+     },
+     "text": "やる気+",
+     "max_uses": 0,
+     "label": "干劲"
+    },
+    {
+     "type": "ExamReview",
+     "values": {
+      "value1": 1
+     },
+     "text": "好印象+",
+     "max_uses": 0,
+     "label": "好印象"
+    },
+    {
+     "type": "ExamStaminaConsumptionDownFix",
+     "values": {
+      "value1": 1
+     },
+     "text": "消費体力削減（レッスン内2回）",
+     "max_uses": 0,
+     "label": "削减消耗体力"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "やる気が5以上の場合、メンタルスキルカードを2回使用するごとに、やる気+5好印象+1消費体力削減1（レッスン内2回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-3-354-0",
+   "name": "花海农场灯笼",
+   "rarity": "SSR",
+   "trigger": "produce_upgrade_produce_card",
+   "trigger_family": "upgrade_produce_card",
+   "trigger_id": "p_trigger-upgrade_produce_card-0000_0000-p_card_search-deck_all-effect_group-visible-exam_card_play_aggressive-000-visual-0900_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamCardPlayAggressive",
+   "effect_label": "干劲",
+   "effect_text": "やる気Pポイント+40ビジュアル上昇+30（プロデュース中2回）",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamCardPlayAggressive",
+     "values": {},
+     "text": "やる気Pポイント+40ビジュアル上昇+30（プロデュース中2回）",
+     "max_uses": 0,
+     "label": "干劲"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "やる気Pポイント+40ビジュアル上昇+30（プロデュース中2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_02-3-357-0",
+   "name": "有点过激？的选择",
+   "rarity": "SSR",
+   "trigger": "produce_get_produce_card",
+   "trigger_family": "get_produce_card",
+   "trigger_id": "p_trigger-get_produce_card-0000_0000-p_card_search-plan2-deck_all-vocal-0900_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "unknown",
+   "effect_label": "",
+   "effect_text": "",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [],
+   "text_zh": "",
+   "text_ja": "ロジックボーカル上昇+25ランダムなスキルカードを強化（プロデュース中2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-0-003-0-021",
+   "name": "初星旗帜（青）",
+   "rarity": "N",
+   "trigger": "card_play",
+   "trigger_family": "exam_card_play",
+   "trigger_id": "e_trigger-exam_card_play-full_power_point_get_sum_up-10-p_card_search-playing-effect_group-visible-exam_concentration-000-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamEnthusiasticAdditive",
+   "effect_label": "热意追加",
+   "effect_text": "熱意追加+（ターン）次のターン、スキルカードを枚引く（レッスン内3回）",
+   "value": 5,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamEnthusiasticAdditive",
+     "values": {
+      "value1": 5,
+      "turn": 1
+     },
+     "text": "熱意追加+（ターン）次のターン、スキルカードを枚引く（レッスン内3回）",
+     "max_uses": 0,
+     "label": "热意追加"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "強気効果のスキルカード使用時、このレッスン中の累計全力値が10以上の場合、熱意追加+5（1ターン）次のターン、スキルカードを2枚引く（レッスン内3回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-0-003-0-022",
+   "name": "初星旗帜（青）",
+   "rarity": "N",
+   "trigger": "card_play",
+   "trigger_family": "exam_card_play",
+   "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_concentration-000-0_1",
+   "trigger_text": "强气效果的技能卡使用时，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamFullPowerPoint",
+   "effect_label": "全力值",
+   "effect_text": "全力値+",
+   "value": 5,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamFullPowerPoint",
+     "values": {
+      "value1": 5
+     },
+     "text": "全力値+",
+     "max_uses": 0,
+     "label": "全力值"
+    },
+    {
+     "type": "ExamConcentration",
+     "values": {},
+     "text": "強気効果のスキルカードのパラメータ値増加+25・パラメータ上昇回数増加+1（レッスン内2回）",
+     "max_uses": 0,
+     "label": "强气"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "強気効果のスキルカード使用時、全力値+5強気効果のスキルカードのパラメータ値増加+25・パラメータ上昇回数増加+1（レッスン内2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-0-007-0-016",
+   "name": "初星旗帜（紫）",
+   "rarity": "N",
+   "trigger": "card_play",
+   "trigger_family": "exam_card_play",
+   "trigger_id": "e_trigger-exam_card_play-full_power_up-p_card_search-playing-idol-unique-0_1",
+   "trigger_text": "偶像固有技能卡使用时，全力的时候，",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "card_filter": "IdolUnique"
+   },
+   "condition": "全力的时候",
+   "effect_type": "ExamFullPowerPoint",
+   "effect_label": "全力值",
+   "effect_text": "全力値+アクティブスキルカードのパラメータ値増加+25（レッスン内1回）",
+   "value": 9,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamFullPowerPoint",
+     "values": {
+      "value1": 9
+     },
+     "text": "全力値+アクティブスキルカードのパラメータ値増加+25（レッスン内1回）",
+     "max_uses": 0,
+     "label": "全力值"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "アイドル固有スキルカード使用時、全力の場合、全力値+9アクティブスキルカードのパラメータ値増加+25（レッスン内1回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-0-007-0-017",
+   "name": "初星旗帜（紫）",
+   "rarity": "N",
+   "trigger": "card_play_interval",
+   "trigger_family": "exam_play_turn_count_interval",
+   "trigger_id": "e_trigger-exam_play_turn_count_interval-5-full_power_point_get_sum_up-10-p_card_search-target",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {
+    "interval": 5,
+    "interval_scope": "turn"
+   },
+   "condition": "",
+   "effect_type": "ExamFullPower",
+   "effect_label": "全力",
+   "effect_text": "全力効果のスキルカードのパラメータ値増加+20・パラメータ上昇回数増加+1（レッスン内3回）",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamFullPower",
+     "values": {},
+     "text": "全力効果のスキルカードのパラメータ値増加+20・パラメータ上昇回数増加+1（レッスン内3回）",
+     "max_uses": 0,
+     "label": "全力"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "このレッスン中の累計全力値が10以上の場合、ターン内にスキルカードを5回使用するごとに、全力効果のスキルカードのパラメータ値増加+20・パラメータ上昇回数増加+1（レッスン内3回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-2-134-0",
+   "name": "挑战极限券",
+   "rarity": "SR",
+   "trigger": "produce_upgrade_produce_card",
+   "trigger_family": "upgrade_produce_card",
+   "trigger_id": "p_trigger-upgrade_produce_card-0000_0000-p_card_search-deck_all-effect_group-visible-exam_preservation-000-dance-0700_0000",
+   "trigger_text": "",
+   "trigger_domain": "produce",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamPreservation",
+   "effect_label": "温存",
+   "effect_text": "温存ダンス上昇+20Pポイント+10（プロデュース中3回）",
+   "value": null,
+   "value_unit": "",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamPreservation",
+     "values": {},
+     "text": "温存ダンス上昇+20Pポイント+10（プロデュース中3回）",
+     "max_uses": 0,
+     "label": "温存"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "温存ダンス上昇+20Pポイント+10（プロデュース中3回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-334-0",
+   "name": "梦想的光辉",
+   "rarity": "SSR",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-p_card_search-playing-p_card-03-ido-3_219-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamStaminaReduceFix",
+   "effect_label": "体力消耗",
+   "effect_text": "固定体力消費（レッスン内3回）",
+   "value": 1,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamStaminaReduceFix",
+     "values": {
+      "value1": 1
+     },
+     "text": "固定体力消費（レッスン内3回）",
+     "max_uses": 0,
+     "label": "体力消耗"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "わずかずつの歩み使用後、除外にあるわずかずつの歩み1枚を山札の一番上に移動固定体力消費1（レッスン内3回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-334-1",
+   "name": "梦想的光辉+",
+   "rarity": "SSR",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-p_card_search-playing-p_card-03-ido-3_219-0_1",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+（レッスン内3回）",
+   "value": 2,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 2
+     },
+     "text": "元気+（レッスン内3回）",
+     "max_uses": 0,
+     "label": "元气"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "わずかずつの歩み使用後、除外にあるわずかずつの歩み1枚を山札の一番上に移動元気+2（レッスン内3回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-337-0",
+   "name": "英雄的光辉",
+   "rarity": "SSR",
+   "trigger": "turn_start_after",
+   "trigger_family": "start_play",
+   "trigger_id": "e_trigger-start_play-full_power_point_get_sum_up-10",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+",
+   "value": 4,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 4
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamLessonValueMultiple",
+     "values": {
+      "percent1": 25
+     },
+     "text": "パラメータ上昇量増加%山札か捨札にある結果としての今1枚を手札に移動（レッスン内1回）",
+     "max_uses": 0,
+     "label": "打分上升量增加"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "ターン開始後、このレッスン中の累計全力値が10以上の場合、元気+4パラメータ上昇量増加25%山札か捨札にある結果としての今1枚を手札に移動（レッスン内1回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-337-1",
+   "name": "英雄的光辉+",
+   "rarity": "SSR",
+   "trigger": "turn_start_after",
+   "trigger_family": "start_play",
+   "trigger_id": "e_trigger-start_play-full_power_point_get_sum_up-10",
+   "trigger_text": "",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+",
+   "value": 11,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 11
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamLessonValueMultiple",
+     "values": {
+      "percent1": 25
+     },
+     "text": "パラメータ上昇量増加%山札か捨札にある結果としての今1枚を手札に移動（レッスン内1回）",
+     "max_uses": 0,
+     "label": "打分上升量增加"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "ターン開始後、このレッスン中の累計全力値が10以上の場合、元気+11パラメータ上昇量増加25%山札か捨札にある結果としての今1枚を手札に移動（レッスン内1回）",
+   "condition_known": false,
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-345-0",
+   "name": "不息的风暴",
+   "rarity": "SSR",
+   "trigger": "turn_start",
+   "trigger_family": "exam_start_turn",
+   "trigger_id": "e_trigger-exam_start_turn",
+   "trigger_text": "回合开始时，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamFullPowerPointAdditive",
+   "effect_label": "全力值增加量增加",
+   "effect_text": "全力値増加量増加+%（ターン）",
+   "value": 25,
+   "value_unit": "percent1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamFullPowerPointAdditive",
+     "values": {
+      "percent1": 25,
+      "turn": 1
+     },
+     "text": "全力値増加量増加+%（ターン）",
+     "max_uses": 0,
+     "label": "全力值增加量增加"
+    },
+    {
+     "type": "ExamPreservation",
+     "values": {},
+     "text": "温存に変更",
+     "max_uses": 0,
+     "label": "温存"
+    },
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 2
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamBuffConsumptionAdd",
+     "values": {
+      "turn": 1
+     },
+     "text": "強化状態コスト増加ターン",
+     "max_uses": 0,
+     "label": ""
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "ターン開始時、全力値増加量増加+25%（1ターン）温存に変更元気+2強化状態コスト増加1ターン",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-345-1",
+   "name": "不息的风暴+",
+   "rarity": "SSR",
+   "trigger": "turn_start",
+   "trigger_family": "exam_start_turn",
+   "trigger_id": "e_trigger-exam_start_turn",
+   "trigger_text": "回合开始时，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "",
+   "effect_type": "ExamFullPowerPointAdditive",
+   "effect_label": "全力值增加量增加",
+   "effect_text": "全力値増加量増加+%（ターン）",
+   "value": 40,
+   "value_unit": "percent1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamFullPowerPointAdditive",
+     "values": {
+      "percent1": 40,
+      "turn": 1
+     },
+     "text": "全力値増加量増加+%（ターン）",
+     "max_uses": 0,
+     "label": "全力值增加量增加"
+    },
+    {
+     "type": "ExamPreservation",
+     "values": {},
+     "text": "温存に変更",
+     "max_uses": 0,
+     "label": "温存"
+    },
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 2
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamBuffConsumptionAdd",
+     "values": {
+      "turn": 1
+     },
+     "text": "強化状態コスト増加ターン",
+     "max_uses": 0,
+     "label": ""
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "ターン開始時、全力値増加量増加+40%（1ターン）温存に変更元気+2強化状態コスト増加1ターン",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-347-0",
+   "name": "小恶魔的魅力",
+   "rarity": "SSR",
+   "trigger": "turn_start",
+   "trigger_family": "exam_start_turn",
+   "trigger_id": "e_trigger-exam_start_turn-full_power_up",
+   "trigger_text": "回合开始时，全力的时候，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "全力的时候",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+",
+   "value": 7,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 7
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamFullPowerPoint",
+     "values": {
+      "value1": 1
+     },
+     "text": "全力値+（レッスン内2回）",
+     "max_uses": 0,
+     "label": "全力值"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "ターン開始時、全力の場合、元気+7全力値+1（レッスン内2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_03-3-347-1",
+   "name": "小恶魔的魅力+",
+   "rarity": "SSR",
+   "trigger": "turn_start",
+   "trigger_family": "exam_start_turn",
+   "trigger_id": "e_trigger-exam_start_turn-full_power_up",
+   "trigger_text": "回合开始时，全力的时候，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "全力的时候",
+   "effect_type": "ExamBlock",
+   "effect_label": "元气",
+   "effect_text": "元気+",
+   "value": 7,
+   "value_unit": "value1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamBlock",
+     "values": {
+      "value1": 7
+     },
+     "text": "元気+",
+     "max_uses": 0,
+     "label": "元气"
+    },
+    {
+     "type": "ExamFullPowerPoint",
+     "values": {
+      "value1": 2
+     },
+     "text": "全力値+（レッスン内2回）",
+     "max_uses": 0,
+     "label": "全力值"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "ターン開始時、全力の場合、元気+7全力値+2（レッスン内2回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_3-258-research-event-008",
+   "name": "研讨课连帽衫",
+   "rarity": "SSR",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
+   "trigger_text": "感性的技能卡使用后，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "感性",
+   "effect_type": "ExamLessonValueMultiple",
+   "effect_label": "打分上升量增加",
+   "effect_text": "パラメータ上昇量増加%（レッスン内5回）",
+   "value": 10,
+   "value_unit": "percent1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonValueMultiple",
+     "values": {
+      "percent1": 10
+     },
+     "text": "パラメータ上昇量増加%（レッスン内5回）",
+     "max_uses": 0,
+     "label": "打分上升量增加"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "センスのスキルカード使用後、パラメータ上昇量増加10%（レッスン内5回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_3-258-research-event-009",
+   "name": "研讨课连帽衫",
+   "rarity": "SSR",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
+   "trigger_text": "感性的技能卡使用后，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "感性",
+   "effect_type": "ExamLessonValueMultiple",
+   "effect_label": "打分上升量增加",
+   "effect_text": "パラメータ上昇量増加%（レッスン内5回）",
+   "value": 10,
+   "value_unit": "percent1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonValueMultiple",
+     "values": {
+      "percent1": 10
+     },
+     "text": "パラメータ上昇量増加%（レッスン内5回）",
+     "max_uses": 0,
+     "label": "打分上升量增加"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "センスのスキルカード使用後、パラメータ上昇量増加10%（レッスン内5回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
+  },
+  {
+   "id": "pitem_3-258-research-event-010",
+   "name": "研讨课连帽衫",
+   "rarity": "SSR",
+   "trigger": "card_played",
+   "trigger_family": "exam_card_play_after",
+   "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
+   "trigger_text": "感性的技能卡使用后，",
+   "trigger_domain": "exam",
+   "trigger_params": {},
+   "condition": "感性",
+   "effect_type": "ExamLessonValueMultiple",
+   "effect_label": "打分上升量增加",
+   "effect_text": "パラメータ上昇量増加%（レッスン内5回）",
+   "value": 10,
+   "value_unit": "percent1",
+   "max_uses": 0,
+   "effects": [
+    {
+     "type": "ExamLessonValueMultiple",
+     "values": {
+      "percent1": 10
+     },
+     "text": "パラメータ上昇量増加%（レッスン内5回）",
+     "max_uses": 0,
+     "label": "打分上升量增加"
+    }
+   ],
+   "text_zh": "",
+   "text_ja": "センスのスキルカード使用後、パラメータ上昇量増加10%（レッスン内5回）",
+   "i18n_name_source": "translation_new.json",
+   "i18n_text_source": "ja"
   }
  ]
 }

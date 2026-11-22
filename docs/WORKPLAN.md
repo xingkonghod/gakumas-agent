@@ -375,16 +375,23 @@
   需要参考引擎语义与主数据文本重解析）、主道具附魔/回忆、gkbench obs 无已用次数。
 - 细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补二十七。
 
-### B7.（可选，2026-11-22 新增）P 道具 47 条补全（更新 master 快照重建 p_items.json）⬜
+### B7.（可选，2026-11-22 新增）P 道具 47 条补全（更新 master 快照重建 p_items.json）✅ 2026-11-22 完成
 - **背景**：B6 接入了 P 道具数据管线，但 `p_items.json` 是 2026-09-16 快照（1068 件），
   上游结构已 1115 件；作者 11-22 整合包里的 `masterTrans/ProduceItem.json` 给出了完整
   1115 个 id（含 gkbench 的 11 个未知 id），但只有 id、没有效果数据。
-- **做法**：取最新 gkumasu-diff `ProduceItem.yaml` → `build_p_items.py` 支持新增 47 个 id
-  （中文缺失时用 yaml 日文文本 + 明确标记，不猜）→ 重建 `data/knowledge/p_items.json`
-  （1068→1115）→ 更新 `test_p_items_db.py` 等预期（72 已知/11 未知 → 83/0）→ `local_bench
-  --p-items auto` 重跑覆盖率/A-B（数字会变）→ 同步 RULES_REFERENCE §5.3 / README / INDEX。
-- **DoD**：catalog 1115 件；gkbench 未知 id = 0；pytest 全绿；A/B 新数字有记录；文档同步。
-  纯离线，不碰真机/账号。预算 ~40–60k token。
+- **完成**：`scripts/build_p_items.py` 改为「本地中文 master 1068（逐段对齐）+ yaml 独有
+  47 条」合并生成——新增 id 的结构化字段/日文文本来自 gkumasu-diff
+  `data/cache/ProduceItem.yaml`（已是最新 1115），卡名用仓库自译表
+  `data/i18n/translation_new.json`（47/47 命中），**中文描述缺失**处 `text_zh=""`、
+  `text_ja` 保留日文并标 `i18n_text_source="ja"`（不猜、不臆造）；新触发 id 没有中文
+  触发句 → `condition_known=False`（22 件），`apply_passive` **保守不触发**（不把带条件
+  的道具当无条件结算）。重建 `data/knowledge/p_items.json`：**1068 → 1115 件**，
+  specs 1764 → **1849 段**、已实现 421 → **445 段**；gkbench 505 题模板未知 id
+  **11 → 0**（83 唯一 id 全已知；其中 10 段条件未知不触发，如实记录）。
+- **DoD**：catalog 1115 件 ✅；gkbench 未知 id = 0 ✅；pytest 全绿 ✅（见下）；
+  A/B 新数字见 HANDOVER 二·补二十八；文档同步（RULES_REFERENCE §5.3 / README / INDEX /
+  HANDOVER / HANDOVER_NEXT / SIMULATOR / GKBENCH / COMPARE / PROVENANCE / I18N_TODO）。
+  纯离线，不碰真机/账号。
 - 细节/为什么这是首选见 [HANDOVER_NEXT §4 T9](HANDOVER_NEXT.md) / [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)。
 
 ---

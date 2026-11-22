@@ -135,8 +135,12 @@
      而且 **B6/T5③ 里 gkbench 的 11 个「未知 P 道具 id」全部在这 47 条里**
      （`pitem_01-3-349-0`、`pitem_02-3-336-1`、`pitem_03-3-334/337/345-*`、
      `pitem_3-258-research-event-008/009/010` 等）——该清单**只有 id、没有效果/描述**，
-     所以**仍不能**补进 `p_items.json`（不猜效果）；要补需要更新的 master 快照
-     （如 gakumasu-diff 新版本 / 本机游戏 masterTrans），再跑 `scripts/build_p_items.py`。
+     所以**不能直接**用包内数据补 `p_items.json`（不猜效果）；正路是更新 master 快照。
+     **2026-11-22 B7 已按正路完成**：gakumasu-diff `data/cache/ProduceItem.yaml` 已是最新
+     1115 件 → `scripts/build_p_items.py` 合并重建 `p_items.json`（1068→1115，结构来自 yaml、
+     卡名用仓库自译表、中文描述缺失处日文+显式标记、条件未知段保守不触发），
+     gkbench 未知 id 清零；本包只提供 id 清单，没有效果/中文可拷（见 RULES_REFERENCE §5.3 /
+     HANDOVER 二·补二十九）。
   5. **离线培育（Selection Exam）是这个包的新能力**（包内文档还写着「培育已取消/不支持」
      ——文档滞后于代码）；我们项目的初 REGULAR 路线不受影响，但说明作者已把 H.I.F
      選抜日程的 Produce 状态机做成了本地可玩。

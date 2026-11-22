@@ -9,6 +9,11 @@
 其余表基本已汉化：`ProduceStory.json` 甚至只有标题/提示、没有对话正文；剧情对话在 `resource/adv_*.txt` 里，
 补丁用 `<r=日文>中文</r>` 内嵌，97,764 条消息里只有 1 条拟声词没翻。
 
+> **2026-11-22 B7 更新**：47 条 P 道具已按 gakumasu-diff 的 `ProduceItem.yaml`（1115 件结构）
+> 补进 `data/knowledge/p_items.json`——**卡名**来自本文 §5 的自译表 `translation_new.json`
+> （47/47），**描述仍是日文**并显式标记 `i18n_text_source="ja"`（不猜译文）。所以「翻译」这件事
+> 仍完全未做：恢复本任务时优先译这 47 条的中文描述，再走 `i18n_apply` 覆盖。
+
 ## 1. 数据源与基线（重要，别踩坑）
 
 | 用途 | 路径 | 说明 |
@@ -16,8 +21,8 @@
 | 现有中文卡表（基线） | `data/master/produce_cards.json` | **1817 行 / 476 id**，来自 chinosk6 补丁 v2.3.66（缓存在 `data/cache/masterTrans_new/`） |
 | 游戏目录的旧补丁覆盖层 | `masterTrans/ProduceCard.json` | 只有 **1724 行 / 452 id**（2026-09-16 版），**不是**仓库基线 |
 | 上游最新结构 | `data/cache/ProduceCard.yaml` | **1829 行 / 479 id**（vertesan/gakumasu-diff） |
-| P 道具中文基线 | `data/master/items.json` / `masterTrans/ProduceItem.json` | 1068 条，全部已有中文 |
-| P 道具上游结构 | `data/cache/ProduceItem.yaml` | 1115 条 |
+| P 道具中文基线 | `data/master/items.json` / `masterTrans/ProduceItem.json` | 1068 条，全部已有中文（`data/master/items.json` 本地快照 2026-11-16 曾被扩到 1115，属本地产物、不入库） |
+| P 道具上游结构 | `data/cache/ProduceItem.yaml` | 1115 条（B7 已据此补全 `data/knowledge/p_items.json`：1068 中文 + 47 日文/自译名） |
 | 游戏文本目录 | `D:\Games\Gakumas\gakumas\gakumas-local\local-files\masterTrans\` | 共 110 张表 |
 | 剧情资源 | `D:\Games\Gakumas\gakumas\gakumas-local\local-files\resource\` | 3490 个 `adv_*.txt`，358.8 MB |
 
@@ -157,8 +162,9 @@ P 道具缺口 47 条（N 12 / R 2 / SR 7 / SSR 26），按方案分组：
     `{id, name, upgrade, text, tags}`，tags 从 YAML 的 `produceDescriptions` 聚合（可参照
     `scripts/build_master_dataset.py` 的 `tags()`）。
   - 道具写回：`data/master/items.json` 追加 47 条（该文件在 `.gitignore`，属于本地产物）；
-    另需让 `scripts/build_p_items.py` 支持 `--i18n <translation_new.json>`，
-    否则它只读本地 1068 条覆盖层，新道具进不了 `data/knowledge/p_items.json`。
+    `scripts/build_p_items.py` **已支持**用本文件同目录的 `translation_new.json` 给新增 47 条
+    补**卡名**（B7，2026-11-22）；**描述**目前仍只取 yaml 日文并标 `i18n_text_source="ja"`，
+    译好描述后还需要给它加一个「id → 中文描述」覆盖源（或 i18n_apply 写回 master 后再重建）。
   - 合并后跑 `scripts/build_card_table.py`，应看到 `匹配到中文卡名: 1829 / 1829`。
 
 ## 6. 恢复步骤（按批次）

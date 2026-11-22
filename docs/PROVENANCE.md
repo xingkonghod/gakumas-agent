@@ -42,7 +42,7 @@ flowchart LR
 |---|---|---|---|
 | `data/hiro/vendor/.../catalog.sqlite` | [gakumasu-diff](https://github.com/vertesan/gakumasu-diff) 快照 `d31baf6`（社区公开数据） | 从公开 YAML/JSON 构建（286 表 / 163,974 行 / 476 卡 base / 1,817 变体） | 否（大文件）；重建见 MASTER_DATA.md |
 | `data/knowledge/card_table.json` | 主数据 + 卡表属性（gakumasu-diff 口径） | 脚本导出卡名/费用/效果/方案 | 是（0.68 MB） |
-| `data/knowledge/p_items.json` | P 道具（`ProduceItem`）模板：本地 `masterTrans/ProduceItem.json`（中文描述）+ [gakumasu-diff](https://github.com/vertesan/gakumasu-diff) `ProduceItem.yaml`（结构化 rarity/trigger）；T5③ 的 505 题 loadout `produce_item_ids` 来自 gkbench 题模板（公开、不含种子） | `scripts/build_p_items.py` 按分段解析出 1068 件 / 1764 段 spec；`scripts/bench_download.py` 下载题模板 | 是（1.27 MB） |
+| `data/knowledge/p_items.json` | P 道具（`ProduceItem`）模板：本地 `masterTrans/ProduceItem.json`（中文描述，1068 件）+ [gakumasu-diff](https://github.com/vertesan/gakumasu-diff) `ProduceItem.yaml`（结构化 rarity/trigger，1115 件）+ 上游新增 47 条卡名用仓库自译表 `data/i18n/translation_new.json`（描述保留日文并显式标记）；T5③ 的 505 题 loadout `produce_item_ids` 来自 gkbench 题模板（公开、不含种子） | `scripts/build_p_items.py` 按分段解析出 **1115 件 / 1849 段 spec**（B7：1068+47）；`scripts/bench_download.py` 下载题模板 | 是（1.32 MB） |
 | `data/knowledge/official.json` | 社区 wiki + 官方排期（gakumas-tools/leafierlemon 口径） | `scripts/wiki_formula_ingest.py`（网络失败用缓存） | 是 |
 | `out/exam_setup.json` | **自有 MITM 采集**（本机副本，`traffic.jsonl`） | `reconstruct_deck` + `exam_shuffle` + `build_exam_setup` | 否（可重建；私有存档备份） |
 | `C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl` | 游戏客户端 ↔ 官服明文流量（自有账号） | MITM 本地代理解密落盘 | 否（敏感；仅本地存档） |
