@@ -814,7 +814,7 @@ student = V_leaf，用 B1 **修正后的 harness** 做配对评测；DoD：显�
 - 全量 pytest **975 passed / 1 skipped**（976 收集 / 71 文件）；
   ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、④ wiring 36/36 + 3/3 + known_draw 29/29
   + beam 28 全部不变（B2 只增模块/脚本 + `eval_known_draw.play` 两个可选参数 + 生产可选参数/缓存）。
-- **提交**：见 [七、最近提交记录](#七最近提交记录)（feat + docs 两个提交）。
+- **提交**：feat `ccabd0a` + docs `5cd23d0`（见 [七、最近提交记录](#七最近提交记录)）。
 
 ---
 
@@ -961,6 +961,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 B2 全知数据训练 MLP 叶子）
+5cd23d0 docs(handover): B2 完成交接——状态/基线数字(975/1)/确认段 beam +7.7/负结果与生产接线，下一项 B3
 ccabd0a feat(b2): 全知数据训练 MLP 叶子——叶子状态样本 + 104 维结构化特征（B1 修正 harness 配对确认段 beam +7.7）
 （2026-11-22 B1 T4 修正）
 4512836 docs(handover): B1 完成交接——状态/基线数字(964/1)/决策门 PASS/下一步 B2
