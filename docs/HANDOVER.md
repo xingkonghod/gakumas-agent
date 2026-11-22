@@ -1,4 +1,4 @@
-﻿# 项目交接（2026-11-22 A4 更新）
+# 项目交接（2026-11-22 A4 更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
@@ -663,7 +663,8 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
 - **教训**：1）**真机帧是消费品**：`step_NNN.png` 会被下一次跑局覆盖，关键屏要立刻归档，别等"下次一起"；
   2）**合成 OCR 行单测测不到需要真图像的分支**（颜色/勾选框/模板定位）——批量真机帧回放能直接抓出
   latent `TypeError`；3）屏幕分类以截图像素为准，日志里的 `screen/action` 只是当时的判断（F#43 已证明）。
-- **提交**：`99bb6df`（feat：`_checkbox_bands` 修复 + 8 张真机帧 fixture + 9 条回放测试 + `scan_frames.py`）；文档交接提交见 [七、最近提交记录](#七最近提交记录)。
+- **提交**：`99bb6df`（feat：`_checkbox_bands` 修复 + 8 张真机帧 fixture + 9 条回放测试 + `scan_frames.py`）、
+  `7eba62d`（docs：A4 完成交接——状态/基线数字/提交记录同步）；完整提交记录见 [七、最近提交记录](#七最近提交记录)。
 
 ---
 
@@ -804,6 +805,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 A4 离线回放素材）
+7eba62d docs(handover): A4 完成交接——状态/基线数字(950/1)/提交记录同步，下一项 A5
 99bb6df feat(a4): A4 离线回放素材——8 张真机关键帧 + 9 条帧回放测试 + scan_frames 挑帧工具（修 _checkbox_bands TypeError，F#44）
 （2026-11-22 A3 收尾：复现脚本 + 交接同步）
 1a4b7f8 chore(tools): A3 复现脚本（帧回放 / 事件屏扫描）+ gitignore 过滤 pytest 临时产物
