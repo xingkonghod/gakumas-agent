@@ -59,6 +59,7 @@
            分支已用真机课程帧文字 + F#36 文案回放，下次真机跑局出现时补拍 fixture
 当前最高优先：**阶段 B 收尾（B3 机制建模）** → 阶段 C/D → 真机 T3→T1→T2 → gkbench
 （总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2 已完成）
+**与 hiro / QQ 群 / 官方 AI 的进度对比**：见 [COMPARE.md](COMPARE.md)（口径、数字、唯一可比路径）。
 ```
 
 > **新会话先读 [WORKPLAN.md](WORKPLAN.md)**：总顺序 = **离线全部做完 → 真机（T3→T1→T2）→ 去 gkbench 比算法**。
@@ -484,8 +485,9 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线。
-期望：洗牌 4/4 场 + 3/3 重洗；pytest 964 passed / 1 skipped（965 条收集 / 70 文件）；
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 975 passed / 1 skipped（976 条收集 / 71 文件）；
 exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28。
+（进度/对手对比先看 docs/COMPARE.md；现状看 docs/HANDOVER.md。）
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6 Apache-2.0，见 WORKPLAN A1 / HANDOVER 二·补十四）；
 A2（F#42 课程硬打必须得分）也已完成（HUD 语义 + 每回合 1 张 + 硬打保分，见 WORKPLAN A2 / HANDOVER 二·补十五）；
 A3（F#43 结果页空转）也已完成（真根因：日文饮料选择事件屏 + P 费标签被当飘字；见 WORKPLAN A3 / HANDOVER 二·补十六）；
@@ -509,6 +511,9 @@ ensemble 0.5 166.9（+9.0），CLEAR 95→98.3%、PERFECT 33.3→50%；within �
 ---
 
 ## 9. 对手情报速查（写作这份文档时的状态，2026-11-21）
+
+> 完整的一页对照（含我们的最新 B1/B2 数字、口径陷阱、唯一两条可比路径）见
+> **[COMPARE.md](COMPARE.md)**；本表只做速查。
 
 | 项目 | 他们强在哪 | 他们弱在哪（我们的机会） |
 |---|---|---|

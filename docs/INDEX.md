@@ -67,10 +67,11 @@
 | [ARCHIVE.md](ARCHIVE.md) | 私有存档与私有仓库流程 |
 | [GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md) | 群文件分析：OCR 根因（日文模型）、魔改 MAA 结构、手机实验版 APK、许可证边界 |
 
-### 想了解社区在做什么
+### 想了解社区在做什么 / 我们跟别人的进度对比
 
 | 文档 | 内容 |
 |---|---|
+| [COMPARE.md](COMPARE.md) | **我们 vs hiro / QQ 群 / 官方 AI 的进度对照（口径、数字、唯一可比路径）** |
 | [HIRO_VIDEO_NOTES.md](HIRO_VIDEO_NOTES.md) | hiro-gakumas-hero 的架构（视频 + 仓库）|
 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md) | 群里的技术讨论 |
 | [OFFICIAL_AI_NOTES.md](OFFICIAL_AI_NOTES.md) | 官方 AI 的启发式（10 条）|
@@ -87,6 +88,7 @@
 | **WORKPLAN.md** | 总作战计划（离线→真机→gkbench）|
 | **HANDOVER_NEXT.md** | **交接清单：补什么 · 做什么 · 每个任务的验收（行动型，先看）** |
 | **HANDOVER.md** | 项目现状 + 已完成什么 + 路径速查 + 坑 |
+| **COMPARE.md** | 我们 vs 对手的进度对照（口径/数字/唯一可比路径） |
 | **TROUBLESHOOTING.md** | 踩坑记录（采集 9 项 / bot 7 项 / 方法论 4 项）|
 | **FAILURES.md** | 真机失败记录（现象→根因→修复→教训）|
 | **CAPTURE_PIPELINE.md** | 采集链路：结构、配置、四个坑、已采数据 |

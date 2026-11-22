@@ -844,7 +844,8 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
   state/action/score 数据是训练/校准模型缺的监督信号（对应 T4 rollout 监督方向）。
   **对外策略**：不公开可复现路径（hook/解密/字段/算法），最多发结论；优先趁封堵窗口自用验证与备份数据。
 
-详见 `docs/QQ_GROUP_NOTES.md`、`docs/HIRO_VIDEO_NOTES.md`。
+详见 `docs/QQ_GROUP_NOTES.md`、`docs/HIRO_VIDEO_NOTES.md`；**我们 vs 他们的完整进度对照
+（口径/数字/唯一可比路径）见 [COMPARE.md](COMPARE.md)**。
 
 ---
 
@@ -1037,7 +1038,7 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/` **964 passed / 1 skipped**（965 条收集 / 70 个测试文件），含
+**测试状态**：`pytest tests/` **975 passed / 1 skipped**（976 条收集 / 71 个测试文件），含
 `tests/test_exam_shuffle.py` 四场考试洗牌回放 + 「实战回合算 K 会错」回归防线 +
 三组弃牌堆重洗样本对照；`tests/test_expectimax_known_draw.py` 8 条 +
 `tests/test_exam_oracle.py` 6 条完全信息搜索；`tests/test_expectimax_discard_order.py` 17 条
@@ -1048,6 +1049,8 @@ add71dc docs(reverse): 元数据解包验证
 `tests/test_frames_replay_a4.py` 9 条六类关键屏真机帧回放（A4）+
 `tests/test_exam_plan_offline.py` 8 条 T3 离线预演（A5：--current 候选 + 四场 sweep）+
 `tests/test_beam_frontier.py` 6 条 B1（前沿 policy-evaluation + 评测执行器丢回合回归）+
+`tests/test_b2_leaf.py` 11 条 B2（叶子特征/叶子状态快照与标签/MLP 存取/搜索接线/生产
+`leaf_model` 缓存与兜底/合成训练收敛）+
 `tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
 四条开工基线：① 4/4 场 + 3/3 重洗、② 本行数字、③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28。
 

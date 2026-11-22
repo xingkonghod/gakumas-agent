@@ -261,6 +261,7 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 | [docs/INDEX.md](docs/INDEX.md) | **总导航（先看这个）** |
 | [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) | 交接清单：补什么·做什么·验收标准 |
 | [docs/HANDOVER.md](docs/HANDOVER.md) | 项目现状 + 各阶段记录 + 失败/修复史 |
+| [docs/COMPARE.md](docs/COMPARE.md) | 我们 vs 对手的进度对照（口径/数字/唯一可比路径） |
 | [docs/PROVENANCE.md](docs/PROVENANCE.md) | **来历/数据血缘/引用清单/许可证边界** |
 | [docs/CAPTURE_PIPELINE.md](docs/CAPTURE_PIPELINE.md) | MITM 采集链路 |
 | [docs/MASTER_DATA.md](docs/MASTER_DATA.md) | 主数据（286 表）+ seed 字段 |
