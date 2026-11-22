@@ -1119,7 +1119,7 @@ B2 学习叶子特征的 `save_cards_used` 已废弃（恒 0），重训时再�
 **文档**：RULES_REFERENCE §0/§1/§2/§3/§5.2/§6/§7；WORKPLAN B5；HANDOVER_NEXT §0/§1/§2/§4/§8；
 INDEX/COMPARE/EXPECTIMAX/SIMULATOR/README 同步。
 
-**提交**：feat（代码 + 测试 + 文档，提交哈希见下一条记录）。
+**提交**：feat `aca21da`（代码 + 测试 + 文档）；哈希记录 docs 提交随后补。
 
 **下一步**：T5 剩余机制（fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D 离线收尾 →
 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
@@ -1288,6 +1288,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 B5 / T5② 熱意 + 温存解除：独立熱意资源 + +1 出牌/固定元気 + 卡牌效果接入）
+aca21da feat(t5): B5 熱意 enthusiasm + 温存解除——独立熱意资源 + 出牌次数/固定元気 + 卡牌效果接入（16 条测试）
 （2026-11-22 B4 / T5① 审查倍率分段 + 联动惩罚：常量 4.11 → 客户端真实公式 + 屏幕倍率进搜索）
 bb8171a docs(handover): 补 B4 提交哈希（6b4beae）+ 最近交接记录
 6b4beae feat(t5): B4 审查倍率分段+联动惩罚——客户端公式 + 主数据解析 + 屏幕倍率进搜索（21 条测试）
