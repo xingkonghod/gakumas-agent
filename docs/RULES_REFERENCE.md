@@ -41,11 +41,12 @@
 并实现两批**条件/效果语义**（B8：新语法 trigger id 结构化解析、依赖换算「X 的 N% 数值变为 Y」、
 固定/百分比体力消耗与回复、新触发时机；B9：**持续倍率 / modifier 类**——打分上升量增加/减少
 （`resolveScore` f/g）、好印象强化/追加发动、热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、
-费用削减/追加/减少回合/增加回合、回合追加、温存/强气指針直给；数据层 **1025/1849 段**，
-见 §5.3 B8/B9）。
-剩余差距是 **生成卡**（`ExamCardCreateId`）、**指定卡名/手牌张数限定**（trigger 未知 103 件
-保守跳过，需要卡名→id 映射）、**强化状态花费卡类**（`ExamBuffConsumptionAdd` 的落点——
-我们的卡牌模型不建「以强化状态为花费」的卡）、**附魔**、**fresh buff 的差一回合衰减**、
+费用削减/追加/减少回合/增加回合、回合追加、温存/强气指針直给；B10：**生成卡确定式 +
+指定卡名/手牌张数映射**——card_meta（idol_unique/effectGroupIds）+ play_filter/zone_count
+结构化 + ExamCardCreateId 落牌；数据层 **1042/1849 段**，见 §5.3 B8/B9/B10）。
+剩余差距是 **随机生成卡**（H.I.F应援棒，考试 RNG 流未知）、**强化状态花费卡类**
+（`ExamBuffConsumptionAdd` 的落点——我们的卡牌模型不建「以强化状态为花费」的卡）、
+**hold 保留区张数条件**（2 件，保留区未建模）、**附魔**、**fresh buff 的差一回合衰减**、
 **のんびり（leisure）指針与全力回合額外出牌/保留牌**、**依赖分结算顺序**（我们保守口径）等。
 
 ---
@@ -406,6 +407,62 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
   fresh buff 差一回合问题（§3）同样作用于卡/`turn_end`/`stamina_reduce` 触发的新 buff。
 - 真机培育侧 P 道具列表仍未采集（T6/D1）；主道具附魔/回忆未接入。
 
+**B10（2026-11-23 完成）：T5 剩余机制①②——ExamCardCreateId 生成卡 + 指定卡名/手牌张数映射**
+
+目标：B9 之后纯离线可做的两块——生成卡（确定式）与触发限定结构化（卡名→id 映射）。
+语义来源：masterTrans `ProduceCardSearch.json` 描述表 + 主数据 `ProduceCard.effectGroupIds` /
+`originIdolCardId` / `originCharacterId` + BSD-3 参考引擎 gakumas-tools（`usedCardBaseId` /
+`countCards` / `addCardTo*` / `limit:N`，只按语义重写、不拷代码）。
+
+1. **卡元数据**（[build_card_meta.py](../scripts/build_card_meta.py) →
+   [card_meta.json](../data/knowledge/card_meta.json) + [card_meta.py](../src/gkagent/data/card_meta.py)）：
+   卡名 → id/upgrade/**idol_unique**/**effect_groups** + 日文别名。idol_unique 判据
+   （originIdolCardId 或 originCharacterId 非空）与参考 `skill_cards.csv` pIdol 集合
+   交叉验证 **340/342、0 误报**（一番星=prima stella 不算；微熱ノスタルジー♡ 无 origin
+   字段保守不计）。effect_groups 直接取卡面 `effectGroupIds`（与触发限定同一套 id，
+   `EffectGroup` 表定义组→效果类型，不猜映射）。
+2. **数据层**（[build_p_items.py](../scripts/build_p_items.py)）：`parse_card_search`
+   解析 `play_filter`（指定卡名 base id 不限强化 / 偶像固有 / 效果组 / 原本费用 min_max /
+   类别 / 稀有度）与 `zone_count`（hand/deck/discard/excluded 四区张数 + `not-` 取反）；
+   `annotate_create_effects` 文本最长后缀匹配卡名 → `create`（id/强化/手牌/牌堆顶/弃牌堆）
+   / `create_random`（随机基础卡补到 22 张，只记语义）。**触发未知 103→3 件 / 185→6 段**
+   （hold 保留区 2 + period810_hotfix 1）、**条件未知 6→0**；play_filter 234 件 /
+   zone_count 27 件；生成卡 **11 段确定 + 6 段随机**。
+3. **纯规则 + 双镜**（[p_items.py](../src/gkagent/sim/p_items.py) /
+   [lesson.py](../src/gkagent/sim/lesson.py) / [expectimax.py](../src/gkagent/sim/expectimax.py) /
+   [play_choice.py](../src/gkagent/sim/play_choice.py)）：`CardFilter`/`ZoneCount`/`CreateCard`
+   结构化求值（查不到 → None 保守不触发）；`exam_start_after` 新时机（抽完第一手牌后）；
+   生成卡落牌（**手牌≥5 不生成** / 牌堆顶=deck 末尾，ExpectState 同步 `known_draw[0]` /
+   弃牌堆同步 `discard_order`）；`spec_from_name` 与牌组构建同口径。
+   **次数上限按道具计**（同事件多效果段只记 1 次，参考 limit:N；旧按段累计会让多段道具
+   提前用完——B10 口径修正，B10 auto 与 B9 auto 不可直接比）。
+
+**数据/回归（B10）**：catalog 1849 段不变；已实现 **1025→1042**（no-op 824→807）；
+gkbench 103/153 段（口径不变；loadout 里 4 件/8 段原 trigger 未知道具现在真实触发）；
+新增 `tests/test_p_items_b10.py` **38 条**（含参考引擎生成卡 id / pIdol 判据交叉验证，
+参考 csv 缺失自动 skip）；全量 pytest **1154 passed / 1 skipped（1155 收集 / 79 文件）**；
+基线 ①③④⑤ 全部不变。
+
+**离线 A/B（B10，同 harness：hif 30 题×2 seed=1000/1001、`--budget-ms 100`、配对，
+CI = 按题整体重采样 10000 次 percentile bootstrap）**：
+
+| 算法 | off | auto | 配对 Δ | 95% CI | 胜/负/平 |
+|---|---:|---:|---:|---|---|
+| greedy | 3840.7 | **4638.2** | **+797.5（+20.76%）** | [+399.0,+1250.1] | 31/3/26 |
+| expectimax(analytic) | 3665.8 | **4466.9** | **+801.1（+21.85%）** | [+66.3,+1697.9] | 28/8/24 |
+
+- off 与 B9 逐位相同；增益来自触发映射（加油鼓劲等 4 件/8 段 loadout 道具开始触发）+
+  次数按道具计修正。确定式生成卡不在 hif loadout（只有应援棒随机式）→ ① 的 A/B 贡献 0，
+  由单测覆盖。expectimax 这次 CI 也全正（增益远大于墙钟噪声）。
+
+**如实记录的剩余（B10 后）**：
+- `ExamBuffConsumptionAdd`（强化状态花费卡）：卡牌模型没有 buff-cost 卡 → **保持 no-op**（不猜）。
+- **H.I.F应援棒随机基础卡**（6 段 / gkbench 172 段权重）：考试 RNG 入口、真机流未知 →
+  记 `create_random` 语义，**保持 no-op**（与 `exam_risk` 事前检测同口径）。
+- **hold（保留）区**未建模（§6.8）→ 2 件保留区张数条件保守不解析；hotfix 未知词 1 件同。
+- 微熱ノスタルジー♡ 无 origin 字段 → 不算偶像固有；12 张快照后新卡无 meta → 限定不可判（保守）。
+- fresh buff 差一回合（需真机逐回合截图，§3）、真机培育侧列表（T6/D1）、主道具附魔/回忆。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
    剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
@@ -428,10 +485,17 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
    绝好调/不调、费用修正（加减 + ×0.5/×2 回合）、回合追加、温存/强气指針直给；
    数据层 676→**1025/1849 段**、gkbench 59→**103/153 段**；greedy 配对 A/B
    **+110.3（CI [+39.6,+193.3]）**。
-   **剩余**：生成卡（`ExamCardCreateId`）、强化状态花费卡（`ExamBuffConsumptionAdd`
-   无落点）、指定卡名/手牌张数限定（trigger 未知 103 件，缺卡名→id 映射）、
+   **剩余**：~~生成卡（`ExamCardCreateId`）~~ ✅ **B10 确定式已实现**（随机基础卡 RNG 未知保持 no-op）、
+   强化状态花费卡（`ExamBuffConsumptionAdd` 无落点，保持 no-op）、
+   ~~指定卡名/手牌张数限定~~ ✅ **B10 已结构化**（触发未知 103→3 件：hold 保留区 2 + hotfix 1）、
    fresh buff 差一回合、真机培育侧列表（T6/D1 补采）、主道具附魔/回忆。
-6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
+   **B10（T5 剩余①②，2026-11-23）**：card_meta（idol_unique 参考交叉 340/342 零误报 +
+   effectGroupIds）+ parse_card_search（play_filter 234 件 / zone_count 27 件）+ 生成卡
+   11 段确定（手牌/牌堆顶/弃牌堆，手牌≥5 不生成）；条件未知 6→0；数据层 1025→**1042/1849 段**；
+   次数上限按道具计（limit:N 口径修正）；greedy 配对 A/B **+797.5（+20.76%，
+   CI [+399.0,+1250.1]）** / expectimax **+801.1（CI [+66.3,+1697.9]）**。
+6. **考试内生成卡/额外 RNG 机制**：~~生成卡确定式~~ ✅ B10（卡名→id + addCardTo* 语义）；
+   **随机式（H.I.F应援棒）与 panic/search/move 的 RNG 流仍未知**（T6 补采；`exam_risk` 事前检测不变）。
 7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。
 8. **抽牌上限 5 / handDecrease / 保留牌（held cards）**。

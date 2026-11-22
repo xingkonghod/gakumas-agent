@@ -34,6 +34,7 @@
 | T9-C0 采集/更新断链排障判据吸收（纯文档） | [TROUBLESHOOTING §四](TROUBLESHOOTING.md) 13 条清单（2004 / 协议 hash/master 结构 / http1_bridge 头丢失 / 票据 865-833 / 上游端口 / 停服务顺序 / CA 指纹 / 诊断脱敏 / 互斥）+ [CAPTURE_PIPELINE「游戏客户端更新后自检」](CAPTURE_PIPELINE.md) 8 步 | 外部经验，本项目待验证；纯文档不改代码，pytest 仍 1054/1；见 HANDOVER 二·补三十 |
 | B8 T5④ P 道具条件/效果语义（第一批） | `scripts/build_p_items.py`（新语法 trigger id 解析 + 依赖换算标注）+ `sim/p_items.py`（`depends_on`/`percent`/`percent_max`/`zero_stack` + 5 类新触发）+ `sim/lesson.py`/`sim/expectimax.py`（事件/累计量双镜） | 数据层已实现 **445→676/1849 段**；条件未知 22→**6 件**；trigger 未知 103 件/185 段单列保守跳过；gkbench 已实现 34→**59/153 段**；greedy A/B **+225.2（CI [+86.7,+363.6]）**；pytest **1067/1（1068 收集 / 77 文件）**；见 HANDOVER 二·补三十一 / RULES_REFERENCE §5.3 |
 | B9 T5④ P 道具持久倍率/modifier（第二批） | `scripts/build_p_items.py`（`annotate_modifier_effects`：20 类 target / 369 段 + 文本次数上限 9→896 件）+ `sim/p_items.py`（`PItemDelta` 新字段 + `add_timed/tick_timed/timed_dict_*` 纯规则）+ `sim/lesson.py`/`sim/expectimax.py`（分数倍率 f/g、费用修正、回合追加、指針直给、增益倍率、倒计时、canonical/双镜） | 数据层已实现 **676→1025/1849 段**（no-op 1173→824，modifier **337 段**）；gkbench 已实现 **59→103/153 段**；greedy A/B **+110.3（+2.87%，CI [+39.6,+193.3]，20胜/2负/38平）** / expectimax +48.2（CI 含 0）；新增 `tests/test_p_items_b9.py` 49 条；pytest **1116/1（1117 收集 / 78 文件）**；见 HANDOVER 二·补三十二 / RULES_REFERENCE §5.3 |
+| B10 T5 剩余①② 生成卡 + 指定卡名/手牌张数映射 | 新 `scripts/build_card_meta.py` + `data/knowledge/card_meta.json` + `src/gkagent/data/card_meta.py`（idol_unique 参考交叉 340/342 零误报 + effectGroupIds + 日文别名）+ `build_p_items.py`（`parse_card_search` play_filter/zone_count + `annotate_create_effects`）+ `sim/p_items.py`（CardFilter/ZoneCount/CreateCard + exam_start_after + 次数按道具计）+ `sim/lesson.py`/`sim/expectimax.py`（生成卡落牌双镜）+ `play_choice.spec_from_name` | 触发未知 **103→3 件**、条件未知 **6→0**；play_filter 234 件 / zone_count 27 件；生成卡 **11 段确定 + 6 段随机 no-op**；数据层 **1025→1042/1849 段**；greedy A/B **+797.5（+20.76%，CI [+399.0,+1250.1]）** / expectimax +801.1（CI [+66.3,+1697.9]）；新增 `tests/test_p_items_b10.py` 38 条；pytest **1154/1（1155 收集 / 79 文件）**；见 HANDOVER 二·补三十三 / RULES_REFERENCE §5.3 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -480,6 +481,37 @@
   真机培育侧 P 道具列表（T6/D1）、主道具附魔/回忆。
 - 细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补三十二。
 
+### B10. T5 剩余机制①② ExamCardCreateId 生成卡 + 指定卡名/手牌张数映射（纯离线）✅ 2026-11-23 完成
+- **目标**：B9 之后 T5 剩余里纯离线可做的两块——① 生成卡（确定式）；② 触发限定结构化
+  （卡名→id 映射，103 件 trigger 未知）。③ `ExamBuffConsumptionAdd` 保持 no-op（用户指定不猜）；
+  ④ fresh buff 差一回合需真机截图，不在本会话。
+- **语义来源**：masterTrans `ProduceCardSearch.json` 描述表 + 主数据 `ProduceCard.effectGroupIds` /
+  `originIdolCardId` / `originCharacterId` + BSD-3 参考引擎 gakumas-tools（`usedCardBaseId`
+  base id 不限强化 / `countCards` 区域 / `addCardToHand` 手牌≥5 不生成 / `limit:N` 按道具计次；
+  生成卡 id 交叉验证 111=静かな意志+ / 131=本番前夜+ / 421=プライド+ / 23=眠気）。
+- **落地**：新 `scripts/build_card_meta.py` → `data/knowledge/card_meta.json` +
+  `src/gkagent/data/card_meta.py`（idol_unique 判据与参考 pIdol 交叉 **340/342、0 误报**；
+  effect_groups 取卡面 effectGroupIds；日文别名 1753）；`build_p_items.py` `parse_card_search`
+  （play_filter / zone_count）+ `annotate_create_effects`（create / create_random）；
+  `sim/p_items.py` `CardFilter`/`ZoneCount`/`CreateCard` + `exam_start_after` 新时机 +
+  **次数上限按道具计**（limit:N 口径修正）；`lesson.py`/`expectimax.py` 生成卡落牌双镜
+  （known_draw/discard_order 同步）+ `play_choice.spec_from_name`。
+- **数据/结果**：触发未知 **103→3 件 / 185→6 段**（hold 2 + hotfix 1）、条件未知 **6→0**；
+  play_filter 234 件 / zone_count 27 件；生成卡 **11 段确定 + 6 段随机（no-op）**；
+  数据层已实现 **1025→1042/1849 段**；gkbench 103/153 段（loadout 4 件/8 段原 trigger
+  未知道具现在真实触发）。
+- **离线 A/B**（同 harness：hif 30 题×2 seed=1000/1001、`--budget-ms 100`、配对）：
+  greedy 3840.7→**4638.2（+797.5，+20.76%，CI [+399.0,+1250.1]，31胜/3负/26平）** /
+  expectimax 3665.8→**4466.9（+801.1，CI [+66.3,+1697.9]）**。off 与 B9 逐位相同；
+  不可直接比 B9 auto（触发映射 + 次数口径修正）；确定式生成卡不在 hif loadout → ① A/B 贡献 0。
+- **测试/基线**：新增 `tests/test_p_items_b10.py` **38 条**（含参考交叉验证，缺 data/dl 自动 skip）；
+  旧测试按新口径更新；全量 pytest **1154 passed / 1 skipped（1155 收集 / 79 文件）**；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+- **如实记录**：随机基础卡（H.I.F应援棒 6 段 / gkbench 172 段权重）RNG 未知保持 no-op；
+  hold 保留区 2 件 + hotfix 1 件保守不解析；微熱ノスタルジー♡ 无 origin 字段不算偶像固有；
+  `ExamBuffConsumptionAdd` 保持 no-op。
+- 细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补三十三。
+
 ---
 
 ## 阶段 C：可靠性（离线）
@@ -667,9 +699,10 @@ expectimax +149.6（+3.98%）；新增 29 条测试，全量 pytest **1051/1（1
 E0（离线培育测试台实验）**，用户要求开新对话做，一次会话三选一，见 HANDOVER_NEXT §4 T9。
 **T9 进度：B7 ✅（P 道具 47 条补全）、C0 ✅（2026-11-22 排障判据吸收进 TROUBLESHOOTING §四 +
 CAPTURE_PIPELINE 更新后自检 8 步，纯文档不改代码），剩 E0**（离线培育测试台，需独立副本 + 用户配合）。
-下一步继续 **T5 剩余机制**（**B8 条件/效果语义第一批 + B9 持久倍率/modifier 类已完成**；
-剩 `ExamCardCreateId` 生成卡、`ExamBuffConsumptionAdd`（强化状态花费卡机制不在模型里）、
-指定卡名/手牌限定（需卡名→id 映射）；**fresh buff 差一回合**仍需真机逐回合截图）
+下一步继续 **T5 剩余机制**（**B8 条件/效果语义第一批 + B9 持久倍率/modifier 类 +
+B10 生成卡确定式/指定卡名映射已完成**；剩 `ExamBuffConsumptionAdd`（强化状态花费卡机制
+不在模型里，保持 no-op）、**随机生成卡**（H.I.F应援棒，考试 RNG 流未知）、hold 保留区
+张数条件（2 件）；**fresh buff 差一回合**仍需真机逐回合截图）
 → 阶段 C1（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```

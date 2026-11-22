@@ -317,8 +317,27 @@ expectimax +156.2（CI 含 0，墙钟噪声）；新增 `tests/test_p_items_b9.p
 `ExamBuffConsumptionAdd`（强化状态花费卡机制不在模型里）、`ExamCardCreateId` 生成卡、
 指定卡名/手牌映射。细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) /
 HANDOVER 二·补三十二 / WORKPLAN B9。
-阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/C0/F0 完成、F 数据已下；下一步 **T5 剩余机制**
-（P 道具**生成卡/强化状态花费卡**、指定卡名映射；**fresh buff 差一回合**——需真机逐回合截图）
+**同日 B10（T5 剩余①② 生成卡 + 指定卡名/手牌张数映射）已完成**（纯离线代码）：新
+`card_meta`（卡名→idol_unique/effect_groups/日文别名；idol_unique 判据
+`originIdolCardId`/`originCharacterId` 与参考引擎 pIdol 交叉验证 **340/342、0 误报**）+
+`parse_card_search` 结构化触发限定（**play_filter 234 件 / zone_count 27 件**：指定卡名
+base id 不限强化 / 偶像固有 / 效果组 / 原本费用 / 类别 / 稀有度 / 手牌·牌堆·弃牌·除外四区
+张数含取反）+ **`ExamCardCreateId` 确定式生成卡 11 段**（手牌≥5 不生成 / 牌堆顶 / 弃牌堆，
+参考 `addCardTo*` 语义 + 生成卡 id 交叉验证）+ `exam_start_after` 新时机 + **次数上限按
+道具计**（`limit:N` 口径修正，多段道具不再提前用完）。触发未知 **103→3 件 / 185→6 段**
+（hold 保留区 2 + hotfix 1）、条件未知 **6→0**；数据层 **1025→1042/1849 段**；gkbench
+103/153 段（loadout 4 件/8 段原 trigger 未知道具现在真实触发）；离线 A/B（hif 30 题×2 seed）
+greedy 3840.7→**4638.2（+797.5，+20.76%，CI[+399.0,+1250.1]，31胜/3负/26平）** /
+expectimax 3665.8→**4466.9（+801.1，CI[+66.3,+1697.9]）**（off 与 B9 逐位相同；不可直接比
+B9 auto——触发映射+次数口径修正；确定式生成卡不在 hif loadout，① 的 A/B 贡献 0）；
+新增 `tests/test_p_items_b10.py` 38 条，全量 pytest **1154 passed / 1 skipped
+（1155 收集 / 79 文件）**，基线 ①③④⑤ 不变。**保持 no-op 并如实记录**：随机生成卡
+（H.I.F应援棒 6 段 / gkbench 172 段权重，考试 RNG 流未知）、`ExamBuffConsumptionAdd`
+（强化状态花费卡，不猜）、hold 保留区张数条件（2 件）。细节见
+[RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补三十三 / WORKPLAN B10。
+阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、F 数据已下；下一步 **T5 剩余**
+（~~生成卡确定式/指定卡名映射~~ ✅ B10；剩随机生成卡 RNG / `ExamBuffConsumptionAdd` 保持 no-op /
+hold 保留区；**fresh buff 差一回合**需真机逐回合截图）或 **B2 按 B3 规则重训**（旧模型 FAIL）
 → 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，先问用户）→ 真机 T3→T1→T2 → F1/F2 gkbench
 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

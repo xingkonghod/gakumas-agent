@@ -1609,6 +1609,116 @@ HANDOVER_NEXT §0/§2/§4/§8/开场白/§9；INDEX；README；本文件二·补
 **提交**：feat `b956123`（代码 + 数据 + 测试）+ docs `de40f15`（本交接 + 文档数字），
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补三十三、11-23（B10 / T5 剩余机制①② 落地：ExamCardCreateId 生成卡 + 指定卡名/手牌张数映射）
+
+**背景**：B9 做完持久倍率/modifier 后，T5 剩余里纯离线可做的两块：① `ExamCardCreateId`
+生成卡（17 段 catalog / gkbench 172 段权重）；② 指定卡名/手牌张数触发限定
+（`trigger_known=False` 103 件 / 185 段，缺卡名→id 映射）。③ `ExamBuffConsumptionAdd`
+（强化状态花费卡）按用户要求**保持 no-op 不猜**；④ fresh buff 差一回合需真机逐回合截图，
+不在本会话。
+
+**语义来源（全部本地证据，不猜）**：
+- masterTrans `ProduceCardSearch.json`（280 行描述表）：playing=使用时 / target=使用后 /
+  deck_grave=牌堆或弃牌 / deck_all=全部 / lost=除外 / hold=保留 / hand=手牌 /
+  trouble=干扰卡 / r-sr-ssr-legend=R以上 / min_max-4_99=原本消耗体力4以上 /
+  effect_group-visible-exam_*-000=可见效果组 / idol-unique=偶像固有；
+- 主数据 `ProduceCard.effectGroupIds`（卡→效果组，与触发限定**同一套 id**，
+  `EffectGroup` 表 67 行定义组→效果类型）+ `originIdolCardId`/`originCharacterId`
+  （偶像固有判据）；
+- BSD-3 参考引擎 gakumas-tools（只按语义重写、不拷代码）：指定卡名触发用
+  `usedCardBaseId`（**base id，不限强化**）；`countCards` 区域语义；
+  `addCardToHand`（**手牌≥5 不生成**）/`addCardToTopOfDeck`/`addCardToDiscarded`/
+  `addRandomBasicCardToDeckAtRandom`；`limit:N` = **每事件触发一次**（按道具计次）。
+  生成卡交叉验证：勝利をその手に=addCardToHand(111)=静かな意志+、迷子のお呼び出し=
+  addCardToHand(131)=本番前夜+、麻央にぴったし=addCardToHand(421)=プライド+、
+  雨上がりの女神=addCardToTopOfDeck(23)=眠気、H.I.F応援棒=随机基础卡补到 22 张。
+
+**落地（四块）**：
+
+1. **卡元数据**（新 `scripts/build_card_meta.py` → 新 `data/knowledge/card_meta.json`
+   + 新 `src/gkagent/data/card_meta.py` 懒加载索引）：卡名 → id/upgrade/idol_unique/
+   effect_groups（+ 日文别名 1753 条）。**idol_unique = originIdolCardId 或
+   originCharacterId 非空**，与参考 `skill_cards.csv` 的 `sourceType=="pIdol"` 交叉验证
+   **340/342 命中、0 误报**（一番星系列是 prima stella、参考里 sourceType=produce，不算；
+   微熱ノスタルジー♡ 快照无 origin 字段 → 保守不计）。1817/1829 卡名命中主数据
+   （12 张快照后新卡无 meta → 固有/效果组限定不可判，保守不触发）。
+2. **数据层**（`scripts/build_p_items.py`）：`parse_card_search` 把 trigger id 的
+   p_card_search 段解析成 `play_filter`（指定卡名/偶像固有/效果组/费用/类别/稀有度）
+   与 `zone_count`（hand/deck/discard/excluded 四区张数，含 `not-` 取反）；
+   `annotate_create_effects` 从描述文本最长后缀匹配卡名（中文+日文别名）标注
+   `create`（确定卡 id/强化/目标区）/`create_random`（随机基础卡，只记语义）。
+   **触发未知 103→3 件**（hold 保留区 2 件 + period810_hotfix 未知词 1 件）、
+   **条件未知 6→0 件**；play_filter 234 件 / zone_count 27 件；生成卡 11 段确定 +
+   6 段随机。区域张数条件从 condition 文本剥掉（结构化求值，避免整句认不出拒触发）。
+3. **纯规则**（`sim/p_items.py`）：`CardFilter`/`ZoneCount`/`CreateCard` 三个冻结结构 +
+   `_card_filter_matches`/`_zone_count_matches`（卡表查不到/元数据缺失 → None 保守不触发）；
+   `PassiveEvent.card_name` + `PassiveState.hand/deck/discard/excluded/zones_known`；
+   `PItemDelta.create_cards`；新触发时机 `exam_start_after`（训练开始后，抽完第一手牌后）。
+   **次数上限口径修正**：`p_item_uses` 按**道具**计（同事件多效果段只记 1 次，
+   参考 limit:N）——旧口径按段累计会让多段道具（如雨后的女神 3 段 limit 5）2 次就用完。
+4. **两引擎双镜**（`sim/lesson.py` + `sim/expectimax.py` + `sim/play_choice.py`）：
+   `spec_from_name`（卡名→CardSpec，与牌组构建同口径）；生成卡落牌——手牌≥5 不生成 /
+   牌堆顶 = deck 末尾（ExpectState 同步 `known_draw[0]`）/ 弃牌堆（同步 `discard_order`）；
+   `LessonSim.__init__` 在 `_draw_hand` 后发 `EXAM_START_AFTER`；区域卡名投影进
+   `_passive_state`（双镜）；`_min_cost`/`min_cost` 随牌堆生成更新。
+
+**数据/结果（2026-11-23 复跑）**：
+
+| 指标 | B9 | B10 |
+|---|---:|---:|
+| catalog 件数 / spec 段 | 1115 / 1849 | 1115 / 1849（不变） |
+| 数据层已实现 spec 段 | 1025 | **1042**（+17：生成卡 11 + exam_start_after 等） |
+| no-op spec 段 | 824 | **807** |
+| 条件未知 | 6 件 / 10 段 | **0 件** |
+| 触发限定未知 | 103 件 / 185 段 | **3 件 / 6 段**（hold 2 + hotfix 1） |
+| 结构化卡限定 / 区域张数 | — | **234 件 / 27 件** |
+| 生成卡（确定 / 随机） | 0 / 0 | **11 段 / 6 段**（随机保持 no-op） |
+| gkbench hif 83 唯一 id 已实现（153 段） | 103 段 | 103 段（口径不变；loadout 里 4 件/8 段原 trigger 未知道具现在真实触发） |
+
+**离线 A/B（同 B8/B9 harness：hif 30 题×2 seed=1000/1001、`--budget-ms 100`、配对，
+CI = 按题整体重采样 10000 次 percentile bootstrap）**：
+
+| 算法 | off | auto | 配对 Δ | 95% CI | 胜/负/平 | 变化局 |
+|---|---:|---:|---:|---|---|---|
+| greedy | 3840.7 | **4638.2** | **+797.5（+20.76%）** | [+399.0,+1250.1] | 31/3/26 | 34/60 |
+| expectimax(analytic) | 3665.8 | **4466.9** | **+801.1（+21.85%）** | [+66.3,+1697.9] | 28/8/24 | 36/60 |
+
+- greedy 确定性执行、CI 全正；expectimax 这次 CI 也全正（增益远大于墙钟噪声）。
+- **不可直接比 B9 auto 3951.0**：B10 把 103 件触发未知道具结构化（loadout 里加油鼓劲等
+  4 件/8 段开始真实触发）+ 次数按道具计修正（多段道具触发满 limit）；off 与 B9 逐位相同
+  （3840.7），同一代码的 off/auto 配对仍是 +797.5。
+- 生成卡确定式（将胜利握在手中/寻人大喇叭/麻央正合适/雨后的女神/初星塔 6 件）**不在
+  gkbench hif loadout 里**（loadout 只有 H.I.F应援棒 6 件随机式）→ ① 的 A/B 贡献为 0，
+  增益全部来自 ② 触发映射 + 次数口径修正；确定式生成由 38 条单测覆盖（含参考引擎交叉验证）。
+
+**测试/基线**：新增 `tests/test_p_items_b10.py` **38 条**（parse_card_search 各形态/
+hold 与未知词保守/育成期搜索目标不算 unresolved；card_meta 判据与参考交叉验证/日文别名/
+缺文件降级；真数据 spec 的指定卡名/偶像固有/效果组/费用限定命中与拒触发；区域张数
+（干扰/R以上/除外取反/未知卡保守）；生成卡手牌/牌堆顶/弃牌堆/手牌上限5/未知id no-op/
+随机式 no-op/ExpectState 双镜（known_draw/discard_order 同步）/sim-expect 逐位一致；
+次数按道具计双镜；参考 DSL 生成卡 id 交叉验证）；旧测试按新口径更新
+（test_p_items_b8/db/integration：触发未知 103→3、条件未知 6→0、card_played 直给分
+改用合成 spec——真数据现在都带卡限定）。全量 pytest **1154 passed / 1 skipped
+（1155 收集 / 79 文件）**；基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、
+⑤ 366/384 全部不变。
+
+**如实记录的剩余**：
+- `ExamBuffConsumptionAdd`（强化状态花费卡）：卡牌模型没有 buff-cost 卡 → **保持 no-op**（用户指定不猜）。
+- **H.I.F应援棒随机基础卡**（6 段 / gkbench 172 段权重）：卡选择/位置是考试 RNG 入口、
+  真机流未知（`exam_risk` 事前检测同口径）→ 数据层记 `create_random` 语义，**保持 no-op**。
+- **hold（保留）区**未建模（RULES_REFERENCE §6）→ 2 件保留区张数条件保守不解析；
+  `period810_hotfix` 未知词 1 件同。
+- 指定卡名触发的 `-U_C` 后缀按参考 `usedCardBaseId` 口径 = base id 不限强化（upgrade 只记录）。
+- 微熱ノスタルジー♡（p_card-02-ido-3_232）快照无 origin 字段 → 不算偶像固有（保守）；
+  12 张快照后新卡无 card_meta → 固有/效果组限定不可判。
+- fresh buff 差一回合（需真机逐回合截图）、真机培育侧 P 道具列表（T6/D1）、主道具附魔/回忆。
+
+**文档**：RULES_REFERENCE §5.3(B10)/§6；WORKPLAN B10/§0 任务表；
+HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；INDEX；本文件二·补三十三。
+
+**提交**：feat（代码 + 数据 + 测试）+ docs（本交接 + 文档数字），
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

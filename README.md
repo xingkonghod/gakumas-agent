@@ -322,12 +322,21 @@ expectimax +195.4；全量 pytest 1067/1（1068 收集 / 77 文件）** /
 回合追加、温存/强气指針直给——20 类 target / **369 段 / 298 件道具**；同时解析描述里的
 「（训练内N次）」→ `max_uses` **9→896 件**；数据层 676→**1025/1849 段**、gkbench 已实现
 59→**103/153 段**；离线 A/B greedy **+110.3（+2.87%，CI[+39.6,+193.3]，20胜/2负/38平）**、
-expectimax +156.2（CI 含 0）；全量 pytest 1116/1（1117 收集 / 78 文件）**。
+expectimax +156.2（CI 含 0）；全量 pytest 1116/1（1117 收集 / 78 文件）** /
+**B10（T5 剩余①② 生成卡 + 指定卡名/手牌张数映射，2026-11-23）：新 `card_meta`
+（idol_unique 判据与参考引擎 pIdol 交叉验证 340/342 零误报 + 卡面 effectGroupIds + 日文别名）+
+`parse_card_search` 结构化触发限定（play_filter 234 件 / zone_count 27 件：指定卡名 base id
+不限强化 / 偶像固有 / 效果组 / 原本费用 / 类别 / 稀有度 / 四区张数含取反）+ `ExamCardCreateId`
+确定式生成卡 11 段（手牌≥5 不生成 / 牌堆顶 / 弃牌堆，参考 addCardTo* + id 交叉验证）+
+`exam_start_after` 新时机 + 次数上限按道具计（limit:N 口径修正）；触发未知 **103→3 件**、
+条件未知 **6→0**；数据层 1025→**1042/1849 段**；离线 A/B greedy **+797.5（+20.76%，
+CI[+399.0,+1250.1]，31胜/3负/26平）**、expectimax +801.1（CI[+66.3,+1697.9]）；
+全量 pytest 1154/1（1155 收集 / 79 文件）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/C0/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / B8 ✅ / B9 ✅ / C0 ✅ / F0 收尾 ✅；
-   下一项 **T5 剩余机制**（P 道具**生成卡/强化状态花费卡**、指定卡名/手牌映射；
-   **fresh buff 差一回合**——需真机逐回合截图）；T9 剩 E0（需真机独立副本实验，先问用户；C0 已完成）；
+0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / B8 ✅ / B9 ✅ / B10 ✅ / C0 ✅ / F0 收尾 ✅；
+   下一项 **T5 剩余**（随机生成卡 RNG / 强化状态花费卡保持 no-op / hold 保留区；
+   **fresh buff 差一回合**——需真机逐回合截图）或 **B2 按 B3 规则重训**；T9 剩 E0（需真机独立副本实验，先问用户；C0 已完成）；
    F0 收尾（官方 gkbench 384 组开发种子核洗牌模型 366/384=95.3%、逐张 97.4%、起点校准）见 [GKBENCH §4.5](docs/GKBENCH.md) / [HANDOVER 二·补二十四](docs/HANDOVER.md)；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
@@ -344,9 +353,12 @@ expectimax +156.2（CI 含 0）；全量 pytest 1116/1（1117 收集 / 78 文件
    P 道具**持久倍率 / modifier 类效果**（打分上升量增加/减少、好印象强化/追加发动、热意/集中/
    好印象/干劲/全力值增益倍率、绝好调/不调、费用修正、回合追加、温存/强气指針直给；20 类 target、
    369 段 / 298 件；数据层 **1025/1849 段**，gkbench **103/153 段**）✅ B9；
-   剩余：生成卡 `ExamCardCreateId` / 强化状态花费卡（`ExamBuffConsumptionAdd` 无落点）、
-   指定卡名/手牌映射、fresh buff 差一回合、真机培育侧列表、回忆/附魔/减益、考试内生成卡/额外 RNG
-   （[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
+   P 道具**生成卡确定式 + 指定卡名/手牌张数映射**（card_meta idol_unique/effectGroupIds、
+   play_filter/zone_count 结构化、ExamCardCreateId 落牌、次数按道具计；数据层 **1042/1849 段**，
+   触发未知 103→3 件）✅ B10；
+   剩余：随机生成卡（H.I.F应援棒，考试 RNG 流未知）/ 强化状态花费卡（`ExamBuffConsumptionAdd`
+   无落点，保持 no-op）/ hold 保留区张数条件（2 件）、fresh buff 差一回合、真机培育侧列表、
+   回忆/附魔/减益、考试内额外 RNG（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 
 **红线（永不违反）**
