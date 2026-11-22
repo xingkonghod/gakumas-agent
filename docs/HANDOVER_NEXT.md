@@ -4,7 +4,7 @@
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
 > 新会话第一句话：
 > 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑四条基线，
-> 再从 WORKPLAN 阶段 A 的下一项（A5）开始。」
+> 再从 WORKPLAN 阶段 B 的下一项（B1）开始。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
@@ -34,21 +34,24 @@
          2026-11-22 A4：离线回放素材——8 张真机关键帧归档（tests/fixtures + README 溯源表）+ 9 条
          真机帧回放测试（六类关键屏，见 HANDOVER 二·补十七）+ scripts/scan_frames.py 批量挑帧工具；
          回放顺手抓到并修掉 _checkbox_bands 缺 @staticmethod 的真机 TypeError（F#44）
-         全量 pytest 950 passed / 1 skipped（951 收集 / 68 文件）
+         2026-11-22 A5：T3 离线预演——scripts/verify_exam_plan_offline.py：最新场 3 候选第 2 回合锁定
+         config_turns=12（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值（候选→1、locked_turn≤3，
+         见 HANDOVER 二·补十八 / EXPECTIMAX §④）
+         全量 pytest 958 passed / 1 skipped（959 收集 / 69 文件）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
-        ③ 采集进程 ↔ 决策进程**代码已接**，但真机跑局时采集没开 → 全知 0 锁定，差实战验收
+        ③ 采集进程 ↔ 决策进程**代码已接**、离线预演已通（A5），但真机跑局时采集没开 → 全知 0 锁定，差实战验收
         ④ 策略强度：V_leaf 是瓶颈（2026-11-22 已定位：档位效用平手项 + beam 采样分支可 +20，
            但仍比回合内 expectimax 低 22%；下一步受控 policy-evaluation / rollout 监督 v_leaf）；机制建模缺 P 道具/回忆/附魔/选牌/减益
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
         ⑥ A4 缺一张真机帧：「回合结束确认框」旧截图被 step_NNN 轮转覆盖（扫 1352 张 0 命中）；
            分支已用真机课程帧文字 + F#36 文案回放，下次真机跑局出现时补拍 fixture
-当前最高优先：**阶段 A 离线收尾**（A3 ✅ → A4 ✅ → **A5 T3 离线预演**）→
-阶段 B/C/D → 真机 T3→T1→T2 → gkbench（总计划见 WORKPLAN.md）
+当前最高优先：**阶段 B 离线**（B1 T4 受控 policy-evaluation 叶子 → B2/B3）→ 阶段 C/D →
+真机 T3→T1→T2 → gkbench（总计划见 WORKPLAN.md；阶段 A 已全部完成）
 ```
 
 > **新会话先读 [WORKPLAN.md](WORKPLAN.md)**：总顺序 = **离线全部做完 → 真机（T3→T1→T2）→ 去 gkbench 比算法**。
-> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / A4 回放素材 ✅ / A5 T3 离线预演 / B T4·T5 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
+> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / A4 回放素材 ✅ / A5 T3 离线预演 ✅ / B T4·T5 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
 > 和「已完成不要重做」清单。
 
 > **2026-11-21 用户硬规矩（不许破）**：SKIP 只在"所有牌都付不起"时允许；读不到分数/费用不是跳过理由，
@@ -89,6 +92,7 @@
 | A2 课程硬打必须得分（F#42） | [vision/lesson.py](../src/gkagent/vision/lesson.py) 课程 HUD 换算 + [policy/lesson.py](../src/gkagent/policy/lesson.py) 每回合 1 张/硬打保分 | `tests/test_lesson_play_f42.py` 真图回放 3 条 + HUD 换算 4 条 + flat-tie 硬打 1 条；见 HANDOVER 二·补十五 |
 | A3 F#43 结果页空转 | [produce_ui.py](../src/gkagent/tasks/produce_ui.py) `_GAIN_RE` 只认正收益 + 事件屏 P 费标签兜底 + 静态页第 3 次找按钮 | `tests/test_produce_ui_f43.py` 7 条（真机帧回放 3 + 合成 4）；见 HANDOVER 二·补十六 |
 | A4 离线回放素材 | [tests/fixtures/README.md](../tests/fixtures/README.md) 8 张真机帧溯源 + [scan_frames.py](../scripts/scan_frames.py) 批量挑帧 | `tests/test_frames_replay_a4.py` 9 条（六类关键屏真帧回放；回合结束确认框用真机课程帧文字 + F#36 文案，真机帧已被轮转覆盖）；全量 pytest **950/1（951 收集 / 68 文件）**；F#44 `_checkbox_bands` 修复；见 HANDOVER 二·补十七 |
+| A5 T3 离线预演 | [verify_exam_plan_offline.py](../scripts/verify_exam_plan_offline.py)：`--current` 候选（--refresh 现场重建）+ 四场 sweep，truth 驱动 `ExamPlanSelector` | 最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12）；四场 sweep T1–T2 锁定、选中 = 9/11/9/12 全对；候选→1、`locked_turn≤3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；见 HANDOVER 二·补十八 |
 
 **改动以上任何部分的规矩**：先跑 §2 四条基线命令；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
@@ -101,7 +105,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 950 passed, 1 skipped（951 条收集 / 68 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条）
+# ② 全量测试：应为 958 passed, 1 skipped（959 条收集 / 69 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -189,8 +193,10 @@ cd D:\Games\gakumas-agent
   **A2 F#42 已完成**（2026-11-22，课程 HUD 语义 + 每回合 1 张 + 硬打保分，见 HANDOVER 二·补十五 /
   WORKPLAN A2）；**A3 F#43 已完成**（2026-11-22，真根因是日文饮料选择事件屏 + P 费标签被当飘字，
   见 HANDOVER 二·补十六 / FAILURES #43）；**A4 离线回放素材已完成**（2026-11-22，8 张真机帧 +
-  9 条回放测试 + scan_frames 挑帧工具，见 HANDOVER 二·补十七 / WORKPLAN A4）。按 WORKPLAN 顺序
-  做离线阶段 A 剩余项（**A5 T3 离线预演**），再上真机重验 F#42/#43 与 T3。
+  9 条回放测试 + scan_frames 挑帧工具，见 HANDOVER 二·补十七 / WORKPLAN A4）；**A5 T3 离线预演已完成**
+  （2026-11-22，`--current` 3 候选第 2 回合锁定 `config_turns=12`、四场 sweep T1–T2 锁定且选对真值，
+  见 HANDOVER 二·补十八 / WORKPLAN A5）。按 WORKPLAN 顺序进入**阶段 B（B1 T4 受控 policy-evaluation
+  叶子）**，再上真机重验 F#42/#43 与 T3。
 
 **剩余（跑一局验收）**
 1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
@@ -215,7 +221,7 @@ cd D:\Games\gakumas-agent
 
 **预算**：1–2 小时真机 + 30–60k token。
 
-### T3（P0，依赖 T1 的稳定起跑）采集进程 ↔ 决策进程实时打通（原 item④）🟡（代码已接，差真机考试验收）
+### T3（P0，依赖 T1 的稳定起跑）采集进程 ↔ 决策进程实时打通（原 item④）🟡（代码 + 离线预演已完成，差真机考试验收）
 **目标**：bot 进入考试的那一刻，自动从采集数据拿到**当前这一场**的 seed / 支援编成 / 牌堆 / 配置回合，建 `ExamDrawPlan`；每回合手牌核对通过，2–3 回合内锁定牌序。
 
 **已完成（2026-11-21 晚，a9537b0 起）**
@@ -228,13 +234,18 @@ cd D:\Games\gakumas-agent
 3. ✅ `reconstruct_deck.build_snapshots()` 抽成函数（运行时可调用，不复制逻辑）。
 4. ✅ `auto_produce`：进入考试时按文件 mtime **运行时重载** `out/exam_setup.json`、新考试换新 selector、
    考试结束打 `[exam-plan] summary`（锁定回合/候选/核对回合数）。
+5. ✅ **2026-11-22 A5 离线预演（不碰真机）**：`scripts/verify_exam_plan_offline.py` 一条命令跑
+   `--current --allow-finished` 候选（最新场 3 个：9/11/12）+ 四场 sweep，用采集 truth 驱动
+   `ExamPlanSelector` → 候选全部收敛到 1、`locked_turn` = T2/T1/T1/T1/T2（≤3）、选中
+   `config_turns` = 12/9/11/9/12 全等于真值、锁定后逐回合手牌核对全中；测试
+   `tests/test_exam_plan_offline.py` 8 条（见 HANDOVER 二·补十八 / EXPECTIMAX §④）。
 
 **剩余（需要游戏+采集进程）**
 1. 开采集（`一键采集启动.bat`）→ 起 bot 到考试 → **考试进行中**另开一个进程跑
    `build_exam_setup.py --current`（默认输出 `out/exam_setup.json`）→ bot 下一帧自动重载并开始核对；
 2. 验收日志：`[exam-plan] 重载/挂上` + `[exam-plan] summary` 里 `locked_turn` 2–3、`verified == 实战回合数`；
-3. 离线兜底验证（不依赖真机）：`build_exam_setup.py --current --allow-finished` 对一个已结束的采集
-   生成候选，用 truth 逐回合喂 `ExamPlanSelector` 应能锁定正确 `config_turns`（2026-11-21 已实测 12）。
+3. ~~离线兜底验证（不依赖真机）~~ ✅ 已完成（A5，见上第 5 条；`verify_exam_plan_offline.py`
+   最新场锁定 T2/config_turns 12，四场 sweep 全对）。
 
 **改哪儿**：`scripts/build_exam_setup.py`、`scripts/auto_produce.py`、`scripts/reconstruct_deck.py`、`src/gkagent/sim/exam_plan.py`
 
@@ -245,8 +256,9 @@ cd D:\Games\gakumas-agent
 > [QQ_GROUP_NOTES](QQ_GROUP_NOTES.md) 凌晨条目），我们的 K 模型未覆盖。牌组含这些效果的考试
 > **known_draw 只能用到第一个此类事件**；T3 验收时用"纯牌组"考试跑，或在建 setup 时前置标记不可验。
 
-**验收（DoD）**：真机一局考试的每回合核对通过 + selector 单测（已加 4 条）+ 文档更新。
-**预算**：60–100k token（代码已完成，剩真机验收 ~20k）。
+**验收（DoD）**：真机一局考试的每回合核对通过（离线预演 A5 已通过：候选→1、`locked_turn≤3`、选中
+真值、逐回合核对全中）+ selector 单测（已加 4 条 + A5 离线预演 8 条）+ 文档更新。
+**预算**：60–100k token（代码 + 离线预演已完成，剩真机验收 ~20k）。
 
 ### T2（P0，依赖 T3）三引擎真机 A/B ⬜
 **目标**：同偶像、同卡组、同 seed（能同 seed 最好），各跑 rules / expectimax / beam+全知 一局，比考试分。
@@ -373,6 +385,8 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 .venv\Scripts\python.exe scripts\build_exam_setup.py --current
 # 离线核对 --current（对已结束的采集；真机没在考试时用）
 .venv\Scripts\python.exe scripts\build_exam_setup.py --current --allow-finished --out out\exam_setup_current_test.json
+# A5 T3 离线预演（--current 候选 + 四场 sweep 用 truth 驱动 ExamPlanSelector；退出码 = DoD）
+.venv\Scripts\python.exe scripts\verify_exam_plan_offline.py --refresh
 # 生产接线端到端核对（36/36 手牌、3/3 重洗）
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
 # F#42 课程帧回放回归（真机课程截图 → LessonReader → expectimax 决策，最后一个用例不选 buff）
@@ -441,14 +455,16 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线。
-期望：洗牌 4/4 场 + 3/3 重洗；pytest 950 passed / 1 skipped（951 条收集 / 68 文件）；
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 958 passed / 1 skipped（959 条收集 / 69 文件）；
 exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28。
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6 Apache-2.0，见 WORKPLAN A1 / HANDOVER 二·补十四）；
 A2（F#42 课程硬打必须得分）也已完成（HUD 语义 + 每回合 1 张 + 硬打保分，见 WORKPLAN A2 / HANDOVER 二·补十五）；
 A3（F#43 结果页空转）也已完成（真根因：日文饮料选择事件屏 + P 费标签被当飘字；见 WORKPLAN A3 / HANDOVER 二·补十六）；
 A4（离线回放素材）也已完成（8 张真机帧归档 + 9 条真机帧回放测试 + scan_frames 挑帧工具，见 WORKPLAN A4 / HANDOVER 二·补十七）。
-基线绿后按 WORKPLAN 从 A5 开始：A5 T3 离线预演
-→ 阶段 B/C/D，全部离线做完再上真机（T3→T1→T2），最后 gkbench。
+A5（T3 离线预演）也已完成（--current 3 候选第 2 回合锁定 config_turns=12、四场 sweep T1–T2 锁定且选对真值；
+见 WORKPLAN A5 / HANDOVER 二·补十八）。
+基线绿后按 WORKPLAN 从 B1 开始：B1 T4 受控 policy-evaluation 叶子
+→ B2/B3，再到阶段 C/D，全部离线做完再上真机（T3→T1→T2），最后 gkbench。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。
 ```

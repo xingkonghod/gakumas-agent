@@ -174,8 +174,11 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 `scripts/scan_frames.py` 批量挑帧工具。回放顺手抓到并修掉 `_checkbox_bands` 缺 `@staticmethod` 的真机
 `TypeError`（FAILURES #44）。**回合结束确认框的真机帧已被 `step_NNN` 轮转覆盖**（扫 1352 张 0 命中），
 该条暂用真机课程帧 OCR 行 + F#36 真实文案回放，下次真机跑局补拍。
-全量 pytest **950 passed / 1 skipped**（951 收集 / 68 文件）。细节见 HANDOVER 二·补十七 / FAILURES #44。
-下一步按 [WORKPLAN](WORKPLAN.md)：**A5 T3 离线预演**（`build_exam_setup --current --allow-finished` +
-`ExamPlanSelector` 离线核对 locked_turn/verified）
-→ 阶段 B/C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四/二·补十五/二·补十六/二·补十七 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+**同日 A5 已完成**（T3 离线预演）：新增 `scripts/verify_exam_plan_offline.py`——`build_exam_setup
+--current --allow-finished` 对最新场生成 3 个 `config_turns` 候选（9/11/12），用采集 truth 驱动
+`ExamPlanSelector`：**第 2 回合锁定 config_turns=12（真值 12）**、锁定后逐回合核对 11/11、
+`known_draw` 覆盖下一手 9/9；四场 sweep 也全部 T1–T2 锁定且选中真值，候选收敛到 1、`locked_turn≤3`。
+全量 pytest **958 passed / 1 skipped**（959 收集 / 69 文件）。细节见 HANDOVER 二·补十八 / EXPECTIMAX §④。
+阶段 A 全部完成；下一步按 [WORKPLAN](WORKPLAN.md) 进**阶段 B：B1 T4 受控 policy-evaluation 叶子**
+→ B2/B3 → 阶段 C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

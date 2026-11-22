@@ -23,6 +23,7 @@
 | A2 课程硬打必须得分（F#42：HUD 语义 + 每回合 1 张 + 硬打保分） | `tests/test_lesson_play_f42.py` 真图回放 3 条 + `test_lesson.py` HUD 换算 4 条 + `test_hardplay_prefers_scoring_card_on_flat_tie`；全量 pytest 934/1（935 收集 / 66 文件）；`docs/HANDOVER` 二·补十五 |
 | A3 F#43 结果页空转（真根因：日文饮料选择事件屏 + P 费标签命中飘字正则） | `tests/test_produce_ui_f43.py` 7 条（真机帧回放 3 + 合成 4）；全量 pytest 941/1（942 收集 / 67 文件）；`docs/HANDOVER` 二·补十六 |
 | A4 离线回放素材（六类关键屏真机帧归档 + 回放测试 + 挑帧工具） | `tests/fixtures/` 8 张真机帧 + `README.md` 溯源表；`tests/test_frames_replay_a4.py` 9 条；`scripts/scan_frames.py`；顺带修 `_checkbox_bands` 真机 TypeError（F#44）；全量 pytest **950/1（951 收集 / 68 文件）**；`docs/HANDOVER` 二·补十七 |
+| A5 T3 离线预演（`--current` 候选 + `ExamPlanSelector` 逐回合锁定） | `scripts/verify_exam_plan_offline.py`：最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值；候选收敛到 1、`locked_turn<=3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；`docs/HANDOVER` 二·补十八 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -164,10 +165,29 @@
   ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、④ wiring 36/36 + 3/3 + known_draw 29/29 +
   beam 28 全部不变（A4 只加素材/测试 + 一个漏装饰器修复，不动数据链路）。
 
-### A5. T3 离线预演（不碰真机）
+### A5. T3 离线预演（不碰真机）✅ 2026-11-22 完成
 - 用新采集的 `traffic.jsonl` 跑 `build_exam_setup.py --current --allow-finished`，用 `ExamPlanSelector` 离线核对
   `locked_turn/verified`；把流程写成脚本（若需要）。
 - DoD：候选收敛到 1、`locked_turn<=3`；结论写回 EXPECTIMAX/HANDOVER。
+
+**落地（2026-11-22）**
+- **脚本** `scripts/verify_exam_plan_offline.py`：一条命令跑两条路径——① `--current --allow-finished`
+  候选（`--refresh` 时现场重建，等价 CLI）用最近一场考试 truth 驱动 selector；② 四场已结束考试
+  各造 9/11/12 候选的 sweep。输出 `locked_turn` / 选中 `config_turns` / 锁定后逐回合核对 /
+  `known_draw` 覆盖下一手；退出码 = DoD 是否通过，`--json` 给明细。
+- **结果**（最新场 = 11-21 17:38 期末 seed=0x1E1A740D、牌堆 27 张）：
+  - `--current` 3 候选（9/11/12）**第 2 回合锁定 `config_turns=12`（真值 12）**，锁定后手牌核对
+    11/11（T2–T12），`known_draw` 覆盖下一手 9/9；T12 打出考试内生成卡 → 按数据限制提前停下
+    （不算失败，与 `verify_exam_wiring` 同口径）。
+  - 四场 sweep：考试0/1/2 第 1 回合锁定、考试3 第 2 回合锁定；选中 `config_turns` = 9/11/9/12，
+    全部等于真值；候选 3→1；`locked_turn` 最大 2（DoD ≤3）。第 1 回合分不出的场是 isInitial 卡
+    相同，第 2 回合收敛，与 QQ 群「2–3 回合锁定 seed」口径一致。
+- **DoD 对照**：候选收敛到 1 ✅、`locked_turn<=3` ✅；结论写回
+  [EXPECTIMAX §④](EXPECTIMAX.md) 与 [HANDOVER 二·补十八](HANDOVER.md)。
+- **测试**：`tests/test_exam_plan_offline.py` 8 条（候选复制 / truth 驱动统计 / 真实与错误候选 /
+  生成卡提前停止 / DoD 判定 / CLI 全链路）；ruff 通过；全量 pytest **958 passed / 1 skipped**
+  （959 收集 / 69 文件）。
+- 真机 T3 验收（考试进行中跑 `--current` + bot 运行时重载 + `[exam-plan] summary`）留到阶段 E。
 
 ---
 
@@ -255,7 +275,7 @@
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线，
-然后按 WORKPLAN 的 阶段 A→B→C→D 离线推进；全部离线做完后再做 阶段 E 真机（T3→T1→T2），
+然后按 WORKPLAN 的 阶段 B→C→D 离线推进；全部离线做完后再做 阶段 E 真机（T3→T1→T2），
 最后 阶段 F 去 gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules；真机整局 --ignore-user。
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6；见 WORKPLAN A1 / HANDOVER 二·补十四）。
@@ -264,6 +284,10 @@ A2（F#42 课程硬打必须得分）已于 2026-11-22 完成（HUD 语义 + 每
 A3（F#43 结果页空转）已于 2026-11-22 完成（真根因是日文饮料选择事件屏 + P 费标签被当飘字；
 见 WORKPLAN A3 / HANDOVER 二·补十六）。
 A4（离线回放素材）也已完成（8 张真机帧归档 + 9 条真机帧回放测试 + scan_frames 挑帧工具；
-见 WORKPLAN A4 / HANDOVER 二·补十七）。今天做 A5（T3 离线预演：`build_exam_setup.py --current
---allow-finished` + `ExamPlanSelector` 离线核对 locked_turn/verified）。
+见 WORKPLAN A4 / HANDOVER 二·补十七）。
+A5（T3 离线预演）也已完成：`scripts/verify_exam_plan_offline.py`——最新场 3 候选第 2 回合锁定
+config_turns=12（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值，候选收敛到 1、locked_turn≤3；
+见 WORKPLAN A5 / HANDOVER 二·补十八。
+基线绿后按 WORKPLAN 从 B1 开始：B1 T4 受控 policy-evaluation 叶子 → B2/B3 → 阶段 C → 阶段 D，
+全部离线做完再上真机（T3→T1→T2），最后 gkbench。
 ```

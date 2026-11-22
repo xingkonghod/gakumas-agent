@@ -259,13 +259,14 @@ sequenceDiagram
 
 **已完成**：采集链路 / 洗牌模型（4/4 实战）/ 牌序全知数据链路 / 生产接线 / 决策引擎与可观测性 /
 真机流程修复（10+ 类卡点）/ 模拟器整局 A/B / 私有存档与私有仓库 / A1（OCR 日文模型）/ A2（F#42 课程硬打必须得分）/
-A3（F#43 结果页空转）/ A4（离线回放素材：真机关键帧归档 + 帧回放测试）。
+A3（F#43 结果页空转）/ A4（离线回放素材：真机关键帧归档 + 帧回放测试）/
+A5（T3 离线预演：`--current` 候选 + `ExamPlanSelector` 逐回合锁定，最新场 T2 锁定 config_turns=12）。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅，下一项 **A5（T3 离线预演）**；
+0. **阶段 A 收口完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅；下一项 **B1（T4 受控 policy-evaluation 叶子）**；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
-2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），差真机考试里
-   `locked_turn=2~3 / verified=N` 的验收；
+2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
+   （A5：最新场 T2 锁定 config_turns=12、四场 sweep 全部选对真值），差真机考试里 `locked_turn=2~3 / verified=N` 的验收；
 3. **T2 三引擎真机 A/B**：expectimax / beam+全知 / rules 对照；
 4. **T4 叶子估值**：beam 111 vs within 143，rollout 叶子负结果，下一步受控 policy-evaluation / rollout 监督 `v_leaf`；
 5. **T5 机制建模**：P 道具/回忆/附魔/选牌/减益；考试内恐慌/随机生成/随机移动等 RNG 入口（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；

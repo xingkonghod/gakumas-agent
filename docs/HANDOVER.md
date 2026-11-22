@@ -1,4 +1,4 @@
-# 项目交接（2026-11-22 A4 更新）
+# 项目交接（2026-11-22 A5 更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
@@ -506,7 +506,8 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
 （右上属性值/圆环还差分）与"每回合默认 1 张牌"两个模型错误，硬打保证得分。
 **A3 也已完成**（2026-11-22，见二·补十六）：F#43 结果页空转——真根因是日文饮料选择事件屏
 （中文 OCR 读不出假名选项 + P 费标签被飘字正则当成 +N）→ 点中央空转 10 步。
-接着按 WORKPLAN 阶段 A 做 A4（离线回放素材）→ A5（T3 离线预演），全部离线做完再上真机。
+接着按 WORKPLAN 阶段 A 做 A4（离线回放素材）→ A5（T3 离线预演），
+**阶段 A 已全部完成**（A5 见二·补十八）；之后进阶段 B/C/D 离线，全部离线做完再上真机。
 
 **总作战计划**：见 [WORKPLAN.md](WORKPLAN.md)（离线全部做完 → 真机 T3→T1→T2 → gkbench 比算法；
 含 A1 OCR / A2 F#42 / A3 F#43 / T4 / T5 / 可靠性 / 数据 / 真机 / gkbench 各阶段与 DoD）。
@@ -516,7 +517,7 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
 **结论**：RapidOCR 内置中文模型（`ch_PP-OCRv4`，字典无假名）→ 官方 **PP-OCRv6_small_det +
 PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日文从碎片变成完整句子，
 中文 UI 同时可读；F#41/#42/#43 的「文本读不到」前提修好。按 WORKPLAN 先做离线阶段 A 剩余
-（A2 F#42 / A3 F#43 / A4 回放素材 / A5 T3 离线预演），再上真机。
+（A2 F#42 / A3 F#43 / A4 回放素材 / A5 T3 离线预演），再上真机（阶段 A 现已全部完成）。
 
 - **代码**：`OcrEngine(config_path=)` + 环境变量 `GKAGENT_OCR_CONFIG` + 本地 `configs/ocr_jp.yaml`
   自动发现（优先级从高到低；都没有 → 内置中文模型，默认行为不变）。配置/模型文件缺失**直接报错**，
@@ -667,6 +668,35 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
 - **提交**：`99bb6df`（feat：`_checkbox_bands` 修复 + 8 张真机帧 fixture + 9 条回放测试 + `scan_frames.py`）、
   `7eba62d`（docs：A4 完成交接——状态/基线数字/提交记录同步）；完整提交记录见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补十八、11-22（WORKPLAN A5 落地：T3 离线预演 ✅）
+
+**目标**：不碰真机，用**已结束采集**验证 T3 实时链路的核心机制——`build_exam_setup.py --current
+--allow-finished` 拿不到「当前考试」的配置回合数，于是输出多个 `config_turns` 候选（默认 9/11/12），
+`ExamPlanSelector` 用每回合实机手牌逐回合淘汰，唯一剩下即锁定；DoD：候选收敛到 1、`locked_turn<=3`。
+
+- **脚本**：新增 [scripts/verify_exam_plan_offline.py](../scripts/verify_exam_plan_offline.py)——
+  一条命令跑两条路径：① `--current` 路径：加载（`--refresh` 时现场重建，等价
+  `build_exam_setup.py --current --allow-finished`）最近一场考试的候选，用该场 truth 逐回合驱动
+  `ExamPlanSelector`；② 四场 sweep：对 `out/exam_setup.json` 每场各造 9/11/12 候选，同样用 truth 驱动。
+  输出锁定回合 / 存活候选轨迹 / 选中 `config_turns` / 锁定后逐回合核对 / `known_draw` 覆盖下一手；
+  退出码 = DoD 是否通过，`--json` 给明细。
+- **实测**（最新场 = 11-21 17:38 期末，seed=0x1E1A740D、27 张牌、支援 6）：
+  `--current` 3 候选（9/11/12）→ **第 2 回合锁定 `config_turns=12`（真值 12）**；锁定后手牌核对
+  11/11（T2–T12）、`known_draw` 覆盖下一手 9/9；T12 打出考试内生成卡 → 按数据限制停下（不算失败）。
+  四场 sweep：考试0/1/2 第 1 回合锁定、考试3（= 最新场）第 2 回合锁定；选中 `config_turns` =
+  9/11/9/12，**全部等于真值**；候选 3→1；`locked_turn` 最大 2。第 1 回合分不出的场是 isInitial 卡
+  相同，第 2 回合收敛，和 QQ 群「2–3 回合锁定 seed」口径一致。
+- **测试**：`tests/test_exam_plan_offline.py` 8 条（候选复制 / truth 驱动统计 / 真实与错误候选 /
+  生成卡提前停止 / `evaluate_row` DoD 判定 / CLI 全链路）。
+- **DoD 对照**：候选收敛到 1 ✅、`locked_turn<=3` ✅；结论写回
+  [EXPECTIMAX 完全信息搜索 §④](EXPECTIMAX.md) 与本节。真机 T3 验收（考试进行中跑 `--current` +
+  bot 运行时重载 + `[exam-plan] summary`）留到阶段 E。
+- **基线复核**：全量 pytest **958 passed / 1 skipped**（959 收集 / 69 个测试文件；A5 新增 8 条；
+  `ruff check` 对新增文件通过）；① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、
+  ④ wiring 36/36 + 3/3 + known_draw 29/29 + beam 28 全部不变（A5 只加脚本/测试/文档）。
+- **提交**：`7c16abe`（feat：离线预演脚本 + 8 条单测）；完整提交记录见
+  [七、最近提交记录](#七最近提交记录)。
+
 ---
 
 ## 三、社区情报（他们做到哪了）
@@ -704,10 +734,10 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 > **任务拆分、验收标准、依赖顺序见 [HANDOVER_NEXT.md](HANDOVER_NEXT.md) §4**（T1 → T3 → T2 → T4 …）。
 > 本节只记"大方向 + 已经完成的项"。
 
-**离线阶段 A 收口（2026-11-22）**：A1 OCR 日文模型 ✅（二·补十四）→ A2 F#42 课程硬打必须得分 ✅
+**离线阶段 A 收口（2026-11-22 完成 ✅）**：A1 OCR 日文模型 ✅（二·补十四）→ A2 F#42 课程硬打必须得分 ✅
 （二·补十五）→ A3 F#43 结果页空转 ✅（二·补十六）→ A4 离线回放素材 ✅（二·补十七）→
-**下一项 A5 T3 离线预演**；A 阶段做完再进 B/C/D，全部离线收尾后才上真机（T3→T1→T2），最后 gkbench。
-总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
+**A5 T3 离线预演 ✅**（二·补十八）；阶段 A 全部完成。下一项 **B1 T4 受控 policy-evaluation 叶子**；
+B/C/D 全部离线收尾后才上真机（T3→T1→T2），最后 gkbench。总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
@@ -805,6 +835,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 A5 T3 离线预演）
+7c16abe feat(a5): T3 离线预演——--current 候选 + ExamPlanSelector 逐回合锁定（脚本 + 8 条单测）
 （2026-11-22 A4 离线回放素材）
 7eba62d docs(handover): A4 完成交接——状态/基线数字(950/1)/提交记录同步，下一项 A5
 99bb6df feat(a4): A4 离线回放素材——8 张真机关键帧 + 9 条帧回放测试 + scan_frames 挑帧工具（修 _checkbox_bands TypeError，F#44）
@@ -873,7 +905,7 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/` **950 passed / 1 skipped**（951 条收集 / 68 个测试文件），含
+**测试状态**：`pytest tests/` **958 passed / 1 skipped**（959 条收集 / 69 个测试文件），含
 `tests/test_exam_shuffle.py` 四场考试洗牌回放 + 「实战回合算 K 会错」回归防线 +
 三组弃牌堆重洗样本对照；`tests/test_expectimax_known_draw.py` 8 条 +
 `tests/test_exam_oracle.py` 6 条完全信息搜索；`tests/test_expectimax_discard_order.py` 17 条
@@ -882,6 +914,7 @@ add71dc docs(reverse): 元数据解包验证
 决策可观测性 + F#42 硬打保分 + `tests/test_lesson_play_f42.py` 3 条真机课程帧回放 +
 `tests/test_produce_ui_f43.py` 7 条 F#43 真机外出帧回放/静态页兜底 +
 `tests/test_frames_replay_a4.py` 9 条六类关键屏真机帧回放（A4）+
+`tests/test_exam_plan_offline.py` 8 条 T3 离线预演（A5：--current 候选 + 四场 sweep）+
 `tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
 四条开工基线：① 4/4 场 + 3/3 重洗、② 本行数字、③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28。
 
@@ -946,3 +979,4 @@ easoning_effort。
 | **> 3 小时** | **该换会话了** |
 
 单个会话超过 20 万 token 上下文后，每回合的成本是初始的几十倍。
+

@@ -514,11 +514,42 @@ policy.json  {"lesson": {"engine": "beam", "beam_width": 4, "beam_deadline_ms": 
   `ExpectState`、无牌序退回 expectimax、异常退回 rules、SKIP 在考试模式不输出、计划驱动
   `begin_turn/end_turn`）。
 
+### ④ T3 离线预演：`--current` 候选 → `ExamPlanSelector`（2026-11-22，WORKPLAN A5）
+
+真机 T3 的离线替身：考试还没结束、拿不到 `EndExamBattle` 时，`build_exam_setup.py --current
+--allow-finished` 对**最近一场** `StepAuditionStart` 输出多个 `config_turns` 候选（默认 9/11/12，
+每个候选一份完整 setup 记录），由 `ExamPlanSelector` 用每回合实机手牌逐回合淘汰，唯一剩下即锁定。
+本项用**已结束采集的 truth** 把这条链路离线跑通（不碰真机）：
+
+```powershell
+.venv\Scripts\python.exe scripts\build_exam_setup.py --current --allow-finished --out out\exam_setup_current_test.json
+.venv\Scripts\python.exe scripts\verify_exam_plan_offline.py   # 一条命令：current 路径 + 四场 sweep
+```
+
+| 路径 | 场（seed / 牌堆） | 候选 | 锁定时机 | 选中 config_turns（真值） | 锁定后手牌核对 | known_draw 覆盖下一手 |
+|---|---|---:|---|---|---:|---:|
+| `--current`（最新一场） | 0x1E1A740D / 27 张 | 9/11/12 | T2（3→1） | **12（真值 12）** | 11/11（T2–T12） | 9/9 |
+| sweep | 考试0 0x504C4509 | 9/11/12 | T1 | 9（真值 9） | 9/9 | 7/7 |
+| sweep | 考试1 0x7ECD7553 | 9/11/12 | T1 | 11（真值 11） | 8/8（T8 数据限制） | 7/7 |
+| sweep | 考试2 0x47E1B2A5 | 9/11/12 | T1 | 9（真值 9） | 7/7（forceEnd 提前结束） | 5/5 |
+| sweep | 考试3 0x1E1A740D | 9/11/12 | T2 | 12（真值 12） | 11/11（T12 数据限制） | 9/9 |
+
+- **DoD 达成**：候选全部收敛到 1、`locked_turn` ∈ {1,2}（≤3）、选中 `config_turns` == 全量检测出的
+  真值、锁定后逐回合手牌核对全中。第 1 回合分不出的场（isInitial 卡相同）在第 2 回合收敛，
+  与 QQ 群「2–3 回合锁定 seed」口径一致。
+- 数据限制与 `verify_exam_wiring` 同口径：打出**考试内生成的卡**（11-20 期末 T8 / 11-21 期末 T12）
+  时 grave 不可重建，核对到该回合为止，不算失败。
+- 测试：`tests/test_exam_plan_offline.py`（8 条：候选复制、truth 驱动统计、真实/错误候选、
+  生成卡提前停止、`evaluate_row` DoD 判定、CLI 全链路）。
+- **仍未做的**：真机考试进行中跑 `--current` + bot 运行时重载 + `[exam-plan] summary` 验收
+  （阶段 E / T3 剩余项）。
+
 ### 仍未接/已知限制
 
-- **采集进程 ↔ 决策进程实时打通**（item④）：现在 bot 读的是离线生成的 `out/exam_setup.json`
-  （`build_exam_setup.py` 可在考试中/后重新生成）；真机实战前需要把「进入考试时从 traffic.jsonl
-  取当前这场的 seed」接上。
+- **采集进程 ↔ 决策进程真机验收**（item④）：代码已接（`build_exam_setup.py --current` +
+  `ExamPlanSelector` + `auto_produce` 运行时重载），离线预演已用采集 truth 跑通（见 ④）；
+  剩真机：考试进行中跑 `--current`，验收 `[exam-plan] 挂上` 与 `summary` 的 `locked_turn` 2–3、
+  `verified == 实战回合数`（阶段 E / T3）。
 - `ExamDrawPlan` 依赖**真实打出顺序**记 grave：策略选牌与实机点击必须一致（生产里本来就是同一进程；
   离线回放会因策略与实机出牌不同而在重洗处停用，属预期安全行为）。
 - 同一局两次弃牌重洗时，`oracle.reshuffle` 用同一个 RNG 快照（第二次起可能偏）；现有四场最多重洗一次。
