@@ -943,6 +943,8 @@ P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）→
 [INDEX.md](INDEX.md) 的期望值**完全一致**；B3 与 F0 预检没有破坏任何已验收基线，本会话无需修基线、
 无需改代码。工作区未新增 tracked 改动（`out/exam_setup.json`、`data/pytest-tmp-*` 均被 `.gitignore` 覆盖）。
 
+**提交**：`90d5b87` docs(handover)（仅文档；本会话无代码改动）。
+
 **下一步**：按 WORKPLAN 做 **F0 收尾**（修 initial 集合 → 逐题命中率/根因 → 校准起点
 `stamina/turn/rules`；数据已就绪），开新会话做。
 
@@ -1101,6 +1103,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 开工基线复核）
+90d5b87 docs(handover): 二·补二十三——开工基线复核四项全绿（985/1、86/86、36/36、beam 28）+ 同步 B3 后测试状态
 （2026-11-22 F 阶段数据 + F0 预检：gkbench 批量下载 + 官方种子核洗牌）
 fcce824 docs(handover): F0 数据与预检交接——gkbench 批量下载/官方种子核洗牌 286/384/参考分，下一项 F0 收尾
 cc1d0cf feat(f): gkbench 令牌数据补齐 + F0 初步验证（官方 check.hand 对照洗牌模型 286/384 精确命中）
