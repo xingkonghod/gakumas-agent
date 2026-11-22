@@ -72,6 +72,7 @@
 | 文档 | 内容 |
 |---|---|
 | [COMPARE.md](COMPARE.md) | **我们 vs hiro / QQ 群 / 官方 AI 的进度对照（口径、数字、唯一可比路径）** |
+| [GKBENCH.md](GKBENCH.md) | **gkbench 数据/口径：公开 API、批量下载、参考分（fixed/template）、哪些要登录令牌** |
 | [HIRO_VIDEO_NOTES.md](HIRO_VIDEO_NOTES.md) | hiro-gakumas-hero 的架构（视频 + 仓库）|
 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md) | 群里的技术讨论 |
 | [OFFICIAL_AI_NOTES.md](OFFICIAL_AI_NOTES.md) | 官方 AI 的启发式（10 条）|
@@ -89,6 +90,7 @@
 | **HANDOVER_NEXT.md** | **交接清单：补什么 · 做什么 · 每个任务的验收（行动型，先看）** |
 | **HANDOVER.md** | 项目现状 + 已完成什么 + 路径速查 + 坑 |
 | **COMPARE.md** | 我们 vs 对手的进度对照（口径/数字/唯一可比路径） |
+| **GKBENCH.md** | gkbench 数据与口径（公开 API/批量下载/参考分/令牌） |
 | **TROUBLESHOOTING.md** | 踩坑记录（采集 9 项 / bot 7 项 / 方法论 4 项）|
 | **FAILURES.md** | 真机失败记录（现象→根因→修复→教训）|
 | **CAPTURE_PIPELINE.md** | 采集链路：结构、配置、四个坑、已采数据 |

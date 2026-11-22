@@ -336,11 +336,12 @@
 - **F0（新，先做）：官方种子交叉验证 + 口径校准**
   1. 下载固定种子题（`GET /api/sets/<set>/saves?fixed=1` 的 NDJSON，或题集页「下载存档/固定种子」
      按钮；每个存档 = `gkms.audition_save.v2`，`loadout.seed` + `check{turn,score,stamina,hand,rules}`）；
+     公开 API / 批量下载工具 / 参考分见 [GKBENCH.md](GKBENCH.md)（`scripts/bench_download.py`）；
   2. **用我们的洗牌模型从 `seed`+牌组预测开局手牌/回合属性，和 `check.hand` 逐张对照**——
      这是对「MITM seed→洗牌」最核心资产的外部独立校验（几百道 H.I.F 题的免费回归集）；
   3. 用 `check` 的 `turn/score/stamina/rules` 校准我们的考试起点状态与规则版本；
   4. 对照榜上参考分/理论上限（oracle 分母），分清"裁判口径差异"和"算法差距"；
-  - DoD：洗牌预测命中率（逐题逐张）+ 不一致样本根因 + 报告写进 `docs/COMPARE.md` / 新 `docs/GKBENCH.md`。
+  - DoD：洗牌预测命中率（逐题逐张）+ 不一致样本根因 + 报告写进 [GKBENCH.md](GKBENCH.md) / [COMPARE.md](COMPARE.md)。
 - 任务：
   1. 读 `data/bench_repo`（MIT 本地克隆）确认提交协议（动作 `p<i>/d<i>/e/s<i,j>`、UIObs 字段、裁判口径）；
   2. 写一个 **public-safe 适配器**（自包含、不用 seed、不读本公司私有数据），本地裁判跑分；

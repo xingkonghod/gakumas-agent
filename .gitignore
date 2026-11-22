@@ -60,3 +60,6 @@ data/pytest-*.txt
 
 # agent_cmd.py launch scratch result
 data/agent_result.json
+
+# gkbench public data downloads (scripts/bench_download.py), local analysis only
+data/bench_local/gkbench_dl/

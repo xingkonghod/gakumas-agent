@@ -126,4 +126,4 @@ B3 机制建模 ✅（回合规则/取整已对齐真机 + RULES_REFERENCE 核�
 | hiro | [HIRO_VIDEO_NOTES.md](HIRO_VIDEO_NOTES.md)、[HANDOVER §三](HANDOVER.md) | 11-21 |
 | QQ 群 / 2B / 论文 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md)、[GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md) | 11-22 |
 | 官方 AI | [OFFICIAL_AI_NOTES.md](OFFICIAL_AI_NOTES.md)、[README §5](../README.md) | 11-19 ~ 11-21 |
-| gkbench 公开口径 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md)、`data/bench_repo`（MIT 本地克隆） | 11-21 |
+| gkbench 公开口径 | [GKBENCH.md](GKBENCH.md)（API/参考分/批量下载）、[QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md)、`data/bench_repo`（MIT 本地克隆） | 11-22（API 抓取） |
