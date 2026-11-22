@@ -672,6 +672,8 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 A1 OCR 日文模型）
+1496370 docs(handover): A1 日文 OCR 落地记录 + 提交哈希（aae2647/884272f）
+8823bb7 docs(handover): A1 补中文 UI/性能回归数字（bench_ocr --verify 5/5、行动页 189ms）
 aae2647 feat(ocr): A1 换日文/多语言模型（官方 PP-OCRv6 Apache-2.0）+ 下载脚本/配置/probe/测试
 884272f test(ocr): 事件快速路径允许补读对话区后，修正 read_calls 过期断言（基线修复）
 （2026-11-22 凌晨）

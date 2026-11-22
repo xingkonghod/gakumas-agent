@@ -65,6 +65,11 @@
 - 修法：禁跳规则下"强制出牌"必须优先 `score>0` 且付得起的牌；buff 与打分按剩余回合/缺口平衡；
   连续 N 张 0 分牌降级为"直接补 CLEAR 的牌"；用真机课程截图做离线回放单测。
 - DoD：用 ep-t3-4 课程截图回放不再选 buff；单测覆盖"buff 多/分数少"场景。
+- **素材/注意（2026-11-22 A1 交接补充）**：真机课程帧混在 `data/auto/step_*.png`（ep-t3-1..4 多轮，
+  按修改时间 + `data/auto/stdout_ep-t3-*.log` 步号定位课程屏）；稳定帧另有 `data/live_lesson.png`
+  （聊天时间 84 分/6 费）、`data/lesson_now.png`（124 分/1 回合）、`data/exam_c.png`。
+  **OCR 已换日文模型**：回放单测里 `OcrEngine()` 会自动加载 `configs/ocr_jp.yaml`，断言要按新文本写，
+  不要再依赖"中文模型只读碎片"的旧行为。A4 会把这些帧正式归档成回放用例。
 
 ### A3. F#43 静态结果页空转
 - 现象：`result-tap/gain` 连点 10 次被自保护停局。
@@ -170,5 +175,6 @@
 然后按 WORKPLAN 的 阶段 A→B→C→D 离线推进；全部离线做完后再做 阶段 E 真机（T3→T1→T2），
 最后 阶段 F 去 gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules；真机整局 --ignore-user。
-今天先做 A1（OCR 换日文模型）。
+A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6；见 WORKPLAN A1 / HANDOVER 二·补十四）。
+今天做 A2（F#42 课程硬打必须得分：用 ep-t3-4 课程截图回放 + 单测）。
 ```

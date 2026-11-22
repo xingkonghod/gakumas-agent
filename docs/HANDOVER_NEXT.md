@@ -1,10 +1,13 @@
 # 交接清单：补什么 · 做什么（GDE / gakumas-agent）
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
+> **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
 > 新会话第一句话：
-> 「读 `docs/INDEX.md`，然后照 `docs/HANDOVER_NEXT.md` §2 开工自检、按 §4 任务表挑优先级继续。」
+> 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑四条基线，
+> 再从 WORKPLAN 阶段 A 的下一项（A2）开始。」
 >
-> 维护方式：完成一个任务 → 把 §4 对应行的状态改成 ✅ 并在 §8 记一条；本文档是"下一件事"的唯一真源（SSoT）。
+> 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
+> 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
 
 ---
 
@@ -95,6 +98,9 @@ cd D:\Games\gakumas-agent
 **环境前提**：
 
 - 采集文件在 `C:\GakumasLocal\GakumasUnlock\out\`（`traffic.jsonl` / `deck_snapshots.json` / `exam_truth.json`）。**不在就只跑 ①②**，并把 ③④ 标记为"待采集"。
+- **日文 OCR 模型**：`.venv\Scripts\python.exe scripts\download_ocr_models.py --check` 应显示"全部就绪"；
+  缺了就重跑（不带 `--check`）下载。日文模型缺失时 `OcrEngine` 会**直接报错**（不静默回退），
+  配置/模型在 `data/models/ocr_jp/` + `configs/ocr_jp.yaml`（均 gitignore）。
 - Windows + DMM 客户端；VPN 日本节点（TUN 或 7897 任一）；游戏窗口客户区 **540x960**（代码自动缩放，别改成 720x1280，会截崩，见 F#10）。
 - `out/exam_setup.json` 已 gitignore，**每次采集后要重建**。
 - 基线不绿就先修基线，不要在新功能上叠 bug。
@@ -399,11 +405,14 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 
 ```
 工作目录 D:\Games\gakumas-agent。
-读 docs/INDEX.md，然后照 docs/HANDOVER_NEXT.md §2 跑四条基线命令（期望：洗牌 4/4、
-pytest 889 passed（1 skipped，890 条收集）、exam_setup 4/4 场 86/86 张、wiring 36/36 手牌 + 3/3 重洗）。
-基线绿后按 §4 任务表从最高优先的 ⬜ 开始（建议 T1 → T3 → T2 → T4），一次只做一个任务。
-硬规矩：SKIP 只在真没体力时允许；bot 不许回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
-真机整局必须 --ignore-user。
+读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线。
+期望：洗牌 4/4 场；pytest 926 passed / 1 skipped（927 条收集 / 65 文件）；
+exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29。
+A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6 Apache-2.0，见 WORKPLAN A1 / HANDOVER 二·补十四）；
+基线绿后按 WORKPLAN 从 A2 开始：A2 F#42 课程硬打必须得分 → A3 F#43 结果页空转 → A4 离线回放素材
+→ A5 T3 离线预演 → 阶段 B/C/D，全部离线做完再上真机（T3→T1→T2），最后 gkbench。
+用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
+真机整局 --ignore-user。一次会话只做 1 个任务。
 ```
 
 ---
