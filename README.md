@@ -315,11 +315,18 @@ http1_bridge 头丢失、Auth/Login 865/833、上游端口、停服务顺序、C
 「X 变为 0」（3 段）、`turn_start_after`/`turn_interval`/`status_gain_interval`/`stance_change`/
 `stamina_reduce` 五类新触发（LessonSim/ExpectState 双镜）；数据层 445→**676/1849 段**、
 gkbench 已实现 34→**59/153 段**；离线 A/B greedy **+225.2（+5.86%，CI[+86.7,+363.6]）**、
-expectimax +195.4；全量 pytest 1067/1（1068 收集 / 77 文件）**。
+expectimax +195.4；全量 pytest 1067/1（1068 收集 / 77 文件）** /
+**B9（T5④ P 道具持久倍率 / modifier 类效果，2026-11-22）：按参考引擎 `resolveScore` f/g 实现
+持久分数倍率（`ExamLessonValueMultiple(+Down)`，加算列表 + 回合末倒计时）、好印象强化/追加发动、
+热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、费用修正（永久加减 + 接下来 N 回合 ×0.5/×2）、
+回合追加、温存/强气指針直给——20 类 target / **369 段 / 298 件道具**；同时解析描述里的
+「（训练内N次）」→ `max_uses` **9→896 件**；数据层 676→**1025/1849 段**、gkbench 已实现
+59→**103/153 段**；离线 A/B greedy **+110.3（+2.87%，CI[+39.6,+193.3]，20胜/2负/38平）**、
+expectimax +156.2（CI 含 0）；全量 pytest 1116/1（1117 收集 / 78 文件）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/B8/C0/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / B8 ✅ / C0 ✅ / F0 收尾 ✅；
-   下一项 **T5 剩余机制**（P 道具**持续倍率/modifier 类效果**、指定卡名/手牌映射；
+0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/C0/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / B8 ✅ / B9 ✅ / C0 ✅ / F0 收尾 ✅；
+   下一项 **T5 剩余机制**（P 道具**生成卡/强化状态花费卡**、指定卡名/手牌映射；
    **fresh buff 差一回合**——需真机逐回合截图）；T9 剩 E0（需真机独立副本实验，先问用户；C0 已完成）；
    F0 收尾（官方 gkbench 384 组开发种子核洗牌模型 366/384=95.3%、逐张 97.4%、起点校准）见 [GKBENCH §4.5](docs/GKBENCH.md) / [HANDOVER 二·补二十四](docs/HANDOVER.md)；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
@@ -334,8 +341,11 @@ expectimax +195.4；全量 pytest 1067/1（1068 收集 / 77 文件）**。
    exam_start + extra_plays）✅ B6；P 道具 **47 条补全**（catalog 1115 件、gkbench 未知 id 清零）✅ B7；
    P 道具**条件/效果语义第一批**（新语法 trigger id 解析、依赖换算、固定/百分比体力、5 类新触发；
    数据层 676/1849 段，gkbench 59/153 段）✅ B8；
-   剩余：持续倍率/modifier 类效果（`ExamLessonValueMultiple` 等）、指定卡名/手牌映射、
-   fresh buff 差一回合、真机培育侧列表、回忆/附魔/减益、考试内生成卡/额外 RNG
+   P 道具**持久倍率 / modifier 类效果**（打分上升量增加/减少、好印象强化/追加发动、热意/集中/
+   好印象/干劲/全力值增益倍率、绝好调/不调、费用修正、回合追加、温存/强气指針直给；20 类 target、
+   369 段 / 298 件；数据层 **1025/1849 段**，gkbench **103/153 段**）✅ B9；
+   剩余：生成卡 `ExamCardCreateId` / 强化状态花费卡（`ExamBuffConsumptionAdd` 无落点）、
+   指定卡名/手牌映射、fresh buff 差一回合、真机培育侧列表、回忆/附魔/减益、考试内生成卡/额外 RNG
    （[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 

@@ -38,14 +38,15 @@
 **熱意（enthusiasm）与温存解除**（熱意 +5/+8、2 段固定元気 +5、解除当回合 +1 出牌次数、
 熱意算分/获得取整/回合末清零与延長、本牌熱意適用倍数）
 都已按参考引擎/客户端语义/真机对齐；**P 道具**已接数据管线（gkbench loadout，catalog 1115 件）
-并实现第一批**条件/效果语义**（新语法 trigger id 结构化解析、依赖换算「X 的 N% 数值变为 Y」、
-固定/百分比体力消耗与回复、新触发时机 `turn_start_after`/`turn_interval`/`status_gain_interval`/
-`stance_change`/`stamina_reduce`，见 §5.3 B8；数据层 676/1849 段）。
-剩余差距是 **P 道具持续倍率类效果**（`ExamLessonValueMultiple` / `ExamCardCreateId` /
-`ExamExtraTurn` / `ExamPreservation`/`ExamConcentration` 等）、**指定卡名/手牌张数限定**
-（trigger 未知 103 件保守跳过，需要卡名→id 映射）、**附魔**、
-**fresh buff 的差一回合衰减**、**のんびり（leisure）指針与全力回合額外出牌/保留牌**、
-**依赖分结算顺序**（我们保守口径）等。
+并实现两批**条件/效果语义**（B8：新语法 trigger id 结构化解析、依赖换算「X 的 N% 数值变为 Y」、
+固定/百分比体力消耗与回复、新触发时机；B9：**持续倍率 / modifier 类**——打分上升量增加/减少
+（`resolveScore` f/g）、好印象强化/追加发动、热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、
+费用削减/追加/减少回合/增加回合、回合追加、温存/强气指針直给；数据层 **1025/1849 段**，
+见 §5.3 B8/B9）。
+剩余差距是 **生成卡**（`ExamCardCreateId`）、**指定卡名/手牌张数限定**（trigger 未知 103 件
+保守跳过，需要卡名→id 映射）、**强化状态花费卡类**（`ExamBuffConsumptionAdd` 的落点——
+我们的卡牌模型不建「以强化状态为花费」的卡）、**附魔**、**fresh buff 的差一回合衰减**、
+**のんびり（leisure）指針与全力回合額外出牌/保留牌**、**依赖分结算顺序**（我们保守口径）等。
 
 ---
 
@@ -99,6 +100,8 @@
 | **取整时机**：加算后 ceil、buff 段后 ceil、回合倍率后 ceil | `resolveScore` c/i/④ 的 `safeCeil`（整数附近取整、否则 ceil）；实机回放 9→23、5→8、2→3 | `safe_ceil`（B3 补）：buff 段一次 + 回合倍率一次 | ✅ | 实机回放黄金值 6 条（课程）+ 6 条（考试） |
 | 回合属性倍率（审查倍率） | 客户端：按 3 维参数在**分数表分段折线**插值（`ProduceExamBattleScoreConfig`）→ 低于 `ProduceExamBattleConfig` 审查基准时按 `GetPenaltyPermil` 罚分（`Setting` 100~250‰）→ `common=1000−Σpenalties` **三项共乘（联动惩罚）** → `1000+component×common/1000` 归一化到 10；每回合按属性取倍率，`ceil(f32(f32(bonus/1000)×amount)−1e-4)` | `sim/exam_multiplier.py`（纯公式）+ `data/exam_bonus.py`（主数据解析）+ `LessonConfig.attribute_bonuses`/`turn_attributes`；生产侧读屏幕「舞蹈 207%」直接喂 `ExpectState.attribute_coefficient`；旧常量 4.11 仅作无读数时的历史默认 | ✅ 公式/主数据对齐（2026-11-22 T5①）；真机逐分回放还差 P 道具附魔/生成卡等未建模项 | `tests/test_exam_multiplier.py` 21 条 + `tests/fixtures/t5_exam_multipliers.json`（11-20 采集局期中 4.09/2.20/2.60×、期末 6.97/2.85/4.96×）+ 真机帧「舞蹈 207%」→2.07 |
 | 依赖分（好印象/元气/全力值折算）是否吃倍率 | 参考引擎里 `score+=goodImpressionTurns*…` 也是普通 `score+=`，**会吃**好调/指針/回合倍率 | 旧路径保守不吃；**T5① 考试真实倍率路径已把依赖分并进属性倍率**（出牌分先加依赖段、乘 buff/审查基准、最后乘属性倍率）；单标量路径保持旧行为 | ⚠️ 两条路径口径不同（生产读屏走标量路径仍保守；模拟器真实倍率路径已对） | `test_dependent_scores_ignore_attribute_coefficient`（旧路径）+ `test_sim_applies_per_turn_attribute_bonus`（新路径） |
+| **分数倍率 buff/debuff**（P 道具 `ExamLessonValueMultiple(+Down)`） | `resolveScore` f/g：`score *= 1 + Σ scoreBuff`，再 `score *= max(1 − Σ scoreDebuff, 0)`（`BuffManager.setScoreBuff(amount, turns)` 按 turns 分组、amount 加算、回合末倒计时、turns=None 永久） | B9（2026-11-22）：`LessonSim.score_buffs/score_debuffs` + `ExpectState` 双镜（列表元素 `(千分比, 剩余回合)`，`add_timed/tick_timed` 纯函数）；出牌分与回合末好印象都按 f/g 顺序乘（在メタモルフォーゼ披露之后、支度/不调之前）；取整仍走 `safe_ceil` 一次 | ✅（fresh buff 差一回合问题不适用于 startOfTurn 触发；卡触发的 P 道具沿用同一「回合末 -1」口径，见 §3 fresh buff 行） | `tests/test_p_items_b9.py`（score buff/debuff/加算/倒计时/双镜/算分一致） |
+| **费用修正**（P 道具 `ExamStaminaConsumptionDownFix/AddFix/Down/Add`） | `resolveCost`：`cost = floor(cost × 指針 × halfCostTurns × doubleCostTurns)`（负数 floor = 幅度向上取整）→ `cost += costReduction − costIncrease` → 夹到 ≤0（我们正数口径夹 ≥0） | B9：`cost_reduction/cost_increase`（永久加减）、`half_cost_turns/double_cost_turns`（接下来 N 回合 ×0.5/×2 计数器）；`LessonSim._effective_cost` 与 `expectimax.effective_cost` 同式；「随机 1 张手牌」版本保守 no-op（无手牌定位） | ✅（全局费用修正）；随机手牌版本 ❌ 不猜 | `tests/test_p_items_b9.py::test_lesson_half_cost_turns_*` / `test_lesson_cost_reduction_and_increase` |
 | 单精度舍入（JS double vs Python float） | 两边都是 IEEE-754 double；参考 `safeCeil` 有 1e-9 epsilon；属性倍率乘用**单精度**（`CalcCurrentTurnBattleBonus`） | `safe_ceil` 同实现；`exam_multiplier.f32`/`battle_bonus_score` 用 struct 模拟 f32 | ✅ | 实机黄金值 + `test_battle_bonus_score_matches_client_rounding` |
 | growth（成长表） | `resolveScore` ① 用 growth 表的**加算**（g.score 等） | `grow_score` 是卡面百分比乘白值；数据为空 → 恒 0 | ❌ 数据缺口（`ProduceCardGrowEffect` 未下载） | — |
 
@@ -115,7 +118,7 @@
 | 好印象强化 / 好调加算 / 全力强化 持续回合 | `ExamReviewMultiple` / `ExamParameterBuffAdditiveFix` / `ExamFullPowerLessonMultipleAdditive` | `Buffs.review_multiple` 等 + `_tick_buff_turns` | ✅ | `test_review_multiple_*`、`test_condition_additive_*` |
 | メタモルフォーゼ 支度→披露（半场自动翻转） | `TurnManager.endTurn`: `turnsElapsed >= floor(turnCount/2)` | 只有外部设置的 `Buffs.metamorphosis`，不自动翻转 | ❌ 小（需要偶像特性数据） | — |
 | 饮料（体力/集中/好调/直接分） | 参考引擎 `p_drinks.csv`；实机每回合 1 瓶（用户确认无上限） | `LessonSim.use_drink`：4 种效果，不占出牌次数 | ✅ 已建模的 4 种；⚠️ 其余 20+ 种效果报错不静默 | `test_drink_*` |
-| P 道具（被动，按触发时机） | `p_items.csv` + 参考引擎 `PItems`；exam_start/turn_start/card_play/turn_skip 等 | `sim/p_items.py` 接口（6 种触发：exam_start/turn_start/turn_end/card_play/status_gain + 间隔）；T5③ 数据接入：`data/p_items_db.py` 把对局 loadout 的 `produce_item_ids` 解析成 `PItemSpec`（B7 起 catalog 1115 件，gkbench 505 题模板 83 唯一 id **83 已知 / 0 未知**）；`LessonSim` 构造时结算 exam_start | ✅ 数据接入（gkbench/离线；catalog 1849 段 spec 已实现 445 段；47 条新增里条件未解析的 46 段保守不触发）；⚠️ 真机培育侧 P 道具列表未采集（T6/D1）、部分效果类型仍 no-op | `tests/test_p_items.py` / `test_p_items_integration.py` / `test_p_items_db.py` / `test_gkbench_submission_p_items.py`；§5.3 |
+| P 道具（被动，按触发时机） | `p_items.csv` + 参考引擎 `PItems`；exam_start/turn_start/card_play/turn_skip 等 | `sim/p_items.py` 接口（exam_start/turn_start/turn_start_after/turn_interval/turn_end/card_play/status_gain/status_gain_interval/stance_change/stamina_reduce 等触发）；T5③ 数据接入：`data/p_items_db.py` 把对局 loadout 的 `produce_item_ids` 解析成 `PItemSpec`（B7 起 catalog 1115 件，gkbench 505 题模板 83 唯一 id **83 已知 / 0 未知**）；`LessonSim` 构造时结算 exam_start；**B9 起效果覆盖 1025/1849 段**（B8 676），含持久分数倍率/好印象强化/增益倍率/费用修正/回合追加/指針直给等 20 类 target | ✅ 数据接入（gkbench/离线；条件未知 6 件/10 段、指定卡/手牌限定 103 件/185 段保守不触发）；⚠️ 真机培育侧 P 道具列表未采集（T6/D1）、生成卡/强化状态花费卡/附魔仍未建模 | `tests/test_p_items.py` / `test_p_items_b8.py` / `test_p_items_b9.py` / `test_p_items_db.py` / `test_p_items_integration.py` / `test_gkbench_submission_p_items.py`；§5.3 |
 
 ## 4. 考试 / 牌序机制（已真机验证）
 
@@ -270,19 +273,23 @@
 
 **数据/回归（2026-11-22 复跑）**：
 
-| 指标 | B7 | B8 |
-|---|---:|---:|
-| catalog 件数 / spec 段 | 1115 / 1849 | 1115 / **1849**（不变） |
-| 数据层已实现 spec 段 | 445 | **676**（+231） |
-| no-op spec 段 | 1404 | **1173** |
-| 条件未知 | 22 件 / 46 段 | **6 件 / 10 段** |
-| 触发限定未知（指定卡/手牌） | —（旧口径算作条件已知但实际不触发） | **103 件 / 185 段**（新单列） |
-| 依赖换算 / 百分比体力 / 归零 | 0 / 0 / 0 | **65 / 9 / 3 段** |
-| gkbench hif 83 唯一 id（153 段含无效果育成期道具）已实现 | 34 段 | **59 段** |
+| 指标 | B7 | B8 | B9 |
+|---|---:|---:|---:|
+| catalog 件数 / spec 段 | 1115 / 1849 | 1115 / 1849（不变） | 1115 / 1849（不变） |
+| 数据层已实现 spec 段 | 445 | 676（+231） | **1025（+349）** |
+| no-op spec 段 | 1404 | 1173 | **824** |
+| 条件未知 | 22 件 / 46 段 | 6 件 / 10 段 | 6 件 / 10 段（不变） |
+| 触发限定未知（指定卡/手牌） | —（旧口径算作条件已知但实际不触发） | 103 件 / 185 段（新单列） | 103 件 / 185 段（不变） |
+| 依赖换算 / 百分比体力 / 归零 | 0 / 0 / 0 | 65 / 9 / 3 段 | 65 / 9 / 3 段（不变） |
+| 持久倍率/modifier（B9 target） | — | — | **337 段**（20 类 target） |
+| 描述解析次数上限 | —（只有 9 件有 max_uses） | — | **896 件**（「训练内N次」等） |
+| gkbench hif 83 唯一 id（153 段含无效果育成期道具）已实现 | 34 段 | 59 段 | **103 段** |
 
-- 全量 pytest **1067 passed / 1 skipped**（1068 收集 / 77 文件；新增
+- 全量 pytest **1067 passed / 1 skipped**（1068 收集 / 77 文件；B8：新增
   `tests/test_p_items_b8.py` 19 条，旧测试按新口径更新）；基线 ① 4/4+3/3、
   ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+- B9 全量 pytest **1116 passed / 1 skipped**（1117 收集 / 78 文件；新增
+  `tests/test_p_items_b9.py` 49 条）；基线 ①③④⑤ 与 B8 逐项相同（见 §5.3 B9）。
 - 离线 A/B（同 B7 harness：hif 30 题×2 seed = 1000/1001、`--budget-ms 100`、同题同 seed
   配对，CI = mean±1.96·SE；off 与 B7 逐位相同）：
 
@@ -291,12 +298,13 @@
 | greedy | 3840.7 | **4065.9** | **+225.2（+5.86%）** | [+86.7,+363.6] | 18/60（17/1/42） |
 | expectimax(analytic) | 3726.4 | **3921.8** | **+195.4（+5.24%）** | [−125.3,+516.2] | 21/60（17/4/39） |
 
-- **如实记录**：expectimax 的 CI 含 0（`--budget-ms 100` 墙钟预算噪声大，B6/B7 两次也
-  都是方向记录）；greedy 是确定性执行、CI 全正。**本轮不动的**：`ExamLessonValueMultiple`
+- **如实记录（B8）**：expectimax 的 CI 含 0（`--budget-ms 100` 墙钟预算噪声大，B6/B7 两次也
+  都是方向记录）；greedy 是确定性执行、CI 全正。**B8 当时不动的**：`ExamLessonValueMultiple`
   （持续分数倍率 buff，需要新的持久字段与取整顺序证据）、`ExamCardCreateId`（生成卡）、
   `ExamExtraTurn` / `ExamBuffConsumptionAdd` / `ExamReviewMultiple` / `ExamReviewCountAdd`
   等 modifier 类、`ExamPreservation`/`ExamConcentration` 直给式、好调依赖换算
-  （模拟器里好调是剩余回合数，量纲不同不猜）。真机培育侧 P 道具列表仍未采集（T6/D1）。
+  （模拟器里好调是剩余回合数，量纲不同不猜）——其中除生成卡/`ExamBuffConsumptionAdd`/
+  好调依赖换算外，**B9 已完成**（见下）。真机培育侧 P 道具列表仍未采集（T6/D1）。
 
 **口径与剩余差距（如实记录）**：
 
@@ -319,8 +327,86 @@
 - 生产真机（`policy/lesson.py` 读屏路径）**没接**：屏幕读不到 P 道具 id 清单，仍按空
   P 道具算（同旧口径）；要真机用上需要采集 loadout 或读图标（T6）。
 
-## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
+**B9（2026-11-22 完成）：P 道具持久倍率 / modifier 类效果（第二批）**
 
+目标：B8 清了条件/第一批效果后，补**会持续若干回合、影响分数/费用/回合数的 modifier**。
+语义来源：gakumas-tools 参考引擎（BSD-3）`Executor/resolvers.js::resolveScore` f/g、
+`resolveCost`、`BuffManager.js`（`setScoreBuff(amount, turns)` 列表 + 回合末倒计时 +
+`fresh` 保护）与 `p_items.csv` 的 DSL（`setScoreBuff(0.5,1)` / `setStance(preservation)` /
+`costReduction+=N` / `halfCostTurns` 等）。**只按语义重写，不拷代码**。
+
+1. **数据层**（[build_p_items.py](../scripts/build_p_items.py)）：
+   `annotate_modifier_effects` 把 effect_type（+ 效果文本）标成 `target` / `duration`
+   （20 类 target、**369 段 / 298 件道具**）；百分比类 `percent1`（人类百分比）存成
+   **千分比**（与卡表 `review_multiple` 同口径）、持续时间取 `values.turn`（缺 = 永久）。
+   另从描述文本解析「（训练内N次）/（培育中N次）/（レッスン内N回）」→ 记录级
+   `max_uses`（**9→896 件**）：没有这个上限，持续倍率类效果会每回合重复触发、把分数算爆；
+   这也修正了 B6–B8 期「生效效果可无限触发」的口径（所以 B9 的 auto 数字与 B8 的 auto
+   **不可直接比**，A/B 只比同一代码的 off/auto）。
+2. **纯规则增量**（[sim/p_items.py](../src/gkagent/sim/p_items.py)）：`PItemDelta` 新增
+   `score_buffs / score_debuffs / modifiers / cost_reduction / cost_increase /
+   half_cost_turns / double_cost_turns / extra_turns / stances / perfect_condition_turns /
+   poor_condition_turns`；定时倍率列表纯函数 `add_timed`（同 turns 合并加算）/
+   `total_timed` / `tick_timed` / `timed_dict_*` / `normalize_turns`（0 = 永久 = -1）。
+   - **打分上升量增加/减少**（`ExamLessonValueMultiple` / `Down`）：`resolveScore` f/g
+     → 出牌分 `× (1+Σ)`、再 `× max(1−Σ,0)`；**加算**（同回合数合并），不是取最大。
+   - **好印象强化**（`ExamReviewMultiple`）→ 沿用卡效果 `Buffs.review_multiple` 渠道（千分比）；
+     **好印象追加发动**（`ExamReviewCountAdd`）→ 回合末好印象结算重复 N+1 次。
+   - **增益倍率**（获得量 ×(1+N%)，向上取整）：热意增加/追加（沿用 T5② 渠道）、
+     集中强化（集中对分数的贡献 ×）、集中/好印象/干劲/全力值增加量增加（`setConcentrationBuff`
+     / `setGoodImpressionTurnsBuff` / `setMotivationBuff` / `setFullPowerChargeBuff` 语义）。
+   - **绝好调/不调回合**（`ExamParameterBuffMultiplePerTurn` / `ExamGimmickParameterDebuff`）
+     → `perfect_condition_turns` / `poor_condition_turns`。
+   - **费用修正**（`ExamStaminaConsumptionDownFix/AddFix/Down/Add`）：永久加减 +
+     「接下来 N 回合 ×0.5/×2」计数器；`effective_cost` 两引擎同式（见 §2）。
+   - **回合追加**（`ExamExtraTurn`）：本回合得到的追加在回合末 `turns_left−1` 之后补上，
+     `total_turns` 同步增长（回合号不跳变；等价参考引擎 `turnsRemaining+=1` 后同帧 `--1`）。
+   - **指針直给**（`ExamPreservation`/`ExamConcentration` 的「温存变更/强气变更」）：
+     直接 `setStance`（同指針再加 → 2 段階），并触发温存解除收益与 `stance_change` 事件
+     （递归深度 ≤3）。**卡类强化段（「温存效果的技能卡的…」）不是指針变更 → 保守 no-op**。
+   - **固定元气**（`ExamBlockFix`）/ **好印象减少**（`ExamReviewReduce`）走层数增量；
+     「消耗体力减少状态」条件用 `half_cost_state` 伪 stack 解析。
+3. **双镜**（[sim/lesson.py](../src/gkagent/sim/lesson.py) /
+   [sim/expectimax.py](../src/gkagent/sim/expectimax.py)）：`LessonSim.score_buffs/
+   score_debuffs/modifiers/cost_*/half_cost_turns/double_cost_turns/extra_turns_pending/
+   extra_turns_granted` 与 `ExpectState` 对应字段 + `canonical()` +
+   `state_from_sim`/`sim_from_state` 全镜像；两引擎的 `_card_award`/回合末好印象/费用/
+   回合末倒计时同口径（测试 `test_lesson_expect_award_parity` 逐位对齐）。
+
+**数据/回归（B9）**：catalog spec 1849 不变；已实现 **676→1025 段**（no-op 1173→824）、
+持久倍率/modifier **337 段**；gkbench hif 83 唯一 id 已实现 **59→103/153 段**；
+新增 `tests/test_p_items_b9.py` **49 条**、旧 `test_p_items.py` 把 `ExamLessonValueMultiple`
+从「未实现」名单移除；全量 pytest **1116 passed / 1 skipped（1117 收集 / 78 文件）**；
+基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+
+**离线 A/B（B9，同 harness：hif 30 题×2 seed=1000/1001、`--budget-ms 100`、配对，
+CI = 按题整体重采样 10000 次 percentile bootstrap）**：
+
+| 算法 | off | auto | 配对 Δ | 95% CI | 胜/负/平 |
+|---|---:|---:|---:|---|---|
+| greedy | 3840.7 | **3951.0** | **+110.3（+2.87%）** | [+39.6,+193.3] | 20/2/38 |
+| expectimax(analytic) | 3666.5 | **3822.8** | **+156.2（+4.26%）** | [−137.4,+435.4] | 21/6/33 |
+
+- greedy 是确定性执行、CI 全正；expectimax 的 CI 含 0（`--budget-ms 100` 墙钟噪声，同 B6–B8
+  只作方向记录）。
+- **不可直接比 B8 auto 4065.9**：B9 的 `max_uses` 口径修正（描述里的「训练内N次」生效）
+  把 B6–B8 期可无限触发的效果收紧；同一代码的 off/auto 配对仍是 +110.3。
+
+**如实记录的剩余（B9 后）**：
+- **`ExamBuffConsumptionAdd`**（強化状態コスト増加ターン，4 段 / 22 题权重）：需要「以强化
+  状态作为花费值的技能卡」这一机制，我们的卡牌模型没有 buff-cost 卡 → **保持 no-op**，
+  不猜。
+- **`ExamCardCreateId` 生成卡**（17 段 catalog / gkbench 172 段权重）：需要考试内生成卡
+  模型（考试 RNG 入口之一），不在本轮范围。
+- **指定卡名 / 手牌指定卡张数**（`trigger_known=False` 103 件 / 185 段）：缺卡名→id 映射，
+  保守不触发。
+- **数值/取整顺序的近似**：P 道具增益倍率在我们的整数层数模型里用 `safe_ceil`（参考引擎
+  是浮点层数）；回合末好印象的 `resolveScore` 只 apply 分数倍率/熱意/好印象强化/追加发动，
+  不重复 apply 集中（参考引擎会，见 §2 依赖分口径；B5 已记录同一近似）；
+  fresh buff 差一回合问题（§3）同样作用于卡/`turn_end`/`stamina_reduce` 触发的新 buff。
+- 真机培育侧 P 道具列表仍未采集（T6/D1）；主道具附魔/回忆未接入。
+
+## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
    剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
 2. ~~**熱意（enthusiasm）**~~ ✅ **2026-11-22 T5② 完成**：独立整数资源（出牌分加算 +
@@ -337,9 +423,14 @@
    （条件未知 22→6 件）+ 依赖换算「X 的 N% 数值变为 Y」（65 段）+ 固定/百分比体力
    （9 段）+ 「X 变为 0」（3 段）+ 5 类新触发时机；数据层 445→**676/1849 段**、
    gkbench 34→**59/153 段**；greedy 配对 A/B **+225.2（CI [+86.7,+363.6]）**。
-   **剩余**：持续倍率类（`ExamLessonValueMultiple` 等）与生成卡/額外出牌 modifier、
-   指定卡名/手牌张数限定（trigger 未知 103 件，缺卡名→id 映射）、真机培育侧列表
-   （T6/D1 补采）、主道具附魔/回忆。
+   **B9（T5④ 第二批，2026-11-22）完成持久倍率/modifier 类**：打分上升量增加/减少
+   （`resolveScore` f/g）、好印象强化/追加发动、热意/集中/好印象/干劲/全力值增益倍率、
+   绝好调/不调、费用修正（加减 + ×0.5/×2 回合）、回合追加、温存/强气指針直给；
+   数据层 676→**1025/1849 段**、gkbench 59→**103/153 段**；greedy 配对 A/B
+   **+110.3（CI [+39.6,+193.3]）**。
+   **剩余**：生成卡（`ExamCardCreateId`）、强化状态花费卡（`ExamBuffConsumptionAdd`
+   无落点）、指定卡名/手牌张数限定（trigger 未知 103 件，缺卡名→id 映射）、
+   fresh buff 差一回合、真机培育侧列表（T6/D1 补采）、主道具附魔/回忆。
 6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
 7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。
@@ -375,8 +466,11 @@
 # T5③ P 道具数据接入（catalog / loadout 解析 / exam_start / extra_plays / 提交适配器）
 .venv\Scripts\python.exe -m pytest tests\test_p_items.py tests\test_p_items_db.py tests\test_p_items_integration.py -q
 .venv\Scripts\python.exe -m pytest tests\test_gkbench_submission_p_items.py -q
+# T5④ P 道具效果语义（B8 条件/第一批 + B9 持久倍率/modifier）
+.venv\Scripts\python.exe -m pytest tests\test_p_items_b8.py tests\test_p_items_b9.py -q
 # P 道具 A/B（hif 题模板；auto=按 loadout 接入，off=不结算）
-.venv\Scripts\python.exe scripts\local_bench.py --problems data\bench_local\problems_hif.json --sample 30 --episodes 2 --algos greedy,expectimax-analytic --budget-ms 100 --p-items off --out data\bench_local\ab_pitems_off.json
+.venv\Scripts\python.exe scripts\local_bench.py --problems data\bench_local\problems_hif.json --sample 30 --episodes 2 --algos greedy,expectimax-analytic --budget-ms 100 --p-items off --out data\bench_local\ab_pitems_off_b9.json
+.venv\Scripts\python.exe scripts\local_bench.py --problems data\bench_local\problems_hif.json --sample 30 --episodes 2 --algos greedy,expectimax-analytic --budget-ms 100 --p-items auto --out data\bench_local\ab_pitems_auto_b9.json
 ```
 
 ## 许可

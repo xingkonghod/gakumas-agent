@@ -297,11 +297,28 @@ gkbench hif 83 唯一 id **34→59/153 段**；离线 A/B（hif 30 题×2 seed�
 **4065.9（+225.2，+5.86%，CI[+86.7,+363.6]，17胜/1负/42平）**、expectimax 3726.4→3921.8
 （+195.4，CI 含 0，墙钟噪声）；新增 `tests/test_p_items_b8.py` 19 条，全量 pytest
 **1067 passed / 1 skipped（1068 收集 / 77 文件）**，基线 ①③④⑤ 不变。
-仍缺：持续倍率/modifier 类效果（`ExamLessonValueMultiple` 等）、指定卡名/手牌映射、
+仍缺：~~持续倍率/modifier 类效果（`ExamLessonValueMultiple` 等）~~ ✅ **B9 已完成（见下）**、
+生成卡 `ExamCardCreateId` / 强化状态花费卡、指定卡名/手牌映射、
 真机培育侧 P 道具列表、主道具附魔/回忆。细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) /
 HANDOVER 二·补三十一 / WORKPLAN B8。
-阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/C0/F0 完成、F 数据已下；下一步 **T5 剩余机制**
-（P 道具**持续倍率/modifier 类效果**、指定卡名映射；**fresh buff 差一回合**——需真机逐回合截图）
-→ 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，先问用户）→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
-（ranked 禁 seed，只能交不看 seed 的算法）。
+**同日 B9（T5④ P 道具持久倍率 / modifier 类效果，第二批）已完成**（纯离线代码）：按参考引擎
+（gakumas-tools BSD-3 `resolveScore` f/g、`resolveCost`、`BuffManager.setScoreBuff(amount,turns)`）
+实现 **20 类 target / 369 段 / 298 件道具**——`ExamLessonValueMultiple(+Down)` 持久分数倍率
+（加算列表 + 回合末倒计时，作用于出牌分与回合末好印象）、`ExamReviewMultiple`/`ExamReviewCountAdd`
+好印象强化/追加发动、热意/集中/好印象/干劲/全力值**增益倍率**、绝好调/不调回合、
+`ExamStaminaConsumption*` **费用修正**（永久加减 + 接下来 N 回合 ×0.5/×2）、`ExamExtraTurn`
+回合追加、`ExamPreservation`/`ExamConcentration` **指針直给**；同时解析描述里的
+「（训练内N次）」→ `max_uses` **9→896 件**（修正 B6–B8 期生效效果可无限触发的口径），
+`LessonSim`/`ExpectState` 新字段 + canonical + 双镜全镜像；数据层 **676→1025/1849 段**
+（no-op 1173→824）、gkbench hif 83 唯一 id 已实现 **59→103/153 段**；离线 A/B（hif 30 题×2 seed）
+greedy 3840.7→**3951.0（+110.3，+2.87%，CI[+39.6,+193.3]，20胜/2负/38平）**、
+expectimax +156.2（CI 含 0，墙钟噪声）；新增 `tests/test_p_items_b9.py` 49 条，全量 pytest
+**1116 passed / 1 skipped（1117 收集 / 78 文件）**，基线 ①③④⑤ 不变。**保持 no-op 并如实记录**：
+`ExamBuffConsumptionAdd`（强化状态花费卡机制不在模型里）、`ExamCardCreateId` 生成卡、
+指定卡名/手牌映射。细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) /
+HANDOVER 二·补三十二 / WORKPLAN B9。
+阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/C0/F0 完成、F 数据已下；下一步 **T5 剩余机制**
+（P 道具**生成卡/强化状态花费卡**、指定卡名映射；**fresh buff 差一回合**——需真机逐回合截图）
+→ 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，先问用户）→ 真机 T3→T1→T2 → F1/F2 gkbench
+公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

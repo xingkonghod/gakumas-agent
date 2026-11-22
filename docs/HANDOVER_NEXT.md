@@ -124,11 +124,24 @@
             gkbench 已实现 **34→59/153 段**；greedy 配对 A/B **+225.2（CI [+86.7,+363.6]）**；
             全量 pytest **1067/1（1068 收集 / 77 文件）**；见 HANDOVER 二·补三十一 / RULES_REFERENCE §5.3。
             剩余：持续倍率类 `ExamLessonValueMultiple`、生成卡、modifier 类、指定卡名/手牌限定。
-当前最高优先：**T5 剩余机制**（B8 已完成条件/效果语义第一批；剩持续倍率类/modifier + fresh buff 差一回合需真机截图）→ 阶段 C（执行层可靠性 C1；C0 已完成）/ D（补采集）
+          ⑬ ~~T5④ P 道具持久倍率 / modifier 类效果（第二批）~~ ✅ 2026-11-22 完成（**B9**）：
+            20 类 target / **369 段 / 298 件道具**——打分上升量增加/减少（`resolveScore` f/g，
+            加算列表 + 回合末倒计时）、好印象强化/追加发动、热意/集中/好印象/干劲/全力值
+            增益倍率、绝好调/不调、费用修正（永久加减 + 接下来 N 回合 ×0.5/×2）、回合追加、
+            温存/强气指針直给；同时解析描述里的「（训练内N次）」→ max_uses **9→896 件**
+            （修正 B6–B8 期生效效果可无限触发的口径）；数据层 **676→1025/1849 段**
+            （no-op 1173→824）、gkbench **59→103/153 段**；`LessonSim`/`ExpectState` 新字段 +
+            canonical + 双镜；新增 `tests/test_p_items_b9.py` 49 条；greedy 配对 A/B
+            **+110.3（+2.87%，CI [+39.6,+193.3]，20胜/2负/38平）** / expectimax +156.2（CI 含 0）；
+            全量 pytest **1116/1（1117 收集 / 78 文件）**；基线 ①③④⑤ 不变。
+            见 HANDOVER 二·补三十二 / RULES_REFERENCE §5.3。**仍保持 no-op**：
+            `ExamBuffConsumptionAdd`（强化状态花费卡机制不在模型里）、`ExamCardCreateId` 生成卡、
+            指定卡名/手牌限定（见 RULES_REFERENCE §5.3 B9 如实记录）。
+当前最高优先：**T5 剩余机制**（B9 已完成持久倍率/modifier；剩生成卡 / 强化状态花费卡 / fresh buff 差一回合需真机截图 / 指定卡名映射）→ 阶段 C（执行层可靠性 C1；C0 已完成）/ D（补采集）
 → 真机 T3→T1→T2（含 E0 实验）→ F1/F2 gkbench 公开对比
 **另**：用户 2026-11-22 指定「开新对话做」候选任务 **T9**（§4；一次会话只做 1 个；
  B7 ✅ / C0 ✅，剩 E0 需真机/独立副本实验）。
-（总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/C0/F0 已完成、F 数据已下）
+（总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/C0/F0 已完成、F 数据已下）
 **与 hiro / QQ 群 / 官方 AI 的进度对比**：见 [COMPARE.md](COMPARE.md)（口径、数字、唯一可比路径）。
 ```
 
@@ -199,7 +212,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 1067 passed, 1 skipped（1068 条收集 / 77 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 11 条 + B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + 实机回放黄金值 2 条）
+# ② 全量测试：应为 1116 passed, 1 skipped（1117 条收集 / 78 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 11 条 + B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + 实机回放黄金值 2 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -214,12 +227,13 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-22 22:2x，B8 / T5④ 后复跑）**：①②③④⑤ 全绿、退出码 0（① 4/4+3/3、
-② 1067/1、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
+**最近一次复核（2026-11-22 23:3x，B9 / T5④ 第二批后复跑）**：①②③④⑤ 全绿、退出码 0（① 4/4+3/3、
+② 1116/1、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
 ② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
 当前不是行动页），属预期。B4/T5① 见 HANDOVER 二·补二十五，B5/T5② 见 HANDOVER 二·补二十六，
 B6/T5③ 见 HANDOVER 二·补二十七，B7/T9 见 HANDOVER 二·补二十九，B8/T5④ 见 HANDOVER 二·补三十一 /
-[RULES_REFERENCE §5.3](RULES_REFERENCE.md)，C0/T9 见 HANDOVER 二·补三十 /
+[RULES_REFERENCE §5.3](RULES_REFERENCE.md)，**B9/T5④ 第二批见 HANDOVER 二·补三十二**，
+C0/T9 见 HANDOVER 二·补三十 /
 [TROUBLESHOOTING §四](TROUBLESHOOTING.md)，F0 收尾见 HANDOVER 二·补二十四 / [GKBENCH §4.5](GKBENCH.md)。
 
 **环境前提**：
@@ -494,9 +508,15 @@ gkbench hif 83 唯一 id **34→59/153 段**；离线 A/B greedy **+225.2（CI[+
    → **E0 候选（§4 T9）**：先试作者包的离线培育（Selection Exam），若考试能跑通，
    可提供**无账号风险**的逐回合截图来源，替代/补充真机截图成本。
 6. ~~**P 道具条件/效果语义（第一批）**~~ ✅ **2026-11-22 完成（B8）**：新语法 trigger id 解析 +
-   依赖换算 + 固定/百分比体力 + 5 类新触发（见上）。**剩余**：`ExamLessonValueMultiple`
-   （持续分数倍率 buff）、`ExamCardCreateId` 生成卡、`ExamExtraTurn`/`ExamBuffConsumptionAdd`/
-   `ExamReviewMultiple` 等 modifier、指定卡名/手牌张数（缺卡名→id 映射）、附魔/考试减益。
+   依赖换算 + 固定/百分比体力 + 5 类新触发（见上）。
+   ~~**P 道具持久倍率 / modifier 类效果（第二批）**~~ ✅ **2026-11-22 完成（B9）**：
+   打分上升量增加/减少（`resolveScore` f/g）、好印象强化/追加发动、热意/集中/好印象/干劲/
+   全力值增益倍率、绝好调/不调、费用修正、回合追加、温存/强气指針直给（20 类 target、
+   369 段 / 298 件）；数据层 **1025/1849 段**、gkbench **103/153 段**；
+   greedy A/B **+110.3（CI [+39.6,+193.3]）**；见 RULES_REFERENCE §5.3 B9。
+   **剩余**：`ExamCardCreateId` 生成卡、`ExamBuffConsumptionAdd`（强化状态花费卡机制不在
+   模型里 → 保持 no-op）、指定卡名/手牌张数（缺卡名→id 映射）、附魔/考试减益、
+   fresh buff 差一回合（需真机逐回合截图）。
 7. **饮料**（官方 AI 直接不喝 = 最强剪枝，可作为 A/B 对照）。
 
 **验收（DoD）**：每补一项 → 模拟器 4 局逐分回归仍一致（`tests/test_hajime_eval.py`）+ 新机制单测 + 对应文档小节。
@@ -725,7 +745,35 @@ gkbench hif 83 唯一 id **34→59/153 段**；离线 A/B greedy **+225.2（CI[+
    - 在 [HANDOVER.md](HANDOVER.md) 的提交记录里加一行。
 5. **写不清=没完成**：DoD 必须能用命令/数字验证；"感觉能跑"不算。
 
-**最近交接记录（2026-11-22，B8 / T5④ P 道具条件/效果语义第一批）**：纯离线代码任务。
+**最近交接记录（2026-11-22，B9 / T5④ P 道具持久倍率 / modifier 类效果）**：纯离线代码任务。
+语义来源 = gakumas-tools（BSD-3）`Executor/resolvers.js::resolveScore` f/g、`resolveCost`、
+`BuffManager.js`（`setScoreBuff(amount, turns)` 列表 + 回合末倒计时）与 `p_items.csv` DSL。
+`scripts/build_p_items.py` 新增 `annotate_modifier_effects`（effect_type + 效果文本 →
+`target`/`duration`；**20 类 target / 369 段 / 298 件道具**；percent1→千分比、`values.turn`=持续
+回合、缺省永久）+ 描述里的「（训练内N次）/（培育中N次）/（レッスン内N回）」→ 记录级
+`max_uses` **9→896 件**（不解析会让持续倍率每回合重复触发；也修正 B6–B8 期生效效果可无限
+触发的口径 → B9 auto 与 B8 auto 不可直接比）。
+`sim/p_items.py`：`PItemDelta` 新字段（`score_buffs/score_debuffs/modifiers/cost_reduction/
+cost_increase/half_cost_turns/double_cost_turns/extra_turns/stances/perfect_condition_turns/
+poor_condition_turns`）+ 定时列表纯函数 `add_timed/total_timed/tick_timed/timed_dict_*/normalize_turns`
++ 「消耗体力减少状态」条件（`half_cost_state`）+ 指針直给文本判定。
+`sim/lesson.py`/`sim/expectimax.py`：持久分数倍率（出牌分与回合末好印象都按 f/g 顺序）、
+好印象强化（共用卡渠道）/追加发动、热意/集中/好印象/干劲/全力值增益倍率（获得量 ×(1+N%)、
+safe_ceil）、绝好调/不调、费用修正（两引擎同式）、回合追加（`turns_left−1` 后补、total_turns
+同步）、温存/强气指針直给（升级 2 段階、触发解除收益、`stance_change` 递归 ≤3）；
+`LessonSim`/`ExpectState` 新字段 + `canonical` + `state_from_sim`/`sim_from_state` 全镜像。
+数据层已实现 **676→1025/1849 段**（no-op 1173→824、modifier 337 段）；gkbench hif 83 唯一 id
+**59→103/153 段**。新增 `tests/test_p_items_b9.py` 49 条、旧 `test_p_items.py` 更新；全量 pytest
+**1116/1（1117 收集 / 78 文件）**；基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、
+⑤ 366/384 不变。离线 A/B（同 B8 harness）greedy 3840.7→**3951.0（+110.3，+2.87%，
+CI[+39.6,+193.3]，20胜/2负/38平）** / expectimax 3666.5→**3822.8（+156.2，CI 含 0，墙钟噪声）**。
+**保持 no-op 并如实记录**：`ExamBuffConsumptionAdd`（强化状态花费卡机制不在模型里）、
+`ExamCardCreateId` 生成卡、指定卡名/手牌限定、增益倍率整数取整与 fresh buff 差一回合近似。
+下一项候选：**T5 剩余**（生成卡 / fresh buff 差一回合需真机截图）或 **B2 按 B3 规则重训** →
+真机 T3→T1→T2。详见 [HANDOVER 二·补三十二](HANDOVER.md) / [RULES_REFERENCE §5.3](RULES_REFERENCE.md)。
+提交 `feat` + `docs`（哈希见 HANDOVER 七、最近提交记录）。
+
+**上一轮交接记录（2026-11-22，B8 / T5④ P 道具条件/效果语义第一批）**：纯离线代码任务。
 `scripts/build_p_items.py` 新增 `parse_exam_trigger_id` / `trigger_id_has_unparsed_condition`
 （新语法 id 后缀 → 参数/条件：`remaining_turn-N`、`parameter_buff_up-N`、
 `stamina_up_multiple-N`、`stamina_less_multiple-N`、`full_power_point_get_sum_up-N`、
@@ -811,7 +859,7 @@ P 道具效果覆盖/真机培育侧列表随后）→ 阶段 C/D。详见 [HAND
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑基线
 （四条必跑 + ⑤ F0 gkbench 核对可选）。
-期望：洗牌 4/4 场 + 3/3 重洗；pytest 1067 passed / 1 skipped（1068 条收集 / 77 文件）；
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 1116 passed / 1 skipped（1117 条收集 / 78 文件）；
 exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28；
 ⑤（可选）scripts/verify_gkbench_shuffle.py = 366/384 精确 / 97.4% 逐张（缺 data/bench_local 数据则跳过）。
 （进度/对手对比先看 docs/COMPARE.md；现状看 docs/HANDOVER.md。）
@@ -875,6 +923,16 @@ loadout 接入（--p-items auto/off）+ gkbench 提交从 ctx.loadout（公开�
 gkbench 已实现 **34→59/153 段**；离线 A/B greedy 3840.7→**4065.9（+225.2，+5.86%，
 CI[+86.7,+363.6]）**；全量 pytest **1067/1（1068 收集 / 77 文件）**。
 见 WORKPLAN B8 / HANDOVER 二·补三十一 / RULES_REFERENCE §5.3。
+**B9（T5④ P 道具持久倍率 / modifier 类效果，第二批）已于 2026-11-22 完成**：参考引擎
+`resolveScore` f/g、`resolveCost`、`BuffManager` 列表语义——20 类 target / **369 段 / 298 件**
+（打分上升量增加/减少、好印象强化/追加发动、热意/集中/好印象/干劲/全力值增益倍率、
+绝好调/不调、费用修正、回合追加、温存/强气指針直给）+ 描述解析次数上限 **9→896 件**
+（修正 B6–B8 期生效效果可无限触发）；数据层 **676→1025/1849 段**（no-op 1173→824）、
+gkbench **59→103/153 段**；`LessonSim`/`ExpectState` 新字段 + canonical + 双镜；
+新增 49 条测试，全量 pytest **1116/1（1117 收集 / 78 文件）**；A/B greedy 3840.7→
+**3951.0（+110.3，+2.87%，CI[+39.6,+193.3]）** / expectimax +156.2（CI 含 0）。
+见 WORKPLAN B9 / HANDOVER 二·补三十二 / RULES_REFERENCE §5.3。**保持 no-op**：
+`ExamBuffConsumptionAdd`（强化状态花费卡机制不在模型里）、`ExamCardCreateId` 生成卡。
 **2026-11-22 追加（外部情报）**：用户提供了作者新的**四游戏整合启动器包**（215 MB，
 11-22 构建）→ 已解包静态分析，文档 [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)
 （提交 ddf221f）。帮助属参考级：可吸收其更新/代理/TLS 排障经验、核对 Produce API 语义、
@@ -883,8 +941,8 @@ CI[+86.7,+363.6]）**；全量 pytest **1067/1（1068 收集 / 77 文件）**。
 **B7 已完成**（P 道具补全），**C0 也已完成**（2026-11-22：更新/协议/代理/TLS 排障判据进
 TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新后自检 8 步，纯文档不改代码，见 HANDOVER
 二·补三十）；只剩 **E0**（需真机/独立副本实验，先问用户）。
-下一步继续 **T5 剩余机制**（持续倍率 `ExamLessonValueMultiple` / 生成卡 / modifier 类 /
-指定卡名映射；**fresh buff 差一回合**仍需真机逐回合截图）→ **B2 按 B3 规则重训**
+下一步继续 **T5 剩余机制**（生成卡 `ExamCardCreateId` / 强化状态花费卡类 / 指定卡名映射；
+**fresh buff 差一回合**仍需真机逐回合截图）→ **B2 按 B3 规则重训**
 → 阶段 C1/D 离线做完 → 真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。
@@ -903,6 +961,6 @@ TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新后自检 8 步，纯文�
 | **QQ 群「初星学园情报处理部」**（[QQ_GROUP_NOTES](QQ_GROUP_NOTES.md)） | seed 反推（2^31 枚举+观测剪枝）信息论口径清晰（3 回合收敛 ~1000 候选）；nodejs 实现 | 自己定规矩**实战不用 seed**；uihorizon/uinet "到头了"（10× 训练量反而倒退）；无公开成绩 |
 | **官方 AI**（GKMS 私有，[OFFICIAL_AI_NOTES](OFFICIAL_AI_NOTES.md)） | 真实牌序 + 50+ 特征评估 + 计划重放 + 限深/命令预算；考试机制覆盖最全 | 私有、不可移植、需 GKMS 原生核心；我们拿不到权重 |
 | **MaaGakumasu**（[MAA_INTEGRATION](MAA_INTEGRATION.md)） | 手和眼：截屏/识别/点击/日常/汉化完整 | 出牌只到启发式；我们只做决策层（ADR-001） |
-| **我们** | **唯一**把 MITM 采集→seed→整段牌序（含弃牌重洗）做成生产接口并经实机逐张验证；纯 Python/Windows 原生；0 token；B3 把模拟器回合规则/取整对齐真机后，整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点）；B1 修正后 beam 显著强于 within；B4 把考试审查倍率（分段+联动惩罚）对齐客户端公式并改用屏幕真实倍率；B6 把 P 道具（loadout `produce_item_ids`）接进模拟器/评测/提交（exam_start + extra_plays，离线 A/B greedy +3.36%）；B7 把 P 道具 catalog 补到上游 1115 件、gkbench 未知 id 清零；**B8 做了 P 道具条件/效果语义第一批**（新语法 trigger id 解析、依赖换算「X 的 N% 数值变为 Y」、固定/百分比体力、5 类新触发；数据层 676/1849 段、gkbench 已实现 59/153 段；greedy A/B +225.2） | 自动化最后一公里（T1）、无 A/B（T2）、全知未实时接通（T3）；B2 学习叶子旧模型在 B3 规则下失效待重训；机制覆盖仍缺 P 道具**持续倍率/modifier 类效果**、指定卡名/手牌映射、附魔、fresh buff（T5 剩余） |
+| **我们** | **唯一**把 MITM 采集→seed→整段牌序（含弃牌重洗）做成生产接口并经实机逐张验证；纯 Python/Windows 原生；0 token；B3 把模拟器回合规则/取整对齐真机后，整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点）；B1 修正后 beam 显著强于 within；B4 把考试审查倍率（分段+联动惩罚）对齐客户端公式并改用屏幕真实倍率；B6 把 P 道具（loadout `produce_item_ids`）接进模拟器/评测/提交（exam_start + extra_plays，离线 A/B greedy +3.36%）；B7 把 P 道具 catalog 补到上游 1115 件、gkbench 未知 id 清零；**B8 做了 P 道具条件/效果语义第一批**（新语法 trigger id 解析、依赖换算「X 的 N% 数值变为 Y」、固定/百分比体力、5 类新触发；数据层 676/1849 段、gkbench 已实现 59/153 段；greedy A/B +225.2）；**B9 做了持久倍率/modifier 第二批**（打分上升量增加/减少、好印象强化/追加发动、热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、费用修正、回合追加、温存/强气指針直给；20 类 target/369 段/298 件；数据层 **1025/1849 段**、gkbench **103/153 段**；greedy A/B +110.3） | 自动化最后一公里（T1）、无 A/B（T2）、全知未实时接通（T3）；B2 学习叶子旧模型在 B3 规则下失效待重训；机制覆盖仍缺 P 道具**生成卡/强化状态花费卡**、指定卡名/手牌映射、附魔、fresh buff（T5 剩余） |
 
 **定位一句话**：信息维度我们领先，执行与策略强度落后 hiro；先把"能无人值守跑完整局 + 真机 A/B"做出来，故事才完整。
