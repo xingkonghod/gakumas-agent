@@ -212,7 +212,15 @@ expectimax 从噪声内变**显著强于 rules**（+342~+429 评价点）；B1 6
 新规则重采数据重训**；400 局培育标定带 650–1100→950–1450。全量 pytest **985 passed / 1 skipped**
 （986 收集 / 72 文件）。细节见 [RULES_REFERENCE](RULES_REFERENCE.md) / [SIMULATOR §11](SIMULATOR.md) /
 [EXPECTIMAX「B3 规则修正与重标定」](EXPECTIMAX.md) / HANDOVER 二·补二十一。
-阶段 A 全部完成、B1/B2/B3 完成；下一步 **T5 剩余机制**（审查倍率分段+联动惩罚、熱意、
-温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D → 真机 T3→T1→T2 → gkbench
-比算法（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+**同日 F 阶段数据 + F0 预检已完成**（gkbench）：用户登录 `hiro.matto.top/gkbench` 并给了
+**命令行令牌**（存仓库外 `~/.config/gkbench/token`，可随时网页吊销）→ 新增 `scripts/bench_download.py`
+（公开 API + 令牌、断点续传）：已下 hif **80 run / 36,350 条对局路线**、**329 题官方开发种子 + `check`**、
+505 题模板存档、fixed/template 两种榜单与参考分（best-known 1,452,088 / UIHorizon 631,129=0.5113 /
+UINet 578,722=0.4551 / official-ai 232,710=0.2131）；并用官方 `check.hand` 核我们的洗牌模型：
+**286/384=74.5% 精确命中**，发现 **npc 按 stage 不同**（選抜 6 人制=5、本戦 3 人制=2，K=24/33），
+不一致根因 = `initial_add` 自定义 + `isInitial` 升级变体 → **下一步 F0 收尾**（修 initial → 逐题命中率/
+根因 → 校准官方起点）。细节见 [GKBENCH.md](GKBENCH.md) / HANDOVER 二·补二十二。
+阶段 A 全部完成、B1/B2/B3 完成、F 数据已下；下一步 **F0 gkbench 官方种子校准收尾** → T5 剩余机制
+（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
+真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

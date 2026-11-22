@@ -40,6 +40,7 @@
 | 2026-11-22 | **A1 OCR 换官方 PP-OCRv6 多语言模型（Apache-2.0）**：日文剧情/选项整句可读，中文 UI 不受影响 | `aae2647`、`884272f` |
 | 2026-11-22 | **A2 课程硬打必须得分（F#42）**：修掉课程 HUD 语义（属性值/还差分）与「每回合默认 1 张牌」两个模型错误 | `b388274`、`31c0491` |
 | 2026-11-22 | **B1 T4 修正 + B2 全知数据 MLP 叶子**：修掉评测执行器白丢回合 bug 后 beam 已强于 within；B2 学习叶子在 beam 上再 +7.7（确认段 120 局，CI 全正），within 为负（只对 engine=beam 有益） | 见 HANDOVER 二·补十九/二·补二十、EXPECTIMAX「B2 学习叶子」 |
+| 2026-11-22 | **F 阶段数据 + F0 预检（gkbench）**：用户登录后批量下载公开数据 + 开发种子/check（80 run / 36,350 条路线 / 329 题种子）；用官方 `check.hand` 核我们的洗牌模型 **286/384=74.5%**（npc 按 stage：選抜 5、本戦 2），不一致根因已定位 | 见 HANDOVER 二·补二十二、GKBENCH.md |
 | 2026-11-22 | **B3 T5 机制建模**：模拟器对齐真机「每回合基础 1 张 + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`」；`RULES_REFERENCE.md` 重写为逐条核验表；真机 39 回合配对回归；重标定后整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点），B2 旧模型失效需重训 | 见 HANDOVER 二·补二十一、RULES_REFERENCE、SIMULATOR §11 |
 
 完整 chronology、数据血缘、引用清单见 **[docs/PROVENANCE.md](docs/PROVENANCE.md)**。
@@ -297,8 +298,9 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
 显著强于 rules（+342~+429 评价点），B1 60 局 within 89.1→beam 95.7）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3 完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅；
-   下一项 **T5 剩余机制**（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）；
+0. **离线阶段 A 收口完成、B1/B2/B3 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / F 数据+F0 预检 ✅；
+   下一项 **F0 收尾**（修 initial 集合 → 逐题命中率/根因 → 校准官方起点；数据已就绪，见 [GKBENCH.md](docs/GKBENCH.md)）；
+   然后 **T5 剩余机制**（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
    （A5：最新场 T2 锁定 config_turns=12、四场 sweep 全部选对真值），差真机考试里 `locked_turn=2~3 / verified=N` 的验收；

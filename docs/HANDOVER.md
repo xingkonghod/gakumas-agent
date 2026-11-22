@@ -878,6 +878,50 @@ P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）→
 
 ---
 
+### 二·补二十二、11-22（F 阶段数据 + F0 预检：gkbench 官方种子/对局批量下载，洗牌模型 286/384 命中）
+
+**背景**：用户登录 gkbench（`hiro.matto.top/gkbench`）并生成了命令行令牌 → 可以批量下载
+**公开数据**（题模板/runs/路线/榜单）和**令牌数据**（开发集种子 `seed`+官方 `check`、保密种子逐局记录）。
+规则红线不变：**ranked 禁 seed**，下载数据只做本地分析/理论上限分母（官方也把看种子的搜索
+只当 denominator）。
+
+**新增工具**：`scripts/bench_download.py`（stdlib、只读 API、断点续传、manifest 按磁盘重建）：
+- 公开：`/api/sets`、`/api/runs?set=`、`/api/runs/<run>`（逐局索引**含 route**）、
+  `/api/runs/<run>/episodes/<id>/<i>`（固定种子公开；保密种子要令牌）、
+  `/api/sets/<set>/saves?answers=1`、`/api/leaderboard?set=&kind=fixed|template`；
+- 令牌（`GKBENCH_TOKEN` 或 `~/.config/gkbench/token`，**仓库外**）：`/api/sets/<set>/seeds`
+  （seed+`check{turn,score,stamina,hand,rules,commit}`）、保密种子逐局 `steps`。
+
+**已下载**（`data/bench_local/gkbench_dl/`，gitignore，`hif` 题集，210 文件 / 58.8 MB）：
+- **80 个目标 run 索引 / 36,350 条对局路线**（uinet 37、uihorizon 13、official-ai 2、
+  best-known 28；含 UINet/UIHorizon 变体 13 个另计）；
+- **`seeds.json`：329 题 / 384 组开发种子 + 官方 `check`**（F0 基准）；
+- 逐局 steps：公开固定种子 **79 局** + 保密种子抽样 27 局（该接口服务端≈20 s/局，全量不现实）；
+- 505 题模板存档；fixed/template 两种榜单（含 vs_oracle）。
+- 参考分（template 主榜，与 README/COMPARE 一致）：best-known **1,452,088**（分母）/
+  UIHorizon v2.1 **631,129（0.5113）** / UINet v2.1 **578,722（0.4551）** /
+  official-ai **232,710（0.2131）**。
+
+**F0 预检（用官方 `check.hand` 核对我们的洗牌模型，详见 [GKBENCH.md](GKBENCH.md) §4.5）**：
+- **npc 数按 stage 不同**：H.I.F 選抜（sel1/2/3）6 人制 → npc=5；**本戦（main1/main2）3 人制 → npc=2**
+  （K=24/33）；牌序必须用 `loadout.deck_cards` 原顺序（按主数据 order 重排 1/384，错）。
+- 结果：sel1 **60/60**、sel2 47/55、sel3 44/57、main1 64/97、main2 71/115 → **286/384 = 74.5%**
+  精确命中（不区分 stage、一律 npc=5 只有 152/384）。
+- 不一致根因：① 牌组带 `p_card_custom-…-initial_add`（训练开始时加入手牌）的卡官方会强制进
+  开局手牌，我们没算 initial；② 主数据 `isInitial` 只标基础变体、牌组用 +1。修完预计接近 100%。
+- 文档：新建 [GKBENCH.md](GKBENCH.md)（API/令牌边界/下载清单/参考分/F0 预检）；
+  WORKPLAN 阶段 F 加 F0/F1；COMPARE 来源同步；INDEX 文档清单。
+
+**令牌**：只存在 `%USERPROFILE%\.config\gkbench\token`（仓库外，可随时在网页吊销）；
+已确认仓库内无任何令牌字符串。
+
+**提交**：`57e2a8d`（WORKPLAN F0）、`b6d7868`（下载工具 + GKBENCH.md）、`cc1d0cf`（令牌补齐 + F0 预检）。
+
+**下一步**：**F0 收尾**（修 initial 集合 → 重跑逐题命中率/根因 → 校准起点 `stamina/turn/rules`）；
+之后回到 T5 剩余机制 → C/D → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -923,9 +967,14 @@ bug 修正后 beam unknown 164.0 / known 165.5 vs within 143.1，决策门 PASS�
 只对 engine=beam 有益）。**B3 T5 机制建模 ✅**（二·补二十一：模拟器对齐真机「每回合基础 1 张 +
 打完自动结束 + SKIP 回 2 体力 + 取整 safeCeil」，RULES_REFERENCE 重写为逐条核验表，
 真机 39 回合回合规则配对回归；重标定后整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点），
-B2 旧模型失效需按新规则重训）。下一项 **T5 剩余机制**（审查倍率分段/联动惩罚、熱意、
-温存解除额外次数、fresh buff 差一回合、P 道具数据接入），然后阶段 C/D 离线收尾、
-再上真机（T3→T1→T2），最后 gkbench。总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
+B2 旧模型失效需按新规则重训）。**F 阶段数据 + F0 预检 ✅**（二·补二十二：用户登录 gkbench 拿令牌，
+批量下载 80 run/36,350 条路线/329 题官方种子+check/505 题存档/两种榜单 + 参考分；用官方
+`check.hand` 核对洗牌模型 **286/384=74.5%** 精确命中，npc 按 stage：選抜 5、本戦 2；
+不一致根因=initial_add 自定义 + isInitial 变体，见 [GKBENCH.md](GKBENCH.md)）。
+**下一步：F0 收尾**（修 initial 集合 → 逐题命中率/根因 → 校准起点 stamina/turn/rules），
+然后 T5 剩余机制（审查倍率分段/联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、
+P 道具数据接入）→ 阶段 C/D 离线收尾 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
+总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
@@ -1024,6 +1073,10 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 F 阶段数据 + F0 预检：gkbench 批量下载 + 官方种子核洗牌）
+cc1d0cf feat(f): gkbench 令牌数据补齐 + F0 初步验证（官方 check.hand 对照洗牌模型 286/384 精确命中）
+b6d7868 feat(f): gkbench 公开数据批量下载工具 + GKBENCH.md（API/参考分/令牌边界）
+57e2a8d docs(workplan): F 阶段加 F0——用户已登录 gkbench 可下载固定种子题，先用官方 check 交叉验证洗牌模型/校准口径
 （2026-11-22 B3 T5 机制建模：回合规则对齐 + RULES_REFERENCE 核验表）
 d797802 docs(handover): B3 完成交接——回合规则对齐真机 + RULES_REFERENCE 核验表 + 重标定（pytest 985/1，B2 旧模型待重训）
 4316f9a feat(b3): T5 机制建模——模拟器回合规则对齐真机（每回合 1 张 + 自动结束 + 跳过回 2 体力 + safeCeil 取整）

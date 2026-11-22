@@ -391,7 +391,10 @@ B3（T5 机制建模）已于 2026-11-22 完成：模拟器对齐真机「每回
 B3 前是噪声内），B1 60 局 within 89.1→beam 95.7（+6.6，决策门 PASS），**B2 旧模型失效
 （重测显著负）需按新规则重训**；全量 pytest 985/1（986 收集 / 72 文件）；见 WORKPLAN B3 /
 HANDOVER 二·补二十一 / RULES_REFERENCE / SIMULATOR §11。
-下一步从 **T5 剩余机制**开始（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff
-差一回合、P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2
-→ gkbench（ranked 禁 seed，只能交不看 seed 的算法）。
+下一步从 **F0 gkbench 官方种子校准收尾**开始（用户已登录 gkbench 并给了命令行令牌，数据已下：
+80 run/36,350 条路线、329 题官方种子+check；F0 预检用官方 check.hand 核洗牌模型 286/384=74.5%，
+npc 按 stage 選抜 5/本戦 2；见 GKBENCH.md / HANDOVER 二·补二十二）→ T5 剩余机制
+（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）
+→ 阶段 C（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
+（ranked 禁 seed，只能交不看 seed 的算法）。
 ```
