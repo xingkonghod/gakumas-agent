@@ -88,7 +88,7 @@ def features(state: Any) -> np.ndarray:
     """
     turns = float(getattr(state, "turns_left", 0) or 0)
     total = float(getattr(state, "total_turns", 0) or 0)
-    play_limit = float(getattr(state, "play_limit", 3) or 0)
+    play_limit = float(getattr(state, "play_limit", 1) or 0)
     extra_plays = float(getattr(state, "extra_plays", 0) or 0)
     plays_used = float(getattr(state, "plays_used", 0) or 0)
     # 与 ExpectState.plays_left 同口径：extra_plays 也算可用次数，且不能为负

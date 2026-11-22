@@ -70,6 +70,7 @@ from gkagent.sim.lesson import (
     LessonConfig,
     LessonSim,
     greedy_policy,
+    safe_ceil,
 )
 from gkagent.sim.p_items import (
     CARD_PLAY,
@@ -199,7 +200,10 @@ class ExpectState:
     # 本课程总回合数（5/6/7/8 回合课的策略不同）；0 = 未知
     total_turns: int = 0
     plays_used: int = 0
-    play_limit: int = 3
+    # 每回合基础可出牌次数：真机默认 1 张（B3 2026-11-22 按 gakumas-tools
+    # TurnManager 的 cardUsesRemaining=1 + 真机 39 回合日志核实）；
+    # ExamPlayableValueAdd 记在 extra_plays。
+    play_limit: int = 1
     extra_plays: int = 0
     clear: int = 0
     perfect: int = 0
@@ -929,10 +933,11 @@ def _card_award(
             raw *= 0.75
         if state.poor_condition_turns > 0:
             raw *= 0.67
-        if state.attribute_coefficient == 1.0:
-            award = math.floor(raw)
-        else:
-            award = math.floor(raw * state.attribute_coefficient + 0.5)
+        # 与 LessonSim 同口径：buff 段 ceil 一次，回合属性倍率乘完再 ceil（参考
+        # 引擎 resolveScore 的 safeCeil；B3 2026-11-22 用实机回放黄金值核对）。
+        award = safe_ceil(raw)
+        if state.attribute_coefficient != 1.0:
+            award = safe_ceil(award * state.attribute_coefficient)
     if card.impression_scale > 0 and state.impression > 0:
         award += int(state.impression * card.impression_scale / 100)
     if card.block_scale > 0 and state.vitality > 0:
@@ -1640,8 +1645,16 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     """结算回合末：好印象加分后 -1、好调 -1、持续 buff 倒计时、弃手牌、回合 -1。
 
     不抽下一手牌：下一回合的牌序属于未知，由 V_leaf 的解析式吸收。
+
+    **回合末体力回复**（参考引擎 ``TurnManager.endTurn``）：回合结束时本回合
+    出牌次数还有剩（``plays_left > 0``，即 SKIP / 手牌为空 / 付不起牌）→ 体力
+    +2、封顶 ``stamina_max``；出牌次数用尽后结束的回合（含自动结束）不回体力。
     """
     score = state.score
+    stamina = state.stamina
+    if state.plays_left > 0:
+        cap = state.stamina_max if state.stamina_max > 0 else stamina
+        stamina = min(int(cap), stamina + 2)
     impression = state.impression
     if impression > 0:
         value = float(impression)
@@ -1667,6 +1680,7 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     next_state = replace(
         state,
         score=score,
+        stamina=stamina,
         impression=impression,
         condition_turns=condition_turns,
         perfect_condition_turns=perfect_condition_turns,

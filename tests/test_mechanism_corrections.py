@@ -18,7 +18,9 @@ from gkagent.sim.stance import StanceState
 
 
 def _config(**kwargs) -> LessonConfig:
-    base = {"turns": 1, "stamina": 10, "target_clear": 1, "hand_size": 3}
+    # 本文件是「一回合内连打多张」的机制核对：显式 3 次/回合（真机默认 1 张；
+    # 旧口径 3 保留给机制叠加测试，B3 2026-11-22）。
+    base = {"turns": 1, "stamina": 10, "target_clear": 1, "hand_size": 3, "plays_per_turn": 3}
     base.update(kwargs)
     return LessonConfig(**base)
 
@@ -272,7 +274,10 @@ def test_stance_cost_modifiers_and_strong_pierce() -> None:
         (StanceState(stance="strong2"), 10, 5, 7),  # 穿透 1 点：体力 -1，元气 -5，体力再 -2
     ]
     for stance, stamina, vitality, expected in cases:
-        sim = LessonSim([card], _config(turns=1, stamina=stamina), rng_seed=0)
+        # plays_per_turn=1：出 1 张就用尽次数，回合自动结束且不回体力（B3 真机规则）
+        sim = LessonSim(
+            [card], _config(turns=1, stamina=stamina, plays_per_turn=1), rng_seed=0
+        )
         sim.hand = [card]
         sim.stamina = stamina
         sim.vitality = vitality

@@ -53,8 +53,10 @@ DEFAULT_PLAN_CODE = 2  # sense
 
 #: 课程实拍开局体力 35/35；读不到上限时用它兜底。
 DEFAULT_MAX_STAMINA = 35
-#: 与 ``sim.lesson.GameConfig.plays_per_turn`` 一致：真机每回合 3 张。
-DEFAULT_PLAY_LIMIT = 3
+#: 与 ``sim.lesson.GameConfig.plays_per_turn`` 一致：真机每回合基础 1 张
+#: （B3 2026-11-22 按 gakumas-tools TurnManager cardUsesRemaining=1 核实；
+#: 额外出牌来自卡效果 ExamPlayableValueAdd / P 道具）。
+DEFAULT_PLAY_LIMIT = 1
 
 PRODUCE_LESSON = "produce-007"  # 選抜試験
 PRODUCE_AUDITION = "produce-008"  # 本戦

@@ -294,7 +294,11 @@ def test_transition_matches_lesson_sim() -> None:
         CardSpec("印象", 2, 0, impression=3),
         CardSpec("恢复", 2, 0, stamina_recover=2),
     ]
-    config = LessonConfig(turns=2, stamina=6, target_clear=10, target_perfect=20)
+    # plays_per_turn=4：一次给这 3 张牌留出「本回合还有出牌位」，避免 LessonSim 在
+    # 最后一张后自动结束回合（真机默认 1 张/回合，B3；这里测的是状态转换对齐本身）。
+    config = LessonConfig(
+        turns=2, stamina=6, target_clear=10, target_perfect=20, plays_per_turn=4
+    )
     sim = LessonSim(deck, config, rng_seed=1)
     sim.hand = [deck[0], deck[1], deck[2], deck[3]]
     sim.deck = [deck[4], deck[5], deck[6]]

@@ -16,6 +16,22 @@
 | `drink_limit_20261114.png` | 持有上限保留饮料（回放抓 bug） | 2026-11-14 01:03 | 「P饮料持有数量已达上限 / 请选择保留的3瓶饮料 / 还可选择2个」；暴露 `_checkbox_bands` 缺 `@staticmethod` 的 `TypeError` |
 | `event_ep_t3_4_drink_choice.png` | 外出饮料选择事件屏（F#43） | ep-t3-4 step21，2026-11-22 02:23 | A3 归档：ヨーグルトパフェ -100P / つくねハンバーグ -50P / ドリンクバー 免费；P 费不是 +N 飘字 |
 
+## 非图片素材：真机回合规则回归（WORKPLAN B3 / T5）
+
+`t5_exam_turn_rules.json` 不是截图，是 **4 场考试 39 个回合的真值摘要**（每回合出牌数、
+回合开始手牌数、首张牌、首张牌是否带 `ExamPlayableValueAdd`），用于
+[`tests/test_t5_turn_rules.py`](../test_t5_turn_rules.py) 的「每回合基础 1 张 +
+额外出牌次数」配对回归。
+
+- 来源：`C:\GakumasLocal\GakumasUnlock\out\traffic.jsonl` 的
+  `StepAuditionEndExamBattle` 请求（`decode_exam_actions.py` 解出
+  `exam_truth.json`）+ `data/knowledge/card_table.json` 的卡牌效果。
+- 生成：`.venv\Scripts\python.exe scripts\export_t5_turn_rules.py`（可重跑；
+  采集文件不在时脚本报错退出，不影响 pytest —— fixture 已随仓库提交）。
+- 事实：39 回合里 **32 回合正好 1 张、7 回合 2 张**；每回合开始手牌都是 **3 张**
+  （证明「1 张」不是手牌不够）；2 张的 7 个回合里 **3 个**首张牌带额外出牌效果，
+  其余 4 个按 **P 道具追加**（采集不含 P 道具数据，只能说明不超过 2 张）。
+
 ## 缺的真机帧：回合结束确认框（F#8/F#36）
 
 `step_NNN.png` 是**轮转覆盖**的，含「回合结束 / 尚可使用技能卡 / 确定要结束回合吗？」的

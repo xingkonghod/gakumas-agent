@@ -419,7 +419,8 @@ def build_problem(
         target_clear=1,
         target_perfect=2,
         hand_size=3,
-        plays_per_turn=3,
+        # gkbench 用真机规则：每回合基础 1 张 + 卡效果/P 道具的额外出牌（B3）。
+        plays_per_turn=1,
         stamina_max=stamina_max,
         plan=plan,
     )

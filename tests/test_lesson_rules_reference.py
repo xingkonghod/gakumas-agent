@@ -44,5 +44,5 @@ def test_metamorphosis_preparation_multiplies_by_0_75() -> None:
 
 
 def test_poor_condition_multiplies_by_0_67() -> None:
-    """不调 ×0.67（40 → 26）。"""
-    assert _score(_sim(poor_condition_turns=1)) == 26
+    """不调 ×0.67（40 × 0.67 = 26.8 → ceil 27，参考引擎 safeCeil 口径）。"""
+    assert _score(_sim(poor_condition_turns=1)) == 27

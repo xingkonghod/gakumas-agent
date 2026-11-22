@@ -140,7 +140,8 @@ def test_num_fields_map_score_stamina_plays() -> None:
         "stamina": 7,
         "max_stamina": DEFAULT_MAX_STAMINA,
         "block": 0,
-        "playable": 1,
+        # 真机每回合基础 1 张（B3）：本回合已出 2 张 → 可出次数 0
+        "playable": 0,
         "plays": 2,
     }
     # 体力读到了上限、比默认值大时，上限不能小于当前体力

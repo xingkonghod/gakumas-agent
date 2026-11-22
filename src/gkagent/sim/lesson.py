@@ -11,10 +11,14 @@
 - **除外**：``CardSpec.once``（卡面「訓練中1回」）的卡用掉后进 ``excluded``，
   本场不再回到牌库/弃牌堆——这是真实牌库压缩；没用掉的手牌仍按普通卡弃掉。
   卡表/读屏给不出该属性时默认 ``once=False``（按可重复卡处理）；
-- 一回合内可以连续出牌，直到 SKIP；手牌打完则本回合自动结束；
-- 每回合基础可出牌次数 ``plays_per_turn``（默认 3，与标准手牌数一致），本回合
-  出牌数达到上限后只能 SKIP；``ExamPlayableValueAdd``（``CardSpec.extra_play``）
-  在本回合内追加 +N 次，回合结束清零；
+- **每回合基础只能出 1 张牌**（``plays_per_turn=1``，2026-11-22 B3 按 gakumas-tools
+  ``TurnManager.startTurn`` 的 ``cardUsesRemaining=1`` + 真机 39 回合逐回合日志核实）；
+  出完最后一张可出牌**立即自动结束回合**（同 ``CardManager.useCard`` 末尾
+  ``cardUsesRemaining < 1 → endTurn``）；``ExamPlayableValueAdd``（``CardSpec.extra_play``）
+  在本回合内追加 +N 次，追加用完才结束回合，回合结束清零；
+- **跳过回体力**：回合结束时如果本回合出牌次数**没用完**（SKIP / 手牌为空 / 付不起牌），
+  体力 +2、封顶 ``stamina_max``（同 ``TurnManager.endTurn``：``cardUsesRemaining > 0``
+  时回 2 点）；出牌次数用尽自动结束的回合不回体力；
 - **元气（盾）**：``ExamBlock`` 产生的元气（``CardSpec.vitality``）**优先抵挡
   出牌体力消耗**——出牌时先扣元气、不够再扣体力（真机语义）。``stamina +
   vitality`` 付不起的牌不合法；依赖元气的分数按**支付牌费前**的元气层数算；
@@ -59,7 +63,9 @@
   是卡面「強気変更」，解析成 ``strong_level``（1/2 段階）；
   回合结束调用 ``stance.end_turn`` 结算全力值；
 - 回合结束：好印象按当前层数加分（下一回合开始才 -1），好调回合数 -1；
-- 分数向下取整（``math.floor``）；
+- 分数按参考引擎 ``resolveScore`` 的顺序结算：先加集中、再好调、指針、增益/减益、
+  不调，**buff 段取整一次**；考试/舞台再乘回合属性倍率并**再取整一次**，两次都是
+  ``safeCeil``（向上取整，整数附近按整数）；
 - 体力+元气不足以支付牌库里**任何**一张牌、且没有剩余回复饮料时本局提前结束
   （``done``）。真机其实可以继续空回合/喝饮料，这里保留"提前结束"简化。
 
@@ -192,6 +198,7 @@ __all__ = [
     "PItemSpec",
     "Policy",
     "greedy_policy",
+    "safe_ceil",
 ]
 
 # 一个合法动作：手牌下标，或 None = SKIP（结束本回合）
@@ -208,6 +215,22 @@ AUDITION_ATTRIBUTE_COEFFICIENT = 4.11
 
 # 防止策略写出死循环（例如全 0 费抽牌卡无限过牌）时的安全阀
 _MAX_STEPS = 10_000
+
+
+def safe_ceil(value: float) -> int:
+    """取整口径 = 参考引擎 ``safeCeil``（gakumas-tools ``utils.js``）。
+
+    真机分数结算在「加算后」「乘完好调/指針/增益/不调后」「乘回合属性倍率后」
+    各取整一次，**都是向上取整**（B3 2026-11-22 用 gakumas-tools 实机回放
+    黄金值核对：好调 ×1.5 的 5→8、2→3；考试 250% 下基础 9 无好调 23、
+    有好调 35）。旧实现课程用 floor / 考试只结尾 round 一次，会每题少 1–2 分。
+    """
+    rounded = math.floor(value + 0.5)
+    if abs(value - rounded) < 1e-9:
+        return int(rounded)
+    return math.ceil(value)
+
+
 # greedy_policy 给指針牌（温存/全力值，通常 score=0）的固定效率，避免永远选不到
 _STANCE_CARD_EFFICIENCY = 3.0
 # greedy_policy 给「本回合可出牌次数 +N」牌（通常 score=0）的固定效率
@@ -358,8 +381,10 @@ class LessonConfig:
     target_perfect: int | None = None
     # 真机每回合手里 3 张牌
     hand_size: int = 3
-    # 每回合基础可出牌次数（默认 3 = 标准手牌数）；ExamPlayableValueAdd 在此之上追加
-    plays_per_turn: int = 3
+    # 每回合基础可出牌次数：**真机默认 1 张**（B3 按 gakumas-tools TurnManager 的
+    # cardUsesRemaining=1 + 真机 39 回合日志核实，2026-11-22）；ExamPlayableValueAdd
+    # 在本回合内追加，追加用完自动结束回合。
+    plays_per_turn: int = 1
     # 饮料槽（真机 3 个）；默认空 = 旧行为
     drinks: tuple[DrinkSpec, ...] = ()
     # None = 不限每回合瓶数（真机实际无此限制）；给整数才限制
@@ -562,7 +587,8 @@ class LessonSim:
         """当前能出的手牌下标 + SKIP（None，固定在最后）。
 
         体力+元气够付**指針修正后的实际牌费**就合法；本回合出牌数达到
-        ``plays_per_turn + extra_plays`` 后只剩 SKIP。
+        ``plays_per_turn + extra_plays`` 后只剩 SKIP（但正常流程里出完最后一张
+        会**自动结束回合**，这个状态只出现在手牌为空/付不起牌时）。
         """
         if self.done:
             return []
@@ -633,8 +659,11 @@ class LessonSim:
         """执行一个动作。
 
         - 传手牌下标：出牌 → 算分 → 付牌费（**先扣元气、再扣体力**）→
-          结算本牌 buff → 抽牌；手牌打完则自动结束本回合。
-        - 传 ``None``：SKIP，结束本回合（剩余手牌弃掉、不回复体力）。
+          结算本牌 buff → 抽牌；**本回合可出牌次数用尽（``plays_per_turn +
+          extra_plays``）或手牌打完 → 立即自动结束本回合**（真机语义，同参考
+          引擎 ``CardManager.useCard`` 末尾的 ``cardUsesRemaining < 1 → endTurn``）。
+        - 传 ``None``：SKIP，结束本回合（剩余手牌弃掉；若本回合还有没用的出牌
+          次数则回 2 点体力，见 ``_end_turn``）。
         """
         if self.done:
             raise RuntimeError("本局已经结束，不能再 step")
@@ -707,8 +736,8 @@ class LessonSim:
         # 体力+元气见底：本局提前结束（不再结算回合末）
         if self.done:
             return
-        # 手牌打空：本回合自然结束
-        if not self.hand:
+        # 本回合可出牌次数用尽（真机打完最后一张立即换回合）或手牌打空：自动结束
+        if not self.hand or self.plays_this_turn >= self.plays_per_turn + self.extra_plays:
             self._end_turn(skipped=False)
 
     def run(self, policy: Policy) -> tuple[int, str]:
@@ -770,9 +799,10 @@ class LessonSim:
         本牌自带的加成对自身也生效（卡面是"先强化再结算"），持续回合由
         ``_apply_card_buffs`` 记进 ``Buffs``。
 
-        ``attribute_coefficient`` 是考试/舞台的属性倍率（411% = 4.11）：课程 1.0
-        时沿用 ``floor``（既有校准不变）；倍率 ≠ 1.0 时按真机屏幕显示值四舍五入
-        （37 + 集中 10 + 好调 → 47 × 1.5 × 4.11 = 289.755 → 290）。
+        ``attribute_coefficient`` 是考试/舞台的属性倍率（411% = 4.11）：它作用在
+        「buff/指針/不调乘完后」的整数分上，乘完再取整一次——与参考引擎
+        ``resolveScore`` 的顺序/取整口径一致（两次都是 ``safeCeil``）。课程倍率 1.0
+        时就是 buff 段取整一次。
 
         ``parameter_buff``（含本回合遗留的 ``turn_parameter_buff``）在**最终分**
         上叠加倍率 ``int(最终分 × 加成 / 1000)``；1000 = ×1.0（不加不减），
@@ -805,12 +835,11 @@ class LessonSim:
             if self.buffs.poor_condition_turns > 0:
                 raw *= 0.67
             coefficient = self.config.attribute_coefficient
-            if coefficient == 1.0:
-                award = math.floor(raw)
-            else:
-                # 考试/舞台：属性倍率乘进白值；真机显示值四舍五入
-                # （37+集中10 好调 411% = 289.755 → 290）
-                award = math.floor(raw * coefficient + 0.5)
+            # 取整口径对齐参考引擎 resolveScore（BSD-3）：buff/指針/不调乘完后
+            # 先 ceil 一次；回合属性倍率（考试/舞台）乘完再 ceil 一次。
+            award = safe_ceil(raw)
+            if coefficient != 1.0:
+                award = safe_ceil(award * coefficient)
         if card.impression_scale > 0 and self.buffs.impression > 0:
             award += int(self.buffs.impression * card.impression_scale / 100)
         if card.block_scale > 0 and self.vitality > 0:
@@ -1062,9 +1091,16 @@ class LessonSim:
         所以层数不再扣——这一点和旧实现不同，旧实现会在最终回合也扣掉。
         ``ExamReviewMultiple``（好印象强化）在这里放大本回合的好印象结算分。
 
-        SKIP（``skipped=True``）与手牌自然打空走同一条结算路径：剩余手牌
-        直接进弃牌堆，**不回复体力**，下一回合补满 ``hand_size`` 张。
+        SKIP / 手牌自然打空（付不起牌）走同一条结算路径：剩余手牌直接进弃牌堆，
+        下一回合补满 ``hand_size`` 张。**回合末体力回复**：若本回合出牌次数没
+        用完（``plays_this_turn < plays_per_turn + extra_plays``，也就是 SKIP 或
+        打不起牌），体力 +2、封顶 ``stamina_max``（参考引擎 ``TurnManager.endTurn``
+        的 ``cardUsesRemaining > 0 → stamina += 2``）；出牌次数用尽自动结束的回合
+        不回体力。
         """
+        # 回合末体力回复（参考引擎 endTurn 顺序：先回体力，再触发 endOfTurn 效果）
+        if self.plays_this_turn < self.plays_per_turn + self.extra_plays:
+            self.stamina = min(self.stamina_max, self.stamina + 2)
         if self.buffs.impression > 0:
             # ExamReviewMultiple（好印象强化）：放大回合末的好印象结算分。
             # 卡表 values 是千分比（2000 = 卡面 +200%），所以 ×(1000+值)/1000。

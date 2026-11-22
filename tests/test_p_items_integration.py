@@ -31,7 +31,8 @@ def _first(trigger: str, target: str | None = None) -> PItemSpec:
 
 
 def _config(**kwargs) -> LessonConfig:
-    base = {"turns": 1, "stamina": 20, "target_clear": 1, "hand_size": 1}
+    # 机制测试要在一回合里连打多张来触发 P 道具；真机默认 1 张（B3），这里显式放宽。
+    base = {"turns": 1, "stamina": 20, "target_clear": 1, "hand_size": 1, "plays_per_turn": 10}
     base.update(kwargs)
     return LessonConfig(**base)
 

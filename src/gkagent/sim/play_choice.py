@@ -272,7 +272,8 @@ def _sim_config(
             int(target_perfect) if target_perfect is not None else None
         ),
         hand_size=DEFAULT_HAND_SIZE,
-        plays_per_turn=max(int(play_limit), 1) if play_limit is not None else 3,
+        # 真机默认每回合 1 张（B3）；play_limit 只在当前局面显式覆盖时使用。
+        plays_per_turn=max(int(play_limit), 1) if play_limit is not None else 1,
         attribute_coefficient=coefficient,
     )
 

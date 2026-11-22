@@ -167,14 +167,18 @@ def _calibrated_400_episode_means(
 
 
 def test_default_ratio_lands_in_real_machine_three_attr_band() -> None:
-    """默认 official 排期 + wiki 体力口径：400 局三维总和均值落在 650-1100。
+    """默认 official 排期 + wiki 体力口径：400 局三维总和均值落在 950-1450。
 
-    2026-11-16 体力机制修正后（训练无固定入场费、局内按牌扣体、休息回 70%），
-    旧 900-1300 标定带不再适用；这里记录修正后口径，避免用旧常数掩盖差异。
+    2026-11-22 B3 真机规则修正后重新标定：训练/考试模拟器默认**每回合只出 1 张**，
+    且「回合结束还有剩余出牌次数（SKIP）回 2 体力」（参考引擎 TurnManager），
+    体力周转比旧口径（每回合 3 张、不回体力）宽松 → 同样 16 周能打更多训练，
+    400 局三维总和均值从旧口径 ~800（3 张不回体力）/ 650-1100 带升到 **≈1198**。
+    这里记录修正后口径做漂移哨兵，不代表与真机最终属性吻合（起始属性/官方排期
+    口径仍在 WIKI_DUAL_SOURCE 里有已知偏差）。
     """
     mean_total, mean_attrs = _calibrated_400_episode_means(0.5)
-    assert 650 <= mean_total <= 1100, f"三维总和均值 {mean_total:.1f} 偏离修正后区间"
-    assert all(120 <= value <= 700 for value in mean_attrs), mean_attrs
+    assert 950 <= mean_total <= 1450, f"三维总和均值 {mean_total:.1f} 偏离 B3 标定区间"
+    assert all(120 <= value <= 800 for value in mean_attrs), mean_attrs
 
 
 def test_ratio_one_doubles_three_attrs_vs_calibrated_default() -> None:
@@ -632,7 +636,7 @@ def test_parameter_buff_condition_only_helps_later_cards() -> None:
 
     sim = LessonSim(
         [CardSpec("占位", 0, 0)],
-        LessonConfig(turns=2, stamina=10, target_clear=1, hand_size=3),
+        LessonConfig(turns=2, stamina=10, target_clear=1, hand_size=3, plays_per_turn=3),
         rng_seed=0,
     )
     sim.hand = [buff, CardSpec("打分", 0, 10), CardSpec("占位", 0, 0)]

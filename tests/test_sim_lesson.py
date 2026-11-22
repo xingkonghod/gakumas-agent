@@ -31,6 +31,9 @@ def _config(
     drinks: tuple[DrinkSpec, ...] = (),
     stamina_max: int | None = None,
     attribute_coefficient: float = 1.0, drinks_per_turn: int | None = None,
+    # 本文件的机制单测大多要「一回合内连打 3 张」来验证叠加/顺序；真机默认是
+    # 每回合 1 张（B3），这里显式给 3 保持旧机制的测试口径不变。
+    plays_per_turn: int = 3,
 ) -> LessonConfig:
     return LessonConfig(
         turns=turns,
@@ -42,6 +45,7 @@ def _config(
         stamina_max=stamina_max,
         attribute_coefficient=attribute_coefficient,
         drinks_per_turn=drinks_per_turn,
+        plays_per_turn=plays_per_turn,
     )
 
 
@@ -70,7 +74,10 @@ def test_same_seed_is_reproducible() -> None:
 
 def test_score_card_adds_score_and_spends_stamina() -> None:
     """4 费打分 9：分数 +9、体力 -4。"""
-    sim = LessonSim([CardSpec("魅力的基础", 4, 9)], _config(turns=1, stamina=10, clear=9))
+    sim = LessonSim(
+        [CardSpec("魅力的基础", 4, 9)],
+        _config(turns=1, stamina=10, clear=9, plays_per_turn=1),
+    )
 
     assert sim.legal_actions() == [0, None]
     sim.step(0)
@@ -81,11 +88,11 @@ def test_score_card_adds_score_and_spends_stamina() -> None:
     assert sim.result == "CLEAR"
 
 
-def test_condition_multiplies_by_1_5_and_rounds_down() -> None:
-    """好调让 9 分牌变成 floor(9 × 1.5) = 13（向下取整）。"""
+def test_condition_multiplies_by_1_5_and_rounds_up() -> None:
+    """好调让 9 分牌变成 ceil(9 × 1.5) = 14（参考引擎 resolveScore 取整口径）。"""
     sim = LessonSim(
         [CardSpec("好调", 0, 0, condition=2), CardSpec("打分", 4, 9)],
-        _config(turns=2, stamina=10),
+        _config(turns=2, stamina=10, plays_per_turn=2),
     )
 
     sim.step(_index(sim, "好调"))
@@ -93,36 +100,86 @@ def test_condition_multiplies_by_1_5_and_rounds_down() -> None:
     assert sim.score == 0
 
     sim.step(_index(sim, "打分"))
-    assert sim.score == 13
+    assert sim.score == 14
     assert sim.stamina == 6
     # 本回合结束：好调 -1，剩余 1 回合仍可在下一回合生效
     assert sim.buffs.condition_turns == 1
 
 
-def test_audition_attribute_coefficient_matches_real_machine_card() -> None:
-    """真机实测：37 分 + 集中 10 + 好调 + 屏幕 411% ≈ 290 分。"""
-    sim = LessonSim(
-        [CardSpec("占位", 0, 0)],
-        _config(turns=1, stamina=10, attribute_coefficient=4.11),
-    )
-    sim.hand = [CardSpec("37分牌", 0, 37)]
-    sim.deck = []
-    sim.discard = []
-    sim.buffs.focus = 10
-    sim.buffs.condition_turns = 2
+def test_audition_multiplier_matches_captured_real_machine_scores() -> None:
+    """考试回合属性倍率逐分对齐真机回放捕获值（gakumas-tools fidelity，BSD-3）。
 
-    sim.step(0)
+    【試験研修1】好調（250% 回合）：
+    - アピールの基本（基础 9 分）无好调：ceil(9 × 2.5) = **23**；
+    - 同上 + 好调：ceil(ceil(9 × 1.5) × 2.5) = ceil(14 × 2.5) = **35**；
+    - 愛嬌（基础 13 分）+ 好调：ceil(ceil(13 × 1.5) × 2.5) = ceil(20 × 2.5) = **50**。
+    【試験研修2】集中（250% 回合）：情熱ターン（基础 11 分）集中 0/3/6 →
+    **28**（ceil 27.5）/ **35** / **43**（ceil 42.5）。
+    """
 
-    # 47 × 1.5 × 4.11 = 289.755：考试/舞台按真机显示值四舍五入 = 290
-    assert sim.score == 290
+    def award(base: int, *, condition_turns: int = 0, focus: int = 0) -> int:
+        sim = LessonSim(
+            [CardSpec("占位", 0, 0)],
+            _config(turns=1, stamina=20, attribute_coefficient=2.5, plays_per_turn=1),
+        )
+        sim.hand = [CardSpec("实机回放卡", 0, base)]
+        sim.deck = []
+        sim.discard = []
+        sim.buffs.condition_turns = condition_turns
+        sim.buffs.focus = focus
+        sim.step(0)
+        return sim.score
+
+    assert award(9) == 23
+    assert award(9, condition_turns=1) == 35
+    assert award(13, condition_turns=1) == 50
+    assert award(11, focus=0) == 28
+    assert award(11, focus=3) == 35
+    assert award(11, focus=6) == 43
+
+
+def test_course_scores_match_captured_real_machine_golden_values() -> None:
+    """课程实机回放黄金值（gakumas-tools fidelity 捕获，回合倍率 1.0）。
+
+    【基礎1】好調：ファンサ 10 → **15**、アドリブ 5 → **8**（ceil 7.5）、
+    ポーズの基本 2 → **3**。
+    【基礎9】温存 1 段階：9 → **5**、2 → **1**、15 → **8**（都是 ceil 半倍）。
+    """
+
+    def award(
+        base: int, *, condition_turns: int = 0, preservation: bool = False
+    ) -> int:
+        sim = LessonSim(
+            [CardSpec("占位", 0, 0)],
+            _config(turns=1, stamina=20, plays_per_turn=1),
+        )
+        sim.hand = [CardSpec("实机回放卡", 0, base)]
+        sim.deck = []
+        sim.discard = []
+        sim.buffs.condition_turns = condition_turns
+        if preservation:
+            sim.stance.stance = "save"
+            sim.stance.save_level = 1
+        sim.step(0)
+        return sim.score
+
+    assert award(10, condition_turns=1) == 15
+    assert award(5, condition_turns=1) == 8
+    assert award(2, condition_turns=1) == 3
+    assert award(9, preservation=True) == 5
+    assert award(2, preservation=True) == 1
+    assert award(15, preservation=True) == 8
 
 
 def test_lesson_default_attribute_coefficient_is_one() -> None:
-    """课程默认倍率 1.0：同样的牌 floor(47×1.5)=70，不吃考试倍率。"""
+    """课程默认倍率 1.0：同样的牌 ceil((37+10)×1.5)=71，不吃考试倍率。"""
     assert (
         LessonConfig(turns=1, stamina=10, target_clear=1).attribute_coefficient == 1.0
     )
-    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=1, stamina=10))
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)],
+        _config(turns=1, stamina=10, plays_per_turn=1),
+    )
     sim.hand = [CardSpec("37分牌", 0, 37)]
     sim.deck = []
     sim.discard = []
@@ -131,7 +188,7 @@ def test_lesson_default_attribute_coefficient_is_one() -> None:
 
     sim.step(0)
 
-    assert sim.score == 70
+    assert sim.score == 71
 
 
 def test_explicit_coefficient_one_matches_course_default() -> None:
@@ -437,8 +494,8 @@ def test_depend_exam_review_adds_to_base_and_ignores_focus_condition() -> None:
 
     sim.step(_index(sim, "混合"))
 
-    # 白值 floor((9 + 2) × 1.5) = 16；依赖 3 层 × 1000% = 30
-    assert sim.score == 46
+    # 白值 ceil((9 + 2) × 1.5) = 17；依赖 3 层 × 1000% = 30
+    assert sim.score == 47
 
 
 def test_depend_scores_before_own_impression_buff() -> None:
@@ -455,7 +512,7 @@ def test_depend_scores_before_own_impression_buff() -> None:
 
 
 def test_preservation_card_halves_later_scores() -> None:
-    """温存 1 段階：先打温存，后续 9 分牌变成 floor(9 × 0.5) = 4。"""
+    """温存 1 段階：先打温存，后续 9 分牌变成 ceil(9 × 0.5) = 5（实机回放值同）。"""
     sim = LessonSim(
         [CardSpec("温存", 0, 0, preservation=1), CardSpec("打分", 2, 9)],
         _config(turns=2, stamina=10, hand_size=2),
@@ -467,7 +524,7 @@ def test_preservation_card_halves_later_scores() -> None:
     assert sim.stance.save_level == 1
 
     sim.step(_index(sim, "打分"))
-    assert sim.score == 4
+    assert sim.score == 5
 
 
 def test_full_power_point_triggers_triple_next_turn() -> None:
@@ -500,11 +557,11 @@ def test_card_does_not_benefit_from_its_own_stance_switch() -> None:
     )
 
     sim.step(_index(sim, "温存斩"))
-    assert sim.score == 9  # 不是 floor(9 × 0.5)
+    assert sim.score == 9  # 不是 ceil(9 × 0.5)
     assert sim.stance.save_level == 1
 
     sim.step(_index(sim, "追击"))
-    assert sim.score == 13  # 9 + floor(9 × 0.5)
+    assert sim.score == 14  # 9 + ceil(9 × 0.5)
 
 
 def test_greedy_policy_prioritizes_stance_cards() -> None:
@@ -541,15 +598,17 @@ def test_depend_exam_review_score_ignores_stance_multiplier() -> None:
 
 
 # --------------------------------------------------------------------- 可出牌次数
+# 真机规则（B3）：每回合基础 1 张；ExamPlayableValueAdd 追加次数，追加的牌打完后
+# **自动结束回合**（参考引擎 CardManager.useCard 末尾 cardUsesRemaining<1 → endTurn）。
 def test_extra_play_card_allows_one_more_play_this_turn() -> None:
-    """+1 次数牌结算后本回合上限 3+1：能多出 1 张，用尽后只剩 SKIP。"""
-    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    """基础 1 张 + 卡效果 +1：本回合能出 2 张，第 2 张打完自动结束回合。"""
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, plays_per_turn=1)
+    )
     sim.hand = [
         CardSpec("次数+1", 0, 0, extra_play=1),
         CardSpec("打1", 0, 1),
         CardSpec("打2", 0, 1),
-        CardSpec("打3", 0, 1),
-        CardSpec("打4", 0, 1),
     ]
     sim.deck = []
     sim.discard = []
@@ -557,46 +616,45 @@ def test_extra_play_card_allows_one_more_play_this_turn() -> None:
     sim.step(0)  # 次数+1：本牌占 1 次，同时追加 1 次
     assert sim.plays_this_turn == 1
     assert sim.extra_plays == 1
+    assert sim.turns_left == 2  # 追加次数还没用完，回合没结束
 
-    for _ in range(3):
-        sim.step(0)
-    assert sim.plays_this_turn == 4
-    assert sim.score == 3
-    assert len(sim.hand) == 1  # 还剩一张，但次数已经用尽
-    assert sim.legal_actions() == [None]
-    with pytest.raises(ValueError, match="次数已用尽"):
-        sim.step(0)
+    sim.step(0)  # 用掉追加的第 2 次 → 次数用尽，自动结束回合
+    assert sim.score == 1
+    assert sim.turns_left == 1
+    assert sim.plays_this_turn == 0  # 新回合重置
+    assert sim.extra_plays == 0
 
 
-def test_card_without_extra_play_does_not_extend_limit() -> None:
-    """extra_play=0 的牌不追加次数：手牌再多，本回合也只能出 plays_per_turn 张。"""
+def test_card_without_extra_play_ends_turn_after_one_card() -> None:
+    """extra_play=0 的牌不追加次数：手牌再多，本回合出 1 张就自动结束。"""
     assert CardSpec("普通", 0, 1).extra_play == 0
 
-    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, plays_per_turn=1)
+    )
     sim.hand = [CardSpec(f"打{i}", 0, 1) for i in range(4)]
-    sim.deck = []
+    sim.deck = [CardSpec("牌库", 0, 1)]
     sim.discard = []
 
-    for _ in range(3):
-        sim.step(0)
+    sim.step(0)
 
     assert sim.extra_plays == 0
-    assert sim.plays_this_turn == 3
-    assert sim.score == 3
-    assert len(sim.hand) == 1
-    assert sim.legal_actions() == [None]
+    assert sim.score == 1
+    assert sim.turns_left == 1  # 打 1 张就换回合
+    assert sim.plays_this_turn == 0
+    assert len(sim.hand) == 3  # 新回合重新摸满
 
 
 def test_extra_play_cards_stack() -> None:
-    """两张 +1 次数牌叠加：本回合上限变成 3+2，可以连出 5 张。"""
-    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    """两张 +1 次数牌叠加：基础 1 张 +2 = 本回合可出 3 张，第 3 张后自动结束。"""
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, plays_per_turn=1)
+    )
     sim.hand = [
         CardSpec("次数+1a", 0, 0, extra_play=1),
         CardSpec("次数+1b", 0, 0, extra_play=1),
         CardSpec("打1", 0, 1),
         CardSpec("打2", 0, 1),
-        CardSpec("打3", 0, 1),
-        CardSpec("打4", 0, 1),
     ]
     sim.deck = []
     sim.discard = []
@@ -604,19 +662,20 @@ def test_extra_play_cards_stack() -> None:
     sim.step(0)
     sim.step(0)
     assert sim.extra_plays == 2
+    assert sim.turns_left == 2
 
-    for _ in range(3):
-        sim.step(0)
-
-    assert sim.plays_this_turn == 5
-    assert sim.score == 3
-    assert len(sim.hand) == 1
-    assert sim.legal_actions() == [None]
+    sim.step(0)  # 用掉最后一次（基础 1 + 追加 2）
+    assert sim.score == 1
+    assert sim.turns_left == 1
+    assert sim.plays_this_turn == 0
+    assert sim.extra_plays == 0
 
 
 def test_extra_plays_reset_at_turn_start() -> None:
     """额外次数只在当回合有效：SKIP 换手牌后 plays_this_turn / extra_plays 归零。"""
-    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, hand_size=3))
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)], _config(turns=2, stamina=10, plays_per_turn=1)
+    )
     sim.hand = [
         CardSpec("次数+1", 0, 0, extra_play=1),
         CardSpec("打", 0, 1),
@@ -625,11 +684,11 @@ def test_extra_plays_reset_at_turn_start() -> None:
     sim.deck = []
     sim.discard = []
 
-    sim.step(0)
-    sim.step(0)
+    sim.step(0)  # 次数+1：基础 1 次用掉，追加 1 次还在
     assert sim.extra_plays == 1
+    assert sim.turns_left == 2
 
-    sim.step(None)  # SKIP 结束本回合，抽下一手
+    sim.step(None)  # SKIP：追加次数不用了，结束本回合
 
     assert sim.turns_left == 1
     assert sim.plays_this_turn == 0
@@ -685,8 +744,8 @@ def test_depend_block_formula_truncates_and_ignores_buffs() -> None:
     sim.step(_index(sim, "温存"))
     sim.step(_index(sim, "混合"))
 
-    # 白值 floor((9 + 2) × 1.5 × 0.5) = 8；依赖分 int(3 × 700 / 100) = 21（不吃倍率）
-    assert sim.score == 29
+    # 白值 ceil((9 + 2) × 1.5 × 0.5) = 9；依赖分 int(3 × 700 / 100) = 21（不吃倍率）
+    assert sim.score == 30
 
 
 def test_parameter_buff_multiplies_final_score() -> None:
@@ -797,8 +856,8 @@ def test_three_card_hand_reshuffles_discard_when_deck_empty() -> None:
     assert len(sim.hand) + len(sim.deck) + len(sim.discard) == 4
 
 
-def test_skip_discards_hand_without_healing_stamina_and_records_trace() -> None:
-    """SKIP：剩余手牌直接进弃牌堆、不回复体力，trace 记 `skipped=True`。"""
+def test_skip_discards_hand_and_recovers_two_stamina_with_trace() -> None:
+    """SKIP：剩余手牌进弃牌堆；回合末出牌次数没用完 → 体力 +2（真机规则），trace 记 skipped=True。"""
     deck = [CardSpec(f"牌{i}", 0, 0) for i in range(6)]
     sim = LessonSim(deck, _config(turns=2, stamina=10))
     first = [card.name for card in sim.hand]
@@ -806,7 +865,8 @@ def test_skip_discards_hand_without_healing_stamina_and_records_trace() -> None:
 
     sim.step(None)
 
-    assert sim.stamina == 7  # 剩余 3 张牌不回体力
+    # 参考引擎 TurnManager.endTurn：cardUsesRemaining > 0 时体力 +2（封顶 stamina_max）
+    assert sim.stamina == 9
     assert len(sim.hand) == 3
     assert set(first).isdisjoint(card.name for card in sim.hand)
     assert sim.trace[-1]["skipped"] is True
@@ -828,7 +888,9 @@ def test_hand_exhaustion_auto_ends_turn_without_skip_flag() -> None:
 # ------------------------------------------------------------------- 元气挡体力
 def test_vitality_absorbs_card_cost_before_stamina() -> None:
     """出牌先扣元气、再扣体力：4 费牌在 3 体力 + 5 元气下把元气扣到 1。"""
-    sim = LessonSim([CardSpec("占位", 0, 0)], _config(turns=2, stamina=3))
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)], _config(turns=2, stamina=3, plays_per_turn=2)
+    )
     sim.hand = [CardSpec("四费", 4, 9), CardSpec("二费", 2, 5)]
     sim.deck = []
     sim.discard = []
@@ -870,9 +932,9 @@ def test_drink_restores_stamina_up_to_max() -> None:
 
     sim.use_drink(0)
     assert sim.stamina == 11
-    sim.step(None)  # 换回合：每回合饮料次数重置，体力不自动回复
+    sim.step(None)  # 换回合：SKIP 会回 2 体力（真机规则）→ 封顶 12
 
-    assert sim.stamina == 11
+    assert sim.stamina == 12
     sim.use_drink(0)
     assert sim.stamina == 12  # 封顶，不是 17
 
@@ -1015,7 +1077,7 @@ def test_stamina_recover_fix_heals_after_cost_and_caps_at_max() -> None:
     """ExamStaminaRecoverFix：付完牌费后固定回体力，封顶 stamina_max。"""
     sim = LessonSim(
         [CardSpec("回复", 4, 5, stamina_recover=8)],
-        _config(turns=2, stamina=5, stamina_max=12),
+        _config(turns=2, stamina=5, stamina_max=12, plays_per_turn=1),
     )
     sim.step(0)
 
@@ -1056,7 +1118,7 @@ def test_status_enchant_encore_doubles_direct_effects() -> None:
     """ExamStatusEnchantEncore：本牌直接效果执行两次（打分/抽牌/集中…），牌费一次。"""
     sim = LessonSim(
         [CardSpec("再演", 2, 10, draw=1, focus=2, encore=True)],
-        _config(turns=2, stamina=10, hand_size=1),
+        _config(turns=2, stamina=10, hand_size=1, plays_per_turn=1),
     )
     sim.step(0)
 

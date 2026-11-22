@@ -1,0 +1,322 @@
+{
+ "source": {
+  "traffic_derived": "exam_truth.json（decode_exam_actions.py 从 traffic.jsonl 解出）",
+  "card_effects": "data/knowledge/card_table.json",
+  "capture_date": "2026-11-20 / 2026-11-21 四场考试",
+  "generated_by": "scripts/export_t5_turn_rules.py",
+  "note": "真机回合规则配对回归素材：每回合出牌数/手牌数/首张牌是否带 ExamPlayableValueAdd。P 道具在采集里没有，因此不能用它解释的 2 张回合按未知处理（采集侧只能说明「不超过 2 张」）。"
+ },
+ "stats": {
+  "turns": 39,
+  "plays_1": 32,
+  "plays_2": 7,
+  "two_play_by_card": 3
+ },
+ "exams": [
+  {
+   "index": 0,
+   "ts": "2026-11-20T12:37:42.992",
+   "rank": 3,
+   "final_score": 569,
+   "turns": [
+    {
+     "turn": 1,
+     "plays": 2,
+     "hand_size": 3,
+     "first_card": "p_card-02-act-0_009+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 2,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-ido-3_208+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 3,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-ido-3_221+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 4,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-00-men-0_003+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 5,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-act-1_003+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 6,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-men-2_052+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 7,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-act-1_004+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 8,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-00-act-0_002+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 9,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-men-2_055+0",
+     "first_card_extra_play": 0
+    }
+   ]
+  },
+  {
+   "index": 1,
+   "ts": "2026-11-20T15:10:47.154",
+   "rank": 2,
+   "final_score": 4798,
+   "turns": [
+    {
+     "turn": 1,
+     "plays": 2,
+     "hand_size": 3,
+     "first_card": "p_card-02-men-2_054+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 2,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-act-1_003+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 3,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-00-men-3_012+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 4,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-ido-3_221+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 5,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-act-3_001+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 6,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-men-0_011+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 7,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-ido-3_208+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 8,
+     "plays": 2,
+     "hand_size": 3,
+     "first_card": "p_card-00-men-3_003+1",
+     "first_card_extra_play": 1
+    },
+    {
+     "turn": 9,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-act-0_009+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 10,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-02-men-2_053+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 11,
+     "plays": 2,
+     "hand_size": 3,
+     "first_card": "p_card-02-men-2_055+0",
+     "first_card_extra_play": 0
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "ts": "2026-11-21T17:28:52.172",
+   "rank": 1,
+   "final_score": 1700,
+   "turns": [
+    {
+     "turn": 1,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-men-2_035+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 2,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-men-2_039+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 3,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-3_031+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 4,
+     "plays": 2,
+     "hand_size": 3,
+     "first_card": "p_card-01-ido-3_292+1",
+     "first_card_extra_play": 1
+    },
+    {
+     "turn": 5,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-0_006+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 6,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-men-2_043+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 7,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-1_022+0",
+     "first_card_extra_play": 0
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "ts": "2026-11-21T17:38:59.097",
+   "rank": 1,
+   "final_score": 14650,
+   "turns": [
+    {
+     "turn": 1,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-men-2_035+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 2,
+     "plays": 2,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-3_030+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 3,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-1_020+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 4,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-men-2_038+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 5,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-3_031+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 6,
+     "plays": 2,
+     "hand_size": 3,
+     "first_card": "p_card-01-ido-3_292+1",
+     "first_card_extra_play": 1
+    },
+    {
+     "turn": 7,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-men-2_043+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 8,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-00-act-0_002+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 9,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-00-act-0_001+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 10,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-3_031+1",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 11,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-0_006+0",
+     "first_card_extra_play": 0
+    },
+    {
+     "turn": 12,
+     "plays": 1,
+     "hand_size": 3,
+     "first_card": "p_card-01-act-3_032+1",
+     "first_card_extra_play": 0
+    }
+   ]
+  }
+ ]
+}
