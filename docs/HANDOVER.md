@@ -895,6 +895,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 B1 T4 修正）
+fda7b90 feat(b1): T4 修正——评测执行器白丢回合 bug + 受控 frontier 叶子（60 局 beam 已超 within，决策门 PASS）
 （2026-11-22 A5 T3 离线预演）
 3bb6a6e docs(handover): A5 完成交接——状态/基线数字(958/1)/提交记录同步，下一项 B1
 7c16abe feat(a5): T3 离线预演——--current 候选 + ExamPlanSelector 逐回合锁定（脚本 + 8 条单测）
