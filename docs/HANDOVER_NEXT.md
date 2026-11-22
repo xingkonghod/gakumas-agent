@@ -4,7 +4,7 @@
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
 > 新会话第一句话：
 > 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑四条基线，
-> 再从 WORKPLAN 阶段 A 的下一项（A2）开始。」
+> 再从 WORKPLAN 阶段 A 的下一项（A3）开始。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
@@ -24,19 +24,22 @@
          上真机前模拟器整局 A/B 已绿：76 局 0 blocked / 0 异常 / C+率 100%（sim_engine_ab.py）
          真机防卡死：auto_produce --max-minutes（默认 30）超时主动停局，不再无限空转
          2026-11-22 A1：OCR 换官方 PP-OCRv6 多语言模型（Apache-2.0）——日文剧情/选项完整可读，
-         下载脚本/配置/probe/测试齐全（见 HANDOVER 二·补十四）；全量 pytest 926 passed / 1 skipped
+         下载脚本/配置/probe/测试齐全（见 HANDOVER 二·补十四）
+         2026-11-22 A2：F#42 课程硬打必须得分——修掉课程 HUD 语义（右上=属性值、圆环=还差分）
+         与「游戏默认每回合 1 张牌」两个模型错误；硬打先打正分牌（HANDOVER 二·补十五 / FAILURES #42）
+         全量 pytest 934 passed / 1 skipped（935 收集 / 66 文件）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**，但真机跑局时采集没开 → 全知 0 锁定，差实战验收
         ④ 策略强度：V_leaf 是瓶颈（2026-11-22 已定位：档位效用平手项 + beam 采样分支可 +20，
            但仍比回合内 expectimax 低 22%；下一步受控 policy-evaluation / rollout 监督 v_leaf）；机制建模缺 P 道具/回忆/附魔/选牌/减益
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
-当前最高优先：**阶段 A 离线收尾**（A2 F#42 课程硬打得分 → A3 F#43 结果页空转 → A4 离线回放素材 →
+当前最高优先：**阶段 A 离线收尾**（A2 ✅ → **A3 F#43 结果页空转** → A4 离线回放素材 →
 A5 T3 离线预演）→ 阶段 B/C/D → 真机 T3→T1→T2 → gkbench（总计划见 WORKPLAN.md）
 ```
 
 > **新会话先读 [WORKPLAN.md](WORKPLAN.md)**：总顺序 = **离线全部做完 → 真机（T3→T1→T2）→ 去 gkbench 比算法**。
-> WORKPLAN 里含完整任务表（A1 OCR 换日文模型 / A2 F#42 / A3 F#43 / B T4·T5 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
+> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 / B T4·T5 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
 > 和「已完成不要重做」清单。
 
 > **2026-11-21 用户硬规矩（不许破）**：SKIP 只在"所有牌都付不起"时允许；读不到分数/费用不是跳过理由，
@@ -170,9 +173,10 @@ cd D:\Games\gakumas-agent
 - 待修（→ WORKPLAN A2/A3）：**#42 舞蹈课程连打 buff → 0 分 FAILED**（禁跳硬打必须保证得分）；
   **#43 结果页 result-tap 循环**。
 - 群文件情报（论文/2B run/GKMSMAA AGPL）见 HANDOVER 二·补十二；**A1 OCR 换日文模型已完成**
-  （2026-11-22，官方 PP-OCRv6 Apache-2.0，见 HANDOVER 二·补十四 / WORKPLAN A1）。按 WORKPLAN
-  顺序先做离线阶段 A 剩余（A2 F#42 → A3 F#43 → A4 回放素材 → A5 T3 离线预演），再上真机重验
-  F#41/#42/#43 与 T3。
+  （2026-11-22，官方 PP-OCRv6 Apache-2.0，见 HANDOVER 二·补十四 / WORKPLAN A1）；
+  **A2 F#42 已完成**（2026-11-22，课程 HUD 语义 + 每回合 1 张 + 硬打保分，见 HANDOVER 二·补十五 /
+  WORKPLAN A2）；**#43 未修**。按 WORKPLAN 顺序先做离线阶段 A 剩余（**A3 F#43 → A4 回放素材 →
+  A5 T3 离线预演**），再上真机重验 F#42/#43 与 T3。
 
 **剩余（跑一局验收）**
 1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
@@ -357,6 +361,8 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 .venv\Scripts\python.exe scripts\build_exam_setup.py --current --allow-finished --out out\exam_setup_current_test.json
 # 生产接线端到端核对（36/36 手牌、3/3 重洗）
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
+# F#42 课程帧回放回归（真机课程截图 → LessonReader → expectimax 决策，最后一个用例不选 buff）
+.venv\Scripts\python.exe -m pytest tests\test_lesson_play_f42.py -q
 # 上真机前：模拟器整局 A/B（训练+考试都注入真 LessonPolicy；0 blocked/0 error/C+率）
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json
 # 离线配对评测：known_draw / beam / full-info（重洗后段全知）
@@ -383,6 +389,8 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 | 规则回退 | **bot 不许回退 rules**（用户 2026-11-21）：搜索失败 = `[engine][BLOCKED]` 中止本局 + 修 OCR/卡表/参数，不许静默改用 rules 兜底；`--engine rules` 仅 A/B/离线；`allow_rule_fallback=True` 只是代码级调试开关（policy.json 不可配） |
 | 快速路径 | 课程/加载帧的模板快速路径会吞掉遮罩弹窗（回合结束确认框、通信错误弹窗）：新增弹窗必须配"同屏重复→强制整屏 OCR"的逃生门 |
 | 全知搜索 | 牌序**核对失败自动停用**是设计（宁可用期望模型也不用错牌序）；离线回放里策略出牌与实机不同会在重洗前停用，属正常 |
+| 课程/考试 HUD | 课程右上角是**培育属性值**（不是课程分，`LessonState.attr`），课程分 = 属性值 − 开课基线；正中圆环「CLEAR截止 / PERFECT截止 N」是**还差 N 分**（不是过关线）。`LessonReader.read(kind="lesson")` 已换算好 `score/gauge/perfect/goal`；新读屏字段别再把语义弄反（F#42 就是这么 0 分的） |
+| 出牌上限 | **游戏默认每回合只能出 1 张牌**（额外出牌来自卡效果 `ExamPlayableValueAdd`/P 道具），课程和考试都成立；搜索 `play_limit=1` 是刻意的，别改回 3（否则会偏好"buff+补刀"→ 0 分）。模拟器 `plays_per_turn=3` 尚未对齐，属 T5 待办 |
 | 配置陷阱 | 引擎优先级：`--engine` CLI > `policy.json` 的 `produce.engine`（真机 bot）> 默认 **expectimax**（bot 入口；`LessonPolicy` 自身默认仍是 rules，供离线/单测）；`lesson.engine` 只作 `LessonPolicy` 独立使用/单测默认（保持 rules，别只改它）。每局日志首行 `[engine]` 写明实际用了谁。OCR 模型优先级：`OcrEngine(config_path=)` > `GKAGENT_OCR_CONFIG` > 本地 `configs/ocr_jp.yaml`（下载脚本生成）> 内置中文模型；日志首行 `[ocr] 模型=` 可确认；配置/模型文件缺失**直接报错**，不静默回退中文模型 |
 | 数据 | 主数据缺 11-21 新卡：`verify_shuffle.py` 用 `SUPPLEMENT_*` 兜底，更新主数据后可删；`out/` 不进 git |
 | 时间口径 | 期中考试有 `forceEndScore` 提前结束，但 K（洗牌前 RNG 消耗）**按配置回合**算，不是实战回合 |
@@ -408,11 +416,12 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线。
-期望：洗牌 4/4 场；pytest 926 passed / 1 skipped（927 条收集 / 65 文件）；
-exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29。
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 934 passed / 1 skipped（935 条收集 / 66 文件）；
+exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28。
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6 Apache-2.0，见 WORKPLAN A1 / HANDOVER 二·补十四）；
-基线绿后按 WORKPLAN 从 A2 开始：A2 F#42 课程硬打必须得分 → A3 F#43 结果页空转 → A4 离线回放素材
-→ A5 T3 离线预演 → 阶段 B/C/D，全部离线做完再上真机（T3→T1→T2），最后 gkbench。
+A2（F#42 课程硬打必须得分）也已完成（HUD 语义 + 每回合 1 张 + 硬打保分，见 WORKPLAN A2 / HANDOVER 二·补十五）。
+基线绿后按 WORKPLAN 从 A3 开始：A3 F#43 结果页空转 → A4 离线回放素材 → A5 T3 离线预演
+→ 阶段 B/C/D，全部离线做完再上真机（T3→T1→T2），最后 gkbench。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。
 ```

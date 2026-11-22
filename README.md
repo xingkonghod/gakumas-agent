@@ -37,6 +37,8 @@
 | 2026-11-21 | 真机 T1 流程修复（10+ 类界面卡点）+ 引擎接线 + 决策可观测性；**首局完整跑完：C / 4242** | `a9537b0`、`4b07fa7` |
 | 2026-11-21 | 用户规则落地：**只有真没体力才 SKIP**、**禁止回退 rules**；模拟器整局 A/B 76 局全绿 | `8a2af2b`、`ae86e1c` |
 | 2026-11-22 | T4 叶子实验（rollout 叶子负结果）+ 私有存档/私有仓库 + 群公开的考试 RNG 入口清单归档 | `366131a`、`4f948da` |
+| 2026-11-22 | **A1 OCR 换官方 PP-OCRv6 多语言模型（Apache-2.0）**：日文剧情/选项整句可读，中文 UI 不受影响 | `aae2647`、`884272f` |
+| 2026-11-22 | **A2 课程硬打必须得分（F#42）**：修掉课程 HUD 语义（属性值/还差分）与「每回合默认 1 张牌」两个模型错误 | `b388274`、`31c0491` |
 
 完整 chronology、数据血缘、引用清单见 **[docs/PROVENANCE.md](docs/PROVENANCE.md)**。
 当前 330+ 个提交（持续增长）。
@@ -161,7 +163,8 @@ sequenceDiagram
 > oracle 基准均值 1,452,088（n=960），UIHorizon 631,129（0.5113×）、UINet 578,722（0.4551×）、官方 AI 232,710（0.2131×）。
 > 榜单规则禁止 seed/牌序，我们的全知路线**不适用于榜单**，只用于真机实战/离线研究。
 
-**测试**：`pytest tests/ -q` → **897 条收集（1 skipped）全绿**；`verify_shuffle` 4/4；`build_exam_setup` 86/86 + 重洗 24/24。
+**测试**：`pytest tests/` → **935 条收集 / 934 passed / 1 skipped**；`verify_shuffle` 4/4 场；
+`build_exam_setup` 86/86 + 重洗 24/24；`verify_exam_wiring` 36/36 + 3/3 + 29/29。
 
 ---
 
@@ -189,7 +192,7 @@ sequenceDiagram
 
 ```powershell
 # 离线基线（不需要游戏）
-.venv\Scripts\python.exe -m pytest -q                     # 897 条测试
+.venv\Scripts\python.exe -m pytest -q                     # 935 条收集 / 934 passed / 1 skipped
 .venv\Scripts\python.exe scripts\verify_shuffle.py       # 洗牌模型：4/4 场
 .venv\Scripts\python.exe scripts\build_exam_setup.py     # 采集数据 → out/exam_setup.json
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py   # 全知接线：36/36、3/3、29/29
@@ -255,16 +258,18 @@ sequenceDiagram
 ## 10. 当前状态与下一步
 
 **已完成**：采集链路 / 洗牌模型（4/4 实战）/ 牌序全知数据链路 / 生产接线 / 决策引擎与可观测性 /
-真机流程修复（10+ 类卡点）/ 模拟器整局 A/B / 私有存档与私有仓库。
+真机流程修复（10+ 类卡点）/ 模拟器整局 A/B / 私有存档与私有仓库 / A1（OCR 日文模型）/ A2（F#42 课程硬打必须得分）。
 
-**未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md)）**
-1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules 后还没跑出「不再乱跳 + ≥C+」的整局；
+**未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
+0. **离线阶段 A 收口**：A1 ✅ / A2 ✅，下一项 **A3（F#43 静态结果页空转）**→ A4 离线回放素材 → A5 T3 离线预演；
+1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），差真机考试里
    `locked_turn=2~3 / verified=N` 的验收；
 3. **T2 三引擎真机 A/B**：expectimax / beam+全知 / rules 对照；
 4. **T4 叶子估值**：beam 111 vs within 143，rollout 叶子负结果，下一步受控 policy-evaluation / rollout 监督 `v_leaf`；
 5. **T5 机制建模**：P 道具/回忆/附魔/选牌/减益；考试内恐慌/随机生成/随机移动等 RNG 入口（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
-6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准。
+   模拟器 `plays_per_turn=3` 待对齐真机「每回合 1 张 + 额外出牌」（A2 遗留）；
+6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 
 **红线（永不违反）**
 - SKIP 仅在「所有牌都付不起（真没体力）」时允许；
@@ -280,7 +285,7 @@ sequenceDiagram
 gakumas-agent/
 ├─ src/gkagent/      # 核心库（device/vision/tasks/policy/sim/data/knowledge）
 ├─ scripts/          # 跑局/验证/评测/存档脚本
-├─ tests/            # 单测（897 条）
+├─ tests/            # 单测（935 条收集 / 934 passed）
 ├─ docs/             # 全部文档（INDEX 为总导航）
 ├─ data/             # 主数据/卡表/评测（大文件与第三方代码不入库）
 ├─ integrations/     # MAA 集成适配（历史阶段）

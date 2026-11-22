@@ -1,4 +1,4 @@
-# 项目交接（2026-11-21 深夜更新）
+# 项目交接（2026-11-22 A2 更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
@@ -537,7 +537,8 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
   `tests/test_ocr_jp_model.py` 4 条真图（日文/对白/中文 UI/决策选选项；模型缺失自动 skip）；
   修复基线过期断言 `test_read_fast_event_page_uses_option_rows`（事件快速路径补读对话区后
   `read_calls` 不再为 0，改为断言只补读 `FAST_DIALOGUE_AREA`、不整屏 OCR）。
-  全量 `pytest tests/`：**926 passed / 1 skipped**（927 条收集 / 65 个测试文件，212s）；`ruff` 通过。
+  全量 `pytest tests/`：**926 passed / 1 skipped**（927 条收集 / 65 个测试文件，212s；A1 当时口径，
+  A2 后当前为 934/1、935 收集 / 66 文件，见二·补十五）；`ruff` 通过。
 - **真机日志**：`auto_produce.py` 首行新增 `[ocr] 模型 = …`——上真机先确认不是内置中文模型。
 
 ### 二·补十五、11-22（WORKPLAN A2 落地：F#42 课程硬打必须得分 ✅）
@@ -615,6 +616,11 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 
 > **任务拆分、验收标准、依赖顺序见 [HANDOVER_NEXT.md](HANDOVER_NEXT.md) §4**（T1 → T3 → T2 → T4 …）。
 > 本节只记"大方向 + 已经完成的项"。
+
+**离线阶段 A 收口（2026-11-22）**：A1 OCR 日文模型 ✅（二·补十四）→ A2 F#42 课程硬打必须得分 ✅
+（二·补十五）→ **下一项 A3（F#43 静态结果页空转）** → A4 离线回放素材 → A5 T3 离线预演；
+A 阶段做完再进 B/C/D，全部离线收尾后才上真机（T3→T1→T2），最后 gkbench。
+总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
