@@ -104,8 +104,13 @@
           ⑩ ~~T5③ P 道具数据接入~~ ✅ 2026-11-22 已完成（loadout → PItemSpec；exam_start +
             ExamPlayableValueAdd→extra_plays；local_bench/提交适配器接线 + A/B + 29 条测试；
             剩余效果覆盖 421/1764 段、真机培育侧列表、主道具附魔，见 RULES_REFERENCE §5.3）
+          ⑪（2026-11-22 外部情报）**作者四游戏整合启动器包**（用户提供，215 MB，11-22 构建）已解包
+            静态分析 → [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)（提交 `ddf221f`）；
+            带来候选任务 **T9**（B7 P 道具 47 条补全 / C0 采集更新可靠性经验吸收 / E0 离线培育
+            测试台实验，见 §4）；用户要求「开新对话做」，默认建议先 B7。
 当前最高优先：**T5 剩余机制**（fresh buff 差一回合；P 道具效果覆盖/真机培育侧列表）→ 阶段 C（执行层可靠性）/ D（补采集）
 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
+**另**：用户 2026-11-22 指定「开新对话做」候选任务 **T9**（§4，三选一；一次会话只做 1 个，默认建议 B7）。
 （总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2/B3/B4/B5/B6/F0 已完成、F 数据已下）
 **与 hiro / QQ 群 / 官方 AI 的进度对比**：见 [COMPARE.md](COMPARE.md)（口径、数字、唯一可比路径）。
 ```
@@ -158,6 +163,7 @@
 | B3 T5 机制建模（回合规则 + 核验表） | [RULES_REFERENCE.md](RULES_REFERENCE.md) 重写为逐条核验表 + [export_t5_turn_rules.py](../scripts/export_t5_turn_rules.py)（真机 39 回合摘要）+ [t5_exam_turn_rules.json](../tests/fixtures/t5_exam_turn_rules.json) + `safe_ceil`（`sim/lesson.py`） | 模拟器对齐真机：每回合基础 **1 张** + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`；实机回放黄金值 12 条；真机 39 回合配对回归（32×1 张 / 7×2 张 / 手牌全 3 张）；重标定：sim_engine_ab expectimax 显著强于 rules（+342~+429 评价点）、B1 60 局 within 89.1→beam 95.7（+6.6，门 107.4% PASS）、B2 旧模型 FAIL 待重训；`tests/test_t5_turn_rules.py` 9 条；全量 pytest **985/1（986 收集 / 72 文件）**；见 HANDOVER 二·补二十一 / SIMULATOR §11 |
 | **B4 T5① 审查倍率（分段 + 联动惩罚）** | [exam_multiplier.py](../src/gkagent/sim/exam_multiplier.py)（纯公式）+ [exam_bonus.py](../src/gkagent/data/exam_bonus.py)（主数据解析）+ [export_exam_multipliers.py](../scripts/export_exam_multipliers.py)（真机夹具）+ `LessonConfig.attribute_bonuses/turn_attributes` + `policy.audition_coefficient` | 客户端真实公式：分数表分段折线 × 审查基准联动惩罚（`common=1000−Σpenalties` 三项共乘）× 单精度取整；11-20 采集局期中 Vo/Da/Vi **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**（Vi/Vo/Da 低于基准的联动惩罚已对上）；生产读屏 「舞蹈 207%」→ 搜索 `attribute_coefficient=2.07`（日志 `attr=`）；`tests/test_exam_multiplier.py` 21 条；全量 pytest **1006/1（1007 收集 / 73 文件）**；真机逐分回放仍差 P 道具附魔/生成卡等未建模项；见 HANDOVER 二·补二十五 / RULES_REFERENCE §5.1 |
 | **B5 T5② 熱意 + 温存解除** | [enthusiasm.py](../src/gkagent/sim/enthusiasm.py)（纯规则：温存解除/熱意获得/回合末清零延長）+ `LessonSim`/`ExpectState` 熱意字段与算分 + [sim_produce.py](../scripts/sim_produce.py)（MODELED_EFFECTS 29→32）+ [play_choice.py](../src/gkagent/sim/play_choice.py)（生产卡表映射） | 参考引擎（BSD-3）+ 官方 wiki：熱意出牌分加算、获得时 ceil、回合末清零/延長；温存解除 1 段 +5 / 2 段 +8 熱意 + 5 固定元気 + **+1 出牌次数**（同回合可重复、温存→全力回合边界也触发）；卡牌 `ExamEnthusiasticAdditive/Multiple/TurnAdd` 与 `ExamMultipleEnthusiasticLesson`（本牌倍率 ×2）接入；`tests/test_t5_enthusiasm.py` 16 条；全量 pytest **1023/1（1024 收集 / 74 文件）**；见 HANDOVER 二·补二十六 / RULES_REFERENCE §5.2 |
+| **2026-11-22 作者整合包分析（外部情报，只读参考）** | [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)（包结构 / 11-22 新版本变化与修复 / 与采集安装的边界；7z 归档 `data/dl/`，解包在仓库外） | 用户提供 215 MB 四游戏整合启动器包（11-22 构建，1457 条 sha256 清单逐条校验通过）；新版本：启动器中文错误诊断/MLTD 停止服务、学园后端新增离线培育（Selection Exam/produce-007 状态机）等；**不能替换我们的采集安装**（无 `GKM_TRAFFIC`、hook 构建不同）、**拿不到考试算分公式**（服务端无 Audition）；给出 P 道具 47 条 id 清单（含 B6 的 11 个未知 gkbench id）。候选任务 T9（§4），提交 `ddf221f` |
 | **B6 T5③ P 道具数据接入** | [p_items_db.py](../src/gkagent/data/p_items_db.py)（loadout `produce_item_ids` → `PItemSpec`，未知/重复 id 显式、缺数据抛错）+ `sim/p_items.py`（新增 `exam_start` 触发时机 + `ExamPlayableValueAdd`→`extra_plays`，51 段取 `count` 列）+ [lesson.py](../src/gkagent/sim/lesson.py)（构造时结算考试开始效果）+ [local_bench.py](../scripts/local_bench.py)（报告 `p_items` 覆盖率 + `--p-items auto/off`）+ [algo.py](../submissions/expectimax/algo.py)（`ctx.loadout` 接入） | gkbench 505 题模板 2686 个 id / 83 唯一 / 72 已知 / 11 未知（快照缺行不猜）；catalog 1764 段 spec 已实现 421 段、gkbench 已知 131 段实现 31 段；F0 起点体力 15 组偏差里 5 组（shro-3-016 −28）可用 `pitem_02-3-293-0` 考试开始「最大体力 80% 变体力消耗」（`floor(36×0.8)=28`）解释；离线 A/B hif 30 题×2 seed 配对：greedy **3840.7→3969.7（+128.9，+3.36%，CI95[+9.5,+248.4]）**、expectimax **3759.3→3908.9（+149.6，+3.98%）**，其余局逐位不变；新增 29 条测试；全量 pytest **1051/1（1052 收集 / 76 文件）**；见 HANDOVER 二·补二十七 / RULES_REFERENCE §5.3 |
 | F 阶段数据 + F0 预检（gkbench） | [bench_download.py](../scripts/bench_download.py)（公开 API + 令牌批量下载，断点续传）+ [GKBENCH.md](GKBENCH.md)（API/令牌边界/下载清单/参考分/F0） | hif 已下 80 run / **36,350 条对局路线** / 329 题官方种子+check / 505 题存档 / fixed+template 榜单；**官方 check.hand 核洗牌模型 286/384=74.5%**（npc 按 stage：選抜 5、本戦 2；sel1 60/60）；不一致根因=initial_add 自定义 + isInitial 变体（F0 收尾）；数据在 `data/bench_local/gkbench_dl/`（gitignore）；令牌在仓库外 `~/.config/gkbench/token`；见 HANDOVER 二·补二十二 |
 | **F0 收尾（gkbench 官方种子校准）** | [verify_gkbench_shuffle.py](../scripts/verify_gkbench_shuffle.py)（384 组 check.hand 核对 + 起点校准，只读本地数据）+ [GKBENCH §4.5](GKBENCH.md) | **initial 按 base id（含强化变体）+ initial_add、npc 按 idol 卡（jsna 4 人制/fktn 2 人制/其余 3 人制）+ round 兜底** → **366/384=95.3% 精确 / 97.4% 逐张**（sel1 60/60、sel2 55/55、main1 96/97；逐题 311/329 全中）；剩余 18 组全是考试开始加卡机制（ExamInitialDeck 15 + kllj 开局 +1 手牌 3），**无一洗牌错误**；起点校准 turn=1/score=0/stamina 96.1%=starting_stamina/rules=55(commit f4d9e6e6148d)；见 HANDOVER 二·补二十四 |
@@ -449,13 +455,65 @@ loadout 接入（`--p-items auto/off`）+ gkbench 提交从 `ctx.loadout`（公�
 3. ~~**温存解除的额外次数/元气**~~ ✅ **2026-11-22 完成（B5）**：+1 出牌次数、2 段 +5 固定元気、
    同回合重复解除可叠加、温存→全力回合边界也触发。见 HANDOVER 二·补二十六；
 4. ~~**P 道具数据接入（离线 loadout 侧）**~~ ✅ **2026-11-22 完成（B6）**：见上；
-   **剩余**：真机培育侧列表（T6/D1）、效果覆盖、主道具附魔/回忆；
-5. **fresh buff 保护**（获得 buff 当回合末不扣 1，需真机逐回合截图核实）；
+   **剩余**：真机培育侧列表（T6/D1）、效果覆盖、主道具附魔/回忆。
+   → **B7 候选（§4 T9）**：更新 gkumasu-diff master 快照重建 `p_items.json`，可一次补上
+   47 条（含 B6 的 11 个 gkbench 未知 id）；仍不含真机培育侧列表。
+5. **fresh buff 保护**（获得 buff 当回合末不扣 1，需真机逐回合截图核实）。
+   → **E0 候选（§4 T9）**：先试作者包的离线培育（Selection Exam），若考试能跑通，
+   可提供**无账号风险**的逐回合截图来源，替代/补充真机截图成本。
 6. **P 道具/附魔效果覆盖 + 考试减益 / 限制 / 考试内生成卡**；
 7. **饮料**（官方 AI 直接不喝 = 最强剪枝，可作为 A/B 对照）。
 
 **验收（DoD）**：每补一项 → 模拟器 4 局逐分回归仍一致（`tests/test_hajime_eval.py`）+ 新机制单测 + 对应文档小节。
 **预算**：每项 40–80k token。
+
+### T9（可选，2026-11-22 新增）作者四游戏整合包带来的三件事 ⬜（用户已要求「开新对话做」，三选一）
+
+**背景**：用户 2026-11-22 提供作者新的四游戏整合启动器包（215 MB，11-22 构建），已做静态
+分析并归档 → [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)、提交 `ddf221f`。
+结论：**帮助属参考级**——不能替换采集安装、拿不到算分公式，但有 3 个具体可做的事。
+新会话按用户指定做**其中 1 个**（一次会话只做 1 个任务）；**建议顺序 B7 → C0 → E0**。
+
+#### T9-B7（推荐，纯离线）P 道具 47 条补全（更新 master 快照重建 `p_items.json`）
+- **事实**：包内 `mitm/masterTrans/ProduceItem.json` 给出 **1115 个 id**（=上游最新结构口径，
+  与 [I18N_TODO.md](I18N_TODO.md) 的「本地 1068 / 上游 1115 / 缺 47」一致）；B6 里 gkbench
+  的 **11 个未知 P 道具 id 全部在这 47 条里**。
+- **做法**：取最新 gkumasu-diff `data/cache/ProduceItem.yaml` → 让
+  [build_p_items.py](../scripts/build_p_items.py) 支持「本地 masterTrans 没有的新 id」
+  （结构化字段来自新 yaml；中文缺失时用 yaml 日文文本 + 明确标记，不猜效果）→ 重建
+  `data/knowledge/p_items.json`（1068→1115）→ 更新受影响的测试预期
+  （`test_p_items_db.py` 的 72 已知/11 未知 → 83/0 等）→ `local_bench --p-items auto`
+  重跑覆盖率与 A/B（P 道具覆盖变多，分数可能变）→ 更新 RULES_REFERENCE §5.3 / README/INDEX
+  的覆盖数字。
+- **DoD**：catalog 1115 件且 47 条都有 spec 段；gkbench 505 题模板未知 id = 0；全量 pytest
+  全绿（更新 2–3 处预期）；`local_bench` 打印的「已实现段数」提升并有配对 A/B 新数字；
+  文档数字同步。**不碰真机/账号。**
+- **预算**：~40–60k token。**风险**：上游 yaml 若还没到 1115（网络/快照滞后）→ 退化为
+  「更新到上游可用版本并记录差多少」，不硬造。
+
+#### T9-C0（低成本）采集/更新可靠性经验吸收
+- **事实**：作者这版已经把「游戏更新后采集/更新断链」的坑踩过并修了：官服
+  `x-error-code=2004` 识别、`http1_bridge` 丢失客户端版本/平台/会话头、协议 hash/master
+  表结构变化判据、TLS 代理失败回退直连、CA 精确指纹/有效期、系统代理恢复、只停本目录服务。
+- **做法**：把上述**判据/症状/处理**整理成检查清单写进
+  [TROUBLESHOOTING.md](TROUBLESHOOTING.md)（新小节「游戏更新/协议/代理/TLS 断链」）+
+  [CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md)（对应四个坑的补充），链接
+  `LOCAL_LAUNCHER_20261122.md`；**只写结论，不拷代码**。
+- **DoD**：文档新增检查清单（触发条件→症状→处理→参考文件），pytest 不变；
+  不新增依赖/数据。
+- **预算**：~10–20k token。
+
+#### T9-E0（可选实验，需要真机/独立副本）离线培育测试台
+- **目标**：验证作者包能否离线跑 produce-007（Selection Exam）并推进到**考试**；若可 →
+  作为 **fresh buff 逐回合截图 / T1 UI 回归**的零账号风险来源（考试机制与 produce 类型无关）。
+- **约束**：**独立游戏副本**（第 3 份，勿动 `D:\Games\Gakumas` 与 `C:\GakumasLocal`
+  采集安装）；不覆盖现有采集链路；若必须 DMM 首次抓参按作者文档，别用主账号做未知操作。
+  先问用户是否投入（要碰 GUI/DMM）。
+- **已知不确定性**：`produce_runtime.py` 只看到 lesson/event/shop/rest 处理，**没有
+  Audition/Exam 处理**（考试算分在客户端）→ 很可能考试日卡住/未实现；本实验就是确认这点。
+- **DoD**：明确结论（能否到考试；卡在第几屏/日志/截图证据路径）；若可，标注能服务哪些
+  离线素材需求（fresh buff/T1 回归）；更新 `LOCAL_LAUNCHER_20261122.md` 与 HANDOVER。
+- **预算**：半天左右（含装包/启动）+ 用户配合；结果可能是「不可用」也算完成。
 
 ### T6（P2）补采数据（需要真机 + 采集）⬜
 - **非 5 NPC 的 produce 类型**：K 公式的 `npc_count*turns` 项只验过 5 NPC（[HANDOVER 四①](HANDOVER.md#L266)）。
@@ -621,6 +679,14 @@ P 道具效果覆盖/真机培育侧列表随后）→ 阶段 C/D。详见 [HAND
 [RULES_REFERENCE §5.3](RULES_REFERENCE.md)。提交 `f531d20`（代码 + 测试 + 文档）/
 哈希记录 `639f0b0`。
 
+**2026-11-22 追加（外部情报，不是任务）**：用户提供作者新的**四游戏整合启动器包**
+（215 MB，11-22 构建）→ 已解包静态分析并归档（7z 在 `data/dl/`、解包在仓库外），新增
+[LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)，提交 `ddf221f`。结论：**有帮助但
+属参考级**——工程排障/更新兼容经验、Produce API 语义参考、P 道具 47 条 id 线索；**不能**
+拿考试算分公式、**不能**替换我们的采集安装、**不能**把代码/数据直接入库。由此新增候选任务
+**T9**（B7 / C0 / E0 三选一，见 §4）；用户要求「开新对话做」，默认建议先 **B7**（纯离线、
+收益明确）。
+
 **新会话开场白（复制）**
 
 ```
@@ -676,9 +742,16 @@ loadout 接入（--p-items auto/off）+ gkbench 提交从 ctx.loadout（公开�
 离线 A/B（hif 30 题×2 seed 配对）greedy +128.9（+3.36%，CI[+9.5,+248.4]）/ expectimax
 +149.6（+3.98%）；新增 29 条测试，全量 pytest 1051/1（1052 收集 / 76 文件）。
 见 WORKPLAN B6 / HANDOVER 二·补二十七 / RULES_REFERENCE §5.3。
+**2026-11-22 追加（外部情报）**：用户提供了作者新的**四游戏整合启动器包**（215 MB，
+11-22 构建）→ 已解包静态分析，文档 [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)
+（提交 ddf221f）。帮助属参考级：可吸收其更新/代理/TLS 排障经验、核对 Produce API 语义、
+拿到 P 道具 47 条 id 清单；但**不能**拿算分公式/替换采集安装/直接拷数据。由此新增候选
+**T9**（B7 P 道具 47 条补全 / C0 可靠性经验吸收 / E0 离线培育测试台实验，见 §4）。
 下一步继续 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具效果覆盖/
 真机培育侧列表随后）
 → 阶段 C/D 离线做完 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
+**用户 2026-11-22 指定「开新对话做」T9**（三选一，一次会话只做 1 个；默认建议先 B7，
+见 HANDOVER_NEXT §4 T9）。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。
 ```
