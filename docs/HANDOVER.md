@@ -1239,7 +1239,7 @@ EXPECTIMAX B2 重训注/SIMULATOR；本文件二·补二十七。
 5. B2 学习叶子重训仍等 **fresh buff（需真机逐回合截图）+ P 道具效果覆盖** 补齐
    （本轮只完成数据接入，不是效果全集）。
 
-**提交**：feat `f531d20`（代码 + 测试 + 文档）；哈希记录 随后补。
+**提交**：feat `f531d20`（代码 + 测试 + 文档）；哈希记录 `639f0b0`。
 
 **下一步**：**fresh buff 差一回合**（需真机逐回合截图）→ 阶段 C（执行层可靠性）/ D（补采集）
 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
@@ -1417,6 +1417,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 B6 / T5③ P 道具数据接入：loadout produce_item_ids → PItemSpec + exam_start/extra_plays + gkbench 提交/本地评测接线）
+639f0b0 docs(handover): 补 B6 提交哈希（f531d20）+ 最近交接记录
 f531d20 feat(t5): B6 P 道具数据接入——loadout produce_item_ids → PItemSpec + exam_start/extra_plays + gkbench 提交/本地评测接线（29 条测试）
 （2026-11-22 B5 / T5② 熱意 + 温存解除：独立熱意资源 + +1 出牌/固定元気 + 卡牌效果接入）
 01c983a docs(handover): 补 B5 提交哈希（aca21da）+ 最近交接记录
