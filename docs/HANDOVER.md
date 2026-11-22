@@ -528,6 +528,9 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
   `ヨーグルトパフェ / つくねハンバーグ / ドリンクバー / そこまで真剣だと慰労を超えますが…… /
   倉本さんのお気に入りは……`；中文 `外出 / 审查基准 / 快进` 同时读对；
   同帧 `ProduceDriver` 判 `event-choice/last-row` → 点 (360,935) 选项（不再点「快进」）。
+- **中文 UI / 性能回归**（`scripts/bench_ocr.py --after --verify --threads 8`，JP 模型）：
+  关键词检查 **5/5**（行动/事件/领奖/课程/加载屏中文关键词全部可读）；
+  行动页单步 ≈**189ms**、课程页读屏 ≈**402ms**、全屏 read ≈752ms（仍远低于 1500ms 目标）。
 - **测试**：`tests/test_ocr_config.py` 17 条（优先级/路径/缺文件报错/单行引擎接线）+
   `tests/test_ocr_jp_model.py` 4 条真图（日文/对白/中文 UI/决策选选项；模型缺失自动 skip）；
   修复基线过期断言 `test_read_fast_event_page_uses_option_rows`（事件快速路径补读对话区后

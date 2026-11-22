@@ -56,6 +56,8 @@
   （4 条真图回归，模型缺失自动 skip）；修复基线过期断言
   `test_read_fast_event_page_uses_option_rows`（事件快速路径补读对话区后应允许区域 OCR）；
   真机日志新增 `[ocr] 模型 = …` 一眼确认是否日文模型。
+- 中文 UI/性能回归（`scripts/bench_ocr.py --after --verify --threads 8`）：关键词 **5/5**；
+  行动页单步 ≈189ms、课程页读屏 ≈402ms、全屏 read ≈752ms（目标 ≤1500ms）。
 - 全量 pytest：**926 passed, 1 skipped**（927 条收集 / 65 个测试文件；见 HANDOVER_NEXT §2）。
 
 ### A2. F#42 课程策略：硬打必须保证得分（用户现场发现）
