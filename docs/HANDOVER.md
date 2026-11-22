@@ -1469,6 +1469,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 交接：作者整合包帮助评估 + 候选任务 T9（B7/C0/E0，开新对话做））
+508aa34 docs(handover): 记录作者 11-22 整合包的帮助评估 + 新增候选任务 T9（B7/C0/E0，开新对话做）
 （2026-11-22 外部情报：作者四游戏整合启动器包 11-22 版静态分析——只读参考，衍生候选任务 T9）
 ddf221f docs(intel): 作者 2026-11-22 四游戏整合启动器包分析——新版本变化/修复与采集安装边界
 （2026-11-22 B6 / T5③ P 道具数据接入：loadout produce_item_ids → PItemSpec + exam_start/extra_plays + gkbench 提交/本地评测接线）
