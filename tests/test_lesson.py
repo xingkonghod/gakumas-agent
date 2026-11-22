@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -266,12 +267,22 @@ def test_reader_reads_audition_frame() -> None:
 
 @needs_frames
 def test_reader_reads_lesson_frame() -> None:
+    """课程帧：右上角是**培育属性值**，课程分按开课基线换算；圆环是"还差分"。
+
+    F#42 的根因之一：旧读法把右上属性值当课程分、把圆环"还差 30 分"当 CLEAR 线，
+    于是"分数 90 ≥ CLEAR 30"被判断成已经 PERFECT，搜索一路建议 SKIP。
+    """
     cv2, reader = _reader()
     image = cv2.imread(str(FRAMES / "lesson_now.png"))
     state = reader.read(image, kind="lesson")
     assert state.turns_left == 1
     assert state.stamina == 25
-    assert state.score == 124
+    # 右上角读到的原始属性值 124；这是本课第一帧 → 课程分 0。
+    assert state.attr == 124
+    assert state.score == 0
+    # 正中圆环「PERFECT截止 21」= 还差 21 分到满分线 → 满分线 = 已得分(0) + 21。
+    assert state.goal == "perfect"
+    assert state.perfect == 21
     assert any(card.score for card in state.cards)
 
 
@@ -344,3 +355,108 @@ def test_reader_cost_comes_from_table() -> None:
     image = cv2.imread(str(FRAMES / "exam_c.png"))
     cards = {card.name: card for card in reader.read(image, kind="audition").cards}
     assert cards["猛烈地"].cost == table.cost("猛烈地")
+
+
+# --------------------------------------------------------------------- 课程 HUD 换算（F#42）
+class _FakeHudOcr:
+    """只回答课程 HUD 固定框的假 OCR：回合/属性值/体力/圆环还差分/圆环档位。
+
+    手牌区一律空（``read`` 返回 []），这样不用真图也能测 ``LessonReader.read``
+    的课程分换算（真图回归在 ``tests/test_lesson_play_f42.py``）。
+    """
+
+    _CENTERS: ClassVar[dict[tuple[int, int], str]] = {
+        (370, 108): "goal",  # 圆环标签 (295, 96, 150, 24)
+        (104, 85): "turns",  # (58, 56, 92, 58)
+        (646, 61): "attr",  # 右上属性值 (588, 34, 116, 54)
+        (602, 183): "stamina",  # (556, 156, 92, 54)
+        (360, 140): "gauge",  # 圆环数字 (300, 105, 120, 70)
+    }
+
+    def __init__(self, **values: str) -> None:
+        self.values = dict(values)
+
+    def read(self, image, roi=None):  # 手牌名整块 OCR：不需要
+        return []
+
+    def line(self, image, roi, *, digits_only: bool = False):
+        from gkagent.vision.ocr import OcrLine
+
+        x, y, w, h = (int(value) for value in roi)
+        cx, cy = x + w // 2, y + h // 2
+        key = next(
+            (
+                name
+                for (ex, ey), name in self._CENTERS.items()
+                if abs(cx - ex) <= 6 and abs(cy - ey) <= 6
+            ),
+            None,
+        )
+        return OcrLine(self.values.get(key, "") if key else "", 0.9, roi)
+
+
+def _hud_reader(**values: str):
+    from gkagent.vision.lesson import LessonReader
+
+    return LessonReader(_FakeHudOcr(**values))
+
+
+def _read_hud(reader, **values: str):
+    import numpy as np
+
+    reader.engine.values.update(values)
+    return reader.read(np.zeros((1280, 720, 3), dtype=np.uint8), kind="lesson")
+
+
+def test_lesson_hud_maps_attr_to_relative_score_and_clear_line() -> None:
+    """课程分 = 右上属性值 − 开课属性值；CLEAR 线 = 已得分 + 圆环"还差"分。"""
+    reader = _hud_reader(
+        turns="5", attr="162", gauge="30", stamina="36", goal="CLEAR截止"
+    )
+    state = _read_hud(reader)
+    assert (state.goal, state.attr, state.score) == ("clear", 162, 0)
+    assert (state.gauge, state.perfect) == (30, 60)
+
+    # 打出一刀 +28 分：属性 190、还差 2 分 → 课程分 28，过关线还是 30。
+    state = _read_hud(reader, turns="4", attr="190", gauge="2")
+    assert (state.score, state.gauge, state.perfect) == (28, 30, 60)
+
+    # 过关后圆环换成 PERFECT：属性 214、还差 8 分 → 满分线 = 52 + 8 = 60。
+    state = _read_hud(reader, turns="3", attr="214", gauge="8", goal="PERFECT截止")
+    assert state.goal == "perfect"
+    assert (state.score, state.perfect) == (52, 60)
+    assert state.gauge == 30  # 满分线的一半（普通/SP 课 CLEAR = 满分/2）
+
+
+def test_lesson_hud_rebases_score_on_new_lesson() -> None:
+    """新开一节课：reset_lesson() 后课程分从 0 重新算（属性基线跟着换）。"""
+    reader = _hud_reader(
+        turns="5", attr="162", gauge="30", stamina="36", goal="CLEAR截止"
+    )
+    assert _read_hud(reader).score == 0
+    assert _read_hud(reader, attr="190", gauge="2").score == 28
+    reader.reset_lesson()
+    state = _read_hud(reader, turns="6", attr="500", gauge="40", goal="CLEAR截止")
+    assert (state.attr, state.score, state.gauge) == (500, 0, 40)
+
+
+def test_lesson_hud_keeps_last_goal_when_label_unreadable() -> None:
+    """档位标签在动画帧读不到：沿用本课最近一次读到的档位，不瞎猜。"""
+    reader = _hud_reader(
+        turns="3", attr="162", gauge="30", stamina="36", goal="CLEAR截止"
+    )
+    assert _read_hud(reader).goal == "clear"
+    state = _read_hud(reader, attr="170", gauge="22", goal="")
+    assert (state.goal, state.score, state.gauge) == ("clear", 8, 30)
+    state = _read_hud(reader, attr="200", gauge="10", goal="PERFECT截止")
+    assert (state.goal, state.score, state.perfect) == ("perfect", 38, 48)
+
+
+def test_perfect_line_table_covers_oikomi_tiers() -> None:
+    """满分线查档位表：普通/SP 课 = 2×过关线；追い込み 90→360、165→600。"""
+    from gkagent.vision.lesson import _perfect_line
+
+    assert _perfect_line(30) == 60
+    assert _perfect_line(40) == 80
+    assert _perfect_line(90) == 360
+    assert _perfect_line(165) == 600

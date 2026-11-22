@@ -1132,6 +1132,11 @@ def main() -> int:
                 last_stamina = stamina
             turns_match = re.search(r"剩余回合数\s*(\d+)", text)
             turns = int(turns_match.group(1)) if turns_match else None
+            # 新的一节课开始：清掉上一课的属性基线（课程分 = 右上属性值 − 开课属性值，
+            # 见 vision.lesson.LessonReader._with_lesson_progress）。课程帧消失时
+            # end_lesson() 会把 lesson_active 置 False，下一帧课程即新的一课。
+            if not exam_mode and not lesson_active:
+                lesson_reader.reset_lesson()
             # 读一次局面（剩余回合/体力/分数预览/手牌名），后面出牌不再重复 OCR。
             # 考试页顶部多了排名条，数值位置和课程不同（vision.lesson.LAYOUTS），必须传 kind。
             lesson_state = lesson_reader.read(image, kind="audition" if exam_mode else "lesson")
@@ -1140,11 +1145,11 @@ def main() -> int:
                 last_stamina = stamina
             if lesson_state.turns_left is not None:
                 turns = lesson_state.turns_left
-            # 课程帧：记录本课实时总分（右上角），课程结束/CLEAR 时用作 lesson_score。
+            # 课程帧：记录本课实时得分（LessonState.score 已是"本课增量"，0 分也记）。
             # 考试帧不记（exam_mode=True），考试得分走考试结算屏。
             if not exam_mode:
                 lesson_active = True
-                if lesson_state.score is not None and lesson_state.score > 0:
+                if lesson_state.attr is not None:
                     last_lesson_score = lesson_state.score
             # 考试牌序计划（T3 实时接线）：不在启动时锁定场次——进入考试时把候选
             # 交给 ExamPlanSelector，用第一回合实机手牌自动挑对上的那一份；

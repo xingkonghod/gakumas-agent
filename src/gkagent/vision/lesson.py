@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
@@ -41,7 +41,10 @@ LAYOUTS: dict[str, dict[str, tuple[int, int, int, int] | None]] = {
         "turns": (58, 56, 92, 58),
         "score": (588, 34, 116, 54),
         "stamina": (556, 156, 92, 54),
+        # 正中圆环：上行「CLEAR截止 / PERFECT截止」是**当前档位**，下行数字是
+        # **还差多少分**到该档位（不是过关线本身，2026-11-22 实拍核对）。
         "gauge": (300, 105, 120, 70),
+        "goal": (295, 96, 150, 24),
     },
     "audition": {
         "turns": (34, 56, 92, 60),
@@ -126,8 +129,18 @@ class LessonState:
     # 本课程总回合数（OCR 只读"剩余回合数"；能读到课程配置时由调用方填，
     # 用于判断"这是第几回合/还剩几回合"）。None = 未知。
     total_turns: int | None = None
+    # 本课**已得分数**（相对开课，0 起）。注意：课程界面右上角显示的是培育属性值，
+    # 不是课程分；课程分 = 右上属性值 − 开课时属性值（``LessonReader`` 按课跟踪基线）。
     score: int | None = None
+    # CLEAR（过关）线。真机由「CLEAR截止 N / PERFECT截止 N（还差 N 分）」反推：
+    # 还差分 + 已得分 = 该档位线。合成状态/评测脚本可以直接传。
     gauge: int | None = None
+    # PERFECT（满分）线；真机读不到时按档位表（``sim.hajime_data``）或 2×过关线推。
+    perfect: int | None = None
+    # 正中圆环当前档位：``"clear"``（还没过关）/ ``"perfect"``（已过关，冲满分）。
+    goal: str | None = None
+    # 右上角读到的原始属性值（培育属性值；日志/诊断用，决策只看上面的 score）。
+    attr: int | None = None
     stamina: int | None = None
     attribute: str | None = None
     multiplier: float | None = None
@@ -173,6 +186,15 @@ class LessonReader:
         self.table = table if table is not None else CardTable()
         # 卡名 → 上一回合分数宝石没读到。下次读到同一张牌时优先重读那颗宝石。
         self._recheck: set[str] = set()
+        # 本课基线：右上角是培育属性值（绝对），课程分要减去开课瞬间的属性值。
+        # 新开一节课时由调用方 ``reset_lesson()`` 清零。
+        self._lesson_attr_base: int | None = None
+        self._lesson_goal: str | None = None
+
+    def reset_lesson(self) -> None:
+        """新开一节课：清掉上一课的分基线/档位记忆（课程帧消失时调用）。"""
+        self._lesson_attr_base = None
+        self._lesson_goal = None
 
     @property
     def pending_recheck(self) -> tuple[str, ...]:
@@ -205,11 +227,23 @@ class LessonReader:
             notes.append("turns-unread")
         if stamina is None:
             notes.append("stamina-unread")
-        return LessonState(
+        goal = None
+        if kind == "lesson":
+            # 圆环档位（CLEAR截止 / PERFECT截止）：动画帧会读不到，记住本课最近一次值。
+            goal = self._read_goal(image)
+            if goal is not None:
+                self._lesson_goal = goal
+            goal = self._lesson_goal
+            if goal is None:
+                notes.append("goal-unread")
+        state = LessonState(
             kind=kind,
             turns_left=turns,
+            # 课程右上角读到的是培育属性值；下面 _with_lesson_progress() 换算成课程分。
             score=score,
             gauge=gauge,
+            goal=goal,
+            attr=score if kind == "lesson" else None,
             stamina=stamina,
             attribute=attribute,
             multiplier=float(multiplier) if multiplier is not None else None,
@@ -217,6 +251,61 @@ class LessonReader:
             skip_point=(int(SKIP_POINT[0] * sx), int(SKIP_POINT[1] * sy)),
             notes=tuple(notes),
         )
+        if kind == "lesson":
+            state = self._with_lesson_progress(state)
+        return state
+
+    def _with_lesson_progress(self, state: LessonState) -> LessonState:
+        """课程 HUD 原始读数 → 课程相对读数（本课得分 + CLEAR/PERFECT 线）。
+
+        界面事实（2026-11-22 实拍核对，和 hiro 的课程 HUD 口径一致）：
+
+        - 右上角 = **培育属性值**（属性图标 + 评级 + 数字），不是课程分；
+          课程分 = 属性值 − 开课瞬间的属性值（基线由 ``reset_lesson()`` 重置）；
+        - 正中圆环 = 「CLEAR截止 / PERFECT截止 N」= **还差 N 分**到当前档位；
+          过了 CLEAR 换成 PERFECT，打满 PERFECT 课程立即结束；
+        - 所以：过关线 = 本课已得分 + 圆环还差分。
+
+        读不到属性值/圆环时保持原值（策略有未知兜底），绝不编造。
+        """
+        attr = state.attr
+        remaining = state.gauge
+        if attr is None:
+            return state
+        if self._lesson_attr_base is None:
+            self._lesson_attr_base = int(attr)
+        points = max(int(attr) - int(self._lesson_attr_base), 0)
+        clear: int | None = None
+        perfect: int | None = None
+        left = None
+        if remaining is not None:
+            try:
+                left = max(int(remaining), 0)
+            except (TypeError, ValueError):
+                left = None
+        if left is not None:
+            if state.goal == "perfect":
+                # 已过关：圆环显示「还差多少到满分」，满分线 = 已得分 + 还差。
+                perfect = points + left
+                clear = max(round(perfect / 2.0), 1)
+            else:
+                # 未过关（或档位暂时读不到）：课程总是从 CLEAR 开始冲，按 CLEAR 理解。
+                clear = points + left
+                perfect = _perfect_line(clear)
+        return replace(state, score=points, gauge=clear, perfect=perfect)
+
+    def _read_goal(self, image: np.ndarray) -> str | None:
+        """读正中圆环的当前档位：「CLEAR截止 / PERFECT截止」→ clear / perfect。"""
+        box = (LAYOUTS.get("lesson") or {}).get("goal")
+        if box is None:
+            return None
+        line = self._safe_line(image, box, digits_only=False)
+        text = (line.text or "").upper() if line is not None else ""
+        if "PERFECT" in text:
+            return "perfect"
+        if "CLEAR" in text:
+            return "clear"
+        return None
 
     # ------------------------------------------------------------------ 手牌
     def read_cards(
@@ -486,6 +575,20 @@ def _clean_lookup_name(name: str) -> str:
     from gkagent.tasks.produce_ui import clean_card_name
 
     return clean_card_name(name)
+
+
+def _perfect_line(clear: int) -> int:
+    """由过关线反推满分线：优先主数据档位表（追い込み 90→360、165→600），缺省 2×。
+
+    普通课 / SP 课的满分线都是过关线的 2 倍；追い込み课是 3.6–4 倍，档位表里能查到，
+    不查就会以为"打满"了而收手（课程仍在继续，白丢属性）。
+    """
+    try:
+        from gkagent.sim.hajime_data import perfect_target
+
+        return int(perfect_target(int(clear)))
+    except Exception:  # noqa: BLE001 - 查表失败按 2×过关线（绝大多数普通/SP 课如此）
+        return int(clear) * 2
 
 
 def read_stamina_preview(

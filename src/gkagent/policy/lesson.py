@@ -637,9 +637,12 @@ class LessonPolicy:
         if not play_cards:
             self.last_fallback_reason = "手牌无法转成卡表规格"
             return None
-        perfect = math.ceil(
-            float(gauge) * float(self.params["perfect_target_multiplier"])
-        )
+        perfect = state.perfect if (state.perfect or 0) > 0 else None
+        if perfect is None:
+            # 由过关线反推满分线：档位表（追い込み 90→360、165→600）优先，缺省 2×。
+            from gkagent.sim.hajime_data import perfect_target
+
+            perfect = int(perfect_target(int(gauge)))
         kwargs: dict = {}
         reshuffle = None
         plan = getattr(self, "draw_plan", None)
@@ -658,8 +661,16 @@ class LessonPolicy:
             score=max(int(state.score or 0), 0),
             turns_left=max(int(turns_left), 1),
             total_turns=max(int(state.total_turns or turns_left), 1),
-            plays_used=max(int(self._plays_this_turn), 0),
-            play_limit=3,
+            # 游戏规则（2026-11-22 实拍 + 考试逐回合日志 + 社区核对）：**每回合默认
+            # 只能出 1 张牌**（一手 3 张是"选 1 张"；额外出牌次数来自卡效果/P 道具）。
+            # 旧实现写死 3（"手牌 3 张"的误读）会让搜索以为一回合能连打 3 张：于是
+            # "先铺 buff 再补两刀"永远比直接出分牌划算，每回合都先打 buff → 整节课 0 分
+            # FAILED（F#42）。
+            # 这里每次决策只建模"现在打 1 张"，打完下一帧重新读屏再决策；额外出牌时游戏
+            # 会继续问策略（`_plays_this_turn` 记账继续加），所以不把本回合已出牌数喂给搜索，
+            # 否则会出现 plays_left=0 的假死（模拟器 A/B 里表现为 RuleFallbackBlocked）。
+            plays_used=0,
+            play_limit=1,
             clear=int(gauge),
             perfect=max(int(perfect), int(gauge)),
             hand_size=len(play_cards),
@@ -734,6 +745,12 @@ class LessonPolicy:
         用户规则（2026-11-21）：读不到价值/搜索建议都不是跳过理由，只有所有牌都
         付不起才允许 SKIP。这里绝不回退 rules——硬打的依据必须是引擎给出的动作
         排序；真没动作时返回 ``None``（调用方按失败处理）或 ``wait``（考试）。
+
+        用户现场 F#42（2026-11-22）：禁跳规则下的"硬打"**必须保证得分**——搜索
+        在"反正到不了 CLEAR"的回合会把所有动作打成平手（值都是 0.00），若照原排序
+        硬打会挑中 buff 牌（表情的基础之类，0 分）→ 整节课 0 分 FAILED。所以这里
+        先筛"屏幕分数预览 > 0"的牌，按（搜索价值, 屏幕分）排序硬打；一张正分牌都
+        没有时才退回原排序（hand 全是 buff/防御牌时打什么都一样）。
         """
         affordable = [
             card
@@ -746,6 +763,16 @@ class LessonPolicy:
             reverse=True,
         )
         if affordable:
+            preview = self._preview_by_name(state, play_cards)
+            scored = [
+                (name, value) for name, value in ranked if preview.get(name, 0.0) > 0.0
+            ]
+            if scored:
+                ranked = sorted(
+                    scored,
+                    key=lambda item: (float(item[1]), preview.get(item[0], 0.0)),
+                    reverse=True,
+                )
             for name, value in ranked:
                 spec = next(
                     (item.spec for item in play_cards if item.spec.name == name), None
@@ -785,6 +812,25 @@ class LessonPolicy:
             point=state.skip_point,
             reason=f"所有牌都付不起（体力 {state.stamina}），允许 SKIP",
         )
+
+    @staticmethod
+    def _preview_by_name(state: LessonState, play_cards) -> dict[str, float]:
+        """搜索动作名 → 屏幕分数预览（这张牌当下能打多少分；buff 牌不算）。
+
+        卡表认出是 buff（``LessonCard.buff``）的一律记 0：buff 牌不产生课程分，
+        F#42 的"硬打必须得分"就是不让它以 0 分占掉最后一回合。
+        """
+        preview: dict[str, float] = {}
+        for item in play_cards:
+            index = int(getattr(item, "index", -1))
+            card = state.cards[index] if 0 <= index < len(state.cards) else None
+            score = 0.0
+            if card is not None and not card.buff:
+                score = float(card.total_score)
+            name = str(getattr(item.spec, "name", "") or "")
+            if name:
+                preview[name] = max(preview.get(name, 0.0), score)
+        return preview
 
     def _try_expectimax(
         self, state: LessonState, *, allow_skip: bool
@@ -1096,11 +1142,14 @@ class LessonPolicy:
         return value
 
     def _perfect_target(self, state: LessonState) -> int | None:
-        """PERFECT 线 = 屏幕 CLEAR 基准 × ``perfect_target_multiplier``。
+        """PERFECT（满分）线：真机读屏已经算出来的优先（``state.perfect``）。
 
-        ``LessonState.gauge`` 是课程界面上读到的 CLEAR 基准；没有它（试镜/OCR
-        没读到）时返回 None，策略退回原来的"性价比优先"。
+        读屏口径见 ``vision.lesson.LessonReader``：圆环「CLEAR截止 / PERFECT截止 N」
+        给的是还差分，换算后得到过关线/满分线，都在 ``LessonState`` 里。
+        没有真机换算值时按档位表（``sim.hajime_data``）由过关线反推，最后退 2×。
         """
+        if state.perfect is not None and int(state.perfect) > 0:
+            return int(state.perfect)
         gauge = state.gauge
         if gauge is None or gauge <= 0:
             return None

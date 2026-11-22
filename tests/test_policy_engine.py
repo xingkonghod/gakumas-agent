@@ -33,7 +33,7 @@ TABLE = FakeTable(
 )
 
 
-def _card(index: int, name: str, score: int, cost: int) -> LessonCard:
+def _card(index: int, name: str, score: int, cost: int, *, buff: bool = False) -> LessonCard:
     return LessonCard(
         index=index,
         box=(0, 0, 1, 1),
@@ -41,6 +41,7 @@ def _card(index: int, name: str, score: int, cost: int) -> LessonCard:
         name=name,
         score=score,
         cost=cost,
+        buff=buff,
     )
 
 
@@ -204,6 +205,44 @@ def test_expectimax_skip_without_alternative_blocks(monkeypatch, tmp_path: Path)
     policy = _policy(tmp_path, engine="expectimax")
     with pytest.raises(RuleFallbackBlocked, match="SKIP"):
         policy.decide(_state())
+
+
+def test_hardplay_prefers_scoring_card_on_flat_tie(monkeypatch, tmp_path: Path) -> None:
+    """F#42：动作全平手（反正到不了 CLEAR）时，硬打必须先打正分牌，不能打 buff。
+
+    真机 ep-t3-4：最后一回合 0 分、还差 30 分，搜索把所有动作打成 0.00，
+    旧排序挑中 buff 牌「表情的基础」→ 本课 0 分 FAILED。硬打必须保证得分。
+    """
+
+    def fake(state, *args, **kwargs):
+        return ExpectimaxResult(
+            card=None,
+            utility=0.0,
+            skip_utility=0.0,
+            actions=(("表情的基础", 0.0), ("魅力的基础", 0.0), ("轻快步伐", 0.0)),
+            nodes=3,
+            elapsed_ms=0.2,
+            complete=True,
+        )
+
+    monkeypatch.setattr(
+        "gkagent.sim.expectimax.expectimax_with_stats", fake, raising=True
+    )
+    policy = _policy(tmp_path, engine="expectimax")
+    state = _state(
+        turns_left=1,
+        score=0,
+        gauge=30,
+        cards=(
+            _card(0, "魅力的基础", 29, 4),
+            _card(1, "表情的基础", 1, 1, buff=True),
+            _card(2, "轻快步伐", 23, 4),
+        ),
+    )
+    action = policy.decide(state)
+    assert action.kind == "card"
+    assert action.card is not None and action.card.name == "魅力的基础"
+    assert "SKIP" in action.reason and "硬打" in action.reason
 
 
 def test_expectimax_skip_allowed_when_no_card_affordable(
