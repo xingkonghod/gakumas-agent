@@ -439,15 +439,21 @@ score(card) = 卡面分 + 集中/好调/好印象的边际收益 + 费用/体力
 
 我们的模型：
 
-- `sim/p_items.py` 有 6 个触发时机的 `PItemSpec`，未实现类型 no-op；
-- `ExpectState.p_items` 可以带 P 道具，但 gkbench 适配器**没有**把
-  `ctx.loadout.produce_item_ids` 转成 `PItemSpec`（obs 里只有 `ench` id，
-  没有可结算的数值）；
-- 回忆/附魔的持续效果没有进 `ExpectState`。
+- `sim/p_items.py` 有 6 个触发时机的 `PItemSpec`（含 2026-11-22 T5③ 新增的
+  `exam_start`「训练/考试开始时」与 `ExamPlayableValueAdd → extra_plays`），未实现类型 no-op；
+- **T5③ 已接**（2026-11-22）：`src/gkagent/data/p_items_db.py` 把 `ctx.loadout`
+  （base.py 明说「开局配置（不含种子）」）里的 `produce_item_ids` 映射到本地
+  `p_items.json` 的 `PItemSpec`，gkbench 提交适配器（`submissions/expectimax/algo.py`）
+  与 `scripts/local_bench.py` 都已接；未知 id（快照外新道具）显式上报、缺数据不静默；
+- gkbench 题模板（505 题）的 loadout 里每局 1–10 个 P 道具（83 个唯一 id / 72 个在
+  2026-09-16 主数据快照里）；离线 A/B（hif 30 题×2 seed 配对）greedy +128.9（+3.36%）、
+  expectimax +149.6（+3.98%）；但**效果覆盖仍低**（已知 131 段 spec 只实现 31 段）；
+- 回忆/附魔的持续效果仍未进 `ExpectState`；obs 里没有 P 道具已用次数（保守按 0 开始）。
 
-结论：这是 gkbench 适配器最大的分数缺口之一。短期可以先把 P 道具 id 映射到
-我们已有的 `data/knowledge/p_items.json`（1.2 MB）里的 `PItemSpec`；但那是
-`ctx.loadout` 的公开信息，和「只读 obs」的约束需要确认。
+结论：P 道具的**数据接入**已完成（离线 loadout 侧），这也是当时"gkbench 适配器最大
+分数缺口之一"的第一层；剩余缺口变成**效果覆盖**（`ExamLessonValueMultiple`/
+`ExamParameterBuff`/`ExamStaminaReduceFix`/生成卡/指針类需要参考引擎语义）与
+真机培育侧 P 道具列表（T6/D1 补采）。详见 RULES_REFERENCE §5.3 / HANDOVER 二·补二十七。
 
 ### 3.7 选牌 / 检索 / 生成 / 移动
 
@@ -541,8 +547,10 @@ score(card) = 卡面分 + 集中/好调/好印象的边际收益 + 费用/体力
    减少每步重搜（H1）。
 2. **leaf 加层/资源特征**：把 `review_multiple`、`full_power_lesson_multiple`、
    `extra_plays`、`hold_count` 进 `predict`（H4/H8）。
-3. **P 道具映射**：如果允许读 `ctx.loadout`，把 `produce_item_ids` 映射成
-   `PItemSpec`，这是 hif 分数缺口最大的一块（3.6）。
+3. ~~**P 道具映射**~~ ✅ **2026-11-22 T5③ 已完成（离线 loadout 侧）**：允许读
+   `ctx.loadout`（base.py：开局配置、不含种子），把 `produce_item_ids` 映射成本地
+   `PItemSpec`（`gkagent.data.p_items_db`）；`local_bench` 与 gkbench 提交适配器已接，
+   见 RULES_REFERENCE §5.3。**剩余**：效果覆盖（31/131 段）、真机培育侧列表、主道具附魔。
 
 ### P2：需要引擎/数据支持的
 

@@ -3,8 +3,10 @@
 这个文件只做三件事：
 
 1. ``obs -> ExpectState``：手牌/山札/弃牌/除外按 UIObs 的 id+强化次数查卡表，
-   体力/元气/分数/回合/出牌数/状态按画面字段填；画面没有的（P 道具、回忆、
-   饮料效果、定制、成长、保留区）用保守默认（见 ``_state`` / ``_spec``）。
+   体力/元气/分数/回合/出牌数/状态按画面字段填；画面没有的（回忆、饮料效果、
+   定制、成长、保留区）用保守默认（见 ``_state`` / ``_spec``）。P 道具从
+   ``ctx.loadout.produce_item_ids``（开局就公开的配置，不含种子）映射成本地
+   ``PItemSpec`` 清单，交给 ``gkagent.sim.expectimax`` 在回合/出牌时机结算。
 2. 调 ``gkagent.sim.expectimax``：枚举本回合所有合法有序出牌序列，抽牌是精确
    机会节点，目标函数是 ``E[a·P(score≥CLEAR) + b·P(score≥PERFECT)]``。
 3. 把首牌映射回 ``("play", i)`` / ``("drink", j)`` / ``("end",)``，并**保证**
@@ -17,18 +19,22 @@
   说 meta 不含种子）；拿不到就退回 hif 尺度的常量，可用参数覆盖。
 - 不用 ``ctx.seed`` / ``ctx.worlds`` / ``ctx.true_session``；``needs_gkms = False``。
 - 画面里读不到的字段一律保守：牌序未知（我们的引擎本来就只吃多重集）、
-  P 道具/回忆/定制/成长不建模、饮料不建模、保留区不进牌库。
+  回忆/定制/成长不建模、饮料不建模、保留区不进牌库；P 道具已结算但已用次数未知
+  （obs 里没有 uses，保守按 0 开始 → 可能高估剩余可用次数，见 ``_resolve_p_items``）。
 
 本地跑（需要仓库的 ``src`` 在 PYTHONPATH，或把 ``src/gkagent`` 放进本目录的
 ``vendor/``）：
 
     python -m gkbench eval --set hif --algo submissions/expectimax/algo.py:ExpectimaxAlgo --seeds 2
 
-提交到 gkbench 时把 ``data/knowledge/card_table.json`` 复制到本目录旁即可；
-``gkbench`` 会先把本目录加进 ``sys.path``，同目录的辅助模块/数据能直接读。
+提交到 gkbench 时把 ``data/knowledge/card_table.json`` 和
+``data/knowledge/p_items.json`` 复制到本目录旁即可；``gkbench`` 会先把本目录加进
+``sys.path``，同目录的辅助模块/数据能直接读。缺 P 道具数据时算法仍会跑（P 道具
+按空清单处理，并在 ``Decision.meta["p_items_error"]`` 里记录原因，不假装结算过）。
 """
 from __future__ import annotations
 
+import functools
 import json
 import math
 import os
@@ -45,13 +51,19 @@ _VENDOR = Path(__file__).resolve().parent / "vendor"
 if _VENDOR.is_dir() and str(_VENDOR) not in sys.path:
     sys.path.insert(0, str(_VENDOR))
 
-from gkagent.sim.expectimax import (  # noqa: I001 - 必须在 vendor 路径之后导入
+from gkagent.data.p_items_db import (  # noqa: I001 - 必须在 vendor 路径之后导入
+    PItemDataUnavailable,
+    load_p_item_catalog,
+    resolve_produce_item_ids,
+)
+from gkagent.sim.expectimax import (
     AnalyticLeafValue,
     ExpectState,
     ExpectimaxConfig,
     expectimax_with_stats,
 )
 from gkagent.sim.lesson import CardSpec
+from gkagent.sim.p_items import PItemSpec
 from gkagent.sim.stance import score_multiplier
 
 __all__ = ["ExpectimaxAlgo"]
@@ -69,6 +81,8 @@ DEFAULT_PERFECT = 450_000
 DEFAULT_SIGMA_RATIO = 0.35
 # 卡表候选路径：优先同目录（提交时复制一份），再退回仓库 data/knowledge。
 _TABLE_NAME = "card_table.json"
+# P 道具目录（T5③）：与卡表同样优先同目录，再退回仓库 data/knowledge。
+_P_ITEMS_NAME = "p_items.json"
 
 
 def _table_candidates() -> Iterable[Path]:
@@ -79,6 +93,27 @@ def _table_candidates() -> Iterable[Path]:
     yield here / _TABLE_NAME
     # here = <repo>/submissions/expectimax，parents[1] = <repo>。
     yield here.parents[1] / "data" / "knowledge" / _TABLE_NAME
+
+
+def _p_items_candidates() -> Iterable[Path]:
+    env = os.environ.get("GKAGENT_P_ITEMS")
+    if env:
+        yield Path(env).expanduser()
+    here = Path(__file__).resolve().parent
+    yield here / _P_ITEMS_NAME
+    yield here.parents[1] / "data" / "knowledge" / _P_ITEMS_NAME
+
+
+@functools.lru_cache(maxsize=1)
+def _load_p_item_catalog():
+    """读 P 道具目录（同目录/仓库 data/knowledge 任一）；找不到抛 PItemDataUnavailable。"""
+    tried: list[str] = []
+    for path in _p_items_candidates():
+        if not path.is_file():
+            tried.append(str(path))
+            continue
+        return load_p_item_catalog(path)
+    raise PItemDataUnavailable("找不到 P 道具数据（试过：" + "、".join(tried) + "）")
 
 
 # --------------------------------------------------------------- 卡表 -> CardSpec
@@ -512,7 +547,8 @@ class ExpectimaxAlgo(Algorithm):
         "detail": [
             "枚举本回合所有合法有序出牌序列（抽牌作为精确机会节点）",
             "目标 = E[CLEAR/PERFECT 档位效用]，不是期望分",
-            "画面没有的 P 道具/回忆/定制/饮料/牌序用保守默认，不用种子和世界",
+            "P 道具用 ctx.loadout.produce_item_ids（开考公开、不含种子）映射成本地规则结算",
+            "画面没有的回忆/定制/饮料/牌序/已用次数用保守默认，不用种子和世界",
         ],
         "links": [
             {
@@ -533,8 +569,50 @@ class ExpectimaxAlgo(Algorithm):
         self.clear_override = max(_as_int(params.get("clear"), 0), 0)
         self.perfect_override = max(_as_int(params.get("perfect"), 0), 0)
         self.allow_drinks = bool(params.get("allow_drinks", False))
+        # P 道具开关（F1/F2 A/B 对照：p_items=false 即旧行为）
+        self.use_p_items = bool(params.get("p_items", True))
         self._rows: dict[tuple[str, int], tuple[str, Mapping[str, Any]]] | None = None
         self._spec_cache: dict[tuple[str, int], CardSpec] = {}
+        self._p_items: tuple[PItemSpec, ...] | None = None
+        self._p_items_meta: dict[str, Any] = {}
+
+    # ------------------------------------------------------------- P 道具
+    def _resolve_p_items(self, loadout: Any) -> tuple[PItemSpec, ...]:
+        """``ctx.loadout.produce_item_ids`` -> ``PItemSpec``（一局解析一次）。
+
+        loadout 是 base.py 明说的「开局配置（不含种子）」，用它是公平的。
+        未知 id（p_items.json 快照之后新增的道具）在 ``_p_items_meta`` 里显式列出；
+        缺数据文件时按空清单跑，但 ``meta["p_items_error"]`` 会记录原因——不假装
+        结算过（旧行为 = 不建模 P 道具）。
+        """
+        if self._p_items is not None:
+            return self._p_items
+        self._p_items = ()
+        ids: Any = None
+        if isinstance(loadout, Mapping):
+            ids = loadout.get("produce_item_ids")
+        if not self.use_p_items or not ids:
+            self._p_items_meta = {"ids": 0, "enabled": bool(self.use_p_items)}
+            return self._p_items
+        try:
+            catalog = _load_p_item_catalog()
+            resolved = resolve_produce_item_ids(ids, catalog=catalog)
+        except PItemDataUnavailable as exc:
+            self._p_items_meta = {
+                "ids": len(list(ids)) if isinstance(ids, Iterable) else 0,
+                "error": str(exc),
+            }
+            return self._p_items
+        self._p_items = resolved.specs
+        summary = resolved.summary()
+        self._p_items_meta = {
+            "ids": summary["ids"],
+            "known": summary["known_ids"],
+            "unknown": list(summary["unknown_ids"]),
+            "specs": summary["specs"],
+            "implemented": summary["implemented"],
+        }
+        return self._p_items
 
     # ------------------------------------------------------------- 卡表
     def _ensure_rows(self) -> dict[tuple[str, int], tuple[str, Mapping[str, Any]]]:
@@ -596,7 +674,14 @@ class ExpectimaxAlgo(Algorithm):
         return DEFAULT_CLEAR, DEFAULT_PERFECT
 
     # ------------------------------------------------------------- 状态
-    def _state(self, obs: Mapping[str, Any], clear: int, perfect: int) -> ExpectState:
+    def _state(
+        self,
+        obs: Mapping[str, Any],
+        clear: int,
+        perfect: int,
+        *,
+        p_items: tuple[PItemSpec, ...] = (),
+    ) -> ExpectState:
         exam = obs.get("exam") or {}
         num = obs.get("num") or {}
         turn = max(_as_int(exam.get("turn"), 1), 1)
@@ -644,8 +729,10 @@ class ExpectimaxAlgo(Algorithm):
             stance=stance,
             attribute_coefficient=coefficient,
             hand_size=max(len(hand), 1),
-            # P 道具/回忆/饮料：obs 只有 id，没有可结算的数值；不塞进状态。
-            p_items=(),
+            # 回忆/饮料：obs 只有 id，没有可结算的数值；不塞进状态。
+            # P 道具：id 清单来自 ctx.loadout（公开配置），已映射成 PItemSpec；
+            # 已用次数 obs 里没有，保守按 0 开始（可能高估剩余可用次数）。
+            p_items=p_items,
             drinks=(),
             drinks_per_turn=0 if not self.allow_drinks else None,
         )
@@ -677,7 +764,8 @@ class ExpectimaxAlgo(Algorithm):
             )
 
         clear, perfect = self._targets(ctx, obs)
-        state = self._state(obs, clear, perfect)
+        p_items = self._resolve_p_items(getattr(ctx, "loadout", None))
+        state = self._state(obs, clear, perfect, p_items=p_items)
         sigma = self.sigma_fixed or max(clear * self.sigma_ratio, 1.0)
         leaf = _ExamLeafValue(
             sigma=sigma, a_clear=self.a_clear, a_perfect=self.a_perfect
@@ -704,6 +792,8 @@ class ExpectimaxAlgo(Algorithm):
             "perfect": perfect,
             "sigma": round(sigma, 2),
         }
+        if self._p_items_meta:
+            meta["p_items"] = dict(self._p_items_meta)
 
         if result.card is None and playable and not result.actions:
             # 搜索在展开第一张牌之前就超时/模型认为一张都打不了：画面仍说这些牌

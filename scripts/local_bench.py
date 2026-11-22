@@ -34,7 +34,8 @@
 **UINet（``uinet`` 算法）的观测缺口**（详见 ``sim_to_uiobs`` 的 docstring）：
 
 - LessonSim 没有逐回合属性（``exam.types`` 一律保守填 1=Vo）；
-- 没有饮料/附魔/保留区/P 道具，``drinks``/``ench``/``hold`` 为空；
+- 没有饮料/附魔/保留区，``drinks``/``ench``/``hold`` 为空（P 道具已从 loadout 接入
+  LessonSim/expectimax，见 ``--p-items``；UINet 的 UIObs 里没有 P 道具字段）；
 - 卡牌定制不建模，``c``/``g`` 省略；
 - hajime 的 produce 是 produce-001/006（33/48 是 lesson），不在 UINet 词表里，
   只能按 round 映射到最接近的 H.I.F 枚举；**H.I.F 题集则直接使用题面自带的
@@ -47,8 +48,9 @@
 - 种子不同：hajime 的 ``public_seeds=false``，``/api/sets/hajime/seeds`` 返回
   401，题集接口只给 ``exam_sha`` / ``fixed_id``，不给种子；这里用自选种子；
   H.I.F 同理，用 ``--seed-base`` 起的自选种子；
-- 机制覆盖不全：卡牌定制、饮料、P 道具、逐回合属性/审查基准回合、
-  gimmick 未建模（详见输出的 ``deck_modeling`` 与 ``referee`` 字段）。
+- 机制覆盖不全：卡牌定制、饮料、逐回合属性/审查基准回合、gimmick 未建模，
+  P 道具按 ``loadout.produce_item_ids`` 接入且只实现语义确定的效果类型
+  （详见输出的 ``p_items`` / ``deck_modeling`` 与 ``referee`` 字段）。
 - H.I.F 题集把 produce/step/plan/deck/parameters/permil 都放进了 UINet 的训练
   词表，但裁判仍是 LessonSim，分值尺度与真实 GKMS 不同。
 
@@ -59,6 +61,8 @@
     .venv\\Scripts\\python.exe scripts\\local_bench.py --algos greedy,uinet,expectimax-ensemble
     .venv\\Scripts\\python.exe scripts\\local_bench.py --problems data\\bench_local\\problems_hif.json
     .venv\\Scripts\\python.exe scripts\\local_bench.py --problems data\\bench_local\\problems_hif.json --sample 60 --episodes 2
+    # P 道具 A/B 对照（auto=按 loadout 接入，off=不结算）：
+    .venv\\Scripts\\python.exe scripts\\local_bench.py --problems data\\bench_local\\problems_hif.json --sample 30 --episodes 2 --p-items off
 
 ``--episodes N`` = 每题 N 个种子（总局数 = 题数 × N × 算法数）。
 所有算法共用同一组 ``(题, 种子)``。``--sample N`` 从可映射题里固定种子随机抽 N 题；
@@ -89,6 +93,11 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import sim_produce as sp  # 复用卡表 effects -> CardSpec 的成熟映射
 
+from gkagent.data.p_items_db import (
+    PItemDataUnavailable,
+    get_catalog,
+    resolve_produce_item_ids,
+)
 from gkagent.sim import uinet
 from gkagent.sim.expectimax import (
     AnalyticLeafValue,
@@ -118,7 +127,8 @@ DEFAULT_SEED_BASE = 1000
 COMPARABILITY = (
     "不可比：裁判=我们的 LessonSim（非 gkbench GKMS native rules 59）；"
     "题集官方种子不公开（hajime 的 /api/sets/hajime/seeds 401），本跑分用自选种子；"
-    "卡牌定制/饮料/P 道具/逐回合属性/审查基准回合未建模。"
+    "卡牌定制/饮料/逐回合属性/审查基准回合未建模（P 道具已按 loadout.produce_item_ids "
+    "接入 LessonSim，部分效果类型仍是 no-op）。"
     "H.I.F 题集已把 produce/step/plan 放回 UINet 词表，但裁判仍是简化模拟器，"
     "分值尺度与真实 GKMS 不同。只能作本地同题同种子的相对排名。"
 )
@@ -177,6 +187,23 @@ class DeckStats:
 
 
 @dataclass(frozen=True)
+class PItemStats:
+    """一道题 ``loadout.produce_item_ids`` 的解析结果（T5③ P 道具数据接入）。
+
+    ``mode="off"`` 时全部为 0/空（A/B 对照用：不结算 P 道具）；``unknown`` 是
+    ``p_items.json`` 快照里没有的 id（显式上报，不猜、不影响这道题可映射）。
+    """
+
+    mode: str = "auto"
+    ids: int = 0
+    known: int = 0
+    unknown: tuple[str, ...] = ()
+    duplicate: tuple[str, ...] = ()
+    specs: int = 0
+    implemented: int = 0
+
+
+@dataclass(frozen=True)
 class ProblemSpec:
     """一道题转换到 LessonSim 的静态部分（牌组/配置/统计）。"""
 
@@ -192,6 +219,7 @@ class ProblemSpec:
     config: LessonConfig
     deck_stats: DeckStats
     refs: Mapping[str, tuple[str, int]]
+    p_item_stats: PItemStats = PItemStats()
 
 
 @dataclass
@@ -350,8 +378,15 @@ def build_problem(
     card_rows: Mapping[str, dict[str, Any]],
     card_index: Mapping[tuple[str, int], str],
     refs: Mapping[str, tuple[str, int]],
+    *,
+    p_items_mode: str = "auto",
 ) -> ProblemSpec:
-    """一道 gkbench 题 -> LessonSim 静态配置（不可映射时抛 UnmappableProblem）。"""
+    """一道 gkbench 题 -> LessonSim 静态配置（不可映射时抛 UnmappableProblem）。
+
+    ``p_items_mode="auto"``（默认）把 ``loadout.produce_item_ids`` 解析成
+    ``PItemSpec`` 塞进 ``LessonConfig.p_items``（训练/考试开始、回合开始、出牌…
+    由 LessonSim 照常触发）；``"off"`` 不清算任何 P 道具，只用于 A/B 对照。
+    """
     archive = raw.get("archive") or {}
     loadout = archive.get("loadout") or {}
     scene = raw.get("scene") or {}
@@ -411,6 +446,24 @@ def build_problem(
     turns = int(scene.get("turns") or 8)
     stamina = int(loadout.get("starting_stamina") or 30)
     stamina_max = int(loadout.get("max_stamina") or stamina)
+    # P 道具（T5③）：gkbench 题模板把每局的 P 道具 id 放在 loadout 里（公开配置、
+    # 不含种子）。解析成 PItemSpec 后由 LessonSim/ExpectState 在对应时机结算；
+    # 未知 id 显式记进 p_item_stats.unknown（不猜、不影响本题可映射）。
+    p_items: tuple = ()
+    p_item_stats = PItemStats(mode="off")
+    if p_items_mode != "off":
+        resolved = resolve_produce_item_ids(loadout.get("produce_item_ids"))
+        p_items = resolved.specs
+        summary = resolved.summary()
+        p_item_stats = PItemStats(
+            mode="auto",
+            ids=int(summary["ids"]),
+            known=int(summary["known_ids"]),
+            unknown=tuple(summary["unknown_ids"]),
+            duplicate=tuple(summary["duplicate_ids"]),
+            specs=int(summary["specs"]),
+            implemented=int(summary["implemented"]),
+        )
     config = LessonConfig(
         turns=turns,
         stamina=stamina,
@@ -423,6 +476,7 @@ def build_problem(
         plays_per_turn=1,
         stamina_max=stamina_max,
         plan=plan,
+        p_items=p_items,
     )
     stats = DeckStats(
         entries=len(loadout.get("deck_cards") or []),
@@ -445,6 +499,7 @@ def build_problem(
         config=config,
         deck_stats=stats,
         refs=refs,
+        p_item_stats=p_item_stats,
     )
 
 
@@ -1026,14 +1081,26 @@ def run_bench(
     output: Path,
     sample: int | None = None,
     sample_seed: int = 0,
+    p_items_mode: str = "auto",
 ) -> dict[str, Any]:
+    if p_items_mode not in {"auto", "off"}:
+        raise SystemExit(f"--p-items 只支持 auto/off：{p_items_mode!r}")
+    if p_items_mode != "off":
+        try:
+            get_catalog()  # 显式校验数据在位（缺失直接报错，不静默当没有 P 道具）
+        except PItemDataUnavailable as exc:
+            raise SystemExit(f"P 道具数据不可用：{exc}") from exc
     card_rows, card_index, refs = load_card_table()
     raw_problems = load_problems(problems_path)
     specs: list[ProblemSpec] = []
     skipped_problems: list[dict[str, str]] = []
     for raw in raw_problems:
         try:
-            specs.append(build_problem(raw, card_rows, card_index, refs))
+            specs.append(
+                build_problem(
+                    raw, card_rows, card_index, refs, p_items_mode=p_items_mode
+                )
+            )
         except UnmappableProblem as exc:
             skipped_problems.append(
                 {
@@ -1115,6 +1182,15 @@ def run_bench(
     deck_customized = sum(spec.deck_stats.customized for spec in specs)
     effects = sum(spec.deck_stats.effect_count for spec in specs)
     modeled_effects = sum(spec.deck_stats.modeled_effect_count for spec in specs)
+    # P 道具覆盖率（T5③）：按题聚合 loadout.produce_item_ids 的解析结果。
+    p_item_stats = [spec.p_item_stats for spec in specs]
+    p_item_unknown = sorted({item_id for st in p_item_stats for item_id in st.unknown})
+    p_item_duplicate = sorted({item_id for st in p_item_stats for item_id in st.duplicate})
+    p_item_ids = sum(st.ids for st in p_item_stats)
+    p_item_known = sum(st.known for st in p_item_stats)
+    p_item_specs = sum(st.specs for st in p_item_stats)
+    p_item_implemented = sum(st.implemented for st in p_item_stats)
+    p_item_problems = sum(1 for st in p_item_stats if st.ids)
     unmodeled = Counter(
         effect for spec in specs for effect in spec.deck_stats.unmodeled_types
     )
@@ -1135,7 +1211,10 @@ def run_bench(
     )
     uinet_gaps = [
         "exam.types 全 1（LessonSim 没有逐回合属性）",
-        "hold / ench / drinks 为空（不建模保留区/附魔/P 道具/饮料）",
+        (
+            "hold / ench / drinks 为空（不建模保留区/附魔/饮料；P 道具已从 loadout 接入 "
+            "LessonSim/expectimax，但 UINet 的 UIObs 里没有 P 道具字段）"
+        ),
         "卡牌定制 c 与考试中成长 g 省略",
     ]
     if is_hif:
@@ -1194,7 +1273,22 @@ def run_bench(
             "modeled_effect_rate": round(modeled_effects / effects, 4) if effects else 0.0,
             "unmodeled_types": dict(sorted(unmodeled.items())),
             "drinks_modeled": 0,
-            "p_items_modeled": 0,
+            "p_items_modeled": p_item_implemented,
+        },
+        "p_items": {
+            "mode": p_items_mode,
+            "source": "loadout.produce_item_ids -> data/knowledge/p_items.json",
+            "problems_with_items": p_item_problems,
+            "ids": p_item_ids,
+            "known_ids": p_item_known,
+            "unknown_ids": p_item_unknown,
+            "duplicate_ids": p_item_duplicate,
+            "specs": p_item_specs,
+            "implemented_specs": p_item_implemented,
+            "note": (
+                "未知 id = p_items.json（2026-09-16 主数据快照）之后新增的道具，"
+                "显式列出不作猜测；未实现效果类型仍是 no-op（见 sim/p_items.py）。"
+            ),
         },
         "algorithms": {row["name"]: row for row in algorithms},
         "skipped_algorithms": skipped_algorithms,
@@ -1251,6 +1345,12 @@ def main(argv: list[str] | None = None) -> int:
         help="从可映射题里固定种子随机抽 N 题（避免 --limit 只覆盖题集开头）",
     )
     parser.add_argument("--sample-seed", type=int, default=0, help="--sample 的随机种子")
+    parser.add_argument(
+        "--p-items",
+        choices=("auto", "off"),
+        default="auto",
+        help="P 道具：auto=按 loadout.produce_item_ids 接入（默认）；off=不结算（A/B 对照）",
+    )
     parser.add_argument("--out", type=Path, default=REPORT_PATH, help="排行榜 JSON 输出")
     args = parser.parse_args(argv)
 
@@ -1265,6 +1365,7 @@ def main(argv: list[str] | None = None) -> int:
         output=args.out,
         sample=args.sample,
         sample_seed=args.sample_seed,
+        p_items_mode=args.p_items,
     )
     print("=" * 92)
     print("裁判 = 我们的模拟器 LessonSim（不是 gkbench 的 GKMS 引擎）")
@@ -1290,6 +1391,17 @@ def main(argv: list[str] | None = None) -> int:
     if problems["skipped_count"]:
         for reason, count in problems["skipped_by_reason"].items():
             print(f"  [题目跳过] {count} 道：{reason}")
+    p_items = summary.get("p_items") or {}
+    if p_items:
+        unknown = p_items.get("unknown_ids") or []
+        print(
+            f"P 道具（{p_items.get('mode')}）：{p_items.get('problems_with_items', 0)} 题带道具，"
+            f"id {p_items.get('ids', 0)} 个（已知 {p_items.get('known_ids', 0)} / "
+            f"未知 {len(unknown)}），spec {p_items.get('specs', 0)} 段"
+            f"（已实现 {p_items.get('implemented_specs', 0)} 段）"
+        )
+        if unknown:
+            print(f"  [P 道具未知 id] {len(unknown)} 个（快照缺行，不猜）：{', '.join(unknown)}")
     for row in summary.get("skipped_algorithms") or []:
         print(f"  [算法跳过] {row['name']}: {row['reason']}")
     header = (

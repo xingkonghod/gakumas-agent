@@ -67,10 +67,10 @@ class RecordingLessonSim(LessonSim):
         # __init__ 里的首发手牌不是叶子，打开开关后才开始记录回合间快照。
         self._record_enabled = True
 
-    def _draw_hand(self) -> None:
+    def _draw_hand(self, *, keep_extra_plays: bool = False) -> None:
         if self._record_enabled and int(self.turns_left) > 0:
             self.leaf_states.append(leaf_state_at_draw(self))
-        super()._draw_hand()
+        super()._draw_hand(keep_extra_plays=keep_extra_plays)
 
 
 def episode_samples(

@@ -436,3 +436,22 @@ A2（F#42）已把生产搜索改成 1 张；B3 把模拟器/评测/整局 A/B �
 （1024 收集 / 74 文件）**。未建模：のんびり指針、全力回合额外出牌/保留牌、P 道具/附魔来源、
 生产读屏未读熱意（每步按回合开始 0 估）。细节见 [RULES_REFERENCE §5.2](RULES_REFERENCE.md) /
 HANDOVER 二·补二十六。
+
+### 11.4 T5③ 2026-11-22：P 道具数据接入（exam_start + extra_plays）
+
+- **数据层**：`src/gkagent/data/p_items_db.py`——对局 loadout 的 `produce_item_ids`
+  精确匹配 `data/knowledge/p_items.json`（1068 件，2026-09-16 快照）；未知/重复 id
+  显式上报、缺数据抛 `PItemDataUnavailable`；真实来源 = gkbench 505 题模板（83 唯一 id /
+  72 已知 / 11 未知），离线 A/B 用 `scripts/local_bench.py --p-items auto/off`。
+- **新触发时机 `exam_start`**：`LessonSim.__init__` 在抽第 1 手牌**之前**结算一次
+  （`_fire_p_items(EXAM_START)`），随后 `_draw_hand(keep_extra_plays=True)` 触发 turn_start
+  ——顺序「训练/考试开始 → 回合开始」；exam_start 给的额外出牌次数属于第 1 回合。
+- **新效果 `ExamPlayableValueAdd → extra_plays`**：`PItemDelta.extra_plays`，
+  `LessonSim._fire_p_items` / `ExpectState.fire_p_items` 都加到当回合额外次数
+  （卡效果同口径，见 §11 的 B3 回合规则）。
+- **覆盖率（如实）**：catalog 1764 段 spec 已实现 421 段；gkbench 已知道具 131 段 spec
+  实现 31 段。未实现 `effect_type` 仍是 no-op（不抛异常、报告里统计）。
+- **回归**：`tests/test_p_items_db.py`（10）/ `test_p_items_integration.py`（+4）/
+  `test_local_bench.py`（+4）；离线 A/B hif 30 题×2 seed 配对：greedy +128.9（+3.36%）、
+  expectimax +149.6（+3.98%）。细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) /
+  HANDOVER 二·补二十七。

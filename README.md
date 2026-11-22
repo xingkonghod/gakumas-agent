@@ -1,4 +1,4 @@
-# gkagent — 学マス（Gakumas）私有研究仓库
+﻿# gkagent — 学マス（Gakumas）私有研究仓库
 
 > 从「读屏 + 规则 bot」一路做到「**MITM 牌序全知 + 完全信息搜索 + 真机出牌**」的研究栈。
 > 本仓库是**私有研究记录**：包含采集链路、洗牌模型、搜索引擎、决策 bot、实验与失败记录。
@@ -191,7 +191,7 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 > oracle 基准均值 1,452,088（n=960），UIHorizon 631,129（0.5113×）、UINet 578,722（0.4551×）、官方 AI 232,710（0.2131×）。
 > 榜单规则禁止 seed/牌序，我们的全知路线**不适用于榜单**，只用于真机实战/离线研究。
 
-**测试**：`pytest tests/` → **986 条收集 / 985 passed / 1 skipped**；`verify_shuffle` 4/4 场；
+**测试**：`pytest tests/` → **1052 条收集 / 1051 passed / 1 skipped**；`verify_shuffle` 4/4 场；
 `build_exam_setup` 86/86 + 重洗 24/24；`verify_exam_wiring` 36/36 + 3/3 + 29/29。
 
 ---
@@ -220,7 +220,7 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 
 ```powershell
 # 离线基线（不需要游戏）
-.venv\Scripts\python.exe -m pytest -q                     # 986 条收集 / 985 passed / 1 skipped
+.venv\Scripts\python.exe -m pytest -q                     # 1052 条收集 / 1051 passed / 1 skipped
 .venv\Scripts\python.exe scripts\verify_shuffle.py       # 洗牌模型：4/4 场
 .venv\Scripts\python.exe scripts\build_exam_setup.py     # 采集数据 → out/exam_setup.json
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py   # 全知接线：36/36、3/3、29/29
@@ -299,11 +299,13 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
 显著强于 rules（+342~+429 评价点），B1 60 局 within 89.1→beam 95.7）** /
 **B4（T5① 审查倍率分段 + 联动惩罚：客户端真实公式 + 主数据 + 生产屏幕倍率进搜索）** /
 **B5（T5② 熱意 + 温存解除：独立熱意资源、+5/+8 熱意、固定元気+5、+1 出牌次数、
-回合末清零/延長、卡牌熱意效果接入）**。
+回合末清零/延長、卡牌熱意效果接入）** /
+**B6（T5③ P 道具数据接入：loadout `produce_item_ids` → `PItemSpec`、exam_start 触发时机、
+`ExamPlayableValueAdd → extra_plays`、local_bench/提交适配器接线；离线 A/B greedy +3.36%）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / F0 收尾 ✅；
-   下一项 **T5 剩余机制**（fresh buff 差一回合、P 道具数据接入）；
+0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / F0 收尾 ✅；
+   下一项 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具效果覆盖/真机培育侧列表随后）；
    F0 收尾（官方 gkbench 384 组开发种子核洗牌模型 366/384=95.3%、逐张 97.4%、起点校准）见 [GKBENCH §4.5](docs/GKBENCH.md) / [HANDOVER 二·补二十四](docs/HANDOVER.md)；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
@@ -313,8 +315,9 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
    （确认段 beam −27.9）→ 必须按 B3 规则重采数据重训（建议等 T5 剩余机制补齐后一次重训）；
    生产 `leaf_model` 默认 None 保持关闭；
 5. **T5 机制建模**：回合规则/取整/核验表已由 B3 完成；审查倍率（分段 + shortfall 联动惩罚）✅ B4；
-   熱意（enthusiasm）+ 温存解除 +1 出牌/固定元気 ✅ B5；剩余：fresh buff 差一回合、P 道具/回忆/附魔/减益、
-   考试内生成卡/额外 RNG（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
+   熱意（enthusiasm）+ 温存解除 +1 出牌/固定元気 ✅ B5；P 道具**数据接入**（loadout → PItemSpec、
+   exam_start + extra_plays）✅ B6；剩余：fresh buff 差一回合、P 道具效果覆盖/真机培育侧列表、
+   回忆/附魔/减益、考试内生成卡/额外 RNG（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 
 **红线（永不违反）**
@@ -331,7 +334,7 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
 gakumas-agent/
 ├─ src/gkagent/      # 核心库（device/vision/tasks/policy/sim/data/knowledge）
 ├─ scripts/          # 跑局/验证/评测/存档脚本
-├─ tests/            # 单测（986 条收集 / 985 passed）
+├─ tests/            # 单测（1052 条收集 / 1051 passed）
 ├─ docs/             # 全部文档（INDEX 为总导航）
 ├─ data/             # 主数据/卡表/评测（大文件与第三方代码不入库）
 ├─ integrations/     # MAA 集成适配（历史阶段）

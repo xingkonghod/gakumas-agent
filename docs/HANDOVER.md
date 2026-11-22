@@ -1,4 +1,4 @@
-# 项目交接（2026-11-22 B2 更新）
+# 项目交接（2026-11-22 B6 更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
@@ -1124,6 +1124,126 @@ INDEX/COMPARE/EXPECTIMAX/SIMULATOR/README 同步。
 **下一步**：T5 剩余机制（fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D 离线收尾 →
 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
 
+### 二·补二十七、11-22（B6 / T5③ P 道具数据接入：loadout → PItemSpec → 模拟器/评测/提交）
+
+**背景**：`sim/p_items.py` 早就有「事件 → 增量」的被动结算接口，`LessonSim`/`ExpectState`
+也在触发时机上调它；缺的是**真实对局到底带哪些 P 道具**（RULES_REFERENCE §6.5
+「produce 侧 P 道具列表未采集」）。本会话把离线能拿到的数据源接上：
+
+- 真机采集 `traffic.jsonl`（3.2MB，11-22 02:29）全文件扫 `produceItem/ProduceItem/`
+  `produce_item/itemIds/item_ids/pItem/p_item` **全部 0 命中** → 真机培育侧 P 道具列表
+  只能等 T6/D1 补采（例如 produce 开始 API 响应/存盘）；
+- 离线完整数据源 = **gkbench 505 个题模板**：`saves.jsonl[].loadout.produce_item_ids`
+  （每局 1–10 个，共 2686 个 id / 83 个唯一）。gkbench 合约（`data/bench_repo/gkbench/`
+  `algos/base.py`）明确 `ctx.loadout` 是**开局配置（不含种子）**，用它是公平的；
+  官方 AI 笔记 §3.6 也把「P 道具映射」列为 gkbench 适配器最大分数缺口之一。
+
+**机制/口径（不猜、不静默）**：
+
+1. **id 精确匹配** `data/knowledge/p_items.json`（1068 件，2026-09-16 主数据快照）：
+   `pitem_02-3-293-0` 就是同名行，**不做**「去掉 `-N` 后缀当强化前版本」的兜底
+   （强化变体数值不同，猜错会凭空加减分）。快照之后新增的道具落进 `unknown_ids`，
+   显式上报（生产侧不会假装结算过它们）。
+2. **新增触发时机 `exam_start`**（训练/考试开始时；素材里 288 段）：`LessonSim`
+   构造时（抽第 1 手牌**之前**）结算一次，顺序 = `exam_start` → `turn_start`；
+   `exam_start` 给的额外出牌次数属于第 1 回合（初始抽牌不清零）。
+3. **新增效果 `ExamPlayableValueAdd` → `extra_plays`**：技能卡使用数追加 +N；
+   数值在 `count` 列（51 段全部 `count=1`）——旧解析只取 `value1` 会把这类道具
+   退化成 0 值 no-op。`PItemDelta` 增加 `extra_plays`，`LessonSim`/`ExpectState` 镜像。
+4. 其余未实现 effect_type 继续 no-op（由 `summarize`/报告统计，不抛异常）。
+
+**落地**：
+
+- `src/gkagent/data/p_items_db.py`（新增）：`PItemCatalog`（id → spec 段）、
+  `resolve_produce_item_ids`（未知/重复 id 显式返回）、`catalog_coverage`；
+  数据文件缺失/格式错**抛 `PItemDataUnavailable`**，不静默当"没有 P 道具"。
+- `src/gkagent/sim/p_items.py`：`EXAM_START`、`EXTRA_PLAY_EFFECTS`、
+  `PItemDelta.extra_plays`、`_effect_value`（ExamPlayableValueAdd 取 `count`）、
+  `_trigger_matches` 的 exam_start 分支。
+- `src/gkagent/sim/lesson.py`：构造时 `_fire_p_items(EXAM_START)` +
+  `_draw_hand(keep_extra_plays=True)`；`_fire_p_items` 结算 `extra_plays`。
+- `src/gkagent/sim/expectimax.py`：`fire_p_items` 镜像 `extra_plays`；
+  `_p_item_event_subset` 增加 exam_start 分支（搜索从中途开始，不会重复触发）。
+- `src/gkagent/sim/leaf_data.py`：`RecordingLessonSim._draw_hand` 跟随新签名
+  （B2 数据采集用）。
+- `scripts/local_bench.py`：`build_problem` 把 `loadout.produce_item_ids` 解析成
+  `PItemSpec` 塞进 `LessonConfig.p_items`；新增 `PItemStats` + 报告 `p_items` 块
+  （模式/题数/id 数/已知/未知/spec 段/已实现段），`deck_modeling.p_items_modeled`
+  从常量 0 变成真实计数；新增 `--p-items auto|off`（A/B 对照，off = 旧行为）。
+- `submissions/expectimax/algo.py`（gkbench 提交）：`ctx.loadout.produce_item_ids`
+  → `PItemSpec` → `ExpectState.p_items`（一局解析一次、可缓存）；新增
+  `p_items=false` 参数；缺数据文件时按空清单跑但 `Decision.meta["p_items_error"]`
+  记原因（不假装结算过）。提交打包时把 `data/knowledge/p_items.json` 也复制到
+  提交目录旁（与 card_table.json 同口径）。
+
+**数据/覆盖率（如实）**：
+
+- catalog 1068 件 → 1764 个 spec 段；已实现 421 段（8 种 effect_type：
+  ExamLesson/ExamBlock/ExamLessonBuff/ExamReview/ExamCardPlayAggressive/
+  ExamFullPowerPoint/ExamStaminaRecoverFix/ExamPlayableValueAdd），no-op 1343 段
+  （effect_type 不支持 980 / 触发时机不支持 194 / 无值 169）。
+- gkbench 505 题模板：2686 个 id / 83 唯一 / **72 已知 / 11 未知**（快照后新道具：
+  `pitem_01-3-349-0`、`pitem_02-3-336-1`、`pitem_03-3-334/337/345-*`、
+  `pitem_3-258-research-event-008/009/010` 等）；72 个已知 → 131 段 spec，已实现 31 段。
+- **起点体力校准补注**：F0 记的 15 组体力偏差里，5 组（`i_card-shro-3-016` ×5，
+  −28）现在可以用 `pitem_02-3-293-0` 的 exam_start「最大体力的 80% 数值变为体力消耗」
+  解释：`floor(36×0.8)=28`（对应 5 组 `check.stamina = starting − 28`）；其余 10 组
+  涉及快照缺行的新 P 道具或主道具附魔，**不猜**（见 GKBENCH §4.5 补注）。
+
+**离线 A/B（`scripts/local_bench.py`，hif 样本 30 题 × 2 seed，同题同 seed 配对）**：
+
+| 算法 | off（不结算 P 道具） | auto（按 loadout 接入） | 配对 Δ | 变化局 |
+|---|---:|---:|---:|---:|
+| greedy | 3840.7 | **3969.7** | **+128.9（+3.36%）CI95 [+9.5,+248.4]** | 8/60（8 胜 0 负 52 平） |
+| expectimax(analytic) | 3759.3 | **3908.9** | **+149.6（+3.98%）CI95 [−171.0,+470.2]** | 12/60（6 胜 6 负 48 平） |
+
+- 覆盖：30 题共 147 个 id（130 已知 / 8 未知，样本里没抽到全部 11 个）、174 段 spec
+  中 33 段已实现；**大部分局逐位不变**（P 道具效果多是带条件/次数上限/百分比，
+  未实现的仍是 no-op），所以 Δ 的方向为正、幅度受覆盖率限制。
+- 结论：数据接入路径正确（同题同 seed 分数不降；greedy 显著提升、expectimax 方向
+  为正但被大分差局噪声淹没）。这不是"P 道具建模完成"，只是"数据接进管线"。
+
+**测试**：新增 `tests/test_p_items_db.py`（10 条：catalog/未知显式/重复/缺文件、
+真数据 1068 件、gkbench 505 题模板 72 已知/11 未知）、
+`tests/test_gkbench_submission_p_items.py`（6 条：loadout 解析/缓存/开关/缺数据
+meta/ExpectState 接线/端到端 meta）、`tests/test_p_items.py` +5、
+`tests/test_p_items_integration.py` +4（exam_start 构造时结算/先于 turn_start/
+额外次数保第 1 回合/真数据只触发一次）、`tests/test_local_bench.py` +4
+（loadout → config/端到端考试开始效果/off 开关/报告覆盖率）；旧
+`test_unsupported_trigger_is_noop` 去掉 exam_start（它已被支持）。
+全量 pytest：**1051 passed / 1 skipped（1052 收集 / 76 文件）**（唯一 skip 仍
+`tests/test_produce_ui.py:1181`；旧 1024 + 净增 28 条）。
+
+**基线复核（改完复跑，退出码均 0）**：① 洗牌 4/4 + 重洗 3/3；② **1051/1**
+（1052 收集 / 76 文件）；③ 4/4 场 86/86 + 24/24；④ 36/36 + 3/3 + known_draw 29/29
++ beam 28；⑤ gkbench 366/384=95.3% / 97.4% 逐张（①②③④⑤ 数字全不变——本次只动
+P 道具数据管线，不动洗牌/牌序/审查倍率）。
+
+**文档**：RULES_REFERENCE §0/§1/§3/§5.3/§6/§7；WORKPLAN B6；HANDOVER_NEXT
+§0/§1/§2/§4/§8；INDEX/COMPARE/GKBENCH §4.5/OFFICIAL_AI_NOTES §3.6/§5/
+EXPECTIMAX B2 重训注/SIMULATOR；本文件二·补二十七。
+
+**如实记录的剩余差距（下一段）**：
+
+1. **produce 侧真机 P 道具列表仍未采集**（traffic 无字段）→ T6/D1 采集扩展
+   （produce 开始 API/存盘），否则真机培育模拟仍拿不到本人这局带的 P 道具。
+2. **效果覆盖低**：gkbench 已知 72 个道具里 131 段 spec 只实现 31 段；未实现大户 =
+   `ExamLessonValueMultiple`（打分上升量）、`ExamParameterBuff`（好调/审查基准两种
+   口径未定）、`ExamStaminaReduceFix`（体力消耗为百分比且数据缺值）、
+   `ExamCardCreateId`（生成卡）、`ExamConcentration/ExamPreservation`（指針）、
+   `ExamReviewMultiple` 等 → 需要参考引擎语义 + 主数据文本重解析（如「最大体力的
+   N%」）再补，别猜。
+3. `p_items.json` 快照落后（11 个新 id 缺行）→ 刷新 gkumasu-diff 主数据快照后重生成。
+4. gkbench 提交侧：`obs` 没有 P 道具已用次数 → 保守从 0 开始（高估剩余次数）；
+   主道具附魔 `main_item_enchant_ids` / 回忆 `memory_ability_ids` 未接入。
+5. B2 学习叶子重训仍等 **fresh buff（需真机逐回合截图）+ P 道具效果覆盖** 补齐
+   （本轮只完成数据接入，不是效果全集）。
+
+**提交**：feat `（待填）`（代码 + 测试 + 文档）；哈希记录 `（待填）`。
+
+**下一步**：**fresh buff 差一回合**（需真机逐回合截图）→ 阶段 C（执行层可靠性）/ D（补采集）
+→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -1187,8 +1307,16 @@ B2 旧模型失效需按新规则重训）。**F 阶段数据 + F0 预检 ✅**�
 获得时 ceil、回合末清零/熱意延長）；温存解除 +5/+8 熱意、2 段固定元気 +5、解除当回合 +1
 出牌次数（同回合可重复、温存→全力回合边界也触发）；卡牌熱意追加/増加/延長/本牌適用倍数 ×2
 接入 MODELED_EFFECTS 29→32；16 条测试，全量 pytest 1023/1（1024 收集 / 74 文件））。
-**下一步：T5 剩余机制**（fresh buff 差一回合、P 道具数据接入）
-→ 阶段 C/D 离线收尾 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
+**B6 / T5③ P 道具数据接入 ✅ 2026-11-22**（二·补二十七：新增 `data/p_items_db.py`
+把 loadout 的 `produce_item_ids` 解析成 `PItemSpec`（未知 id 显式上报）；新增
+`exam_start` 触发时机（288 段素材，LessonSim 构造时结算）与 `ExamPlayableValueAdd →
+extra_plays`（51 段，取 `count` 列）；`LessonSim`/`ExpectState` 镜像；gkbench 提交适配器
+从 `ctx.loadout`（公开配置）接入；`local_bench --p-items auto/off` 离线 A/B：hif 30 题×2 seed
+greedy **+128.9（+3.36%，CI[+9.5,+248.4]）** / expectimax +149.6（+3.98%）；新增 29 条测试，
+全量 pytest **1051/1（1052 收集 / 76 文件）**。仍缺：真机培育侧 P 道具列表（T6/D1 补采）、
+效果覆盖（已知 72 道具 131 段 spec 只实现 31 段）、主道具附魔）。
+**下一步：T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具效果覆盖待参考
+引擎语义/主数据文本重解析）→ 阶段 C/D 离线收尾 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
 总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅

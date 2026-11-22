@@ -300,3 +300,100 @@ def test_uinet_group_is_skipped_when_model_missing(
     assert skipped and skipped[0]["name"] == "uinet"
     assert "模型不存在" in skipped[0]["reason"]
     assert out.is_file()
+
+
+# ---- P 道具数据接入（T5③）：loadout.produce_item_ids -> LessonConfig ---------
+
+#: 真数据里一个「训练/考试开始时」P 道具（2026-09-16 主数据快照里有）
+EXAM_START_ITEM_ID = "pitem_02-3-293-0"
+
+
+def _hif_with_items(first_spec, item_ids: list[str]) -> dict:
+    raw = _hif_like(first_spec.raw)
+    raw["archive"]["loadout"]["produce_item_ids"] = list(item_ids)
+    return raw
+
+
+def test_hif_problem_resolves_p_items_from_loadout(table, first_spec) -> None:
+    """loadout.produce_item_ids -> PItemSpec：已知 id 进 config，未知 id 显式上报。"""
+    rows, index, refs = table
+    raw = _hif_with_items(first_spec, [EXAM_START_ITEM_ID, "pitem_no-such-item-999"])
+    spec = local_bench.build_problem(raw, rows, index, refs)
+    stats = spec.p_item_stats
+    assert stats.mode == "auto"
+    assert (stats.ids, stats.known) == (2, 1)
+    assert stats.unknown == ("pitem_no-such-item-999",)
+    catalog = local_bench.get_catalog()
+    assert stats.specs == len(catalog.specs_for(EXAM_START_ITEM_ID))
+    assert stats.implemented > 0
+    # 未知 id 不猜：config 里只有已知道具的 spec 段。
+    assert len(spec.config.p_items) == stats.specs
+
+
+def test_p_items_exam_start_effects_reach_lesson_sim(table, first_spec) -> None:
+    """数据 -> 模拟器端到端：考试开始类 P 道具在 LessonSim 构造时结算。"""
+    rows, index, refs = table
+    raw = _hif_with_items(first_spec, [EXAM_START_ITEM_ID])
+    spec = local_bench.build_problem(raw, rows, index, refs)
+    resolved = local_bench.resolve_produce_item_ids([EXAM_START_ITEM_ID])
+
+    def expected(target: str) -> int:
+        return sum(
+            item.value
+            for item in resolved.specs
+            if item.implemented and item.target == target
+        )
+
+    sim = local_bench.LessonSim(list(spec.deck), spec.config, rng_seed=1000)
+    assert expected("vitality") > 0
+    assert sim.vitality == expected("vitality")
+    assert sim.motivation == expected("aggressive")
+
+
+def test_p_items_off_mode_disables_them(table, first_spec) -> None:
+    """--p-items off：A/B 对照用，不解析、不结算（行为与旧版逐位一致）。"""
+    rows, index, refs = table
+    raw = _hif_with_items(first_spec, [EXAM_START_ITEM_ID])
+    spec = local_bench.build_problem(raw, rows, index, refs, p_items_mode="off")
+    assert spec.config.p_items == ()
+    assert spec.p_item_stats.mode == "off"
+    assert spec.p_item_stats.ids == 0
+    sim = local_bench.LessonSim(list(spec.deck), spec.config, rng_seed=1000)
+    assert sim.vitality == 0 and sim.motivation == 0
+
+
+def test_run_bench_reports_p_item_coverage(table, first_spec, tmp_path: Path) -> None:
+    """跑分报告里 P 道具覆盖率非 0，且 off 模式为 0（同一道题对照）。"""
+    if not HIF_PROBLEMS.exists():
+        pytest.skip("缺少 data/bench_local/problems_hif.json")
+    out = tmp_path / "leaderboard.json"
+    summary = local_bench.run_bench(
+        problems_path=HIF_PROBLEMS,
+        episodes=1,
+        seed_base=1000,
+        algo_names=["greedy"],
+        budget_ms=300.0,
+        limit=1,
+        output=out,
+        p_items_mode="auto",
+    )
+    p_items = summary["p_items"]
+    assert p_items["mode"] == "auto"
+    assert p_items["problems_with_items"] == 1
+    assert p_items["ids"] > 0 and p_items["known_ids"] > 0
+    assert p_items["implemented_specs"] > 0
+    assert summary["deck_modeling"]["p_items_modeled"] == p_items["implemented_specs"]
+    assert json.loads(out.read_text(encoding="utf-8"))["p_items"]["implemented_specs"] > 0
+
+    off = local_bench.run_bench(
+        problems_path=HIF_PROBLEMS,
+        episodes=1,
+        seed_base=1000,
+        algo_names=["greedy"],
+        budget_ms=300.0,
+        limit=1,
+        output=tmp_path / "off.json",
+        p_items_mode="off",
+    )
+    assert off["p_items"]["mode"] == "off"
+    assert off["p_items"]["implemented_specs"] == 0

@@ -79,6 +79,7 @@ from gkagent.sim.lesson import (
 )
 from gkagent.sim.p_items import (
     CARD_PLAY,
+    EXAM_START,
     STATUS_GAIN,
     TURN_END,
     TURN_START,
@@ -1628,6 +1629,10 @@ def _p_item_event_subset(
     if not state.p_items:
         return ()
     grouped = _p_items_grouped(state.p_items)
+    if kind == EXAM_START:
+        # 搜索是从考试中途开始的局面：exam_start 已在进入搜索前结算过，
+        # 这里只保留分支语义正确（误传也不会串到出牌类触发）。
+        return grouped.get(EXAM_START, ())
     if kind == TURN_START:
         return grouped.get(TURN_START, ())
     if kind == TURN_END:
@@ -1672,6 +1677,7 @@ def fire_p_items(
     stamina = state.stamina
     if delta.stamina:
         stamina = min(state.stamina_max, max(0, stamina + delta.stamina))
+    extra_plays = state.extra_plays + int(delta.extra_plays)
     vitality = state.vitality
     impression = state.impression
     focus = state.focus
@@ -1699,6 +1705,7 @@ def fire_p_items(
         state,
         score=score,
         stamina=stamina,
+        extra_plays=extra_plays,
         vitality=vitality,
         impression=impression,
         focus=focus,

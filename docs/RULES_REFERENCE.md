@@ -37,7 +37,8 @@
 **跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**、
 **熱意（enthusiasm）与温存解除**（熱意 +5/+8、2 段固定元気 +5、解除当回合 +1 出牌次数、
 熱意算分/获得取整/回合末清零与延長、本牌熱意適用倍数）
-都已按参考引擎/客户端语义/真机对齐；剩余差距是 **P 道具/附魔**、
+都已按参考引擎/客户端语义/真机对齐；剩余差距是 **P 道具效果覆盖/附魔**
+（数据管线已接 gkbench loadout，见 §5.3；效果只实现语义确定的 421/1764 段）、
 **fresh buff 的差一回合衰减**、**のんびり（leisure）指針与全力回合額外出牌/保留牌**、
 **依赖分结算顺序**（我们保守口径）等。
 
@@ -50,7 +51,7 @@
 | 每回合基础出牌 **1 张** | `TurnManager.startTurn`: `cardUsesRemaining = 1`；真机 39 回合：32 回合 1 张、7 回合 2 张，每回合手牌都 3 张 | `LessonConfig.plays_per_turn=1`、`ExpectState.play_limit=1`、`DEFAULT_PLAY_LIMIT=1` | ✅ | `tests/test_t5_turn_rules.py::test_*default*` + 真机 fixture |
 | 打完最后一张**自动结束回合** | `CardManager.useCard` 末尾 `cardUsesRemaining < 1 → endTurn` | `LessonSim.step`：次数用尽或手牌空 → `_end_turn`；搜索侧 `plays_left<=0` 即按 `end_turn_state` 叶子处理 | ✅ | `test_one_card_auto_ends_turn_without_stamina_recovery` |
 | SKIP/没出完牌 → 体力 **+2**（封顶最大体力） | `TurnManager.endTurn`: `if (cardUsesRemaining > 0) stamina = min(stamina+2, max)` | `LessonSim._end_turn` / `end_turn_state`：`plays_this_turn < 上限` 时 +2 | ✅ | `test_skip_recovers_two_stamina_capped_at_max`、`test_skip_recovery_matches_expect_state_rule` |
-| 额外出牌 = 使用次数 +N | `ExamPlayableValueAdd` 效果（卡 / P 道具）加 `cardUsesRemaining`；真机 7 个 2 张回合里 3 个首张牌带该效果 | `CardSpec.extra_play` → `LessonSim.extra_plays` / `ExpectState.extra_plays` | ✅ 卡效果；⚠️ P 道具数据未接入 | `test_extra_play_keeps_turn_open_then_auto_ends`、fixture |
+| 额外出牌 = 使用次数 +N | `ExamPlayableValueAdd` 效果（卡 / P 道具）加 `cardUsesRemaining`；真机 7 个 2 张回合里 3 个首张牌带该效果 | `CardSpec.extra_play` → `LessonSim.extra_plays` / `ExpectState.extra_plays`；T5③ 起 P 道具同效果（`PItemDelta.extra_plays`，考试开始/回合开始/出牌后都会加，见 §5.3） | ✅ 卡效果 + P 道具（仅 loadout 能拿到的数据；真机培育侧列表待补采） | `test_extra_play_keeps_turn_open_then_auto_ends`、`test_exam_start_extra_play_keeps_first_turn_open`、fixture |
 | 每回合开始抽 3 张（手牌 3） | `TurnManager.startTurn`: `cardsToDraw = max(3 - handDecrease, 0)` | `LessonConfig.hand_size=3`，每回合 `_draw_hand` | ✅（handDecrease 未建模 ⚠️） | `test_sim_lesson.py` 各回合测试 |
 | 抽牌/手牌**上限 5** | `CardManager.drawCard`: `if handCards.length >= 5 return` | `LessonSim._draw` 不设上限 | ⚠️ 只有抽牌卡溢出时才不同 | — |
 | 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | T5②（2026-11-22）按参考引擎实现：熱意独立资源 +5/+8、2 段**固定元気 +5**（不吃やる気）、解除当回合 **+1 出牌次数**；回合末熱意清零（有熱意延長则保留）；同回合重复解除可叠加 | ✅（のんびり/全力回合额外出牌未建模） | `tests/test_t5_enthusiasm.py`（纯规则 + LessonSim） |
@@ -109,7 +110,7 @@
 | 好印象强化 / 好调加算 / 全力强化 持续回合 | `ExamReviewMultiple` / `ExamParameterBuffAdditiveFix` / `ExamFullPowerLessonMultipleAdditive` | `Buffs.review_multiple` 等 + `_tick_buff_turns` | ✅ | `test_review_multiple_*`、`test_condition_additive_*` |
 | メタモルフォーゼ 支度→披露（半场自动翻转） | `TurnManager.endTurn`: `turnsElapsed >= floor(turnCount/2)` | 只有外部设置的 `Buffs.metamorphosis`，不自动翻转 | ❌ 小（需要偶像特性数据） | — |
 | 饮料（体力/集中/好调/直接分） | 参考引擎 `p_drinks.csv`；实机每回合 1 瓶（用户确认无上限） | `LessonSim.use_drink`：4 种效果，不占出牌次数 | ✅ 已建模的 4 种；⚠️ 其余 20+ 种效果报错不静默 | `test_drink_*` |
-| P 道具（被动，按触发时机） | `p_items.csv` + 参考引擎 `PItems`；exam_start/turn_start/card_play/turn_skip 等 | `sim/p_items.py` 接口 + `LessonSim._fire_p_items`；但卡表/读屏没有真实 P 道具数据 → 培育模拟默认空 | ⚠️ 接口有、数据未接（T5/T6） | `tests/test_p_items_integration.py` |
+| P 道具（被动，按触发时机） | `p_items.csv` + 参考引擎 `PItems`；exam_start/turn_start/card_play/turn_skip 等 | `sim/p_items.py` 接口（6 种触发：exam_start/turn_start/turn_end/card_play/status_gain + 间隔）；T5③ 数据接入：`data/p_items_db.py` 把对局 loadout 的 `produce_item_ids` 解析成 `PItemSpec`（gkbench 505 题模板 83 唯一 id / 72 已知 / 11 未知）；`LessonSim` 构造时结算 exam_start | ✅ 数据接入（gkbench/离线；catalog 1764 段 spec 已实现 421 段）；⚠️ 真机培育侧 P 道具列表未采集（T6/D1）、部分效果类型仍 no-op | `tests/test_p_items.py` / `test_p_items_integration.py` / `test_p_items_db.py` / `test_gkbench_submission_p_items.py`；§5.3 |
 
 ## 4. 考试 / 牌序机制（已真机验证）
 
@@ -190,6 +191,34 @@
   真机逐分核对留到 T6/读屏补强。
 - B2 学习叶子的 104 维特征里 `save_cards_used` 已废弃（恒 0），重训时再换熱意特征；模型本来就要重训。
 
+### 5.3 T5③ P 道具数据接入（2026-11-22 完成）
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **loadout → PItemSpec 数据层**：对局 `produce_item_ids` 精确匹配 `p_items.json`（1068 件模板，2026-09-16 主数据快照）；未知/重复 id 显式返回，缺文件抛 `PItemDataUnavailable` | [p_items_db.py](../src/gkagent/data/p_items_db.py) | gkbench `saves.jsonl[]`（505 题模板）`loadout.produce_item_ids`：2686 个 id / 83 唯一 / 72 已知 / 11 未知；`gkbench/algos/base.py` 明说 `ctx.loadout` 是「开局配置（不含种子）」→ 公平可用 | `tests/test_p_items_db.py`（10 条，含 505 题模板真数据断言） |
+| **新增触发时机 `exam_start`**（训练/考试开始时，288 段素材）：`LessonSim` 构造时（抽第 1 手牌前）结算一次，先于 `turn_start`；额外出牌次数属于第 1 回合 | [sim/p_items.py](../src/gkagent/sim/p_items.py)、[sim/lesson.py](../src/gkagent/sim/lesson.py) | 原生触发 id `e_trigger-exam_start_exam` / `start_exam_play`；F0 起点体力偏差 5 组（shro-3-016 −28）可用 `pitem_02-3-293-0` 考试开始「最大体力 80% 变体力消耗」解释（`floor(36×0.8)=28`） | `test_exam_start_items_apply_at_sim_construction` / `test_exam_start_runs_before_turn_start` / `test_real_exam_start_item_fires_once` |
+| **新增效果 `ExamPlayableValueAdd` → `extra_plays`**（51 段素材，N 在 `count` 列）：`PItemDelta` 增加 `extra_plays`，`LessonSim`/`ExpectState` 镜像 | [sim/p_items.py](../src/gkagent/sim/p_items.py)、[sim/expectimax.py](../src/gkagent/sim/expectimax.py) | 卡效果同类型早已映射 `CardSpec.extra_play`（B3 真机 39 回合证据）；P 道具数据 51 段全 `count=1` | `test_extra_play_effect_adds_action_slot` / `test_record_to_specs_uses_count_for_playable_add` / `test_exam_start_extra_play_keeps_first_turn_open` |
+| **离线跑分/提交接线**：`local_bench` 从题模板 loadout 接入（`--p-items auto/off`、报告 `p_items` 覆盖率）；gkbench 提交从 `ctx.loadout` 接入（缺数据 meta 记原因） | [scripts/local_bench.py](../scripts/local_bench.py)、[submissions/expectimax/algo.py](../submissions/expectimax/algo.py) | hif 30 题 × 2 seed 配对 A/B：greedy 3840.7 → **3969.7（+128.9，+3.36%，CI95 [+9.5,+248.4]）**；expectimax 3759.3 → 3908.9（+149.6，+3.98%，CI95 [−171.0,+470.2]）；其余局逐位不变（33/174 段已实现） | `tests/test_local_bench.py`（+4 条）/ `tests/test_gkbench_submission_p_items.py`（6 条） |
+
+**口径与剩余差距（如实记录）**：
+
+- 真机采集 `traffic.jsonl`（3.2MB）全文件 0 命中 produce 编成字段 → **真机培育侧**
+  P 道具列表未采集（T6/D1 补采 produce 开始 API/存盘）；本轮接的是 gkbench 题模板的
+  loadout（离线、公开配置）。
+- 效果覆盖：catalog 1068 件 → 1764 段 spec，已实现 **421 段**；gkbench 72 个已知道具 →
+  131 段 spec，已实现 **31 段**。未实现大户：`ExamLessonValueMultiple`（打分上升量）、
+  `ExamParameterBuff`（好调/审查基准两种口径未定）、`ExamStaminaReduceFix`（百分比且数据
+  缺值）、`ExamCardCreateId`（生成卡）、`ExamConcentration/ExamPreservation`（指針）、
+  `ExamReviewMultiple` 等 → 需要参考引擎语义 + 主数据文本重解析（如「最大体力的 N%」）再补，
+  **不猜**。
+- 11 个未知 id（`pitem_01-3-349-0`、`pitem_02-3-336-1`、`pitem_03-3-334/337/345-*`、
+  `pitem_3-258-research-event-008/009/010` 等）= p_items.json 快照（2026-09-16）之后
+  新增道具 → 刷新 gkumasu-diff 快照后重生成。
+- gkbench 提交侧 `obs` 没有 P 道具已用次数 → 保守从 0 开始（可能高估剩余次数）；
+  主道具附魔 `main_item_enchant_ids` / 回忆 `memory_ability_ids` 未接入。
+- 生产真机（`policy/lesson.py` 读屏路径）**没接**：屏幕读不到 P 道具 id 清单，仍按空
+  P 道具算（同旧口径）；要真机用上需要采集 loadout 或读图标（T6）。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
@@ -200,7 +229,9 @@
 3. ~~**温存解除的额外出牌次数/元气**~~ ✅ **2026-11-22 T5② 完成**：+1 出牌次数、2 段 +5 固定元気、
    同回合重复解除可叠加；见 §5.2。全力回合額外次数/保留牌仍未建模。
 4. **fresh buff 保护**（差一回合）：好调/好印象/绝好调持续时间可能整体少 1 回合，需真机逐回合截图核实。
-5. **P 道具数据接入**（produce 侧 P 道具列表未采集；`p_items.json` 有 1068 条效果模板）。
+5. ~~**P 道具数据接入**~~ ✅ **2026-11-22 T5③ 完成（§5.3）**：gkbench/离线 loadout 的
+   `produce_item_ids` → `PItemSpec` 已接入模拟器/评测/提交；exam_start 与 extra_plays 新支持。
+   **剩余**：真机培育侧列表（T6/D1 补采）、效果覆盖（gkbench 已知 31/131 段）、主道具附魔/回忆。
 6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
 7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。
@@ -232,6 +263,12 @@
 
 # T5② 熱意 + 温存解除（纯规则 / LessonSim / ExpectState 镜像 / 生产卡表映射）
 .venv\Scripts\python.exe -m pytest tests\test_t5_enthusiasm.py -q
+
+# T5③ P 道具数据接入（catalog / loadout 解析 / exam_start / extra_plays / 提交适配器）
+.venv\Scripts\python.exe -m pytest tests\test_p_items.py tests\test_p_items_db.py tests\test_p_items_integration.py -q
+.venv\Scripts\python.exe -m pytest tests\test_gkbench_submission_p_items.py -q
+# P 道具 A/B（hif 题模板；auto=按 loadout 接入，off=不结算）
+.venv\Scripts\python.exe scripts\local_bench.py --problems data\bench_local\problems_hif.json --sample 30 --episodes 2 --algos greedy,expectimax-analytic --budget-ms 100 --p-items off --out data\bench_local\ab_pitems_off.json
 ```
 
 ## 许可

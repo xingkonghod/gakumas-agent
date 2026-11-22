@@ -12,6 +12,7 @@ import pytest
 
 from gkagent.sim.p_items import (
     CARD_PLAY,
+    EXAM_START,
     STATUS_GAIN,
     TURN_END,
     TURN_START,
@@ -274,7 +275,6 @@ def test_unsupported_effect_type_is_noop(effect_type: str) -> None:
         "stamina_reduce",
         "buff_consume",
         "turn_interval",
-        "exam_start",
         "turn_start_after",
         "produce_start_lesson",
         "card_play_interval_after",
@@ -284,9 +284,36 @@ def test_unsupported_effect_type_is_noop(effect_type: str) -> None:
 )
 def test_unsupported_trigger_is_noop(trigger: str) -> None:
     spec = make_spec(trigger=trigger, effect_type="ExamLesson", value=10)
-    for kind in (TURN_START, TURN_END, CARD_PLAY, STATUS_GAIN):
+    for kind in (TURN_START, TURN_END, CARD_PLAY, STATUS_GAIN, EXAM_START):
         delta = apply_passive([spec], PassiveEvent(kind=kind), PassiveState(turn=1))
         assert delta.is_zero()
+
+
+def test_exam_start_fires_only_on_exam_start_event() -> None:
+    """训练/考试开始类效果只在 EXAM_START 事件触发；回合事件不触发。"""
+    spec = make_spec(trigger=EXAM_START, effect_type="ExamLesson", value=9)
+    assert spec.implemented is True
+    for kind in (TURN_START, TURN_END, CARD_PLAY, STATUS_GAIN):
+        assert apply_passive([spec], PassiveEvent(kind=kind), PassiveState(turn=1)).is_zero()
+    delta = apply_passive([spec], PassiveEvent(kind=EXAM_START), PassiveState(turn=1))
+    assert delta.score == 9
+    assert delta.applied == [spec.item_id or spec.name]
+
+
+def test_extra_play_effect_adds_action_slot() -> None:
+    """ExamPlayableValueAdd（技能卡使用数追加）→ extra_plays，不是分数/层数。"""
+    spec = make_spec(trigger=EXAM_START, effect_type="ExamPlayableValueAdd", value=1)
+    assert spec.target == "extra_plays"
+    delta = apply_passive([spec], PassiveEvent(kind=EXAM_START), PassiveState(turn=1))
+    assert delta.extra_plays == 1
+    assert delta.score == 0 and delta.stamina == 0 and not delta.stacks
+    assert delta.is_zero() is False
+
+
+def test_extra_play_zero_value_is_noop() -> None:
+    spec = make_spec(effect_type="ExamPlayableValueAdd", value=0)
+    delta = apply_passive([spec], PassiveEvent(kind=TURN_START), PassiveState(turn=1))
+    assert delta.is_zero()
 
 
 def test_no_value_is_noop() -> None:
@@ -300,14 +327,15 @@ def test_no_value_is_noop() -> None:
 
 def test_delta_accumulates() -> None:
     """PItemDelta 可累加，applied 记录触发了哪些道具。"""
-    a = PItemDelta(score=5, stamina=1, stacks={"vitality": 2}, applied=["a"])
+    a = PItemDelta(score=5, stamina=1, extra_plays=1, stacks={"vitality": 2}, applied=["a"])
     b = PItemDelta(score=1, stacks={"vitality": 3, "focus": 1}, applied=["b"])
     merged = a + b
-    assert (merged.score, merged.stamina) == (6, 1)
+    assert (merged.score, merged.stamina, merged.extra_plays) == (6, 1, 1)
     assert merged.stacks == {"vitality": 5, "focus": 1}
     assert merged.applied == ["a", "b"]
     assert a.stacks == {"vitality": 2}  # 原对象不被改
     assert PItemDelta().is_zero()
+    assert PItemDelta(extra_plays=1).is_zero() is False
 
 
 def test_record_to_specs_expands_effects() -> None:
@@ -335,6 +363,38 @@ def test_record_to_specs_expands_effects() -> None:
 
     empty = record_to_specs({**record, "effects": []})
     assert len(empty) == 1 and empty[0].effect_type == "unknown" and empty[0].implemented is False
+
+
+def test_record_to_specs_uses_count_for_playable_add() -> None:
+    """技能卡使用数追加的 N 在 ``count`` 列（不是 value1）——别被解析成 0 分。"""
+    record = {
+        "id": "pitem_test",
+        "name": "再动 P 道具",
+        "rarity": "SR",
+        "trigger": EXAM_START,
+        "condition": "",
+        "max_uses": 1,
+        "trigger_params": {},
+        "effects": [
+            {"type": "ExamPlayableValueAdd", "label": "技能卡使用数追加", "values": {"count": 1}},
+        ],
+        "text_zh": "训练开始时，技能卡使用数追加+1（训练内1次）",
+    }
+    specs = record_to_specs(record)
+    assert len(specs) == 1
+    assert specs[0].value == 1
+    assert specs[0].target == "extra_plays"
+    assert specs[0].implemented is True
+    assert specs[0].max_uses == 1
+
+
+def test_real_data_playable_add_count_is_extracted() -> None:
+    """真数据里 51 条 ExamPlayableValueAdd 全是 count=1；不能退化成 0 值 no-op。"""
+    specs = [spec for spec in load_p_items() if spec.effect_type == "ExamPlayableValueAdd"]
+    assert len(specs) == 51
+    assert all(spec.value == 1 for spec in specs)
+    assert all(spec.target == "extra_plays" for spec in specs)
+    assert sum(1 for spec in specs if spec.implemented) == 44
 
 
 def test_load_real_data_and_never_raise() -> None:
@@ -374,6 +434,7 @@ def test_real_data_covers_every_implemented_effect_type() -> None:
         "ExamLessonBuff",
         "ExamCardPlayAggressive",
         "ExamFullPowerPoint",
+        "ExamPlayableValueAdd",
     ):
         assert implemented.get(effect_type, 0) > 0, effect_type
 

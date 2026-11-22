@@ -198,6 +198,7 @@ from gkagent.sim.enthusiasm import (
 from gkagent.sim.exam_multiplier import battle_bonus_score
 from gkagent.sim.p_items import (
     CARD_PLAY,
+    EXAM_START,
     STATUS_GAIN,
     TURN_END,
     TURN_START,
@@ -460,7 +461,10 @@ class LessonConfig:
     # 方案（プラン）：sense=感性 / logic=理性 / anomaly=非凡；未知值退回 sense。
     # 只影响 greedy_policy 的 buff 优先级（见 data/knowledge/plans.json）。
     plan: str = DEFAULT_PLAN
-    # P 道具（右上角被动）：接口占位，默认空；数据未到位前不结算（见 PItemSpec）
+    # P 道具（训练/考试右上角被动）：真实对局列表来自 loadout 的
+    # ``produce_item_ids``（本仓库离线数据 = gkbench 题模板；解析见
+    # ``gkagent.data.p_items_db``）；默认空 = 旧行为（不结算任何 P 道具）。
+    # 训练/考试开始时的效果在构造时结算一次（见 LessonSim.__init__）。
     p_items: tuple[PItemSpec, ...] = ()
 
 
@@ -569,7 +573,11 @@ class LessonSim:
         # 牌库会无限洗回，所以"体力+元气付不起任何牌"是永久性的终端条件
         self._min_cost = min((card.cost for card in self.deck), default=0)
 
-        self._draw_hand()
+        # P 道具：训练/考试开始时的一次性效果（抽第一手牌**之前**；回合开始类
+        # P 道具在 _draw_hand 里触发，保证"考试开始 → 回合开始"的先后）。
+        # exam_start 给的额外出牌次数属于第 1 回合，所以初始抽牌不清零。
+        self._fire_p_items(EXAM_START)
+        self._draw_hand(keep_extra_plays=True)
 
     def shuffle_deck(self, deck: list[CardSpec], *, seed: int | None = None) -> None:
         """PIMC determinization：重新布置牌库顺序（**只改顺序，不改组成**）。
@@ -1178,10 +1186,12 @@ class LessonSim:
         status: str = "",
         amount: int = 0,
     ) -> None:
-        """在指定时机触发 P 道具并结算增量（分数/体力/层数）。"""
+        """在指定时机触发 P 道具并结算增量（分数/体力/层数/额外出牌次数）。"""
         if not self.p_items:
             return
-        if kind == TURN_START:
+        if kind == EXAM_START:
+            subset = self._p_items_by_trigger.get(EXAM_START, ())
+        elif kind == TURN_START:
             subset = self._p_items_by_trigger.get(TURN_START, ())
         elif kind == TURN_END:
             subset = self._p_items_by_trigger.get(TURN_END, ())
@@ -1224,6 +1234,9 @@ class LessonSim:
             elif key == "parameter_buff":
                 # P 道具的「好调」按回合数近似；模拟器没有独立参数 buff 资源
                 self.buffs.condition_turns += int(value)
+        if delta.extra_plays:
+            # ExamPlayableValueAdd：本回合额外可出牌次数（与卡效果同口径）
+            self.extra_plays += int(delta.extra_plays)
         for item_id in delta.applied:
             self.p_item_uses[item_id] = self.p_item_uses.get(item_id, 0) + 1
 
@@ -1345,13 +1358,15 @@ class LessonSim:
                     self.vitality += release_genki
                     self.extra_plays += release_plays
 
-    def _draw_hand(self) -> None:
+    def _draw_hand(self, *, keep_extra_plays: bool = False) -> None:
         # 新手牌 = 新回合：好印象在**下一回合开始时** -1（回合末已按当前层数加分）
         if self.buffs.impression > 0:
             self.buffs.impression -= 1
         # 本回合出牌数、额外次数、已喝饮料数从 0 重新计
+        # keep_extra_plays 只给构造时用：exam_start P 道具给的次数属于第 1 回合。
         self.plays_this_turn = 0
-        self.extra_plays = 0
+        if not keep_extra_plays:
+            self.extra_plays = 0
         self.drinks_used_this_turn = 0
         self.hand.clear()
         self._draw(self.config.hand_size)

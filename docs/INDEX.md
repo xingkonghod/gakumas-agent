@@ -245,7 +245,18 @@ UINet 578,722=0.4551 / official-ai 232,710=0.2131）；F0 预检用官方 `check
 `sim/enthusiasm.py` 纯规则 + `LessonSim`/`ExpectState` 镜像；`tests/test_t5_enthusiasm.py` 16 条；
 全量 pytest **1023 passed / 1 skipped（1024 收集 / 74 文件）**。
 细节见 [RULES_REFERENCE §5.2](RULES_REFERENCE.md) / HANDOVER 二·补二十六 / WORKPLAN B5。
-阶段 A 全部完成、B1/B2/B3/B4/B5/F0 完成、F 数据已下；下一步 **T5 剩余机制**
-（fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
+**同日 B6（T5③）已完成**（P 道具数据接入）：新增 `src/gkagent/data/p_items_db.py` 把对局
+loadout 的 `produce_item_ids` 解析成 `PItemSpec`（未知 id 显式上报、缺数据抛错）；
+`sim/p_items.py` 新增 **`exam_start`** 触发时机（288 段素材）与 **`ExamPlayableValueAdd →
+extra_plays`**（51 段，取 `count` 列）；`LessonSim` 构造时先于 turn_start 结算考试开始效果、
+`ExpectState` 镜像；`local_bench` 从 gkbench 题模板 loadout 接入（505 题 / 83 唯一 id /
+72 已知 / 11 未知，`--p-items auto/off`）+ gkbench 提交从 `ctx.loadout`（公开配置、不含种子）
+接入；离线 A/B（hif 30 题×2 seed 配对）greedy **+128.9（+3.36%，CI[+9.5,+248.4]）** /
+expectimax +149.6（+3.98%）；新增 29 条测试，全量 pytest **1051 passed / 1 skipped
+（1052 收集 / 76 文件）**。仍缺：真机培育侧 P 道具列表（T6/D1 补采）、效果覆盖
+（gkbench 已知 131 段 spec 只实现 31 段）、主道具附魔/回忆。
+细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补二十七 / WORKPLAN B6。
+阶段 A 全部完成、B1/B2/B3/B4/B5/B6/F0 完成、F 数据已下；下一步 **T5 剩余机制**
+（**fresh buff 差一回合**——需真机逐回合截图；P 道具效果覆盖/真机培育侧列表随后）→ 阶段 C/D →
 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

@@ -161,7 +161,7 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
 | `score` | 0 × 384 | 起点分 0 |
 | `rules` | **55 × 384** | 官方原生引擎规则版本 **55**（check 生成时）；榜上 run 现在跨 **rules 55/59/65** 三档 → F1 裁判对齐要标版本，别默认最新 |
 | `commit` | `f4d9e6e6148d` × 339；空 × 45（随机 40 + 实机 5） | GKMS 引擎提交；与 rules=55 配对 |
-| `stamina` | **369/384 = 96.1% 等于 `loadout.starting_stamina`**；15 组差异**按 idol 卡固定** | 起点体力 = `starting_stamina` + **偶像卡自带 P 道具的考试开始附魔**（常量偏移：shro-3-016 **−28**×5、atbm-3-015 **+5**×4、kllj-3-005 **−1**×3、ssmk-3-002 **+6**、kcna-3-019 **+6**、shro-3-007 **+1**）。**基准复算请用 `check.stamina` 覆盖** `loadout.starting_stamina`，别盲用 loadout 值 |
+| `stamina` | **369/384 = 96.1% 等于 `loadout.starting_stamina`**；15 组差异**按 idol 卡固定** | 起点体力 = `starting_stamina` + **偶像卡自带 P 道具的考试开始附魔**（常量偏移：shro-3-016 **−28**×5、atbm-3-015 **+5**×4、kllj-3-005 **−1**×3、ssmk-3-002 **+6**、kcna-3-019 **+6**、shro-3-007 **+1**）。B6/T5③（2026-11-22）用 `loadout.produce_item_ids` 反查到：**shro-3-016 的 5 组可由 `pitem_02-3-293-0` 的 exam_start「最大体力的 80% 数值变为体力消耗」解释**（max_stamina 36 → `floor(36×0.8)=28`，start−28=check），其余 10 组涉及 `p_items.json` 快照缺行的新道具或主道具附魔（不猜）。**基准复算请用 `check.stamina` 覆盖** `loadout.starting_stamina`，别盲用 loadout 值 |
 
 种子来源：`label` 上传 314 / 随机 60 / 实机 10（上传的 check 是服务器建种子时用当时引擎算的，
 所以 rules/commit 是快照值）。
@@ -174,7 +174,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
 - 给 F1 的输入：本地复算「同题同种子」时起点用 `check`（turn/score/stamina/rules/commit），
   洗牌/发牌模型已外部验证，可直接当「已知牌序」；`local_bench.py` 目前用 `starting_stamina`，
   接官方 check 时要覆盖（15/384 会差 −28…+6 体力）。
-- 已知待补（F1）：`ExamInitialDeck` 加卡机制、`kllj-3-005` 开局 +1 手牌。
+- **B6/T5③（2026-11-22）起 `local_bench.py` 已把题模板 `loadout.produce_item_ids` 接入
+  `LessonSim`**（`--p-items auto/off` 可 A/B；报告 `p_items` 覆盖率），提交适配器也从
+  `ctx.loadout` 接入；但 `p_items.json` 快照（2026-09-16）缺 11 个新 id、效果覆盖
+  72 个已知道具里 131 段 spec 只实现 31 段（见 RULES_REFERENCE §5.3）。
+- 已知待补（F1）：`ExamInitialDeck` 加卡机制、`kllj-3-005` 开局 +1 手牌；
+  `loadout.produce_item_ids` 的 11 个快照外新道具与主道具附魔 `main_item_enchant_ids`。
 
 ## 5. 参考分（2026-11-22 抓取，`public_seeds=false` 时的公开部分）
 

@@ -29,6 +29,7 @@
 | B3 T5 机制建模（回合规则 + 核验表） | 模拟器对齐真机：每回合基础 **1 张** + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`（`sim/lesson`、`sim/expectimax`、`sim/uiobs` 等）；真机 39 回合配对回归（`tests/fixtures/t5_exam_turn_rules.json` + `scripts/export_t5_turn_rules.py`）；`RULES_REFERENCE.md` 重写逐条核验表；实机回放黄金值 12 条；重标定：`sim_engine_ab` expectimax 显著强于 rules（+342~+429 评价点）、B1 60 局 within 89.1→beam 95.7（+6.6，门 107.4% PASS）、B2 旧模型 FAIL 待重训；全量 pytest **985/1（986 收集 / 72 文件）**；`docs/HANDOVER` 二·补二十一 |
 | B4 T5① 审查倍率分段 + 联动惩罚 | `src/gkagent/sim/exam_multiplier.py`（分段折线 + 联动惩罚 + 客户端 f32/ceil 取整）+ `src/gkagent/data/exam_bonus.py`（主数据 → 配置）+ `LessonConfig.attribute_bonuses/turn_attributes`（模拟器按回合属性乘，含依赖分与回合末好印象）+ `policy.audition_coefficient`（真机屏幕「舞蹈 207%」→ 搜索倍率，日志 `attr=2.07`）；夹具 `tests/fixtures/t5_exam_multipliers.json`（11-20 采集局期中 Vo/Da/Vi **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**；Vi/Vo/Da 低于审查基准的联动惩罚已对上）；`tests/test_exam_multiplier.py` 21 条；全量 pytest **1006 passed / 1 skipped（1007 收集 / 73 文件）**；`docs/RULES_REFERENCE` §5.1 |
 | B5 T5② 熱意 + 温存解除 | `src/gkagent/sim/enthusiasm.py`（熱意获得/回合末清零/延長/温存解除纯规则）+ `LessonSim`/`ExpectState` 熱意字段与算分（集中之后、好调/指針之前；整数获得时 ceil）；温存解除 1 段 +5 熱意/2 段 +8 熱意 +5 固定元気 + 解除当回合 **+1 出牌次数**（同回合可重复）；卡牌效果 `ExamEnthusiasticAdditive/Multiple`（熱意追加/増加 buff）、`ExamEnthusiasticTurnAdd`（延長）、`ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）接入 `sim_produce`（MODELED_EFFECTS 29→32）与生产卡表 `play_choice`；回合边界 温存→全力 也结算解除收益；`tests/test_t5_enthusiasm.py` 16 条 + sim_produce/play_choice/mechanism 更新；全量 pytest **1023 passed / 1 skipped（1024 收集 / 74 文件）**；`docs/RULES_REFERENCE` §5.2 |
+| B6 T5③ P 道具数据接入 | 新增 `src/gkagent/data/p_items_db.py`（`produce_item_ids` → `PItemSpec`，未知/重复 id 显式上报，缺数据抛错）+ `sim/p_items.py` 新增 **`exam_start`** 触发时机（288 段素材）与 **`ExamPlayableValueAdd` → `extra_plays`**（51 段，取 `count` 列）；`LessonSim` 构造时结算考试开始效果（先于 turn_start、额外出牌保第 1 回合）、`ExpectState` 镜像；`scripts/local_bench.py` 从 `loadout.produce_item_ids` 接入 + `--p-items auto/off` + 报告 `p_items` 覆盖率；`submissions/expectimax/algo.py` 从 `ctx.loadout`（公开配置、不含种子）接入；gkbench 505 题模板 83 唯一 id（72 已知/11 未知）；离线 A/B hif 30 题×2 seed：greedy **+128.9（+3.36%，CI[+9.5,+248.4]）** / expectimax +149.6（+3.98%）；新增 29 条测试；全量 pytest **1051 passed / 1 skipped（1052 收集 / 76 文件）**；`docs/RULES_REFERENCE` §5.3 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -285,8 +286,8 @@
 - **测试/基线**：全量 pytest **985 passed / 1 skipped**（986 收集 / 72 文件）；
   ① 洗牌 4/4+3/3、③ 4/4 场 86/86+24/24、④ 36/36+3/3+29/29+beam 28 全部不变。
 - **下一步（T5 剩余）**：~~审查倍率分段+联动惩罚~~ ✅ B4；~~熱意（独立资源）~~ ✅ B5；
-  ~~温存解除 +1 出牌/元气~~ ✅ B5；剩 fresh buff 差一回合（需真机截图核实）、P 道具数据接入；
-  然后阶段 C/D。
+  ~~温存解除 +1 出牌/元气~~ ✅ B5；~~P 道具数据接入（离线 loadout 侧）~~ ✅ B6；
+  剩 fresh buff 差一回合（需真机截图核实）+ P 道具效果覆盖/真机培育侧列表；然后阶段 C/D。
 
 ### B4. T5① 审查倍率分段 + 联动惩罚 ✅ 2026-11-22 完成
 - 目标：把「考试每回合属性倍率」从常量 4.11 换成客户端真实公式（分数表分段折线 + 审查基准
@@ -340,6 +341,38 @@
 - **未建模（如实记录）**：のんびり（leisure）指針及其解除规则、全力回合額外出牌/保留牌回手、
   P 道具/附魔来源的熱意、生产读屏未读熱意图标（每步从 0 估，同现有 buff 口径）。
 - 细节见 [RULES_REFERENCE §5.2](RULES_REFERENCE.md) / HANDOVER 二·补二十六。
+
+### B6. T5③ P 道具数据接入（gkbench loadout → 模拟器/评测/提交）✅ 2026-11-22 完成
+- 目标：把「真实对局带哪些 P 道具」接进管线——接口/模板早就有（`sim/p_items.py`
+  1068 件模板、6 个触发时机），缺的是 loadout → `PItemSpec` 的绑定与报告。
+- **离线数据源**：真机 `traffic.jsonl` 没有 produce 编成字段（全文件扫 0 命中）→ 真机
+  培育侧等 T6/D1 补采；离线完整数据源 = gkbench 505 题模板的
+  `saves.jsonl[].loadout.produce_item_ids`（2686 个 id / 83 唯一；`ctx.loadout` 是
+  base.py 明说的「开局配置（不含种子）」，公平可用）。
+- 机制补丁：**新增 `exam_start` 触发时机**（288 段素材；训练/考试开始时，`LessonSim`
+  构造时先于 turn_start 结算一次）和 **`ExamPlayableValueAdd → extra_plays`**
+  （51 段，N 在 `count` 列，旧解析会退化成 0 值 no-op）。
+- 落地：`data/p_items_db.py`（catalog + 解析 + 未知显式 + 缺文件抛错）、
+  `sim/p_items.py`、`sim/lesson.py`、`sim/expectimax.py`、`sim/leaf_data.py`、
+  `scripts/local_bench.py`（报告 `p_items` 覆盖率 + `--p-items auto/off`）、
+  `submissions/expectimax/algo.py`（`ctx.loadout` 接入 + 缺数据 meta 记原因）。
+- 覆盖率（如实）：catalog 1764 段 spec 已实现 421 段；gkbench 72 个已知道具 →
+  131 段 spec，已实现 **31 段**；11 个未知 id（快照后新道具）不猜。
+  F0 起点体力 15 组偏差里的 5 组（shro-3-016 −28）可用 `pitem_02-3-293-0`
+  考试开始「最大体力 80% 变体力消耗」解释（`floor(36×0.8)=28`）。
+- 离线 A/B（local_bench hif 30 题 × 2 seed 配对）：greedy 3840.7 → **3969.7**
+  （+128.9，+3.36%，CI95 [+9.5,+248.4]，8/60 局变化、8 胜 0 负）；expectimax
+  3759.3 → **3908.9**（+149.6，+3.98%，CI95 [−171.0,+470.2]，12/60 变化）；
+  其余局逐位不变（覆盖 33/174 段，未实现的仍是 no-op）。
+- 测试/基线：新增 29 条（`test_p_items_db.py` 10 / `test_gkbench_submission_p_items.py` 6 /
+  `test_p_items.py` +5 / `test_p_items_integration.py` +4 / `test_local_bench.py` +4，
+  并从 old unsupported trigger 列表移除 exam_start）；全量 pytest
+  **1051 passed / 1 skipped（1052 收集 / 76 文件）**；① 4/4+3/3、③ 86/86+24/24、
+  ④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+- 剩余（下一段）：真机培育侧 P 道具列表（T6/D1 补采）、效果覆盖
+  （ExamLessonValueMultiple/ExamParameterBuff/ExamStaminaReduceFix/生成卡/指針类
+  需要参考引擎语义与主数据文本重解析）、主道具附魔/回忆、gkbench obs 无已用次数。
+- 细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补二十七。
 
 ---
 
@@ -469,7 +502,19 @@ turn=1/score=0/stamina 96.1%=starting_stamina/rules=55；见 GKBENCH §4.5 / HAN
 与生产卡表；`tests/test_t5_enthusiasm.py` 16 条；全量 pytest **1023 passed / 1 skipped
 （1024 收集 / 74 文件）**（见 HANDOVER 二·补二十六）。
 未建模：のんびり指針、全力回合額外出牌/保留牌、P 道具/附魔来源、生产读屏未读熱意。
-下一步继续 **T5 剩余机制**（fresh buff 差一回合（需真机截图）、P 道具数据接入）
+**B6（T5③ P 道具数据接入）也已完成（2026-11-22）**：新增 `src/gkagent/data/p_items_db.py`
+（loadout `produce_item_ids` → `PItemSpec`，未知 id 显式上报、缺数据抛错）+
+`sim/p_items.py` 新增 **`exam_start`** 触发时机（288 段素材）与
+**`ExamPlayableValueAdd → extra_plays`**（51 段，取 `count` 列）；`LessonSim` 构造时
+结算考试开始效果（先于 turn_start、额外出牌保第 1 回合）、`ExpectState` 镜像；
+`local_bench` 从 gkbench 题模板的 `loadout.produce_item_ids` 接入（`--p-items auto/off`，
+505 题 / 83 唯一 id / 72 已知 / 11 未知）；gkbench 提交从 `ctx.loadout`（公开配置，
+不含种子）接入；离线 A/B（hif 30 题×2 seed）greedy **+128.9（+3.36%，CI[+9.5,+248.4]）** /
+expectimax +149.6（+3.98%）；新增 29 条测试，全量 pytest **1051/1（1052 收集 / 76 文件）**。
+仍缺：真机培育侧 P 道具列表（T6/D1 补采）、效果覆盖（已知 72 道具 131 段 spec 只实现
+31 段）、主道具附魔/回忆（见 HANDOVER 二·补二十七 / RULES_REFERENCE §5.3）。
+下一步继续 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具效果覆盖
+待参考引擎语义 + 主数据文本重解析）
 → 阶段 C（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```
