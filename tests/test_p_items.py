@@ -274,9 +274,10 @@ def test_condition_false_blocks_trigger() -> None:
 @pytest.mark.parametrize(
     "effect_type",
     [
-        "ExamLessonValueMultiple",  # 打分上升量增加（百分比，需要持续倍率 buff）
-        "ExamConcentration",  # 指针变更（需要卡/回合语义）
-        "ExamPreservation",  # 温存
+        # B9 起 ExamLessonValueMultiple 已实现（持久分数倍率）；这里留真正没建模的：
+        "ExamLessonValueMultipleDependReviewOrAggressive",  # 自尊（依赖换算顺序未建模）
+        "ExamConcentration",  # 指針直给必须先有「强气变更」文本，否则保守 no-op（B9）
+        "ExamPreservation",  # 同上（「温存变更」文本才触发）
         "ExamCardCreateId",  # 生成卡
         "unknown",
         "",

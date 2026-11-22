@@ -137,6 +137,8 @@ class PItemLoadout:
             "depends_on_specs": stats["depends_on_specs"],
             "percent_max_specs": stats["percent_max_specs"],
             "zero_stack_specs": stats["zero_stack_specs"],
+            "implemented_modifier_specs": stats["implemented_modifier_specs"],
+            "implemented_modifier_targets": stats["implemented_modifier_targets"],
             "noop_reasons": stats["noop_reasons"],
             "implemented_effect_types": stats["implemented_effect_types"],
             "noop_effect_types": stats["noop_effect_types"],
@@ -200,6 +202,8 @@ def catalog_coverage(catalog: PItemCatalog) -> dict:
         "depends_on_specs": stats["depends_on_specs"],
         "percent_max_specs": stats["percent_max_specs"],
         "zero_stack_specs": stats["zero_stack_specs"],
+        "implemented_modifier_specs": stats["implemented_modifier_specs"],
+        "implemented_modifier_targets": stats["implemented_modifier_targets"],
         "noop_reasons": stats["noop_reasons"],
     }
 

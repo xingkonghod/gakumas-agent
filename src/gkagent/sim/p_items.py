@@ -70,7 +70,108 @@ STACK_EFFECTS = {
     "ExamCardPlayAggressive": "aggressive",
     "ExamFullPowerPoint": "full_power_point",
     "ExamParameterBuff": "parameter_buff",
+    # B9：固定元气（固定Genki，不吃干劲加成，直接进元气）
+    "ExamBlockFix": "vitality",
 }
+
+# ---- B9（2026-11-22）：持久倍率 / modifier 类效果 ---------------------------
+# 语义来源：gakumas-tools 参考引擎（BSD-3）
+#   * ``Executor/resolvers.js::resolveScore`` f/g：score *= (1 + Σ scoreBuff)，
+#     再 *= max(1 − Σ scoreDebuff, 0)；
+#   * ``BuffManager.js``：``setScoreBuff(amount, turns)`` 等按 (amount, turns)
+#     入列表、回合末倒计时（turns=None 永久）；
+#   * ``p_items.csv`` 的 DSL（``setScoreBuff(0.5,1)`` / ``setStance(preservation)`` /
+#     ``costReduction+=N`` 等）。
+# 这里只做「PItemSpec.target 分类 + PItemDelta 增量」；生命周期与结算在
+# ``sim/lesson.py`` / ``sim/expectimax.py`` 里镜像。
+SCORE_BUFF_EFFECTS = frozenset({"ExamLessonValueMultiple"})  # 打分上升量增加
+SCORE_DEBUFF_EFFECTS = frozenset({"ExamLessonValueMultipleDown"})  # 打分上升量减少
+REVIEW_MULTIPLE_EFFECTS = frozenset({"ExamReviewMultiple"})  # 好印象强化
+REVIEW_TIMES_EFFECTS = frozenset({"ExamReviewCountAdd"})  # 好印象追加发动
+ENTHUSIASM_MULTIPLE_EFFECTS = frozenset({"ExamEnthusiasticMultiple"})  # 热意增加
+ENTHUSIASM_BONUS_EFFECTS = frozenset({"ExamEnthusiasticAdditive"})  # 热意追加
+CONCENTRATION_EFFECT_EFFECTS = frozenset({"ExamLessonBuffMultiple"})  # 集中强化
+CONCENTRATION_GAIN_EFFECTS = frozenset({"ExamLessonBuffAdditive"})  # 集中增加量增加
+IMPRESSION_GAIN_EFFECTS = frozenset({"ExamReviewAdditive"})  # 好印象增加量增加
+MOTIVATION_GAIN_EFFECTS = frozenset({"ExamAggressiveAdditive"})  # 干劲增加量增加
+FULL_POWER_CHARGE_EFFECTS = frozenset({"ExamFullPowerPointAdditive"})  # 全力值增加量增加
+PERFECT_CONDITION_EFFECTS = frozenset({"ExamParameterBuffMultiplePerTurn"})  # 绝好调
+POOR_CONDITION_EFFECTS = frozenset({"ExamGimmickParameterDebuff"})  # 不调
+EXTRA_TURN_EFFECTS = frozenset({"ExamExtraTurn"})  # 回合追加
+COST_REDUCTION_EFFECTS = frozenset({"ExamStaminaConsumptionDownFix"})  # 削减消耗体力
+COST_INCREASE_EFFECTS = frozenset({"ExamStaminaConsumptionAddFix"})  # 消耗体力追加
+HALF_COST_EFFECTS = frozenset({"ExamStaminaConsumptionDown"})  # 消耗体力减少（回合）
+DOUBLE_COST_EFFECTS = frozenset({"ExamStaminaConsumptionAdd"})  # 消耗体力增加（回合）
+IMPRESSION_REDUCE_EFFECTS = frozenset({"ExamReviewReduce"})  # 好印象减少
+STANCE_EFFECT_TARGETS = {
+    "ExamPreservation": "stance_preservation",
+    "ExamConcentration": "stance_concentration",
+}
+
+#: effect_type -> 新目标（不含需要看文本才能判定的指針直给式）。
+TARGET_BY_EFFECT: dict[str, str] = {
+    **{effect: "score_buff" for effect in SCORE_BUFF_EFFECTS},
+    **{effect: "score_debuff" for effect in SCORE_DEBUFF_EFFECTS},
+    **{effect: "review_multiple" for effect in REVIEW_MULTIPLE_EFFECTS},
+    **{effect: "review_times" for effect in REVIEW_TIMES_EFFECTS},
+    **{effect: "enthusiasm_multiple" for effect in ENTHUSIASM_MULTIPLE_EFFECTS},
+    **{effect: "enthusiasm_bonus" for effect in ENTHUSIASM_BONUS_EFFECTS},
+    **{effect: "concentration_effect" for effect in CONCENTRATION_EFFECT_EFFECTS},
+    **{effect: "concentration_gain" for effect in CONCENTRATION_GAIN_EFFECTS},
+    **{effect: "impression_gain" for effect in IMPRESSION_GAIN_EFFECTS},
+    **{effect: "motivation_gain" for effect in MOTIVATION_GAIN_EFFECTS},
+    **{effect: "full_power_charge" for effect in FULL_POWER_CHARGE_EFFECTS},
+    **{effect: "perfect_condition_turns" for effect in PERFECT_CONDITION_EFFECTS},
+    **{effect: "poor_condition_turns" for effect in POOR_CONDITION_EFFECTS},
+    **{effect: "extra_turn" for effect in EXTRA_TURN_EFFECTS},
+    **{effect: "cost_reduction" for effect in COST_REDUCTION_EFFECTS},
+    **{effect: "cost_increase" for effect in COST_INCREASE_EFFECTS},
+    **{effect: "half_cost_turns" for effect in HALF_COST_EFFECTS},
+    **{effect: "double_cost_turns" for effect in DOUBLE_COST_EFFECTS},
+    **{effect: "impression_reduce" for effect in IMPRESSION_REDUCE_EFFECTS},
+}
+
+#: 百分比类目标：effect.values.percent1 是「人类百分比」（50 = +50%），
+#: spec.value 统一存千分比（500），与卡表 ``review_multiple`` 渠道一致。
+PERCENT_TARGETS = frozenset(
+    {
+        "score_buff",
+        "score_debuff",
+        "review_multiple",
+        "enthusiasm_multiple",
+        "concentration_effect",
+        "concentration_gain",
+        "impression_gain",
+        "motivation_gain",
+        "full_power_charge",
+    }
+)
+#: 持续回合数取自 ``values.turn`` 的目标（0/缺 = 永久，与参考引擎 turns=None 同义）。
+DURATION_TARGETS = frozenset(
+    {
+        "score_buff",
+        "score_debuff",
+        "review_multiple",
+        "review_times",
+        "enthusiasm_multiple",
+        "enthusiasm_bonus",
+        "concentration_effect",
+        "concentration_gain",
+        "impression_gain",
+        "motivation_gain",
+        "full_power_charge",
+        "half_cost_turns",
+        "double_cost_turns",
+        "perfect_condition_turns",
+        "poor_condition_turns",
+    }
+)
+#: 纯标记类目标（数值固定 1 / 只看触发时机）。
+FLAG_TARGETS = frozenset({"extra_turn", "stance_preservation", "stance_concentration"})
+#: 新目标的全部集合（供 summarize / implemented 判定）。
+MODIFIER_TARGETS = frozenset(
+    set(TARGET_BY_EFFECT.values()) | set(STANCE_EFFECT_TARGETS.values())
+)
 
 # ---- 已实现的触发时机 ------------------------------------------------------
 SUPPORTED_TRIGGERS = frozenset(
@@ -101,6 +202,9 @@ STATUS_NAMES = {
     "强气": "stance_concentration",
     "温存": "stance_preservation",
     "全力": "stance_full_power",
+    # B9：条件里的「消耗体力减少状态」= halfCostTurns>0（P 道具/卡效果给的
+    # 消耗体力减少回合数），用伪 stack key 表达"是否在状态中"。
+    "消耗体力减少": "half_cost_state",
 }
 
 # 能拿来做"层数阈值"比较的状态：都是纯层数。好调（parameter_buff）在模拟器里是
@@ -154,6 +258,12 @@ class PItemSpec:
     item_id: str = ""
     rarity: str = ""
     label: str = ""  # effect_type 的中文名（打分/元气/…）
+    # B9（2026-11-22）：持久倍率 / modifier 类效果的显式目标（覆盖按 effect_type
+    # 推导的 target）；duration 是持续回合数（0 = 永久，参考引擎 turns=None）。
+    target_kind: str = ""
+    duration: int = 0
+    # B9：效果段自己的文本（指針直给式/随机手牌限定的判定要用它；数据层写入）。
+    effect_text: str = ""
     interval: int = 0  # card_play_interval：每 N 次；status_gain_interval：每 N 次状态增加
     interval_scope: str = "turn"  # turn = 回合内累计，exam = 整场累计
     status: str = ""  # status_gain：触发它的状态 key
@@ -174,7 +284,17 @@ class PItemSpec:
 
     @property
     def target(self) -> str:
-        """这条效果结算到哪儿："score" / "stamina" / "extra_plays" / 层数 key / ""（不支持）。"""
+        """这条效果结算到哪儿："score" / "stamina" / "extra_plays" / 层数 key /
+        B9 的持久倍率目标（score_buff / review_multiple / …）/ ""（不支持）。"""
+        if self.target_kind:
+            return self.target_kind
+        # 手写 spec 没带 target_kind 时按 effect_type（+ 效果段文本）推导；
+        # 数据层 record_to_specs 会显式写入 target_kind（含指針直给式的文本判定）。
+        modifier = classify_effect_target(
+            self.effect_type, self.effect_text or self.text
+        )
+        if modifier:
+            return modifier
         if self.effect_type in SCORE_EFFECTS:
             return "score"
         if self.effect_type in STAMINA_EFFECTS:
@@ -193,7 +313,22 @@ class PItemSpec:
             return True
         if self.percent_max > 0 and self.target == "stamina":
             return True
-        return bool(self.target) and self.value > 0
+        target = self.target
+        if target in PERCENT_TARGETS:
+            # 百分比类：value 是千分比（>0 才算有数值）
+            return self.value > 0
+        if target in FLAG_TARGETS:
+            return True
+        if target in ("review_times", "cost_reduction", "cost_increase", "impression_reduce"):
+            return self.value > 0
+        if target in (
+            "half_cost_turns",
+            "double_cost_turns",
+            "perfect_condition_turns",
+            "poor_condition_turns",
+        ):
+            return self.duration > 0 or self.value > 0
+        return bool(target) and self.value > 0
 
 
 @dataclass(frozen=True)
@@ -253,6 +388,25 @@ class PItemDelta:
     stacks: dict[str, int] = field(default_factory=dict)
     zero_stacks: list[str] = field(default_factory=list)  # B8：「X 变为 0」
     applied: list[str] = field(default_factory=list)  # 触发了哪些道具（item_id 或 name）
+    # ---- B9（2026-11-22）：持久倍率 / modifier 增量 -------------------------
+    # 分数倍率是**列表**（参考引擎同类 buff 按 turns 分组、amount 加算）；元素
+    # (千分比, 剩余回合)，remaining=-1 = 永久。
+    score_buffs: list[tuple[int, int]] = field(default_factory=list)
+    score_debuffs: list[tuple[int, int]] = field(default_factory=list)
+    # 其它持久倍率：key -> (千分比/数值, 剩余回合)。key 见 MODIFIER_TARGETS。
+    modifiers: list[tuple[str, int, int]] = field(default_factory=list)
+    # 固定/百分比费用修正（永久，整场累计）；half/double 是「接下来 N 回合」计数器
+    cost_reduction: int = 0
+    cost_increase: int = 0
+    half_cost_turns: int = 0
+    double_cost_turns: int = 0
+    # 回合追加（ExamExtraTurn）：累积到本回合结束再加到剩余回合数
+    extra_turns: int = 0
+    # 指針直给（ExamPreservation/ExamConcentration 的「温存变更/强气变更」）
+    stances: list[str] = field(default_factory=list)
+    # 绝好调 / 不调 回合数（ExamParameterBuffMultiplePerTurn / ExamGimmickParameterDebuff）
+    perfect_condition_turns: int = 0
+    poor_condition_turns: int = 0
 
     def add_stack(self, key: str, amount: int) -> None:
         if amount:
@@ -265,6 +419,17 @@ class PItemDelta:
             or self.stamina_consumed
             or self.extra_plays
             or self.zero_stacks
+            or self.score_buffs
+            or self.score_debuffs
+            or self.modifiers
+            or self.cost_reduction
+            or self.cost_increase
+            or self.half_cost_turns
+            or self.double_cost_turns
+            or self.extra_turns
+            or self.stances
+            or self.perfect_condition_turns
+            or self.poor_condition_turns
             or any(self.stacks.values())
         )
 
@@ -276,6 +441,9 @@ class PItemDelta:
             "extra_plays": self.extra_plays,
             "stacks": dict(self.stacks),
             "zero_stacks": list(self.zero_stacks),
+            "score_buffs": list(self.score_buffs),
+            "score_debuffs": list(self.score_debuffs),
+            "modifiers": list(self.modifiers),
         }
 
     def __iadd__(self, other: PItemDelta) -> Self:
@@ -287,6 +455,17 @@ class PItemDelta:
             self.add_stack(key, amount)
         self.zero_stacks.extend(other.zero_stacks)
         self.applied.extend(other.applied)
+        self.score_buffs.extend(other.score_buffs)
+        self.score_debuffs.extend(other.score_debuffs)
+        self.modifiers.extend(other.modifiers)
+        self.cost_reduction += other.cost_reduction
+        self.cost_increase += other.cost_increase
+        self.half_cost_turns += other.half_cost_turns
+        self.double_cost_turns += other.double_cost_turns
+        self.extra_turns += other.extra_turns
+        self.stances.extend(other.stances)
+        self.perfect_condition_turns += other.perfect_condition_turns
+        self.poor_condition_turns += other.poor_condition_turns
         return self
 
     def __add__(self, other: PItemDelta) -> PItemDelta:
@@ -298,9 +477,171 @@ class PItemDelta:
             stacks=dict(self.stacks),
             zero_stacks=list(self.zero_stacks),
             applied=list(self.applied),
+            score_buffs=list(self.score_buffs),
+            score_debuffs=list(self.score_debuffs),
+            modifiers=list(self.modifiers),
+            cost_reduction=self.cost_reduction,
+            cost_increase=self.cost_increase,
+            half_cost_turns=self.half_cost_turns,
+            double_cost_turns=self.double_cost_turns,
+            extra_turns=self.extra_turns,
+            stances=list(self.stances),
+            perfect_condition_turns=self.perfect_condition_turns,
+            poor_condition_turns=self.poor_condition_turns,
         )
         merged += other
         return merged
+
+
+# ---- B9：定时倍率列表的纯函数（参考引擎 BuffManager.setBuff/decrementBuffTurns）----
+# 列表元素 ``(amount, turns)``：``turns`` = 剩余回合数，-1 = 永久（参考引擎 None）。
+# 同 ``turns`` 的条目按参考引擎 ``setBuff`` 合并（amount 相加）；回合末
+# ``tick_timed`` 把 turns>0 的 -1、到 0 移除、永久保持。
+TimedAmounts = tuple[tuple[int, int], ...]
+PERMANENT_TURNS = -1
+
+
+def normalize_turns(turns: int) -> int:
+    """0/None 表示永久 → -1；负数原样返回（-1 = 永久）。"""
+    if isinstance(turns, bool) or not isinstance(turns, int):
+        raise TypeError(f"turns 必须是 int：{turns!r}")
+    if turns <= 0:
+        return PERMANENT_TURNS
+    return turns
+
+
+def add_timed(entries: TimedAmounts, amount: int, turns: int) -> TimedAmounts:
+    """按参考引擎 ``setBuff`` 口径加入一条 (amount, turns)：同 turns 合并加算。"""
+    if not amount:
+        return entries
+    turns = normalize_turns(turns)
+    merged: list[tuple[int, int]] = []
+    found = False
+    for old_amount, old_turns in entries:
+        if old_turns == turns:
+            merged.append((old_amount + amount, old_turns))
+            found = True
+        else:
+            merged.append((old_amount, old_turns))
+    if not found:
+        merged.append((amount, turns))
+    return tuple(merged)
+
+
+def total_timed(entries: TimedAmounts) -> int:
+    """当前生效的合计值（参考引擎 ``reduce((acc, cur) => acc + cur.amount, 0/1)``）。"""
+    return sum(amount for amount, _ in entries)
+
+
+def tick_timed(entries: TimedAmounts) -> TimedAmounts:
+    """回合末倒计时：turns>0 的 -1、到 0 移除，-1（永久）保持。"""
+    ticked: list[tuple[int, int]] = []
+    for amount, turns in entries:
+        if turns == PERMANENT_TURNS:
+            ticked.append((amount, turns))
+            continue
+        next_turns = turns - 1
+        if next_turns > 0:
+            ticked.append((amount, next_turns))
+    return tuple(ticked)
+
+
+def timed_dict_add(
+    table: Mapping[str, TimedAmounts], key: str, amount: int, turns: int
+) -> dict[str, TimedAmounts]:
+    """``{key: timed 列表}`` 的 copy-on-write 加入（modifier 渠道共用）。"""
+    merged = dict(table)
+    merged[key] = add_timed(merged.get(key, ()), amount, turns)
+    return merged
+
+
+def timed_dict_tick(table: Mapping[str, TimedAmounts]) -> dict[str, TimedAmounts]:
+    ticked: dict[str, TimedAmounts] = {}
+    for key, entries in table.items():
+        after = tick_timed(entries)
+        if after:
+            ticked[key] = after
+    return ticked
+
+
+def timed_dict_total(table: Mapping[str, TimedAmounts], key: str) -> int:
+    return total_timed(table.get(key, ()))
+
+
+def _permil(percent: int) -> int:
+    """人类百分比 → 千分比（与卡表 review_multiple 等渠道同口径）。"""
+    return int(percent) * 10
+
+
+def classify_effect_target(effect_type: str, text: str = "") -> str:
+    """B9：effect_type（+ 中文/日文效果文本）→ 持久倍率目标；认不出返回 ""。
+
+    指針直给式（``ExamPreservation``/``ExamConcentration``）要看文本：卡名/卡类
+    强化段（「温存效果的技能卡的…」「强气效果的技能卡的打分值增加…」）**不是**
+    指針变更，不能当直给式结算（保守 no-op）；只有「温存变更 / 温存阶段变更 /
+    温存に変更 / 强气变更 / 強気変更」才是 ``setStance``。
+    """
+    if effect_type in STANCE_EFFECT_TARGETS:
+        head = (text or "").strip()
+        if effect_type == "ExamPreservation":
+            if head.startswith(("温存变更", "温存阶段变更", "温存に変更")):
+                return "stance_preservation"
+            return ""
+        if head.startswith(("强气变更", "强気変更", "強気変更", "强气に変更")):
+            return "stance_concentration"
+        return ""
+    kind = TARGET_BY_EFFECT.get(effect_type, "")
+    if kind and "随机" in (text or ""):
+        # 「削减消耗体力随机1张手牌在…」这类效果只作用于随机 1 张手牌：
+        # 没有手牌定位就不能当全局费用削减结算（保守 no-op）。
+        return ""
+    return kind
+
+
+def effect_target(effect: Mapping) -> str:
+    """一条 effect 段的 B9 目标（数据里带 ``target`` 时优先，旧数据按类型推导）。"""
+    explicit = str(effect.get("target") or "")
+    if explicit:
+        return explicit
+    return classify_effect_target(str(effect.get("type") or ""), str(effect.get("text") or ""))
+
+
+def effect_value(effect: Mapping, target: str | None = None) -> int:
+    """一条 effect 段结算用的数值（B9 口径；旧类型仍取 value1/count）。
+
+    * 百分比类目标：``percent1``（人类百分比）→ 千分比；
+    * 回合数类目标（持续回合/绝好调/消耗体力减少回合）：``turn``；
+    * 其余：``value1``（``ExamPlayableValueAdd`` 优先 ``count``，B6 口径）。
+    """
+    kind = target if target is not None else effect_target(effect)
+    values = effect.get("values") or {}
+    if kind in PERCENT_TARGETS:
+        return _permil(int(values.get("percent1") or 0))
+    if kind in (
+        "half_cost_turns",
+        "double_cost_turns",
+        "perfect_condition_turns",
+        "poor_condition_turns",
+    ):
+        return int(values.get("turn") or 0)
+    if effect.get("type") == "ExamPlayableValueAdd":
+        return int(values.get("count") or values.get("value1") or 0)
+    return int(values.get("value1") or 0)
+
+
+def effect_duration(effect: Mapping, target: str | None = None) -> int:
+    """持续回合数（B9）：``values.turn``；0 = 永久（参考引擎 turns=None）。"""
+    kind = target if target is not None else effect_target(effect)
+    values = effect.get("values") or {}
+    if kind in ("half_cost_turns", "double_cost_turns"):
+        # 「消耗体力减少/增加 N 回合」的 N 就是持续回合数
+        return int(values.get("turn") or 0)
+    if kind in DURATION_TARGETS or kind in (
+        "perfect_condition_turns",
+        "poor_condition_turns",
+    ):
+        return int(values.get("turn") or 0)
+    return 0
 
 
 def evaluate_condition(condition: str, state: PassiveState) -> bool | None:
@@ -498,6 +839,9 @@ def apply_passive(
                 else:
                     delta.stamina += amount
                 applied = True
+        # ---- B9（2026-11-22）：持久倍率 / modifier 目标 -------------------
+        elif target in MODIFIER_TARGETS:
+            applied = _apply_modifier_target(spec, target, delta)
         elif not target or spec.value <= 0:
             continue  # 未实现的 effect_type：no-op
         else:
@@ -511,6 +855,80 @@ def apply_passive(
         if applied:
             delta.applied.append(spec.item_id or spec.name)
     return delta
+
+
+def _apply_modifier_target(spec: PItemSpec, target: str, delta: PItemDelta) -> bool:
+    """B9：把一条持久倍率/modifier 目标写进 ``delta``；返回是否真的触发。"""
+    turns = spec.duration  # 0 = 永久
+    if target in ("score_buff", "score_debuff"):
+        if spec.value <= 0:
+            return False
+        entry = (spec.value, normalize_turns(turns))
+        if target == "score_buff":
+            delta.score_buffs.append(entry)
+        else:
+            delta.score_debuffs.append(entry)
+        return True
+    if target in PERCENT_TARGETS:  # review_multiple / enthusiasm_multiple / 增益倍率…
+        if spec.value <= 0:
+            return False
+        delta.modifiers.append((target, spec.value, normalize_turns(turns)))
+        return True
+    if target == "review_times":
+        if spec.value <= 0:
+            return False
+        delta.modifiers.append((target, spec.value, normalize_turns(turns)))
+        return True
+    if target == "half_cost_turns":
+        amount = spec.duration or spec.value
+        if amount <= 0:
+            return False
+        delta.half_cost_turns += amount
+        return True
+    if target == "double_cost_turns":
+        amount = spec.duration or spec.value
+        if amount <= 0:
+            return False
+        delta.double_cost_turns += amount
+        return True
+    if target == "cost_reduction":
+        if spec.value <= 0:
+            return False
+        delta.cost_reduction += spec.value
+        return True
+    if target == "cost_increase":
+        if spec.value <= 0:
+            return False
+        delta.cost_increase += spec.value
+        return True
+    if target == "perfect_condition_turns":
+        amount = spec.duration or spec.value
+        if amount <= 0:
+            return False
+        delta.perfect_condition_turns += amount
+        return True
+    if target == "poor_condition_turns":
+        amount = spec.duration or spec.value
+        if amount <= 0:
+            return False
+        delta.poor_condition_turns += amount
+        return True
+    if target == "extra_turn":
+        delta.extra_turns += max(spec.value, 1)
+        return True
+    if target == "stance_preservation":
+        delta.stances.append("preservation")
+        return True
+    if target == "stance_concentration":
+        delta.stances.append("concentration")
+        return True
+    if target == "impression_reduce":
+        # 「好印象减少」：层数减少（结算时夹到 ≥0）
+        if spec.value <= 0:
+            return False
+        delta.add_stack("impression", -spec.value)
+        return True
+    return False
 
 
 # ---- 数据加载 -------------------------------------------------------------
@@ -570,11 +988,19 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
     specs = []
     for effect in effects:
         values = effect.get("values") or {}
+        target_kind = effect_target(effect)
+        value = effect_value(effect, target_kind)
+        if target_kind in ("perfect_condition_turns", "poor_condition_turns"):
+            # 这两类没有独立数值列，duration 才是回合数（value 也存一份便于实现判定）
+            value = effect_value(effect, target_kind)
         specs.append(
             PItemSpec(
                 effect_type=effect.get("type", "unknown"),
                 label=effect.get("label", ""),
-                value=_effect_value(effect),
+                value=value,
+                target_kind=target_kind if target_kind in MODIFIER_TARGETS else "",
+                duration=effect_duration(effect, target_kind),
+                effect_text=str(effect.get("text") or ""),
                 max_uses=int(effect.get("max_uses") or record.get("max_uses") or 0),
                 depends_on=effect.get("depends_on", ""),
                 percent=int(values.get("percent1") or 0) if effect.get("depends_on") else 0,
@@ -651,6 +1077,13 @@ def summarize(items: Sequence[PItemSpec]) -> dict:
         "implemented_effect_types": _count(spec.effect_type for spec in implemented),
         "implemented_triggers": _count(spec.trigger for spec in implemented),
         "noop_effect_types": _count(spec.effect_type for spec in noop),
+        # B9：持久倍率 / modifier 类（score_buff / review_multiple / 费用修正 / …）
+        "implemented_modifier_specs": sum(
+            1 for spec in implemented if spec.target in MODIFIER_TARGETS
+        ),
+        "implemented_modifier_targets": _count(
+            spec.target for spec in implemented if spec.target in MODIFIER_TARGETS
+        ),
     }
 
 
@@ -668,8 +1101,15 @@ def unsupported_effect_types(items: Sequence[PItemSpec]) -> list[str]:
 
 __all__ = [
     "CARD_PLAY",
+    "DURATION_TARGETS",
     "EXAM_START",
     "EXTRA_PLAY_EFFECTS",
+    "FLAG_TARGETS",
+    "MODIFIER_TARGETS",
+    "PERCENT_TARGETS",
+    "PERMANENT_TURNS",
+    "SCORE_BUFF_EFFECTS",
+    "SCORE_DEBUFF_EFFECTS",
     "SCORE_EFFECTS",
     "STACK_EFFECTS",
     "STAMINA_EFFECTS",
@@ -690,10 +1130,22 @@ __all__ = [
     "PItemSpec",
     "PassiveEvent",
     "PassiveState",
+    "TimedAmounts",
+    "add_timed",
     "apply_passive",
+    "classify_effect_target",
+    "effect_duration",
+    "effect_target",
+    "effect_value",
     "evaluate_condition",
     "load_p_items",
+    "normalize_turns",
     "record_to_specs",
     "summarize",
+    "tick_timed",
+    "timed_dict_add",
+    "timed_dict_tick",
+    "timed_dict_total",
+    "total_timed",
     "unsupported_effect_types",
 ]

@@ -210,7 +210,14 @@ from gkagent.sim.p_items import (
     PassiveEvent,
     PassiveState,
     PItemSpec,
+    add_timed,
     apply_passive,
+    normalize_turns,
+    tick_timed,
+    timed_dict_add,
+    timed_dict_tick,
+    timed_dict_total,
+    total_timed,
 )
 from gkagent.sim.stance import (
     FULL_POWER_POINT_COST,
@@ -521,6 +528,25 @@ class LessonSim:
         self.full_power_point_total: int = 0  # 累计全力值（「累计全力值的 N% 数值变为…」源）
         self.consumed_stamina_total: int = 0  # 累计消耗体力（「消耗过的体力的 N%」源）
         self.status_gain_counts: dict[str, int] = {}  # 各状态累计增加次数（status_gain_interval）
+        # ---- B9（2026-11-22）：P 道具持久倍率 / modifier 状态 -----------------
+        # 分数上升量倍率：((千分比, 剩余回合), …)，-1 = 永久。参考引擎同类 buff
+        # 按 turns 分组、amount 加算（resolveScore f）；回合末倒计时。
+        self.score_buffs: tuple[tuple[int, int], ...] = ()
+        # 分数上升量减少（resolveScore g：score *= max(1−Σ, 0)）
+        self.score_debuffs: tuple[tuple[int, int], ...] = ()
+        # 其它持久倍率：key -> ((数值, 剩余回合), …)
+        # （review_times / concentration_effect / concentration_gain / impression_gain /
+        #   motivation_gain / full_power_charge）
+        self.modifiers: dict[str, tuple[tuple[int, int], ...]] = {}
+        # 费用修正：永久加减值 + 「接下来 N 回合」的 ×0.5 / ×2 计数器
+        self.cost_reduction: int = 0
+        self.cost_increase: int = 0
+        self.half_cost_turns: int = 0
+        self.double_cost_turns: int = 0
+        # 回合追加（ExamExtraTurn）：pending 在本回合结束（turns_left-1 之后）加上；
+        # granted 累计已追加回合数，``total_turns`` 随之增长（当前回合号不跳变）。
+        self.extra_turns_pending: int = 0
+        self.extra_turns_granted: int = 0
         self._p_items_by_trigger: dict[str, tuple[PItemSpec, ...]] = {}
         for item in self.p_items:
             self._p_items_by_trigger.setdefault(item.trigger, ())
@@ -608,8 +634,18 @@ class LessonSim:
     # ------------------------------------------------------------------ 状态
     @property
     def total_turns(self) -> int:
-        """本课程总回合数（配置值；与剩余回合一起决定当前进度）。"""
-        return int(self.config.turns)
+        """本课程总回合数（配置值 + 考试内追加回合；与剩余回合一起决定进度）。"""
+        return int(self.config.turns) + int(self.extra_turns_granted)
+
+    # ---- B9：持久倍率 / modifier 读取 -------------------------------------
+    def _mod_total(self, key: str) -> int:
+        """某个持久 modifier 渠道当前生效的合计值（千分比/次数）。"""
+        return timed_dict_total(self.modifiers, key)
+
+    def _gain_multiple(self, key: str) -> float:
+        """「X 增加量增加 +N%」类增益倍率（1.0 = 不变）。"""
+        permil = self._mod_total(key)
+        return 1.0 + permil / 1000.0 if permil else 1.0
 
     @property
     def current_turn(self) -> int:
@@ -934,15 +970,25 @@ class LessonSim:
             # resolveScore b 的 ``score += enthusiasm × enthusiasmMultiplier``；
             # 乘完后统一 safeCeil 一次，与参考引擎在 buff 段 ceil 的口径一致）。
             enthusiasm_score = self.enthusiasm * card.enthusiasm_multiplier / 1000.0
+            # B9：集中强化（ExamLessonBuffMultiple，P 道具）→ 集中对分数的贡献
+            # ×(1+N%)（参考引擎 resolveScore a 的 concentrationEffectBuffs）。
+            focus_score = self.buffs.focus * self._gain_multiple("concentration_effect")
             raw = (
-                (base_score + self.buffs.focus + enthusiasm_score)
+                (base_score + focus_score + enthusiasm_score)
                 * multiplier
                 * score_multiplier(self.stance)
             )
             # メタモルフォーゼ：披露 +25% 分数增益；支度 ×0.75（作用在减益基数上）
             if self.buffs.metamorphosis == "performance":
                 raw *= 1.25
-            elif self.buffs.metamorphosis == "preparation":
+            # B9：P 道具持久分数倍率（参考引擎 resolveScore f/g）
+            score_buff = total_timed(self.score_buffs)
+            if score_buff:
+                raw *= 1.0 + score_buff / 1000.0
+            score_debuff = total_timed(self.score_debuffs)
+            if score_debuff:
+                raw *= max(1.0 - score_debuff / 1000.0, 0.0)
+            if self.buffs.metamorphosis == "preparation":
                 raw *= 0.75
             # 不调：×0.67
             if self.buffs.poor_condition_turns > 0:
@@ -1011,12 +1057,16 @@ class LessonSim:
         """
         previous_stance = self.stance
         if card.full_power_point > 0:
-            self.stance = apply_full_power_point(self.stance, card.full_power_point)
-            self.full_power_point_total += card.full_power_point
+            # B9：全力值增加量增加（ExamFullPowerPointAdditive）→ 获得量 ×(1+N%)
+            points = safe_ceil(
+                card.full_power_point * self._gain_multiple("full_power_charge")
+            )
+            self.stance = apply_full_power_point(self.stance, points)
+            self.full_power_point_total += points
             self._fire_p_items(
                 STATUS_GAIN,
                 status="full_power_point",
-                amount=card.full_power_point,
+                amount=points,
             )
         if card.strong_level > 0:
             delta = card_stance_effect("ExamConcentration", [card.strong_level])
@@ -1108,28 +1158,39 @@ class LessonSim:
         if condition_gain > 0 and self.buffs.condition_additive > 0:
             condition_gain += self.buffs.condition_additive
         self.buffs.condition_turns += condition_gain
-        self.buffs.focus += card.focus
-        self.buffs.impression += card.impression
+        # B9：P 道具「X 增加量增加 +N%」增益倍率（参考引擎 setConcentrationBuff /
+        # setGoodImpressionTurnsBuff / setMotivationBuff，乘在获得量上、向上取整）。
+        focus_gain = card.focus
+        if focus_gain > 0:
+            focus_gain = safe_ceil(focus_gain * self._gain_multiple("concentration_gain"))
+        impression_gain = card.impression
+        if impression_gain > 0:
+            impression_gain = safe_ceil(impression_gain * self._gain_multiple("impression_gain"))
+        motivation_gain = card.motivation
+        if motivation_gain > 0:
+            motivation_gain = safe_ceil(motivation_gain * self._gain_multiple("motivation_gain"))
+        self.buffs.focus += focus_gain
+        self.buffs.impression += impression_gain
         vitality_gain = card.vitality + self.motivation
         if card.vitality > 0:
             # 干劲提升元气获得量；元气优先用于抵牌费（真机语义）
             self.vitality += vitality_gain
-        self.motivation += card.motivation
+        self.motivation += motivation_gain
         if condition_gain > 0:
             self._fire_p_items(
                 STATUS_GAIN, status="parameter_buff", amount=condition_gain
             )
-        if card.focus > 0:
-            self._fire_p_items(STATUS_GAIN, status="focus", amount=card.focus)
-        if card.impression > 0:
+        if focus_gain > 0:
+            self._fire_p_items(STATUS_GAIN, status="focus", amount=focus_gain)
+        if impression_gain > 0:
             self._fire_p_items(
-                STATUS_GAIN, status="impression", amount=card.impression
+                STATUS_GAIN, status="impression", amount=impression_gain
             )
         if card.vitality > 0:
             self._fire_p_items(STATUS_GAIN, status="vitality", amount=vitality_gain)
-        if card.motivation > 0:
+        if motivation_gain > 0:
             self._fire_p_items(
-                STATUS_GAIN, status="aggressive", amount=card.motivation
+                STATUS_GAIN, status="aggressive", amount=motivation_gain
             )
 
     def _pay_card_cost(self, card: CardSpec) -> None:
@@ -1161,13 +1222,25 @@ class LessonSim:
             self._fire_p_items(STAMINA_REDUCE, stamina_delta=stamina_lost)
 
     def _effective_cost(self, card: CardSpec) -> int:
-        """指針修正后的实际牌费（向上取整；不改变 card.cost 本身）。"""
-        if not getattr(self.config, "stance_costs", True):
-            return int(card.cost)
-        multiplier = stamina_cost_multiplier(self.stance)
+        """实际牌费：指針倍率 × 消耗体力减少/增加回合，取整后再加减固定费用。
+
+        参考引擎 ``resolveCost``：``cost = floor(cost × 指針 × halfCostTurns ×
+        doubleCostTurns)``，再 ``cost += costReduction − costIncrease``、夹到 ≥0；
+        费用是负数，``floor`` 对绝对值就是向上取整（我们用 ``ceil``）。
+        """
+        multiplier = 1.0
+        if getattr(self.config, "stance_costs", True):
+            multiplier *= stamina_cost_multiplier(self.stance)
+        if self.half_cost_turns > 0:
+            multiplier *= 0.5
+        if self.double_cost_turns > 0:
+            multiplier *= 2.0
         if multiplier == 1.0:
-            return int(card.cost)
-        return math.ceil(card.cost * multiplier)
+            cost = int(card.cost)
+        else:
+            cost = math.ceil(card.cost * multiplier)
+        cost = cost - int(self.cost_reduction) + int(self.cost_increase)
+        return max(cost, 0)
 
     def _has_unused_stamina_drink(self) -> bool:
         """槽里还有没消耗的回复饮料（真机可以下一回合喝它继续打牌）。"""
@@ -1204,6 +1277,8 @@ class LessonSim:
                 else 0,
                 "stance_preservation": self.stance.save_level,
                 "stance_full_power": 1 if "full" in stance else 0,
+                # B9：「消耗体力减少状态」条件 = halfCostTurns>0
+                "half_cost_state": 1 if self.half_cost_turns > 0 else 0,
             },
             status_counts=self.status_gain_counts,
             uses=self.p_item_uses,
@@ -1219,12 +1294,18 @@ class LessonSim:
         status: str = "",
         amount: int = 0,
         stamina_delta: int = 0,
+        _depth: int = 0,
     ) -> None:
         """在指定时机触发 P 道具并结算增量（分数/体力/层数/额外出牌次数/清零）。
 
         B8：新增 ``turn_start_after`` / ``turn_interval`` / ``stance_change`` /
         ``stamina_reduce`` / ``status_gain_interval`` 五类事件。``status_gain_interval``
         的累计次数在这里推进（``status_gain_counts``），事件带 ``status_total``。
+
+        B9（2026-11-22）：持久倍率 / modifier 增量（分数 buff/debuff、好印象强化、
+        追加发动、热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、费用修正、
+        回合追加、指針直给）在这里落进状态；指針直给后按参考引擎
+        ``setStance`` 语义发一次 ``stance_change``（深度上限防链式递归）。
         """
         if not self.p_items:
             return
@@ -1310,8 +1391,111 @@ class LessonSim:
         if delta.extra_plays:
             # ExamPlayableValueAdd：本回合额外可出牌次数（与卡效果同口径）
             self.extra_plays += int(delta.extra_plays)
+        # ---- B9：持久倍率 / modifier 增量 -----------------------------------
+        if delta.score_buffs:
+            for buff_amount, buff_turns in delta.score_buffs:
+                self.score_buffs = add_timed(self.score_buffs, buff_amount, buff_turns)
+        if delta.score_debuffs:
+            for buff_amount, buff_turns in delta.score_debuffs:
+                self.score_debuffs = add_timed(
+                    self.score_debuffs, buff_amount, buff_turns
+                )
+        for key, mod_value, mod_turns in delta.modifiers:
+            if key == "review_multiple":
+                # 好印象强化：与卡效果共用 Buffs.review_multiple 渠道（千分比）
+                self.buffs.review_multiple = max(self.buffs.review_multiple, mod_value)
+                self.buffs.review_multiple_turns = _merge_buff_turns(
+                    self.buffs.review_multiple_turns,
+                    normalize_turns(mod_turns),
+                )
+            elif key == "enthusiasm_multiple":
+                self.buffs.enthusiasm_multiple = max(
+                    self.buffs.enthusiasm_multiple, mod_value
+                )
+                self.buffs.enthusiasm_multiple_turns = _merge_buff_turns(
+                    self.buffs.enthusiasm_multiple_turns,
+                    normalize_turns(mod_turns),
+                )
+            elif key == "enthusiasm_bonus":
+                self.buffs.enthusiasm_bonus = max(self.buffs.enthusiasm_bonus, mod_value)
+                self.buffs.enthusiasm_bonus_turns = _merge_buff_turns(
+                    self.buffs.enthusiasm_bonus_turns,
+                    normalize_turns(mod_turns),
+                )
+            else:
+                self.modifiers = timed_dict_add(
+                    self.modifiers, key, mod_value, mod_turns
+                )
+        if delta.perfect_condition_turns:
+            self.buffs.perfect_condition_turns += int(delta.perfect_condition_turns)
+        if delta.poor_condition_turns:
+            self.buffs.poor_condition_turns += int(delta.poor_condition_turns)
+        if delta.cost_reduction or delta.cost_increase:
+            self.cost_reduction += int(delta.cost_reduction)
+            self.cost_increase += int(delta.cost_increase)
+            self._min_cost = max(
+                0,
+                self._min_cost - int(delta.cost_reduction) + int(delta.cost_increase),
+            )
+        if delta.half_cost_turns:
+            self.half_cost_turns += int(delta.half_cost_turns)
+        if delta.double_cost_turns:
+            self.double_cost_turns += int(delta.double_cost_turns)
+        if delta.extra_turns:
+            self.extra_turns_pending += int(delta.extra_turns)
+        # 好印象减少（ExamReviewReduce）等负层数：夹到 ≥0（层数没有负值）
+        self.buffs.impression = max(self.buffs.impression, 0)
+        self.buffs.focus = max(self.buffs.focus, 0)
+        self.vitality = max(self.vitality, 0)
+        self.motivation = max(self.motivation, 0)
+        stance = self._apply_direct_stances(delta.stances)
+        if stance and _depth < 3:
+            self._fire_p_items(STANCE_CHANGE, _depth=_depth + 1)
         for item_id in delta.applied:
             self.p_item_uses[item_id] = self.p_item_uses.get(item_id, 0) + 1
+
+    def _apply_direct_stances(self, kinds: list[str]) -> bool:
+        """B9：结算 P 道具的指針直给（温存变更 / 强气变更）；返回指針是否变化。
+
+        参考引擎 ``setStance``：已在同指針时升到 2 段階（``preservation`` →
+        ``preservation2`` / ``strength`` → ``strength2``）；否则切到 1 段階。
+        """
+        changed = False
+        for kind in kinds:
+            previous = self.stance
+            if kind == "preservation":
+                level = 2 if str(self.stance.stance) == "save" else 1
+                self.stance = replace(
+                    self.stance,
+                    stance="save",
+                    save_level=max(int(self.stance.save_level), level)
+                    if str(self.stance.stance) == "save"
+                    else level,
+                    strong_level=0,
+                )
+            elif kind == "concentration":
+                level = 2 if "strong" in str(self.stance.stance) else 1
+                self.stance = replace(
+                    self.stance,
+                    stance="strong2" if level == 2 else "strong1",
+                    strong_level=level,
+                    save_level=0,
+                )
+            if self.stance != previous:
+                changed = True
+                if getattr(self.config, "stance_costs", True):
+                    release_enthusiasm, release_genki, release_plays = (
+                        release_on_stance_change(previous, self.stance)
+                    )
+                    if release_enthusiasm or release_genki or release_plays:
+                        self.enthusiasm += enthusiasm_gain(
+                            release_enthusiasm,
+                            bonus=self.buffs.enthusiasm_bonus,
+                            multiple_permil=self.buffs.enthusiasm_multiple,
+                        )
+                        self.vitality += release_genki
+                        self.extra_plays += release_plays
+        return changed
 
     def _end_turn(self, *, skipped: bool) -> None:
         """回合结束：结算好印象得分、衰减好调/持续 buff、记录 trace、弃手牌、抽下一手。
@@ -1337,22 +1521,37 @@ class LessonSim:
         if self.plays_this_turn < self.plays_per_turn + self.extra_plays:
             self.stamina = min(self.stamina_max, self.stamina + 2)
         if self.buffs.impression > 0:
-            # ExamReviewMultiple（好印象强化）：放大回合末的好印象结算分。
-            # 卡表 values 是千分比（2000 = 卡面 +200%），所以 ×(1000+值)/1000。
-            impression_score = self.buffs.impression
-            if self.buffs.review_multiple > 0:
-                impression_score = int(
-                    impression_score * (1000 + self.buffs.review_multiple) / 1000
-                )
-            # 熱意（T5②）：参考引擎里回合末好印象也走 resolveScore、会加熱意；
-            # 只在熱意 > 0 时改旧取整路径（对旧行为逐位不变）。
-            if self.enthusiasm > 0:
-                impression_score = safe_ceil(impression_score + self.enthusiasm)
+            # 好印象结算：ExamReviewMultiple（好印象强化）放大层数；「好印象追加发动」
+            # （ExamReviewCountAdd，B9）让这次结算重复 N+1 次（参考引擎
+            # GOOD_IMPRESSION_EFFECTS 的 goodImpressionTurnsTimesBuffs）。
+            review_times = max(0, self._mod_total("review_times"))
+            score_buff = total_timed(self.score_buffs)
+            score_debuff = total_timed(self.score_debuffs)
             turn_bonus = self._turn_bonus_permil()
-            if turn_bonus is not None and impression_score > 0:
-                # 参考引擎把回合末好印象合成一张 ExamLesson 结算，因此同样吃属性倍率
-                impression_score = battle_bonus_score(impression_score, turn_bonus)
-            self.score += impression_score
+            for _ in range(1 + review_times):
+                # 卡表 values 是千分比（2000 = 卡面 +200%），所以 ×(1000+值)/1000。
+                impression_score = self.buffs.impression
+                if self.buffs.review_multiple > 0:
+                    impression_score = int(
+                        impression_score * (1000 + self.buffs.review_multiple) / 1000
+                    )
+                # 熱意（T5②）：参考引擎里回合末好印象也走 resolveScore、会加熱意；
+                # 只在熱意 > 0 时改旧取整路径（对旧行为逐位不变）。
+                if self.enthusiasm > 0:
+                    impression_score = safe_ceil(impression_score + self.enthusiasm)
+                # B9：P 道具持久分数倍率（参考引擎 resolveScore f/g）
+                if score_buff:
+                    impression_score = safe_ceil(
+                        impression_score * (1.0 + score_buff / 1000.0)
+                    )
+                if score_debuff:
+                    impression_score = safe_ceil(
+                        impression_score * max(1.0 - score_debuff / 1000.0, 0.0)
+                    )
+                if turn_bonus is not None and impression_score > 0:
+                    # 参考引擎把回合末好印象合成一张 ExamLesson 结算，因此同样吃属性倍率
+                    impression_score = battle_bonus_score(impression_score, turn_bonus)
+                self.score += impression_score
             # 不在这里 -1：下一回合开始时扣（见 _draw_hand）
         if self.buffs.condition_turns > 0:
             self.buffs.condition_turns -= 1
@@ -1386,6 +1585,15 @@ class LessonSim:
         )
         if self.buffs.enthusiasm_multiple_turns == 0:
             self.buffs.enthusiasm_multiple = 0
+        # B9：P 道具持久倍率 / modifier 倒计时（参考引擎 decrementBuffTurns：
+        # turns>0 的 -1、到 0 移除、-1 永久保持）。
+        self.score_buffs = tick_timed(self.score_buffs)
+        self.score_debuffs = tick_timed(self.score_debuffs)
+        self.modifiers = timed_dict_tick(self.modifiers)
+        if self.half_cost_turns > 0:
+            self.half_cost_turns -= 1
+        if self.double_cost_turns > 0:
+            self.double_cost_turns -= 1
         # 熱意：回合末归 0；有「熱意延長」则保留并消耗 1 层（参考引擎 TurnManager.endTurn）
         self.enthusiasm, self.enthusiasm_extension_turns = turn_end_enthusiasm(
             self.enthusiasm, self.enthusiasm_extension_turns
@@ -1396,7 +1604,7 @@ class LessonSim:
         self._fire_p_items(TURN_END)
         self.trace.append(
             {
-                "turn": self.config.turns - self.turns_left + 1,
+                "turn": self.total_turns - self.turns_left + 1,
                 "turns_left": self.turns_left,
                 "skipped": skipped,
                 "score": self.score,
@@ -1410,6 +1618,13 @@ class LessonSim:
         self.discard.extend(self.hand)
         self.hand.clear()
         self.turns_left -= 1
+        # B9：本回合获得的「回合追加」（ExamExtraTurn）在回合结束、剩余回合 -1
+        # 之后补上；total_turns 同步增长，当前回合号不跳变（参考引擎
+        # TurnManager.endTurn 里 turnsRemaining+=1 后同帧 --1 等价）。
+        if self.extra_turns_pending:
+            self.turns_left += int(self.extra_turns_pending)
+            self.extra_turns_granted += int(self.extra_turns_pending)
+            self.extra_turns_pending = 0
         # 回合结束结算全力值：攒满 10 点则下一回合进入「全力」
         previous_stance = self.stance
         self.stance = end_turn(self.stance)

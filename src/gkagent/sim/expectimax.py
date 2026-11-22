@@ -91,7 +91,14 @@ from gkagent.sim.p_items import (
     PassiveEvent,
     PassiveState,
     PItemSpec,
+    TimedAmounts,
+    add_timed,
     apply_passive,
+    normalize_turns,
+    tick_timed,
+    timed_dict_add,
+    timed_dict_tick,
+    total_timed,
 )
 from gkagent.sim.stance import (
     StanceState,
@@ -258,6 +265,22 @@ class ExpectState:
     full_power_point_total: int = 0  # 累计全力值（「累计全力值的 N%」换算源）
     consumed_stamina_total: int = 0  # 累计消耗体力（「消耗过的体力的 N%」换算源）
     status_counts: tuple[tuple[str, int], ...] = ()  # 各状态累计增加次数
+    # ---- B9（2026-11-22）：P 道具持久倍率 / modifier 状态（与 LessonSim 双镜）----
+    # 分数上升量倍率：((千分比, 剩余回合), …)，-1 = 永久；参考引擎 resolveScore f/g。
+    score_buffs: tuple[tuple[int, int], ...] = ()
+    score_debuffs: tuple[tuple[int, int], ...] = ()
+    # 其它持久倍率：((key, ((数值, 剩余回合), …)), …)，key 见 MODIFIER_TARGETS。
+    # 用 tuple 存（canonical 要可哈希）；读取见 mod_total / gain_multiple。
+    modifiers: tuple[tuple[str, TimedAmounts], ...] = ()
+    # 费用修正：永久加减值 + 「接下来 N 回合」的 ×0.5 / ×2 计数器
+    cost_reduction: int = 0
+    cost_increase: int = 0
+    half_cost_turns: int = 0
+    double_cost_turns: int = 0
+    # 回合追加（ExamExtraTurn）：pending 在 end_turn_state 里加到 turns_left；
+    # granted 累计已追加回合数（effective total_turns = total_turns + granted）。
+    extra_turns: int = 0
+    extra_turns_granted: int = 0
     # 三框饮料：只在状态里携带，决策层仍走调用方现有 use_drink 流程
     # （架构评审的动作定义是 play(card)/SKIP；饮品不占出牌次数、每回合限 1 瓶）
     drinks: tuple[DrinkSpec, ...] = ()
@@ -291,9 +314,30 @@ class ExpectState:
     @property
     def current_turn(self) -> int:
         """当前是第几回合（1 起）；``total_turns`` 未知时返回 0。"""
-        if self.total_turns <= 0 or self.turns_left <= 0:
+        total = self.total_turns + self.extra_turns_granted
+        if total <= 0 or self.turns_left <= 0:
             return 0
-        return max(self.total_turns - self.turns_left + 1, 1)
+        return max(total - self.turns_left + 1, 1)
+
+    # ---- B9：持久倍率 / modifier 读取 -------------------------------------
+    def mod_total(self, key: str) -> int:
+        """某个持久 modifier 渠道当前生效的合计值（千分比/次数）。"""
+        for name, entries in self.modifiers:
+            if name == key:
+                return total_timed(entries)
+        return 0
+
+    def gain_multiple(self, key: str) -> float:
+        """「X 增加量增加 +N%」类增益倍率（1.0 = 不变）。"""
+        permil = self.mod_total(key)
+        return 1.0 + permil / 1000.0 if permil else 1.0
+
+    def with_modifiers(self, updates: Iterable[tuple[str, int, int]]) -> ExpectState:
+        """把若干条 (key, 数值, 回合) 持久 mod 加进状态（copy-on-write）。"""
+        table: dict[str, TimedAmounts] = dict(self.modifiers)
+        for key, amount, turns in updates:
+            table = timed_dict_add(table, key, amount, turns)
+        return replace(self, modifiers=tuple(sorted(table.items())))
 
     @property
     def total_cost_available(self) -> int:
@@ -374,6 +418,16 @@ class ExpectState:
             self.full_power_point_total,
             self.consumed_stamina_total,
             self.status_counts,
+            # B9：P 道具持久倍率 / modifier（全部影响后续价值/合法性）
+            self.score_buffs,
+            self.score_debuffs,
+            self.modifiers,
+            self.cost_reduction,
+            self.cost_increase,
+            self.half_cost_turns,
+            self.double_cost_turns,
+            self.extra_turns,
+            self.extra_turns_granted,
             self.drinks,
             self.drink_uses,
             self.drinks_used_this_turn,
@@ -611,6 +665,16 @@ def sim_from_state(
     sim.full_power_point_total = int(state.full_power_point_total)
     sim.consumed_stamina_total = int(state.consumed_stamina_total)
     sim.status_gain_counts = {key: int(count) for key, count in state.status_counts}
+    # B9：持久倍率 / modifier（rollout 必须带上，否则叶子估值少算 buff）
+    sim.score_buffs = tuple(state.score_buffs)
+    sim.score_debuffs = tuple(state.score_debuffs)
+    sim.modifiers = {key: tuple(entries) for key, entries in state.modifiers}
+    sim.cost_reduction = int(state.cost_reduction)
+    sim.cost_increase = int(state.cost_increase)
+    sim.half_cost_turns = int(state.half_cost_turns)
+    sim.double_cost_turns = int(state.double_cost_turns)
+    sim.extra_turns_pending = int(state.extra_turns)
+    sim.extra_turns_granted = int(state.extra_turns_granted)
     sim.enthusiasm = int(state.enthusiasm)
     sim.enthusiasm_extension_turns = int(state.enthusiasm_extension_turns)
     sim.buffs = Buffs(
@@ -793,11 +857,19 @@ def is_legal(state: ExpectState, card: CardSpec) -> bool:
 
 
 def effective_cost(state: ExpectState, card: CardSpec) -> int:
-    """指針修正后的实际牌费（与 LessonSim._effective_cost 同式，向上取整）。"""
+    """实际牌费（与 LessonSim._effective_cost 同式：指針 × 费用增减回合，
+    取整后加减固定费用、夹到 ≥0）。"""
     multiplier = stamina_cost_multiplier(state.stance_state)
+    if state.half_cost_turns > 0:
+        multiplier *= 0.5
+    if state.double_cost_turns > 0:
+        multiplier *= 2.0
     if multiplier == 1.0:
-        return int(card.cost)
-    return math.ceil(card.cost * multiplier)
+        cost = int(card.cost)
+    else:
+        cost = math.ceil(card.cost * multiplier)
+    cost = cost - int(state.cost_reduction) + int(state.cost_increase)
+    return max(cost, 0)
 
 
 def legal_cards(state: ExpectState) -> list[CardSpec]:
@@ -976,14 +1048,23 @@ def _card_award(
         # 熱意（T5②）：集中加算之后、好调/指針倍率之前加进白值
         # （参考引擎 resolveScore b；与 LessonSim._card_award 同口径，含本牌適用倍数）。
         enthusiasm_score = state.enthusiasm * card.enthusiasm_multiplier / 1000.0
+        # B9：集中强化（ExamLessonBuffMultiple）→ 集中贡献 ×(1+N%)
+        focus_score = state.focus * state.gain_multiple("concentration_effect")
         raw = (
-            (base_score + state.focus + enthusiasm_score)
+            (base_score + focus_score + enthusiasm_score)
             * multiplier
             * score_multiplier(state.stance_state)
         )
         if state.metamorphosis == "performance":
             raw *= 1.25
-        elif state.metamorphosis == "preparation":
+        # B9：P 道具持久分数倍率（参考引擎 resolveScore f/g；与 LessonSim 同口径）
+        score_buff = total_timed(state.score_buffs)
+        if score_buff:
+            raw *= 1.0 + score_buff / 1000.0
+        score_debuff = total_timed(state.score_debuffs)
+        if score_debuff:
+            raw *= max(1.0 - score_debuff / 1000.0, 0.0)
+        if state.metamorphosis == "preparation":
             raw *= 0.75
         if state.poor_condition_turns > 0:
             raw *= 0.67
@@ -1118,23 +1199,41 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     if condition_gain > 0 and state.condition_additive > 0:
         condition_gain += state.condition_additive
     vitality_gain = effect_card.vitality + state.motivation
+    # B9：P 道具「X 增加量增加 +N%」增益倍率（乘在获得量上、向上取整；与
+    # LessonSim._apply_card_buffs 同口径）
+    focus_gain = effect_card.focus
+    if focus_gain > 0:
+        focus_gain = safe_ceil(focus_gain * state.gain_multiple("concentration_gain"))
+    impression_gain = effect_card.impression
+    if impression_gain > 0:
+        impression_gain = safe_ceil(
+            impression_gain * state.gain_multiple("impression_gain")
+        )
+    motivation_gain = effect_card.motivation
+    if motivation_gain > 0:
+        motivation_gain = safe_ceil(
+            motivation_gain * state.gain_multiple("motivation_gain")
+        )
     state = replace(
         state,
         condition_turns=state.condition_turns + condition_gain,
-        focus=state.focus + effect_card.focus,
-        impression=state.impression + effect_card.impression,
+        focus=state.focus + focus_gain,
+        impression=state.impression + impression_gain,
         vitality=state.vitality + vitality_gain,
-        motivation=state.motivation + effect_card.motivation,
+        motivation=state.motivation + motivation_gain,
         extra_plays=state.extra_plays + effect_card.extra_play,
         plays_used=state.plays_used + 1,
     )
     stance = state.stance_state
-    if effect_card.full_power_point > 0:
-        stance = apply_full_power_point(stance, effect_card.full_power_point)
+    full_power_gain = effect_card.full_power_point
+    if full_power_gain > 0:
+        full_power_gain = safe_ceil(
+            full_power_gain * state.gain_multiple("full_power_charge")
+        )
+        stance = apply_full_power_point(stance, full_power_gain)
         state = replace(
             state,
-            full_power_point_total=state.full_power_point_total
-            + effect_card.full_power_point,
+            full_power_point_total=state.full_power_point_total + full_power_gain,
         )
     if effect_card.strong_level > 0:
         delta = card_stance_effect("ExamConcentration", [effect_card.strong_level])
@@ -1163,34 +1262,32 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
         state = fire_p_items(
             state, STATUS_GAIN, status="parameter_buff", amount=condition_gain
         )
-    if effect_card.focus > 0:
-        state = fire_p_items(
-            state, STATUS_GAIN, status="focus", amount=effect_card.focus
-        )
-    if effect_card.impression > 0:
+    if focus_gain > 0:
+        state = fire_p_items(state, STATUS_GAIN, status="focus", amount=focus_gain)
+    if impression_gain > 0:
         state = fire_p_items(
             state,
             STATUS_GAIN,
             status="impression",
-            amount=effect_card.impression,
+            amount=impression_gain,
         )
     if effect_card.vitality > 0:
         state = fire_p_items(
             state, STATUS_GAIN, status="vitality", amount=vitality_gain
         )
-    if effect_card.motivation > 0:
+    if motivation_gain > 0:
         state = fire_p_items(
             state,
             STATUS_GAIN,
             status="aggressive",
-            amount=effect_card.motivation,
+            amount=motivation_gain,
         )
-    if effect_card.full_power_point > 0:
+    if full_power_gain > 0:
         state = fire_p_items(
             state,
             STATUS_GAIN,
             status="full_power_point",
-            amount=effect_card.full_power_point,
+            amount=full_power_gain,
         )
     # 温存解除（参考引擎 STANCE_CHANGED_EFFECTS）：熱意 +5/+8、2 段階固定元気 +5、
     # 当回合出牌次数 +1。_apply_card_effects 只看本牌结算前后指針（中间切换不可见）。
@@ -1666,6 +1763,8 @@ def _passive_state(state: ExpectState) -> PassiveState:
             else 0,
             "stance_preservation": stance.save_level,
             "stance_full_power": 1 if "full" in stance_text else 0,
+            # B9：「消耗体力减少状态」条件 = halfCostTurns>0
+            "half_cost_state": 1 if state.half_cost_turns > 0 else 0,
         },
         status_counts=dict(state.status_counts),
         uses=dict(state.p_item_uses),
@@ -1713,12 +1812,18 @@ def fire_p_items(
     status: str = "",
     amount: int = 0,
     stamina_delta: int = 0,
+    _depth: int = 0,
 ) -> ExpectState:
     """在指定时机触发 P 道具并返回结算后的状态（纯函数）。
 
     B8：新增 ``turn_start_after`` / ``turn_interval`` / ``stance_change`` /
     ``stamina_reduce`` / ``status_gain_interval``；``status_gain`` 事件同时推进
     ``status_counts``（累计增加次数，供 status_gain_interval 判断跨过 N 的整数倍）。
+
+    B9（2026-11-22）：持久倍率 / modifier 增量（分数 buff/debuff、好印象强化、
+    追加发动、热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、费用修正、
+    回合追加、指針直给）在这里落进状态；指針直给后按参考引擎 ``setStance``
+    语义发一次 ``stance_change``（``_depth`` 防链式递归）。
     """
     if not state.p_items:
         return state
@@ -1765,6 +1870,8 @@ def fire_p_items(
     motivation = state.motivation
     stance = state.stance_state
     full_power_point_total = state.full_power_point_total
+    perfect_condition_turns = state.perfect_condition_turns
+    poor_condition_turns = state.poor_condition_turns
     for key in delta.zero_stacks:
         if key == "vitality":
             vitality = 0
@@ -1793,24 +1900,119 @@ def fire_p_items(
             full_power_point_total += max(0, value)
         elif key == "parameter_buff":
             condition_turns += value
+    # ---- B9：持久倍率 / modifier 增量（与 LessonSim._fire_p_items 同口径）----
+    score_buffs = state.score_buffs
+    for buff_amount, buff_turns in delta.score_buffs:
+        score_buffs = add_timed(score_buffs, buff_amount, buff_turns)
+    score_debuffs = state.score_debuffs
+    for buff_amount, buff_turns in delta.score_debuffs:
+        score_debuffs = add_timed(score_debuffs, buff_amount, buff_turns)
+    modifiers = dict(state.modifiers)
+    if delta.perfect_condition_turns:
+        perfect_condition_turns += int(delta.perfect_condition_turns)
+    if delta.poor_condition_turns:
+        poor_condition_turns += int(delta.poor_condition_turns)
+    # 好印象强化 / 熱意追加・増加 与卡效果共用标量渠道（不重复放 modifiers，
+    # 否则 end_turn_state 的倒计时会算两次）。
+    p_review_multiple = state.review_multiple
+    p_review_multiple_turns = state.review_multiple_turns
+    p_enthusiasm_bonus = state.enthusiasm_bonus
+    p_enthusiasm_bonus_turns = state.enthusiasm_bonus_turns
+    p_enthusiasm_multiple = state.enthusiasm_multiple
+    p_enthusiasm_multiple_turns = state.enthusiasm_multiple_turns
+    for key, mod_value, mod_turns in delta.modifiers:
+        turns = normalize_turns(mod_turns)
+        if key == "review_multiple":
+            p_review_multiple = max(p_review_multiple, mod_value)
+            p_review_multiple_turns = _merge_turns(p_review_multiple_turns, turns)
+        elif key == "enthusiasm_multiple":
+            p_enthusiasm_multiple = max(p_enthusiasm_multiple, mod_value)
+            p_enthusiasm_multiple_turns = _merge_turns(
+                p_enthusiasm_multiple_turns, turns
+            )
+        elif key == "enthusiasm_bonus":
+            p_enthusiasm_bonus = max(p_enthusiasm_bonus, mod_value)
+            p_enthusiasm_bonus_turns = _merge_turns(p_enthusiasm_bonus_turns, turns)
+        else:
+            modifiers = timed_dict_add(modifiers, key, mod_value, mod_turns)
+    stance_changed = False
+    release_enthusiasm_gain = 0
+    release_genki_gain = 0
+    release_plays_gain = 0
+    for stance_kind in delta.stances:
+        previous = stance
+        if stance_kind == "preservation":
+            already = str(stance.stance) == "save"
+            level = 2 if already else 1
+            stance = replace(
+                stance,
+                stance="save",
+                save_level=max(int(stance.save_level), level) if already else level,
+                strong_level=0,
+            )
+        elif stance_kind == "concentration":
+            already = "strong" in str(stance.stance)
+            level = 2 if already else 1
+            stance = replace(
+                stance,
+                stance="strong2" if level == 2 else "strong1",
+                strong_level=level,
+                save_level=0,
+            )
+        if stance != previous:
+            stance_changed = True
+            rel_enth, rel_genki, rel_plays = release_on_stance_change(previous, stance)
+            if rel_enth or rel_genki or rel_plays:
+                release_enthusiasm_gain += enthusiasm_gain(
+                    rel_enth,
+                    bonus=max(state.enthusiasm_bonus, p_enthusiasm_bonus),
+                    multiple_permil=max(
+                        state.enthusiasm_multiple, p_enthusiasm_multiple
+                    ),
+                )
+                release_genki_gain += rel_genki
+                release_plays_gain += rel_plays
+    extra_plays += release_plays_gain
+    vitality += release_genki_gain
+    enthusiasm = state.enthusiasm + int(release_enthusiasm_gain)
     uses = dict(state.p_item_uses)
     for item_id in delta.applied:
         uses[item_id] = uses.get(item_id, 0) + 1
-    return replace(
+    new_state = replace(
         state,
         score=score,
         stamina=stamina,
         extra_plays=extra_plays,
+        enthusiasm=enthusiasm,
         vitality=vitality,
-        impression=impression,
-        focus=focus,
+        impression=max(impression, 0),
+        focus=max(focus, 0),
         condition_turns=condition_turns,
-        motivation=motivation,
+        motivation=max(motivation, 0),
         p_item_uses=tuple(sorted(uses.items())),
         full_power_point_total=full_power_point_total,
         consumed_stamina_total=consumed_stamina_total,
         status_counts=tuple(sorted(status_counts.items())),
+        score_buffs=score_buffs,
+        score_debuffs=score_debuffs,
+        modifiers=tuple(sorted(modifiers.items())),
+        review_multiple=p_review_multiple,
+        review_multiple_turns=p_review_multiple_turns,
+        enthusiasm_bonus=p_enthusiasm_bonus,
+        enthusiasm_bonus_turns=p_enthusiasm_bonus_turns,
+        enthusiasm_multiple=p_enthusiasm_multiple,
+        enthusiasm_multiple_turns=p_enthusiasm_multiple_turns,
+        perfect_condition_turns=perfect_condition_turns,
+        poor_condition_turns=poor_condition_turns,
+        cost_reduction=state.cost_reduction + int(delta.cost_reduction),
+        cost_increase=state.cost_increase + int(delta.cost_increase),
+        half_cost_turns=state.half_cost_turns + int(delta.half_cost_turns),
+        double_cost_turns=state.double_cost_turns + int(delta.double_cost_turns),
+        extra_turns=state.extra_turns + int(delta.extra_turns),
     ).with_stance(stance)
+    if stance_changed and _depth < 3:
+        new_state = fire_p_items(new_state, STANCE_CHANGE, _depth=_depth + 1)
+    return new_state
 
 
 def start_turn_state(state: ExpectState) -> ExpectState:
@@ -1840,14 +2042,26 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         stamina = min(int(cap), stamina + 2)
     impression = state.impression
     if impression > 0:
-        value = float(impression)
-        if state.review_multiple > 0:
-            value = int(impression * (1000 + state.review_multiple) / 1000)
-        # 熱意（T5②）：参考引擎回合末好印象也走 resolveScore、会加熱意；
-        # 只在熱意 > 0 时改旧取整路径（与 LessonSim._end_turn 同口径）。
-        if state.enthusiasm > 0:
-            value = float(safe_ceil(value + state.enthusiasm))
-        score += int(value)
+        # B9：好印象追加发动（ExamReviewCountAdd）让结算重复 N+1 次；P 道具持久
+        # 分数倍率（参考引擎 resolveScore f/g）也作用在回合末好印象上。
+        review_times = max(0, state.mod_total("review_times"))
+        score_buff = total_timed(state.score_buffs)
+        score_debuff = total_timed(state.score_debuffs)
+        for _ in range(1 + review_times):
+            value = float(impression)
+            if state.review_multiple > 0:
+                value = int(impression * (1000 + state.review_multiple) / 1000)
+            # 熱意（T5②）：参考引擎回合末好印象也走 resolveScore、会加熱意；
+            # 只在熱意 > 0 时改旧取整路径（与 LessonSim._end_turn 同口径）。
+            if state.enthusiasm > 0:
+                value = float(safe_ceil(value + state.enthusiasm))
+            if score_buff:
+                value = float(safe_ceil(value * (1.0 + score_buff / 1000.0)))
+            if score_debuff:
+                value = float(
+                    safe_ceil(value * max(1.0 - score_debuff / 1000.0, 0.0))
+                )
+            score += int(value)
         impression -= 1
     condition_turns = state.condition_turns - 1 if state.condition_turns > 0 else 0
     perfect_condition_turns = (
@@ -1869,6 +2083,17 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     enthusiasm_multiple = (
         state.enthusiasm_multiple if enthusiasm_multiple_turns != 0 else 0
     )
+    # B9：P 道具持久倍率倒计时（turns>0 的 -1、到 0 移除、-1 永久）
+    score_buffs = tick_timed(state.score_buffs)
+    score_debuffs = tick_timed(state.score_debuffs)
+    modifiers = tuple(sorted(timed_dict_tick(dict(state.modifiers)).items()))
+    half_cost_turns = state.half_cost_turns - 1 if state.half_cost_turns > 0 else 0
+    double_cost_turns = (
+        state.double_cost_turns - 1 if state.double_cost_turns > 0 else 0
+    )
+    # B9：回合追加在「剩余回合 -1」之后补上（与 LessonSim._end_turn 同口径）
+    extra_turns_granted = state.extra_turns_granted + int(state.extra_turns)
+    turns_left_after = state.turns_left - 1 + int(state.extra_turns)
     enthusiasm, enthusiasm_extension_turns = turn_end_enthusiasm(
         state.enthusiasm, state.enthusiasm_extension_turns
     )
@@ -1896,12 +2121,19 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         enthusiasm_bonus_turns=enthusiasm_bonus_turns,
         enthusiasm_multiple=enthusiasm_multiple,
         enthusiasm_multiple_turns=enthusiasm_multiple_turns,
+        score_buffs=score_buffs,
+        score_debuffs=score_debuffs,
+        modifiers=modifiers,
+        half_cost_turns=half_cost_turns,
+        double_cost_turns=double_cost_turns,
+        extra_turns=0,
+        extra_turns_granted=extra_turns_granted,
         parameter_buff=0,
         hand=(),
         discard=state.discard + state.hand,
         # 回合末弃手牌：进弃牌堆的顺序 = 手牌顺序（已知顺序时继续累积）
         discard_order=None if hand_order is None else hand_order + state.hand,
-        turns_left=state.turns_left - 1,
+        turns_left=turns_left_after,
         plays_used=0,
         extra_plays=0,
         drinks_used_this_turn=0,
@@ -2718,6 +2950,21 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         status_counts=tuple(
             sorted((str(key), int(count)) for key, count in getattr(sim, "status_gain_counts", {}).items())
         ),
+        # B9：持久倍率 / modifier（与 sim_from_state 双镜）
+        score_buffs=tuple(getattr(sim, "score_buffs", ())),
+        score_debuffs=tuple(getattr(sim, "score_debuffs", ())),
+        modifiers=tuple(
+            sorted(
+                (str(key), tuple(tuple(entry) for entry in entries))
+                for key, entries in getattr(sim, "modifiers", {}).items()
+            )
+        ),
+        cost_reduction=max(int(getattr(sim, "cost_reduction", 0)), 0),
+        cost_increase=max(int(getattr(sim, "cost_increase", 0)), 0),
+        half_cost_turns=max(int(getattr(sim, "half_cost_turns", 0)), 0),
+        double_cost_turns=max(int(getattr(sim, "double_cost_turns", 0)), 0),
+        extra_turns=max(int(getattr(sim, "extra_turns_pending", 0)), 0),
+        extra_turns_granted=max(int(getattr(sim, "extra_turns_granted", 0)), 0),
         drinks=tuple(getattr(config, "drinks", ()) if config else ()),
         drink_uses=tuple(
             max(int(uses), 0) for uses in getattr(sim, "drink_uses", ())

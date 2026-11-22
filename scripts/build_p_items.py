@@ -51,6 +51,15 @@ OUT = ROOT / "data" / "knowledge" / "p_items.json"
 # 只用来给「本地 masterTrans 没有的新 id」补中文**卡名**；描述仍是日文，不猜。
 I18N_NAMES = ROOT / "data" / "i18n" / "translation_new.json"
 
+# B9（2026-11-22）：持久倍率 / modifier 类效果的分类与数值口径复用 sim/p_items.py
+# 的纯函数（effect_type + 效果文本 → target / duration），避免两处各写一套。
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
+from gkagent.sim.p_items import (
+    classify_effect_target,
+    effect_duration,
+)
+
 TAG = re.compile(r"<[^>]+>")
 WS = re.compile(r"\s+")
 
@@ -606,6 +615,45 @@ def annotate_effects(effects: list[dict], zh_text: str) -> list[dict]:
     return effects
 
 
+# B9（2026-11-22）：P 道具的「（训练内N次）」次数上限在描述文本里（yaml 的
+# ``limit`` 没有单独的本地化列）。没有这个上限，持续倍率类效果会在每回合重复
+# 触发、把分数算爆，所以从中文/日文描述解析出来当记录级 ``max_uses``。
+_LIMIT_PATTERNS = [
+    re.compile(r"（训练内(\d+)次）"),
+    re.compile(r"（培育中(\d+)次）"),
+    re.compile(r"（レッスン内(\d+)回）"),
+    re.compile(r"（プロデュース中(\d+)回）"),
+    re.compile(r"（(\d+)次）"),
+    re.compile(r"（(\d+)回）"),
+]
+
+
+def parse_text_max_uses(*texts: str) -> int:
+    """从道具描述里解析可用次数上限；没有就返回 0（不限）。"""
+    for pattern in _LIMIT_PATTERNS:
+        for text in texts:
+            match = pattern.search(text or "")
+            if match:
+                return int(match.group(1))
+    return 0
+
+
+def annotate_modifier_effects(effects: list[dict]) -> None:
+    """B9：给持久倍率 / modifier 类效果段标 ``target`` / ``duration``。
+
+    只标有语义的分类（``classify_effect_target`` 认不出的保持不标 = no-op）；
+    数值仍留在 ``values`` 里，由 ``sim/p_items.py::effect_value`` 按 target 取列。
+    """
+    for effect in effects:
+        target = classify_effect_target(effect.get("type", ""), effect.get("text", ""))
+        if not target:
+            continue
+        effect["target"] = target
+        duration = effect_duration(effect, target)
+        if duration:
+            effect["duration"] = duration
+
+
 def _finish_effects(effects: list[dict], zh_text: str) -> list[dict]:
     for eff in effects:
         eff["type"] = eff["type"].replace("ProduceExamEffectType_", "")
@@ -616,8 +664,8 @@ def _finish_effects(effects: list[dict], zh_text: str) -> list[dict]:
             # 只有中文描述里真的写了 "（N次）" 才算次数上限；
             # "技能卡使用数追加+1" 这类 count 是数值本身。
             eff["max_uses"] = count
+    annotate_modifier_effects(effects)
     return annotate_effects(effects, zh_text)
-
 
 def primary_value(effects: list[dict]) -> tuple[int | None, str]:
     for eff in effects:
@@ -773,7 +821,12 @@ def build_record(
         "effect_text": primary["text"] if primary else "",
         "value": value,
         "value_unit": unit,
-        "max_uses": max((e["max_uses"] for e in effects), default=0),
+        # B9：描述里的「（训练内N次）/（レッスン内N回）」是整条道具的触发上限；
+        # 效果段的 count 上限（B6 口径）取较大值兜底。
+        "max_uses": max(
+            parse_text_max_uses(zh_text, ja_text),
+            max((e["max_uses"] for e in effects), default=0),
+        ),
         "effects": effects,
         "text_zh": zh_text,
         "text_ja": ja_text,
@@ -868,6 +921,19 @@ def build() -> dict:
         "effects_zero_stack": sum(
             1 for r in records for e in r["effects"] if e.get("zero_stack")
         ),
+        # B9：持久倍率 / modifier 类效果（target + duration）与文本次数上限。
+        "effects_modifier": sum(1 for r in records for e in r["effects"] if e.get("target")),
+        "effects_modifier_targets": dict(
+            Counter(e["target"] for r in records for e in r["effects"] if e.get("target"))
+        ),
+        "items_with_modifier": sum(
+            1 for r in records if any(e.get("target") for e in r["effects"])
+        ),
+        "items_text_limit": sum(
+            1
+            for r in records
+            if parse_text_max_uses(r["text_zh"], r["text_ja"]) > 0
+        ),
     }
     return {
         "source": {
@@ -915,6 +981,14 @@ def report(payload: dict) -> None:
         f"依赖换算目标 {stats['effects_depends_on']} 段 / 最大体力百分比 {stats['effects_percent_max']} 段 / "
         f"归零段 {stats['effects_zero_stack']} 段"
     )
+    print(
+        f"B9：持久倍率/modifier 效果 {stats['effects_modifier']} 段"
+        f"（{stats['items_with_modifier']} 件道具）；描述里带次数上限 {stats['items_text_limit']} 件"
+    )
+    for name, count in sorted(
+        stats["effects_modifier_targets"].items(), key=lambda kv: -kv[1]
+    ):
+        print(f"  {count:5d}  {name}")
 
 
 def main(argv: list[str]) -> int:
