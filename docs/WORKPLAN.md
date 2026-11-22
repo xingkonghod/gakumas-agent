@@ -19,6 +19,7 @@
 | known_draw **事前检测**（额外 RNG 机制卡 → 不启用全知） | `exam_risk.py` + 单测；169/1829 机制卡、四场牌组 0 命中 |
 | T4 平手项/beam 采样实验（+19.9，但 beam 仍低于 within 22%） | `EXPECTIMAX.md`；rollout 叶子负结果也记录在案 |
 | T1 真机流程 10+ 类卡点 + F#41（日文剧情二选一）修复 | `FAILURES.md` #27-41；`584f742` |
+| A1 OCR 换日文/多语言模型（官方 PP-OCRv6，Apache-2.0） | `tests/test_ocr_jp_model.py` 真图 4 条 + `test_ocr_config.py` 17 条；全量 pytest 926/1；`docs/HANDOVER` 二·补十四 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -28,7 +29,7 @@
 
 ## 阶段 A：离线收尾（P0，全部做完才碰真机）
 
-### A1. OCR 换日文模型（最高优先，一次修好大量文本分支）
+### A1. OCR 换日文模型（最高优先，一次修好大量文本分支）✅ 2026-11-22 完成
 - 根因证据/方案：见 [GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md) §1–2（我们默认中文字典无假名；
   魔改 MAA 的日文模型实测完整读出日文）。
 - 做法：
@@ -38,6 +39,24 @@
   4. 加 `configs/ocr_jp.example.yaml`；**不得**把 AGPL 模型提交进仓库/Gitee。
 - DoD：同一张 `step_025.png` 能读出 `ヨーグルトパフェ/つくねハンバーグ/ドリンクバー` 与完整对白；
   全量 pytest 绿；用日文文本重新跑一遍剧情/事件/课程的相关单测（可去掉布局兜底的强依赖，但兜底保留）。
+
+**落地（2026-11-22）**
+- `OcrEngine` 配置优先级：显式 `config_path=` > `GKAGENT_OCR_CONFIG` > 本地 `configs/ocr_jp.yaml`
+  （下载脚本生成，gitignore；删掉即回内置中文模型）> 内置中文模型。配置/模型文件缺失**直接报错**，不静默回退。
+  两阶段主引擎与单行 `_line_core` 引擎共用同一套模型配置；路径支持 `%VAR%`/`$VAR`、相对 YAML 目录解析。
+- 正式模型 = 官方 **PP-OCRv6_small_det + PP-OCRv6_small_rec（Apache-2.0，多语言）**：
+  `scripts/download_ocr_models.py` 下载（URL+sha256 锁定）、校验、导出 18,708 行字典到
+  `data/models/ocr_jp/`（gitignore）、生成 `configs/ocr_jp.yaml`；模板 `configs/ocr_jp.example.yaml`；
+  `scripts/ocr_probe.py` 单图验字。AGPL 的 MAA 模型只本地对照（输出逐行相同），未入库。
+- 实测 `data/auto/step_025.png`（720x1280，全屏 ≈1.0s）：读出 `ヨーグルトパフェ / つくねハンバーグ /
+  ドリンクバー / そこまで真剣だと慰労を超えますが…… / 倉本さんのお気に入りは……`，中文 UI
+  （`外出/审查基准/快进`）同时可读；`ProduceDriver` 同帧决策 `event-choice/last-row` 点 (360,935) 选项，
+  不再点「快进」（F#41 类剧情/事件原地循环的直接影响）。
+- 测试：`tests/test_ocr_config.py`（17 条，配置/路径/报错/单行引擎接线）+ `tests/test_ocr_jp_model.py`
+  （4 条真图回归，模型缺失自动 skip）；修复基线过期断言
+  `test_read_fast_event_page_uses_option_rows`（事件快速路径补读对话区后应允许区域 OCR）；
+  真机日志新增 `[ocr] 模型 = …` 一眼确认是否日文模型。
+- 全量 pytest：**926 passed, 1 skipped**（927 条收集 / 65 个测试文件；见 HANDOVER_NEXT §2）。
 
 ### A2. F#42 课程策略：硬打必须保证得分（用户现场发现）
 - 现象：舞蹈课程连续打 buff（表情的基础 2.0）→ `lesson_score=90` → FAILED。

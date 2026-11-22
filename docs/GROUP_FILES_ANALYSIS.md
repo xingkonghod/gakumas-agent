@@ -14,6 +14,10 @@
 
 **这是一个可以一次性修好大量文本分支的问题**（剧情选项/事件/课程/领奖…），优先级应排在 #42/#43 之前。
 
+> ✅ **2026-11-22 已修复（WORKPLAN A1）**：正式换上官方 PP-OCRv6 small 多语言模型（Apache-2.0），
+> `scripts/download_ocr_models.py` 一键下载/校验 → `data/models/ocr_jp/`，`OcrEngine` 自动加载；
+> 实测 `step_025.png` 完整读出日文（见 §2「已落地」）。本文件 §1 的实测证据保留作根因记录。
+
 ---
 
 ## 1. OCR 根因：实测证据
@@ -42,22 +46,41 @@ engine = RapidOCR(config_path=cfg_path)
 
 ---
 
-## 2. 修复方案（下个会话 P0）
+## 2. 修复方案（下个会话 P0）—— ✅ 已落地（2026-11-22，WORKPLAN A1）
 
-### 方案 A（推荐，合规）：换 **PaddleOCR 官方日文识别模型**（Apache-2.0）
-- 模型：`japan_PP-OCRv4_rec`（或 v3，按 PaddleOCR 当前发布）+ 对应 `japan_dict.txt`；
-- 与现有 RapidOCR/`ch_PP-OCRv4_det_infer.onnx` 检测模型兼容（PaddleOCR 同源）；
-- 优点：许可证干净（Apache-2.0），可随仓库/CI 分发；缺点：需要下载模型（~10-20 MB）。
+### 方案 A（推荐，合规）→ ✅ 已采用
+- 模型：官方 **PP-OCRv6_small_det + PP-OCRv6_small_rec**（Apache-2.0；多语言：中/日/英 + 46 拉丁语系），
+  从 PaddleX 官方 ONNX 包下载（URL + sha256 锁在 `scripts/download_ocr_models.py`）；
+- 与现有 RapidOCR 兼容（`config_path` 指向同一套 `config.yaml`，Det/Rec 换模型 + Rec 换字典）；
+- 优点：许可证干净（Apache-2.0），模型不进仓库（`data/models/*` gitignore），下载脚本可重复/可校验。
 
-### 方案 B（最快，本地自用）：直接用魔改 MAA 包里的日文模型
+### 方案 B（本地自用，AGPL）→ 仅作本地对照，未入库
 - 路径：`D:\GakumasAgentArchive\group_files\GKMSMAA\resource\base\model\ocr\{det,rec}.onnx + keys.txt`；
-- 优点：已验证可用、零下载；缺点：来自 **AGPL-3.0** 的 MaaGakumasu 资源 → **只能本地加载，不能提交进仓库/私有仓库**。
+- 2026-11-22 实测：官方 v6 模型与 MAA 模型在 `step_025.png` 上输出逐行相同（MAA 包其实是不同
+  sha 的同代 v6 转换版）；正式方案不影响 MAA 只读研究。
 
-### 代码接入点（3 处小改）
-1. `src/gkagent/vision/ocr.py::OcrEngine.__init__`：新增 `config_path`（或读环境变量 `GKAGENT_OCR_CONFIG`），
-   有值时 `RapidOCR(config_path=...)`，否则走现有默认；`_supports_two_stage()` 对内置引擎不变（det/rec 内部接口仍在）。
+### 已落地（代码/配置/验证）
+1. `src/gkagent/vision/ocr.py`：`OcrEngine(config_path=…)` + 环境变量 `GKAGENT_OCR_CONFIG` +
+   本地 `configs/ocr_jp.yaml` 自动发现（优先级从高到低；都缺则内置中文模型）。
+   配置/模型缺失**直接报错**（禁止静默回退中文模型）；两阶段引擎与单行 `_line_core` 共用模型配置。
+2. `configs/ocr_jp.example.yaml`：完整 RapidOCR 配置（v6 det 预处理参数），Det/Rec/字典指向
+   `data/models/ocr_jp/`（相对路径按 YAML 目录解析；也支持 `%VAR%`/`$VAR` 与绝对路径）。
+3. `scripts/download_ocr_models.py`：下载 + sha256 校验 + 导出 18,708 字字典 + 生成
+   `configs/ocr_jp.yaml`（`--check` 自检；离线机器可手动放 tar 后重跑）。
+4. `scripts/ocr_probe.py`：单张截图 OCR 探针（`--roi/--config/--json`），验字/排查用。
+5. 测试：`tests/test_ocr_config.py`（17 条配置接线单测）+ `tests/test_ocr_jp_model.py`
+   （4 条真图回归：日文/对白/中文 UI/决策选选项不点快进；模型缺失自动 skip）。
+6. **实测**（本机 2026-11-22，全屏 720x1280，≈1.0s）`data/auto/step_025.png`：
+   `ヨーグルトパフェ / つくねハンバーグ / ドリンクバー / そこまで真剣だと慰労を超えますが…… /
+   倉本さんのお気に入りは……`；中文 UI `外出/审查基准/快进` 同时可读；
+   `ProduceDriver` 同帧判定 `event-choice/last-row` → 点 (360,935) 选项（旧中文模型只剩碎片，
+   会去点「快进」）。
+7. 真机日志新增 `[ocr] 模型 = …`（`auto_produce.py`），一局开头即可确认实际用的模型。
+
+### 代码接入点（历史记录，已实现）
+1. `src/gkagent/vision/ocr.py::OcrEngine.__init__`：新增 `config_path`（或读环境变量 `GKAGENT_OCR_CONFIG`）；
 2. `configs/ocr_jp.example.yaml`：从 RapidOCR 包内 `config.yaml` 复制，把 Det/Rec 换成日文模型路径
-   （路径用 `%LOCALAPPDATA%`/环境变量占位，**不要把 AGPL 模型文件打进仓库**）。
+   （**不要把 AGPL 模型文件打进仓库**）；
 3. 保留现有的布局兜底（F#41 剧情选项识别）作为第二道保险。
 
 ### 预期收益（换模型后）
@@ -132,9 +155,10 @@ engine = RapidOCR(config_path=cfg_path)
 
 ## 6. 下一步（建议顺序）
 
-1. **P0-1 OCR 换日文模型**（§2）：`GKAGENT_OCR_CONFIG` + `configs/ocr_jp.example.yaml`；先本地用 MAA 模型验证
-   （零下载），再做 Apache-2.0 版（PaddleOCR japan）作为可入库的正式方案；
-2. **P0-2 重跑真机**：OCR 修好后先跑一局到考试，验证 F#41/#42/#43 是否随文本识别恢复而消失；
+1. ~~**P0-1 OCR 换日文模型**（§2）：`GKAGENT_OCR_CONFIG` + `configs/ocr_jp.example.yaml`；先本地用 MAA 模型验证
+   （零下载），再做 Apache-2.0 版（PaddleOCR japan）作为可入库的正式方案~~ → ✅ **2026-11-22 已完成**
+   （官方 PP-OCRv6 Apache-2.0；见 §2「已落地」与 WORKPLAN A1）；
+2. **P0-2 重跑真机**（离线阶段 A 收尾后）：OCR 修好后先跑一局到考试，验证 F#41/#42/#43 是否随文本识别恢复而消失；
    然后验 T3 `[exam-plan] locked_turn=2~3 / verified=N`；
 3. **P1** 对照论文公式补 `RULES_REFERENCE`/模拟器（T5）；自写离线最优路线（Bellman/分支定界/GNRPA 思路）；
 4. 手机实验版：仅在需要时再深挖 gadget 协议/用途（当前判断足够）。

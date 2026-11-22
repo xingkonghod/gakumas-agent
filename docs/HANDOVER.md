@@ -501,11 +501,39 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
   **gkms-phone 模块**（`libgkms-gadget.so` 24 MB + portal/pem/identity → 手机端 gadget 桥）；
 - 解包位置：`D:\GakumasAgentArchive\group_files\{GKMSMAA, GKMS实验版APK}`（**不入库**）。
 
-**下次开工第一件事**：按 GROUP_FILES_ANALYSIS §2 把 OCR 换成日文模型（先本地用 MAA 模型验证，再选
-PaddleOCR Apache-2.0 版入库），然后重跑真机验 F#41/#42/#43 与 T3。
+**A1 已完成**（2026-11-22，见二·补十四）：OCR 换官方 PP-OCRv6 多语言模型，日文完整可读；
+接着按 WORKPLAN 阶段 A 做 A2（F#42 课程硬打必须得分）→ A3（F#43 结果页空转）→ A4（离线回放素材）
+→ A5（T3 离线预演），全部离线做完再上真机。
 
 **总作战计划**：见 [WORKPLAN.md](WORKPLAN.md)（离线全部做完 → 真机 T3→T1→T2 → gkbench 比算法；
 含 A1 OCR / A2 F#42 / A3 F#43 / T4 / T5 / 可靠性 / 数据 / 真机 / gkbench 各阶段与 DoD）。
+
+### 二·补十四、11-22（WORKPLAN A1 落地：OCR 换日文/多语言模型 ✅）
+
+**结论**：RapidOCR 内置中文模型（`ch_PP-OCRv4`，字典无假名）→ 官方 **PP-OCRv6_small_det +
+PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日文从碎片变成完整句子，
+中文 UI 同时可读；F#41/#42/#43 的「文本读不到」前提修好。按 WORKPLAN 先做离线阶段 A 剩余
+（A2 F#42 / A3 F#43 / A4 回放素材 / A5 T3 离线预演），再上真机。
+
+- **代码**：`OcrEngine(config_path=)` + 环境变量 `GKAGENT_OCR_CONFIG` + 本地 `configs/ocr_jp.yaml`
+  自动发现（优先级从高到低；都没有 → 内置中文模型，默认行为不变）。配置/模型文件缺失**直接报错**，
+  不静默回退中文模型。两阶段主引擎和单行 `_line_core` 引擎共用同一套模型配置；
+  模型路径支持 `%VAR%`/`$VAR`、相对 YAML 目录解析；`describe_model()` 给日志。
+- **模型/工具**：`scripts/download_ocr_models.py`（官方 URL + sha256 锁定、校验、从 rec
+  `inference.yml` 导出 18,708 行字典，生成 `configs/ocr_jp.yaml`；`--check` 自检）；
+  `configs/ocr_jp.example.yaml`（完整 RapidOCR 配置 + v6 det 预处理参数）；
+  `scripts/ocr_probe.py` 单图验字。模型落 `data/models/ocr_jp/`（`data/models/*` 已 gitignore）。
+  AGPL 的魔改 MAA 日文模型只本地对照（官方 v6 与它逐行输出相同），**未入库**。
+- **实测**（`data/auto/step_025.png`，720x1280，全屏 ≈1.0s）：
+  `ヨーグルトパフェ / つくねハンバーグ / ドリンクバー / そこまで真剣だと慰労を超えますが…… /
+  倉本さんのお気に入りは……`；中文 `外出 / 审查基准 / 快进` 同时读对；
+  同帧 `ProduceDriver` 判 `event-choice/last-row` → 点 (360,935) 选项（不再点「快进」）。
+- **测试**：`tests/test_ocr_config.py` 17 条（优先级/路径/缺文件报错/单行引擎接线）+
+  `tests/test_ocr_jp_model.py` 4 条真图（日文/对白/中文 UI/决策选选项；模型缺失自动 skip）；
+  修复基线过期断言 `test_read_fast_event_page_uses_option_rows`（事件快速路径补读对话区后
+  `read_calls` 不再为 0，改为断言只补读 `FAST_DIALOGUE_AREA`、不整屏 OCR）。
+  全量 `pytest tests/`：**926 passed / 1 skipped**（927 条收集 / 65 个测试文件，212s）；`ruff` 通过。
+- **真机日志**：`auto_produce.py` 首行新增 `[ocr] 模型 = …`——上真机先确认不是内置中文模型。
 
 ---
 

@@ -510,6 +510,9 @@ def main() -> int:
     if ignore_user:
         pause_gate.gate_ms = 0
     engine = OcrEngine()
+    # OCR 模型写进日志：A1 后默认应加载日文/多语言模型（configs/ocr_jp.yaml）；
+    # 若仍显示内置中文模型，说明模型没下载/配置没生效，日文剧情/选项会读成碎片。
+    ocr_model = engine.describe_model()
     card_lib = CardLibrary(MasterData(ROOT / "data" / "master"))
     task = build_task(episode, engine, card_lib)
     driver = ProduceDriver(ocr=engine)
@@ -554,6 +557,7 @@ def main() -> int:
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
 
     log_lines: list[str] = []
+    log_lines.append(f"[ocr] 模型 = {ocr_model}")
     log_lines.append(f"[engine] 出牌引擎 = {lesson_policy.engine}（来源：{engine_source}）")
     if strict_engine:
         log_lines.append(

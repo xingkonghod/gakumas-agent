@@ -51,3 +51,6 @@ data/hiro/
 
 # 本地产物：采集数据生成的考试牌序（scripts/build_exam_setup.py 可重建）
 out/
+
+# 本地日文 OCR 模型配置（scripts/download_ocr_models.py 生成；OcrEngine 默认加载）
+configs/ocr_jp.yaml

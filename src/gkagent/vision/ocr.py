@@ -8,13 +8,34 @@
 4. 传入自定义 ``engine``（如单测的 FakeRapid）时走原来的单阶段路径，行为不变。
 
 ``read(..., scale=...)`` 可显式覆盖放大倍率（基准脚本用来复现改前行为）。
+
+**OCR 模型（2026-11-22 A1：换日文模型）**
+
+RapidOCR 内置的是中文模型 ``ch_PP-OCRv4``（字典没有假名），日文剧情只能读出
+汉字碎片（``飲物持``/``？``/``、。``）。换成官方 **PP-OCRv6 small det+rec**
+（Apache-2.0，多语言：中日英+46 拉丁语系）后，同一张截图能读完整句子
+（``ヨーグルトパフェ``/``つくねハンバーグ``/``ドリンクバー``）。
+
+模型配置优先级（都存在时从高到低）：
+
+1. ``OcrEngine(config_path=...)`` 显式参数；
+2. 环境变量 ``GKAGENT_OCR_CONFIG``；
+3. 本地 ``configs/ocr_jp.yaml``（``scripts/download_ocr_models.py`` 生成，gitignore）；
+4. 都没有 → 内置中文模型（默认行为不变）。
+
+配置文件是 RapidOCR ``config.yaml`` 的完整拷贝（``configs/ocr_jp.example.yaml``）；
+``Det.model_path`` / ``Rec.model_path`` / ``Rec.rec_keys_path`` 支持 ``%VAR%``/``$VAR``
+环境变量，相对路径按 YAML 文件所在目录解析（解析不到再按 RapidOCR 包内路径兜底）。
+**配置存在但模型文件缺失时直接报错**，不静默换回中文模型（用户规则：禁止静默回退）。
 """
 
 from __future__ import annotations
 
+import os
 import re
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -33,6 +54,121 @@ DEFAULT_REC_BATCH = 12
 # "bot + 录制器"两种场景都比较稳（720x1280 的 PP-OCR 模型也用不满 24 核）。
 DEFAULT_THREADS = 8
 
+# 日文/多语言 OCR 模型配置（见模块文档）。configs/ocr_jp.yaml 由下载脚本生成。
+OCR_CONFIG_ENV = "GKAGENT_OCR_CONFIG"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+LOCAL_OCR_CONFIG = REPO_ROOT / "configs" / "ocr_jp.yaml"
+
+
+def resolve_ocr_config_path(
+    config_path: str | os.PathLike[str] | None = None,
+) -> Path | None:
+    """解析 OCR 模型 YAML 的绝对路径；返回 ``None`` 表示用 RapidOCR 内置模型。
+
+    优先级：显式参数 > 环境变量 ``GKAGENT_OCR_CONFIG`` > 本地 ``configs/ocr_jp.yaml``。
+    显式参数/环境变量指向的文件不存在时报 ``FileNotFoundError``（禁止静默回退）；
+    只有第 3 档（自动发现）不存在时安静返回 ``None``。
+    """
+    source = "config_path"
+    raw: str | os.PathLike[str] | None = config_path
+    if raw is None:
+        raw = os.environ.get(OCR_CONFIG_ENV)
+        source = f"环境变量 {OCR_CONFIG_ENV}"
+    if raw is None:
+        return LOCAL_OCR_CONFIG if LOCAL_OCR_CONFIG.is_file() else None
+
+    path = Path(os.path.expandvars(str(raw))).expanduser()
+    if not path.is_absolute():
+        path = (Path.cwd() / path).resolve()
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"OCR 模型配置不存在：{path}（来自 {source}）。"
+            "日文模型见 scripts/download_ocr_models.py 或 configs/ocr_jp.example.yaml；"
+            "不配置则用内置中文模型。"
+        )
+    return path
+
+
+def _rapidocr_package_root() -> Path | None:
+    try:
+        import rapidocr_onnxruntime  # type: ignore[import-untyped]
+    except Exception:  # noqa: BLE001 - 未安装时交给调用方的导入错误处理
+        return None
+    return Path(rapidocr_onnxruntime.__file__).resolve().parent
+
+
+def _resolve_model_file(
+    raw: object,
+    base_dir: Path,
+    *,
+    package_fallback: bool = False,
+) -> Path | None:
+    """把配置里的模型路径解析成绝对路径：展开环境变量 → YAML 目录 → RapidOCR 包内兜底。"""
+    value = os.path.expandvars(str(raw or "")).strip()
+    if not value:
+        return None
+    candidate = Path(value).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve() if candidate.is_file() else None
+    local = (base_dir / candidate).resolve()
+    if local.is_file():
+        return local
+    if package_fallback:
+        package = _rapidocr_package_root()
+        if package is not None:
+            bundled = (package / candidate).resolve()
+            if bundled.is_file():
+                return bundled
+    return None
+
+
+def load_ocr_config_overrides(config_path: str | os.PathLike[str]) -> dict[str, str]:
+    """读 OCR 模型 YAML，返回传给 RapidOCR 的模型路径覆盖项（绝对路径）。
+
+    只解析我们关心的三个路径键，其它参数（检测预处理/阈值等）由 RapidOCR 自己读 YAML；
+    这样 YAML 仍是 RapidOCR 的完整 ``config.yaml``，不需要在代码里维护一份参数表。
+    """
+    import yaml  # type: ignore[import-untyped]
+
+    path = Path(config_path)
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        raise ValueError(f"OCR 模型配置不是合法 YAML：{path}（{exc}）") from exc
+    if not isinstance(data, dict):
+        raise TypeError(f"OCR 模型配置格式不对（应为 YAML 字典）：{path}")
+    for section in ("Global", "Det", "Cls", "Rec"):
+        if section not in data:
+            raise ValueError(
+                f"OCR 模型配置缺少 {section} 段：{path}。"
+                "请用 RapidOCR 内置 config.yaml 的完整拷贝（参考 configs/ocr_jp.example.yaml）。"
+            )
+        if not isinstance(data[section], dict):
+            raise TypeError(f"OCR 模型配置的 {section} 段应为字典：{path}")
+
+    base = path.parent
+    overrides: dict[str, str] = {}
+    fields = (
+        # (RapidOCR kwargs 键, YAML 段, 字段, 是否允许 RapidOCR 包内路径兜底, 是否必填)
+        ("det_model_path", "Det", "model_path", True, True),
+        ("rec_model_path", "Rec", "model_path", True, True),
+        ("rec_keys_path", "Rec", "rec_keys_path", False, False),
+    )
+    for key, section, field, package_fallback, required in fields:
+        raw = data[section].get(field)
+        if raw is None or str(raw).strip() == "":
+            if required:
+                raise ValueError(f"OCR 模型配置 {section}.{field} 为空：{path}")
+            continue
+        resolved = _resolve_model_file(raw, base, package_fallback=package_fallback)
+        if resolved is None:
+            raise FileNotFoundError(
+                f"OCR 模型配置 {section}.{field} 指向的文件不存在：{raw}（配置：{path}）。"
+                "相对路径按 YAML 所在目录解析，也可以写绝对路径或 %VAR%/$VAR 环境变量。"
+            )
+        overrides[key] = str(resolved)
+    return overrides
+
 
 @dataclass(frozen=True)
 class OcrLine:
@@ -49,6 +185,7 @@ class OcrEngine:
         min_score: float = 0.4,
         line_engine=None,
         *,
+        config_path: str | os.PathLike[str] | None = None,
         fast: bool = True,
         det_limit_side_len: int = DEFAULT_DET_LIMIT_SIDE,
         rec_batch_num: int = DEFAULT_REC_BATCH,
@@ -57,9 +194,16 @@ class OcrEngine:
         threads: int | None = DEFAULT_THREADS,
     ) -> None:
         created = engine is None
+        # 自定义模型配置只对内部创建的 RapidOCR 生效；测试注入 engine 时忽略
+        # （单测不应因为本机环境变量/模型文件而改变行为）。
+        self._config_path: Path | None = None
+        self._config_overrides: dict[str, str] = {}
         if created:
-            from rapidocr_onnxruntime import RapidOCR
+            from rapidocr_onnxruntime import RapidOCR  # type: ignore[import-untyped]
 
+            self._config_path = resolve_ocr_config_path(config_path)
+            if self._config_path is not None:
+                self._config_overrides = load_ocr_config_overrides(self._config_path)
             # 两阶段路径自己控制"检测原图 + 识别 2 倍裁剪"，所以这里关掉内置检测缩放的
             # min 策略（改成 max），并去掉方向分类（游戏 UI 全是横排文字）。
             options: dict = {
@@ -71,6 +215,9 @@ class OcrEngine:
             if threads is not None and int(threads) > 0:
                 options["intra_op_num_threads"] = int(threads)
                 options["inter_op_num_threads"] = 1
+            if self._config_path is not None:
+                options["config_path"] = str(self._config_path)
+                options.update(self._config_overrides)
             engine = RapidOCR(**options)
         self._engine = engine
         self._line_engine = line_engine
@@ -100,6 +247,17 @@ class OcrEngine:
             hasattr(self._engine, name)
             for name in ("text_det", "text_rec", "get_crop_img_list", "sorted_boxes")
         )
+
+    @property
+    def config_path(self) -> Path | None:
+        """当前 OCR 模型配置；``None`` = RapidOCR 内置中文模型。"""
+        return self._config_path
+
+    def describe_model(self) -> str:
+        """一句话说明当前 OCR 模型（日志/复盘用）。"""
+        if self._config_path is None:
+            return "RapidOCR 内置中文模型（ch_PP-OCRv4，字典无假名）"
+        return f"{self._config_path}"
 
     def read(
         self,
@@ -335,15 +493,22 @@ class OcrEngine:
             self.line_cache.put(image, roi, line, scale=scale, digits_only=digits_only)
 
     def _line_core(self):
-        """懒加载"只识别"引擎（RapidOCR use_det=False），失败时退回整块引擎。"""
+        """懒加载"只识别"引擎（RapidOCR use_det=False），失败时退回整块引擎。
+
+        自定义模型配置必须带进这个引擎：单行路径（分数/体力/回合数）也会用到
+        日文/多语言字典，否则数字末尾的「/」、汉字都会读歪。
+        """
         if self._line_engine is None:
             try:
-                from rapidocr_onnxruntime import RapidOCR
+                from rapidocr_onnxruntime import RapidOCR  # type: ignore[import-untyped]
 
                 options: dict = {"use_det": False, "use_cls": False}
                 if self._threads is not None:
                     options["intra_op_num_threads"] = int(self._threads)
                     options["inter_op_num_threads"] = 1
+                if self._config_path is not None:
+                    options["config_path"] = str(self._config_path)
+                    options.update(self._config_overrides)
                 self._line_engine = RapidOCR(**options)
             except Exception:  # noqa: BLE001 - 老版本 rapidocr 没有该开关
                 self._line_engine = self._engine
