@@ -25,7 +25,8 @@
 | A4 离线回放素材（六类关键屏真机帧归档 + 回放测试 + 挑帧工具） | `tests/fixtures/` 8 张真机帧 + `README.md` 溯源表；`tests/test_frames_replay_a4.py` 9 条；`scripts/scan_frames.py`；顺带修 `_checkbox_bands` 真机 TypeError（F#44）；全量 pytest **950/1（951 收集 / 68 文件）**；`docs/HANDOVER` 二·补十七 |
 | A5 T3 离线预演（`--current` 候选 + `ExamPlanSelector` 逐回合锁定） | `scripts/verify_exam_plan_offline.py`：最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值；候选收敛到 1、`locked_turn<=3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；`docs/HANDOVER` 二·补十八 |
 | B1 T4 修正（评测执行器 bug + 受控 frontier 叶子） | `tests/test_beam_frontier.py` 6 条；`scripts/eval_t4_b1.py` 60 局配对：beam unknown **164.0** / known **165.5** vs within **143.1**（+20.9 / +22.4，CI 全正；决策门 114.6%/115.7% PASS）；frontier 叶子中性；全量 pytest **964/1（965 收集 / 70 文件）**；`docs/EXPECTIMAX` T4 修正 |
-| B2 全知数据训练 MLP 叶子 | `scripts/build_b2_dataset.py` + `train_b2_leaf.py` + `eval_b2.py`；beam 全知自对弈 26.5k 叶子样本 → MLP 104→96→48（val r²=0.943）；**确认段 120 局配对：beam 157.8 → 165.5（learned，+7.7 CI[+4.2,+11.2]）/ 166.9（ensemble 0.5，+9.0 CI[+5.8,+12.2]）**；CLEAR 95→98.3%、PERFECT 33.3→50%；within 用 learned 变差 −3.3（负结果记录）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件）**；`docs/EXPECTIMAX` B2 学习叶子 |
+| B2 全知数据训练 MLP 叶子 | `scripts/build_b2_dataset.py` + `train_b2_leaf.py` + `eval_b2.py`；beam 全知自对弈 26.5k 叶子样本 → MLP 104→96→48（val r²=0.943）；**确认段 120 局配对：beam 157.8 → 165.5（learned，+7.7 CI[+4.2,+11.2]）/ 166.9（ensemble 0.5，+9.0 CI[+5.8,+12.2]）**；CLEAR 95→98.3%、PERFECT 33.3→50%；within 用 learned 变差 −3.3（负结果记录）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件）**；`docs/EXPECTIMAX` B2 学习叶子（**B3 后旧模型失效，待重训**） |
+| B3 T5 机制建模（回合规则 + 核验表） | 模拟器对齐真机：每回合基础 **1 张** + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`（`sim/lesson`、`sim/expectimax`、`sim/uiobs` 等）；真机 39 回合配对回归（`tests/fixtures/t5_exam_turn_rules.json` + `scripts/export_t5_turn_rules.py`）；`RULES_REFERENCE.md` 重写逐条核验表；实机回放黄金值 12 条；重标定：`sim_engine_ab` expectimax 显著强于 rules（+342~+429 评价点）、B1 60 局 within 89.1→beam 95.7（+6.6，门 107.4% PASS）、B2 旧模型 FAIL 待重训；全量 pytest **985/1（986 收集 / 72 文件）**；`docs/HANDOVER` 二·补二十一 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -249,12 +250,40 @@
 - **测试/基线**：`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件）**；
   ①③④ 基线全部不变。细节见 [EXPECTIMAX](EXPECTIMAX.md)「B2 学习叶子」与 HANDOVER 二·补二十。
 
-### B3. T5 机制建模（用群论文公开公式对照，先做核验表）
+### B3. T5 机制建模（真机回合规则对齐 + RULES_REFERENCE 核验表）✅ 2026-11-22 完成
 - 逐条对照 `RULES_REFERENCE`：好调 `1.5+0.1g`、好印象年金 `W(r,T)`、审查倍率分段/联动惩罚、
   单精度舍入、支援强化尝试/成功/层数分布、牌组/轨迹计数；
 - P 道具/回忆/附魔/选牌/减益：按官方 AI 对比表挑性价比补；
 - 额外 RNG 机制（panic/search/generate/move）：现在只做**事前检测停机**；能否建模取决于新采集数据。
 - DoD：差异表 + 补丁 + 配对回归（模拟器 vs 实机逐分）。
+
+**落地（2026-11-22）**
+- **真机回合规则核实**：每回合基础 **1 张**（gakumas-tools `TurnManager.startTurn`
+  的 `cardUsesRemaining=1` + 真机 4 场考试 39 回合日志：32 回合 1 张、7 回合 2 张，
+  每回合手牌都 3 张）；打完最后一张**自动结束回合**（`CardManager.useCard` 末尾）；
+  回合末还有剩余次数（SKIP）**回 2 体力封顶**（`TurnManager.endTurn`）。
+- **补丁（4 项）**：① `plays_per_turn`/`play_limit`/`DEFAULT_PLAY_LIMIT` 默认 3→1
+  （`sim/lesson`、`sim/expectimax`、`sim/play_choice`、`sim/uiobs`、`sim/v_leaf`、
+  `scripts/local_bench.py`）；② 出牌次数用尽/手牌空自动结束回合；③ SKIP 回 2 体力
+  （`_end_turn` / `end_turn_state`）；④ 取整对齐 `safeCeil`（buff 段一次 + 回合倍率一次；
+  旧课程 floor / 考试 round 一次）。实机回放黄金值：考试 250% 9→23、好调→35、愛嬌 13→50、
+  情熱ターン 11 集中 0/3/6→28/35/43；课程好调 10→15、5→8、2→3；温存 9→5、2→1、15→8。
+- **配对回归**：`scripts/export_t5_turn_rules.py` → `tests/fixtures/t5_exam_turn_rules.json`
+  （真机 39 回合摘要 + 溯源）；`tests/test_t5_turn_rules.py` 9 条；`test_sim_lesson.py`
+  实机黄金值 2 条（课程 6 值 + 考试 6 值）。
+- **核验表**：`RULES_REFERENCE.md` 重写为逐条核验（回合规则 / `resolveScore` 顺序与取整 /
+  buff 生命周期与好印象年金 / 牌序 4/4+3/3 ✅ / 审查倍率 ❌ 仍常量 4.11 / 熱意、温存解除
+  额外次数、P 道具、fresh buff 差一回合等差距及证据）。
+- **重标定**（旧数字全部不可混比）：`sim_engine_ab` 76 局 0 blocked/0 异常/C+ 100%，
+  expectimax 从噪声内变**显著更强**（rules vs expectimax P50 5170→5566 / 5176→5505 /
+  5152→5513，配对 Δmean +372/+342/+429）；B1 60 局 within 89.1 → beam 95.7（+6.6，
+  CI [+2.2,+11.1]，决策门 107.4% PASS）；**B2 旧模型重测 FAIL**（确认段 beam 94.9→learned
+  67.1，−27.9，ensemble 0.75 −5.3）→ 必须按 B3 规则重采数据重训；400 局培育标定带
+  650–1100→950–1450。
+- **测试/基线**：全量 pytest **985 passed / 1 skipped**（986 收集 / 72 文件）；
+  ① 洗牌 4/4+3/3、③ 4/4 场 86/86+24/24、④ 36/36+3/3+29/29+beam 28 全部不变。
+- **下一步（T5 剩余）**：审查倍率分段+联动惩罚、熱意（独立资源）、温存解除 +1 出牌/元气、
+  fresh buff 差一回合（真机截图核实）、P 道具数据接入；然后阶段 C/D。
 
 ---
 
@@ -342,6 +371,13 @@ B2（全知数据训练 MLP 叶子）已于 2026-11-22 完成：B1 修正 harnes
 +7.7 CI[+4.2,+11.2]）/ 166.9（ensemble 0.5，+9.0），CLEAR 95→98.3%、PERFECT 33.3→50%；
 within 用 learned 变差为已记录负结果（只对 engine=beam 有益）；见 WORKPLAN B2 /
 HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」。
-基线绿后从 **B3**（T5 机制建模：模拟器 plays_per_turn 对齐真机 1 张 + RULES_REFERENCE 核验表）；
-阶段 C/D 离线做完再上真机（T3→T1→T2），最后 gkbench。
+B3（T5 机制建模）已于 2026-11-22 完成：模拟器对齐真机「每回合基础 1 张 + 打完自动结束回合
++ SKIP 回 2 体力 + 取整 safeCeil」，`RULES_REFERENCE.md` 重写为逐条核验表，真机 39 回合
+回合规则配对回归；重标定后 sim_engine_ab 里 expectimax 显著强于 rules（+342~+429 评价点，
+B3 前是噪声内），B1 60 局 within 89.1→beam 95.7（+6.6，决策门 PASS），**B2 旧模型失效
+（重测显著负）需按新规则重训**；全量 pytest 985/1（986 收集 / 72 文件）；见 WORKPLAN B3 /
+HANDOVER 二·补二十一 / RULES_REFERENCE / SIMULATOR §11。
+下一步从 **T5 剩余机制**开始（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff
+差一回合、P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2
+→ gkbench（ranked 禁 seed，只能交不看 seed 的算法）。
 ```

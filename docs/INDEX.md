@@ -38,7 +38,7 @@
 | 顺序 | 文档 | 读什么 |
 |---|---|---|
 | 1 | [SIMULATOR.md](SIMULATOR.md) | 模拟器结构 |
-| 2 | [RULES_REFERENCE.md](RULES_REFERENCE.md) | 结算公式（对照 gakumas-tools）|
+| 2 | [RULES_REFERENCE.md](RULES_REFERENCE.md) | 规则核验表（对照 gakumas-tools 参考引擎/官方 wiki/真机；逐条状态）|
 | 3 | [MASTER_DATA.md](MASTER_DATA.md) | 真实主数据在哪、字段含义 |
 | 4 | [EXPECTIMAX.md](EXPECTIMAX.md) | 搜索与叶子评估 |
 
@@ -95,7 +95,7 @@
 | **MASTER_DATA.md** | 主数据库（286 表）+ seed 发现 |
 | **SIMULATOR.md** | 模拟器设计与实现 |
 | **EXPECTIMAX.md** | 回合内搜索引擎 |
-| **RULES_REFERENCE.md** | 结算公式对照（gakumas-tools）|
+| **RULES_REFERENCE.md** | **规则核验表**（回合规则/结算顺序/取整/buff/牌序，对照 gakumas-tools + 真机）|
 | **RULES_FROM_BINARY.md** | 元数据解包结果（枚举/字段/方法签名）|
 | **UNLOCK_REPORT.md** | GakumasUnlock 工具分析 |
 | **UNLOCK_ADAPT.md** | hook 机制与版本适配 |
@@ -196,7 +196,21 @@ vs within 143.1（+20.9/+22.4，CI 全正；决策门 114.6%/115.7% PASS）；�
 within 用 learned 叶子显著变差 −3.3（负结果：教师策略收益偏乐观，**只对 engine=beam 有益**）；
 生产 `LessonPolicy` 已加可选 `leaf_model`/`leaf_model_weight`（默认 None = 行为不变、缓存），
 T2 真机 A/B 再决定是否打开。细节见 [EXPECTIMAX](EXPECTIMAX.md)「B2 学习叶子」/ HANDOVER 二·补二十。
-阶段 A 全部完成、B1/B2 完成；下一步按 [WORKPLAN](WORKPLAN.md) 进**阶段 B：B3（T5 机制建模：
-模拟器 plays_per_turn 对齐真机 1 张 + RULES_REFERENCE 核验表）** → 阶段 C/D → 真机 T3→T1→T2 → gkbench
+**同日 B3 已完成**（T5 机制建模：模拟器回合规则对齐真机 + RULES_REFERENCE 核验表）：
+核实真机**每回合基础只出 1 张牌**（一手 3 张是"选 1 张"）、打完最后一张**自动结束回合**、
+回合末还有剩余次数（SKIP）**回 2 体力封顶**（gakumas-tools `TurnManager`/`CardManager` 证据 +
+真机 4 场考试 39 回合日志：32 回合 1 张、7 回合 2 张、每回合手牌都 3 张）。补丁：`plays_per_turn`/
+`play_limit`/`DEFAULT_PLAY_LIMIT` 默认 3→1、自动结束回合、SKIP 回体力、取整对齐 `safeCeil`
+（旧课程 floor / 考试 round 一次；实机回放黄金值 9→23、5→8、2→3 等 12 条）。`RULES_REFERENCE.md`
+重写为逐条核验表（回合/结算顺序/buff 生命周期/牌序 ✅/审查倍率 ❌ 仍常量 4.11/熱意/P 道具等 Gap）；
+新增 `scripts/export_t5_turn_rules.py` + `tests/fixtures/t5_exam_turn_rules.json` +
+`tests/test_t5_turn_rules.py` 9 条真机回合规则配对回归。**重标定**：`sim_engine_ab` 76 局里
+expectimax 从噪声内变**显著强于 rules**（+342~+429 评价点）；B1 60 局 within 89.1→beam 95.7
+（+6.6，决策门 107.4% PASS）；**B2 旧模型在 B3 规则下重测 FAIL（确认段 beam −27.9）→ 必须按
+新规则重采数据重训**；400 局培育标定带 650–1100→950–1450。全量 pytest **985 passed / 1 skipped**
+（986 收集 / 72 文件）。细节见 [RULES_REFERENCE](RULES_REFERENCE.md) / [SIMULATOR §11](SIMULATOR.md) /
+[EXPECTIMAX「B3 规则修正与重标定」](EXPECTIMAX.md) / HANDOVER 二·补二十一。
+阶段 A 全部完成、B1/B2/B3 完成；下一步 **T5 剩余机制**（审查倍率分段+联动惩罚、熱意、
+温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D → 真机 T3→T1→T2 → gkbench
 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

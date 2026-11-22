@@ -40,6 +40,7 @@
 | 2026-11-22 | **A1 OCR 换官方 PP-OCRv6 多语言模型（Apache-2.0）**：日文剧情/选项整句可读，中文 UI 不受影响 | `aae2647`、`884272f` |
 | 2026-11-22 | **A2 课程硬打必须得分（F#42）**：修掉课程 HUD 语义（属性值/还差分）与「每回合默认 1 张牌」两个模型错误 | `b388274`、`31c0491` |
 | 2026-11-22 | **B1 T4 修正 + B2 全知数据 MLP 叶子**：修掉评测执行器白丢回合 bug 后 beam 已强于 within；B2 学习叶子在 beam 上再 +7.7（确认段 120 局，CI 全正），within 为负（只对 engine=beam 有益） | 见 HANDOVER 二·补十九/二·补二十、EXPECTIMAX「B2 学习叶子」 |
+| 2026-11-22 | **B3 T5 机制建模**：模拟器对齐真机「每回合基础 1 张 + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`」；`RULES_REFERENCE.md` 重写为逐条核验表；真机 39 回合配对回归；重标定后整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点），B2 旧模型失效需重训 | 见 HANDOVER 二·补二十一、RULES_REFERENCE、SIMULATOR §11 |
 
 完整 chronology、数据血缘、引用清单见 **[docs/PROVENANCE.md](docs/PROVENANCE.md)**。
 当前 330+ 个提交（持续增长）。
@@ -139,16 +140,20 @@ sequenceDiagram
 
 **离线配对评测（真实小牌组 14 张 / 5 回合，CLEAR 120 / PERFECT 170；60 局同 seed）**
 
-| 策略 | 分数均值 |
+| 策略 | 分数均值（B3 前口径） |
 |---|---:|
 | 回合内 expectimax（within） | **143.1** |
 | beam（unknown，tiebreak=1e-3） | **164.0**（+20.9，95% CI [+14.4,+27.3]） |
 | beam（known，tiebreak=1e-3） | **165.5**（+22.4，CI [+16.5,+28.4]） |
 | beam + 受控 frontier 叶子 | 164.0 / 165.5（与普通 beam 相同，中性） |
 
-> ⚠️ 旧 README/EXPECTIMAX 里的 beam 91.3 / 105.5 / 111.2 是评测执行器
+> ⚠️ 上表是 **B3（模拟器每回合 1 张牌 + 跳过回体力 + 取整对齐真机）之前**的口径。
+> B3 后同 harness 重测：within **89.1** → beam **95.7**（+6.6，95% CI [+2.2,+11.1]，
+> 决策门 107.4% PASS）。结论不变、绝对值变小（一局可打的牌少了）。见
+> [docs/EXPECTIMAX.md](docs/EXPECTIMAX.md)「B3 规则修正与重标定」。
+> 旧 README/EXPECTIMAX 里的 beam 91.3 / 105.5 / 111.2 是评测执行器
 > `_execute_plan` 白丢回合的 bug，已作废；within 143.1 与 tiebreak 方向仍有效。
-> B1 决策门（beam ≥ within 90%）→ PASS（114.6%/115.7%）。见
+> B1 决策门（beam ≥ within 90%）→ PASS（B3 前 114.6%/115.7%；B3 后 107.4%）。见
 > [docs/HANDOVER.md](docs/HANDOVER.md) 二·补十九。
 
 **B2 学习叶子（全知 beam 自对弈 26.5k 叶子样本 → 104 维 MLP，val r²=0.943）**——
@@ -161,9 +166,11 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 | beam + ensemble(analytic, learned, 0.5) | **166.9 / 167.4** | **+9.0 / +7.5** | [+5.8,+12.2] / [+4.1,+10.9] |
 
 > CLEAR 95.0%→98.3%、PERFECT 33.3%→50.0%；选择段 seed 2000–2079 上同样显著（166.8→173.7）。
+> ⚠️ 以上是 **B3 之前**的旧回合口径；B3 后该模型重测**显著变差**（确认段 beam 解析式 94.9 →
+> learned 67.1，−27.9，CI [−32.6,−23.1]）——**必须按 B3 规则（每回合 1 张）重采数据重训**，
+> 生产 `leaf_model` 保持默认关闭。见 EXPECTIMAX「B3 规则修正与重标定」。
 > **负结果**：within 引擎用 learned 叶子显著变差（−3.3）——教师策略收益对 within 偏乐观，
-> 学习叶子只对 `engine=beam` 有益。生产 `leaf_model` 默认关闭，T2 真机 A/B 再定。
-> 见 [docs/EXPECTIMAX.md](docs/EXPECTIMAX.md)「B2 学习叶子」/ HANDOVER 二·补二十。
+> 学习叶子只对 `engine=beam` 有益。见 [docs/EXPECTIMAX.md](docs/EXPECTIMAX.md)「B2 学习叶子」/ HANDOVER 二·补二十。
 
 ![离线引擎对比](docs/images/eval_engines.png)
 
@@ -182,7 +189,7 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 > oracle 基准均值 1,452,088（n=960），UIHorizon 631,129（0.5113×）、UINet 578,722（0.4551×）、官方 AI 232,710（0.2131×）。
 > 榜单规则禁止 seed/牌序，我们的全知路线**不适用于榜单**，只用于真机实战/离线研究。
 
-**测试**：`pytest tests/` → **976 条收集 / 975 passed / 1 skipped**；`verify_shuffle` 4/4 场；
+**测试**：`pytest tests/` → **986 条收集 / 985 passed / 1 skipped**；`verify_shuffle` 4/4 场；
 `build_exam_setup` 86/86 + 重洗 24/24；`verify_exam_wiring` 36/36 + 3/3 + 29/29。
 
 ---
@@ -211,7 +218,7 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 
 ```powershell
 # 离线基线（不需要游戏）
-.venv\Scripts\python.exe -m pytest -q                     # 935 条收集 / 934 passed / 1 skipped
+.venv\Scripts\python.exe -m pytest -q                     # 986 条收集 / 985 passed / 1 skipped
 .venv\Scripts\python.exe scripts\verify_shuffle.py       # 洗牌模型：4/4 场
 .venv\Scripts\python.exe scripts\build_exam_setup.py     # 采集数据 → out/exam_setup.json
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py   # 全知接线：36/36、3/3、29/29
@@ -282,22 +289,26 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 A3（F#43 结果页空转）/ A4（离线回放素材：真机关键帧归档 + 帧回放测试）/
 A5（T3 离线预演：`--current` 候选 + `ExamPlanSelector` 逐回合锁定，最新场 T2 锁定 config_turns=12）/
 B1（T4 修正：评测执行器丢回合 bug 修正后，60 局配对 beam unknown 164.0 / known 165.5 vs
-within 143.1，决策门 PASS；受控 frontier 叶子中性）/ **B2（全知数据训练 MLP 叶子：确认段 120 局
+within 143.1，决策门 PASS；受控 frontier 叶子中性）/ B2（全知数据训练 MLP 叶子：确认段 120 局
 beam 157.8→165.5（+7.7，CI 全正）/ ensemble 166.9（+9.0）；within 用 learned 变差为负结果，
-只对 engine=beam 有益；生产默认未打开）**。
+只对 engine=beam 有益；生产默认未打开；**B3 后旧模型失效待重训**）/ **B3（T5 机制建模：
+模拟器对齐真机「每回合基础 1 张 + 打完自动结束回合 + SKIP 回 2 体力 + 取整 safeCeil」，
+RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定后整局 A/B 里 expectimax
+显著强于 rules（+342~+429 评价点），B1 60 局 within 89.1→beam 95.7）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2 完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅；
-   下一项 **B3（T5 机制建模：模拟器 plays_per_turn 对齐真机 + RULES_REFERENCE 核验表）**；
+0. **离线阶段 A 收口完成、B1/B2/B3 完成**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅；
+   下一项 **T5 剩余机制**（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
    （A5：最新场 T2 锁定 config_turns=12、四场 sweep 全部选对真值），差真机考试里 `locked_turn=2~3 / verified=N` 的验收；
 3. **T2 三引擎真机 A/B**：expectimax / beam+全知 / rules 对照；
-4. **T4 学习型叶子（B2，已完成离线）**：B1 修正 harness 上，beam 全知自对弈数据训练的 MLP 叶子
-   在 beam 上显著 +7.7（确认段），within 上为负（只对 engine=beam 有益）；生产 `leaf_model` 默认 None，
-   T2 真机 A/B 再决定是否打开；下一步是把机制建模（T5/B3）对齐后再谈真机收益；
-5. **T5 机制建模**：P 道具/回忆/附魔/选牌/减益；考试内恐慌/随机生成/随机移动等 RNG 入口（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
-   模拟器 `plays_per_turn=3` 待对齐真机「每回合 1 张 + 额外出牌」（A2 遗留）；
+4. **T4 学习型叶子（B2，离线结论已作废）**：B2 模型训练数据是旧 3 张/回合口径，B3 规则下重测显著变差
+   （确认段 beam −27.9）→ 必须按 B3 规则重采数据重训（建议等 T5 剩余机制补齐后一次重训）；
+   生产 `leaf_model` 默认 None 保持关闭；
+5. **T5 机制建模**：回合规则/取整/核验表已由 B3 完成；剩余：审查倍率（`calculateTypeMultipliers` 分段 +
+   shortfall 联动惩罚）、熱意 enthusiasm、温存解除 +1 出牌/元气、fresh buff 差一回合、P 道具/回忆/附魔/减益、
+   考试内生成卡/额外 RNG（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 
 **红线（永不违反）**
@@ -314,7 +325,7 @@ beam 157.8→165.5（+7.7，CI 全正）/ ensemble 166.9（+9.0）；within 用 
 gakumas-agent/
 ├─ src/gkagent/      # 核心库（device/vision/tasks/policy/sim/data/knowledge）
 ├─ scripts/          # 跑局/验证/评测/存档脚本
-├─ tests/            # 单测（935 条收集 / 934 passed）
+├─ tests/            # 单测（986 条收集 / 985 passed）
 ├─ docs/             # 全部文档（INDEX 为总导航）
 ├─ data/             # 主数据/卡表/评测（大文件与第三方代码不入库）
 ├─ integrations/     # MAA 集成适配（历史阶段）

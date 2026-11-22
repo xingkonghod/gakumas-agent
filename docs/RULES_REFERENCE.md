@@ -1,71 +1,176 @@
-# 参考引擎的规则（对照我们的模拟器）
+# 规则核验表（对照 gakumas-tools 参考引擎 / 官方 wiki / 真机采集）
 
-来源：`surisuririsu/gakumas-tools`（**BSD-3**，本地在 `data/dl/gt/gakumas-tools-master`）
-文件：`packages/gakumas-engine/engine/Executor/resolvers.js` 的 `resolveScore()`
+> 2026-11-22 B3（T5 机制建模）重写。原名「参考引擎的规则（对照我们的模拟器）」，
+> 现在改成**逐条核验表**：每一行给出「参考实现或真机证据 → 我们的实现 → 状态 → 回归」。
+>
+> 状态口径：**✅** 已对齐且有回归；**⚠️** 近似建模（误差方向写清）；**❌** 未建模/有差距。
+>
+> 核验来源：
+>
+> - **参考引擎**：`surisuririsu/gakumas-tools`（**BSD-3**，本地 `data/dl/gt/gakumas-tools-master`）。
+>   关键文件：`packages/gakumas-engine/engine/Executor/resolvers.js`（分数结算）、
+>   `engine/TurnManager.js`（回合 / 出牌次数 / 跳过回体力 / 抽牌）、
+>   `engine/CardManager/index.js`（出牌、可用性、抽牌上限 5、打完最后一张自动结束回合）、
+>   `engine/BuffManager.js`（buff 衰减、fresh 保护）、`typeMultipliers.js`（审查倍率）；
+>   常量在 `engine/constants.js`（`GOOD_IMPRESSION_EFFECTS` / `STANCE_CHANGED_EFFECTS` /
+>   `FULL_POWER_EFFECTS`）。它的 `tests/training-fidelity.md` / `tests/contest-fidelity.md`
+>   记录**逐次真机截图回放**核对过的黄金值（本表引用的「实机回放值」都出自那里）。
+> - **官方 wiki 公式**：见 [WIKI_DUAL_SOURCE.md](WIKI_DUAL_SOURCE.md)（好调 `1.5+0.1×回合`、
+>   训练收益、评价点公式）。
+> - **真机采集**：2026-11-20/21 四场考试 39 回合逐回合日志（牌序见
+>   `scripts/verify_shuffle.py`；回合规则摘要见 `tests/fixtures/t5_exam_turn_rules.json`）。
+>
+> B3 的「配对回归」素材：`tests/test_sim_lesson.py` 里的实机回放黄金值
+> （250% 回合 アピールの基本 9→23/好调 35、愛嬌 13+好调→50、情熱ターン 11→28/35/43；
+> 课程好调 10→15、5→8、2→3；温存 9→5、2→1、15→8）+
+> `tests/test_t5_turn_rules.py`（39 回合出牌数规则）。
 
-这是公开可参考的**权威结算实现**（GameVika 的计算器直接移植它，25/25 黄金用例）。
+## 0. 一句话结论（B3 后）
 
-## 打分结算顺序（原文逻辑）
+分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
+**跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）都已按参考引擎/真机对齐；
+最大剩余差距是 **审查倍率（分段 + 联动惩罚）仍是常量 4.11**、**熱意（enthusiasm）**
+与 **温存解除的额外次数/元气**、**P 道具**、**fresh buff 的差一回合衰减**。
+
+---
+
+## 1. 回合规则（B3 2026-11-22 对齐）
+
+| 规则 | 参考实现 / 真机证据 | 我们的实现 | 状态 | 回归 |
+|---|---|---|---|---|
+| 每回合基础出牌 **1 张** | `TurnManager.startTurn`: `cardUsesRemaining = 1`；真机 39 回合：32 回合 1 张、7 回合 2 张，每回合手牌都 3 张 | `LessonConfig.plays_per_turn=1`、`ExpectState.play_limit=1`、`DEFAULT_PLAY_LIMIT=1` | ✅ | `tests/test_t5_turn_rules.py::test_*default*` + 真机 fixture |
+| 打完最后一张**自动结束回合** | `CardManager.useCard` 末尾 `cardUsesRemaining < 1 → endTurn` | `LessonSim.step`：次数用尽或手牌空 → `_end_turn`；搜索侧 `plays_left<=0` 即按 `end_turn_state` 叶子处理 | ✅ | `test_one_card_auto_ends_turn_without_stamina_recovery` |
+| SKIP/没出完牌 → 体力 **+2**（封顶最大体力） | `TurnManager.endTurn`: `if (cardUsesRemaining > 0) stamina = min(stamina+2, max)` | `LessonSim._end_turn` / `end_turn_state`：`plays_this_turn < 上限` 时 +2 | ✅ | `test_skip_recovers_two_stamina_capped_at_max`、`test_skip_recovery_matches_expect_state_rule` |
+| 额外出牌 = 使用次数 +N | `ExamPlayableValueAdd` 效果（卡 / P 道具）加 `cardUsesRemaining`；真机 7 个 2 张回合里 3 个首张牌带该效果 | `CardSpec.extra_play` → `LessonSim.extra_plays` / `ExpectState.extra_plays` | ✅ 卡效果；⚠️ P 道具数据未接入 | `test_extra_play_keeps_turn_open_then_auto_ends`、fixture |
+| 每回合开始抽 3 张（手牌 3） | `TurnManager.startTurn`: `cardsToDraw = max(3 - handDecrease, 0)` | `LessonConfig.hand_size=3`，每回合 `_draw_hand` | ✅（handDecrease 未建模 ⚠️） | `test_sim_lesson.py` 各回合测试 |
+| 抽牌/手牌**上限 5** | `CardManager.drawCard`: `if handCards.length >= 5 return` | `LessonSim._draw` 不设上限 | ⚠️ 只有抽牌卡溢出时才不同 | — |
+| 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | 只把熱意近似成「好调回合 = 温存期间打出数+1」，不加额外次数/元气 | ❌ 待补（T5） | `test_save_release_gives_heat_turns`（旧近似） |
+| 全力回合：+1 次出牌、保留牌回手 | `constants.js FULL_POWER_EFFECTS` / `FULL_POWER_CHANGED_EFFECTS` | 只建模全力 ×3 分数与全力值消耗 | ⚠️ 额外次数/保留牌未建模 | `test_full_power_point_triggers_triple_next_turn` |
+| 饮料不占出牌次数 | 真机 UI/用户确认 | `use_drink` 不动 `plays_this_turn` | ✅ | `test_mechanism_corrections.py::test_drinking_does_not_consume_play_slots` |
+| `turnSkipped` 是独立触发时机（P 道具） | `PHASES` 含 `turnSkipped`；master 里 12 个 turn_skip P 道具 | P 道具接口只触发 turn_start/turn_end/card_play/status_gain | ⚠️ 跳过类 P 道具未触发 | — |
+
+## 2. 出牌结算顺序（`resolvers.js::resolveScore`，BSD-3）
+
+参考顺序（原文逻辑）：
 
 ```
-resolveScore(state, score, growth, rhs, getTurnMultiplier)
-
-① growth 加成（考试中成长）
-   - 若效果引用 goodImpressionTurns → score += 好印象层数 × growth[scoreByGoodImpressionTurns]
-   - 否则若引用 motivation       → score += やる気 × growth[scoreByMotivation]
-   - 否则若引用 genki            → score += 元气 × growth[scoreByGenki]
-   - 否则有 growth[score]         → score += growth[score]
-
+① growth（成长）加成
 ② if score > 0:
-   a. score += 集中 × 集中倍率 × 集中效果加成之和            ← 集中是「加」
-   b. score += 热情 × 热情倍率
-   c. score = ceil(score)                                   ← 第一次取整
+   a. score += 集中 × 集中倍率 × 集中效果加成
+   b. score += 熱意 × 熱意倍率
+   c. ceil
    d. 好调：score *= 1 + (0.5 + (绝好调 ? 好调回合数×0.1 : 0)) × 好调倍率
-   e. 指針：
-        強気1段 ×2 · 強気2段 ×2.5
-        温存1段 ×0.5 · 温存2段 ×0.25
-        全力   ×3
-        余裕   ×0
-   f. score *= 1 + 分数增益之和（含 自尊 min(好印象,やる気)×0.02 上限0.5）
-        メタモルフォーゼ「披露」额外 +0.25
-   g. score *= max(分数减益之和, 0)（メタモルフォーゼ「支度」基础 0.75）
+   e. 指針：強気1 ×2 / 強気2 ×2.5 / 温存1 ×0.5 / 温存2 ×0.25 / 全力 ×3 / 余裕 ×0
+   f. score *= 1 + 分数增益之和（含自尊 min(好印象,やる気)×0.02 上限 0.5；メタモルフォーゼ披露 +0.25）
+   g. score *= max(分数减益之和, 0)（メタモルフォーゼ支度基础 0.75）
    h. 不调：score *= 0.67
-   i. 取整
-
-③ × 回合属性系数（turnMultiplier，考试里就是 Vo/Da/Vi 倍率）
+   i. ceil
+③ score *= 回合属性倍率（考试/舞台 typeMultiplier）
+④ ceil
 ```
 
-## 和我们模拟器的差异（实测对照）
+| 项 | 参考实现 / 真机证据 | 我们 | 状态 | 回归 |
+|---|---|---|---|---|
+| 集中加在白值上（乘之前） | `resolveScore` a；实机 250% 情熱ターン 集中 0/3/6 → 28/35/43 | `_card_award`: `(base + focus) × …` | ✅ | `test_audition_multiplier_matches_captured_real_machine_scores` |
+| やる気（motivation）→ **元气获得量** | `resolveGenki`: `genki += motivation × multiplier`；实机回放 やる気 放大元气 | `motivation` 字段：获得元气时 `vitality += value + motivation` | ✅ | `test_mechanism_corrections.py::test_motivation_and_vitality_are_separate_and_persist` |
+| 熱意（enthusiasm）→ **本牌分数加算** | `resolveScore` b：`score += enthusiasm × multiplier`；温存解除给 5/8 熱意 | 没有独立熱意资源；温存解除近似成好调回合 | ❌ 待补（会高估/低估分数，方向不定） | — |
+| 好调倍率 `1+(0.5+绝好调0.1×g)×倍率` | `resolveScore` d；wiki `1.5+0.1×好调回合`（绝好调） | `Buffs.condition_turns/perfect_condition_turns` 同式 | ✅ | `test_lesson_rules_reference.py` |
+| 指針倍率（0.5/0.25/2/2.5/3） | `resolveScore` e；实机回放 強気 9→18、温存 9→5/15→8 | `sim/stance.py MULTIPLIER` | ✅ | `test_preservation_card_halves_later_scores`、实机黄金值 |
+| 指針牌费（温存减半/強気双倍/強気2 穿透 1） | `resolveCost`（费用是负数，`floor(-cost×m)` = 绝对值向上取整） | `_effective_cost` 用 `ceil(cost×m)`（同语义） | ✅ | `test_mechanism_corrections.py::test_stance_cost_modifiers_and_strong_pierce` |
+| 分数增益/减益（scoreBuffs/scoreDebuffs） | `resolveScore` f/g；实机回放「審査基準 +1500‰ = ×1.5」 | `parameter_buff` 千分比近似（乘在最终分上，`int()`） | ⚠️ 语义近似（卡表把它映射成好调/审查基准两种口径） | `test_parameter_buff_*` |
+| 自尊 pride `min(好印象,やる気)×0.02` 上限 +0.5 | `resolveScore` f | 未建模 | ❌ 影响小（需要 prideTurns 来源） | — |
+| メタモルフォーゼ：披露 +25% / 支度 ×0.75 | `resolveScore` f/g；实机回放 100→ceil(125)、100→ceil(75) | `Buffs.metamorphosis` | ✅ 分数；❌ 支度→披露半场翻转未做 | `test_lesson_rules_reference.py` |
+| 不调 ×0.67 | `resolveScore` h | `Buffs.poor_condition_turns` | ✅ | `test_poor_condition_multiplies_by_0_67`（40×0.67→27） |
+| **取整时机**：加算后 ceil、buff 段后 ceil、回合倍率后 ceil | `resolveScore` c/i/④ 的 `safeCeil`（整数附近取整、否则 ceil）；实机回放 9→23、5→8、2→3 | `safe_ceil`（B3 补）：buff 段一次 + 回合倍率一次 | ✅ | 实机回放黄金值 6 条（课程）+ 6 条（考试） |
+| 回合属性倍率（审查倍率） | `typeMultipliers.js`：按 3 维参数**分段**（`param+3000` / `2p+1800` / `3p+900` / `4p+300` / `5p`…，随 season 变）+ `criteria` + **shortfallRate 联动惩罚**（每个参数低于 `900×criterion` 时扣 `0.0979+0.1512×(1−比值)`）+ `getParamCap(season)`，再 `ceil` 两次 | 常量 `attribute_coefficient`（默认 4.11，来自 C+/5577 反推） | ❌ 最大分数差距；不能只看单一百分比 | 实机回放 250%/400% 场景已能对上固定倍率；分段倍率待数据（T5/T6） |
+| 依赖分（好印象/元气/全力值折算）是否吃倍率 | 参考引擎里 `score+=goodImpressionTurns*…` 也是普通 `score+=`，**会吃**好调/指針/回合倍率 | 我们按保守口径**不吃**（只加白值一段） | ⚠️ 可能低估（卡表没给依赖分结算顺序；实机回放里能验） | `test_depend_*` |
+| 单精度舍入（JS double vs Python float） | 两边都是 IEEE-754 double；参考 `safeCeil` 有 1e-9 epsilon | `safe_ceil` 同实现 | ✅ | 实机黄金值 |
+| growth（成长表） | `resolveScore` ① 用 growth 表的**加算**（g.score 等） | `grow_score` 是卡面百分比乘白值；数据为空 → 恒 0 | ❌ 数据缺口（`ProduceCardGrowEffect` 未下载） | — |
 
-| 项 | 参考引擎 | 我们的 `LessonSim` | 影响 |
+## 3. Buff 生命周期 / 好印象年金 W(r,T)
+
+| 项 | 参考实现 / 真机证据 | 我们 | 状态 | 回归 |
+|---|---|---|---|---|
+| 好印象：回合末 `score += 层数 × 强化倍率` | `GOOD_IMPRESSION_EFFECTS`：`score += goodImpressionTurns × buff`；回合末触发 | `_end_turn`：`score += int(层数 × (1000+review_multiple)/1000)` | ✅ | `test_exam_review_scores_at_turn_end_then_decays` |
+| 好印象回合推进 -1 | `BuffManager.decrementBuffTurns`（`EOT_DECREMENT_FIELDS` 含 goodImpressionTurns） | 下一回合开始时 -1（最低 0） | ✅ | `test_depend_exam_review_*` |
+| 年金 `W(r,T) = r+(r-1)+…` | 上述逐回合结算的闭式；解析叶子用它估未来分 | `AnalyticLeafValue.impression_annuity` | ✅（与参考同语义） | `tests/test_expectimax.py` 相关用例 |
+| 好调/绝好调/不调回合数衰减 | `EOT_DECREMENT_FIELDS` | `_end_turn` / `end_turn_state` 各 -1 | ✅ | `test_new_condition_buffs_tick_down_at_turn_end_in_both_engines` |
+| **fresh buff 保护**：获得 buff 的当回合末不扣 1（回合末从 0→正 的字段打 fresh 标记跳过衰减） | `Executor/index.js` L271-279「Protect fresh stats from decrement」+ `BuffManager.decrementBuffTurns` | 我们的 buff 当回合末就 -1（**少 1 回合持续**） | ❌/⚠️ 未真机核实；参考引擎的 fidelity 截图常省略回合末 buff 数 | 待真机逐回合截图验证（T6） |
+| 好印象强化 / 好调加算 / 全力强化 持续回合 | `ExamReviewMultiple` / `ExamParameterBuffAdditiveFix` / `ExamFullPowerLessonMultipleAdditive` | `Buffs.review_multiple` 等 + `_tick_buff_turns` | ✅ | `test_review_multiple_*`、`test_condition_additive_*` |
+| メタモルフォーゼ 支度→披露（半场自动翻转） | `TurnManager.endTurn`: `turnsElapsed >= floor(turnCount/2)` | 只有外部设置的 `Buffs.metamorphosis`，不自动翻转 | ❌ 小（需要偶像特性数据） | — |
+| 饮料（体力/集中/好调/直接分） | 参考引擎 `p_drinks.csv`；实机每回合 1 瓶（用户确认无上限） | `LessonSim.use_drink`：4 种效果，不占出牌次数 | ✅ 已建模的 4 种；⚠️ 其余 20+ 种效果报错不静默 | `test_drink_*` |
+| P 道具（被动，按触发时机） | `p_items.csv` + 参考引擎 `PItems`；exam_start/turn_start/card_play/turn_skip 等 | `sim/p_items.py` 接口 + `LessonSim._fire_p_items`；但卡表/读屏没有真实 P 道具数据 → 培育模拟默认空 | ⚠️ 接口有、数据未接（T5/T6） | `tests/test_p_items_integration.py` |
+
+## 4. 考试 / 牌序机制（已真机验证）
+
+| 项 | 参考/真机证据 | 我们 | 状态 | 回归 |
+|---|---|---|---|---|
+| 洗牌 = xorshift32 + Fisher-Yates（含支援强化掷点） | gakumas `NativeRandom`；真机 4 场逐张对照 | `sim/exam_shuffle.py`（`NativeRandom`/`shuffle`/`opening_deck_and_rng`） | ✅ 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27） | `scripts/verify_shuffle.py` |
+| 洗牌前消耗 K = `(配置回合数−3) + npc数×回合数` | 4 场反推（offset 0 复现回合属性池） | `k_before_shuffle` | ✅ | 同上 |
+| 回合属性：首回合分布 + 末 3 回合静态各一 + 中间洗 | 4 场回合属性序列 | `generate_turn_types` / `infer_turn_type_pool` | ✅ | 同上 |
+| 支援强化：掷点次数 / 成功次数 / 每回合强化增量 | 4 场：掷点 45/46/29/46、成功 0/6/1/6，逐回合增量对照 | `support_upgrade` | ✅ | 同上 |
+| 弃牌堆重洗（回合内/回合开始） | 三组重洗样本 9/9、6/6、9/9 逐张对照 | `reshuffle_grave` + `ExamDrawPlan` | ✅ 3/3 | `verify_shuffle.py` 汇总；`verify_exam_wiring.py` |
+| 牌序全知接线（`ExamSetup`→`known_draw`/`discard_order`） | 生产端到端 | `build_exam_setup` + `ExamDrawPlan` | ✅ 4/4 场、初始段 86/86、重洗 24/24、手牌 36/36、known_draw 29/29、beam 出牌 28 次 | `scripts/verify_exam_wiring.py` |
+| 额外 RNG 机制卡（panic/search/generate/move） | 群论文/官方 AI 笔记；未知额外 RNG 会让 K 偏 | `exam_risk.py`：牌组命中即**事前停用全知**（不静默错算） | ✅ 检测（169/1829 机制卡，四场牌组 0 命中）；❌ 建模 | `tests/test_exam_risk.py` |
+| 考试内生成/移动卡（grave 不可重建） | 真机 2 场出现生成卡 | 全知验证按数据限制提前停（不算失败）；模拟里近似成抽 1 张 | ⚠️ 近似（低估生成卡价值） | `verify_exam_wiring.py` 汇总 |
+| hand_limit（手牌上限 5） | 采集 `hand_limit=5` | `LessonSim.hand_size` 固定 3；考试 setup 不驱动抽牌上限 | ⚠️ 只在抽牌卡时不同 | — |
+
+## 5. B3 实际改动（2026-11-22）
+
+| 改动 | 文件 | 证据 | 回归 |
 |---|---|---|---|
-| **集中** | `score += 集中 × 集中倍率 × 加成`，**加在乘之前** | 同（加在乘前）| ✅ 一致 |
-| **好调倍率** | `1 + (0.5 + 绝好调? 回合数×0.1 : 0) × 倍率` | 固定 ×1.5 | ❌ **我们少了回合数增长项** |
-| **やる気** | 加在基础分上 | 未建模 | ❌ 缺 |
-| **取整时机** | 加算后取整 → 乘完再取整 → 乘回合系数 | 只在最后取整一次 | ⚠️ 有 1-2 分误差 |
-| **不调** | ×0.67 | 未建模 | ❌ 缺 |
-| **メタモルフォーゼ** | 披露 +25% / 支度 ×0.75 | 未建模 | ❌ 缺（氷渡香名江就是这个偶像！）|
-| **指針倍率** | 1段/2段都建模（0.5/0.25、2/2.5）| 之前只建 0.5/2/3 | ⚠️ 2 段缺 |
-| **自尊（pride）** | `min(好印象,やる気)×0.02` 上限 +0.5 | 未建模 | ❌ 缺 |
-| **回合属性系数** | 每次乘 | 只在考试用 4.11 | ⚠️ 课程里应为 1.0 |
+| 模拟器默认每回合 **1 张**（旧 3 张是"手牌 3 张"误读） | `sim/lesson.py`、`sim/expectimax.py`、`sim/play_choice.py`、`sim/uiobs.py`、`sim/v_leaf.py`、`scripts/local_bench.py` | gakumas-tools `TurnManager` + 真机 39 回合 | `test_t5_turn_rules.py`（9 条） |
+| 打完最后一张**自动结束回合** | `sim/lesson.py::step` | `CardManager.useCard` 末尾 | 同上 + 旧机制测试改显式口径 |
+| 回合末**跳过回 2 体力**（封顶） | `sim/lesson.py::_end_turn`、`sim/expectimax.py::end_turn_state` | `TurnManager.endTurn` | 同上 |
+| **取整对齐**：buff 段 ceil + 回合倍率段 ceil（旧：课程 floor / 考试结尾 round 一次） | `safe_ceil`（`sim/lesson.py`）+ `sim/expectimax.py` 镜像 | `resolvers.js::safeCeil` + 实机回放黄金值 | 实机黄金值 12 条 |
+| 重标定（规则改变后） | 见下 | — | — |
 
-## 最该补的三条（对真机影响最大）
+**重标定数字（B3 后口径，勿与 B3 前数字混用）**：
 
-1. **好调倍率随回合数增长**：我们固定 1.5，实际是 `1 + (0.5 + 0.1×好调回合数)×倍率`（绝好调时）。
-   这解释了为什么我们模拟的课程分数偏低。
-2. **メタモルフォーゼ（披露/支度）**：氷渡香名江的核心机制，+25% / ×0.75，我们完全没建模。
-3. **不调 ×0.67**：部分卡会给不调，我们当没有。
+- `sim_engine_ab.py` 整局 A/B（16+30+30=76 局，训练+考试都注入真 `LessonPolicy`）：
+  **0 RuleFallbackBlocked / 0 异常 / C+ 率 100%**；expectimax 现在**显著优于 rules**：
+  seed 9000（16 局）评价点 P50 5170→5566、Δmean +372；seed 21000（30 局）5176→5505、Δmean +342；
+  seed 30000（30 局）5152→5513、Δmean +429（B3 前是噪声内 −15/−5）。
+- B1 配对评测（60 局，small）：within **89.1** → beam **95.7**（+6.6，CI [+2.2,+11.1] unknown /
+  +6.6 [+3.1,+10.1] known）；决策门 107.4% PASS（B3 前：143.1→164.0/165.5，+20.9/+22.4）。
+- B2 学习叶子（B3 前训练的数据，未重训）：数字见 HANDOVER 二·补二十一 / EXPECTIMAX「B2」的
+  B3 重测表；**结论以重测为准，重训留到 T5 数据修正后**。
+- `tests/test_sim_produce.py` 400 局标定带：三维总和均值 650–1100 → **950–1450**（≈1198），
+  原因是 1 张/回合 + 跳过回体力让 16 周能打更多训练；这是口径变化，不是真机吻合度提升。
 
-## 其他可参考的文件
+## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 
-| 文件 | 内容 |
-|---|---|
-| `engine/BuffManager.js` | buff 层数管理与回合衰减 |
-| `engine/CardManager/index.js`（50KB）| 出牌可用性、费用修正、卡效果 |
-| `engine/TurnManager.js` | 回合推进、抽牌、弃牌、洗牌 |
-| `engine/Executor/resolvers.js` | **所有效果的结算函数**（元气/集中/好印象/费用…）|
-| `strategies/HeuristicStrategy.js`（15KB）| 他们的启发式策略（可对照我们的规则引擎）|
+1. **审查倍率分段 + 联动惩罚**（`typeMultipliers.js`）：现在的常量 4.11 只在当前账号参数附近成立；
+   换账号/换 season/参数不足 900×criterion 时会偏很多。
+2. **熱意（enthusiasm）**：需要独立资源字段（分数加算 + 来源：温存解除 +5/+8、其它卡）。
+3. **温存解除的额外出牌次数/元气**：异常（アノマリー）方案核心机制。
+4. **fresh buff 保护**（差一回合）：好调/好印象/绝好调持续时间可能整体少 1 回合，需真机逐回合截图核实。
+5. **P 道具数据接入**（produce 侧 P 道具列表未采集；`p_items.json` 有 1068 条效果模板）。
+6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
+7. **好印象/元气依赖分是否吃倍率**：参考引擎的实现说明会吃；我们保守不吃，待实机回放逐分核对。
+8. **抽牌上限 5 / handDecrease / 保留牌（held cards）**。
+9. **自尊 pride / growth 成长表 / 支度→披露半场翻转**（小项）。
+
+## 7. 复现
+
+```powershell
+# 四条基线（洗牌 / pytest / 考试牌序 / 生产接线）
+.venv\Scripts\python.exe scripts\verify_shuffle.py
+.venv\Scripts\python.exe -m pytest tests/ --basetemp=data\pytest-tmp
+.venv\Scripts\python.exe scripts\build_exam_setup.py
+.venv\Scripts\python.exe scripts\verify_exam_wiring.py
+
+# B3 新素材/规则回归
+.venv\Scripts\python.exe scripts\export_t5_turn_rules.py   # 从采集 traffic 重导回合规则 fixture
+.venv\Scripts\python.exe -m pytest tests\test_t5_turn_rules.py -q
+
+# B3 重标定
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800
+.venv\Scripts\python.exe scripts\eval_t4_b1.py --games 60
+.venv\Scripts\python.exe scripts\eval_b2.py --leaf-model data\knowledge\b2_leaf_mlp_small.json --games 120 --seed 3000
+```
 
 ## 许可
 
-`gakumas-tools` 是 **BSD-3-Clause**，可以引用/改写，需要保留版权声明。
+`gakumas-tools` 是 **BSD-3-Clause**：本表引用的公式/常量与实机回放值需保留版权声明；
+我们只引用口径并重写实现，不拷贝代码。

@@ -816,6 +816,66 @@ student = V_leaf，用 B1 **修正后的 harness** 做配对评测；DoD：显�
   + beam 28 全部不变（B2 只增模块/脚本 + `eval_known_draw.play` 两个可选参数 + 生产可选参数/缓存）。
 - **提交**：feat `ccabd0a` + docs `5cd23d0`（见 [七、最近提交记录](#七最近提交记录)）。
 
+### 二·补二十一、11-22（WORKPLAN B3 落地：T5 机制建模——回合规则对齐真机 1 张 + 规则核验表 ✅）
+
+**目标（B3）**：把模拟器 `plays_per_turn` 对齐真机（每回合基础 1 张 + 额外出牌），
+逐条核验 `RULES_REFERENCE` 的公式/机制，给出差异表 + 补丁 + 配对回归。
+
+**核心结论**：真机**每回合基础只能出 1 张牌**（一手 3 张是"选 1 张"），打完最后一张
+**立即自动结束回合**；回合结束如果还有出牌次数没用（SKIP）**回 2 体力**。
+证据：gakumas-tools（BSD-3）`TurnManager.startTurn` 的 `cardUsesRemaining = 1`、
+`CardManager.useCard` 末尾 `cardUsesRemaining < 1 → endTurn`、`TurnManager.endTurn`
+的 `stamina+2`；真机 4 场考试 39 回合逐回合日志（32 回合 1 张、7 回合 2 张，
+每回合手牌都 3 张；7 个 2 张回合里 3 个首张牌带 `ExamPlayableValueAdd`）。
+
+**补丁（4 项，全部有回归）**
+1. 默认 `plays_per_turn` / `ExpectState.play_limit` / `UIObs.DEFAULT_PLAY_LIMIT` **3 → 1**
+   （`sim.lesson` / `sim.expectimax` / `sim.play_choice` / `sim.uiobs` / `sim.v_leaf` /
+   `scripts/local_bench.py`）；
+2. `LessonSim.step`：出牌次数用尽或手牌空 → **自动结束回合**（真机语义）；
+3. `LessonSim._end_turn` / `expectimax.end_turn_state`：**回合末还有剩余次数 → 体力 +2 封顶**
+   （参考引擎 endTurn 顺序：先回体力再 endOfTurn）；
+4. **取整对齐** `safeCeil`：buff/指針/不调乘完 ceil 一次，回合属性倍率乘完再 ceil 一次
+   （旧：课程 floor / 考试结尾 round 一次）。实机回放黄金值核对：考试 250% 回合
+   アピールの基本 9→**23**、好调后→**35**、愛嬌 13+好调→**50**、情熱ターン 11 集中 0/3/6→
+   **28/35/43**；课程好调 10→15、5→**8**、2→3，温存 9→5、2→1、15→8。
+
+**配对回归素材（真机）**
+- `scripts/export_t5_turn_rules.py` → `tests/fixtures/t5_exam_turn_rules.json`：
+  4 场考试 39 回合的「出牌数/手牌数/首张牌/是否带额外出牌效果」摘要（含溯源）。
+- `tests/test_t5_turn_rules.py` 9 条：默认 1 张、自动结束、SKIP 回体力（封顶）、
+  `end_turn_state` 同口径、额外次数保持回合、beam 每回合只排 1 张、真机 39 回合规则回归。
+- `tests/test_sim_lesson.py` 实机回放黄金值 2 条（课程 6 个值 + 考试 6 个值）。
+
+**规则核验表**：`docs/RULES_REFERENCE.md` 重写为逐条核验表（参考引擎/官方 wiki/真机三方对照），
+覆盖回合规则、`resolveScore` 结算顺序与取整、buff 生命周期与好印象年金 `W(r,T)`、
+牌序（洗牌/支援强化/重洗/回合属性，✅ 4/4+3/3）、审查倍率（❌ 仍是常量 4.11）、
+熱意/温存解除额外次数/P 道具/fresh buff 等剩余差距（都写了证据与下一步）。
+
+**重标定（规则改了，旧数字全部不可混比）**
+- `sim_engine_ab` 76 局：0 blocked / 0 异常 / C+ 100%；**expectimax 从噪声内变显著更强**：
+  rules vs expectimax 评价点 P50 5170→5566（16 局）、5176→5505（30 局）、5152→5513（30 局），
+  配对 Δmean **+372/+342/+429**（B3 前 −15/−5）。
+- B1 60 局：within **89.1** → beam **95.7**（+6.6，CI [+2.2,+11.1] unknown / +6.6 [+3.1,+10.1] known，
+  决策门 107.4% PASS）。结论不变，绝对值缩小是口径。
+- B2 学习叶子（旧口径数据训练的模型）：**重测 FAIL**——确认段 beam 解析式 94.9 → learned
+  67.1（−27.9，CI [−32.6,−23.1]）、ensemble 0.75 89.6（−5.3）；**必须按 B3 规则重采数据重训**
+  （建议等 T5 剩余机制补齐后一次重训，避免再废一次）。生产接线保持默认关闭。
+- `tests/test_sim_produce.py` 400 局培育标定带 650–1100 → **950–1450**（≈1198，口径变化）。
+
+**测试 / 基线**
+- 全量 pytest **985 passed / 1 skipped**（986 收集 / 72 文件；B3 新增 `tests/test_t5_turn_rules.py` 9 条
+  + 实机黄金值净 +1 条）。
+- ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 重洗 24/24、④ wiring 36/36 + 3/3 +
+  known_draw 29/29 + beam 28 **全部不变**（B3 只改模拟器回合规则/取整 + 文档/素材）。
+- 文档：`RULES_REFERENCE.md` 重写；`SIMULATOR.md` §10 重标定 + §11 B3；`EXPECTIMAX.md`
+  文末「B3 规则修正与重标定」；`WORKPLAN.md` / `HANDOVER_NEXT.md` / `INDEX.md` 状态同步。
+
+**提交**：feat `4316f9a` + docs（见 [七、最近提交记录](#七最近提交记录)）。
+
+**下一步**：T5 剩余机制（审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、
+P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）→ 真机 T3→T1→T2 → gkbench。
+
 ---
 
 ## 三、社区情报（他们做到哪了）
@@ -860,9 +920,12 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 bug 修正后 beam unknown 164.0 / known 165.5 vs within 143.1，决策门 PASS；frontier 叶子中性）。
 **B2 全知数据训练 MLP 叶子 ✅**（二·补二十：B1 修正 harness 上确认段 120 局 beam 157.8 →
 165.5（+7.7，CI [+4.2,+11.2]）/ ensemble 166.9（+9.0）；within 用 learned 变差为已记录负结果，
-只对 engine=beam 有益）。下一项 **B3（T5 机制建模：模拟器 plays_per_turn 对齐真机 1 张 +
-RULES_REFERENCE 核验表）**；B/C/D 全部离线收尾后才上真机（T3→T1→T2），最后 gkbench。
-总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
+只对 engine=beam 有益）。**B3 T5 机制建模 ✅**（二·补二十一：模拟器对齐真机「每回合基础 1 张 +
+打完自动结束 + SKIP 回 2 体力 + 取整 safeCeil」，RULES_REFERENCE 重写为逐条核验表，
+真机 39 回合回合规则配对回归；重标定后整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点），
+B2 旧模型失效需按新规则重训）。下一项 **T5 剩余机制**（审查倍率分段/联动惩罚、熱意、
+温存解除额外次数、fresh buff 差一回合、P 道具数据接入），然后阶段 C/D 离线收尾、
+再上真机（T3→T1→T2），最后 gkbench。总序列以 [WORKPLAN.md](WORKPLAN.md) 为准。
 
 ### ① 考试时刻的牌堆 + 洗牌（最高优先）—— 已端到端破解 ✅
 
@@ -961,6 +1024,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 B3 T5 机制建模：回合规则对齐 + RULES_REFERENCE 核验表）
+4316f9a feat(b3): T5 机制建模——模拟器回合规则对齐真机（每回合 1 张 + 自动结束 + 跳过回 2 体力 + safeCeil 取整）
 （2026-11-22 B2 全知数据训练 MLP 叶子）
 5cd23d0 docs(handover): B2 完成交接——状态/基线数字(975/1)/确认段 beam +7.7/负结果与生产接线，下一项 B3
 ccabd0a feat(b2): 全知数据训练 MLP 叶子——叶子状态样本 + 104 维结构化特征（B1 修正 harness 配对确认段 beam +7.7）

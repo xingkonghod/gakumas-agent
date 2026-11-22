@@ -14,7 +14,8 @@
 **信息维度我们领先**（唯一把 MITM `seed → 整段洗牌（含弃牌重洗）→ 生产接线` 打通并逐张验证的一家）；
 **真机全自动整局、机制覆盖、公开榜单成绩三块落后**。
 2026-11-22 的 B1/B2 补的是"离线策略强度"（评测 bug 修正 + 全知数据学习叶子），
-**还没有转化成真机分数**，所以对外战绩与 11-21 相同。
+B3 补的是"模拟器回合规则与真机对齐"（每回合基础 1 张 + 跳过回体力 + 取整），
+**都还没有转化成真机分数**，所以对外战绩与 11-21 相同。
 
 ---
 
@@ -24,7 +25,7 @@
 
 | 谁 | 现状 | 关键数字 |
 |---|---|---|
-| **我们** | bot 能完整跑完一局，但 T1 未验收（目标 ≥C+、≤20 分钟、无 BLOCKED）；决策层修复到 A5/B2 | bot 最好 **C+/5992**（11-15 旧版）；11-21 接管局 **C/4242**（期中 914/第 3）；用户手动 **A/10237**（追赶目标，11-19）、采集局 B/7404 |
+| **我们** | bot 能完整跑完一局，但 T1 未验收（目标 ≥C+、≤20 分钟、无 BLOCKED）；决策层修复到 A5/B2/B3 | bot 最好 **C+/5992**（11-15 旧版）；11-21 接管局 **C/4242**（期中 914/第 3）；用户手动 **A/10237**（追赶目标，11-19）、采集局 B/7404 |
 | **hiro**（hiro-gakumas-hero，AGPL） | **Mac 成熟**：40+ 局稳定；Windows DMM 版仍在追赶；工程打磨强（纯函数状态、互验、自动复盘） | H.I.F 本战第 1、最高 **1,303,847**；初 REGULAR **A / 10,428**；120 模块 / 600+ 测试 |
 | **QQ 群**（群主 Muskot 等） | 微调 **~2B 决策模型** + 魔改 MaaGakumas/macOS 跑完整一局（B 站 demo，约 11-15）；执行层靠 MAA 打磨 | run12（2B，一次前向无搜索）：篠澤広【光景】期中 1st 33,265、期末 **1st 324,063 / SS+ 18,866**（23 选卡 3 reroll，21/22 与参照一致） |
 | **官方 AI** | 不跑真机；gkbench 托管算法 | 见 2.2 |
@@ -33,7 +34,7 @@
 
 | 谁 | 路线 | 数字 |
 |---|---|---|
-| **我们** | 规则 → 回合内 expectimax → 全知 beam → （B2）全知数据 **MLP 叶子**；**生产默认仍 expectimax，学习叶子未上真机** | 离线 small 真实牌组（5 回合 CLEAR120/PERFECT170）：B1 后 within **143.1** / beam unknown **164.0** / known **165.5**；**B2 确认段 120 局（seed 3000–3119）beam 解析式 157.8 → learned 165.5（+7.7，CI [+4.2,+11.2]）/ ensemble 0.5 166.9（+9.0）**，known 同向；选择段 seed 2000–2079：166.8→173.7（+6.8）/ ensemble 174.4（+7.5）。**within 用 learned 变差 −3.3（负结果，只对 engine=beam 有益）** |
+| **我们** | 规则 → 回合内 expectimax → 全知 beam → （B2）全知数据 **MLP 叶子**；**生产默认仍 expectimax，学习叶子未上真机** | 离线 small 真实牌组（5 回合 CLEAR120/PERFECT170）：B1 后 within **143.1** / beam unknown **164.0** / known **165.5**；**B2 确认段 120 局（seed 3000–3119）beam 解析式 157.8 → learned 165.5（+7.7，CI [+4.2,+11.2]）/ ensemble 0.5 166.9（+9.0）**，known 同向；选择段 seed 2000–2079：166.8→173.7（+6.8）/ ensemble 174.4（+7.5）。**within 用 learned 变差 −3.3（负结果，只对 engine=beam 有益）**。⚠️ 以上都是 **B3 前旧回合口径**（模拟器每回合 3 张）：B3 后重测 within **89.1** → beam **95.7**（+6.6，CI [+2.2,+11.1]，决策门 107.4% PASS），B2 旧模型**显著变差**（确认段 beam −27.9）需按新规则重训 |
 | **我们（本地判官复算别人）** | LessonSim 判官（**非官方 gkbench 判官**，口径见 REPORT*.md） | 48 题×3：expectimax(ensemble) **772.5 > greedy 699.7 > UINet 619.4**（UINet 0.885× 均值 / 0.756× 配对几何）；H.I.F 映射 409×3：UINet 0.9305× / 0.8445× greedy；核心 92×3：ensemble 31,466.9 > greedy 29,885.7 > UINet 27,605.2。**注意：这些是 11-19/20 判官结果，B2 学习叶子未跑此判官** |
 | **UIHorizon**（群/公开） | 全知/搜索路线（UIHorizon） | gkbench **631,129（0.5113× oracle）** |
 | **UINet**（群/公开） | 端到端策略网络 | gkbench **578,722（0.4551× oracle）**；群内已说"到头了，10× 训练量指标反而倒退" |
@@ -99,14 +100,19 @@
 ## 6. 下一步（与 WORKPLAN 一致）
 
 ```
-B3 机制建模（先对齐模拟器与真机规则）→ 阶段 C 可靠性 / D 数据
+B3 机制建模 ✅（回合规则/取整已对齐真机 + RULES_REFERENCE 核验表；剩余审查倍率/熱意/P 道具）
+→ 阶段 C 可靠性 / D 数据
 → 阶段 E 真机：T3 实时全知 → T1 整局验收 → T2 三引擎 A/B
 → 阶段 F gkbench public-safe 适配器（ranked 禁 seed，只交不看牌序的算法）
 ```
 
 > 本会话完成：基线四条全绿 + **B2 全知数据 MLP 叶子**（确认段 beam +7.7，只对 engine=beam
-> 有益；生产 `leaf_model` 默认关闭）。见 [HANDOVER 二·补二十](HANDOVER.md)、
-> [EXPECTIMAX「B2 学习叶子」](EXPECTIMAX.md)、[WORKPLAN B2](WORKPLAN.md)。
+> 有益；生产 `leaf_model` 默认关闭）+ **B3 T5 机制建模**（模拟器对齐真机「每回合 1 张 +
+> 打完自动结束回合 + SKIP 回 2 体力 + 取整 safeCeil」；RULES_REFERENCE 重写为逐条核验表；
+> 真机 39 回合配对回归；重标定后整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点），
+> **B2 旧模型在 B3 规则下失效需重训**）。见 [HANDOVER 二·补二十一](HANDOVER.md)、
+> [RULES_REFERENCE](RULES_REFERENCE.md)、[EXPECTIMAX「B3 规则修正与重标定」](EXPECTIMAX.md)、
+> [WORKPLAN B3](WORKPLAN.md)。
 
 ---
 
@@ -115,7 +121,7 @@ B3 机制建模（先对齐模拟器与真机规则）→ 阶段 C 可靠性 / D
 | 内容 | 来源 | 快照 |
 |---|---|---|
 | 我们的真机成绩 | [RUNS.md](RUNS.md) | 11-15 ~ 11-21 |
-| 我们的离线 B1/B2 数字 | [EXPECTIMAX.md](EXPECTIMAX.md)「T4 修正」「B2 学习叶子」、`out/b2_eval_*.json` | 2026-11-22 |
+| 我们的离线 B1/B2/B3 数字 | [EXPECTIMAX.md](EXPECTIMAX.md)「T4 修正」「B2 学习叶子」「B3 规则修正与重标定」、[RULES_REFERENCE.md](RULES_REFERENCE.md)、`out/b2_eval_*.json`、`out/b3_eval_*.json` | 2026-11-22 |
 | 本地判官复算 UINet / H.I.F | `data/bench_local/REPORT.md`、`REPORT_UINET.md`、`REPORT_HIF.md`（gitignore，不在仓库内） | 11-19/20（B1/B2 之前） |
 | hiro | [HIRO_VIDEO_NOTES.md](HIRO_VIDEO_NOTES.md)、[HANDOVER §三](HANDOVER.md) | 11-21 |
 | QQ 群 / 2B / 论文 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md)、[GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md) | 11-22 |
