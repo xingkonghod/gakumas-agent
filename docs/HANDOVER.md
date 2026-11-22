@@ -1433,8 +1433,8 @@ master 结构、`http1_bridge` 头丢失、票据 865/833、上游端口、停�
 **文档**：TROUBLESHOOTING §四/§5–6 编号；CAPTURE_PIPELINE；LOCAL_LAUNCHER §5；WORKPLAN C0/§0/
 尾部下一步；HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；INDEX；README；本文件二·补三十。
 
-**提交**：docs `e52bedc`（判据吸收：TROUBLESHOOTING/CAPTURE_PIPELINE/LOCAL_LAUNCHER + 状态文档），
-见 [七、最近提交记录](#七最近提交记录)。
+**提交**：docs `e52bedc`（判据吸收：TROUBLESHOOTING/CAPTURE_PIPELINE/LOCAL_LAUNCHER + 状态文档）+
+docs `d1642d6`（哈希/交接记录），见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
 
@@ -1621,6 +1621,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 交接：C0 完成记录 + 提交哈希 e52bedc）
+d1642d6 docs(handover): 记录 T9-C0 完成交接（TROUBLESHOOTING §四 + CAPTURE_PIPELINE 自检，基线 1054/1）+ 提交哈希 e52bedc
 （2026-11-22 T9-C0 采集/更新断链排障判据吸收：TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新后自检 8 步，纯文档无代码改动）
 e52bedc docs(t9): C0 采集/更新断链排障判据吸收——TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新后自检 8 步（纯文档）
 （2026-11-22 T9-B7 P 道具 47 条补全：p_items.json 1068→1115、gkbench 未知 id 清零、条件未知段保守跳过）
