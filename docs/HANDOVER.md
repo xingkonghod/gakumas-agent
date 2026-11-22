@@ -1074,6 +1074,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 F 阶段数据 + F0 预检：gkbench 批量下载 + 官方种子核洗牌）
+fcce824 docs(handover): F0 数据与预检交接——gkbench 批量下载/官方种子核洗牌 286/384/参考分，下一项 F0 收尾
 cc1d0cf feat(f): gkbench 令牌数据补齐 + F0 初步验证（官方 check.hand 对照洗牌模型 286/384 精确命中）
 b6d7868 feat(f): gkbench 公开数据批量下载工具 + GKBENCH.md（API/参考分/令牌边界）
 57e2a8d docs(workplan): F 阶段加 F0——用户已登录 gkbench 可下载固定种子题，先用官方 check 交叉验证洗牌模型/校准口径
