@@ -3,8 +3,8 @@
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
 > 新会话第一句话：
-> 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑四条基线，
-> 再从 WORKPLAN 阶段 B 的 **T5 剩余机制**开始。」
+> 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑基线
+> （四条必跑 + ⑤ F0 核对可选），再从 WORKPLAN 阶段 B 的 **T5 剩余机制**开始。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
@@ -131,11 +131,11 @@
 | F 阶段数据 + F0 预检（gkbench） | [bench_download.py](../scripts/bench_download.py)（公开 API + 令牌批量下载，断点续传）+ [GKBENCH.md](GKBENCH.md)（API/令牌边界/下载清单/参考分/F0） | hif 已下 80 run / **36,350 条对局路线** / 329 题官方种子+check / 505 题存档 / fixed+template 榜单；**官方 check.hand 核洗牌模型 286/384=74.5%**（npc 按 stage：選抜 5、本戦 2；sel1 60/60）；不一致根因=initial_add 自定义 + isInitial 变体（F0 收尾）；数据在 `data/bench_local/gkbench_dl/`（gitignore）；令牌在仓库外 `~/.config/gkbench/token`；见 HANDOVER 二·补二十二 |
 | **F0 收尾（gkbench 官方种子校准）** | [verify_gkbench_shuffle.py](../scripts/verify_gkbench_shuffle.py)（384 组 check.hand 核对 + 起点校准，只读本地数据）+ [GKBENCH §4.5](GKBENCH.md) | **initial 按 base id（含强化变体）+ initial_add、npc 按 idol 卡（jsna 4 人制/fktn 2 人制/其余 3 人制）+ round 兜底** → **366/384=95.3% 精确 / 97.4% 逐张**（sel1 60/60、sel2 55/55、main1 96/97；逐题 311/329 全中）；剩余 18 组全是考试开始加卡机制（ExamInitialDeck 15 + kllj 开局 +1 手牌 3），**无一洗牌错误**；起点校准 turn=1/score=0/stamina 96.1%=starting_stamina/rules=55(commit f4d9e6e6148d)；见 HANDOVER 二·补二十四 |
 
-**改动以上任何部分的规矩**：先跑 §2 四条基线命令；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
+**改动以上任何部分的规矩**：先跑 §2 基线命令（四条必跑 + ⑤ 可选）；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
 ---
 
-## 2. 开工自检（每次新会话，5–10 分钟，四条命令）
+## 2. 开工自检（每次新会话，5–10 分钟；四条必跑 + ⑤ 可选）
 
 ```powershell
 cd D:\Games\gakumas-agent
@@ -538,7 +538,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 ## 8. 交接程序
 
 1. **开新会话**：工作目录 `D:\Games\gakumas-agent`，第一句话用本文件开头那段。
-2. **先跑 §2 四条基线**，不绿先修基线。
+2. **先跑 §2 基线**（四条必跑；⑤ F0 gkbench 核对可选，数据缺失就跳过），不绿先修基线。
 3. **挑任务**：默认从 §4 状态为 ⬜ 的最高优先级开始；一次会话**只做 1 个任务**（成本纪律：上下文 >3 小时/20 万 token 就该换会话）。
 4. **完成后**：
    - 更新 §4 该任务状态 ⬜→✅，并把实测数字写进正文；
@@ -547,13 +547,22 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
    - 在 [HANDOVER.md](HANDOVER.md) 的提交记录里加一行。
 5. **写不清=没完成**：DoD 必须能用命令/数字验证；"感觉能跑"不算。
 
+**最近交接记录（2026-11-22，F0 收尾）**：F0 完成——官方 gkbench 384 组 `check.hand` 核洗牌模型
+**286 → 366/384=95.3%**（逐张 97.4%；選抜 100%；剩余 18 组全是考试开始加卡机制，无一洗牌错误），
+并做起点校准（turn=1/score=0/stamina 96.1%=starting_stamina/rules=55）；基线复跑全绿（985/1、
+4/4+3/3、86/86+24/24、36/36+3/3+29/29+beam 28）。下一项 **T5 剩余机制**。
+提交 `83f1f96`（脚本+文档）/ `2e4deee`（哈希记录）；详见 [HANDOVER 二·补二十四](HANDOVER.md)
+与 [GKBENCH §4.5](GKBENCH.md)。
+
 **新会话开场白（复制）**
 
 ```
 工作目录 D:\Games\gakumas-agent。
-读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线。
+读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑基线
+（四条必跑 + ⑤ F0 gkbench 核对可选）。
 期望：洗牌 4/4 场 + 3/3 重洗；pytest 985 passed / 1 skipped（986 条收集 / 72 文件）；
-exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28。
+exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28；
+⑤（可选）scripts/verify_gkbench_shuffle.py = 366/384 精确 / 97.4% 逐张（缺 data/bench_local 数据则跳过）。
 （进度/对手对比先看 docs/COMPARE.md；现状看 docs/HANDOVER.md。）
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6 Apache-2.0，见 WORKPLAN A1 / HANDOVER 二·补十四）；
 A2（F#42 课程硬打必须得分）也已完成（HUD 语义 + 每回合 1 张 + 硬打保分，见 WORKPLAN A2 / HANDOVER 二·补十五）；

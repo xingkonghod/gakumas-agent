@@ -366,7 +366,7 @@
 
 ```
 工作目录 D:\Games\gakumas-agent。
-读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线，
+读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑基线（四条必跑 + ⑤ 可选），
 然后按 WORKPLAN 的 阶段 B→C→D 离线推进；全部离线做完后再做 阶段 E 真机（T3→T1→T2），
 最后 阶段 F 去 gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules；真机整局 --ignore-user。
