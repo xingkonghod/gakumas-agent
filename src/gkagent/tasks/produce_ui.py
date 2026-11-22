@@ -54,7 +54,10 @@ DIALOGUE_SKIP = (208, 1185)  # 剧情「SKIP」
 CANCEL_WORD = "取消"
 # OCR 常把「剩余回合数」读成「剩余回合」；CLEAR/PERFECT 截止圆环也常被拆分
 LESSON_WORDS = ("剩余回合", "CLEAR", "PERFECT")
-_GAIN_RE = re.compile(r"[+\-]\s*\d+")
+# 「+N 飘字」：只认**正收益**（P+45 / 打分+38 / Da.上升了58 由文字分支兜底）。
+# F#43 的真根因之一：旧正则 `[+\-]\s*\d+` 把外出饮料选择屏的 P 费标签「-100 / -50」
+# 当成飘字 → 每步点屏幕中央空转 10 次停机（见 docs/FAILURES.md #43）。
+_GAIN_RE = re.compile(r"[+＋]\s*\d+")
 _STAMINA_RE = re.compile(r"(\d{1,3})\s*/\s*(\d{1,3})")
 
 # ---- 属性三维专用 ROI（行动页三颗大属性圆） --------------------------------
@@ -205,7 +208,9 @@ FAST_BUTTON_BOXES: tuple[tuple[int, int, int, int], ...] = (
     (470, 1080, 200, 100),  # 右下：关闭/保存
 )
 _FAST_ACTION_WORDS = ("授课", "休息", "外出", "咨询", "活动奖励", "训练")
-_EVENT_ROW_COST_RE = re.compile(r"\s*[-−一]\s*\d{1,2}\s*$")
+# 事件选项行的费用后缀：体力 -8 / P 费 -50 / P 费 -100（3 位数，F#43 的饮料事件）。
+# 允许 3 位，否则「… -100」既剥不掉、选项行又被数字污染（digit 过滤直接丢弃该行）。
+_EVENT_ROW_COST_RE = re.compile(r"\s*[-−一]\s*\d{1,3}\s*$")
 _EVENT_ROW_LABEL_RE = re.compile(r"^[A-Za-z0-9]{1,3}\s+")
 _FAST_STATIC_CACHE_WORDS = ("快进", "SKIP", "LOADING", "加载", "正在下载")
 
@@ -2017,6 +2022,12 @@ class ProduceDriver:
         action_page_hint = any(word in text for word in ("授课", "咨询", "训练", "休息"))
         p_cost = re.search(r"[-－−]\s*\d{2,3}", text) is not None
         dialogue = any(mark in text for mark in ("……", "…", "？", "?"))
+        # 右侧「P -100 / P -50」费用标签（整行只有负数字）：选项文字读残/读空时靠它定位。
+        cost_rows = [
+            line
+            for line in lines
+            if re.fullmatch(r"\s*[-－−]\s*\d{2,3}\s*", (line.text or "").strip())
+        ]
         event_choice = (
             "请选择行动" not in text
             and not action_page_hint
@@ -2031,7 +2042,13 @@ class ProduceDriver:
             self.event_pending_y = None
             self._click(agent, (360, y))
             return TickResult("event-choice", "confirm")
-        if event_choice and (len(option_rows) >= 2 or (p_cost and len(option_rows) >= 1)):
+        # F#43（ep-t3-4）：日文饮料选择屏（ヨーグルトパフェ / つくねハンバーグ / ドリンクバー，
+        # 右侧 P -100 / P -50）在选项文字完全读不到时（旧中文 OCR），option_rows=0 也会走到
+        # 这里：只要还读得到 P 费标签，就用「最后一个费用标签 +138px」定位免费项，不再交给
+        # 飘字分支点中央空转。
+        if event_choice and (
+            len(option_rows) >= 2 or (p_cost and (len(option_rows) >= 1 or cost_rows))
+        ):
             if len(option_rows) >= 2:
                 target = max(option_rows, key=lambda line: self.center(line)[1])
                 y = self.center(target)[1]
@@ -2040,11 +2057,6 @@ class ProduceDriver:
                 # 选项按钮文字 OCR 只剩 1 个字（日文浅底按钮很容易读残）：
                 # 用右侧「P -100 / P -50」费用标签定位，最后一个带费用标签的选项
                 # 下方 ~138px 就是无费用的那个选项（默认高亮、通常是免费项）。
-                cost_rows = [
-                    line
-                    for line in lines
-                    if re.fullmatch(r"\s*[-－−]\s*\d{2,3}\s*", (line.text or "").strip())
-                ]
                 if cost_rows:
                     y = self.center(max(cost_rows, key=lambda line: self.center(line)[1]))[1] + 138
                 else:
@@ -2297,19 +2309,23 @@ class ProduceDriver:
             self._click_line(agent, complete)
             return TickResult("button", "完成")
 
-        # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续
-        # 连续 3 次还在 = 是静态结果页，改点「下一步/确定/关闭」
+        # 4.5) 课程结算飘字（Da.上升了58!）或奖励弹字（P+45）：点屏幕中央继续；
+        # 连续 3 次还在 = 这是静态结果页（飘字只是页面标题，点中央推不动），
+        # 改找「下一步/继续/完成/领取/关闭」按钮；找不到才继续点中央（F#43）。
         if any(word in text for word in ("上升了", "提升了", "下降了", "获得了")) or _GAIN_RE.search(text):
             self.gain_waits += 1
             if self.gain_waits >= 3:
-                self.gain_waits = 0
-                nxt = self.find_button(lines, ("下一步", "确定", "完成", "关闭", "领取"))
+                nxt = self.find_button(
+                    lines,
+                    ("下一步", "继续", "确定", "完成", "关闭", "领取", "了解"),
+                )
                 if nxt is not None:
+                    self.gain_waits = 0
                     self._click_line(agent, nxt)
                     return TickResult("result-tap", "next")
-            else:
+                # 静态页但还没有可点的按钮：保持计数（每帧都重找按钮），继续点中央推进。
                 self._click(agent, (360, 1000))
-                return TickResult("result-tap", "gain")
+                return TickResult("result-tap", "next")
             self._click(agent, (360, 1000))
             return TickResult("result-tap", "gain")
 

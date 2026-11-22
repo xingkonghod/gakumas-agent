@@ -21,6 +21,7 @@
 | T1 真机流程 10+ 类卡点 + F#41（日文剧情二选一）修复 | `FAILURES.md` #27-41；`584f742` |
 | A1 OCR 换日文/多语言模型（官方 PP-OCRv6，Apache-2.0） | `tests/test_ocr_jp_model.py` 真图 4 条 + `test_ocr_config.py` 17 条；全量 pytest 926/1；`docs/HANDOVER` 二·补十四 |
 | A2 课程硬打必须得分（F#42：HUD 语义 + 每回合 1 张 + 硬打保分） | `tests/test_lesson_play_f42.py` 真图回放 3 条 + `test_lesson.py` HUD 换算 4 条 + `test_hardplay_prefers_scoring_card_on_flat_tie`；全量 pytest 934/1（935 收集 / 66 文件）；`docs/HANDOVER` 二·补十五 |
+| A3 F#43 结果页空转（真根因：日文饮料选择事件屏 + P 费标签命中飘字正则） | `tests/test_produce_ui_f43.py` 7 条（真机帧回放 3 + 合成 4）；全量 pytest 941/1（942 收集 / 67 文件）；`docs/HANDOVER` 二·补十六 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -98,10 +99,30 @@
   `plays_per_turn` 默认 3 也要对齐真机规则（默认 1 张 + 额外出牌），模拟器整局 A/B
   数字要重新标定；考试侧同样受影响（不是只课程）。
 
-### A3. F#43 静态结果页空转
+### A3. F#43 静态结果页空转 ✅ 2026-11-22 完成
 - 现象：`result-tap/gain` 连点 10 次被自保护停局。
 - 修法：静态页第 3 次起找「下一步/继续/完成/领取」按钮，找不到再点中央；补回归测试。
 - DoD：真机/离线截图回放能推进到下一屏。
+
+**落地（2026-11-22）**
+- **真根因和最初判断不同**（看 `data/auto/step_020..029.png` 才查清）：那 10 帧不是结果页，是
+  **日文饮料选择事件屏**（ヨーグルトパフェ -100P / つくねハンバーグ -50P / ドリンクバー 免费）：
+  1. 旧中文 OCR 字典无假名 → 三条选项行一条都读不出 → `option_rows=0`，事件屏识别不出来；
+  2. 飘字正则 `[+\-]\s*\d+` 把右侧 P 费标签「-100 / -50」当成 +N 飘字 → 走 `result-tap/gain`
+     点屏幕中央 (360,1000)（对话区）→ 连续 10 步空转停机。
+- **修法**（F#43）：
+  - `_GAIN_RE` 只认正收益（`+45`/`＋45`），负数是 P 费/体力消耗，绝不当飘字；
+  - 事件屏退化兜底：`option_rows=0` 但读得到 P 费标签时，用「最后一个费用标签中心 +138px」
+    点免费项；`_EVENT_ROW_COST_RE` 放宽到 3 位（`-100`）；
+  - 静态结果页：第 3 次飘字起每帧找「下一步/继续/确定/完成/关闭/领取/了解」，找不到才继续点中央；
+  - A1 日文 OCR 后该屏本身已能读出选项 → 走 `event-choice/last-row` 点第 3 行免费项。
+- **测试**：`tests/test_produce_ui_f43.py` 7 条（3 条真机帧回放：`tests/fixtures/event_ep_t3_4_drink_choice.png`
+  → `event-choice/last-row` 点 (360,935)、同帧第二次 = 确认、同屏连续 10 步无 `result-tap`；
+  4 条合成单测：P 费不是飘字 / 无选项文字时用费用标签 / 静态页第 3 下点「下一步」/ 没按钮保持计数）。
+- **基线复核**：全量 pytest **941 passed / 1 skipped**（942 收集 / 67 个测试文件）；①②③④ 其余数字不变
+  （④ 仍 36/36、3/3、29/29、beam 28）。
+- **DoD（离线）**：真机帧回放从 `result-tap/gain` 空转变成 `event-choice/last-row` → `confirm`
+  两步推进；真机整局验收留到阶段 E（T1）。细节见 [FAILURES #43](FAILURES.md) / HANDOVER 二·补十六。
 
 ### A4. 离线回归素材（为"全部离线做完再跑真机"服务）
 - 把本次真机截图（`data/auto/step_*.png`、`fail_*`）挑关键屏归档成 `tests/fixtures/*.png`（或 `data/replays/`，
@@ -204,5 +225,7 @@
 用户规则：SKIP 只在真没体力；禁止静默回退 rules；真机整局 --ignore-user。
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6；见 WORKPLAN A1 / HANDOVER 二·补十四）。
 A2（F#42 课程硬打必须得分）已于 2026-11-22 完成（HUD 语义 + 每回合 1 张 + 硬打保分；
-见 WORKPLAN A2 / HANDOVER 二·补十五）。今天做 A3（F#43 静态结果页空转：找「下一步/继续/完成/领取」，回归测试）。
+见 WORKPLAN A2 / HANDOVER 二·补十五）。
+A3（F#43 结果页空转）已于 2026-11-22 完成（真根因是日文饮料选择事件屏 + P 费标签被当飘字；
+见 WORKPLAN A3 / HANDOVER 二·补十六）。今天做 A4（离线回归素材：关键截图归档 + 回放测试）。
 ```

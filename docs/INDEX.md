@@ -164,7 +164,11 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 **培育属性值**（不是课程分）、正中圆环「CLEAR截止 N」是**还差 N 分**（不是过关线）；且游戏
 **默认每回合只能出 1 张牌**（旧搜索写死 3 → 每回合先打 buff → 整节课 0 分 FAILED）。
 现在硬打保证得分（正分牌优先），真机课程帧回放从"选 buff"变成"选魅力的基础 29 分"。
-全量 pytest **934 passed / 1 skipped**（935 收集 / 66 文件）。细节见 HANDOVER 二·补十五 / FAILURES #42。
-下一步按 [WORKPLAN](WORKPLAN.md)：**离线阶段 A 收尾**（A3 F#43 / A4 回放素材 / A5 T3 离线预演）
+**同日 A3 已完成**（F#43 结果页空转）：真根因不是结果页，是**日文饮料选择事件屏**——旧中文 OCR
+读不出假名选项，且飘字正则把 P 费标签「-100 / -50」当成 +N 飘字 → 每步点屏幕中央空转 10 次停机。
+修法：`_GAIN_RE` 只认正收益 + 事件屏用 P 费标签定位免费项 + 静态页第 3 次起找「下一步」；
+真机帧回放（`tests/test_produce_ui_f43.py` 7 条）从 `result-tap/gain` 变成 `event-choice/last-row → confirm`。
+全量 pytest **941 passed / 1 skipped**（942 收集 / 67 文件）。细节见 HANDOVER 二·补十六 / FAILURES #43。
+下一步按 [WORKPLAN](WORKPLAN.md)：**A4 离线回放素材 / A5 T3 离线预演**
 → 阶段 B/C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
 细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四/二·补十五 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
