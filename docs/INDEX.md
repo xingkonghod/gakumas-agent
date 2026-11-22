@@ -50,6 +50,8 @@
 | 2 | [UNLOCK_REPORT.md](UNLOCK_REPORT.md) | 解锁工具怎么工作（端点/加密）|
 | 3 | [UNLOCK_ADAPT.md](UNLOCK_ADAPT.md) | hook 机制、版本适配 |
 | 4 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 踩过的坑 |
+| 5 | [LOCAL_DEPLOY_VIDEO.md](LOCAL_DEPLOY_VIDEO.md) | 本地化部署路线（视频解剖 + 2026-11-22 整合包指针）|
+| 6 | [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md) | **作者 2026-11-22 四游戏整合包分析**：新版本变化/修复、与我们的采集安装的关系（只读参考，勿覆盖）|
 
 ### 想备份 / 存档 / 私有仓库
 
@@ -114,7 +116,8 @@
 | **META_STRATEGY.md** | 元策略 |
 | **WIKI_DUAL_SOURCE.md** | Wiki 双数据源 |
 | **I18N_TODO.md** | 汉化待办 |
-| **LOCAL_DEPLOY_VIDEO.md** | 本地化部署视频分析 |
+| **LOCAL_DEPLOY_VIDEO.md** | 本地化部署视频分析（GakumasUnlock 早期路线；2026-11-22 已拿到新整合包，见下） |
+| **LOCAL_LAUNCHER_20261122.md** | 作者 2026-11-22 四游戏整合启动器包分析（新版本变化/修复 + 与采集安装的边界，只读参考） |
 
 ---
 
