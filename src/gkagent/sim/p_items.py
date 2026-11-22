@@ -42,9 +42,14 @@ from typing import Self
 
 # ---- 事件种类（apply_passive 认的事件）------------------------------------
 TURN_START = "turn_start"
+TURN_START_AFTER = "turn_start_after"  # 回合开始后（B8：start_play-remaining_turn-N）
+TURN_INTERVAL = "turn_interval"  # 每 N 回合（B8：exam_turn_interval-N）
 TURN_END = "turn_end"
 CARD_PLAY = "card_play"  # 出牌：同时覆盖"技能卡使用时/使用后"两种触发
 STATUS_GAIN = "status_gain"  # 直接效果让某个状态增加（好印象/集中/干劲…）
+STATUS_GAIN_INTERVAL = "status_gain_interval"  # 状态累计增加 N 次时（B8）
+STANCE_CHANGE = "stance_change"  # 指針变化时（B8：强气/温存/全力）
+STAMINA_REDUCE = "stamina_reduce"  # 体力减少时（B8：支付牌费等）
 # 训练/考试开始时（e_trigger-exam_start_exam / start_exam_play 等）；
 # 由 LessonSim 在开局（抽第一手牌前）结算一次。gkbench 起点体力偏差就是这类道具
 # （如 pitem_02-3-293-0「训练开始时，最大体力的80%数值变为体力消耗」）。
@@ -54,7 +59,9 @@ EXAM_START = "exam_start"
 # 语义确定的：分数 / 体力 / 层数（元气、好印象、集中、干劲、全力值）/
 # 当回合额外可出牌次数（ExamPlayableValueAdd，与卡效果同口径）
 SCORE_EFFECTS = frozenset({"ExamLesson"})
-STAMINA_EFFECTS = frozenset({"ExamStaminaRecoverFix"})
+STAMINA_GAIN_EFFECTS = frozenset({"ExamStaminaRecoverFix"})
+STAMINA_LOSS_EFFECTS = frozenset({"ExamStaminaReduceFix"})  # B8：固定体力消耗（含最大体力%）
+STAMINA_EFFECTS = STAMINA_GAIN_EFFECTS | STAMINA_LOSS_EFFECTS
 EXTRA_PLAY_EFFECTS = frozenset({"ExamPlayableValueAdd"})
 STACK_EFFECTS = {
     "ExamBlock": "vitality",
@@ -62,11 +69,25 @@ STACK_EFFECTS = {
     "ExamLessonBuff": "focus",
     "ExamCardPlayAggressive": "aggressive",
     "ExamFullPowerPoint": "full_power_point",
+    "ExamParameterBuff": "parameter_buff",
 }
 
 # ---- 已实现的触发时机 ------------------------------------------------------
 SUPPORTED_TRIGGERS = frozenset(
-    {TURN_START, TURN_END, CARD_PLAY, "card_played", "card_play_interval", STATUS_GAIN, EXAM_START}
+    {
+        TURN_START,
+        TURN_START_AFTER,
+        TURN_INTERVAL,
+        TURN_END,
+        CARD_PLAY,
+        "card_played",
+        "card_play_interval",
+        STATUS_GAIN,
+        STATUS_GAIN_INTERVAL,
+        STANCE_CHANGE,
+        STAMINA_REDUCE,
+        EXAM_START,
+    }
 )
 
 # 条件里的状态中文名 -> stacks 的 key
@@ -104,6 +125,11 @@ _RE_STAMINA_PCT = re.compile(r"^体力在(?P<value>\d+)%(?P<op>以上|以下)(?:
 _RE_REMAINING = re.compile(r"^剩余(?P<value>\d+)回合内(?:的时候)?$")
 _RE_PRESENT = re.compile(r"^(?P<name>[^，]+?)(?:状态)?的时候$")
 _RE_TURN = re.compile(r"^第(?P<value>\d+)回合(?:开始时|结束时)?$")
+# B8：新语法 id 解析出的条件（好调按「剩余回合数」；累计全力值看本场累计）
+_RE_PARAM_BUFF_TURNS = re.compile(r"^好调在(?P<value>\d+)回合以上(?:的时候)?$")
+_RE_FULL_POWER_TOTAL = re.compile(
+    r"^(?:这个训练中的|本场累计的)?累计全力值在(?P<value>\d+)以上(?:的时候)?$"
+)
 
 
 @dataclass(frozen=True)
@@ -122,10 +148,13 @@ class PItemSpec:
     # 条件是否已知：新增道具的新触发 id 没有中文触发句时 = False（条件没解析出来），
     # apply_passive 会保守跳过（宁可不触发，也不把带条件的道具当无条件结算）。
     condition_known: bool = True
+    # B8：触发条件里是否含「指定卡名 / 手牌指定卡张数」这类还没有卡名→id 映射的限定；
+    # False 时同样保守跳过（否则会在任意卡上误触发）。
+    trigger_known: bool = True
     item_id: str = ""
     rarity: str = ""
     label: str = ""  # effect_type 的中文名（打分/元气/…）
-    interval: int = 0  # card_play_interval：每 N 次
+    interval: int = 0  # card_play_interval：每 N 次；status_gain_interval：每 N 次状态增加
     interval_scope: str = "turn"  # turn = 回合内累计，exam = 整场累计
     status: str = ""  # status_gain：触发它的状态 key
     status_min: int = 0  # status_gain：「增加 N 以上后」的门槛，0 = 不限
@@ -136,6 +165,12 @@ class PItemSpec:
     lesson_filter: str = ""  # vocal / dance / visual / sp
     max_uses: int = 0  # 次数上限，0 = 不限
     text: str = ""  # 中文描述（调试用）
+    # B8：依赖换算（「X 的 N% 数值变为 Y」）/ 最大体力百分比 / 「X 变为 0」/ 每 N 回合。
+    depends_on: str = ""  # 源层数 key（vitality/impression/focus/aggressive/full_power_point/…）
+    percent: int = 0  # 依赖换算百分比：目标增量 = int(源层数 × percent / 100)
+    percent_max: int = 0  # 体力类效果：按最大体力百分比结算
+    every: int = 0  # turn_interval：每 N 回合
+    zero_stack: str = ""  # 「X 变为 0」：结算时把该层数清零
 
     @property
     def target(self) -> str:
@@ -150,12 +185,21 @@ class PItemSpec:
 
     @property
     def implemented(self) -> bool:
-        return self.trigger in SUPPORTED_TRIGGERS and bool(self.target) and self.value > 0
+        if self.trigger not in SUPPORTED_TRIGGERS:
+            return False
+        if self.zero_stack:
+            return True
+        if self.depends_on and self.percent > 0:
+            return True
+        if self.percent_max > 0 and self.target == "stamina":
+            return True
+        return bool(self.target) and self.value > 0
 
 
 @dataclass(frozen=True)
 class PassiveEvent:
-    """触发事件。``kind`` 只用 TURN_START / TURN_END / CARD_PLAY / STATUS_GAIN / EXAM_START。"""
+    """触发事件。``kind`` 只用 TURN_START / TURN_START_AFTER / TURN_INTERVAL / TURN_END /
+    CARD_PLAY / STATUS_GAIN / STATUS_GAIN_INTERVAL / STANCE_CHANGE / STAMINA_REDUCE / EXAM_START。"""
 
     kind: str
     card_category: str = ""  # 打出的卡类别：ActiveSkill / MentalSkill / IdolUnique
@@ -163,6 +207,8 @@ class PassiveEvent:
     cards_played_total: int = 0
     status: str = ""  # status_gain：增加的是哪个状态（stacks 的 key）
     amount: int = 0  # status_gain：增加了多少层
+    status_total: int = 0  # status_gain：累计增加次数（含本次；status_gain_interval 用）
+    stamina_delta: int = 0  # stamina_reduce：这次减少了多少体力（正数）
 
 
 @dataclass(frozen=True)
@@ -171,6 +217,10 @@ class PassiveState:
 
     ``turns_left`` / ``is_final_turn`` / ``lesson_type`` / ``uses`` 等字段留空表示
     "模拟器不知道"，此时依赖这些信息的道具**不触发**（保守）。
+
+    ``stacks`` 除真实层数外，还投影两个 B8 用的伪 key（依赖换算的源）：
+    ``full_power_point_total``（本场累计全力值）与 ``consumed_stamina_total``（本场累计
+    消耗体力）。``status_counts`` 是各状态**累计增加次数**（status_gain_interval 用）。
     """
 
     turn: int = 0
@@ -182,10 +232,14 @@ class PassiveState:
     lesson_type: str = ""  # vocal / dance / visual
     is_sp: bool = False
     stacks: Mapping[str, int] = field(default_factory=dict)
+    status_counts: Mapping[str, int] = field(default_factory=dict)
     uses: Mapping[str, int] | None = None  # item_id -> 已经触发次数
 
     def stack(self, key: str) -> int:
         return int(self.stacks.get(key, 0))
+
+    def status_count(self, key: str) -> int:
+        return int(self.status_counts.get(key, 0))
 
 
 @dataclass
@@ -194,8 +248,10 @@ class PItemDelta:
 
     score: int = 0
     stamina: int = 0
+    stamina_consumed: int = 0  # B8：其中「固定体力消耗」扣掉的量（正数，累计消耗体力用）
     extra_plays: int = 0  # 当回合额外可出牌次数（ExamPlayableValueAdd）
     stacks: dict[str, int] = field(default_factory=dict)
+    zero_stacks: list[str] = field(default_factory=list)  # B8：「X 变为 0」
     applied: list[str] = field(default_factory=list)  # 触发了哪些道具（item_id 或 name）
 
     def add_stack(self, key: str, amount: int) -> None:
@@ -203,22 +259,33 @@ class PItemDelta:
             self.stacks[key] = self.stacks.get(key, 0) + amount
 
     def is_zero(self) -> bool:
-        return not (self.score or self.stamina or self.extra_plays or any(self.stacks.values()))
+        return not (
+            self.score
+            or self.stamina
+            or self.stamina_consumed
+            or self.extra_plays
+            or self.zero_stacks
+            or any(self.stacks.values())
+        )
 
     def as_dict(self) -> dict:
         return {
             "score": self.score,
             "stamina": self.stamina,
+            "stamina_consumed": self.stamina_consumed,
             "extra_plays": self.extra_plays,
             "stacks": dict(self.stacks),
+            "zero_stacks": list(self.zero_stacks),
         }
 
     def __iadd__(self, other: PItemDelta) -> Self:
         self.score += other.score
         self.stamina += other.stamina
+        self.stamina_consumed += other.stamina_consumed
         self.extra_plays += other.extra_plays
         for key, amount in other.stacks.items():
             self.add_stack(key, amount)
+        self.zero_stacks.extend(other.zero_stacks)
         self.applied.extend(other.applied)
         return self
 
@@ -226,8 +293,10 @@ class PItemDelta:
         merged = PItemDelta(
             score=self.score,
             stamina=self.stamina,
+            stamina_consumed=self.stamina_consumed,
             extra_plays=self.extra_plays,
             stacks=dict(self.stacks),
+            zero_stacks=list(self.zero_stacks),
             applied=list(self.applied),
         )
         merged += other
@@ -253,6 +322,15 @@ def evaluate_condition(condition: str, state: PassiveState) -> bool | None:
         if state.turns_left is None:
             return None
         return state.turns_left <= int(match.group("value"))
+
+    # B8：好调按「剩余回合数」比较；累计全力值看本场累计（伪 stack key）。
+    match = _RE_PARAM_BUFF_TURNS.match(text)
+    if match:
+        return state.stack("parameter_buff") >= int(match.group("value"))
+
+    match = _RE_FULL_POWER_TOTAL.match(text)
+    if match:
+        return state.stack("full_power_point_total") >= int(match.group("value"))
 
     match = _RE_TURN.match(text)
     if match:
@@ -281,6 +359,19 @@ def evaluate_condition(condition: str, state: PassiveState) -> bool | None:
     return None
 
 
+def _turn_params_match(spec: PItemSpec, state: PassiveState) -> bool:
+    """回合类触发共用的参数（第 N 回合 / 剩余 N 回合 / 最终回合 / 每 N 回合）。"""
+    if spec.turn is not None and state.turn != spec.turn:
+        return False
+    if spec.remaining_turns is not None and (
+        state.turns_left is None or state.turns_left > spec.remaining_turns
+    ):
+        return False
+    if spec.final_turn and not state.is_final_turn:
+        return False
+    return not (spec.every and (spec.every <= 0 or state.turn % spec.every))
+
+
 def _trigger_matches(spec: PItemSpec, event: PassiveEvent, state: PassiveState) -> bool:
     """触发时机 + 触发参数是否对得上（不含 condition 求值）。"""
     trigger = spec.trigger
@@ -289,16 +380,15 @@ def _trigger_matches(spec: PItemSpec, event: PassiveEvent, state: PassiveState) 
         # evaluate_condition 里按开局状态判断）。
         if event.kind != EXAM_START:
             return False
-    elif trigger in (TURN_START, TURN_END):
+    elif trigger in (TURN_START, TURN_START_AFTER, TURN_END):
         if event.kind != trigger:
             return False
-        if spec.turn is not None and state.turn != spec.turn:
+        if not _turn_params_match(spec, state):
             return False
-        if spec.remaining_turns is not None and (
-            state.turns_left is None or state.turns_left > spec.remaining_turns
-        ):
+    elif trigger == TURN_INTERVAL:
+        if event.kind != TURN_INTERVAL or spec.every <= 0:
             return False
-        if spec.final_turn and not state.is_final_turn:
+        if not _turn_params_match(spec, state):
             return False
     elif trigger in (CARD_PLAY, "card_played"):
         if event.kind != CARD_PLAY:
@@ -310,7 +400,11 @@ def _trigger_matches(spec: PItemSpec, event: PassiveEvent, state: PassiveState) 
             return False
         if spec.card_filter and event.card_category != spec.card_filter:
             return False
-        played = event.cards_played_this_turn if spec.interval_scope != "exam" else event.cards_played_total
+        played = (
+            event.cards_played_this_turn
+            if spec.interval_scope != "exam"
+            else event.cards_played_total
+        )
         if played <= 0 or played % spec.interval:
             return False
     elif trigger == STATUS_GAIN:
@@ -319,6 +413,22 @@ def _trigger_matches(spec: PItemSpec, event: PassiveEvent, state: PassiveState) 
         if not spec.status or spec.status != event.status:
             return False
         if spec.status_min and event.amount < spec.status_min:
+            return False
+    elif trigger == STATUS_GAIN_INTERVAL:
+        # 「状态累计增加 N 次时」：用累计次数（含本次）判断有没有跨过 N 的整数倍。
+        if event.kind != STATUS_GAIN or spec.interval <= 0:
+            return False
+        if spec.status and spec.status != event.status:
+            return False
+        total = event.status_total or state.status_count(event.status)
+        before = total - event.amount
+        if total // spec.interval <= before // spec.interval:
+            return False
+    elif trigger == STANCE_CHANGE:
+        if event.kind != STANCE_CHANGE:
+            return False
+    elif trigger == STAMINA_REDUCE:
+        if event.kind != STAMINA_REDUCE:
             return False
     else:
         return False
@@ -356,22 +466,50 @@ def apply_passive(
     for spec in items:
         if not _trigger_matches(spec, event, state):
             continue
-        if not spec.condition_known:
-            continue  # 条件未解析（新道具的新触发 id）：保守不触发，见 condition_known
+        if not spec.condition_known or not spec.trigger_known:
+            # 条件/触发限定没解析出来：保守不触发（见 condition_known / trigger_known）
+            continue
         if evaluate_condition(spec.condition, state) is not True:
             continue
         target = spec.target
-        if not target or spec.value <= 0:
-            continue  # 未实现的 effect_type：no-op
-        if target == "score":
-            delta.score += spec.value
+        applied = False
+        # B8：依赖换算「X 的 N% 数值变为 Y」——目标增量 = int(源层数 × N / 100)。
+        if spec.depends_on and spec.percent > 0:
+            amount = int(state.stack(spec.depends_on) * spec.percent / 100)
+            if amount > 0:
+                if target == "score":
+                    delta.score += amount
+                elif target and target not in ("stamina", "extra_plays"):
+                    delta.add_stack(target, amount)
+                applied = True
+        # B8：「X 变为 0」——把对应层数清零（不算增量，但要记一次触发）。
+        elif spec.zero_stack:
+            delta.zero_stacks.append(spec.zero_stack)
+            applied = True
+        # B8：固定体力消耗/回复（value1 固定值 或 最大体力的 percent_max%）。
         elif target == "stamina":
-            delta.stamina += spec.value
-        elif target == "extra_plays":
-            delta.extra_plays += spec.value
+            amount = spec.value
+            if amount <= 0 and spec.percent_max > 0 and state.stamina_max > 0:
+                amount = int(state.stamina_max * spec.percent_max / 100)
+            if amount > 0:
+                if spec.effect_type in STAMINA_LOSS_EFFECTS:
+                    delta.stamina -= amount
+                    delta.stamina_consumed += amount
+                else:
+                    delta.stamina += amount
+                applied = True
+        elif not target or spec.value <= 0:
+            continue  # 未实现的 effect_type：no-op
         else:
-            delta.add_stack(target, spec.value)
-        delta.applied.append(spec.item_id or spec.name)
+            if target == "score":
+                delta.score += spec.value
+            elif target == "extra_plays":
+                delta.extra_plays += spec.value
+            else:
+                delta.add_stack(target, spec.value)
+            applied = True
+        if applied:
+            delta.applied.append(spec.item_id or spec.name)
     return delta
 
 
@@ -404,6 +542,7 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
         "trigger": record.get("trigger", ""),
         "condition": record.get("condition", ""),
         "condition_known": bool(record.get("condition_known", True)),
+        "trigger_known": bool(record.get("trigger_known", True)),
         "item_id": record.get("id", ""),
         "rarity": record.get("rarity", ""),
         "interval": int(params.get("interval") or 0),
@@ -415,18 +554,32 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
         "final_turn": bool(params.get("final_turn")),
         "card_filter": params.get("card_filter", ""),
         "lesson_filter": params.get("lesson_filter", ""),
+        "every": int(params.get("every") or 0),
         "text": record.get("text_zh") or record.get("text_ja", ""),
     }
     if not effects:
-        return [PItemSpec(effect_type="unknown", label="", value=0, max_uses=int(record.get("max_uses") or 0), **common)]
+        return [
+            PItemSpec(
+                effect_type="unknown",
+                label="",
+                value=0,
+                max_uses=int(record.get("max_uses") or 0),
+                **common,
+            )
+        ]
     specs = []
     for effect in effects:
+        values = effect.get("values") or {}
         specs.append(
             PItemSpec(
                 effect_type=effect.get("type", "unknown"),
                 label=effect.get("label", ""),
                 value=_effect_value(effect),
                 max_uses=int(effect.get("max_uses") or record.get("max_uses") or 0),
+                depends_on=effect.get("depends_on", ""),
+                percent=int(values.get("percent1") or 0) if effect.get("depends_on") else 0,
+                percent_max=int(effect.get("percent_max") or 0),
+                zero_stack=effect.get("zero_stack", ""),
                 **common,
             )
         )
@@ -454,7 +607,12 @@ def _probe_state() -> PassiveState:
         stamina_max=100,
         lesson_type="vocal",
         is_sp=True,
-        stacks={key: 1 for key in STATUS_NAMES.values()},
+        stacks={
+            **{key: 1 for key in STATUS_NAMES.values()},
+            "full_power_point_total": 1,
+            "consumed_stamina_total": 1,
+        },
+        status_counts={key: 1 for key in STATUS_NAMES.values()},
     )
 
 
@@ -464,7 +622,9 @@ def summarize(items: Sequence[PItemSpec]) -> dict:
     noop = [spec for spec in items if not spec.implemented]
     noop_reasons: dict[str, int] = {}
     for spec in noop:
-        if not spec.target:
+        if not spec.trigger_known:
+            reason = "trigger_unknown"
+        elif not spec.target:
             reason = "effect_type_unsupported"
         elif spec.trigger not in SUPPORTED_TRIGGERS:
             reason = "trigger_unsupported"
@@ -480,6 +640,12 @@ def summarize(items: Sequence[PItemSpec]) -> dict:
         # B7：条件未知（新增道具的新触发 id 没有中文触发句）——这些 spec 不会触发，
         # 单独计数，不混进 implemented/noop 口径里假装建模完成。
         "condition_unknown": sum(1 for spec in items if not spec.condition_known),
+        # B8：触发限定未知（指定卡名 / 手牌指定卡张数）——同样单独计数、保守跳过。
+        "trigger_unknown": sum(1 for spec in items if not spec.trigger_known),
+        # B8：依赖换算 / 最大体力百分比 / 归零段 的实现计数（数据层语义）。
+        "depends_on_specs": sum(1 for spec in items if spec.depends_on and spec.percent > 0),
+        "percent_max_specs": sum(1 for spec in items if spec.percent_max > 0),
+        "zero_stack_specs": sum(1 for spec in items if spec.zero_stack),
         "noop_reasons": noop_reasons,
         "implemented_with_unparsed_condition": len(unparsed),
         "implemented_effect_types": _count(spec.effect_type for spec in implemented),
@@ -507,12 +673,19 @@ __all__ = [
     "SCORE_EFFECTS",
     "STACK_EFFECTS",
     "STAMINA_EFFECTS",
+    "STAMINA_GAIN_EFFECTS",
+    "STAMINA_LOSS_EFFECTS",
+    "STAMINA_REDUCE",
+    "STANCE_CHANGE",
     "STATUS_GAIN",
+    "STATUS_GAIN_INTERVAL",
     "STATUS_NAMES",
     "SUPPORTED_TRIGGERS",
     "THRESHOLD_KEYS",
     "TURN_END",
+    "TURN_INTERVAL",
     "TURN_START",
+    "TURN_START_AFTER",
     "PItemDelta",
     "PItemSpec",
     "PassiveEvent",

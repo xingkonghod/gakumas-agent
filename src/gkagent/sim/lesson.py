@@ -199,9 +199,14 @@ from gkagent.sim.exam_multiplier import battle_bonus_score
 from gkagent.sim.p_items import (
     CARD_PLAY,
     EXAM_START,
+    STAMINA_REDUCE,
+    STANCE_CHANGE,
     STATUS_GAIN,
+    STATUS_GAIN_INTERVAL,
     TURN_END,
+    TURN_INTERVAL,
     TURN_START,
+    TURN_START_AFTER,
     PassiveEvent,
     PassiveState,
     PItemSpec,
@@ -512,6 +517,10 @@ class LessonSim:
         # P 道具触发次数（max_uses）与本场已出牌总数（card_play_interval 用）
         self.p_item_uses: dict[str, int] = {}
         self.cards_played_total: int = 0
+        # B8（2026-11-22）：P 道具条件/依赖换算用的本场累计量
+        self.full_power_point_total: int = 0  # 累计全力值（「累计全力值的 N% 数值变为…」源）
+        self.consumed_stamina_total: int = 0  # 累计消耗体力（「消耗过的体力的 N%」源）
+        self.status_gain_counts: dict[str, int] = {}  # 各状态累计增加次数（status_gain_interval）
         self._p_items_by_trigger: dict[str, tuple[PItemSpec, ...]] = {}
         for item in self.p_items:
             self._p_items_by_trigger.setdefault(item.trigger, ())
@@ -996,9 +1005,14 @@ class LessonSim:
         极少数同时带两种指針效果的卡（如「倾注我的一生」一项是下回合延迟变更），
         数据里没有延迟信息：按"温存收尾"处理，保持接入 ExamConcentration 之前
         的行为，不额外猜延迟结算。
+
+        B8：全力值获得累计进 ``full_power_point_total``（「累计全力值的 N%」换算源），
+        指針变化后发一次 ``stance_change`` 事件。
         """
+        previous_stance = self.stance
         if card.full_power_point > 0:
             self.stance = apply_full_power_point(self.stance, card.full_power_point)
+            self.full_power_point_total += card.full_power_point
             self._fire_p_items(
                 STATUS_GAIN,
                 status="full_power_point",
@@ -1023,6 +1037,8 @@ class LessonSim:
                     strong_level=0,
                     save_level=max(self.stance.save_level, int(delta["save_level"])),
                 )
+        if self.stance != previous_stance:
+            self._fire_p_items(STANCE_CHANGE)
 
     def _apply_card_buffs(self, card: CardSpec) -> None:
         """结算卡面 buff（在算分之后，所以本牌不吃自己刚加的 buff）。
@@ -1130,12 +1146,19 @@ class LessonSim:
             if getattr(self.config, "stance_costs", True)
             else 0
         )
+        stamina_before = self.stamina
         if pierce:
             self.stamina -= pierce
         remaining = cost - pierce
         absorbed = min(self.vitality, remaining)
         self.vitality -= absorbed
         self.stamina -= remaining - absorbed
+        # B8：本场累计消耗体力（「消耗过的体力的 N% 数值变为…」的换算源）；
+        # 体力实际减少时发一次 stamina_reduce（花费值使体力减少时）。
+        stamina_lost = stamina_before - self.stamina
+        if stamina_lost > 0:
+            self.consumed_stamina_total += stamina_lost
+            self._fire_p_items(STAMINA_REDUCE, stamina_delta=stamina_lost)
 
     def _effective_cost(self, card: CardSpec) -> int:
         """指針修正后的实际牌费（向上取整；不改变 card.cost 本身）。"""
@@ -1156,6 +1179,7 @@ class LessonSim:
     # ------------------------------------------------------------------ P 道具
     def _passive_state(self) -> PassiveState:
         """把当前 LessonSim 局面投影成 p_items 的只读状态。"""
+        stance = str(self.stance.stance)
         return PassiveState(
             turn=self.current_turn,
             turns_left=self.turns_left,
@@ -1172,7 +1196,16 @@ class LessonSim:
                 "aggressive": self.motivation,
                 "full_power_point": self.stance.full_power_point,
                 "parameter_buff": self.buffs.condition_turns,
+                # B8：依赖换算源（累计量）与指針存在性条件（强气/温存/全力）
+                "full_power_point_total": self.full_power_point_total,
+                "consumed_stamina_total": self.consumed_stamina_total,
+                "stance_concentration": 1
+                if (self.stance.strong_level > 0 or "strong" in stance)
+                else 0,
+                "stance_preservation": self.stance.save_level,
+                "stance_full_power": 1 if "full" in stance else 0,
             },
+            status_counts=self.status_gain_counts,
             uses=self.p_item_uses,
         )
 
@@ -1185,18 +1218,40 @@ class LessonSim:
         cards_played_total: int = 0,
         status: str = "",
         amount: int = 0,
+        stamina_delta: int = 0,
     ) -> None:
-        """在指定时机触发 P 道具并结算增量（分数/体力/层数/额外出牌次数）。"""
+        """在指定时机触发 P 道具并结算增量（分数/体力/层数/额外出牌次数/清零）。
+
+        B8：新增 ``turn_start_after`` / ``turn_interval`` / ``stance_change`` /
+        ``stamina_reduce`` / ``status_gain_interval`` 五类事件。``status_gain_interval``
+        的累计次数在这里推进（``status_gain_counts``），事件带 ``status_total``。
+        """
         if not self.p_items:
             return
-        if kind == EXAM_START:
+        status_total = 0
+        if kind == STATUS_GAIN:
+            if status and amount > 0:
+                self.status_gain_counts[status] = (
+                    self.status_gain_counts.get(status, 0) + int(amount)
+                )
+            status_total = self.status_gain_counts.get(status, 0)
+            subset = self._p_items_by_trigger.get(
+                STATUS_GAIN, ()
+            ) + self._p_items_by_trigger.get(STATUS_GAIN_INTERVAL, ())
+        elif kind == EXAM_START:
             subset = self._p_items_by_trigger.get(EXAM_START, ())
         elif kind == TURN_START:
             subset = self._p_items_by_trigger.get(TURN_START, ())
+        elif kind == TURN_START_AFTER:
+            subset = self._p_items_by_trigger.get(TURN_START_AFTER, ())
+        elif kind == TURN_INTERVAL:
+            subset = self._p_items_by_trigger.get(TURN_INTERVAL, ())
         elif kind == TURN_END:
             subset = self._p_items_by_trigger.get(TURN_END, ())
-        elif kind == STATUS_GAIN:
-            subset = self._p_items_by_trigger.get(STATUS_GAIN, ())
+        elif kind == STANCE_CHANGE:
+            subset = self._p_items_by_trigger.get(STANCE_CHANGE, ())
+        elif kind == STAMINA_REDUCE:
+            subset = self._p_items_by_trigger.get(STAMINA_REDUCE, ())
         else:
             # card_play / card_played / card_play_interval 共享同一个事件 kind
             subset = (
@@ -1213,13 +1268,30 @@ class LessonSim:
             cards_played_total=cards_played_total,
             status=status,
             amount=amount,
+            status_total=status_total,
+            stamina_delta=stamina_delta,
         )
         delta = apply_passive(subset, event, self._passive_state())
         if delta.is_zero():
             return
         self.score += int(delta.score)
+        if delta.stamina_consumed:
+            self.consumed_stamina_total += int(delta.stamina_consumed)
         if delta.stamina:
             self.stamina = min(self.stamina_max, max(0, self.stamina + delta.stamina))
+        for key in delta.zero_stacks:
+            if key == "vitality":
+                self.vitality = 0
+            elif key == "impression":
+                self.buffs.impression = 0
+            elif key == "focus":
+                self.buffs.focus = 0
+            elif key == "aggressive":
+                self.motivation = 0
+            elif key == "full_power_point":
+                self.stance = replace(self.stance, full_power_point=0)
+            elif key == "parameter_buff":
+                self.buffs.condition_turns = 0
         for key, value in delta.stacks.items():
             if key == "vitality":
                 self.vitality += int(value)
@@ -1231,6 +1303,7 @@ class LessonSim:
                 self.motivation += int(value)
             elif key == "full_power_point":
                 self.stance = apply_full_power_point(self.stance, int(value))
+                self.full_power_point_total += max(0, int(value))
             elif key == "parameter_buff":
                 # P 道具的「好调」按回合数近似；模拟器没有独立参数 buff 资源
                 self.buffs.condition_turns += int(value)
@@ -1340,6 +1413,9 @@ class LessonSim:
         # 回合结束结算全力值：攒满 10 点则下一回合进入「全力」
         previous_stance = self.stance
         self.stance = end_turn(self.stance)
+        # B8：回合边界的指針切换（全力进入等）也发 stance_change
+        if self.stance != previous_stance:
+            self._fire_p_items(STANCE_CHANGE)
         if self.turns_left > 0:
             self._draw_hand()
             # 温存→全力 的**回合边界**切换也触发解除收益（参考引擎 startTurn 的
@@ -1372,6 +1448,9 @@ class LessonSim:
         self._draw(self.config.hand_size)
         # P 道具：回合开始（抽完手牌后、出牌前）
         self._fire_p_items(TURN_START)
+        # B8：回合开始后 / 每 N 回合（新语法触发 id 的两种时机，同一位置发射）
+        self._fire_p_items(TURN_START_AFTER)
+        self._fire_p_items(TURN_INTERVAL)
 
     def _draw(self, count: int) -> None:
         for _ in range(count):

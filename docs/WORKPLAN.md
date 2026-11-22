@@ -32,6 +32,7 @@
 | B6 T5③ P 道具数据接入 | 新增 `src/gkagent/data/p_items_db.py`（`produce_item_ids` → `PItemSpec`，未知/重复 id 显式上报，缺数据抛错）+ `sim/p_items.py` 新增 **`exam_start`** 触发时机（288 段素材）与 **`ExamPlayableValueAdd` → `extra_plays`**（51 段，取 `count` 列）；`LessonSim` 构造时结算考试开始效果（先于 turn_start、额外出牌保第 1 回合）、`ExpectState` 镜像；`scripts/local_bench.py` 从 `loadout.produce_item_ids` 接入 + `--p-items auto/off` + 报告 `p_items` 覆盖率；`submissions/expectimax/algo.py` 从 `ctx.loadout`（公开配置、不含种子）接入；gkbench 505 题模板 83 唯一 id（72 已知/11 未知）；离线 A/B hif 30 题×2 seed：greedy **+128.9（+3.36%，CI[+9.5,+248.4]）** / expectimax +149.6（+3.98%）；新增 29 条测试；全量 pytest **1051 passed / 1 skipped（1052 收集 / 76 文件）**；`docs/RULES_REFERENCE` §5.3 |
 | 作者 2026-11-22 四游戏整合包分析（外部情报，只读参考） | [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)（包结构/11-22 新版本变化与修复/采集安装边界；7z 归档 `data/dl/`、解包在仓库外，1457 条 sha256 校验通过） | 不能替换采集安装、拿不到考试算分公式；可用的：更新/代理/TLS 排障经验、Produce API 语义参考、P 道具 47 条 id 清单（含 B6 的 11 个未知 gkbench id）；候选任务 **B7 ✅ / C0 ✅ / E0（T9，剩 E0 需独立副本）**，用户要求开新对话做；提交 `ddf221f` |
 | T9-C0 采集/更新断链排障判据吸收（纯文档） | [TROUBLESHOOTING §四](TROUBLESHOOTING.md) 13 条清单（2004 / 协议 hash/master 结构 / http1_bridge 头丢失 / 票据 865-833 / 上游端口 / 停服务顺序 / CA 指纹 / 诊断脱敏 / 互斥）+ [CAPTURE_PIPELINE「游戏客户端更新后自检」](CAPTURE_PIPELINE.md) 8 步 | 外部经验，本项目待验证；纯文档不改代码，pytest 仍 1054/1；见 HANDOVER 二·补三十 |
+| B8 T5④ P 道具条件/效果语义（第一批） | `scripts/build_p_items.py`（新语法 trigger id 解析 + 依赖换算标注）+ `sim/p_items.py`（`depends_on`/`percent`/`percent_max`/`zero_stack` + 5 类新触发）+ `sim/lesson.py`/`sim/expectimax.py`（事件/累计量双镜） | 数据层已实现 **445→676/1849 段**；条件未知 22→**6 件**；trigger 未知 103 件/185 段单列保守跳过；gkbench 已实现 34→**59/153 段**；greedy A/B **+225.2（CI [+86.7,+363.6]）**；pytest **1067/1（1068 收集 / 77 文件）**；见 HANDOVER 二·补三十一 / RULES_REFERENCE §5.3 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -395,6 +396,42 @@
   纯离线，不碰真机/账号。
 - 细节/为什么这是首选见 [HANDOVER_NEXT §4 T9](HANDOVER_NEXT.md) / [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)。
 
+### B8. T5④ P 道具条件/效果语义（第一批，纯离线）✅ 2026-11-22 完成
+- **目标**：B7 清了「数据缺口」后的下一段——把 P 道具的**条件**与**效果语义**从文本猜测
+  推进到结构化、可验证、可回归的实现（不猜）。
+- **完成**：
+  1. **新语法 trigger id 结构化解析**（`scripts/build_p_items.py`）：
+     上游 2026-11 新触发的条件编码在 id 后缀（`remaining_turn-N`、`parameter_buff_up-N`、
+     `stamina_up_multiple-N`、`stamina_less_multiple-N`、`full_power_point_get_sum_up-N`、
+     `card_play_aggressive_up-N`、`exam_review_up_interval-N`、`lesson_*`）→ 解析成
+     `trigger_params` + 条件串；**条件未知 22→6 件**（16 件从 id 恢复）。指定卡名 /
+     手牌指定卡张数缺卡名→id 映射 → `trigger_known=False`（103 件 / 185 段）保守跳过。
+  2. **效果语义**（`sim/p_items.py`）：依赖换算「X 的 N% 数值变为 Y」（65 段，
+     `depends_on` + `percent`，`int(源层数×N/100)`；源=好印象/元气/干劲/集中/累计全力值/
+     消耗过的体力）、「X 变为 0」（3 段 `zero_stack` 清零）、`ExamStaminaReduceFix`
+     固定/最大体力百分比体力消耗 + `ExamStaminaRecoverFix` 百分比回复（9 段 `percent_max`）。
+  3. **新触发时机 + 双镜**（`sim/lesson.py` + `sim/expectimax.py`）：`turn_start_after`、
+     `turn_interval`、`status_gain_interval`、`stance_change`、`stamina_reduce`；
+     `full_power_point_total` / `consumed_stamina_total` / `status_gain_counts` 随事件维护，
+     `state_from_sim`/`sim_from_state`/`canonical` 全镜像。
+- **数据/结果**：catalog spec **1849** 不变；数据层已实现 **445→676 段**（no-op 1404→1173）；
+  条件未知 22→**6 件**（46→10 段）；trigger 未知 103 件/185 段（新口径，单列）；
+  依赖换算 65 / 百分比体力 9 / 归零 3 段；gkbench hif 83 唯一 id 已实现 **34→59 段**。
+- **测试/基线**：新增 `tests/test_p_items_b8.py` 19 条 + 旧测试按新口径更新；全量 pytest
+  **1067 passed / 1 skipped（1068 收集 / 77 文件）**；基线 ① 4/4+3/3、③ 86/86+24/24、
+  ④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+- **离线 A/B**（与 B7 同 harness：hif 30 题×2 seed=1000/1001、`--budget-ms 100`、配对）：
+  greedy off 3840.7 → **auto 4065.9（+225.2，+5.86%，CI95 [+86.7,+363.6]，17胜/1负/42平，
+  18/60 局变化）**；expectimax(analytic) 3726.4 → **3921.8（+195.4，+5.24%，
+  CI95 [−125.3,+516.2]，墙钟噪声，仅方向记录）**。
+- **DoD**：条件/效果语义有结构化字段 + 单测 + 真数据覆盖数字 ✅；A/B 有配对数字 ✅；
+  文档同步（RULES_REFERENCE §5.3/§6、WORKPLAN、HANDOVER_NEXT、HANDOVER 二·补三十一、
+  INDEX/README）✅；纯离线，不碰真机/账号 ✅。
+- **剩余（下一段候选）**：持续倍率类 `ExamLessonValueMultiple`（需持久分数倍率字段与取整
+  顺序证据）、`ExamCardCreateId` 生成卡、`ExamExtraTurn`/`ExamBuffConsumptionAdd`/
+  `ExamReviewMultiple` 等 modifier、指定卡名/手牌张数（需卡名→id 映射）、好调依赖换算
+  （量纲不同不猜）。
+
 ---
 
 ## 阶段 C：可靠性（离线）
@@ -582,8 +619,9 @@ expectimax +149.6（+3.98%）；新增 29 条测试，全量 pytest **1051/1（1
 E0（离线培育测试台实验）**，用户要求开新对话做，一次会话三选一，见 HANDOVER_NEXT §4 T9。
 **T9 进度：B7 ✅（P 道具 47 条补全）、C0 ✅（2026-11-22 排障判据吸收进 TROUBLESHOOTING §四 +
 CAPTURE_PIPELINE 更新后自检 8 步，纯文档不改代码），剩 E0**（离线培育测试台，需独立副本 + 用户配合）。
-下一步继续 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图，E0 若能跑离线培育可
-提供替代截图来源；P 道具**条件/效果语义**——数据缺口已被 B7 清掉）
-→ 阶段 C（执行层可靠性 C1；C0 已完成）/ D（补采集）离线做完 → 真机 T3→T1→T2（含 E0 实验）
+下一步继续 **T5 剩余机制**（**B8 已完成第一批条件/效果语义**；剩持续倍率类
+`ExamLessonValueMultiple`、`ExamCardCreateId` 生成卡、modifier 类、指定卡名/手牌限定
+（需卡名→id 映射）；**fresh buff 差一回合**仍需真机逐回合截图）
+→ 阶段 C1（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```

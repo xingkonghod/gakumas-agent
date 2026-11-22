@@ -79,6 +79,7 @@ EXAM_TRIGGERS: list[tuple[str, str]] = [
     ("exam_play_turn_count_interval", "card_play_interval"),  # 回合内每使用 N 次技能卡
     ("exam_play_count_interval_after", "card_play_interval_after"),  # 每使用 N 次技能卡后
     ("exam_play_count_interval", "card_play_interval"),  # 每使用 N 次技能卡
+    ("exam_review_up_interval", "status_gain_interval"),  # B8：好印象累计增加 N 次时
     ("exam_aggressive_up_interval", "status_gain_interval"),  # 干劲增加 N 次时
     ("exam_status_change", "status_gain"),  # 直接效果使 X 增加后
     ("exam_stance_change", "stance_change"),  # 指针 / 强气 / 全力 / 温存
@@ -120,11 +121,13 @@ BASE_PHRASES: dict[str, list[str]] = {
         r"技能卡（(?:R|SR|SSR)）使用时",
         r"使用原本的消耗体力值在\d+以上的技能卡时",
         r"技能卡使用时",
+        r"^[^，,]{1,20}使用时",  # B8：指定卡名触发（p_card_search-playing-…）
     ],
     "card_played": [
         r"(?:主动|辅助|偶像固有)技能卡使用后",
         r"(?:集中的|感性|理性|元气|体力回复|绝好调|干劲|强气|全力|温存)效果的?技能卡使用后",
         r"技能卡使用后",
+        r"^[^，,]{1,20}使用后",  # B8：指定卡名触发
     ],
     "card_play_interval": [
         r"回合内(?:主动|辅助)?每使用\d+次技能卡",
@@ -281,6 +284,97 @@ def interval_of(trigger_id: str, prefix: str) -> int:
     return int(match.group(1)) if match else 0
 
 
+# ---- B8（2026-11-22）：新语法 trigger id 解析 ------------------------------
+# 上游 2026-11 新增的触发 id 把**条件直接编码进 id**（例如
+# ``e_trigger-exam_play_turn_count_interval-2-remaining_turn-5-…`` =
+# 回合内每 2 次技能卡 + 剩余 5 回合内）。本地 2026-09-16 的 masterTrans 触发表里
+# 没有这些 id 的中文触发句，旧实现只能记 ``condition_known=False`` 保守不触发；
+# 这里从 id 后缀解析出结构化条件（比翻译文本确定，不猜）。
+_REMAINING_TURN = re.compile(r"(?:^|-)remaining_turn-(\d+)")
+_PARAM_BUFF_UP = re.compile(r"(?:^|-)parameter_buff_up-(\d+)")
+_STAMINA_UP_MULT = re.compile(r"(?:^|-)stamina_up_multiple-(\d+)")
+_STAMINA_LESS_MULT = re.compile(r"(?:^|-)stamina_less_multiple-(\d+)")
+_FULL_POWER_SUM = re.compile(r"(?:^|-)full_power_point_get_sum_up-(\d+)")
+_AGGRESSIVE_MIN = re.compile(r"(?:^|-)card_play_aggressive_up-(\d+)")
+_LESSON_ID = re.compile(r"(?:^|-)lesson_(vocal|dance|visual)")
+# 没有中文触发句、且 id 里带这些条件时，本轮还解析不了 → 保持 condition_known=False：
+# 指定卡名触发（需要卡名→卡 id 映射）和手牌指定卡张数（需要手牌卡 id）。
+_UNPARSED_TRIGGER_TOKENS = ("p_card_search-playing-", "card_search_count_up-")
+_SPECIFIC_CARD_IN_SEARCH = re.compile(r"p_card_search[^-]*(?:-[a-z_0-9]+)*?-p_card-\d")
+
+
+def trigger_id_has_unparsed_condition(trigger_id: str) -> bool:
+    """触发 id 里是否带「指定卡名 / 手牌指定卡张数」这类还建模不了的限定。
+
+    ``p_card_search-playing-…``、``card_search_count_up-N``，以及
+    ``p_card_search-target-1-p_card-01-act-…``（搜索区就是某张指定卡）都算。
+    这些限定没解析出来时不能当无条件触发（会在任意卡上误触发）。
+    """
+    if not trigger_id:
+        return False
+    if any(token in trigger_id for token in _UNPARSED_TRIGGER_TOKENS):
+        return True
+    return bool(_SPECIFIC_CARD_IN_SEARCH.search(trigger_id))
+
+
+def _permil_to_percent(value: int) -> str:
+    """800 → "80"（上游 percent 字段 ×10 编码）。"""
+    percent = value / 10
+    return str(int(percent)) if percent == int(percent) else f"{percent:g}"
+
+
+def parse_exam_trigger_id(trigger_id: str, family: str) -> tuple[dict, list[str], bool]:
+    """从 ``e_trigger-`` 新语法 id 解析参数/条件（B8）。
+
+    返回 ``(params, conditions, complete)``。``complete=False`` = id 里还有解析不了的
+    条件（指定卡名 / 手牌张数）→ 调用方保持 ``condition_known=False``，保守不触发。
+    """
+    if not trigger_id.startswith("e_trigger-") or not family:
+        return {}, [], False
+    token = trigger_id.removeprefix("e_trigger-")
+    rest = token.removeprefix(family) if family else token
+    params: dict = {}
+    conditions: list[str] = []
+    if family in (
+        "exam_play_turn_count_interval",
+        "exam_play_count_interval",
+        "exam_play_count_interval_after",
+        "exam_review_up_interval",
+        "exam_aggressive_up_interval",
+    ):
+        match = re.match(r"-(\d+)", rest)
+        if match:
+            params["interval"] = int(match.group(1))
+        if family == "exam_review_up_interval":
+            params["status"] = "impression"
+        elif family == "exam_aggressive_up_interval":
+            params["status"] = "aggressive"
+    match = _REMAINING_TURN.search(rest)
+    if match:
+        params["remaining_turns"] = int(match.group(1))
+    match = _PARAM_BUFF_UP.search(rest)
+    if match:
+        conditions.append(f"好调在{int(match.group(1))}回合以上")
+    for regex, template in (
+        (_STAMINA_UP_MULT, "体力在{}%以上"),
+        (_STAMINA_LESS_MULT, "体力在{}%以下"),
+    ):
+        match = regex.search(rest)
+        if match:
+            conditions.append(template.format(_permil_to_percent(int(match.group(1)))))
+    match = _FULL_POWER_SUM.search(rest)
+    if match:
+        conditions.append(f"累计全力值在{int(match.group(1))}以上")
+    match = _AGGRESSIVE_MIN.search(rest)
+    if match:
+        conditions.append(f"干劲在{int(match.group(1))}以上")
+    match = _LESSON_ID.search(rest)
+    if match:
+        params["lesson_filter"] = match.group(1)
+    complete = not any(token_ in rest for token_ in _UNPARSED_TRIGGER_TOKENS)
+    return params, conditions, complete
+
+
 def strip_base(text: str, family: str) -> str:
     """从触发句里剥掉时机词，返回条件部分。"""
     body = text.strip().rstrip("，,")
@@ -426,6 +520,92 @@ def _extract_effects_yaml(yaml_descs: list[dict], zh_text: str) -> list[dict]:
     return _finish_effects(effects, zh_text)
 
 
+# ---- B8（2026-11-22）：依赖换算式效果 --------------------------------------
+# 卡面常见「X 的 N% 数值变为 Y」：源效果段只带 percent1、文本以「X的%数值变为」结尾，
+# 紧随其后是空 values 的目标效果（打分上升 / 元气增加 / …）。把源层的 percent1
+# 挂到目标上（``depends_on`` + ``values.percent1``），源段标 ``role=conversion_source``。
+CONVERSION_SOURCES = {
+    "好印象": "impression",
+    "元气": "vitality",
+    "干劲": "aggressive",
+    "集中": "focus",
+    "累计全力值": "full_power_point_total",
+    "全力值": "full_power_point",
+    "消耗过的体力": "consumed_stamina_total",
+    # 好调在模拟器里是「剩余回合数」而非可换算的量 → 本轮不建模（保持 no-op，不猜）
+}
+CONVERSION_TARGET_TYPES = frozenset(
+    {"ExamLesson", "ExamReview", "ExamBlock", "ExamLessonBuff", "ExamCardPlayAggressive", "ExamParameterBuff"}
+)
+_CONVERSION_SOURCE_TEXT = re.compile(
+    r"^(?P<src>" + "|".join(CONVERSION_SOURCES) + r")的%数值变为"
+)
+_ZERO_TEXT = re.compile(r"^(?P<src>" + "|".join(CONVERSION_SOURCES) + r")变为0$")
+
+
+def annotate_effects(effects: list[dict], zh_text: str) -> list[dict]:
+    """B8：把依赖换算 / 最大体力百分比 / 归零段的语义标进 effects（不改 effect 顺序）。
+
+    * 源段（``percent1`` + 文本「X的%数值变为」）→ 找紧随其后、空 values 的目标效果，
+      写 ``depends_on`` + ``values.percent1``；源段 ``values.percent1`` 移除并标
+      ``role="conversion_source"``（它只是系数，不是直接加层数）。
+    * 「最大体力的 N% 数值变为体力消耗/回复」：percent 段可能挂在前一个效果上
+      （实测 pitem_02-3-076-0）→ 挪到体力效果上记 ``percent_max``；本地化描述兜底。
+    * 「X变为0」的空效果 → ``zero_stack``（结算时把对应层数清零，不猜成加 0 层）。
+    """
+    for index, effect in enumerate(effects):
+        text = (effect.get("text") or "").strip()
+        values = effect.setdefault("values", {})
+        percent = values.get("percent1")
+        if percent:
+            match = _CONVERSION_SOURCE_TEXT.match(text)
+            if match:
+                source = CONVERSION_SOURCES.get(match.group("src"), "")
+                if source:
+                    for target in effects[index + 1 : index + 3]:
+                        if target.get("type") not in CONVERSION_TARGET_TYPES:
+                            continue
+                        if target.get("values"):
+                            continue
+                        target["depends_on"] = source
+                        target["values"] = {"percent1": int(percent)}
+                        effect["role"] = "conversion_source"
+                        values.pop("percent1", None)
+                        break
+            # 最大体力的 N% 被挂到前一个效果上（文本里「…数值变为」是标志）
+            if "数值变为" in text:
+                for target in effects[index + 1 : index + 3]:
+                    if target.get("type") not in ("ExamStaminaReduceFix", "ExamStaminaRecoverFix"):
+                        continue
+                    if target.get("values"):
+                        continue
+                    target["percent_max"] = int(percent)
+                    effect["role"] = "stamina_percent_source"
+                    values.pop("percent1", None)
+                    break
+        zero = _ZERO_TEXT.match(text)
+        if zero and not values:
+            source = CONVERSION_SOURCES.get(zero.group("src"), "")
+            if source:
+                effect["zero_stack"] = source
+    # 本地化兜底：数值段落在效果段之前时 percent 会丢（如 pitem_00-3-119-0）。
+    for kind, effect_type in (
+        ("体力消耗", "ExamStaminaReduceFix"),
+        ("体力回复", "ExamStaminaRecoverFix"),
+    ):
+        match = re.search(rf"最大体力的(\d+)%数值变为{kind}", zh_text)
+        if not match:
+            continue
+        for effect in effects:
+            if effect.get("type") != effect_type:
+                continue
+            if effect.get("values") or effect.get("percent_max"):
+                continue
+            effect["percent_max"] = int(match.group(1))
+            break
+    return effects
+
+
 def _finish_effects(effects: list[dict], zh_text: str) -> list[dict]:
     for eff in effects:
         eff["type"] = eff["type"].replace("ProduceExamEffectType_", "")
@@ -436,7 +616,7 @@ def _finish_effects(effects: list[dict], zh_text: str) -> list[dict]:
             # 只有中文描述里真的写了 "（N次）" 才算次数上限；
             # "技能卡使用数追加+1" 这类 count 是数值本身。
             eff["max_uses"] = count
-    return effects
+    return annotate_effects(effects, zh_text)
 
 
 def primary_value(effects: list[dict]) -> tuple[int | None, str]:
@@ -545,10 +725,29 @@ def build_record(
 
     canonical, family, domain = classify_trigger(trigger_id, trigger_text)
     condition = strip_base(trigger_text, canonical) if domain == "exam" else ""
+    params = trigger_params(trigger_id, canonical, family, trigger_text)
+    id_params, id_conditions, id_complete = parse_exam_trigger_id(trigger_id, family)
+    for key, value in id_params.items():
+        if value not in (None, "", 0):
+            params[key] = value
+    # 指定卡名触发 / 手牌指定卡张数：没有卡名→id 映射前不能建模（否则会在任意卡上
+    # 误触发）。与「条件未知」分开记：``trigger_known=False``，sim 同样保守跳过。
+    unparsed_trigger = trigger_id_has_unparsed_condition(trigger_id)
+    if domain == "exam" and trigger_id:
+        if trigger_text:
+            condition_known = True
+            if not condition and id_conditions:
+                condition = "，".join(id_conditions)
+        else:
+            condition_known = bool(id_complete and canonical not in ("none", "other"))
+            condition = "，".join(id_conditions)
+    else:
+        condition_known = True
     # 中文触发句缺失的考试类触发 id（本地 masterTrans 快照早于该 id）→ 条件未知。
     # 不能当成"无条件"结算（会把带条件的道具凭空触发），由 sim/p_items.py 保守跳过。
-    condition_known = not (domain == "exam" and trigger_id and not trigger_text)
-    params = trigger_params(trigger_id, canonical, family, trigger_text)
+    if not condition_known:
+        condition = ""
+    trigger_known = not unparsed_trigger
     if local_descs is None:
         effects = _extract_effects_yaml(yaml_descs, zh_text)
     else:
@@ -581,6 +780,8 @@ def build_record(
     }
     if not condition_known:
         record["condition_known"] = False
+    if not trigger_known:
+        record["trigger_known"] = False
     return record
 
 
@@ -647,6 +848,26 @@ def build() -> dict:
         "items_i18n_name_ja": i18n_ja_names,
         "items_i18n_text_ja": len(new_ids),
         "items_condition_unknown": sum(1 for r in records if r.get("condition_known") is False),
+        # B8：指定卡名触发/手牌张数（没有卡名→id 映射，不能建模 → 保守跳过）。
+        "items_trigger_unknown": sum(1 for r in records if r.get("trigger_known") is False),
+        # B8：新语法 id 解析 + 依赖换算/最大体力百分比/归零段的结构化计数。
+        "items_trigger_id_parsed": sum(
+            1
+            for r in records
+            if r["trigger_domain"] == "exam"
+            and r["trigger_id"]
+            and not r["trigger_text"]
+            and r.get("condition_known", True)
+        ),
+        "effects_depends_on": sum(
+            1 for r in records for e in r["effects"] if e.get("depends_on")
+        ),
+        "effects_percent_max": sum(
+            1 for r in records for e in r["effects"] if e.get("percent_max")
+        ),
+        "effects_zero_stack": sum(
+            1 for r in records for e in r["effects"] if e.get("zero_stack")
+        ),
     }
     return {
         "source": {
@@ -686,7 +907,13 @@ def report(payload: dict) -> None:
         f"本地 masterTrans {stats['items_local_master']} 件 + yaml 新增 {stats['items_from_yaml']} 件 = "
         f"{stats['count']} 件；其中名字用自译表 {stats['items_from_yaml'] - stats['items_i18n_name_ja']} / "
         f"日文 {stats['items_i18n_name_ja']}，描述日文（中文缺失）{stats['items_i18n_text_ja']}；"
-        f"条件未知（保守不触发）{stats['items_condition_unknown']} 件"
+        f"条件未知（保守不触发）{stats['items_condition_unknown']} 件；"
+        f"触发未知（指定卡/手牌，保守不触发）{stats['items_trigger_unknown']} 件"
+    )
+    print(
+        f"B8：从新语法 id 解析出条件 {stats['items_trigger_id_parsed']} 件；"
+        f"依赖换算目标 {stats['effects_depends_on']} 段 / 最大体力百分比 {stats['effects_percent_max']} 段 / "
+        f"归零段 {stats['effects_zero_stack']} 段"
     )
 
 

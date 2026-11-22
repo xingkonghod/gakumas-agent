@@ -16,11 +16,17 @@ def _free(trigger: str) -> list[PItemSpec]:
         if item.trigger == trigger
         and item.implemented
         and item.condition_known
+        and item.trigger_known
         and not item.condition
         and not item.card_filter
         and not item.lesson_filter
         and not item.final_turn
         and item.turn is None
+        # B8：依赖换算/最大体力百分比/归零段不是「固定值直接效果」，这里只要直给的那种。
+        and not item.depends_on
+        and not item.percent_max
+        and not item.zero_stack
+        and item.value > 0
     ]
 
 
@@ -55,7 +61,17 @@ def test_turn_start_item_applies_at_lesson_start() -> None:
 
 
 def test_card_play_item_applies_before_card_effect() -> None:
-    item = _first("card_play", "focus")
+    """card_play（技能卡使用时）P 道具在出牌结算里触发；用合成 spec 验机制。
+
+    真数据里 card_play 的直给效果现在都带「指定卡名/手牌张数」限定（B8 记
+    ``trigger_known=False``，保守跳过），所以这里用合成 spec 覆盖事件管线本身。
+    """
+    item = PItemSpec(
+        name="使用时集中+2",
+        trigger="card_play",
+        effect_type="ExamLessonBuff",
+        value=2,
+    )
     sim = LessonSim(
         [CardSpec("打", 0, 0)],
         _config(turns=1, p_items=(item,)),
@@ -64,6 +80,7 @@ def test_card_play_item_applies_before_card_effect() -> None:
     sim.hand = [CardSpec("打", 0, 0)]
     sim.step(0)
     assert sim.buffs.focus >= item.value
+    assert sim.p_item_uses.get(item.item_id or item.name, 0) == 1
 
 
 def test_card_played_item_applies_after_card_effect() -> None:

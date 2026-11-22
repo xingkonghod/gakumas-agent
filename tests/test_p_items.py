@@ -229,11 +229,35 @@ def test_evaluate_condition_unknown_returns_none() -> None:
     assert evaluate_condition("", PassiveState()) is True
 
 
-def test_condition_units_mismatch_is_unknown() -> None:
-    """量纲不对的条件不能瞎比：好调在模拟器里是千分比/回合数，不当层数阈值。"""
-    assert evaluate_condition("好调在6回合以上的时候", PassiveState(stacks={"parameter_buff": 1500})) is None
+def test_condition_param_buff_turns_and_full_power_total() -> None:
+    """B8：好调按剩余回合数比较；累计全力值看本场累计（伪 stack key）。
+
+    好调在模拟器里的 stack 投影就是剩余回合数（``LessonSim._passive_state``），所以
+    「好调在 N 回合以上」可以直接比层数；累计全力值没有单独状态字段，用
+    ``full_power_point_total`` 伪 key。认不出的写法仍返回 None（保守）。
+    """
+    assert (
+        evaluate_condition("好调在6回合以上的时候", PassiveState(stacks={"parameter_buff": 6}))
+        is True
+    )
+    assert (
+        evaluate_condition("好调在6回合以上的时候", PassiveState(stacks={"parameter_buff": 5}))
+        is False
+    )
+    assert (
+        evaluate_condition(
+            "这个训练中的累计全力值在5以上的时候",
+            PassiveState(stacks={"full_power_point_total": 5}),
+        )
+        is True
+    )
+    assert (
+        evaluate_condition(
+            "累计全力值在5以上的时候", PassiveState(stacks={"full_power_point_total": 4})
+        )
+        is False
+    )
     assert evaluate_condition("强气2阶段的时候", PassiveState(stacks={"stance_concentration": 2})) is None
-    assert evaluate_condition("这个训练中的累计全力值在5以上的时候", PassiveState()) is None
 
 
 def test_condition_false_blocks_trigger() -> None:
@@ -250,10 +274,8 @@ def test_condition_false_blocks_trigger() -> None:
 @pytest.mark.parametrize(
     "effect_type",
     [
-        "ExamLessonValueMultiple",  # 打分上升量增加（百分比）
-        "ExamParameterBuff",  # 好调（回合数）
-        "ExamStaminaReduceFix",  # 体力消耗
-        "ExamConcentration",  # 指针变更
+        "ExamLessonValueMultiple",  # 打分上升量增加（百分比，需要持续倍率 buff）
+        "ExamConcentration",  # 指针变更（需要卡/回合语义）
         "ExamPreservation",  # 温存
         "ExamCardCreateId",  # 生成卡
         "unknown",
@@ -271,11 +293,7 @@ def test_unsupported_effect_type_is_noop(effect_type: str) -> None:
 @pytest.mark.parametrize(
     "trigger",
     [
-        "stance_change",
-        "stamina_reduce",
         "buff_consume",
-        "turn_interval",
-        "turn_start_after",
         "produce_start_lesson",
         "card_play_interval_after",
         "no_such_trigger",
@@ -431,12 +449,16 @@ def test_summarize_counts_condition_unknown() -> None:
 
 
 def test_real_data_playable_add_count_is_extracted() -> None:
-    """真数据里 51 条 ExamPlayableValueAdd 全是 count=1；不能退化成 0 值 no-op。"""
+    """真数据里 51 条 ExamPlayableValueAdd 全是 count=1；不能退化成 0 值 no-op。
+
+    B8 起 47 段 implemented（B7 是 44）：新增的 ``turn_start_after`` / ``stamina_reduce``
+    等触发时机也支持了，所以带这些时机的「技能卡使用数追加」不再算 no-op。
+    """
     specs = [spec for spec in load_p_items() if spec.effect_type == "ExamPlayableValueAdd"]
     assert len(specs) == 51
     assert all(spec.value == 1 for spec in specs)
     assert all(spec.target == "extra_plays" for spec in specs)
-    assert sum(1 for spec in specs if spec.implemented) == 44
+    assert sum(1 for spec in specs if spec.implemented) == 47
 
 
 def test_load_real_data_and_never_raise() -> None:

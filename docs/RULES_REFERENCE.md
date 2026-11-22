@@ -31,15 +31,19 @@
 > 只按本表逐条对齐「机制」；F1 用官方种子做同题同种子复算时，起点状态用 `check`（turn/score/stamina），
 > 并注明对比的 rules 版本。
 
-## 0. 一句话结论（B3 + T5① + T5② 后）
+## 0. 一句话结论（B3 + T5① + T5② + T5④ 后）
 
 分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
 **跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**、
 **熱意（enthusiasm）与温存解除**（熱意 +5/+8、2 段固定元気 +5、解除当回合 +1 出牌次数、
 熱意算分/获得取整/回合末清零与延長、本牌熱意適用倍数）
-都已按参考引擎/客户端语义/真机对齐；剩余差距是 **P 道具效果覆盖/附魔**
-（数据管线已接 gkbench loadout，catalog 已补到上游 1115 件，见 §5.3；效果只实现语义确定的
-445/1849 段，新增 47 条的条件未知段保守不触发）、
+都已按参考引擎/客户端语义/真机对齐；**P 道具**已接数据管线（gkbench loadout，catalog 1115 件）
+并实现第一批**条件/效果语义**（新语法 trigger id 结构化解析、依赖换算「X 的 N% 数值变为 Y」、
+固定/百分比体力消耗与回复、新触发时机 `turn_start_after`/`turn_interval`/`status_gain_interval`/
+`stance_change`/`stamina_reduce`，见 §5.3 B8；数据层 676/1849 段）。
+剩余差距是 **P 道具持续倍率类效果**（`ExamLessonValueMultiple` / `ExamCardCreateId` /
+`ExamExtraTurn` / `ExamPreservation`/`ExamConcentration` 等）、**指定卡名/手牌张数限定**
+（trigger 未知 103 件保守跳过，需要卡名→id 映射）、**附魔**、
 **fresh buff 的差一回合衰减**、**のんびり（leisure）指針与全力回合額外出牌/保留牌**、
 **依赖分结算顺序**（我们保守口径）等。
 
@@ -233,18 +237,80 @@
   `test_p_items_integration.py` 触发候选过滤加 `condition_known`；
   全量 pytest **1054 passed / 1 skipped（1055 收集 / 76 文件）**。
 
+**B8（2026-11-22 完成）：P 道具条件/效果语义（第一批）**
+
+目标：把「条件/效果语义」从文本猜测推进到可验证的结构化实现（B7 清了数据缺口后的下一段）。
+三块改动：
+
+1. **新语法 trigger id 结构化解析**（[build_p_items.py](../scripts/build_p_items.py)：
+   `parse_exam_trigger_id` / `trigger_id_has_unparsed_condition`）：上游 2026-11 的新触发把
+   条件编码在 id 后缀里（`…-remaining_turn-5`、`…-parameter_buff_up-8`、
+   `…-stamina_up_multiple-800`、`…-stamina_less_multiple-500`、`…-full_power_point_get_sum_up-10`、
+   `…-card_play_aggressive_up-5`、`exam_review_up_interval-N`、`…-lesson_visual`），从 id
+   解析成 `trigger_params` + 条件串（`好调在N回合以上` / `体力在N%以上|以下` /
+   `累计全力值在N以上` / `干劲在N以上` / `剩余N回合内` / `每N回合`）——**条件未知 22→6 件**
+   （16 件从 id 恢复）。指定卡名（`p_card_search-…-p_card-…`）与手牌指定卡张数
+   （`card_search_count_up-N`）这类没有卡名→id 映射的限定，**单列 `trigger_known=False`**
+   （103 件 / 185 段 spec）保守跳过——不能当无条件触发（会在任意卡上误触发）。
+2. **效果语义**（[sim/p_items.py](../src/gkagent/sim/p_items.py)）：
+   - **依赖换算**「X 的 N% 数值变为 Y」：数据层标注 `depends_on` + `percent`
+     （65 段），结算 `目标增量 = int(源层数 × N / 100)`；源 = 好印象 / 元气 / 干劲 /
+     集中 / 累计全力值 / 消耗过的体力（后两个用 `full_power_point_total` /
+     `consumed_stamina_total` 伪 stack key 传入）。**源段只作系数，不再当直接加层数**。
+   - **「X 变为 0」**：`zero_stack`（3 段）→ 结算时把对应层数清零（不是加 0 层）。
+   - **`ExamStaminaReduceFix`（固定体力消耗）**：`value1` 固定值，或「最大体力的 N%」
+     （`percent_max`，9 段）→ 直接扣体力；`ExamStaminaRecoverFix` 的百分比形式同口径回复。
+3. **新触发时机 + 双镜**（[sim/lesson.py](../src/gkagent/sim/lesson.py) /
+   [sim/expectimax.py](../src/gkagent/sim/expectimax.py)）：新增 `turn_start_after`、
+   `turn_interval`（每 N 回合）、`status_gain_interval`（状态累计增加 N 次，用
+   `status_gain_counts` 累计）、`stance_change`（指針切换）、`stamina_reduce`
+   （体力实际减少）五类事件；`full_power_point_total` / `consumed_stamina_total`
+   两个本场累计量随全力值获得 / 体力消耗维护，`state_from_sim` / `sim_from_state`
+   与 `canonical` 全镜像（搜索与执行同口径）。
+
+**数据/回归（2026-11-22 复跑）**：
+
+| 指标 | B7 | B8 |
+|---|---:|---:|
+| catalog 件数 / spec 段 | 1115 / 1849 | 1115 / **1849**（不变） |
+| 数据层已实现 spec 段 | 445 | **676**（+231） |
+| no-op spec 段 | 1404 | **1173** |
+| 条件未知 | 22 件 / 46 段 | **6 件 / 10 段** |
+| 触发限定未知（指定卡/手牌） | —（旧口径算作条件已知但实际不触发） | **103 件 / 185 段**（新单列） |
+| 依赖换算 / 百分比体力 / 归零 | 0 / 0 / 0 | **65 / 9 / 3 段** |
+| gkbench hif 83 唯一 id（153 段含无效果育成期道具）已实现 | 34 段 | **59 段** |
+
+- 全量 pytest **1067 passed / 1 skipped**（1068 收集 / 77 文件；新增
+  `tests/test_p_items_b8.py` 19 条，旧测试按新口径更新）；基线 ① 4/4+3/3、
+  ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+- 离线 A/B（同 B7 harness：hif 30 题×2 seed = 1000/1001、`--budget-ms 100`、同题同 seed
+  配对，CI = mean±1.96·SE；off 与 B7 逐位相同）：
+
+| 算法 | off | auto | 配对 Δ | 95% CI | 变化局（胜/负/平） |
+|---|---:|---:|---:|---|---|
+| greedy | 3840.7 | **4065.9** | **+225.2（+5.86%）** | [+86.7,+363.6] | 18/60（17/1/42） |
+| expectimax(analytic) | 3726.4 | **3921.8** | **+195.4（+5.24%）** | [−125.3,+516.2] | 21/60（17/4/39） |
+
+- **如实记录**：expectimax 的 CI 含 0（`--budget-ms 100` 墙钟预算噪声大，B6/B7 两次也
+  都是方向记录）；greedy 是确定性执行、CI 全正。**本轮不动的**：`ExamLessonValueMultiple`
+  （持续分数倍率 buff，需要新的持久字段与取整顺序证据）、`ExamCardCreateId`（生成卡）、
+  `ExamExtraTurn` / `ExamBuffConsumptionAdd` / `ExamReviewMultiple` / `ExamReviewCountAdd`
+  等 modifier 类、`ExamPreservation`/`ExamConcentration` 直给式、好调依赖换算
+  （模拟器里好调是剩余回合数，量纲不同不猜）。真机培育侧 P 道具列表仍未采集（T6/D1）。
+
 **口径与剩余差距（如实记录）**：
 
 - 真机采集 `traffic.jsonl`（3.2MB）全文件 0 命中 produce 编成字段 → **真机培育侧**
   P 道具列表未采集（T6/D1 补采 produce 开始 API/存盘）；本轮接的是 gkbench 题模板的
   loadout（离线、公开配置）。
-- 效果覆盖：catalog **1115 件 → 1849 段 spec，已实现 445 段**（B7 前 1068→1764/421）；
-  gkbench 83 个已知道具 → 153 段 spec，已实现 **34 段**（其中 10 段条件未知不触发）。
-  未实现大户：`ExamLessonValueMultiple`（打分上升量）、
-  `ExamParameterBuff`（好调/审查基准两种口径未定）、`ExamStaminaReduceFix`（百分比且数据
-  缺值）、`ExamCardCreateId`（生成卡）、`ExamConcentration/ExamPreservation`（指針）、
-  `ExamReviewMultiple` 等 → 需要参考引擎语义 + 主数据文本重解析（如「最大体力的 N%」）再补，
-  **不猜**。
+- 效果覆盖（B8 后）：catalog **1115 件 → 1849 段 spec，数据层已实现 676 段**（B7 445）；
+  gkbench 83 个已知道具 → 153 段 spec，已实现 **59 段**（B7 34）。
+  未实现大户：`ExamLessonValueMultiple`（持续分数倍率 buff）、`ExamCardCreateId`（生成卡）、
+  `ExamStaminaConsumptionDownFix`（削减消耗体力）、`ExamPreservation`/`ExamConcentration`
+  （指針直给）、`ExamExtraTurn` / `ExamBuffConsumptionAdd` / `ExamReviewMultiple` /
+  `ExamReviewCountAdd` 等 modifier 类 → 需要参考引擎语义/持久 buff 字段与取整顺序证据再补，
+  **不猜**。**条件未知只剩 6 件**（新语法 id 解析不了的残余）；**触发限定未知 103 件**是
+  指定卡名/手牌张数（缺卡名→id 映射，保守跳过），不是效果语义缺口。
 - **11 个未知 id 已清零**（B7，2026-11-22）：`pitem_01-3-349-0`、`pitem_02-3-336-1`、
   `pitem_03-3-334/337/345-*`、`pitem_3-258-research-event-008/009/010` 等已进 catalog；
   但它们的**条件未知/效果未实现** → 保守不触发（0 分贡献），开放点变成「条件与效果语义」。
@@ -267,8 +333,13 @@
    `produce_item_ids` → `PItemSpec` 已接入模拟器/评测/提交；exam_start 与 extra_plays 新支持；
    **B7（T9）已把 catalog 补到上游 1115 件、gkbench 未知 id 清零**（1068→1115 件、
    spec 1764→1849、已实现 421→445；新增 47 条条件未解析段保守不触发）。
-   **剩余**：真机培育侧列表（T6/D1 补采）、**条件/效果语义**（catalog 445/1849 段、
-   gkbench 34/153 段）、主道具附魔/回忆。
+   **B8（T5④，2026-11-22）完成条件/效果语义第一批**：新语法 trigger id 结构化解析
+   （条件未知 22→6 件）+ 依赖换算「X 的 N% 数值变为 Y」（65 段）+ 固定/百分比体力
+   （9 段）+ 「X 变为 0」（3 段）+ 5 类新触发时机；数据层 445→**676/1849 段**、
+   gkbench 34→**59/153 段**；greedy 配对 A/B **+225.2（CI [+86.7,+363.6]）**。
+   **剩余**：持续倍率类（`ExamLessonValueMultiple` 等）与生成卡/額外出牌 modifier、
+   指定卡名/手牌张数限定（trigger 未知 103 件，缺卡名→id 映射）、真机培育侧列表
+   （T6/D1 补采）、主道具附魔/回忆。
 6. **考试内生成卡/额外 RNG 机制**（现有数据不够，T6 补采）。
 7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。

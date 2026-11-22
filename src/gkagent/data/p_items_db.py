@@ -70,8 +70,7 @@ def load_p_item_catalog(path: str | Path | None = None) -> PItemCatalog:
     resolved = Path(path) if path is not None else DEFAULT_PATH
     if not resolved.is_file():
         raise PItemDataUnavailable(
-            f"缺少 P 道具数据 {resolved}；"
-            "先跑 .venv\\Scripts\\python.exe scripts\\build_p_items.py"
+            f"缺少 P 道具数据 {resolved}；先跑 .venv\\Scripts\\python.exe scripts\\build_p_items.py"
         )
     try:
         payload = json.loads(resolved.read_text(encoding="utf-8-sig"))
@@ -134,10 +133,15 @@ class PItemLoadout:
             "implemented": stats["implemented"],
             "noop": stats["noop"],
             "condition_unknown": stats["condition_unknown"],
+            "trigger_unknown": stats["trigger_unknown"],
+            "depends_on_specs": stats["depends_on_specs"],
+            "percent_max_specs": stats["percent_max_specs"],
+            "zero_stack_specs": stats["zero_stack_specs"],
             "noop_reasons": stats["noop_reasons"],
             "implemented_effect_types": stats["implemented_effect_types"],
             "noop_effect_types": stats["noop_effect_types"],
         }
+
 
 def resolve_produce_item_ids(
     item_ids: Iterable[str] | None,
@@ -192,6 +196,10 @@ def catalog_coverage(catalog: PItemCatalog) -> dict:
         "implemented": stats["implemented"],
         "noop": stats["noop"],
         "condition_unknown": stats["condition_unknown"],
+        "trigger_unknown": stats["trigger_unknown"],
+        "depends_on_specs": stats["depends_on_specs"],
+        "percent_max_specs": stats["percent_max_specs"],
+        "zero_stack_specs": stats["zero_stack_specs"],
         "noop_reasons": stats["noop_reasons"],
     }
 

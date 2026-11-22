@@ -286,8 +286,22 @@ HANDOVER 二·补二十九 / WORKPLAN B7。
 §4.2 与本文 1.3–1.9 的对应表；[CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md) 新增「游戏客户端大版本
 更新后自检」8 步。**外部经验、本项目待验证**；只写结论未拷代码/未加依赖/未动数据，pytest 不变
 （**1054/1**）。细节见 HANDOVER 二·补三十 / HANDOVER_NEXT §4 T9-C0。
-阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/C0/F0 完成、F 数据已下；下一步 **T5 剩余机制**
-（**fresh buff 差一回合**——需真机逐回合截图；P 道具**条件/效果语义**——数据缺口已被 B7 清掉）
+**同日 B8（T5④ P 道具条件/效果语义第一批）已完成**（纯离线代码）：新语法 trigger id 从后缀
+结构化解析条件（`remaining_turn-N`/`parameter_buff_up-N`/`stamina_up_multiple-N`/
+`full_power_point_get_sum_up-N`/…；条件未知 22→**6 件**）+ 指定卡名/手牌张数缺映射
+（`trigger_known=False` 103 件/185 段）保守跳过 + 依赖换算「X 的 N% 数值变为 Y」（65 段，
+`depends_on`+`percent`）+ 固定/最大体力百分比体力（9 段）+「X 变为 0」（3 段）+ 5 类新触发
+（`turn_start_after`/`turn_interval`/`status_gain_interval`/`stance_change`/`stamina_reduce`，
+`LessonSim`/`ExpectState` 事件与累计量双镜）；数据层 **445→676/1849 段**（no-op 1404→1173）、
+gkbench hif 83 唯一 id **34→59/153 段**；离线 A/B（hif 30 题×2 seed）greedy 3840.7→
+**4065.9（+225.2，+5.86%，CI[+86.7,+363.6]，17胜/1负/42平）**、expectimax 3726.4→3921.8
+（+195.4，CI 含 0，墙钟噪声）；新增 `tests/test_p_items_b8.py` 19 条，全量 pytest
+**1067 passed / 1 skipped（1068 收集 / 77 文件）**，基线 ①③④⑤ 不变。
+仍缺：持续倍率/modifier 类效果（`ExamLessonValueMultiple` 等）、指定卡名/手牌映射、
+真机培育侧 P 道具列表、主道具附魔/回忆。细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) /
+HANDOVER 二·补三十一 / WORKPLAN B8。
+阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/C0/F0 完成、F 数据已下；下一步 **T5 剩余机制**
+（P 道具**持续倍率/modifier 类效果**、指定卡名映射；**fresh buff 差一回合**——需真机逐回合截图）
 → 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，先问用户）→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
 （ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

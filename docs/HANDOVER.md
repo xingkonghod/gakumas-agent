@@ -1436,6 +1436,84 @@ master 结构、`http1_bridge` 头丢失、票据 865/833、上游端口、停�
 **提交**：docs `e52bedc`（判据吸收：TROUBLESHOOTING/CAPTURE_PIPELINE/LOCAL_LAUNCHER + 状态文档）+
 docs `d1642d6`（哈希/交接记录），见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补三十一、11-22（B8 / T5④ 落地：P 道具条件/效果语义第一批——新语法 trigger id 解析 + 依赖换算 + 固定/百分比体力 + 5 类新触发）
+
+**背景**：B7 把 P 道具 catalog 补到上游 1115 件、gkbench 未知 id 清零后，缺口从「数据」变成
+「语义」：22 件新触发 id 没有中文触发句（`condition_known=False` 保守不触发）；卡面大量效果是
+「X 的 N% 数值变为 Y」「最大体力的 N% 数值变为体力消耗」「X 变为 0」这类**依赖换算/百分比**
+语义，旧实现只认固定值直接效果。B8 的目标是用**结构化数据**（触发 id 后缀、本地化分段标记）
+把它们实现出来，**不靠猜**。
+
+**落地（三块）**：
+
+1. **新语法 trigger id 结构化解析**（`scripts/build_p_items.py`：`parse_exam_trigger_id` /
+   `trigger_id_has_unparsed_condition`）：上游 2026-11 的新触发把条件编码在 id 后缀里
+   （`…-remaining_turn-5`、`…-parameter_buff_up-8`、`…-stamina_up_multiple-800`、
+   `…-stamina_less_multiple-500`、`…-full_power_point_get_sum_up-10`、
+   `…-card_play_aggressive_up-5`、`exam_review_up_interval-N`、`…-lesson_visual`）→ 解析成
+   `trigger_params` + 条件串（`好调在N回合以上` / `体力在N%以上|以下` / `累计全力值在N以上` /
+   `干劲在N以上` / `剩余N回合内` / `每N回合`）——**条件未知 22→6 件**（16 件从 id 恢复）。
+   指定卡名（`p_card_search-…-p_card-…`）与手牌指定卡张数（`card_search_count_up-N`）没有
+   卡名→id 映射 → 新字段 **`trigger_known=False`**（103 件 / 185 段）**保守跳过**——不能当
+   无条件触发（否则会在任意卡上误触发）。
+2. **效果语义**（`src/gkagent/sim/p_items.py`）：
+   - **依赖换算**「X 的 N% 数值变为 Y」：数据层 `annotate_effects` 标注 `depends_on` +
+     `percent`（65 段），结算 `目标增量 = int(源层数 × N / 100)`；源 = 好印象 / 元气 / 干劲 /
+     集中 / 累计全力值 / 消耗过的体力（后两个用 `full_power_point_total` /
+     `consumed_stamina_total` 伪 stack key 传入）。源段**只作系数**，不再当直接加层数。
+   - **「X 变为 0」**：`zero_stack`（3 段）→ 结算时把对应层数清零（不是加 0 层）。
+   - **`ExamStaminaReduceFix`（固定体力消耗）**：`value1` 固定值或「最大体力的 N%」
+     （`percent_max`，9 段）→ 直接扣体力并累计进本场消耗体力；`ExamStaminaRecoverFix`
+     百分比形式同口径回复。
+3. **新触发时机 + 双镜**（`sim/lesson.py` + `sim/expectimax.py`）：新增 `turn_start_after`、
+   `turn_interval`（每 N 回合）、`status_gain_interval`（状态累计增加 N 次；`status_gain_counts`
+   累计）、`stance_change`（指針切换）、`stamina_reduce`（体力实际减少）五类事件；
+   `full_power_point_total` / `consumed_stamina_total` / `status_gain_counts` 随事件维护，
+   `state_from_sim` / `sim_from_state` / `canonical` 全镜像（搜索与执行同口径）。
+
+**数据/结果（2026-11-22 复跑）**：
+
+| 指标 | B7 | B8 |
+|---|---:|---:|
+| catalog 件数 / spec 段 | 1115 / 1849 | 1115 / **1849**（不变） |
+| 数据层已实现 spec 段 | 445 | **676**（+231） |
+| no-op spec 段 | 1404 | **1173** |
+| 条件未知 | 22 件 / 46 段 | **6 件 / 10 段** |
+| 触发限定未知（指定卡/手牌，新单列） | — | **103 件 / 185 段** |
+| 依赖换算 / 百分比体力 / 归零 | 0 / 0 / 0 | **65 / 9 / 3 段** |
+| gkbench hif 83 唯一 id 已实现（153 段含无效果育成期道具） | 34 段 | **59 段** |
+
+**离线 A/B（同 B7 harness：hif 30 题×2 seed=1000/1001、`--budget-ms 100`、同题同 seed 配对，
+CI = mean±1.96·SE；off 与 B7 逐位相同）**：
+
+| 算法 | off | auto | 配对 Δ | 95% CI | 变化局（胜/负/平） |
+|---|---:|---:|---:|---|---|
+| greedy | 3840.7 | **4065.9** | **+225.2（+5.86%）** | [+86.7,+363.6] | 18/60（17/1/42） |
+| expectimax(analytic) | 3726.4 | **3921.8** | **+195.4（+5.24%）** | [−125.3,+516.2] | 21/60（17/4/39） |
+
+- greedy 是确定性执行、CI 全正；expectimax 的 CI 含 0（墙钟预算噪声大，B6/B7 两次也都是
+  方向记录）。对比 B7 的 +128.9：同一 off 基线上 B8 语义又贡献 **+96.2**（3969.7→4065.9）。
+
+**测试/基线**：新增 `tests/test_p_items_b8.py` 19 条（trigger id 解析 / 依赖换算/零层/百分比
+标注 / sim 结算 / LessonSim 与 ExpectState 事件与镜像 / 真数据统计）；旧测试按新口径更新
+（条件未知数、可触发表、特定卡名限定等）。全量 pytest **1067 passed / 1 skipped
+（1068 收集 / 77 文件）**；基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、
+⑤ 366/384 全部不变（本任务只动 P 道具数据/结算 + 两处事件发射，不动洗牌/牌序/审查倍率）。
+
+**如实记录的剩余（下一段候选）**：持续倍率类 `ExamLessonValueMultiple`（「打分上升量增加 N%」
+需要新的持久分数倍率 buff 字段与取整顺序证据，未动）、`ExamCardCreateId`（生成卡）、
+`ExamExtraTurn` / `ExamBuffConsumptionAdd` / `ExamReviewMultiple` / `ExamReviewCountAdd` 等
+modifier 类、`ExamPreservation`/`ExamConcentration` 直给式、**好调依赖换算**（模拟器里好调是
+剩余回合数，量纲不同不猜）、指定卡名/手牌张数（缺卡名→id 映射，103 件保守跳过）、
+真机培育侧 P 道具列表（T6/D1）、主道具附魔/回忆。这些没做也不假装：`trigger_known=False`
+与 `condition_known=False` 都在 `summarize`/`local_bench` 单列。
+
+**文档**：RULES_REFERENCE §0/§5.3/§6；WORKPLAN B8/§0/尾部；HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；
+INDEX；README；COMPARE；EXPECTIMAX；OFFICIAL_AI_NOTES；本文件二·补三十一。
+
+**提交**：`feat`（代码 + 数据 + 测试 + 文档）+ `docs`（哈希/交接记录），
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -1516,9 +1594,17 @@ gakumasu-diff yaml 新增 47 → catalog **1068→1115 件**（spec 1764→1849�
 协议 hash、master 结构/长度/SQLCipher 判据、版本哈希不透明、http1_bridge 头丢失、
 Auth/Login 865/833、上游端口、停服务顺序、CA 指纹/TLS 回退、代理残留、诊断脱敏、互斥）+
 §4.2 与 1.3–1.9 对应表；CAPTURE_PIPELINE「游戏大版本更新后自检」8 步；未改代码，pytest 仍 1054/1）。
-**下一步：T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；E0 若能跑离线培育可作
-替代截图来源；P 道具**条件/效果语义**——数据缺口已被 B7 清掉）→ 阶段 C1（执行层可靠性；
-C0 已完成）/ D（补采集）离线收尾 → 真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比。
+**B8 / T5④ P 道具条件/效果语义第一批 ✅ 2026-11-22**（二·补三十一：新语法 trigger id 结构化
+解析（条件未知 22→**6 件**；指定卡名/手牌张数 → `trigger_known=False` 103 件/185 段保守跳过）+
+依赖换算「X 的 N% 数值变为 Y」（65 段）+ 固定/最大体力百分比体力（9 段）+「X 变为 0」（3 段）+
+`turn_start_after`/`turn_interval`/`status_gain_interval`/`stance_change`/`stamina_reduce`
+五类新触发（LessonSim/ExpectState 双镜）；数据层 **445→676/1849 段**、gkbench 已实现
+**34→59/153 段**；离线 A/B greedy **+225.2（CI[+86.7,+363.6]）**、expectimax +195.4；
+全量 pytest **1067/1（1068 收集 / 77 文件）**；未碰真机/账号）。
+**下一步：T5 剩余机制**（P 道具**持续倍率/modifier 类效果**、指定卡名/手牌映射；
+**fresh buff 差一回合**——需真机逐回合截图；E0 若能跑离线培育可作替代截图来源）
+→ 阶段 C1（执行层可靠性；C0 已完成）/ D（补采集）离线收尾
+→ 真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比；之后 **B2 按 B3 规则重训**。
 **另（2026-11-22 用户指定「开新对话做」）**：候选任务 **T9 = B7（P 道具 47 条补全）/ C0（采集
 更新可靠性经验吸收）/ E0（离线培育测试台实验）**——**B7 ✅ / C0 ✅，剩 E0**（需独立副本 +
 用户配合，先问用户），见 [HANDOVER_NEXT §4 T9](HANDOVER_NEXT.md) / 二·补二十八 / 二·补三十。

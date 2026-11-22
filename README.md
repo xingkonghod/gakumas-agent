@@ -309,12 +309,18 @@ gkbench 505 题模板 83 唯一 id 全已知/未知 0；新增 47 条条件未�
 更新/协议/代理/TLS 经验 → [TROUBLESHOOTING §四](docs/TROUBLESHOOTING.md) 13 条清单
 （2004、hook 被 DMM 还原、协议 hash、master 结构/长度/SQLCipher、版本哈希不透明、
 http1_bridge 头丢失、Auth/Login 865/833、上游端口、停服务顺序、CA 指纹/TLS 回退、
-代理残留、诊断脱敏、互斥）+ [CAPTURE_PIPELINE](docs/CAPTURE_PIPELINE.md) 更新后自检 8 步**。
+代理残留、诊断脱敏、互斥）+ [CAPTURE_PIPELINE](docs/CAPTURE_PIPELINE.md) 更新后自检 8 步** /
+**B8（T5④ P 道具条件/效果语义第一批，2026-11-22）：新语法 trigger id 结构化解析（条件未知
+22→6 件）、依赖换算「X 的 N% 数值变为 Y」（65 段）、固定/最大体力百分比体力（9 段）、
+「X 变为 0」（3 段）、`turn_start_after`/`turn_interval`/`status_gain_interval`/`stance_change`/
+`stamina_reduce` 五类新触发（LessonSim/ExpectState 双镜）；数据层 445→**676/1849 段**、
+gkbench 已实现 34→**59/153 段**；离线 A/B greedy **+225.2（+5.86%，CI[+86.7,+363.6]）**、
+expectimax +195.4；全量 pytest 1067/1（1068 收集 / 77 文件）**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/C0/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / C0 ✅ / F0 收尾 ✅；
-   下一项 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具**条件/效果语义**——
-   数据缺口已被 B7 清掉）；T9 剩 E0（需真机独立副本实验，先问用户；C0 已完成）；
+0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/B8/C0/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / B8 ✅ / C0 ✅ / F0 收尾 ✅；
+   下一项 **T5 剩余机制**（P 道具**持续倍率/modifier 类效果**、指定卡名/手牌映射；
+   **fresh buff 差一回合**——需真机逐回合截图）；T9 剩 E0（需真机独立副本实验，先问用户；C0 已完成）；
    F0 收尾（官方 gkbench 384 组开发种子核洗牌模型 366/384=95.3%、逐张 97.4%、起点校准）见 [GKBENCH §4.5](docs/GKBENCH.md) / [HANDOVER 二·补二十四](docs/HANDOVER.md)；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通
@@ -326,8 +332,11 @@ http1_bridge 头丢失、Auth/Login 865/833、上游端口、停服务顺序、C
 5. **T5 机制建模**：回合规则/取整/核验表已由 B3 完成；审查倍率（分段 + shortfall 联动惩罚）✅ B4；
    熱意（enthusiasm）+ 温存解除 +1 出牌/固定元気 ✅ B5；P 道具**数据接入**（loadout → PItemSpec、
    exam_start + extra_plays）✅ B6；P 道具 **47 条补全**（catalog 1115 件、gkbench 未知 id 清零）✅ B7；
-   剩余：fresh buff 差一回合、P 道具**条件/效果语义**（445/1849 段已实现）、真机培育侧列表、
-   回忆/附魔/减益、考试内生成卡/额外 RNG（[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
+   P 道具**条件/效果语义第一批**（新语法 trigger id 解析、依赖换算、固定/百分比体力、5 类新触发；
+   数据层 676/1849 段，gkbench 59/153 段）✅ B8；
+   剩余：持续倍率/modifier 类效果（`ExamLessonValueMultiple` 等）、指定卡名/手牌映射、
+   fresh buff 差一回合、真机培育侧列表、回忆/附魔/减益、考试内生成卡/额外 RNG
+   （[QQ_GROUP_NOTES](docs/QQ_GROUP_NOTES.md)）；
 6. **OCR 校准**：卡面分数/费用读取仍需真机截图校准（文本/日文已由 A1 解决）。
 
 **红线（永不违反）**

@@ -80,9 +80,14 @@ from gkagent.sim.lesson import (
 from gkagent.sim.p_items import (
     CARD_PLAY,
     EXAM_START,
+    STAMINA_REDUCE,
+    STANCE_CHANGE,
     STATUS_GAIN,
+    STATUS_GAIN_INTERVAL,
     TURN_END,
+    TURN_INTERVAL,
     TURN_START,
+    TURN_START_AFTER,
     PassiveEvent,
     PassiveState,
     PItemSpec,
@@ -249,6 +254,10 @@ class ExpectState:
     p_items: tuple[PItemSpec, ...] = ()
     p_item_uses: tuple[tuple[str, int], ...] = ()
     cards_played_total: int = 0
+    # B8（2026-11-22）：P 道具条件/依赖换算用的本场累计量
+    full_power_point_total: int = 0  # 累计全力值（「累计全力值的 N%」换算源）
+    consumed_stamina_total: int = 0  # 累计消耗体力（「消耗过的体力的 N%」换算源）
+    status_counts: tuple[tuple[str, int], ...] = ()  # 各状态累计增加次数
     # 三框饮料：只在状态里携带，决策层仍走调用方现有 use_drink 流程
     # （架构评审的动作定义是 play(card)/SKIP；饮品不占出牌次数、每回合限 1 瓶）
     drinks: tuple[DrinkSpec, ...] = ()
@@ -307,6 +316,12 @@ class ExpectState:
                 return count
         return 0
 
+    def status_count(self, key: str) -> int:
+        for status, count in self.status_counts:
+            if status == key:
+                return int(count)
+        return 0
+
     def canonical(self) -> tuple[Any, ...]:
         """记忆化键：所有影响价值/合法动作的字段 + 多重集组成。"""
         return (
@@ -356,6 +371,9 @@ class ExpectState:
             self.min_cost,
             self.p_item_uses,
             self.cards_played_total,
+            self.full_power_point_total,
+            self.consumed_stamina_total,
+            self.status_counts,
             self.drinks,
             self.drink_uses,
             self.drinks_used_this_turn,
@@ -589,6 +607,10 @@ def sim_from_state(
         while len(sim.drink_uses) < len(config.drinks):
             sim.drink_uses.append(0)
     sim.cards_played_total = int(state.cards_played_total)
+    # B8：累计量 / 状态增加次数（P 道具条件/依赖换算用）
+    sim.full_power_point_total = int(state.full_power_point_total)
+    sim.consumed_stamina_total = int(state.consumed_stamina_total)
+    sim.status_gain_counts = {key: int(count) for key, count in state.status_counts}
     sim.enthusiasm = int(state.enthusiasm)
     sim.enthusiasm_extension_turns = int(state.enthusiasm_extension_turns)
     sim.buffs = Buffs(
@@ -1000,6 +1022,7 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     # 付牌费：先按指針修正实际费用，強気 2 段階穿透 1 点元气（直接扣体力）
     previous_stance = state.stance_state
     cost = effective_cost(state, played)
+    stamina_before_cost = state.stamina
     pierce = min(cost, stamina_pierce(state.stance_state))
     if pierce:
         state = replace(state, stamina=state.stamina - pierce)
@@ -1010,6 +1033,13 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
         vitality=state.vitality - absorbed,
         stamina=state.stamina - (remaining - absorbed),
     )
+    # B8：本场累计消耗体力 + 「花费值使体力减少时」事件（与 LessonSim 同口径）
+    stamina_lost = stamina_before_cost - state.stamina
+    if stamina_lost > 0:
+        state = replace(
+            state, consumed_stamina_total=state.consumed_stamina_total + stamina_lost
+        )
+        state = fire_p_items(state, STAMINA_REDUCE, stamina_delta=stamina_lost)
     if effect_card.stamina_recover > 0:
         state = replace(
             state,
@@ -1101,6 +1131,11 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     stance = state.stance_state
     if effect_card.full_power_point > 0:
         stance = apply_full_power_point(stance, effect_card.full_power_point)
+        state = replace(
+            state,
+            full_power_point_total=state.full_power_point_total
+            + effect_card.full_power_point,
+        )
     if effect_card.strong_level > 0:
         delta = card_stance_effect("ExamConcentration", [effect_card.strong_level])
         if delta["stance"] is not None:
@@ -1120,6 +1155,9 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
                 save_level=max(stance.save_level, int(delta["save_level"])),
             )
     state = state.with_stance(stance)
+    # B8：指針变化事件（强气/温存/全力切换）；本牌结算后的新指針已经可见。
+    if stance != previous_stance:
+        state = fire_p_items(state, STANCE_CHANGE)
     # P 道具：获得层数时（status_gain）
     if condition_gain > 0:
         state = fire_p_items(
@@ -1604,6 +1642,8 @@ def _p_items_grouped(
 
 
 def _passive_state(state: ExpectState) -> PassiveState:
+    stance = state.stance_state
+    stance_text = str(stance.stance)
     return PassiveState(
         turn=state.current_turn,
         turns_left=state.turns_left,
@@ -1616,9 +1656,18 @@ def _passive_state(state: ExpectState) -> PassiveState:
             "impression": state.impression,
             "focus": state.focus,
             "aggressive": state.motivation,
-            "full_power_point": state.stance_state.full_power_point,
+            "full_power_point": stance.full_power_point,
             "parameter_buff": state.condition_turns,
+            # B8：依赖换算源（累计量）与指針存在性条件
+            "full_power_point_total": state.full_power_point_total,
+            "consumed_stamina_total": state.consumed_stamina_total,
+            "stance_concentration": 1
+            if (stance.strong_level > 0 or "strong" in stance_text)
+            else 0,
+            "stance_preservation": stance.save_level,
+            "stance_full_power": 1 if "full" in stance_text else 0,
         },
+        status_counts=dict(state.status_counts),
         uses=dict(state.p_item_uses),
     )
 
@@ -1635,10 +1684,18 @@ def _p_item_event_subset(
         return grouped.get(EXAM_START, ())
     if kind == TURN_START:
         return grouped.get(TURN_START, ())
+    if kind == TURN_START_AFTER:
+        return grouped.get(TURN_START_AFTER, ())
+    if kind == TURN_INTERVAL:
+        return grouped.get(TURN_INTERVAL, ())
     if kind == TURN_END:
         return grouped.get(TURN_END, ())
     if kind == STATUS_GAIN:
-        return grouped.get(STATUS_GAIN, ())
+        return grouped.get(STATUS_GAIN, ()) + grouped.get(STATUS_GAIN_INTERVAL, ())
+    if kind == STANCE_CHANGE:
+        return grouped.get(STANCE_CHANGE, ())
+    if kind == STAMINA_REDUCE:
+        return grouped.get(STAMINA_REDUCE, ())
     return (
         grouped.get("card_play", ())
         + grouped.get("card_played", ())
@@ -1655,12 +1712,28 @@ def fire_p_items(
     cards_played_total: int = 0,
     status: str = "",
     amount: int = 0,
+    stamina_delta: int = 0,
 ) -> ExpectState:
-    """在指定时机触发 P 道具并返回结算后的状态（纯函数）。"""
+    """在指定时机触发 P 道具并返回结算后的状态（纯函数）。
+
+    B8：新增 ``turn_start_after`` / ``turn_interval`` / ``stance_change`` /
+    ``stamina_reduce`` / ``status_gain_interval``；``status_gain`` 事件同时推进
+    ``status_counts``（累计增加次数，供 status_gain_interval 判断跨过 N 的整数倍）。
+    """
     if not state.p_items:
         return state
+    # B8：状态累计增加次数先推进（即使本次没有匹配的 spec 也要记，供后续
+    # status_gain_interval 的「跨过 N 的整数倍」判断；与 LessonSim 同口径）。
+    status_counts = dict(state.status_counts)
+    status_total = 0
+    if kind == STATUS_GAIN:
+        if status and amount > 0:
+            status_counts[status] = status_counts.get(status, 0) + int(amount)
+        status_total = status_counts.get(status, 0)
     subset = _p_item_event_subset(state, kind)
     if not subset:
+        if status_counts != dict(state.status_counts):
+            return replace(state, status_counts=tuple(sorted(status_counts.items())))
         return state
     event = PassiveEvent(
         kind=kind,
@@ -1669,14 +1742,21 @@ def fire_p_items(
         cards_played_total=cards_played_total,
         status=status,
         amount=amount,
+        status_total=status_total,
+        stamina_delta=stamina_delta,
     )
     delta = apply_passive(subset, event, _passive_state(state))
     if delta.is_zero():
+        if status_counts != dict(state.status_counts):
+            return replace(state, status_counts=tuple(sorted(status_counts.items())))
         return state
     score = state.score + int(delta.score)
     stamina = state.stamina
     if delta.stamina:
         stamina = min(state.stamina_max, max(0, stamina + delta.stamina))
+    consumed_stamina_total = state.consumed_stamina_total
+    if delta.stamina_consumed:
+        consumed_stamina_total += int(delta.stamina_consumed)
     extra_plays = state.extra_plays + int(delta.extra_plays)
     vitality = state.vitality
     impression = state.impression
@@ -1684,6 +1764,20 @@ def fire_p_items(
     condition_turns = state.condition_turns
     motivation = state.motivation
     stance = state.stance_state
+    full_power_point_total = state.full_power_point_total
+    for key in delta.zero_stacks:
+        if key == "vitality":
+            vitality = 0
+        elif key == "impression":
+            impression = 0
+        elif key == "focus":
+            focus = 0
+        elif key == "aggressive":
+            motivation = 0
+        elif key == "full_power_point":
+            stance = replace(stance, full_power_point=0)
+        elif key == "parameter_buff":
+            condition_turns = 0
     for key, value in delta.stacks.items():
         value = int(value)
         if key == "vitality":
@@ -1696,6 +1790,7 @@ def fire_p_items(
             motivation += value
         elif key == "full_power_point":
             stance = apply_full_power_point(stance, value)
+            full_power_point_total += max(0, value)
         elif key == "parameter_buff":
             condition_turns += value
     uses = dict(state.p_item_uses)
@@ -1712,12 +1807,17 @@ def fire_p_items(
         condition_turns=condition_turns,
         motivation=motivation,
         p_item_uses=tuple(sorted(uses.items())),
+        full_power_point_total=full_power_point_total,
+        consumed_stamina_total=consumed_stamina_total,
+        status_counts=tuple(sorted(status_counts.items())),
     ).with_stance(stance)
 
 
 def start_turn_state(state: ExpectState) -> ExpectState:
-    """抽完新手牌后的回合开始结算（P 道具 turn_start）；beam 未来回合用。"""
-    return fire_p_items(state, TURN_START)
+    """抽完新手牌后的回合开始结算（P 道具 turn_start → turn_start_after → turn_interval）。"""
+    state = fire_p_items(state, TURN_START)
+    state = fire_p_items(state, TURN_START_AFTER)
+    return fire_p_items(state, TURN_INTERVAL)
 
 
 def end_turn_state(state: ExpectState) -> ExpectState:
@@ -1774,6 +1874,7 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     )
     previous_stance = state.stance_state
     next_stance = end_turn(state.stance_state)
+    stance_changed = next_stance != previous_stance
     hand_order = state.discard_order
     next_state = replace(
         state,
@@ -1829,6 +1930,9 @@ def end_turn_state(state: ExpectState) -> ExpectState:
                 vitality=next_state.vitality + release_genki,
                 extra_plays=next_state.extra_plays + release_plays,
             )
+    # B8：回合边界的指針切换（全力进入等）发 stance_change（与 LessonSim 同口径）
+    if stance_changed:
+        next_state = fire_p_items(next_state, STANCE_CHANGE)
     # P 道具：回合结束（好印象/好调结算后、弃手牌前）
     return fire_p_items(next_state, TURN_END)
 
@@ -2608,6 +2712,12 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
             sorted(getattr(sim, "p_item_uses", {}).items())
         ),
         cards_played_total=max(int(getattr(sim, "cards_played_total", 0)), 0),
+        # B8：累计量 / 状态增加次数（P 道具条件/依赖换算用）
+        full_power_point_total=max(int(getattr(sim, "full_power_point_total", 0)), 0),
+        consumed_stamina_total=max(int(getattr(sim, "consumed_stamina_total", 0)), 0),
+        status_counts=tuple(
+            sorted((str(key), int(count)) for key, count in getattr(sim, "status_gain_counts", {}).items())
+        ),
         drinks=tuple(getattr(config, "drinks", ()) if config else ()),
         drink_uses=tuple(
             max(int(uses), 0) for uses in getattr(sim, "drink_uses", ())

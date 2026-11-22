@@ -552,8 +552,10 @@ score(card) = 卡面分 + 集中/好调/好印象的边际收益 + 费用/体力
 3. ~~**P 道具映射**~~ ✅ **2026-11-22 T5③ 已完成（离线 loadout 侧）**：允许读
    `ctx.loadout`（base.py：开局配置、不含种子），把 `produce_item_ids` 映射成本地
    `PItemSpec`（`gkagent.data.p_items_db`）；`local_bench` 与 gkbench 提交适配器已接，
-   见 RULES_REFERENCE §5.3。**剩余**：P 道具**条件/效果语义**（catalog 445/1849 段、gkbench
-34/153 段；B7 后数据缺口/未知 id 已清）、真机培育侧列表、主道具附魔。
+   见 RULES_REFERENCE §5.3。**B8（T5④）已完成条件/效果语义第一批**（新语法 trigger id 解析、
+   依赖换算「X 的 N% 数值变为 Y」、固定/百分比体力、5 类新触发；数据层 676/1849 段、
+   gkbench 59/153 段，配对 A/B greedy +225.2）。**剩余**：持续倍率/modifier 类效果
+   （`ExamLessonValueMultiple` 等）、指定卡名/手牌映射、真机培育侧列表、主道具附魔。
 
 ### P2：需要引擎/数据支持的
 
