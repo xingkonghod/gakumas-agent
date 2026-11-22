@@ -258,6 +258,11 @@ ote_self_input() 落盘，0.6s 排除窗口不够。
 - **修复**：① 课程快速路径加 `LESSON_FAST_OCR_EVERY=5` 定时整屏 OCR；② **同屏重复（`same_screen.repeats>=1`）
   时强制整屏 OCR** 并清掉卡住的两段式确认态；③ 在 `auto_produce` 里先于一切分支处理
   「结束回合 + 尚可使用技能卡/确定要结束回合」→ 点 `TURN_END_YES=(492,1197)`。
+- **帧已丢（2026-11-22 A4 核实）**：`step_NNN.png` 是轮转覆盖的，含该弹窗的旧局截图（ep-cplus11 /
+  ep-finish3/4/5 / ep-exp4）已被后续 ep-t3 跑局盖掉；`scripts/scan_frames.py` 扫 1352 张归档截图
+  + data/bench 26 张，**0 帧**命中「结束回合/尚可使用技能卡」。回归改用「真机课程帧 OCR 行 +
+  本节记录的真实弹窗文案」回放（`tests/test_frames_replay_a4.py`），**下次真机跑局出现该弹窗时补拍**
+  fixture（挑帧命令见 `tests/fixtures/README.md`）。
 - **教训**：任何"省 OCR"的快速路径都必须有「画面停滞 → 全量回看」的逃生门；有遮罩弹窗的帧，
   快速路径的模板一定会继续命中。
 
@@ -388,6 +393,21 @@ ote_self_input() 落盘，0.6s 排除窗口不够。
 - **教训**：**先看截图再信日志里的屏幕分类**——日志写"结果页"，实际是日文选择屏；
   「P 费负数」和「+N 飘字」长得一样，正则里一个符号之差就是 10 步空转。日文 OCR（A1）
   把这类「读不到选项」的屏一次性修好一大片，但**不能只靠模型**，事件屏识别要有不依赖 OCR 的兜底。
+
+### 44. 「持有上限/保留饮料」弹窗：勾选框扫描缺 `@staticmethod` → 真机 TypeError（A4 帧回放抓到）
+
+- **现象**（2026-11-22 A4 批量回放历史截图）：真机帧 `data/drink3.png`（2026-11-14 实拍，
+  `P饮料持有数量已达上限 / 请选择保留的3瓶饮料 / 还可选择2个`）走生产链路 `read_fast → decide` 时抛
+  `TypeError: ProduceDriver._checkbox_bands() takes 1 positional argument but 2 were given`。
+- **根因**：`_checkbox_bands(image)` 定义时漏了 `@staticmethod`（`2a40bf4` 引入），方法实际签名变成
+  `(self, image)`，调用 `self._checkbox_bands(image)` 变成传了 2 个位置参数。该分支只在
+  `image is not None` 且「还可选择 N>0」时进入：`tests/test_drink_search.py` 等合成单测不传 image，
+  真机此前也没在"持有上限"弹窗上停过，所以一直没红。真机踩到就是**整局异常退出**（不是卡死）。
+- **修复**：补 `@staticmethod`；回放 `data/drink3.png` → `drink-keep/check-row` 点勾选框列 (632,897)，
+  `_checkbox_bands(image)` 扫出 (713,819)/(884,910) 等行。fixture 归档为
+  `tests/fixtures/drink_limit_20261114.png`，回归 `tests/test_frames_replay_a4.py::test_drink_limit_dialog_checks_checkbox_row`。
+- **教训**：合成 OCR 行单测覆盖不到「需要真图像的分支」（模板/颜色/勾选框定位）。这类分支必须有
+  **真机帧回放**才测得出；A4 的 `scripts/scan_frames.py` 批量回放历史截图，一跑就把这种 latent bug 打出来了。
 
 ## 评估口径约定（2026-11-16 用户指定）
 

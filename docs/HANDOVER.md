@@ -1,4 +1,4 @@
-# 项目交接（2026-11-22 A3 更新）
+﻿# 项目交接（2026-11-22 A4 更新）
 
 > **导航看 [INDEX.md](INDEX.md)**（按任务列了该读哪些文档）。
 > **要动手做事看 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)**（补什么 · 做什么 · 验收标准，下一件事的唯一真源）。
@@ -539,7 +539,7 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
   修复基线过期断言 `test_read_fast_event_page_uses_option_rows`（事件快速路径补读对话区后
   `read_calls` 不再为 0，改为断言只补读 `FAST_DIALOGUE_AREA`、不整屏 OCR）。
   全量 `pytest tests/`：**926 passed / 1 skipped**（927 条收集 / 65 个测试文件，212s；A1 当时口径，
-  A3 后当前为 941/1、942 收集 / 67 文件，见二·补十六）；`ruff` 通过。
+  A4 后当前为 950/1、951 收集 / 68 文件，见二·补十七）；`ruff` 通过。
 - **真机日志**：`auto_produce.py` 首行新增 `[ocr] 模型 = …`——上真机先确认不是内置中文模型。
 
 ### 二·补十五、11-22（WORKPLAN A2 落地：F#42 课程硬打必须得分 ✅）
@@ -616,6 +616,54 @@ PP-OCRv6_small_rec（Apache-2.0，多语言）**。同一张 `step_025.png` 日�
   「读不到选项」的屏一次性修好一大片，但**不能只靠模型**，事件屏识别要有不依赖 OCR 的兜底。
 - **提交**：`106ef2b`（fix：代码+真机帧回放测试+fixture）、`cdf7fca`（docs：补哈希）、
   `1a4b7f8`（chore：`scripts/probe_frame_decide.py` + `scripts/scan_event_frames.py` + gitignore）。
+
+### 二·补十七、11-22（WORKPLAN A4 落地：离线回放素材 ✅）
+
+**目标**：把真机关键屏归档成 fixture，用「真像素 → 真 OCR → 生产 `read_fast`/`decide`」做回归，
+服务"全部离线做完再上真机"；六类屏至少要覆盖：日文剧情二选一 / 课程 buff / 结果页 / 外出事件 /
+考试浮层 / 回合结束确认框。
+
+- **归档**（`tests/fixtures/`，新增 `README.md` 溯源表）：本次新增 6 张真机帧 —
+  `story_choice_ep_t3_3_step049.png`（ep-t3-3 step49 培育开场日文剧情两气泡「飲み物を持ってきました /
+  慣れてきましたか?」）、`result_ep_t3_4_step004.png`（课程结果页「Da.上升了0!」）、
+  `outing_choice_ep_full1_step049.png`（外出三选一「悠闲懒散 -8 / 彻底运动 / 去购物怎么样 -4」）、
+  `exam_card_overlay_20261115.png`（考试页 1st..6th + 卡片详情浮层「考试·舞台中仅限1次」）、
+  `confirm_dialog_ep_t3_4_step019.png`（真机「快进确认」弹窗）、`drink_limit_20261114.png`
+  （持有上限「请选择保留的3瓶饮料 / 还可选择2个」）。另沿用 A2/A3 已归档的课程 buff 帧与
+  外出饮料事件帧；`data/auto/*.png` 是轮转覆盖的，归档进 `tests/fixtures/` 才不会再丢。
+- **工具**：新增 [scripts/scan_frames.py](../scripts/scan_frames.py)——目录/glob/单帧批量走
+  `read_fast→decide`，输出 `screen/action/点击坐标/OCR 文本`，支持 `--screen/--contains/--json/--limit`
+  （A4 挑帧真源；`scan_event_frames.py` 保留为廉价小框预扫）。`probe_frame_decide.py` 的假 device
+  补 `click/swipe`，否则 drink-keep 滚动分支会 `AttributeError`。本次扫了 1352 张历史截图
+  （data/auto step+fail 487、data/manual/arun/bench/video/ssr 511、data 根目录 354）+ data/bench 26 张。
+- **测试**：`tests/test_frames_replay_a4.py` 9 条，全部真机帧回放：
+  1. 日文剧情二选一（读得出两条假名选项、`story/choice` 点上部气泡，**不点右下快进** F#41）；
+  2. 课程 buff 帧（`decide` 交 `LessonPolicy`，`LessonReader` 换算出 0 分/还差 30，策略打
+     「魅力的基础」29 分不选 buff F#42）；
+  3. 结果页（`result-tap/gain`→第 3 次 `next`，A3 修法；点中央 (360,1000)）；
+  4. 外出三选一（`event-choice/last-row`→`confirm`，负 P 费不是飘字）；
+  5. 考试浮层（`exam_mode=True` + `card_detail_open=True` + 卡名「在我发现的世界」+ `kind="audition"`
+     手牌 + 体力 0 时 `lesson_stamina_gate(exam=True)` 仍返回 None → 考试永不禁跳 F#17/F#32）；
+  6. 真机确认弹窗（点 OCR 读到的「确定」按钮）；
+  7. 回合结束确认框（⚠️ 真机帧已丢，用真机课程帧 OCR 行 + F#36 真实弹窗文案 → `dialog/end-turn-yes`
+     点 `TURN_END_YES`）；
+  8. 持有上限保留饮料（`_checkbox_bands` 扫行 + 点勾选框列 (632,897)）。
+- **回放抓到的真机 bug（F#44，已修）**：`ProduceDriver._checkbox_bands` 漏了 `@staticmethod`，
+  真机带 image 进「持有上限/还可选择 N 个」分支会 `TypeError`（整局异常退出）。合成单测不传 image，
+  所以此前没红；`data/drink3.png` 回放一跑就暴露。修一条装饰器 + 真机帧回归。
+- **缺口（如实记录）**：回合结束确认框的真机截图**已经不存在**——`step_NNN.png` 会被后续跑局覆盖，
+  含该弹窗的旧局（ep-cplus11 / ep-finish3/4/5 / ep-exp4）帧已被 ep-t3 跑局盖掉；扫 1352+26 张 0 命中
+  「结束回合 / 尚可使用技能卡」。该分支暂用「真机课程帧 OCR 行 + FAILURES #36 记录的真实文案」回放，
+  **下次真机跑局出现该弹窗时补拍 fixture**（挑帧命令见 `tests/fixtures/README.md`）。
+- **DoD 对照**：六类屏全部有回放；5 类是真机帧，回合结束确认框用真机帧文字 + 同 UI 组件的真机
+  确认弹窗兜底（等真机补拍后升级为纯真机帧）。
+- **基线复核**：全量 pytest **950 passed / 1 skipped**（951 收集 / 68 个测试文件；A4 新增 9 条）；
+  ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、④ wiring 36/36 + 3/3 + known_draw 29/29
+  + beam 28 不变（A4 只加素材/测试 + 一个漏装饰器修复，不动数据链路）。
+- **教训**：1）**真机帧是消费品**：`step_NNN.png` 会被下一次跑局覆盖，关键屏要立刻归档，别等"下次一起"；
+  2）**合成 OCR 行单测测不到需要真图像的分支**（颜色/勾选框/模板定位）——批量真机帧回放能直接抓出
+  latent `TypeError`；3）屏幕分类以截图像素为准，日志里的 `screen/action` 只是当时的判断（F#43 已证明）。
+- **提交**：`99bb6df`（feat：`_checkbox_bands` 修复 + 8 张真机帧 fixture + 9 条回放测试 + `scan_frames.py`）；文档交接提交见 [七、最近提交记录](#七最近提交记录)。
 
 ---
 
@@ -755,6 +803,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 A4 离线回放素材）
+99bb6df feat(a4): A4 离线回放素材——8 张真机关键帧 + 9 条帧回放测试 + scan_frames 挑帧工具（修 _checkbox_bands TypeError，F#44）
 （2026-11-22 A3 收尾：复现脚本 + 交接同步）
 1a4b7f8 chore(tools): A3 复现脚本（帧回放 / 事件屏扫描）+ gitignore 过滤 pytest 临时产物
 cdf7fca docs(handover): 补 A3 F#43 提交哈希（106ef2b）
@@ -820,7 +870,7 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/` **941 passed / 1 skipped**（942 条收集 / 67 个测试文件），含
+**测试状态**：`pytest tests/` **950 passed / 1 skipped**（951 条收集 / 68 个测试文件），含
 `tests/test_exam_shuffle.py` 四场考试洗牌回放 + 「实战回合算 K 会错」回归防线 +
 三组弃牌堆重洗样本对照；`tests/test_expectimax_known_draw.py` 8 条 +
 `tests/test_exam_oracle.py` 6 条完全信息搜索；`tests/test_expectimax_discard_order.py` 17 条
@@ -828,6 +878,7 @@ add71dc docs(reverse): 元数据解包验证
 `tests/test_policy_beam_engine.py` 7 条 beam/接线策略层 + `tests/test_policy_engine.py`
 决策可观测性 + F#42 硬打保分 + `tests/test_lesson_play_f42.py` 3 条真机课程帧回放 +
 `tests/test_produce_ui_f43.py` 7 条 F#43 真机外出帧回放/静态页兜底 +
+`tests/test_frames_replay_a4.py` 9 条六类关键屏真机帧回放（A4）+
 `tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
 四条开工基线：① 4/4 场 + 3/3 重洗、② 本行数字、③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28。
 

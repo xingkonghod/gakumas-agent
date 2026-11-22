@@ -22,6 +22,7 @@
 | A1 OCR 换日文/多语言模型（官方 PP-OCRv6，Apache-2.0） | `tests/test_ocr_jp_model.py` 真图 4 条 + `test_ocr_config.py` 17 条；全量 pytest 926/1；`docs/HANDOVER` 二·补十四 |
 | A2 课程硬打必须得分（F#42：HUD 语义 + 每回合 1 张 + 硬打保分） | `tests/test_lesson_play_f42.py` 真图回放 3 条 + `test_lesson.py` HUD 换算 4 条 + `test_hardplay_prefers_scoring_card_on_flat_tie`；全量 pytest 934/1（935 收集 / 66 文件）；`docs/HANDOVER` 二·补十五 |
 | A3 F#43 结果页空转（真根因：日文饮料选择事件屏 + P 费标签命中飘字正则） | `tests/test_produce_ui_f43.py` 7 条（真机帧回放 3 + 合成 4）；全量 pytest 941/1（942 收集 / 67 文件）；`docs/HANDOVER` 二·补十六 |
+| A4 离线回放素材（六类关键屏真机帧归档 + 回放测试 + 挑帧工具） | `tests/fixtures/` 8 张真机帧 + `README.md` 溯源表；`tests/test_frames_replay_a4.py` 9 条；`scripts/scan_frames.py`；顺带修 `_checkbox_bands` 真机 TypeError（F#44）；全量 pytest **950/1（951 收集 / 68 文件）**；`docs/HANDOVER` 二·补十七 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -124,12 +125,43 @@
 - **DoD（离线）**：真机帧回放从 `result-tap/gain` 空转变成 `event-choice/last-row` → `confirm`
   两步推进；真机整局验收留到阶段 E（T1）。细节见 [FAILURES #43](FAILURES.md) / HANDOVER 二·补十六。
 
-### A4. 离线回归素材（为"全部离线做完再跑真机"服务）
+### A4. 离线回归素材（为"全部离线做完再跑真机"服务）✅ 2026-11-22 完成
 - 把本次真机截图（`data/auto/step_*.png`、`fail_*`）挑关键屏归档成 `tests/fixtures/*.png`（或 `data/replays/`，
   `.gitignore` 已有 `data/replays/*`），做**截图回放测试**：OCR→decide→期望动作；
 - 挑帧工具（A3 已随手落地）：`scripts/scan_event_frames.py` 扫截图找事件选项屏；
   `scripts/probe_frame_decide.py <step>` 把单帧走一遍生产链路（read_fast→decide）看判定/点击；
 - DoD：至少覆盖：日文剧情二选一、课程 buff 场景、结果页、外出事件、考试浮层、回合结束确认框。
+
+**落地（2026-11-22）**
+- **归档**：`tests/fixtures/` 新增 6 张真机帧（另沿用 A2/A3 已归档的 2 张），新增
+  `tests/fixtures/README.md` 记录每张的屏型/episode/step/时间/测什么/怎么再挑帧：
+  日文剧情二选一（ep-t3-3 step49）、课程 buff（ep-t3-4 step1）、结果页（ep-t3-4 step4）、
+  外出三选一（ep-full1 step49）、考试浮层（11-15 实拍）、真机确认弹窗（ep-t3-4 step19）、
+  持有上限保留饮料（11-14 实拍）、外出饮料事件（A3 ep-t3-4 step21）。
+- **回放测试**：`tests/test_frames_replay_a4.py` 9 条，全部是「真像素 → 真 OCR（A1 日文模型）→ 生产
+  `read_fast`/`decide`」：剧情二选一（读得出两条假名选项、点气泡不点快进 F#41）、课程 buff 全链路
+  （`decide` 交给 `LessonPolicy` → 打「魅力的基础」29 分，F#42）、结果页（`result-tap` → 第 3 次
+  `next`，A3 修法）、外出三选一（`event-choice/last-row` → `confirm`，负 P 费不是飘字）、考试浮层
+  （`exam_mode` + `card_detail_open` + audition 手牌 + 考试永不禁跳 F#17/F#32）、真机确认弹窗
+  （点 OCR 读到的「确定」）、**回合结束确认框**（真机课程帧 OCR 行 + F#36 真实弹窗文案）、
+  **持有上限保留饮料**（`_checkbox_bands` 勾选框扫描 + 点勾选框）。
+- **工具**：新增 `scripts/scan_frames.py`——目录/glob/单帧批量走 `read_fast→decide`，输出
+  `screen/action/点击坐标/OCR 文本`，支持 `--screen/--contains/--json/--limit`（A4 挑帧真源；
+  `scan_event_frames.py` 仍是廉价小框预扫）；`probe_frame_decide.py` 的假 device 补 `click/swipe`。
+- **回放抓到并修掉的真机 bug（F#44）**：`ProduceDriver._checkbox_bands` 漏 `@staticmethod`，
+  真机「持有上限/还可选择 N 个」弹窗带 image 进分支会 `TypeError`（合成单测不传 image 所以此前没红）；
+  修后 `data/drink3.png` 回放 → `drink-keep/check-row` 点勾选框列 (632,897)。已记 [FAILURES #44](FAILURES.md)。
+- **缺口（如实记录）**：**回合结束确认框的真机帧已不存在**——`step_NNN.png` 轮转覆盖，含该弹窗的
+  旧局（ep-cplus11 / ep-finish3/4/5 / ep-exp4）截图被后续 ep-t3 跑局盖掉。`scan_frames.py` 扫了
+  1352 张归档截图（data/auto step+fail 487、data/manual/arun/bench/video/ssr 511、data 根目录 354）
+  + data/bench 26 张，**0 帧**命中「结束回合/尚可使用技能卡」。该分支用「真机课程帧 OCR 行 +
+  FAILURES #36 真实弹窗文案」回放；**下次真机跑局出现该弹窗时补拍**
+  `tests/fixtures/turn_end_confirm_<episode>_stepNNN.png`（挑帧命令已写进 fixtures README）。
+- **DoD 对照**：六类屏全部有回放；5 类用真机帧，回合结束确认框用「真机课程帧文字 + 同 UI 组件的
+  真机确认弹窗帧」兜底（原因见上，等真机补拍补成纯真机帧）。
+- **基线复核**：全量 pytest **950 passed / 1 skipped**（951 收集 / 68 个测试文件，含 A4 新增 9 条）；
+  ① 洗牌 4/4 + 重洗 3/3、③ exam_setup 4/4 场 86/86 + 24/24、④ wiring 36/36 + 3/3 + known_draw 29/29 +
+  beam 28 全部不变（A4 只加素材/测试 + 一个漏装饰器修复，不动数据链路）。
 
 ### A5. T3 离线预演（不碰真机）
 - 用新采集的 `traffic.jsonl` 跑 `build_exam_setup.py --current --allow-finished`，用 `ExamPlanSelector` 离线核对
@@ -229,5 +261,8 @@ A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6；见 WORK
 A2（F#42 课程硬打必须得分）已于 2026-11-22 完成（HUD 语义 + 每回合 1 张 + 硬打保分；
 见 WORKPLAN A2 / HANDOVER 二·补十五）。
 A3（F#43 结果页空转）已于 2026-11-22 完成（真根因是日文饮料选择事件屏 + P 费标签被当飘字；
-见 WORKPLAN A3 / HANDOVER 二·补十六）。今天做 A4（离线回归素材：关键截图归档 + 回放测试）。
+见 WORKPLAN A3 / HANDOVER 二·补十六）。
+A4（离线回放素材）也已完成（8 张真机帧归档 + 9 条真机帧回放测试 + scan_frames 挑帧工具；
+见 WORKPLAN A4 / HANDOVER 二·补十七）。今天做 A5（T3 离线预演：`build_exam_setup.py --current
+--allow-finished` + `ExamPlanSelector` 离线核对 locked_turn/verified）。
 ```

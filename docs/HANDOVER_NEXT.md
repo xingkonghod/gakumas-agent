@@ -4,7 +4,7 @@
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
 > 新会话第一句话：
 > 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑四条基线，
-> 再从 WORKPLAN 阶段 A 的下一项（A4）开始。」
+> 再从 WORKPLAN 阶段 A 的下一项（A5）开始。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
@@ -31,19 +31,24 @@
          读不出假名选项 + 飘字正则把 P 费标签「-100」当 +N → 点中央空转；修法与真机帧回放 7 条见
          HANDOVER 二·补十六 / FAILURES #43（提交 106ef2b / cdf7fca；复现脚本 scripts/probe_frame_decide.py
          + scripts/scan_event_frames.py）
-         全量 pytest 941 passed / 1 skipped（942 收集 / 67 文件）
+         2026-11-22 A4：离线回放素材——8 张真机关键帧归档（tests/fixtures + README 溯源表）+ 9 条
+         真机帧回放测试（六类关键屏，见 HANDOVER 二·补十七）+ scripts/scan_frames.py 批量挑帧工具；
+         回放顺手抓到并修掉 _checkbox_bands 缺 @staticmethod 的真机 TypeError（F#44）
+         全量 pytest 950 passed / 1 skipped（951 收集 / 68 文件）
 未完成：① 还没跑出一局"不再乱跳 + 分数达标"的整局（上局 C/4242，期中不合格）
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**，但真机跑局时采集没开 → 全知 0 锁定，差实战验收
         ④ 策略强度：V_leaf 是瓶颈（2026-11-22 已定位：档位效用平手项 + beam 采样分支可 +20，
            但仍比回合内 expectimax 低 22%；下一步受控 policy-evaluation / rollout 监督 v_leaf）；机制建模缺 P 道具/回忆/附魔/选牌/减益
         ⑤ 分数/费用 OCR 仍需用新截图校准（已加回退原因日志：complete/nodes/ms、CardSpec 失配）
-当前最高优先：**阶段 A 离线收尾**（A3 ✅ → **A4 离线回放素材** → A5 T3 离线预演）→
+        ⑥ A4 缺一张真机帧：「回合结束确认框」旧截图被 step_NNN 轮转覆盖（扫 1352 张 0 命中）；
+           分支已用真机课程帧文字 + F#36 文案回放，下次真机跑局出现时补拍 fixture
+当前最高优先：**阶段 A 离线收尾**（A3 ✅ → A4 ✅ → **A5 T3 离线预演**）→
 阶段 B/C/D → 真机 T3→T1→T2 → gkbench（总计划见 WORKPLAN.md）
 ```
 
 > **新会话先读 [WORKPLAN.md](WORKPLAN.md)**：总顺序 = **离线全部做完 → 真机（T3→T1→T2）→ 去 gkbench 比算法**。
-> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / B T4·T5 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
+> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / A4 回放素材 ✅ / A5 T3 离线预演 / B T4·T5 / C 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
 > 和「已完成不要重做」清单。
 
 > **2026-11-21 用户硬规矩（不许破）**：SKIP 只在"所有牌都付不起"时允许；读不到分数/费用不是跳过理由，
@@ -83,6 +88,7 @@
 | A1 日文 OCR 模型 | `configs/ocr_jp.example.yaml` + `scripts/download_ocr_models.py` | 真图 4 条 + 配置 17 条；见 HANDOVER 二·补十四 |
 | A2 课程硬打必须得分（F#42） | [vision/lesson.py](../src/gkagent/vision/lesson.py) 课程 HUD 换算 + [policy/lesson.py](../src/gkagent/policy/lesson.py) 每回合 1 张/硬打保分 | `tests/test_lesson_play_f42.py` 真图回放 3 条 + HUD 换算 4 条 + flat-tie 硬打 1 条；见 HANDOVER 二·补十五 |
 | A3 F#43 结果页空转 | [produce_ui.py](../src/gkagent/tasks/produce_ui.py) `_GAIN_RE` 只认正收益 + 事件屏 P 费标签兜底 + 静态页第 3 次找按钮 | `tests/test_produce_ui_f43.py` 7 条（真机帧回放 3 + 合成 4）；见 HANDOVER 二·补十六 |
+| A4 离线回放素材 | [tests/fixtures/README.md](../tests/fixtures/README.md) 8 张真机帧溯源 + [scan_frames.py](../scripts/scan_frames.py) 批量挑帧 | `tests/test_frames_replay_a4.py` 9 条（六类关键屏真帧回放；回合结束确认框用真机课程帧文字 + F#36 文案，真机帧已被轮转覆盖）；全量 pytest **950/1（951 收集 / 68 文件）**；F#44 `_checkbox_bands` 修复；见 HANDOVER 二·补十七 |
 
 **改动以上任何部分的规矩**：先跑 §2 四条基线命令；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
@@ -95,7 +101,8 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 941 passed, 1 skipped（942 条收集 / 67 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条）
+# ② 全量测试：应为 950 passed, 1 skipped（951 条收集 / 68 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条）
+#    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
 # ③ 采集数据 → 考试牌序：应为 4/4 场、初始段 86/86 张、重洗段 24/24 张
@@ -181,8 +188,9 @@ cd D:\Games\gakumas-agent
   （2026-11-22，官方 PP-OCRv6 Apache-2.0，见 HANDOVER 二·补十四 / WORKPLAN A1）；
   **A2 F#42 已完成**（2026-11-22，课程 HUD 语义 + 每回合 1 张 + 硬打保分，见 HANDOVER 二·补十五 /
   WORKPLAN A2）；**A3 F#43 已完成**（2026-11-22，真根因是日文饮料选择事件屏 + P 费标签被当飘字，
-  见 HANDOVER 二·补十六 / FAILURES #43）。按 WORKPLAN 顺序先做离线阶段 A 剩余
-  （**A4 离线回放素材 → A5 T3 离线预演**），再上真机重验 F#42/#43 与 T3。
+  见 HANDOVER 二·补十六 / FAILURES #43）；**A4 离线回放素材已完成**（2026-11-22，8 张真机帧 +
+  9 条回放测试 + scan_frames 挑帧工具，见 HANDOVER 二·补十七 / WORKPLAN A4）。按 WORKPLAN 顺序
+  做离线阶段 A 剩余项（**A5 T3 离线预演**），再上真机重验 F#42/#43 与 T3。
 
 **剩余（跑一局验收）**
 1. **上真机前先跑模拟器整局 A/B（不碰游戏）**：
@@ -373,7 +381,11 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 .venv\Scripts\python.exe -m pytest tests\test_produce_ui_f43.py -q
 # 任意真机帧走生产链路（OCR→decide）看判定/点击：离线复现"某一步为什么点这里"
 .venv\Scripts\python.exe scripts\probe_frame_decide.py 21
-# 扫本地截图找事件选项屏（A4 挑离线回放 fixture 用，命中才打印）
+# 批量扫截图按屏幕分类挑 fixture（目录/glob/单帧；--screen/--contains/--json/--limit）
+.venv\Scripts\python.exe scripts\scan_frames.py "data/auto/step_*.png" --json out\scan_frames.json
+# A4 真机帧回放（六类关键屏；需要日文 OCR 模型，缺模型自动 skip）
+.venv\Scripts\python.exe -m pytest tests\test_frames_replay_a4.py --basetemp=data/pytest-tmp-a4
+# 扫本地截图找事件选项屏（混合预扫用，命中才打印）
 .venv\Scripts\python.exe scripts\scan_event_frames.py data\auto --keywords ドリンク ヨーグルト
 # 上真机前：模拟器整局 A/B（训练+考试都注入真 LessonPolicy；0 blocked/0 error/C+率）
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --out out\sim_engine_ab.json
@@ -405,6 +417,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 | 出牌上限 | **游戏默认每回合只能出 1 张牌**（额外出牌来自卡效果 `ExamPlayableValueAdd`/P 道具），课程和考试都成立；搜索 `play_limit=1` 是刻意的，别改回 3（否则会偏好"buff+补刀"→ 0 分）。模拟器 `plays_per_turn=3` 尚未对齐，属 T5 待办 |
 | 配置陷阱 | 引擎优先级：`--engine` CLI > `policy.json` 的 `produce.engine`（真机 bot）> 默认 **expectimax**（bot 入口；`LessonPolicy` 自身默认仍是 rules，供离线/单测）；`lesson.engine` 只作 `LessonPolicy` 独立使用/单测默认（保持 rules，别只改它）。每局日志首行 `[engine]` 写明实际用了谁。OCR 模型优先级：`OcrEngine(config_path=)` > `GKAGENT_OCR_CONFIG` > 本地 `configs/ocr_jp.yaml`（下载脚本生成）> 内置中文模型；日志首行 `[ocr] 模型=` 可确认；配置/模型文件缺失**直接报错**，不静默回退中文模型 |
 | 数据 | 主数据缺 11-21 新卡：`verify_shuffle.py` 用 `SUPPLEMENT_*` 兜底，更新主数据后可删；`out/` 不进 git |
+| 截图归档 | `data/auto/step_NNN.png` 会被**后续跑局轮转覆盖**：关键屏要及时归档进 `tests/fixtures/`（A4 已归 8 张，README 有溯源表）。回合结束确认框的真机帧就是这么丢的（扫 1352 张 0 命中），下次真机跑局出现时补拍 |
 | 时间口径 | 期中考试有 `forceEndScore` 提前结束，但 K（洗牌前 RNG 消耗）**按配置回合**算，不是实战回合 |
 | 提交 | 一次任务一个 `feat(...)` 提交（含测试+文档），再一个 `docs(handover): 补提交记录哈希`；`.gitignore` 已忽略 `out/` |
 | 存档 | 私有存档/私有仓库见 [ARCHIVE.md](ARCHIVE.md)：`scripts\archive_private.ps1`（bundle+裸仓库+采集数据备份，`-Push` 推 Gitee 私有仓）；**只能私有** |
@@ -428,12 +441,13 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 ```
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑四条基线。
-期望：洗牌 4/4 场 + 3/3 重洗；pytest 941 passed / 1 skipped（942 条收集 / 67 文件）；
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 950 passed / 1 skipped（951 条收集 / 68 文件）；
 exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28。
 A1（OCR 换日文模型）已于 2026-11-22 完成（官方 PP-OCRv6 Apache-2.0，见 WORKPLAN A1 / HANDOVER 二·补十四）；
 A2（F#42 课程硬打必须得分）也已完成（HUD 语义 + 每回合 1 张 + 硬打保分，见 WORKPLAN A2 / HANDOVER 二·补十五）；
-A3（F#43 结果页空转）也已完成（真根因：日文饮料选择事件屏 + P 费标签被当飘字；见 WORKPLAN A3 / HANDOVER 二·补十六）。
-基线绿后按 WORKPLAN 从 A4 开始：A4 离线回放素材 → A5 T3 离线预演
+A3（F#43 结果页空转）也已完成（真根因：日文饮料选择事件屏 + P 费标签被当飘字；见 WORKPLAN A3 / HANDOVER 二·补十六）；
+A4（离线回放素材）也已完成（8 张真机帧归档 + 9 条真机帧回放测试 + scan_frames 挑帧工具，见 WORKPLAN A4 / HANDOVER 二·补十七）。
+基线绿后按 WORKPLAN 从 A5 开始：A5 T3 离线预演
 → 阶段 B/C/D，全部离线做完再上真机（T3→T1→T2），最后 gkbench。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。

@@ -168,7 +168,14 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 读不出假名选项，且飘字正则把 P 费标签「-100 / -50」当成 +N 飘字 → 每步点屏幕中央空转 10 次停机。
 修法：`_GAIN_RE` 只认正收益 + 事件屏用 P 费标签定位免费项 + 静态页第 3 次起找「下一步」；
 真机帧回放（`tests/test_produce_ui_f43.py` 7 条）从 `result-tap/gain` 变成 `event-choice/last-row → confirm`。
-全量 pytest **941 passed / 1 skipped**（942 收集 / 67 文件）。细节见 HANDOVER 二·补十六 / FAILURES #43。
-下一步按 [WORKPLAN](WORKPLAN.md)：**A4 离线回放素材 / A5 T3 离线预演**
+**同日 A4 已完成**（离线回放素材）：`tests/fixtures/` 归档 8 张关键真机帧（`README.md` 有溯源表），
+`tests/test_frames_replay_a4.py` 9 条「真像素→真 OCR→生产 `decide`」回放（日文剧情二选一 / 课程 buff /
+结果页 / 外出事件 / 考试浮层 / 回合结束确认框 / 真机确认弹窗 / 持有上限保留饮料）；新增
+`scripts/scan_frames.py` 批量挑帧工具。回放顺手抓到并修掉 `_checkbox_bands` 缺 `@staticmethod` 的真机
+`TypeError`（FAILURES #44）。**回合结束确认框的真机帧已被 `step_NNN` 轮转覆盖**（扫 1352 张 0 命中），
+该条暂用真机课程帧 OCR 行 + F#36 真实文案回放，下次真机跑局补拍。
+全量 pytest **950 passed / 1 skipped**（951 收集 / 68 文件）。细节见 HANDOVER 二·补十七 / FAILURES #44。
+下一步按 [WORKPLAN](WORKPLAN.md)：**A5 T3 离线预演**（`build_exam_setup --current --allow-finished` +
+`ExamPlanSelector` 离线核对 locked_turn/verified）
 → 阶段 B/C/D → 真机 T3→T1→T2 → gkbench 比算法（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四/二·补十五 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十四/二·补十五/二·补十六/二·补十七 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
