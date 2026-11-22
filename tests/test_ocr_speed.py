@@ -40,21 +40,29 @@ class _CountingLineEngine:
 
 
 class _StubOcr:
-    """按 ROI 返回预置文本；记录 read/line 调用次数，用来断言"没跑整图 OCR"。"""
+    """按 ROI 返回预置文本；记录 read/line 调用，用来断言"没跑整图 OCR"。
+
+    ``read_rois`` 记录每次区域 OCR 的 ROI：快速路径允许补读指定小区域，
+    但不允许不带 ROI 的整屏 OCR（那才是 5-15s 的元凶）。
+    """
 
     def __init__(self, texts: dict[tuple[int, int, int, int], str] | None = None) -> None:
         self.texts = {tuple(roi): text for roi, text in (texts or {}).items()}
         self.line_calls: list[tuple[int, int, int, int]] = []
-        self.read_calls = 0
+        self.read_rois: list[tuple[int, int, int, int] | None] = []
         self.full_lines: list[OcrLine] = [OcrLine("请选择行动", 0.9, (180, 830, 360, 60))]
+
+    @property
+    def read_calls(self) -> int:
+        return len(self.read_rois)
 
     def line(self, _image, roi, **_kwargs) -> OcrLine | None:
         self.line_calls.append(tuple(roi))
         text = self.texts.get(tuple(roi))
         return None if not text else OcrLine(text, 0.99, tuple(roi))
 
-    def read(self, _image, _roi=None):
-        self.read_calls += 1
+    def read(self, _image, roi=None):
+        self.read_rois.append(None if roi is None else tuple(roi))
         return list(self.full_lines)
 
 
@@ -255,7 +263,8 @@ def test_read_fast_event_page_uses_option_rows() -> None:
     lines = driver.read_fast(_image())
     text = driver.text_of(lines)
     assert "快进" in text
-    assert ocr.read_calls == 0
+    # 事件屏允许补读一次「对话区」（F#41 日文对白/选项气泡，~0.3s），但绝不能整屏 OCR。
+    assert ocr.read_rois == [produce_ui.FAST_DIALOGUE_AREA]
     assert sum(1 for line in lines if "问题点" in line.text or "处理" in line.text or "视频" in line.text) == 3
 
 
