@@ -771,7 +771,7 @@ CI[+39.6,+193.3]，20胜/2负/38平）** / expectimax 3666.5→**3822.8（+156.2
 `ExamCardCreateId` 生成卡、指定卡名/手牌限定、增益倍率整数取整与 fresh buff 差一回合近似。
 下一项候选：**T5 剩余**（生成卡 / fresh buff 差一回合需真机截图）或 **B2 按 B3 规则重训** →
 真机 T3→T1→T2。详见 [HANDOVER 二·补三十二](HANDOVER.md) / [RULES_REFERENCE §5.3](RULES_REFERENCE.md)。
-提交 `feat` + `docs`（哈希见 HANDOVER 七、最近提交记录）。
+提交 `feat` b956123 + `docs` de40f15（哈希见 HANDOVER 七、最近提交记录）。
 
 **上一轮交接记录（2026-11-22，B8 / T5④ P 道具条件/效果语义第一批）**：纯离线代码任务。
 `scripts/build_p_items.py` 新增 `parse_exam_trigger_id` / `trigger_id_has_unparsed_condition`
