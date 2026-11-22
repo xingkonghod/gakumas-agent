@@ -922,6 +922,32 @@ P 道具数据接入）→ 阶段 C（执行层可靠性）/ D（补采集）→
 
 ---
 
+### 二·补二十三、11-22（开工基线复核：四条全绿，与文档期望逐项一致）
+
+**背景**：2026-11-22 17:2x 新会话按 [HANDOVER_NEXT.md](HANDOVER_NEXT.md) §2 做开工自检——
+**只跑基线、不改代码/数据**。环境：Python 3.11.17；`C:\GakumasLocal\GakumasUnlock\out\` 的
+`traffic.jsonl` / `deck_snapshots.json` / `exam_truth.json` 均在；日文 OCR 模型
+`download_ocr_models.py --check` 全部就绪（det/rec/18708 字典/config）。
+
+**实测**（四条命令，退出码均 0）：
+1. `scripts/verify_shuffle.py`：**4/4 场整段复现 + 3/3 重洗**——期中 18/18、期末 26/26、
+   PRO 期中 15/15、PRO 期末 27/27 张；重洗 9/9、6/6、9/9（考试1 重洗段因考试内生成卡按规则跳过）。
+2. `pytest tests/`：**985 passed / 1 skipped**（196.5 s；`--collect-only` 复核 **986 条 / 72 个测试文件**）。
+   唯一 skip = `tests/test_produce_ui.py:1181`「step_047 当前不是行动页（data/auto 正被真机运行持续覆写）」
+   ——属文档预期，不是回归。
+3. `scripts/build_exam_setup.py`：**4/4 场、初始段 86/86、重洗段 24/24**（1 场按规则跳过 7 张生成卡）。
+4. `scripts/verify_exam_wiring.py`：**手牌 36/36 回合、重洗样本 3 组、known_draw 29/29、策略链路
+   beam 28 回合/28 次出牌**（4/4 场通过；⚠️ 计划在重洗前 grave 对不上时自动停用=设计）。
+
+**结论**：四个数字与 [WORKPLAN.md](WORKPLAN.md) / [HANDOVER_NEXT.md](HANDOVER_NEXT.md) §2 /
+[INDEX.md](INDEX.md) 的期望值**完全一致**；B3 与 F0 预检没有破坏任何已验收基线，本会话无需修基线、
+无需改代码。工作区未新增 tracked 改动（`out/exam_setup.json`、`data/pytest-tmp-*` 均被 `.gitignore` 覆盖）。
+
+**下一步**：按 WORKPLAN 做 **F0 收尾**（修 initial 集合 → 逐题命中率/根因 → 校准起点
+`stamina/turn/rules`；数据已就绪），开新会话做。
+
+---
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -971,6 +997,8 @@ B2 旧模型失效需按新规则重训）。**F 阶段数据 + F0 预检 ✅**�
 批量下载 80 run/36,350 条路线/329 题官方种子+check/505 题存档/两种榜单 + 参考分；用官方
 `check.hand` 核对洗牌模型 **286/384=74.5%** 精确命中，npc 按 stage：選抜 5、本戦 2；
 不一致根因=initial_add 自定义 + isInitial 变体，见 [GKBENCH.md](GKBENCH.md)）。
+**开工基线复核 ✅ 2026-11-22 17:2x**（二·补二十三：四条基线全绿——① 4/4+3/3、② 985/1、
+③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28，与文档期望逐项一致）。
 **下一步：F0 收尾**（修 initial 集合 → 逐题命中率/根因 → 校准起点 stamina/turn/rules），
 然后 T5 剩余机制（审查倍率分段/联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、
 P 道具数据接入）→ 阶段 C/D 离线收尾 → 真机（T3→T1→T2）→ F1/F2 gkbench 公开对比。
@@ -1158,7 +1186,7 @@ b80cc05 feat(ground-truth): extract_exams 工具
 add71dc docs(reverse): 元数据解包验证
 ```
 
-**测试状态**：`pytest tests/` **975 passed / 1 skipped**（976 条收集 / 71 个测试文件），含
+**测试状态**：`pytest tests/` **985 passed / 1 skipped**（986 条收集 / 72 个测试文件），含
 `tests/test_exam_shuffle.py` 四场考试洗牌回放 + 「实战回合算 K 会错」回归防线 +
 三组弃牌堆重洗样本对照；`tests/test_expectimax_known_draw.py` 8 条 +
 `tests/test_exam_oracle.py` 6 条完全信息搜索；`tests/test_expectimax_discard_order.py` 17 条
@@ -1171,8 +1199,11 @@ add71dc docs(reverse): 元数据解包验证
 `tests/test_beam_frontier.py` 6 条 B1（前沿 policy-evaluation + 评测执行器丢回合回归）+
 `tests/test_b2_leaf.py` 11 条 B2（叶子特征/叶子状态快照与标签/MLP 存取/搜索接线/生产
 `leaf_model` 缓存与兜底/合成训练收敛）+
-`tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
-四条开工基线：① 4/4 场 + 3/3 重洗、② 本行数字、③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28。
+`tests/test_t5_turn_rules.py` 9 条 B3（真机 39 回合回合规则配对）+ `tests/test_sim_lesson.py`
+实机回放黄金值 2 条；`tests/test_ocr_jp_model.py` 4 条日文 OCR 真图。`ruff check` 对改动文件通过；
+四条开工基线（2026-11-22 17:2x 复核全绿）：① 4/4 场 + 3/3 重洗、② 本行数字、
+③ 4/4 场 86/86 + 24/24、④ 36/36、3/3、29/29、beam 28；唯一 skip =
+`tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写，非行动页）。
 
 ---
 

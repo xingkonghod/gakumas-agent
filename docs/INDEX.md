@@ -187,7 +187,7 @@ OCR/卡表；bot 入口默认 expectimax（[FAILURES #40](FAILURES.md#L293)，�
 结束回合」后又补 SKIP、白丢下一回合的评测 bug；修后 60 局配对 beam unknown 164.0 / known 165.5
 vs within 143.1（+20.9/+22.4，CI 全正；决策门 114.6%/115.7% PASS）；新增 `scripts/eval_t4_b1.py`
 与 `tests/test_beam_frontier.py` 6 条（含受控 frontier 叶子，实测中性）。
-全量 pytest **975 passed / 1 skipped**（976 收集 / 71 文件）。细节见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」。
+全量 pytest **964 passed / 1 skipped**（965 收集 / 70 文件）。细节见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」。
 **同日 B2 已完成**（全知数据训练 MLP 叶子）：`scripts/build_b2_dataset.py` 用 beam **全知**自对弈在
 **叶子状态**（`end_turn_state` 形态）采 26.5k 样本（标签 = on-policy 实际后续得分），
 `src/gkagent/sim/leaf_mlp.py` 104 维结构化特征 + MLP 104→96→48（val r²=0.943），
@@ -220,6 +220,9 @@ UINet 578,722=0.4551 / official-ai 232,710=0.2131）；并用官方 `check.hand`
 **286/384=74.5% 精确命中**，发现 **npc 按 stage 不同**（選抜 6 人制=5、本戦 3 人制=2，K=24/33），
 不一致根因 = `initial_add` 自定义 + `isInitial` 升级变体 → **下一步 F0 收尾**（修 initial → 逐题命中率/
 根因 → 校准官方起点）。细节见 [GKBENCH.md](GKBENCH.md) / HANDOVER 二·补二十二。
+**同日 17:2x 新会话开工基线复核四项全绿**：① 4/4+3/3、② 985/1、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28，与文档期望逐项一致；② 唯一 skip = `tests/test_produce_ui.py:1181`
+（`step_047` 被真机跑局覆写、当前不是行动页，属预期）。见 HANDOVER 二·补二十三。
 阶段 A 全部完成、B1/B2/B3 完成、F 数据已下；下一步 **F0 gkbench 官方种子校准收尾** → T5 剩余机制
 （审查倍率分段+联动惩罚、熱意、温存解除额外次数、fresh buff 差一回合、P 道具数据接入）→ 阶段 C/D →
 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。

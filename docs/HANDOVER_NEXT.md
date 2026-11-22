@@ -147,6 +147,10 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_exam_wiring.py
 ```
 
+**最近一次复核（2026-11-22 17:2x，HANDOVER 二·补二十三）**：四条命令全绿、退出码 0，数字与上面
+期望值完全一致（① 4/4+3/3、② 985/1、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28）。② 唯一 skip =
+`tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、当前不是行动页），属预期。
+
 **环境前提**：
 
 - 采集文件在 `C:\GakumasLocal\GakumasUnlock\out\`（`traffic.jsonl` / `deck_snapshots.json` / `exam_truth.json`）。**不在就只跑 ①②**，并把 ③④ 标记为"待采集"。
