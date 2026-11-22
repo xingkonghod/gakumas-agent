@@ -668,6 +668,9 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-22 A1 OCR 日文模型）
+aae2647 feat(ocr): A1 换日文/多语言模型（官方 PP-OCRv6 Apache-2.0）+ 下载脚本/配置/probe/测试
+884272f test(ocr): 事件快速路径允许补读对话区后，修正 read_calls 过期断言（基线修复）
 （2026-11-22 凌晨）
 4c9f024 feat(eval): T4 起点——档位效用平手项 + beam 采样分支（实验，默认关闭）
 （2026-11-21 深夜四段）
