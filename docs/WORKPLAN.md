@@ -120,7 +120,8 @@
 - **测试**：`tests/test_produce_ui_f43.py` 7 条（3 条真机帧回放：`tests/fixtures/event_ep_t3_4_drink_choice.png`
   → `event-choice/last-row` 点 (360,935)、同帧第二次 = 确认、同屏连续 10 步无 `result-tap`；
   4 条合成单测：P 费不是飘字 / 无选项文字时用费用标签 / 静态页第 3 下点「下一步」/ 没按钮保持计数）。
-- **基线复核**：全量 pytest **941 passed / 1 skipped**（942 收集 / 67 个测试文件）；①②③④ 其余数字不变
+- **基线复核**：全量 pytest **941 passed / 1 skipped**（942 收集 / 67 个测试文件；A3 当时口径，
+  A4 后为 950/1、951 收集 / 68 文件，见下方 A4）；①②③④ 其余数字不变
   （④ 仍 36/36、3/3、29/29、beam 28）。
 - **DoD（离线）**：真机帧回放从 `result-tap/gain` 空转变成 `event-choice/last-row` → `confirm`
   两步推进；真机整局验收留到阶段 E（T1）。细节见 [FAILURES #43](FAILURES.md) / HANDOVER 二·补十六。
