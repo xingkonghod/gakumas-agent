@@ -93,7 +93,7 @@
 | **HANDOVER.md** | 项目现状 + 已完成什么 + 路径速查 + 坑 |
 | **COMPARE.md** | 我们 vs 对手的进度对照（口径/数字/唯一可比路径） |
 | **GKBENCH.md** | gkbench 数据与口径（公开 API/批量下载/参考分/令牌） |
-| **TROUBLESHOOTING.md** | 踩坑记录（采集 9 项 / bot 7 项 / 方法论 4 项）|
+| **TROUBLESHOOTING.md** | 踩坑记录（采集 9 项 / bot 7 项 / 评测与方法论 7 项 / **§四 游戏更新·协议·代理·TLS 断链 13 条（外部经验，⚠️ 本项目待验证）** / 工具与环境）|
 | **FAILURES.md** | 真机失败记录（现象→根因→修复→教训）|
 | **CAPTURE_PIPELINE.md** | 采集链路：结构、配置、四个坑、已采数据 |
 | **MASTER_DATA.md** | 主数据库（286 表）+ seed 发现 |
@@ -117,7 +117,7 @@
 | **WIKI_DUAL_SOURCE.md** | Wiki 双数据源 |
 | **I18N_TODO.md** | 汉化待办 |
 | **LOCAL_DEPLOY_VIDEO.md** | 本地化部署视频分析（GakumasUnlock 早期路线；2026-11-22 已拿到新整合包，见下） |
-| **LOCAL_LAUNCHER_20261122.md** | 作者 2026-11-22 四游戏整合启动器包分析（新版本变化/修复 + 与采集安装的边界，只读参考） |
+| **LOCAL_LAUNCHER_20261122.md** | 作者 2026-11-22 四游戏整合启动器包分析（新版本变化/修复 + 与采集安装的边界，只读参考；T9-B7/C0 已完成、剩 E0） |
 
 ---
 
@@ -276,8 +276,18 @@ gakumasu-diff `ProduceItem.yaml` 新增 47 → `data/knowledge/p_items.json` **1
 仍缺：真机培育侧 P 道具列表（T6/D1 补采）、新增 47 条的条件/效果语义（catalog 445/1849 段
 已实现）、主道具附魔/回忆。细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) /
 HANDOVER 二·补二十九 / WORKPLAN B7。
-阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/F0 完成、F 数据已下；下一步 **T5 剩余机制**
+**同日 T9-C0 已完成**（采集/更新断链排障判据吸收，纯文档）：把作者包 11-07→11-14 踩过并修过的
+「游戏更新/协议/代理/TLS 断链」经验整理成可执行判据——[TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+新增 **§四 13 条清单**（触发→症状/证据→处理→参考：`System/Check` 200 空体 + `x-error-code=2004`
+= 客户端太旧；DMM 更新还原 hook DLL；协议 hash 变化即停；master 清单结构/长度/SQLCipher 判据 +
+版本哈希不透明；`http1_bridge` 丢客户端版本/平台/会话头与业务错误头；`Auth/Login`
+`req_body_len` 865/833→1003 与 `x-p-s` 需 DMM 常驻；上游端口写死→10061/`OFFLINE-FALLBACK`；
+停服务先还原系统代理再停进程；CA 精确指纹/TLS 回退；代理残留自清理；诊断脱敏；更新互斥）+
+§4.2 与本文 1.3–1.9 的对应表；[CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md) 新增「游戏客户端大版本
+更新后自检」8 步。**外部经验、本项目待验证**；只写结论未拷代码/未加依赖/未动数据，pytest 不变
+（**1054/1**）。细节见 HANDOVER 二·补三十 / HANDOVER_NEXT §4 T9-C0。
+阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/C0/F0 完成、F 数据已下；下一步 **T5 剩余机制**
 （**fresh buff 差一回合**——需真机逐回合截图；P 道具**条件/效果语义**——数据缺口已被 B7 清掉）
-→ 阶段 C/D（T9 剩 C0 低成本 / E0 需真机实验）→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
+→ 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，先问用户）→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比
 （ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

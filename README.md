@@ -304,12 +304,17 @@ RULES_REFERENCE 重写逐条核验表，真机 39 回合配对回归；重标定
 `ExamPlayableValueAdd → extra_plays`、local_bench/提交适配器接线；离线 A/B greedy +3.36%）** /
 **B7（T9 P 道具 47 条补全：catalog 1068→1115 件、spec 1764→1849、已实现 421→445；
 gkbench 505 题模板 83 唯一 id 全已知/未知 0；新增 47 条条件未解析段保守不触发；
-离线 A/B greedy +128.9 与 B6 逐位相同——新道具目前 0 分贡献）**。
+离线 A/B greedy +128.9 与 B6 逐位相同——新道具目前 0 分贡献）** /
+**C0（T9 采集/更新断链排障判据吸收，2026-11-22，纯文档）：作者 11-22 整合包的
+更新/协议/代理/TLS 经验 → [TROUBLESHOOTING §四](docs/TROUBLESHOOTING.md) 13 条清单
+（2004、hook 被 DMM 还原、协议 hash、master 结构/长度/SQLCipher、版本哈希不透明、
+http1_bridge 头丢失、Auth/Login 865/833、上游端口、停服务顺序、CA 指纹/TLS 回退、
+代理残留、诊断脱敏、互斥）+ [CAPTURE_PIPELINE](docs/CAPTURE_PIPELINE.md) 更新后自检 8 步**。
 
 **未完成（详见 [docs/HANDOVER_NEXT.md](docs/HANDOVER_NEXT.md) 与 [docs/WORKPLAN.md](docs/WORKPLAN.md)）**
-0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / F0 收尾 ✅；
+0. **离线阶段 A 收口完成、B1/B2/B3/B4/B5/B6/B7/C0/F0 完成、F 数据已下**：A1 ✅ / A2 ✅ / A3 ✅ / A4 ✅ / A5 ✅ / B1 ✅ / B2 ✅（待按 B3 规则重训）/ B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / C0 ✅ / F0 收尾 ✅；
    下一项 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图；P 道具**条件/效果语义**——
-   数据缺口已被 B7 清掉）；T9 剩 C0（低成本纯文档）/ E0（需真机独立副本实验，先问用户）；
+   数据缺口已被 B7 清掉）；T9 剩 E0（需真机独立副本实验，先问用户；C0 已完成）；
    F0 收尾（官方 gkbench 384 组开发种子核洗牌模型 366/384=95.3%、逐张 97.4%、起点校准）见 [GKBENCH §4.5](docs/GKBENCH.md) / [HANDOVER 二·补二十四](docs/HANDOVER.md)；
 1. **T1 真机整局验收**：上局 C/4242（期中不合格），修完禁跳/禁回退 rules / A2 后还没跑出「不再乱跳 + ≥C+」的整局；
 2. **T3 采集↔决策实时实战**：代码已接（`build_exam_setup --current` + `ExamPlanSelector`），离线预演已通

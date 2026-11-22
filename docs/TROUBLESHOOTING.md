@@ -382,7 +382,64 @@ clear/focus/condition/stance 全部静默读成 0，模型权重塌缩。修好�
 
 ---
 
-## 四、工具与环境
+## 四、游戏更新 / 协议 / 代理 / TLS 断链（外部经验吸收，2026-11-22，本项目待验证）
+
+> **来源**：作者 2026-11-22 四游戏整合启动器包（同一条本地部署技术线的更新版；只读静态分析，
+> 边界见 [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)）。下面是作者**踩过并修过**的
+> 判据/症状/处理，按「触发条件 → 症状 → 处理 → 参考」整理——**不是我们本项目复现过的问题**，
+> 第一次照它排查时先记录证据再动手。只记结论，未拷代码（包内未声明仓库级许可证）。
+> 包内原始文件在仓库外 `D:\Games\_launcher_inspect\THE IDOLM@STER\`（`错误提示与解决方法.txt`、
+> `交接文档-20261112.md`、`mitm/*.py`、`src/ui/LauncherErrors.cs`），仓库内摘要见
+> [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md) §2.3。
+>
+> **什么时候查这里**：游戏客户端大版本更新后采集/更新断链、DMM 重装/换机器、代理软件换端口、
+> 证书过期。日常采集四坑（TLS h2c / HTTP/1.1 降级 / Firebase libcurl / 代理端口）仍见
+> [CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md) 与本文 1.3–1.9；更新后自检的 8 步执行清单在
+> [CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md)「游戏客户端大版本更新后自检」。
+>
+> **先分清操作再读错误码**（作者口径：同一退出码在不同操作下含义不同）：
+> 更新内容 1 = 更新过程失败 / 2 = 互斥或端口占用 / 3 = 没拿到可校验的新清单 /
+> 4 = 客户端或协议不兼容 / 5 = DMM 票据缺失或来自另一份安装；
+> 启动游戏 4 = 本地证书未就绪 / 5 = 本地服务或官方准备失败 / 7 = 启动即退（看 `Player.log`）；
+> 官方错误码 2004 = 官方要求升级客户端（不是本地服务坏了）。
+
+### 4.1 排障清单（触发 → 症状 → 处理 → 参考）
+
+| # | 触发条件 | 症状 / 证据 | 处理 | 参考 |
+|---|---|---|---|---|
+| 1 | 客户端版本旧于官服 | 官服 `System/Check` **HTTP 200 但响应体为空**，响应头 `x-error-code: 2004`、`x-error-message-bin`（base64）解出「需要更新应用」；之后没有 Auth/Login、Master/Get；游戏弹初始化/通信错误 | 先用 DMM 正常更新客户端、进大厅，再重试采集/更新；**不能伪造版本号绕过**；把该响应的 code/message/时间记成一份诊断（作者写 `out/official-update-check.json`，我们存 `data/` 诊断即可、不入库） | 包内 `学-新电脑通信失败修复说明.md`；`LauncherErrors.cs` 规则；`错误提示与解决方法.txt`「官方错误码 2004」 |
+| 2 | 游戏客户端更新后残留/被还原 hook | DMM 更新会把 hook DLL 换回原版 → 游戏直连官服（证书错误 / 采集 0 行）；作者启动器用「hook DLL 是否与原版 SameFile」判模式，被还原后**误判成官方模式**、跳过装补丁 | 重新装 hook；**用显式模式标记文件判模式**，不要用「DLL 文件相同」判（DMM 会还原 DLL）。我们侧：核对 `C:\GakumasLocal\...\Plugins\x86_64\` 的 hook DLL 是否还在 + `out\traffic.jsonl` 是否还在增长；重装后必须跑一次「起采集 → 进大厅 → traffic 有新行」证明链路活着 | 包内 `交接文档-20261112.md` §3.7「自愈 hook」 |
+| 3 | 客户端大版本/传输协议变化 | 日志出现 `Protocol changed` / `compatibility review required` / `master envelope differs` / `Unsupported client metadata` / `protocol hash format`；更新操作退出码 4；或 Master/Get 返回空、游戏「通信期间发生错误」 | 确认 DMM 已更新到新客户端，再用**匹配该版本**的构建；**协议 hash 变化时停止自动更新**（不无限重试、不伪造版本/确认）；保存客户端版本 + 协议提示 + 原始 Master/Get 样本后改代码 | 包内 `LauncherErrors.cs`；`mitm/master_protocol_compatibility.py` |
+| 4 | 主表（master）清单结构/长度/加密校验 | Master 表下载或校验失败：`E203` / `file size is different` / `master transfer is truncated` / 表长度或 SQLCipher 校验不过；`x-error-code` 非 0/空 | 保留旧版内容、**不替换、不伪造客户端确认**；重下缺表；持续失败按 #3 协议不兼容处理。作者判据（可照口径）：响应只有字段 1/2、`MasterTag` 唯一、版本 64 位 hex；每个 pack 名唯一且 `[A-Za-z][A-Za-z0-9_]*`、文件名 64-hex、key 32 字节、size>0 且 4096 对齐且 ≤512MB、URL 必须 https + `stat.game-gakuen-idolmaster.jp` + 无 query/fragment + 路径 `/master/<name>/<filename>`；pack 数 ≥100 才允许替换现役清单 | 包内 `mitm/master_lifecycle.py`（`describe()`）；`tools/download_master_tables.py`；`学更新维护说明.md` |
+| 5 | 主表版本判定 | 不知道哪份 master 更新；文件时间/文件名看着像新的 | **版本哈希不透明：永远不要用文件修改时间/文件名判断新旧**。用响应里的 `version`/`tag_sha256`/`response_sha256` + 客户端确认状态判断；现役 master 与版本元数据不一致时**直接停**（作者抛「现役master与版本元数据不一致，已停止」→ Master/Get 空 → 游戏「通信期间发生错误」）；新 master 在客户端进大厅确认前只保留**单份回退槽**，不伪造游戏确认；不要动 `Master_Get` 回放夹具（会触发现役校验失败） | 包内 `mitm/master_lifecycle.py`；`学更新维护说明.md`；`交接文档-20261112.md` §3.12 |
+| 6 | HTTP/1.1 → h2c 转发桥（`http1_bridge`） | 官服拒绝/初始化失败但本地日志没有明显错误；请求头丢客户端版本/平台/会话等自定义字段；响应只按少量固定头构造、业务错误头（`x-error-code` 等）没透传；headers-only gRPC 响应或缺 `grpc-status` 被当成功 | 转发时**保留应用层元数据**（只丢 connection-specific/hop-by-hop 头），响应透传业务错误头；`grpc-status`/`grpc-message` 缺失不能当成功；诊断日志只记长度，不落请求体/头明文（登录票据）。作者已修并加 4 条环回检查（自定义头/正常 trailers/headers-only 业务错误/头注入拒绝） | 包内 `mitm/http1_bridge.py`、`tests/test_http1_bridge.py`；`学-新电脑通信失败修复说明.md` |
+| 7 | 登录票据 / `x-p-s` 为空 | 游戏弹「通信错误 / 認証エラーです / 錯誤コード：1003」。作者判据：`Auth/Login` 的 `req_body_len` **865 = 正常**（32 字符 onetime_token 进了包）/ **833 = 参数丢失 32 字节 → 必然 1003**；`x-p-s` 请求头只在 DMMGamePlayer 常驻时才有值，DMM 退出后为空 → 同样 833 | 先看请求体长度：833 → 确认启动脚本没丢掉透传参数（作者是别删 `-NoOfflineProxy`）→ 确认 DMM 在跑（`Get-Process DMMGamePlayer`）→ 看 `Auth_Login` 请求头 `x-p-s`。我们链路等价判据：`launch-args.json` 的 `onetime_token` 是否过期（见 1.8）+ 抓包核对 Auth/Login 请求体是否带 32 字符 token | 包内 `交接文档-20261112.md` §3.11 |
+| 8 | 上游代理端口变更/残留 | 点更新或进游戏弹「初始化错误 / 初始化失败」；日志 `ConnectionRefusedError [WinError 10061]` → `OFFLINE-FALLBACK`（DMM SDK 的报错只是附带现象） | **上游端口不要写死**：依次读 `proxy.saved.json` 的 Server → 注册表 `HKCU\...\Internet Settings\ProxyServer` → 兜底 `127.0.0.1:7897`；显式环境变量最高优先级；把**实际使用的上游**打印到日志。我们侧对应 1.6/1.9：启动前 TCP 探测 7897/7890/TUN，不通就**删除**代理变量 | 包内 `交接文档-20261112.md` §3.9；`mitm/cache_server.py` `_detect_upstream_proxy()` |
+| 9 | 停止本地服务/代理顺序 | 停服务后**全机 HTTP 断连**（DMM/浏览器都打不开）——「代理进程没了但系统代理还指着它」，作者 2026-10-25 真实事故；或删解压目录报「正在运行中」（本地服务占着目录） | 顺序不能反：① 先还原系统代理（`proxy.saved.json`）② 再杀接管代理的进程 ③ 再停本地服务（`cache_server`/`http1_bridge`）④ 最后（可选）停游戏。**只停本目录/本次 PID** 的服务与所选游戏，不按端口杀任意程序；停止项在任何任务运行时都必须可用（先落 stop marker） | 包内 `交接文档-20261112.md` §3.8/§3.14；`00-启动更新修复-20261114.md`「停止本地服务」 |
+| 10 | CA 证书/指纹/有效期、TLS 回退 | `CERTIFICATE_VERIFY_FAILED` / `TLS certificate` / `CA is not trusted` / 启动退出码 4「本地证书未就绪」；DMM 更新后变官方模式直连官服 → 证书错误 | **不绕过 TLS**；核对**包内证书精确指纹 + 有效期**（避免认错另一张旧 GKM 证书）；代理 TLS 建连失败时回退直连，但**两条线路都校验证书**、回退发生在发请求之前（不重复提交 POST）；先检查系统时间与当前代理证书。我们链路例外：本地 h2c 是明文 + 受控跳过校验（1.3/1.4），**别把那条特例推广到公网转发** | 包内 `00-整合版说明-20261114-代理恢复.md`；`00-启动更新修复-20261114.md` V2；`LauncherErrors.cs` 证书规则 |
+| 11 | 系统代理残留/被后台监视器覆盖 | 用户 Clash 系统代理被写回旧设置；官方登录/更新仍走残留代理；换机器后代理配置混乱 | 官方/在线更新前清理本包残留代理（识别 localhost、IPv6、HTTP/HTTPS 分列写法）；后台监视器**不要无条件写回**旧设置（不覆盖用户后来选的代理）；更新结束自清理，否则本地服务占着解压目录 | 包内 `00-整合版说明-20261114-代理恢复.md` |
+| 12 | 需要反馈诊断 | 无日志/无限重试、说不清卡在哪 | 保留现场（不要清缓存/覆盖存档/反复重启）；反馈带**操作 + 出错时间 + 客户端版本 + 诊断行**；日志提交前**脱敏**（登录票据/账号/个人路径）。作者网络诊断工具只做握手 + 读代理/证书元信息，**不收集登录参数/令牌/HTTP 正文、不改系统设置**；启动即退看 `Player.log`；HTTP 401/403/404/429/5xx 与 gRPC 5/9/13/14/16 都有对应处理表 | 包内 `错误提示与解决方法.txt`；`00-整合版说明-20261114-代理恢复.md`「仍然失败时」 |
+| 13 | 更新/采集互斥 | 「已有同步任务 / `A global stop is still running` / `online capture marker already exists` / 端口占用 / 游戏仍在运行」（更新操作退出码 2） | 先停旧任务/旧服务再重试；「停止本地服务」优先级最高（能中断更新/搜索）；历史失败响应不能阻断下一次采集（只认**新鲜的** System/Check 业务错误） | 包内 `LauncherErrors.cs`；`学-新电脑通信失败修复说明.md` |
+
+### 4.2 与我们采集链路的对应（哪些是我们已经踩过的）
+
+| 作者链路的坑 | 我们的对应条目 | 关系 |
+|---|---|---|
+| TLS 证书不被客户端信任 | 1.3（hook 改明文 h2c）+ 1.4（强制 http2_only） | 同源旧分支，我们已解决，不适用作者的系统代理/CA 方案 |
+| grpc-dotnet 降级 HTTP/1.1 | 1.4 | 已解决 |
+| Firebase 走 libcurl 不走系统代理 | 1.5 + 1.6 | 已解决（注入/清除环境变量） |
+| 上游代理端口 | 1.6 + 1.9 | 已解决（启动前探测） |
+| 服务随控制台被杀 | 1.7 | 已解决 |
+| token 过期 | 1.8 | 已解决（从 DMM 日志取最新 onetime_token） |
+| 2004 / 协议 hash / master 结构 / http1_bridge 头丢失 / 停服务顺序 / CA 指纹 / 诊断脱敏 | 本文 4.1 #1–#13 | **外部经验，本项目尚未复现**；游戏大版本更新后按 [CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md) 自检清单执行 |
+
+**教训（通用）**：更新链路出问题时先问「是客户端旧了（2004）？协议/主表变了？还是证书/代理/服务
+坏了？」——三者处理方式完全不同；**任何情况下都不要用「绕过校验 / 伪造版本 / 旧目录当最新」换
+一次能跑**，那会把一次可定位的错误变成数据污染（采集会写坏 `traffic.jsonl` 的语义）。
+
+---
+
+## 五、工具与环境
 
 | 问题 | 现象 | 修法 |
 |---|---|---|
@@ -395,7 +452,7 @@ clear/focus/condition/stance 全部静默读成 0，模型权重塌缩。修好�
 
 ---
 
-## 五、还没解决的
+## 六、还没解决的
 
 | 问题 | 现状 |
 |---|---|

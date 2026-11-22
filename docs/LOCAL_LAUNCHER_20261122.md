@@ -172,3 +172,6 @@
 - [WORKPLAN.md](WORKPLAN.md) 增 B7 / C0 / E0 候选节；[HANDOVER.md](HANDOVER.md) 二·补二十八
   记录本包分析与边界；[INDEX.md](INDEX.md) 状态行同步。
 - 规则：一次会话只做 1 个；B7/C0 不需要真机；E0 先问用户再动（不碰采集安装）。
+- **进度**：B7 已完成（2026-11-22，HANDOVER 二·补二十九）；**C0 已完成**（2026-11-22，
+  排障判据整理进 [TROUBLESHOOTING §四](TROUBLESHOOTING.md) + [CAPTURE_PIPELINE](CAPTURE_PIPELINE.md)
+  「游戏客户端大版本更新后自检」，见 HANDOVER 二·补三十）；**剩 E0**（需独立副本 + 用户配合）。

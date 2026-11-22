@@ -30,7 +30,8 @@
 | B4 T5① 审查倍率分段 + 联动惩罚 | `src/gkagent/sim/exam_multiplier.py`（分段折线 + 联动惩罚 + 客户端 f32/ceil 取整）+ `src/gkagent/data/exam_bonus.py`（主数据 → 配置）+ `LessonConfig.attribute_bonuses/turn_attributes`（模拟器按回合属性乘，含依赖分与回合末好印象）+ `policy.audition_coefficient`（真机屏幕「舞蹈 207%」→ 搜索倍率，日志 `attr=2.07`）；夹具 `tests/fixtures/t5_exam_multipliers.json`（11-20 采集局期中 Vo/Da/Vi **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**；Vi/Vo/Da 低于审查基准的联动惩罚已对上）；`tests/test_exam_multiplier.py` 21 条；全量 pytest **1006 passed / 1 skipped（1007 收集 / 73 文件）**；`docs/RULES_REFERENCE` §5.1 |
 | B5 T5② 熱意 + 温存解除 | `src/gkagent/sim/enthusiasm.py`（熱意获得/回合末清零/延長/温存解除纯规则）+ `LessonSim`/`ExpectState` 熱意字段与算分（集中之后、好调/指針之前；整数获得时 ceil）；温存解除 1 段 +5 熱意/2 段 +8 熱意 +5 固定元気 + 解除当回合 **+1 出牌次数**（同回合可重复）；卡牌效果 `ExamEnthusiasticAdditive/Multiple`（熱意追加/増加 buff）、`ExamEnthusiasticTurnAdd`（延長）、`ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）接入 `sim_produce`（MODELED_EFFECTS 29→32）与生产卡表 `play_choice`；回合边界 温存→全力 也结算解除收益；`tests/test_t5_enthusiasm.py` 16 条 + sim_produce/play_choice/mechanism 更新；全量 pytest **1023 passed / 1 skipped（1024 收集 / 74 文件）**；`docs/RULES_REFERENCE` §5.2 |
 | B6 T5③ P 道具数据接入 | 新增 `src/gkagent/data/p_items_db.py`（`produce_item_ids` → `PItemSpec`，未知/重复 id 显式上报，缺数据抛错）+ `sim/p_items.py` 新增 **`exam_start`** 触发时机（288 段素材）与 **`ExamPlayableValueAdd` → `extra_plays`**（51 段，取 `count` 列）；`LessonSim` 构造时结算考试开始效果（先于 turn_start、额外出牌保第 1 回合）、`ExpectState` 镜像；`scripts/local_bench.py` 从 `loadout.produce_item_ids` 接入 + `--p-items auto/off` + 报告 `p_items` 覆盖率；`submissions/expectimax/algo.py` 从 `ctx.loadout`（公开配置、不含种子）接入；gkbench 505 题模板 83 唯一 id（72 已知/11 未知）；离线 A/B hif 30 题×2 seed：greedy **+128.9（+3.36%，CI[+9.5,+248.4]）** / expectimax +149.6（+3.98%）；新增 29 条测试；全量 pytest **1051 passed / 1 skipped（1052 收集 / 76 文件）**；`docs/RULES_REFERENCE` §5.3 |
-| 作者 2026-11-22 四游戏整合包分析（外部情报，只读参考） | [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)（包结构/11-22 新版本变化与修复/采集安装边界；7z 归档 `data/dl/`、解包在仓库外，1457 条 sha256 校验通过） | 不能替换采集安装、拿不到考试算分公式；可用的：更新/代理/TLS 排障经验、Produce API 语义参考、P 道具 47 条 id 清单（含 B6 的 11 个未知 gkbench id）；候选任务 **B7/C0/E0（T9，三选一）**，用户要求开新对话做；提交 `ddf221f` |
+| 作者 2026-11-22 四游戏整合包分析（外部情报，只读参考） | [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)（包结构/11-22 新版本变化与修复/采集安装边界；7z 归档 `data/dl/`、解包在仓库外，1457 条 sha256 校验通过） | 不能替换采集安装、拿不到考试算分公式；可用的：更新/代理/TLS 排障经验、Produce API 语义参考、P 道具 47 条 id 清单（含 B6 的 11 个未知 gkbench id）；候选任务 **B7 ✅ / C0 ✅ / E0（T9，剩 E0 需独立副本）**，用户要求开新对话做；提交 `ddf221f` |
+| T9-C0 采集/更新断链排障判据吸收（纯文档） | [TROUBLESHOOTING §四](TROUBLESHOOTING.md) 13 条清单（2004 / 协议 hash/master 结构 / http1_bridge 头丢失 / 票据 865-833 / 上游端口 / 停服务顺序 / CA 指纹 / 诊断脱敏 / 互斥）+ [CAPTURE_PIPELINE「游戏客户端更新后自检」](CAPTURE_PIPELINE.md) 8 步 | 外部经验，本项目待验证；纯文档不改代码，pytest 仍 1054/1；见 HANDOVER 二·补三十 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -398,13 +399,35 @@
 
 ## 阶段 C：可靠性（离线）
 
-### C0.（可选，2026-11-22 新增）采集/更新可靠性经验吸收 ⬜
+### C0.（可选，2026-11-22 新增）采集/更新可靠性经验吸收 ✅ 2026-11-22 完成
 - 从作者整合包（[LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)）吸收游戏更新/
   协议变化/代理/TLS 的排障判据：`x-error-code=2004`、协议 hash/master 表结构判据、
   `http1_bridge` 丢失客户端版本/平台/会话头、TLS 回退直连、CA 精确指纹、系统代理恢复、
   只停本目录服务。写进 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) 新小节 +
   [CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md) 补充；只写结论，不拷代码。
 - **DoD**：检查清单（触发条件→症状→处理→参考）落文档；pytest 不变。预算 ~10–20k token。
+
+**落地（2026-11-22，纯文档、不碰真机/代码）**
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) 新增 **§四「游戏更新 / 协议 / 代理 / TLS 断链
+  （外部经验吸收，2026-11-22，本项目待验证）」**：先给「先分清操作再读错误码」（更新 1–5 /
+  启动 1–7 / 官方 2004 / Windows / gRPC / HTTP 码），再给 **13 条清单**（触发条件 → 症状/证据 →
+  处理 → 参考）：① System/Check 200 空体 + `x-error-code=2004`=客户端太旧；② DMM 更新还原 hook
+  DLL（模式判定别用 SameFile）；③ 协议变更关键词 + 停止自动更新；④ master 清单结构/长度/
+  SQLCipher 判据（64-hex version、pack 名/文件名/key/size/URL host 规则、pack≥100）；⑤ 版本哈希
+  不透明（不按文件时间判新旧、单份回退槽、别动 Master_Get 夹具）；⑥ `http1_bridge` 丢客户端
+  版本/平台/会话头 + 不透传业务错误头 + 缺 `grpc-status` 当成功；⑦ `Auth/Login` `req_body_len`
+  865 正常 / 833 → 1003、`x-p-s` 需 DMM 常驻；⑧ 上游端口写死 7897 → 10061/`OFFLINE-FALLBACK`；
+  ⑨ 停服务顺序（先还原系统代理再停进程，反序 = 全机断网事故）；⑩ CA 精确指纹+有效期、
+  TLS 回退直连两条都校验证书/不重复 POST；⑪ 代理残留不被后台监视器覆盖/更新后自清理；
+  ⑫ 诊断收集与脱敏（网络诊断只做握手+代理/证书元信息）；⑬ 更新/采集互斥与「停止服务」优先级。
+  另加 **§4.2 与我们采集链路对应表**（1.3–1.9 已踩过的 vs 本条待验证的）与通用教训。
+- [CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md) 新增 **「游戏客户端大版本更新后自检」8 步**
+  （先 DMM 更新 → 核对 hook/traffic → 证书/TLS → 上游代理 → 票据 → 协议/主表变化即停 →
+  `build_exam_setup`+`verify_exam_wiring` 重建核对 → 自清理），并修正「离线培育/作者暂不做」
+  的过期说法（11-22 包已有 `produce_runtime.py`，无考试结算，仅 E0 候选）。
+- [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md) §5 同步 B7/C0 完成、剩 E0。
+- **DoD 对照**：检查清单落文档 ✅；不新增依赖/数据 ✅；纯文档 **pytest 仍 1054/1**（复跑见
+  HANDOVER 二·补三十）；一次会话只做 1 个任务 ✅。细节见 HANDOVER 二·补三十。
 
 ### C1. 执行层可靠性（参考 GKMSMAA 架构，**自写代码不拷贝**）
 - tap 确认/重试（tap 丢失、对话未开、picker 选牌、同屏循环）；
@@ -557,8 +580,10 @@ expectimax +149.6（+3.98%）；新增 29 条测试，全量 pytest **1051/1（1
 兼容经验、Produce API 语义、P 道具 47 条 id 清单；不能拿算分公式/替换采集安装/直接拷数据）。
 由此新增候选任务 **T9：B7（P 道具 47 条补全，默认首选）/ C0（采集更新可靠性经验吸收）/
 E0（离线培育测试台实验）**，用户要求开新对话做，一次会话三选一，见 HANDOVER_NEXT §4 T9。
+**T9 进度：B7 ✅（P 道具 47 条补全）、C0 ✅（2026-11-22 排障判据吸收进 TROUBLESHOOTING §四 +
+CAPTURE_PIPELINE 更新后自检 8 步，纯文档不改代码），剩 E0**（离线培育测试台，需独立副本 + 用户配合）。
 下一步继续 **T5 剩余机制**（**fresh buff 差一回合**——需真机逐回合截图，E0 若能跑离线培育可
-提供替代截图来源；P 道具效果覆盖先做 B7）
-→ 阶段 C（执行层可靠性，含 C0）/ D（补采集）离线做完 → 真机 T3→T1→T2（含 E0 实验）
+提供替代截图来源；P 道具**条件/效果语义**——数据缺口已被 B7 清掉）
+→ 阶段 C（执行层可靠性 C1；C0 已完成）/ D（补采集）离线做完 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```
