@@ -762,3 +762,113 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 - 实测：卡表 1829 张里 **169 条**带额外 RNG 机制；我们验证过的四场考试牌组命中 **0**（纯牌组），
   所以 4/4 精确复现成立；含机制的牌组以后不会再盲目跑核对。
 - 回归：`tests/test_exam_risk.py` 8 条；`build_exam_setup` 4/4、`verify_exam_wiring` 36/36、3/3、29/29 不变。
+
+---
+
+## B2 学习叶子（2026-11-22）：全知数据 MLP 叶子 + B1 修正 harness
+
+**结论先行**：用**全知 beam 自我对弈**的「叶子状态 → 实际后续得分」样本训练 104 维结构化
+MLP 叶子，接进 **B1 修正后的 beam**：真实小牌组 120 局配对（全新 seed 3000–3119，
+同牌组同 seed）**beam 均值 157.8 → 165.5（learned，+7.7，95% CI [+4.2,+11.2]）/ 166.9
+（analytic+learned ensemble 0.5，+9.0，CI [+5.8,+12.2]）**；known 条件同样 +7.2~+7.8。
+CLEAR 95.0%→98.3%、PERFECT 33.3%→50.0%。**B2 DoD 达成**（离线配对显著优于解析式叶子）。
+
+**为什么这次和三次历史失败不同**（见本文件「拟合 V_leaf 的实验结果」等三节）：
+
+1. **标签来自搜索策略本身**（beam 全知自对弈的真实后续得分），不是贪心轨迹；
+2. 样本取在**叶子状态分布**上——`expectimax._Search.leaf` 的输入是
+   `end_turn_state(state)`（手牌已进弃牌堆、好印象已结算并 -1、buff 已倒计时、回合 -1）。
+   `RecordingLessonSim` 在每次 `_draw_hand` 入口记录该瞬时点并换算成同形态
+   （旧脚本在**回合开始手牌还在手上**采样，`hand_*` 训练/推理不同分布）；
+3. 特征 104 维结构化（状态/分数缺口/体力、buff 计时、指針、饮料/P 道具、
+   **牌库 vs 弃牌堆拆分**、牌库效果聚合、交互项），不是 35 维裸线性；
+4. 模型 2 隐层 MLP（104→96→48），μ 用 MSE、σ 用残差头高斯 NLL；实现 `LeafValue`
+   协议，直接替换 `AnalyticLeafValue`，**搜索/beam 代码零改动**；
+5. 评测复用 B1 修正后的执行器（`eval_known_draw._execute_plan` 不再白丢回合）。
+
+### 数据 / 训练
+
+| 项 | 做法 | 产物 |
+|---|---|---|
+| 采集 | `scripts/build_b2_dataset.py`：`RecordingLessonSim` + beam 全知自对弈；teacher 3 批（width4/100ms ×1500 + ×3000 局；width8/300ms ×800 局），26,500 样本 | `out/b2_leaf_beam_*.npz`（gitignore，可重建） |
+| 标签 | `y = 最终分 − 叶子状态分数`（on-policy return）；自然打满回合补 `turns_left=0` 终局样本（y=0） | — |
+| 特征 | `src/gkagent/sim/leaf_mlp.py::features`（104 维）；叶子状态约定同搜索 | — |
+| 训练 | `scripts/train_b2_leaf.py`：按 seed 分组 9:1 切分，MLP 104→96→48，700 epochs Adam，σ 残差头 | `data/knowledge/b2_leaf_mlp_small.json`（335KB，tracked） |
+| 验证 | held-out seed：μ r²=0.943、MAE 8.8、corr 0.971（旧 35 维线性 r²≈0.91、MAE≈9.5；ridge 0.933） | `out/b2_report_beam_all.json` |
+| 评测 | `scripts/eval_b2.py`（B1 修正 harness；within/beam × analytic/learned/ensemble，配对差 + 95% CI；退出码 = B2 判定） | `out/b2_eval_*.json` |
+
+### 配对评测（small 真实牌组 14 张 / 5 回合 / CLEAR 120 / PERFECT 170）
+
+**A. 选择段 seed 2000–2079（80 局，unknown 信息）**——选模型/集成权重：
+
+| 策略 | 均值 | P50 | CLEAR | PERFECT | vs 解析式 beeam | 95% CI |
+|---|---:|---:|---:|---:|---:|---|
+| beam（解析式叶子，B1 配置） | 166.8 | 168 | 95.0% | 46.2% | — | — |
+| beam + **learned** | **173.7** | 173 | 98.8% | 56.2% | **+6.8** | [+3.2,+10.4] |
+| beam + ensemble w=0.25 | **174.4** | 174 | 98.8% | 60.0% | **+7.5** | [+3.7,+11.4] |
+| beam + ensemble w=0.5 | 173.7 | 175 | 98.8% | 57.5% | +6.9 | [+2.7,+11.0] |
+| beam + ensemble w=0.75 | 173.2 | 174 | 97.5% | 57.5% | +6.3 | [+2.6,+10.1] |
+
+**B. 确认段 seed 3000–3119（120 局；模型/权重选定后才跑，未参与选择）**：
+
+| 策略 | 信息 | 均值 | P50 | CLEAR | PERFECT | vs 解析式 beam | 95% CI |
+|---|---|---:|---:|---:|---:|---:|---|
+| beam 解析式 | unknown | 157.8 | 157 | 95.0% | 33.3% | — | — |
+| beam + learned | unknown | **165.5** | 169 | 98.3% | 49.2% | **+7.7** | [+4.2,+11.2] |
+| beam + ensemble w=0.25 | unknown | **166.2** | 170 | 97.5% | 50.0% | **+8.4** | [+5.0,+11.8] |
+| beam + ensemble w=0.5 | unknown | **166.9** | 170 | 98.3% | 50.0% | **+9.0** | [+5.8,+12.2] |
+| beam 解析式 | known | 159.9 | 158 | 96.7% | 36.7% | — | — |
+| beam + learned | known | **167.1** | 170 | 98.3% | 50.0% | **+7.2** | [+3.7,+10.7] |
+| beam + ensemble w=0.25 | known | **167.7** | 172 | 98.3% | 51.7% | **+7.8** | [+4.4,+11.1] |
+| beam + ensemble w=0.5 | known | **167.4** | 169 | 98.3% | 49.2% | **+7.5** | [+4.1,+10.9] |
+
+- **B1 基线未变**：seed 0–59 重跑仍 within 143.1 / beam unknown 164.0 / known 165.5（`out/b2_sanity_b1.json`）；
+  `eval_b2` 的 B1 配置列与 `eval_t4_b1` 逐位一致（同分支/预算/tiebreak，注意 beam `branching=0→None`）。
+- **数据量**：1500 局 teacher（7.5k 样本）时 +6.8；加宽/加量到 26.5k 样本后确认段 +7.7；
+  **第二轮自对弈**（teacher=beam+learned，7.5k 样本）反而只有 +5.7/+6.2（选择段），未采用。
+- 复现命令（worker 数无关，均为同机 deterministic）：
+
+```powershell
+# 采集（约 5–9 分钟/批；out/ 不进 git）
+.venv\Scripts\python.exe scripts\build_b2_dataset.py --games 3000 --policy beam --known --out out\b2_leaf_beam_known2.npz --seed 600000
+.venv\Scripts\python.exe scripts\build_b2_dataset.py --games 800 --policy beam --known --width 8 --budget-ms 300 --out out\b2_leaf_beam_strong.npz --seed 500000
+# 训练（合并三批；约 1 分钟）
+.venv\Scripts\python.exe scripts\train_b2_leaf.py --data out\b2_leaf_beam_known.npz out\b2_leaf_beam_known2.npz out\b2_leaf_beam_strong.npz --out data\knowledge\b2_leaf_mlp_small.json --hidden 96 48 --epochs 700
+# 评测（选择段；确认段把 --seed 改 3000）
+.venv\Scripts\python.exe scripts\eval_b2.py --leaf-model data\knowledge\b2_leaf_mlp_small.json --games 80 --seed 2000 --info unknown --ensembles 0.25 0.5 0.75 --json out\b2_eval_*.json
+```
+
+### 负结果（如实记录，避免重复踩）
+
+1. **within 用 learned 叶子显著变差**：同搜索换成 learned（或 ensemble）叶子，确认段
+   within 140.0 → 136.7（−3.3，CI [−5.6,−1.1]）。原因：V 的标签是**更强 beam 策略**的收益，
+   对 within 执行来说系统性偏乐观；within 只拿叶子做"本回合动作排序 + 是否收手"，
+   策略改进收益拿不到、只吃偏差。**结论：B2 叶子只对 `engine=beam` 有益**。
+2. **within 自对弈叶子（正确策略标签）≈ 中性**：30k within 样本训练，60 局 +0.9（CI [−2.4,+4.2]）。
+   与"解析式叶子不是 within 的瓶颈"一致。
+3. **档位概率头（logistic P(CLEAR)/P(PERFECT)）在 beam 上灾难性变差**（−42~−46）：
+   beam teacher 的叶子状态 98.7% 最终 CLEAR，P(CLEAR) 饱和到 0.96 → 搜索排序失去平滑
+   μ 信号。保留实现（`train_b2_leaf.py --utility-heads`）但**不用于最终模型**。
+4. **第二轮专家迭代**（teacher=beam+learned 的 7.5k 样本）未超过第一轮（选择段 +5.7 vs +6.8）。
+
+### 生产接线（未默认打开）
+
+- `LessonPolicy.DEFAULT_PARAMS` 新增 `leaf_model`（默认 `None` = 行为不变）与
+  `leaf_model_weight`（默认 0.5）；`_leaf_value()` 显式配置时构
+  `EnsembleLeafValue(analytic, learned)`，并**缓存**（旧实现每决策重读 JSON）。坏路径只 warning 退回解析式。
+- **不要给 expectimax（within）打开**（见负结果 1）；T2 真机 A/B 时按引擎分别评估，
+  建议候选：`engine=beam` + `leaf_model=data/knowledge/b2_leaf_mlp_small.json` +
+  `leaf_model_weight=0.25`（选择段最佳权重）。真机是否同样有收益取决于 B3 机制对齐
+  （`LessonSim` `plays_per_turn=3` vs 真机 1、P 道具/饮料/减益等），离线数字不能直接当保证。
+- 规格注意：叶子特征**不含 `known_draw`**（student 是公开信息策略）；known 条件的收益来自
+  「把全知 teacher 的结果蒸馏进公开特征」，不是偷看牌序。
+
+### 测试 / 基线
+
+- `tests/test_b2_leaf.py` 11 条：叶子特征维度/纯函数/手牌归一化、`RecordingLessonSim`
+  快照与标签、MLP save/load（含/不含档位头）、utility 契约、expectimax 接 learned 叶子、
+  合成数据训练收敛、生产 `LessonPolicy` 的 `leaf_model` 接线 + 缓存 + 坏路径兜底。
+- 全量 pytest **975 passed / 1 skipped**（976 收集 / 71 文件）；ruff 通过。
+- 基线 ①③④ 全部不变（B2 只新增模块/脚本 + `eval_known_draw.play` 两个可选参数 +
+  `LessonPolicy` 可选参数/缓存）。
+

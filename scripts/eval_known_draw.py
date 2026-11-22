@@ -151,6 +151,8 @@ def play(
     beam_depth: int = 0,
     frontier_rollout: bool = False,
     frontier_budget_ms: float = 5.0,
+    leaf_model=None,
+    sim_factory=None,
 ) -> dict:
     """跑一局课程，返回分数与统计（fallback = 搜索给的牌在模拟器里执行不了）。
 
@@ -158,12 +160,21 @@ def play(
     ``score_tiebreak``：档位效用封顶导致的平手项（0=历史行为）；``branching``：
     beam 每层抽样分支数（None=默认 max(2, min(width, 3))）。
     ``leaf``：``analytic``=解析式 V_leaf；``rollout``=LessonSim+greedy 快跑剩余回合。
+    ``leaf_model``：显式传入的叶子（如 B2 训练的 ``leaf_mlp.MLPLeafValue``），优先于
+    ``leaf``；B2 数据采集/自对弈迭代也用它。
+    ``sim_factory``：可选 ``LessonSim`` 工厂（B2 用 ``RecordingLessonSim`` 记录叶子
+    状态）；签名 ``(deck, config, rng_seed) -> LessonSim``。
     ``beam_depth``：beam 层数（0=跑满剩余回合；>0 用于受控截断 + 前沿 policy evaluation）。
     ``frontier_rollout``：只对 beam 最深端点用执行同策略（within）rollout 重排
     （B1 受控 policy evaluation；终局端点不 rollout）。
     """
-    sim = LessonSim(deck, config, rng_seed=seed)
-    if leaf == "rollout":
+    if sim_factory is not None:
+        sim = sim_factory(deck, config, rng_seed=seed)
+    else:
+        sim = LessonSim(deck, config, rng_seed=seed)
+    if leaf_model is not None:
+        model = leaf_model
+    elif leaf == "rollout":
         model = RolloutLeafValue(
             sigma=sigma,
             score_tiebreak=score_tiebreak,

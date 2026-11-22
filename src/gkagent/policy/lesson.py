@@ -131,6 +131,10 @@ class LessonPolicy:
         # beam（跨回合规划）：宽度 + 单次决策预算（本地评测均值 ~100ms/回合）。
         "beam_width": 4,
         "beam_deadline_ms": 250.0,
+        # B2 学习型叶子（默认 None = 保持历史行为）。设置后 expectimax/beam 的叶子
+        # 变成 EnsembleLeafValue(analytic, learned, weight)；T2 真机 A/B 再决定打开。
+        "leaf_model": None,
+        "leaf_model_weight": 0.5,
     }
 
     def __init__(
@@ -332,6 +336,9 @@ class LessonPolicy:
                 allowed = _ALLOWED_VALUES.get(key, frozenset())
                 if isinstance(value, str) and value in allowed:
                     out[key] = value
+            elif default is None and (value is None or (isinstance(value, str) and value)):
+                # 可选字段（默认 None）：接受 None 或非空字符串（如 B2 leaf_model 路径）。
+                out[key] = value
         return out
 
     @staticmethod
@@ -679,10 +686,50 @@ class LessonPolicy:
         return sim_state, play_cards, reshuffle
 
     def _leaf_value(self):
-        """叶子估值：解析式；有 ``v_leaf.json`` 时用 ensemble（analytic + learned）。"""
+        """叶子估值（带缓存）：解析式；可叠加学习模型（ensemble）。
+
+        优先级（低 → 高）：
+
+        1. ``AnalyticLeafValue``（永远作为 primary）；
+        2. 历史行为：``data/knowledge/v_leaf.json`` 存在时叠 35 维线性叶子（weight 0.5）；
+        3. B2 显式配置：``leaf_model`` 指向 ``leaf_mlp.MLPLeafValue`` JSON 时用 MLP 叶子
+           （或其它 v_leaf JSON）；权重 ``leaf_model_weight``。**默认 None = 行为不变**，
+           T2 真机 A/B 后再决定是否打开（B2 离线结果见 docs/EXPECTIMAX.md）。
+        """
+        cached = getattr(self, "_leaf_cache", None)
+        if cached is not None:
+            return cached
+        leaf = self._build_leaf_value()
+        self._leaf_cache = leaf
+        return leaf
+
+    def _build_leaf_value(self):
+        """构造叶子估值（只在首次 ``_leaf_value`` 时跑一次，避免每决策重读 JSON）。"""
         from gkagent.sim.expectimax import AnalyticLeafValue
 
+        logger = logging.getLogger(__name__)
         leaf = AnalyticLeafValue(sigma=float(self.params["expectimax_sigma"]))
+        weight = float(self.params.get("leaf_model_weight", 0.5) or 0.5)
+        explicit = self.params.get("leaf_model")
+        if explicit:
+            try:
+                path = Path(str(explicit))
+                if not path.is_absolute():
+                    path = Path.cwd() / path
+                doc = json.loads(path.read_text(encoding="utf-8"))
+                from gkagent.sim.v_leaf import EnsembleLeafValue
+
+                if doc.get("format") == "gkagent.mlp_leaf.v1":
+                    from gkagent.sim.leaf_mlp import MLPLeafValue
+
+                    learned = MLPLeafValue.load(path)
+                else:
+                    from gkagent.sim.v_leaf import LinearLeafValue
+
+                    learned = LinearLeafValue.load(path)
+                return EnsembleLeafValue(primary=leaf, secondary=learned, weight=weight)
+            except Exception as exc:  # noqa: BLE001 - 模型坏了退回解析式，不能让出牌崩
+                logger.warning("B2 leaf_model 加载失败，退回解析式叶子: %s", exc)
         try:
             v_leaf_path = Path("data/knowledge/v_leaf.json")
             if v_leaf_path.exists():
@@ -694,7 +741,7 @@ class LessonPolicy:
                     weight=0.5,
                 )
         except Exception as exc:  # noqa: BLE001 - 模型坏了退回解析式，不能让出牌崩
-            logging.getLogger(__name__).warning("v_leaf 加载失败，退回解析式叶子: %s", exc)
+            logger.warning("v_leaf 加载失败，退回解析式叶子: %s", exc)
         return leaf
 
     @staticmethod
