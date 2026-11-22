@@ -276,6 +276,28 @@ def specs_from_hand(
     return result
 
 
+def spec_from_name(name: str, table: CardTable | None = None) -> CardSpec | None:
+    """卡名（卡表键，含强化变体）→ ``CardSpec``（卡表真值）。
+
+    B10：P 道具生成卡（``ExamCardCreateId``）按 id 找到卡名后，用同一套
+    ``_effect_fields`` 映射建牌（与出牌/牌组构建同口径）。卡表查不到 → None
+    （调用方保守不生成，不猜卡面）。
+    """
+    if not name:
+        return None
+    table = table if table is not None else _default_table()
+    row = table.get(name)
+    if row is None:
+        return None
+    return CardSpec(
+        name=name,
+        cost=int(row.get("cost") or 0),
+        score=_score_from_row(name, table),
+        category=str(row.get("category") or ""),
+        **_effect_fields(row),
+    )
+
+
 def _sim_config(
     turns_left: int,
     stamina: int,

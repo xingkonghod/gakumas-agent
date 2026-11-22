@@ -199,6 +199,7 @@ from gkagent.sim.exam_multiplier import battle_bonus_score
 from gkagent.sim.p_items import (
     CARD_PLAY,
     EXAM_START,
+    EXAM_START_AFTER,
     STAMINA_REDUCE,
     STANCE_CHANGE,
     STATUS_GAIN,
@@ -613,6 +614,9 @@ class LessonSim:
         # exam_start 给的额外出牌次数属于第 1 回合，所以初始抽牌不清零。
         self._fire_p_items(EXAM_START)
         self._draw_hand(keep_extra_plays=True)
+        # B10：训练开始后（exam_start_after，参考 at:afterStartOfStage）——
+        # 抽完第一手牌之后结算一次（生成卡到手牌等）。
+        self._fire_p_items(EXAM_START_AFTER)
 
     def shuffle_deck(self, deck: list[CardSpec], *, seed: int | None = None) -> None:
         """PIMC determinization：重新布置牌库顺序（**只改顺序，不改组成**）。
@@ -855,6 +859,7 @@ class LessonSim:
         self._fire_p_items(
             CARD_PLAY,
             card_category=card.category,
+            card_name=card.name,
             cards_played_this_turn=self.plays_this_turn,
             cards_played_total=self.cards_played_total,
         )
@@ -1282,6 +1287,12 @@ class LessonSim:
             },
             status_counts=self.status_gain_counts,
             uses=self.p_item_uses,
+            # B10：四个 tracked 区的卡名（区域张数条件 zone_count 求值用）。
+            hand=tuple(card.name for card in self.hand),
+            deck=tuple(card.name for card in self.deck),
+            discard=tuple(card.name for card in self.discard),
+            excluded=tuple(card.name for card in self.excluded),
+            zones_known=True,
         )
 
     def _fire_p_items(
@@ -1289,6 +1300,7 @@ class LessonSim:
         kind: str,
         *,
         card_category: str = "",
+        card_name: str = "",
         cards_played_this_turn: int = 0,
         cards_played_total: int = 0,
         status: str = "",
@@ -1321,6 +1333,8 @@ class LessonSim:
             ) + self._p_items_by_trigger.get(STATUS_GAIN_INTERVAL, ())
         elif kind == EXAM_START:
             subset = self._p_items_by_trigger.get(EXAM_START, ())
+        elif kind == EXAM_START_AFTER:
+            subset = self._p_items_by_trigger.get(EXAM_START_AFTER, ())
         elif kind == TURN_START:
             subset = self._p_items_by_trigger.get(TURN_START, ())
         elif kind == TURN_START_AFTER:
@@ -1345,6 +1359,7 @@ class LessonSim:
         event = PassiveEvent(
             kind=kind,
             card_category=card_category,
+            card_name=card_name,
             cards_played_this_turn=cards_played_this_turn,
             cards_played_total=cards_played_total,
             status=status,
@@ -1443,6 +1458,9 @@ class LessonSim:
             self.double_cost_turns += int(delta.double_cost_turns)
         if delta.extra_turns:
             self.extra_turns_pending += int(delta.extra_turns)
+        # B10：生成卡（ExamCardCreateId 确定式）——按 zone 落牌（参考 addCardTo*）。
+        if delta.create_cards:
+            self._create_p_item_cards(delta.create_cards)
         # 好印象减少（ExamReviewReduce）等负层数：夹到 ≥0（层数没有负值）
         self.buffs.impression = max(self.buffs.impression, 0)
         self.buffs.focus = max(self.buffs.focus, 0)
@@ -1451,8 +1469,39 @@ class LessonSim:
         stance = self._apply_direct_stances(delta.stances)
         if stance and _depth < 3:
             self._fire_p_items(STANCE_CHANGE, _depth=_depth + 1)
-        for item_id in delta.applied:
+        # B10：次数上限按**道具**计（参考 limit:N = 每事件触发一次）；同一道具
+        # 多个效果段同事件触发只记 1 次（旧口径按段累计会让多段道具提前用完）。
+        for item_id in dict.fromkeys(delta.applied):
             self.p_item_uses[item_id] = self.p_item_uses.get(item_id, 0) + 1
+
+    def _create_p_item_cards(self, creates: list) -> None:
+        """B10：结算 P 道具生成卡（``ExamCardCreateId`` 确定式）。
+
+        参考引擎 ``CardManager.addCardTo*`` 语义：手牌生成**手牌≥5 不生成**；
+        牌堆顶 = ``deck`` 末尾（``_draw`` 从末尾 pop）；弃牌堆直接 append。
+        卡名按 (id, upgrade) 从卡表找，``spec_from_name`` 建牌（与牌组同口径）；
+        卡表查不到 → 保守不生成（不猜卡面）。随机基础卡（H.I.F应援棒）是考试
+        RNG 入口、真机流未知 → 数据层只记语义，这里不结算。
+        """
+        from gkagent.data.card_meta import card_meta_index
+        from gkagent.sim.play_choice import spec_from_name
+
+        index = card_meta_index()
+        for create in creates:
+            name = index.name_of(create.card_id, create.upgrade)
+            spec = spec_from_name(name) if name else None
+            if spec is None:
+                continue
+            for _ in range(max(int(create.count), 1)):
+                if create.zone == "hand":
+                    if len(self.hand) >= 5:
+                        continue
+                    self.hand.append(spec)
+                elif create.zone == "deck_top":
+                    self.deck.append(spec)
+                    self._min_cost = min(self._min_cost, spec.cost)
+                elif create.zone == "discard":
+                    self.discard.append(spec)
 
     def _apply_direct_stances(self, kinds: list[str]) -> bool:
         """B9：结算 P 道具的指針直给（温存变更 / 强气变更）；返回指針是否变化。

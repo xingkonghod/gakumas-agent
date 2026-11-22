@@ -278,7 +278,7 @@ def test_condition_false_blocks_trigger() -> None:
         "ExamLessonValueMultipleDependReviewOrAggressive",  # 自尊（依赖换算顺序未建模）
         "ExamConcentration",  # 指針直给必须先有「强气变更」文本，否则保守 no-op（B9）
         "ExamPreservation",  # 同上（「温存变更」文本才触发）
-        "ExamCardCreateId",  # 生成卡
+        "ExamCardCreateId",  # 生成卡：未标注 create（随机/卡名未知）仍 no-op；确定式见 B10
         "unknown",
         "",
     ],

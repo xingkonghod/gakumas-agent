@@ -55,6 +55,7 @@ I18N_NAMES = ROOT / "data" / "i18n" / "translation_new.json"
 # 的纯函数（effect_type + 效果文本 → target / duration），避免两处各写一套。
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
+from gkagent.data.card_meta import card_meta_index
 from gkagent.sim.p_items import (
     classify_effect_target,
     effect_duration,
@@ -312,18 +313,213 @@ _UNPARSED_TRIGGER_TOKENS = ("p_card_search-playing-", "card_search_count_up-")
 _SPECIFIC_CARD_IN_SEARCH = re.compile(r"p_card_search[^-]*(?:-[a-z_0-9]+)*?-p_card-\d")
 
 
-def trigger_id_has_unparsed_condition(trigger_id: str) -> bool:
-    """触发 id 里是否带「指定卡名 / 手牌指定卡张数」这类还建模不了的限定。
+# ---- B10（2026-11-23）：p_card_search 触发限定结构化解析 --------------------
+# 上游把「哪张卡 / 哪个区域几张卡」编码进 trigger id 的 p_card_search 段。语义来源：
+#   * masterTrans/ProduceCardSearch.json（描述表：playing=使用时 / target=使用后 /
+#     deck_grave=牌堆或弃牌 / deck_all=全部 / lost=除外 / hold=保留 / hand=手牌 /
+#     trouble=干扰卡 / r-sr-ssr-legend=R以上 / min_max-4_99=原本消耗体力4以上 /
+#     effect_group-visible-exam_*-000=可见效果组 / idol-unique=偶像固有）；
+#   * 主数据 ProduceCard.effectGroupIds（卡→效果组，与限定同一套 id）；
+#   * BSD-3 参考引擎 gakumas-tools：指定卡名触发用 usedCardBaseId（base id，
+#     不限强化）；countCards 区域语义；hold 区我们未建模 → 保守不解析。
+_CARD_ID_RE = re.compile(r"p_card-\d{2}-[a-z]+-\d+_\d+")
+_SEARCH_MARKER = re.compile(
+    r"(?:(?P<neg>not-)?card_search_count_up-(?P<n>\d+)-)?p_card_search-"
+)
+_ZONE_TOKENS = {
+    "playing", "target", "hand", "deck", "grave",
+    "deck_grave", "deck_all", "lost", "not_lost", "hold",
+}
+_PLAY_ZONES = {"playing", "target"}
+#: 区域 → 模拟器 tracked 区（hold 未建模 → 不映射，保守不触发）。
+#: deck_all = 全部 tracked 区（hold/除外以外都在；参考 countCards 无区域限定 = 全场）。
+_ZONE_MAP = {
+    "hand": ("hand",),
+    "deck": ("deck",),
+    "grave": ("discard",),
+    "deck_grave": ("deck", "discard"),
+    "deck_all": ("deck", "hand", "discard", "excluded"),
+    "lost": ("excluded",),
+    "not_lost": ("deck", "hand", "discard"),
+}
+_RARITY_TOKENS = {
+    "r-sr-ssr-legend": ("R", "SR", "SSR", "LEGEND"),
+    "n-r-sr-ssr": ("N", "R", "SR", "SSR"),
+    "ssr": ("SSR",),
+    "sr": ("SR",),
+    "r": ("R",),
+    "n": ("N",),
+    "legend": ("LEGEND",),
+}
+_CATEGORY_TOKENS = {"active_skill": "ActiveSkill", "mental_skill": "MentalSkill"}
 
-    ``p_card_search-playing-…``、``card_search_count_up-N``，以及
-    ``p_card_search-target-1-p_card-01-act-…``（搜索区就是某张指定卡）都算。
-    这些限定没解析出来时不能当无条件触发（会在任意卡上误触发）。
+
+def _parse_search_filter(text: str) -> tuple[dict | None, bool]:
+    """p_card_search 段去掉区域词后的限定 → (filter dict, unresolved)。"""
+    rest = text.strip("-")
+    filt: dict = {}
+    while rest:
+        match = _CARD_ID_RE.match(rest)
+        if match:
+            filt["kind"] = "card"
+            filt["card_id"] = match.group(0)
+            rest = rest[match.end():]
+            suffix = re.match(r"-(\d+)_(\d+)", rest)
+            if suffix:
+                # -U_C = upgrade/count 编码；参考引擎按 baseId 匹配（不限强化），
+                # upgrade 只作记录，结算按 base id。
+                filt["upgrade"] = int(suffix.group(1))
+                filt["count"] = int(suffix.group(2))
+                rest = rest[suffix.end():]
+            rest = rest.lstrip("-")
+            continue
+        match = re.match(r"effect_group-visible-([a-z_]+)-(\d+)", rest)
+        if match:
+            filt["kind"] = "effect_group"
+            filt["group"] = f"effect_group-visible-{match.group(1)}-{match.group(2)}"
+            rest = rest[match.end():].lstrip("-")
+            continue
+        match = re.match(r"min_max-(\d+)_(\d+)", rest)
+        if match:
+            filt["kind"] = "cost"
+            filt["cost_min"] = int(match.group(1))
+            filt["cost_max"] = int(match.group(2))
+            rest = rest[match.end():].lstrip("-")
+            continue
+        if rest.startswith("idol-unique"):
+            filt["kind"] = "idol_unique"
+            rest = rest[len("idol-unique"):].lstrip("-")
+            continue
+        matched_category = False
+        for token, category in _CATEGORY_TOKENS.items():
+            if rest.startswith(token):
+                filt["kind"] = "category"
+                filt["category"] = category
+                rest = rest[len(token):].lstrip("-")
+                matched_category = True
+                break
+        if matched_category:
+            continue
+        match = re.match(r"plan(\d+)", rest)
+        if match:
+            filt["kind"] = "plan"
+            filt["plan"] = f"Plan{int(match.group(1))}"
+            rest = rest[match.end():].lstrip("-")
+            continue
+        if rest.startswith("trouble"):
+            filt["trouble"] = True
+            rest = rest[len("trouble"):].lstrip("-")
+            continue
+        matched_rarity = False
+        for token, rarities in _RARITY_TOKENS.items():
+            if rest.startswith(token):
+                filt["rarities"] = list(rarities)
+                rest = rest[len(token):].lstrip("-")
+                matched_rarity = True
+                break
+        if matched_rarity:
+            continue
+        match = re.match(r"lesson_(vocal|dance|visual)", rest)
+        if match:
+            # 训练/回合属性限定由 B8 的 lesson_filter 处理，这里跳过。
+            rest = rest[match.end():].lstrip("-")
+            continue
+        match = re.match(r"\d+(?:_\d+)?", rest)
+        if match:
+            # 张数 / upgrade_count（无卡 id = 任意卡），结算不需要。
+            rest = rest[match.end():].lstrip("-")
+            continue
+        return (filt or None), True
+    return (filt or None), False
+
+
+def parse_card_search(trigger_id: str) -> tuple[dict | None, dict | None, bool]:
+    """解析 trigger id 里的 p_card_search 限定（B10）。
+
+    返回 ``(play_filter, zone_count, unresolved)``：
+
+    * ``play_filter``：出牌触发（playing/target）的卡限定 →
+      ``{kind: any/card/idol_unique/effect_group/cost, ...}``；
+    * ``zone_count``：区域张数条件 → ``{zones, min, negate, filter}``
+      （``not-card_search_count_up-N`` = 张数 < N）；
+    * ``unresolved``：还有解析不了的限定（hold 区未建模 / 未知词）→
+      调用方保持 ``trigger_known=False`` 保守不触发。
     """
-    if not trigger_id:
-        return False
-    if any(token in trigger_id for token in _UNPARSED_TRIGGER_TOKENS):
-        return True
-    return bool(_SPECIFIC_CARD_IN_SEARCH.search(trigger_id))
+    if not trigger_id or "p_card_search" not in trigger_id:
+        return None, None, False
+    markers = list(_SEARCH_MARKER.finditer(trigger_id))
+    if not markers:
+        return None, None, False
+    play_filter: dict | None = None
+    zone_count: dict | None = None
+    unresolved = False
+    for index, marker in enumerate(markers):
+        end = markers[index + 1].start() if index + 1 < len(markers) else len(trigger_id)
+        piece = trigger_id[marker.end():end].strip("-")
+        tokens = piece.split("-") if piece else []
+        zone = ""
+        rest_tokens: list[str] = []
+        for token in tokens:
+            if token in _ZONE_TOKENS and not zone:
+                zone = token
+            else:
+                rest_tokens.append(token)
+        filt, bad = _parse_search_filter("-".join(rest_tokens))
+        unresolved = unresolved or bad
+        if not zone:
+            unresolved = True
+            continue
+        if zone in _PLAY_ZONES:
+            if play_filter is not None:
+                unresolved = True
+            # 空限定（playing-0_1 = 任意技能卡）= 无额外限定，落回 None
+            # （card_play 触发本身就隐含"打出了一张卡"）。
+            play_filter = filt if filt else None
+            continue
+        if zone == "hold" or zone not in _ZONE_MAP:
+            # 保留区未建模（RULES_REFERENCE §6）：不能当 0 张算，保守不解析。
+            unresolved = True
+            continue
+        if marker.group("n") is None:
+            # 没有 card_search_count_up 前缀的区域段（育成期「获得技能卡」的搜索目标，
+            # 如 p_trigger-get_produce_card-…-p_card_search-deck_all）：不是张数条件，
+            # 考试事件里也不会触发，跳过（不算 unresolved）。
+            continue
+        if zone_count is not None:
+            unresolved = True
+        zone_count = {
+            "zones": list(_ZONE_MAP[zone]),
+            "min": int(marker.group("n")),
+            "negate": bool(marker.group("neg")),
+            "filter": filt,
+        }
+    return play_filter, zone_count, unresolved
+
+
+def trigger_id_has_unparsed_condition(trigger_id: str) -> bool:
+    """触发 id 里是否还有建模不了的卡限定（B10 起按结构化解析判定）。
+
+    指定卡名 / 效果组 / 偶像固有 / 费用 / 区域张数（tracked 区）都能解析；
+    只剩 **hold（保留）区** 与未知词 → True（保守不触发）。
+    """
+    return parse_card_search(trigger_id)[2]
+
+
+#: 区域张数条件的中文子句（解析成 zone_count 后从 condition 里剥掉，避免
+#: evaluate_condition 认不出整句而拒绝触发）。
+_ZONE_COND_RES = (
+    re.compile(r"(?:牌堆或弃牌|除外|手牌|保留)中的?[^，,]{0,14}?在\d+张(?:以上|以下)的时候"),
+    re.compile(r"技能卡（R以上）在\d+张(?:以上|以下)的时候"),
+)
+
+
+def strip_zone_condition(condition: str) -> str:
+    body = condition or ""
+    for pattern in _ZONE_COND_RES:
+        body = pattern.sub("", body)
+    body = re.sub(r"[，,、\s]+$", "", body)
+    body = re.sub(r"^[，,、\s]+", "", body)
+    return body
 
 
 def _permil_to_percent(value: int) -> str:
@@ -380,7 +576,7 @@ def parse_exam_trigger_id(trigger_id: str, family: str) -> tuple[dict, list[str]
     match = _LESSON_ID.search(rest)
     if match:
         params["lesson_filter"] = match.group(1)
-    complete = not any(token_ in rest for token_ in _UNPARSED_TRIGGER_TOKENS)
+    complete = not parse_card_search(trigger_id)[2]
     return params, conditions, complete
 
 
@@ -744,6 +940,78 @@ def chinese_name(japanese: str, names: Mapping[str, str]) -> tuple[str, str]:
     return japanese, "ja"
 
 
+# ---- B10（2026-11-23）：ExamCardCreateId 生成卡标注 -------------------------
+# 生成卡的卡名/目标区只在描述文本里（effect.values 为空）。语义来源：
+#   * 中文「X向手牌中生成 / 向牌堆的最顶部中生成 / 向弃牌中生成」；
+#     日文「Xを手札に生成 / を山札の一番上に生成 / を捨札に生成」；
+#   * BSD-3 参考引擎 p_items.csv DSL 交叉验证：勝利をその手に=addCardToHand(111)、
+#     迷子のお呼び出し=addCardToHand(131)、麻央にぴったし=addCardToHand(421)、
+#     雨上がりの女神=addCardToTopOfDeck(23)（眠気）、H.I.F応援棒=
+#     addRandomBasicCardToDeckAtRandom(22-countCards[deck])（随机 → RNG 未知，不实现）。
+# 卡名→(id, upgrade) 用 card_meta 索引（中文精确 + 日文别名，最长后缀匹配）。
+_CREATE_ZONES_ZH = (
+    ("向手牌中生成", "hand"),
+    ("向牌堆的最顶部中生成", "deck_top"),
+    ("向弃牌中生成", "discard"),
+)
+_CREATE_ZONES_JA = (
+    ("を手札に生成", "hand"),
+    ("を山札の一番上に生成", "deck_top"),
+    ("を捨札に生成", "discard"),
+)
+_RANDOM_DECK_TARGET_ZH = re.compile(r"达到(\d+)张")
+_RANDOM_DECK_TARGET_JA = re.compile(r"(\d+)枚になるように")
+
+
+def annotate_create_effects(effects: list[dict], zh_text: str, ja_text: str) -> None:
+    """给 ExamCardCreateId 段标注 ``create``（确定卡）/ ``create_random``（随机，不实现）。"""
+    index = card_meta_index()
+    names = index.names()
+    for eff in effects:
+        if eff.get("type") != "ExamCardCreateId":
+            continue
+        annotated = False
+        for text, zones in ((zh_text, _CREATE_ZONES_ZH), (ja_text, _CREATE_ZONES_JA)):
+            if not text:
+                continue
+            for phrase, zone in zones:
+                pos = text.find(phrase)
+                if pos < 0:
+                    continue
+                prefix = text[:pos]
+                best = ""
+                for candidate in names:
+                    if prefix.endswith(candidate) and len(candidate) > len(best):
+                        best = candidate
+                if not best:
+                    continue
+                meta = index.meta(best)
+                if meta is None or not meta.card_id:
+                    continue
+                eff["create"] = {
+                    "card_id": meta.card_id,
+                    "upgrade": meta.upgrade,
+                    "zone": zone,
+                    "count": 1,
+                }
+                annotated = True
+                break
+            if annotated:
+                break
+        if annotated:
+            continue
+        # 随机基础卡（H.I.F应援棒）：卡选择/位置是考试 RNG 入口之一，真机流未知 →
+        # 只记录语义（牌堆补到 N 张），保持 no-op（与 exam_risk 的事前检测同口径）。
+        text = zh_text or ja_text
+        if "随机" in text and ("基础" in text or "基本" in text):
+            match = _RANDOM_DECK_TARGET_ZH.search(zh_text or "") or _RANDOM_DECK_TARGET_JA.search(ja_text or "")
+            if match:
+                eff["create_random"] = {
+                    "kind": "basic_to_deck_count",
+                    "deck_target": int(match.group(1)),
+                }
+
+
 def build_record(
     *,
     item_id: str,
@@ -778,9 +1046,9 @@ def build_record(
     for key, value in id_params.items():
         if value not in (None, "", 0):
             params[key] = value
-    # 指定卡名触发 / 手牌指定卡张数：没有卡名→id 映射前不能建模（否则会在任意卡上
-    # 误触发）。与「条件未知」分开记：``trigger_known=False``，sim 同样保守跳过。
-    unparsed_trigger = trigger_id_has_unparsed_condition(trigger_id)
+    # B10：p_card_search 限定结构化解析（指定卡名/偶像固有/效果组/费用/区域张数）。
+    # 解析不了的（hold 保留区未建模/未知词）保持 trigger_known=False 保守不触发。
+    play_filter, zone_count, search_unresolved = parse_card_search(trigger_id)
     if domain == "exam" and trigger_id:
         if trigger_text:
             condition_known = True
@@ -795,13 +1063,28 @@ def build_record(
     # 不能当成"无条件"结算（会把带条件的道具凭空触发），由 sim/p_items.py 保守跳过。
     if not condition_known:
         condition = ""
-    trigger_known = not unparsed_trigger
+    elif zone_count is not None:
+        # 区域张数已结构化（zone_count），从条件文本里剥掉，避免整句认不出拒触发。
+        condition = strip_zone_condition(condition)
+    # 育成期（produce domain）触发的 p_card_search 是「获得哪张卡」的搜索目标，
+    # 不是考试事件限定；保守检查只对考试域生效。
+    trigger_known = not (search_unresolved and domain == "exam")
+    if play_filter is not None:
+        params["play_filter"] = play_filter
+        if play_filter.get("kind") == "idol_unique":
+            # 结构化限定取代类别标签：卡表 category 词表没有 IdolUnique，
+            # 留着旧标签会在 _trigger_matches 里把固有卡触发永远挡掉。
+            params.pop("card_filter", None)
+    if zone_count is not None:
+        params["zone_count"] = zone_count
     if local_descs is None:
         effects = _extract_effects_yaml(yaml_descs, zh_text)
     else:
         effects = extract_effects(local_descs, yaml_descs, zh_text)
     for eff in effects:
         eff["label"] = effect_labels.get(f"ProduceExamEffectType_{eff['type']}", "")
+    # B10：生成卡（ExamCardCreateId）的卡名/目标区标注（确定卡 create / 随机 create_random）。
+    annotate_create_effects(effects, zh_text, ja_text)
     primary = primary_effect(effects)
     value, unit = primary_value(effects)
 
@@ -903,6 +1186,11 @@ def build() -> dict:
         "items_condition_unknown": sum(1 for r in records if r.get("condition_known") is False),
         # B8：指定卡名触发/手牌张数（没有卡名→id 映射，不能建模 → 保守跳过）。
         "items_trigger_unknown": sum(1 for r in records if r.get("trigger_known") is False),
+        # B10：p_card_search 限定结构化（出牌卡限定 / 区域张数）与生成卡标注。
+        "items_play_filter": sum(1 for r in records if r["trigger_params"].get("play_filter")),
+        "items_zone_count": sum(1 for r in records if r["trigger_params"].get("zone_count")),
+        "effects_create_card": sum(1 for r in records for e in r["effects"] if e.get("create")),
+        "effects_create_random": sum(1 for r in records for e in r["effects"] if e.get("create_random")),
         # B8：新语法 id 解析 + 依赖换算/最大体力百分比/归零段的结构化计数。
         "items_trigger_id_parsed": sum(
             1

@@ -80,6 +80,7 @@ from gkagent.sim.lesson import (
 from gkagent.sim.p_items import (
     CARD_PLAY,
     EXAM_START,
+    EXAM_START_AFTER,
     STAMINA_REDUCE,
     STANCE_CHANGE,
     STATUS_GAIN,
@@ -1571,6 +1572,7 @@ def apply_card(
             successor,
             CARD_PLAY,
             card_category=card.category,
+            card_name=card.name,
             cards_played_this_turn=successor.plays_used,
             cards_played_total=successor.cards_played_total,
         )
@@ -1709,6 +1711,7 @@ def sample_apply_card(
         after,
         CARD_PLAY,
         card_category=card.category,
+        card_name=card.name,
         cards_played_this_turn=after.plays_used,
         cards_played_total=after.cards_played_total,
     )
@@ -1768,6 +1771,12 @@ def _passive_state(state: ExpectState) -> PassiveState:
         },
         status_counts=dict(state.status_counts),
         uses=dict(state.p_item_uses),
+        # B10：四个 tracked 区的卡名（区域张数条件 zone_count 求值用）。
+        hand=tuple(card.name for card in state.hand),
+        deck=tuple(card.name for card in state.deck),
+        discard=tuple(card.name for card in state.discard),
+        excluded=tuple(card.name for card in state.excluded),
+        zones_known=True,
     )
 
 
@@ -1781,6 +1790,9 @@ def _p_item_event_subset(
         # 搜索是从考试中途开始的局面：exam_start 已在进入搜索前结算过，
         # 这里只保留分支语义正确（误传也不会串到出牌类触发）。
         return grouped.get(EXAM_START, ())
+    if kind == EXAM_START_AFTER:
+        # 同 exam_start：训练开始后的一次性效果已在 LessonSim 构造时结算。
+        return grouped.get(EXAM_START_AFTER, ())
     if kind == TURN_START:
         return grouped.get(TURN_START, ())
     if kind == TURN_START_AFTER:
@@ -1807,6 +1819,7 @@ def fire_p_items(
     kind: str,
     *,
     card_category: str = "",
+    card_name: str = "",
     cards_played_this_turn: int = 0,
     cards_played_total: int = 0,
     status: str = "",
@@ -1843,6 +1856,7 @@ def fire_p_items(
     event = PassiveEvent(
         kind=kind,
         card_category=card_category,
+        card_name=card_name,
         cards_played_this_turn=cards_played_this_turn,
         cards_played_total=cards_played_total,
         status=status,
@@ -1975,8 +1989,42 @@ def fire_p_items(
     extra_plays += release_plays_gain
     vitality += release_genki_gain
     enthusiasm = state.enthusiasm + int(release_enthusiasm_gain)
+    # ---- B10：生成卡（与 LessonSim._create_p_item_cards 同口径）--------------
+    # deck 是多重集：生成到牌堆顶时同步 known_draw（下标 0 = 下一张）；
+    # discard_order 已知时同步追加。手牌≥5 不生成（参考 addCardToHand）。
+    hand = state.hand
+    deck = state.deck
+    discard = state.discard
+    known_draw = state.known_draw
+    discard_order = state.discard_order
+    min_cost = state.min_cost
+    if delta.create_cards:
+        from gkagent.data.card_meta import card_meta_index
+        from gkagent.sim.play_choice import spec_from_name
+
+        index = card_meta_index()
+        for create in delta.create_cards:
+            name = index.name_of(create.card_id, create.upgrade)
+            spec = spec_from_name(name) if name else None
+            if spec is None:
+                continue
+            for _ in range(max(int(create.count), 1)):
+                if create.zone == "hand":
+                    if len(hand) >= 5:
+                        continue
+                    hand = hand + (spec,)
+                elif create.zone == "deck_top":
+                    deck = deck + (spec,)
+                    if known_draw:
+                        known_draw = (spec,) + known_draw
+                    min_cost = min(min_cost, spec.cost)
+                elif create.zone == "discard":
+                    discard = discard + (spec,)
+                    if discard_order is not None:
+                        discard_order = discard_order + (spec,)
     uses = dict(state.p_item_uses)
-    for item_id in delta.applied:
+    # B10：次数上限按道具计（同事件多效果段只记 1 次，与 LessonSim 同口径）。
+    for item_id in dict.fromkeys(delta.applied):
         uses[item_id] = uses.get(item_id, 0) + 1
     new_state = replace(
         state,
@@ -2009,6 +2057,12 @@ def fire_p_items(
         half_cost_turns=state.half_cost_turns + int(delta.half_cost_turns),
         double_cost_turns=state.double_cost_turns + int(delta.double_cost_turns),
         extra_turns=state.extra_turns + int(delta.extra_turns),
+        hand=hand,
+        deck=deck,
+        discard=discard,
+        known_draw=known_draw,
+        discard_order=discard_order,
+        min_cost=min_cost,
     ).with_stance(stance)
     if stance_changed and _depth < 3:
         new_state = fire_p_items(new_state, STANCE_CHANGE, _depth=_depth + 1)

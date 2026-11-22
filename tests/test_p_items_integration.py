@@ -26,6 +26,10 @@ def _free(trigger: str) -> list[PItemSpec]:
         and not item.depends_on
         and not item.percent_max
         and not item.zero_stack
+        # B10：带结构化卡限定/区域张数/生成卡的也不是「无条件直给」，排除。
+        and item.play_filter is None
+        and item.zone_count is None
+        and item.create_card is None
         and item.value > 0
     ]
 
@@ -84,7 +88,18 @@ def test_card_play_item_applies_before_card_effect() -> None:
 
 
 def test_card_played_item_applies_after_card_effect() -> None:
-    item = _first("card_played", "score")
+    """card_played（技能卡使用后）P 道具在出牌结算里触发；用合成 spec 验机制。
+
+    B10 起真数据里 card_played 的直给分效果都带结构化卡限定（效果组/类别/
+    指定卡名），合成牌名不在卡表 → 保守不触发；真实限定的命中见
+    test_p_items_b10.py。这里用合成 spec 覆盖事件管线本身。
+    """
+    item = PItemSpec(
+        name="使用后加分",
+        trigger="card_played",
+        effect_type="ExamLesson",
+        value=4,
+    )
     sim = LessonSim(
         [CardSpec("打", 0, 0)],
         _config(turns=1, p_items=(item,)),
@@ -180,7 +195,13 @@ def test_unimplemented_p_item_type_is_noop_and_does_not_raise() -> None:
 
 
 def test_expectimax_state_also_triggers_p_items() -> None:
-    item = _first("card_played", "score")
+    # B10：真数据 card_played 直给分都带卡限定，合成 spec 验双镜事件管线。
+    item = PItemSpec(
+        name="使用后加分",
+        trigger="card_played",
+        effect_type="ExamLesson",
+        value=4,
+    )
     state = ExpectState(
         hand=(CardSpec("打", 0, 0),),
         stamina=10,

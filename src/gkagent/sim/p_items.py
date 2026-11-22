@@ -18,9 +18,16 @@
   由 ``unsupported_effect_types`` / ``summarize`` 统计出来。
 * 条件（``condition``）只认几个能确定语义的写法（层数阈值、体力百分比、回合数）；
   认不出的条件**不触发**（宁可少算，也不瞎算）。
-* ``state.uses`` 给出时才按 ``max_uses`` 封顶（次数上限，卡面「（N次）」）。
+* ``state.uses`` 给出时才按 ``max_uses`` 封顶（次数上限，卡面「（N次）」）；
+  B10 起按**道具**计次（同一道具多效果段同事件触发只记 1 次，参考 limit:N）。
 * 触发时机：``turn_start`` / ``turn_end`` / ``card_play``（含使用后/每 N 次）/
-  ``status_gain`` / ``exam_start``（训练·考试开始时，由 ``LessonSim`` 构造时结算一次）。
+  ``status_gain`` / ``exam_start``（训练·考试开始时，由 ``LessonSim`` 构造时结算一次）/
+  ``exam_start_after``（B10：训练开始后，抽完第一手牌之后结算一次）。
+* B10（2026-11-23）触发限定与生成卡：``play_filter``（指定卡名/偶像固有/效果组/
+  费用/类别/稀有度，按 ``card_meta`` 静态索引求值）/ ``zone_count``（手牌/牌堆/
+  弃牌/除外四区张数，hold 保留区未建模 → 数据层保守不解析）/ ``create_card``
+  （``ExamCardCreateId`` 确定式生成卡，``PItemDelta.create_cards`` 交给
+  ``LessonSim``/``ExpectState`` 落牌；随机基础卡 RNG 未知 → 保持 no-op）。
 
 用法::
 
@@ -40,6 +47,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self
 
+from gkagent.data.card_meta import CardMetaIndex, card_meta_index
+
 # ---- 事件种类（apply_passive 认的事件）------------------------------------
 TURN_START = "turn_start"
 TURN_START_AFTER = "turn_start_after"  # 回合开始后（B8：start_play-remaining_turn-N）
@@ -54,6 +63,9 @@ STAMINA_REDUCE = "stamina_reduce"  # 体力减少时（B8：支付牌费等）
 # 由 LessonSim 在开局（抽第一手牌前）结算一次。gkbench 起点体力偏差就是这类道具
 # （如 pitem_02-3-293-0「训练开始时，最大体力的80%数值变为体力消耗」）。
 EXAM_START = "exam_start"
+# B10：训练开始后（e_trigger-start_exam_play）——抽完第一手牌之后结算一次
+# （参考引擎 at:afterStartOfStage，如「胜利をその手に」生成静かな意志+到手牌）。
+EXAM_START_AFTER = "exam_start_after"
 
 # ---- 效果类型 -> 结算目标 --------------------------------------------------
 # 语义确定的：分数 / 体力 / 层数（元气、好印象、集中、干劲、全力值）/
@@ -188,6 +200,7 @@ SUPPORTED_TRIGGERS = frozenset(
         STANCE_CHANGE,
         STAMINA_REDUCE,
         EXAM_START,
+        EXAM_START_AFTER,
     }
 )
 
@@ -236,6 +249,55 @@ _RE_FULL_POWER_TOTAL = re.compile(
 )
 
 
+# ---- B10（2026-11-23）：触发限定（哪张卡 / 哪个区域几张卡）与生成卡 ----------
+# 语义来源：masterTrans/ProduceCardSearch.json 描述表 + 主数据 ProduceCard.effectGroupIds
+# + BSD-3 参考引擎 gakumas-tools（指定卡名按 usedCardBaseId = base id 不限强化；
+# countCards 区域语义；addCardToHand 手牌≥5 不生成）。数据层 build_p_items.py
+# 把 trigger id 的 p_card_search 段解析成下面的结构；这里只做纯求值。
+CREATE_CARD_EFFECTS = frozenset({"ExamCardCreateId"})
+
+
+@dataclass(frozen=True)
+class CardFilter:
+    """出牌/区域计数的卡限定。``kind``：any/card/idol_unique/effect_group/cost/
+    category/plan；``trouble``/``rarities`` 是附加过滤（区域计数用）。"""
+
+    kind: str = "any"
+    card_id: str = ""  # kind=card：base id（不限强化，参考 usedCardBaseId）
+    group: str = ""  # kind=effect_group：effect_group-visible-exam_*-000
+    cost_min: int = 0  # kind=cost：原本消耗体力下限
+    cost_max: int = 99  # kind=cost：上限
+    category: str = ""  # kind=category：ActiveSkill / MentalSkill
+    plan: str = ""  # kind=plan：Plan1/Plan2/Plan3
+    trouble: bool = False  # 干扰卡（category==Trouble）
+    rarities: tuple[str, ...] = ()  # N/R/SR/SSR/LEGEND（大写）
+
+
+@dataclass(frozen=True)
+class ZoneCount:
+    """区域张数条件：``zones`` 里合计满足 ``filter`` 的卡 ≥ ``minimum``
+    （``negate=True`` 时 < minimum，对应 not-card_search_count_up-N）。"""
+
+    zones: tuple[str, ...]  # hand / deck / discard / excluded
+    minimum: int
+    negate: bool = False
+    filter: CardFilter | None = None  # None = 全部技能卡
+
+
+@dataclass(frozen=True)
+class CreateCard:
+    """生成一张确定卡（ExamCardCreateId 的确定式）：卡 id/强化/目标区/张数。
+
+    ``zone``：hand（手牌，≥5 不生成）/ deck_top（牌堆顶）/ discard（弃牌堆）。
+    随机基础卡（H.I.F应援棒）是考试 RNG 入口、真机流未知 → 不建模（create_random）。
+    """
+
+    card_id: str
+    upgrade: int
+    zone: str
+    count: int = 1
+
+
 @dataclass(frozen=True)
 class PItemSpec:
     """一条 P 道具被动效果（= 道具 × 一个 effect_type）。
@@ -281,11 +343,19 @@ class PItemSpec:
     percent_max: int = 0  # 体力类效果：按最大体力百分比结算
     every: int = 0  # turn_interval：每 N 回合
     zero_stack: str = ""  # 「X 变为 0」：结算时把该层数清零
+    # B10：触发限定（出牌卡限定 / 区域张数）与生成卡（数据层结构化解析写入）。
+    play_filter: CardFilter | None = None
+    zone_count: ZoneCount | None = None
+    create_card: CreateCard | None = None  # 确定卡生成（ExamCardCreateId）
+    create_random: str = ""  # 随机生成种类（basic_to_deck_count）：RNG 未知，不实现
 
     @property
     def target(self) -> str:
         """这条效果结算到哪儿："score" / "stamina" / "extra_plays" / 层数 key /
-        B9 的持久倍率目标（score_buff / review_multiple / …）/ ""（不支持）。"""
+        B9 的持久倍率目标（score_buff / review_multiple / …）/
+        B10 的 "create_card" / ""（不支持）。"""
+        if self.create_card is not None:
+            return "create_card"
         if self.target_kind:
             return self.target_kind
         # 手写 spec 没带 target_kind 时按 effect_type（+ 效果段文本）推导；
@@ -307,6 +377,8 @@ class PItemSpec:
     def implemented(self) -> bool:
         if self.trigger not in SUPPORTED_TRIGGERS:
             return False
+        if self.create_card is not None:
+            return True
         if self.zero_stack:
             return True
         if self.depends_on and self.percent > 0:
@@ -338,6 +410,7 @@ class PassiveEvent:
 
     kind: str
     card_category: str = ""  # 打出的卡类别：ActiveSkill / MentalSkill / IdolUnique
+    card_name: str = ""  # B10：打出的卡名（卡表键，含强化变体）；play_filter 求值用
     cards_played_this_turn: int = 0
     cards_played_total: int = 0
     status: str = ""  # status_gain：增加的是哪个状态（stacks 的 key）
@@ -369,6 +442,14 @@ class PassiveState:
     stacks: Mapping[str, int] = field(default_factory=dict)
     status_counts: Mapping[str, int] = field(default_factory=dict)
     uses: Mapping[str, int] | None = None  # item_id -> 已经触发次数
+    # B10：四个 tracked 区的卡名（含强化变体；区域张数条件 zone_count 求值用）。
+    # zones_known=False（模拟器没给区域信息）→ 依赖区域计数的道具不触发（保守）；
+    # True 时空区就是真的空（如开局手牌/弃牌堆）。
+    hand: tuple[str, ...] = ()
+    deck: tuple[str, ...] = ()
+    discard: tuple[str, ...] = ()
+    excluded: tuple[str, ...] = ()
+    zones_known: bool = False
 
     def stack(self, key: str) -> int:
         return int(self.stacks.get(key, 0))
@@ -407,6 +488,8 @@ class PItemDelta:
     # 绝好调 / 不调 回合数（ExamParameterBuffMultiplePerTurn / ExamGimmickParameterDebuff）
     perfect_condition_turns: int = 0
     poor_condition_turns: int = 0
+    # B10：生成卡（ExamCardCreateId 确定式）；LessonSim/ExpectState 按 zone 落牌。
+    create_cards: list[CreateCard] = field(default_factory=list)
 
     def add_stack(self, key: str, amount: int) -> None:
         if amount:
@@ -430,6 +513,7 @@ class PItemDelta:
             or self.stances
             or self.perfect_condition_turns
             or self.poor_condition_turns
+            or self.create_cards
             or any(self.stacks.values())
         )
 
@@ -444,6 +528,7 @@ class PItemDelta:
             "score_buffs": list(self.score_buffs),
             "score_debuffs": list(self.score_debuffs),
             "modifiers": list(self.modifiers),
+            "create_cards": list(self.create_cards),
         }
 
     def __iadd__(self, other: PItemDelta) -> Self:
@@ -466,6 +551,7 @@ class PItemDelta:
         self.stances.extend(other.stances)
         self.perfect_condition_turns += other.perfect_condition_turns
         self.poor_condition_turns += other.poor_condition_turns
+        self.create_cards.extend(other.create_cards)
         return self
 
     def __add__(self, other: PItemDelta) -> PItemDelta:
@@ -488,6 +574,7 @@ class PItemDelta:
             stances=list(self.stances),
             perfect_condition_turns=self.perfect_condition_turns,
             poor_condition_turns=self.poor_condition_turns,
+            create_cards=list(self.create_cards),
         )
         merged += other
         return merged
@@ -713,13 +800,71 @@ def _turn_params_match(spec: PItemSpec, state: PassiveState) -> bool:
     return not (spec.every and (spec.every <= 0 or state.turn % spec.every))
 
 
+# ---- B10：卡限定 / 区域张数求值（纯函数 + 静态卡元数据索引）-----------------
+def _card_filter_matches(
+    filt: CardFilter, name: str, index: CardMetaIndex
+) -> bool | None:
+    """卡名是否满足限定。True/False/None（卡表查不到/元数据缺失 = 不知道，保守不触发）。"""
+    if filt.kind == "any" and not filt.trouble and not filt.rarities:
+        return True
+    meta = index.meta(name)
+    if meta is None:
+        return None
+    if filt.trouble and meta.category != "Trouble":
+        return False
+    if filt.rarities and meta.rarity not in filt.rarities:
+        return False
+    if filt.kind == "card":
+        # 参考引擎 usedCardBaseId：base id 命中，不限强化变体。
+        return meta.card_id == filt.card_id
+    if filt.kind == "idol_unique":
+        return meta.idol_unique if meta.has_meta else None
+    if filt.kind == "effect_group":
+        return (filt.group in meta.effect_groups) if meta.has_meta else None
+    if filt.kind == "cost":
+        return filt.cost_min <= meta.cost <= filt.cost_max
+    if filt.kind == "category":
+        return meta.category == filt.category
+    if filt.kind == "plan":
+        return meta.plan == filt.plan
+    return True
+
+
+def _zone_count_matches(
+    zone_count: ZoneCount, state: PassiveState, index: CardMetaIndex
+) -> bool | None:
+    """区域张数条件。区域信息没给 / 有卡查不到元数据 → None（保守不触发）。"""
+    if not state.zones_known:
+        return None
+    zones = {
+        "hand": state.hand,
+        "deck": state.deck,
+        "discard": state.discard,
+        "excluded": state.excluded,
+    }
+    names = [name for zone in zone_count.zones for name in zones.get(zone, ())]
+    if zone_count.filter is None:
+        count = len(names)
+    else:
+        count = 0
+        for name in names:
+            matched = _card_filter_matches(zone_count.filter, name, index)
+            if matched is None:
+                return None
+            if matched:
+                count += 1
+    if zone_count.negate:
+        return count < zone_count.minimum
+    return count >= zone_count.minimum
+
+
 def _trigger_matches(spec: PItemSpec, event: PassiveEvent, state: PassiveState) -> bool:
     """触发时机 + 触发参数是否对得上（不含 condition 求值）。"""
     trigger = spec.trigger
-    if trigger == EXAM_START:
-        # 训练/考试开始：一次性的开局事件，没有回合参数可对（条件仍会在
+    if trigger in (EXAM_START, EXAM_START_AFTER):
+        # 训练/考试开始（前/后）：一次性的开局事件，没有回合参数可对（条件仍会在
         # evaluate_condition 里按开局状态判断）。
-        if event.kind != EXAM_START:
+        if event.kind != trigger:
             return False
     elif trigger in (TURN_START, TURN_START_AFTER, TURN_END):
         if event.kind != trigger:
@@ -774,6 +919,20 @@ def _trigger_matches(spec: PItemSpec, event: PassiveEvent, state: PassiveState) 
     else:
         return False
 
+    # B10：结构化触发限定——出牌卡限定（指定卡名/偶像固有/效果组/费用/类别）
+    # 与区域张数条件；求值"不知道"（None）一律保守不触发。
+    if (
+        spec.play_filter is not None
+        and trigger in (CARD_PLAY, "card_played", "card_play_interval")
+        and _card_filter_matches(spec.play_filter, event.card_name, card_meta_index()) is not True
+    ):
+        return False
+    if (
+        spec.zone_count is not None
+        and _zone_count_matches(spec.zone_count, state, card_meta_index()) is not True
+    ):
+        return False
+
     if spec.lesson_filter:
         if spec.lesson_filter == "sp":
             if not state.is_sp:
@@ -826,6 +985,11 @@ def apply_passive(
         # B8：「X 变为 0」——把对应层数清零（不算增量，但要记一次触发）。
         elif spec.zero_stack:
             delta.zero_stacks.append(spec.zero_stack)
+            applied = True
+        # B10：生成卡（ExamCardCreateId 确定式）——写进增量，由 LessonSim/ExpectState
+        # 按 zone 落牌（手牌≥5 不生成 / 牌堆顶 / 弃牌堆，参考引擎 addCardTo* 语义）。
+        elif spec.create_card is not None:
+            delta.create_cards.append(spec.create_card)
             applied = True
         # B8：固定体力消耗/回复（value1 固定值 或 最大体力的 percent_max%）。
         elif target == "stamina":
@@ -947,6 +1111,45 @@ def _effect_value(effect: Mapping) -> int:
     return int(values.get("value1") or 0)
 
 
+def _card_filter_from_dict(data: Mapping | None) -> CardFilter | None:
+    """数据层 trigger_params.play_filter / zone_count.filter → CardFilter。"""
+    if not data:
+        return None
+    return CardFilter(
+        kind=str(data.get("kind") or "any"),
+        card_id=str(data.get("card_id") or ""),
+        group=str(data.get("group") or ""),
+        cost_min=int(data.get("cost_min") or 0),
+        cost_max=int(data.get("cost_max") or 99),
+        category=str(data.get("category") or ""),
+        plan=str(data.get("plan") or ""),
+        trouble=bool(data.get("trouble")),
+        rarities=tuple(data.get("rarities") or ()),
+    )
+
+
+def _zone_count_from_dict(data: Mapping | None) -> ZoneCount | None:
+    if not data:
+        return None
+    return ZoneCount(
+        zones=tuple(data.get("zones") or ()),
+        minimum=int(data.get("min") or 0),
+        negate=bool(data.get("negate")),
+        filter=_card_filter_from_dict(data.get("filter")),
+    )
+
+
+def _create_card_from_dict(data: Mapping | None) -> CreateCard | None:
+    if not data:
+        return None
+    return CreateCard(
+        card_id=str(data.get("card_id") or ""),
+        upgrade=int(data.get("upgrade") or 0),
+        zone=str(data.get("zone") or ""),
+        count=int(data.get("count") or 1),
+    )
+
+
 def record_to_specs(record: Mapping) -> list[PItemSpec]:
     """把 p_items.json 的一条记录展开成若干条 PItemSpec（一个 effect 一条）。
 
@@ -974,6 +1177,9 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
         "lesson_filter": params.get("lesson_filter", ""),
         "every": int(params.get("every") or 0),
         "text": record.get("text_zh") or record.get("text_ja", ""),
+        # B10：结构化触发限定（出牌卡限定 / 区域张数）。
+        "play_filter": _card_filter_from_dict(params.get("play_filter")),
+        "zone_count": _zone_count_from_dict(params.get("zone_count")),
     }
     if not effects:
         return [
@@ -1006,6 +1212,8 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
                 percent=int(values.get("percent1") or 0) if effect.get("depends_on") else 0,
                 percent_max=int(effect.get("percent_max") or 0),
                 zero_stack=effect.get("zero_stack", ""),
+                create_card=_create_card_from_dict(effect.get("create")),
+                create_random=str((effect.get("create_random") or {}).get("kind") or ""),
                 **common,
             )
         )
@@ -1084,6 +1292,9 @@ def summarize(items: Sequence[PItemSpec]) -> dict:
         "implemented_modifier_targets": _count(
             spec.target for spec in implemented if spec.target in MODIFIER_TARGETS
         ),
+        # B10：生成卡（确定式已实现 / 随机式 RNG 未知保持 no-op）。
+        "create_card_specs": sum(1 for spec in items if spec.create_card is not None),
+        "create_random_specs": sum(1 for spec in items if spec.create_random),
     }
 
 
@@ -1101,8 +1312,10 @@ def unsupported_effect_types(items: Sequence[PItemSpec]) -> list[str]:
 
 __all__ = [
     "CARD_PLAY",
+    "CREATE_CARD_EFFECTS",
     "DURATION_TARGETS",
     "EXAM_START",
+    "EXAM_START_AFTER",
     "EXTRA_PLAY_EFFECTS",
     "FLAG_TARGETS",
     "MODIFIER_TARGETS",
@@ -1126,11 +1339,14 @@ __all__ = [
     "TURN_INTERVAL",
     "TURN_START",
     "TURN_START_AFTER",
+    "CardFilter",
+    "CreateCard",
     "PItemDelta",
     "PItemSpec",
     "PassiveEvent",
     "PassiveState",
     "TimedAmounts",
+    "ZoneCount",
     "add_timed",
     "apply_passive",
     "classify_effect_target",

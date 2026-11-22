@@ -214,7 +214,7 @@
   },
   "items_with_effects": 902,
   "items_with_value": 752,
-  "items_with_condition": 336,
+  "items_with_condition": 313,
   "items_with_max_uses": 896,
   "items_missing_yaml": 0,
   "items_missing_trigger_text": 38,
@@ -222,9 +222,13 @@
   "items_from_yaml": 47,
   "items_i18n_name_ja": 0,
   "items_i18n_text_ja": 47,
-  "items_condition_unknown": 6,
-  "items_trigger_unknown": 103,
-  "items_trigger_id_parsed": 16,
+  "items_condition_unknown": 0,
+  "items_trigger_unknown": 3,
+  "items_play_filter": 234,
+  "items_zone_count": 27,
+  "effects_create_card": 11,
+  "effects_create_random": 6,
+  "items_trigger_id_parsed": 22,
   "effects_depends_on": 65,
   "effects_percent_max": 9,
   "effects_zero_stack": 3,
@@ -461,7 +465,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_stamina_consumption_down-000-0_1",
    "trigger_text": "消耗体力减少效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_stamina_consumption_down-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -484,8 +493,7 @@
     }
    ],
    "text_zh": "消耗体力减少效果的技能卡使用时，打分上升量增加30%（6回合）（训练内3次）",
-   "text_ja": "消費体力減少効果のスキルカード使用時、パラメータ上昇量増加30%（6ターン）（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "消費体力減少効果のスキルカード使用時、パラメータ上昇量増加30%（6ターン）（レッスン内3回）"
   },
   {
    "id": "pitem_00-0-004-0-006",
@@ -672,8 +680,7 @@
     }
    ],
    "text_zh": "技能卡使用时，打分上升量增加30%（3回合）（训练内5次）",
-   "text_ja": "スキルカード使用時、パラメータ上昇量増加30%（3ターン）（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "スキルカード使用時、パラメータ上昇量増加30%（3ターン）（レッスン内5回）"
   },
   {
    "id": "pitem_00-0-004-0-011",
@@ -685,7 +692,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -1294,7 +1305,11 @@
    "trigger_text": "主动技能卡使用时，体力在50%以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "体力在50%以上的时候",
    "effect_type": "ExamLessonBuff",
@@ -1327,7 +1342,11 @@
    "trigger_text": "主动技能卡使用时，体力在50%以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "体力在50%以上的时候",
    "effect_type": "ExamLessonBuff",
@@ -2906,7 +2925,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLesson",
@@ -2957,7 +2980,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLesson",
@@ -4415,7 +4442,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "card_filter": "ActiveSkill",
-    "lesson_filter": "vocal"
+    "lesson_filter": "vocal",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamStaminaRecoverFix",
@@ -4503,7 +4534,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "card_filter": "ActiveSkill",
-    "lesson_filter": "visual"
+    "lesson_filter": "visual",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamStaminaRecoverFix",
@@ -4536,7 +4571,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuff",
@@ -4578,7 +4617,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuff",
@@ -5359,7 +5402,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "card_filter": "ActiveSkill",
-    "lesson_filter": "dance"
+    "lesson_filter": "dance",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamStaminaRecoverFix",
@@ -6113,8 +6160,27 @@
    "trigger_id": "e_trigger-exam_start_exam-card_search_count_up-21-p_card_search-r-sr-ssr-legend-deck_all",
    "trigger_text": "训练开始时，技能卡（R以上）在21张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "技能卡（R以上）在21张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard",
+      "excluded"
+     ],
+     "min": 21,
+     "negate": false,
+     "filter": {
+      "rarities": [
+       "R",
+       "SR",
+       "SSR",
+       "LEGEND"
+      ]
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "ExamStaminaRecoverFix",
    "effect_label": "体力回复",
    "effect_text": "体力回复名字包含「基础」的技能卡向除外中移动",
@@ -6133,8 +6199,7 @@
     }
    ],
    "text_zh": "训练开始时，技能卡（R以上）在21张以上的时候，体力回复7名字包含「基础」的技能卡向除外中移动",
-   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、体力回復7名前に「基本」を含むスキルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、体力回復7名前に「基本」を含むスキルカードを除外に移動"
   },
   {
    "id": "pitem_00-3-193-challenge",
@@ -6229,7 +6294,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
    "trigger_text": "感性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan1"
+    }
+   },
    "condition": "感性",
    "effect_type": "ExamPreservation",
    "effect_label": "温存",
@@ -6449,7 +6519,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_stamina_consumption_down-000-0_1",
    "trigger_text": "消耗体力减少效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_stamina_consumption_down-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -6487,8 +6562,7 @@
     }
    ],
    "text_zh": "消耗体力减少效果的技能卡使用时，集中+3好调3回合体力消耗3（训练内3次）",
-   "text_ja": "消費体力減少効果のスキルカード使用時、集中+3好調3ターン固定体力消費3（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "消費体力減少効果のスキルカード使用時、集中+3好調3ターン固定体力消費3（レッスン内3回）"
   },
   {
    "id": "pitem_01-0-001-0-002",
@@ -6804,7 +6878,12 @@
    "trigger_id": "e_trigger-exam_card_play-lesson_buff_up-8-p_card_search-playing-effect_group-visible-exam_lesson_buff-000-0_1",
    "trigger_text": "集中效果的技能卡使用时，集中在8以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_lesson_buff-000"
+    }
+   },
    "condition": "集中在8以上的时候",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -6833,8 +6912,7 @@
     }
    ],
    "text_zh": "集中效果的技能卡使用时，集中在8以上的时候，集中+5好调1回合（训练内3次）",
-   "text_ja": "集中効果のスキルカード使用時、集中が8以上の場合、集中+5好調1ターン（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "集中効果のスキルカード使用時、集中が8以上の場合、集中+5好調1ターン（レッスン内3回）"
   },
   {
    "id": "pitem_01-0-001-0-010",
@@ -6846,7 +6924,9 @@
    "trigger_text": "偶像固有技能卡使用后，集中在5以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "集中在5以上的时候",
    "effect_type": "ExamLessonValueMultiple",
@@ -6949,7 +7029,12 @@
    "trigger_id": "e_trigger-exam_card_play-lesson_buff_up-8-p_card_search-playing-effect_group-visible-exam_lesson_buff-000-0_1",
    "trigger_text": "集中效果的技能卡使用时，集中在8以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_lesson_buff-000"
+    }
+   },
    "condition": "集中在8以上的时候",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -6978,8 +7063,7 @@
     }
    ],
    "text_zh": "集中效果的技能卡使用时，集中在8以上的时候，集中+5好调1回合（训练内3次）",
-   "text_ja": "集中効果のスキルカード使用時、集中が8以上の場合、集中+5好調1ターン（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "集中効果のスキルカード使用時、集中が8以上の場合、集中+5好調1ターン（レッスン内3回）"
   },
   {
    "id": "pitem_01-0-001-0-014",
@@ -6991,7 +7075,11 @@
    "trigger_text": "辅助技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuff",
@@ -7036,7 +7124,11 @@
    "trigger_text": "辅助技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuff",
@@ -7081,7 +7173,9 @@
    "trigger_text": "偶像固有技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonBuffAdditive",
@@ -7105,8 +7199,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，集中增加量增加+50%（3回合）（训练内4次）",
-   "text_ja": "アイドル固有スキルカード使用時、集中増加量増加+50%（3ターン）（レッスン内4回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、集中増加量増加+50%（3ターン）（レッスン内4回）"
   },
   {
    "id": "pitem_01-0-001-0-017",
@@ -7118,7 +7211,9 @@
    "trigger_text": "偶像固有技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonBuffAdditive",
@@ -7142,8 +7237,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，集中增加量增加+50%（3回合）（训练内4次）",
-   "text_ja": "アイドル固有スキルカード使用時、集中増加量増加+50%（3ターン）（レッスン内4回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、集中増加量増加+50%（3ターン）（レッスン内4回）"
   },
   {
    "id": "pitem_01-0-001-0-018",
@@ -7323,7 +7417,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-parameter_buff_up-4-p_card_search-target-effect_group-visible-exam_parameter_buff_multiple_per_turn-000-0_1",
    "trigger_text": "绝好调效果的技能卡使用后，好调在4回合以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_parameter_buff_multiple_per_turn-000"
+    }
+   },
    "condition": "好调在4回合以上的时候",
    "effect_type": "ExamPlayableValueAdd",
    "effect_label": "技能卡使用数追加",
@@ -7513,7 +7612,11 @@
    "trigger_text": "辅助技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuffMultiplePerTurn",
@@ -7717,7 +7820,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_stamina_consumption_down-000-0_1",
    "trigger_text": "消耗体力减少效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_stamina_consumption_down-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -7755,8 +7863,7 @@
     }
    ],
    "text_zh": "消耗体力减少效果的技能卡使用时，集中+3好调3回合体力消耗3（训练内3次）",
-   "text_ja": "消費体力減少効果のスキルカード使用時、集中+3好調3ターン固定体力消費3（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "消費体力減少効果のスキルカード使用時、集中+3好調3ターン固定体力消費3（レッスン内3回）"
   },
   {
    "id": "pitem_01-0-005-0-012",
@@ -7900,7 +8007,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_parameter_buff_multiple_per_turn-000-0_1",
    "trigger_text": "绝好调效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_parameter_buff_multiple_per_turn-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -7920,8 +8032,7 @@
     }
    ],
    "text_zh": "绝好调效果的技能卡使用时，好调3回合（训练内5次）",
-   "text_ja": "絶好調効果のスキルカード使用時、好調3ターン（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "絶好調効果のスキルカード使用時、好調3ターン（レッスン内5回）"
   },
   {
    "id": "pitem_01-0-005-0-016",
@@ -7932,7 +8043,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_parameter_buff_multiple_per_turn-000-0_1",
    "trigger_text": "绝好调效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_parameter_buff_multiple_per_turn-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -7952,8 +8068,7 @@
     }
    ],
    "text_zh": "绝好调效果的技能卡使用时，好调3回合（训练内5次）",
-   "text_ja": "絶好調効果のスキルカード使用時、好調3ターン（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "絶好調効果のスキルカード使用時、好調3ターン（レッスン内5回）"
   },
   {
    "id": "pitem_01-0-005-0-017",
@@ -7965,7 +8080,12 @@
    "trigger_text": "剩余3回合内的时候，技能卡（SSR）使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "remaining_turns": 3
+    "remaining_turns": 3,
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "剩余3回合内的时候",
    "effect_type": "ExamLessonValueMultiple",
@@ -8001,7 +8121,12 @@
    "trigger_text": "剩余3回合内的时候，技能卡（SSR）使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "remaining_turns": 3
+    "remaining_turns": 3,
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "剩余3回合内的时候",
    "effect_type": "ExamLessonValueMultiple",
@@ -8037,7 +8162,9 @@
    "trigger_text": "偶像固有技能卡使用时，绝好调状态的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "绝好调状态的时候",
    "effect_type": "ExamLesson",
@@ -8058,8 +8185,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，绝好调状态的时候，以后，回合开始时，打分+5（训练内1次）",
-   "text_ja": "アイドル固有スキルカード使用時、絶好調状態の場合、以降、ターン開始時、パラメータ+5（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、絶好調状態の場合、以降、ターン開始時、パラメータ+5（レッスン内1回）"
   },
   {
    "id": "pitem_01-0-005-0-020",
@@ -8071,7 +8197,9 @@
    "trigger_text": "偶像固有技能卡使用时，绝好调状态的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "绝好调状态的时候",
    "effect_type": "ExamLesson",
@@ -8092,8 +8220,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，绝好调状态的时候，以后，回合开始时，打分+5（训练内1次）",
-   "text_ja": "アイドル固有スキルカード使用時、絶好調状態の場合、以降、ターン開始時、パラメータ+5（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、絶好調状態の場合、以降、ターン開始時、パラメータ+5（レッスン内1回）"
   },
   {
    "id": "pitem_01-0-005-0-021",
@@ -8105,7 +8232,9 @@
    "trigger_text": "偶像固有技能卡使用时，集中在8以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "集中在8以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -8133,8 +8262,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，集中在8以上的时候，好调3回合集中1.3倍（训练内3次）",
-   "text_ja": "アイドル固有スキルカード使用時、集中が8以上の場合、好調3ターン集中1.3倍（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、集中が8以上の場合、好調3ターン集中1.3倍（レッスン内3回）"
   },
   {
    "id": "pitem_01-0-005-0-022",
@@ -8146,7 +8274,9 @@
    "trigger_text": "偶像固有技能卡使用时，集中在8以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "集中在8以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -8174,8 +8304,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，集中在8以上的时候，好调3回合集中1.3倍（训练内3次）",
-   "text_ja": "アイドル固有スキルカード使用時、集中が8以上の場合、好調3ターン集中1.3倍（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、集中が8以上の場合、好調3ターン集中1.3倍（レッスン内3回）"
   },
   {
    "id": "pitem_01-0-005-0-023",
@@ -8281,7 +8410,12 @@
    "trigger_text": "剩余3回合内的时候，技能卡（SSR）使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "remaining_turns": 3
+    "remaining_turns": 3,
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "剩余3回合内的时候",
    "effect_type": "ExamLessonValueMultiple",
@@ -8317,7 +8451,9 @@
    "trigger_text": "偶像固有技能卡使用时，好调在10回合以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "好调在10回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -8347,8 +8483,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，好调在10回合以上的时候，好调4回合最大体力的5%数值变为体力回复（训练内5次）",
-   "text_ja": "アイドル固有スキルカード使用時、好調が10ターン以上の場合、好調4ターン最大体力の5%分体力回復（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、好調が10ターン以上の場合、好調4ターン最大体力の5%分体力回復（レッスン内5回）"
   },
   {
    "id": "pitem_01-0-005-0-027",
@@ -8362,7 +8497,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "好调在5回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -8406,7 +8545,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "好调在5回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -8448,7 +8591,9 @@
    "trigger_text": "偶像固有技能卡使用时，好调在10回合以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "好调在10回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -8478,8 +8623,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，好调在10回合以上的时候，好调4回合最大体力的5%数值变为体力回复（训练内5次）",
-   "text_ja": "アイドル固有スキルカード使用時、好調が10ターン以上の場合、好調4ターン最大体力の5%分体力回復（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、好調が10ターン以上の場合、好調4ターン最大体力の5%分体力回復（レッスン内5回）"
   },
   {
    "id": "pitem_01-0-014-0",
@@ -8635,7 +8779,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-01-ido-1_058-0_1",
    "trigger_text": "初次的褒奖使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-ido-1_058",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -8655,8 +8806,7 @@
     }
    ],
    "text_zh": "初次的褒奖使用时，好调2回合（训练内1次）",
-   "text_ja": "初めてのご褒美使用時、好調2ターン（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "初めてのご褒美使用時、好調2ターン（レッスン内1回）"
   },
   {
    "id": "pitem_01-1-015-1",
@@ -8667,7 +8817,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-01-ido-1_058-0_1",
    "trigger_text": "初次的褒奖使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-ido-1_058",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -8696,8 +8853,7 @@
     }
    ],
    "text_zh": "初次的褒奖使用时，好调2回合固定元气+5（训练内1次）",
-   "text_ja": "初めてのご褒美使用時、好調2ターン固定元気+5（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "初めてのご褒美使用時、好調2ターン固定元気+5（レッスン内1回）"
   },
   {
    "id": "pitem_01-1-017-0",
@@ -10583,7 +10739,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-01-ido-3_066-0_1",
    "trigger_text": "肾上腺素全开使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-ido-3_066",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -10612,8 +10775,7 @@
     }
    ],
    "text_zh": "肾上腺素全开使用时，好调3回合固定元气+5（训练内1次）",
-   "text_ja": "アドレナリン全開使用時、好調3ターン固定元気+5（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "アドレナリン全開使用時、好調3ターン固定元気+5（レッスン内1回）"
   },
   {
    "id": "pitem_01-3-030-1",
@@ -10624,7 +10786,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-01-ido-3_066-0_1",
    "trigger_text": "肾上腺素全开使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-ido-3_066",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -10653,8 +10822,7 @@
     }
    ],
    "text_zh": "肾上腺素全开使用时，好调3回合固定元气+11（训练内1次）",
-   "text_ja": "アドレナリン全開使用時、好調3ターン固定元気+11（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "アドレナリン全開使用時、好調3ターン固定元気+11（レッスン内1回）"
   },
   {
    "id": "pitem_01-3-034-0",
@@ -11056,7 +11224,11 @@
    "trigger_text": "主动技能卡使用时，体力在50%以下的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "体力在50%以下的时候",
    "effect_type": "ExamStaminaRecoverFix",
@@ -11105,7 +11277,11 @@
    "trigger_text": "主动技能卡使用时，体力在50%以下的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "体力在50%以下的时候",
    "effect_type": "ExamStaminaRecoverFix",
@@ -11154,7 +11330,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamBlockFix",
@@ -11187,7 +11367,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamBlockFix",
@@ -11589,7 +11773,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_002-0_1",
    "trigger_text": "轻快步伐使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_002",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -11627,8 +11818,7 @@
     }
    ],
    "text_zh": "轻快步伐使用后，好调1回合技能卡使用数追加+1体力消耗1（训练内3次）",
-   "text_ja": "軽い足取り使用後、好調1ターンスキルカード使用数追加+1固定体力消費1（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "軽い足取り使用後、好調1ターンスキルカード使用数追加+1固定体力消費1（レッスン内3回）"
   },
   {
    "id": "pitem_01-3-069-1",
@@ -11639,7 +11829,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_002-0_1",
    "trigger_text": "轻快步伐使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_002",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -11677,8 +11874,7 @@
     }
    ],
    "text_zh": "轻快步伐使用后，好调2回合技能卡使用数追加+1体力消耗1（训练内3次）",
-   "text_ja": "軽い足取り使用後、好調2ターンスキルカード使用数追加+1固定体力消費1（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "軽い足取り使用後、好調2ターンスキルカード使用数追加+1固定体力消費1（レッスン内3回）"
   },
   {
    "id": "pitem_01-3-070-0",
@@ -11689,7 +11885,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_023-0_1",
    "trigger_text": "凭势而行使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_023",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -11727,8 +11930,7 @@
     }
    ],
    "text_zh": "凭势而行使用后，集中+1技能卡使用数追加+1体力消耗1（训练内3次）",
-   "text_ja": "勢い任せ使用後、集中+1スキルカード使用数追加+1固定体力消費1（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "勢い任せ使用後、集中+1スキルカード使用数追加+1固定体力消費1（レッスン内3回）"
   },
   {
    "id": "pitem_01-3-070-1",
@@ -11739,7 +11941,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_023-0_1",
    "trigger_text": "凭势而行使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_023",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -11777,8 +11986,7 @@
     }
    ],
    "text_zh": "凭势而行使用后，集中+2技能卡使用数追加+1体力消耗1（训练内3次）",
-   "text_ja": "勢い任せ使用後、集中+2スキルカード使用数追加+1固定体力消費1（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "勢い任せ使用後、集中+2スキルカード使用数追加+1固定体力消費1（レッスン内3回）"
   },
   {
    "id": "pitem_01-3-073-0",
@@ -11789,7 +11997,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_022-0_1",
    "trigger_text": "准备运动使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_022",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -11828,8 +12043,7 @@
     }
    ],
    "text_zh": "准备运动使用后，集中+1体力消耗3在之后的3回合中，回合开始时，集中+3（训练内2次）",
-   "text_ja": "準備運動使用後、集中+1固定体力消費3以降の3ターンの間、ターン開始時、集中+3（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "準備運動使用後、集中+1固定体力消費3以降の3ターンの間、ターン開始時、集中+3（レッスン内2回）"
   },
   {
    "id": "pitem_01-3-073-1",
@@ -11840,7 +12054,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_022-0_1",
    "trigger_text": "准备运动使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_022",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -11879,8 +12100,7 @@
     }
    ],
    "text_zh": "准备运动使用后，集中+1体力消耗1在之后的3回合中，回合开始时，集中+3（训练内2次）",
-   "text_ja": "準備運動使用後、集中+1固定体力消費1以降の3ターンの間、ターン開始時、集中+3（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "準備運動使用後、集中+1固定体力消費1以降の3ターンの間、ターン開始時、集中+3（レッスン内2回）"
   },
   {
    "id": "pitem_01-3-079-0",
@@ -11891,7 +12111,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_001-0_1",
    "trigger_text": "粉丝服务使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_001",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuffMultiplePerTurn",
    "effect_label": "绝好调",
@@ -11930,8 +12157,7 @@
     }
    ],
    "text_zh": "粉丝服务使用后，回合追加+1绝好调2回合体力消耗3（训练内2次）",
-   "text_ja": "ファンサ使用後、ターン追加+1絶好調2ターン固定体力消費3（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "ファンサ使用後、ターン追加+1絶好調2ターン固定体力消費3（レッスン内2回）"
   },
   {
    "id": "pitem_01-3-079-1",
@@ -11942,7 +12168,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_001-0_1",
    "trigger_text": "粉丝服务使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-act-1_001",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuffMultiplePerTurn",
    "effect_label": "绝好调",
@@ -11981,8 +12214,7 @@
     }
    ],
    "text_zh": "粉丝服务使用后，回合追加+1绝好调3回合体力消耗2（训练内2次）",
-   "text_ja": "ファンサ使用後、ターン追加+1絶好調3ターン固定体力消費2（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "ファンサ使用後、ターン追加+1絶好調3ターン固定体力消費2（レッスン内2回）"
   },
   {
    "id": "pitem_01-3-080-challenge",
@@ -12384,7 +12616,13 @@
      "values": {},
      "text": "生成（训练内1次）",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-01-men-2_035",
+      "upgrade": 1,
+      "zone": "hand",
+      "count": 1
+     }
     }
    ],
    "text_zh": "训练开始后，沉静意志+向手牌中生成（训练内1次）",
@@ -12431,7 +12669,13 @@
      "values": {},
      "text": "生成（训练内5次）",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "deck_top",
+      "count": 1
+     }
     }
    ],
    "text_zh": "回合开始后，技能卡使用数追加+1元气+5睡意向牌堆的最顶部中生成（训练内5次）",
@@ -12478,7 +12722,13 @@
      "values": {},
      "text": "生成（训练内5次）",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "deck_top",
+      "count": 1
+     }
     }
    ],
    "text_zh": "回合开始后，技能卡使用数追加+1元气+6睡意向牌堆的最顶部中生成（训练内5次）",
@@ -12628,7 +12878,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_lesson_buff-000-0_1",
    "trigger_text": "集中效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_lesson_buff-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamStaminaConsumptionDown",
    "effect_label": "消耗体力减少",
@@ -12650,8 +12905,7 @@
     }
    ],
    "text_zh": "集中效果的技能卡使用时，消耗体力减少2回合（训练内2次）",
-   "text_ja": "集中効果のスキルカード使用時、消費体力減少2ターン（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "集中効果のスキルカード使用時、消費体力減少2ターン（レッスン内2回）"
   },
   {
    "id": "pitem_01-3-157-1",
@@ -12662,7 +12916,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_lesson_buff-000-0_1",
    "trigger_text": "集中效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_lesson_buff-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamStaminaConsumptionDown",
    "effect_label": "消耗体力减少",
@@ -12684,8 +12943,7 @@
     }
    ],
    "text_zh": "集中效果的技能卡使用时，消耗体力减少2回合（训练内3次）",
-   "text_ja": "集中効果のスキルカード使用時、消費体力減少2ターン（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "集中効果のスキルカード使用時、消費体力減少2ターン（レッスン内3回）"
   },
   {
    "id": "pitem_01-3-158-0",
@@ -12699,7 +12957,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "exam",
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonBuffAdditive",
@@ -12737,7 +12999,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "exam",
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonBuffAdditive",
@@ -12841,7 +13107,11 @@
    "trigger_text": "辅助技能卡使用后，集中在13以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "集中在13以上的时候",
    "effect_type": "ExamBlock",
@@ -12885,7 +13155,11 @@
    "trigger_text": "辅助技能卡使用后，集中在13以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "集中在13以上的时候",
    "effect_type": "ExamBlock",
@@ -12929,7 +13203,11 @@
    "trigger_text": "主动技能卡使用后，绝好调状态的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "绝好调状态的时候",
    "effect_type": "ExamPlayableValueAdd",
@@ -12971,7 +13249,11 @@
    "trigger_text": "主动技能卡使用后，绝好调状态的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "绝好调状态的时候",
    "effect_type": "ExamPlayableValueAdd",
@@ -13103,7 +13385,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuff",
@@ -13154,7 +13440,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuff",
@@ -13204,8 +13494,18 @@
    "trigger_id": "e_trigger-start_play-card_search_count_up-12-p_card_search-deck_grave",
    "trigger_text": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的技能卡在12张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 12,
+     "negate": false,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
    "effect_text": "打分上升量增加%",
@@ -13234,8 +13534,7 @@
     }
    ],
    "text_zh": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，抽取技能卡打分上升量增加5%好调1回合（训练内5次）",
-   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%好調1ターン（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%好調1ターン（レッスン内5回）"
   },
   {
    "id": "pitem_01-3-177-0",
@@ -13246,8 +13545,18 @@
    "trigger_id": "e_trigger-start_play-card_search_count_up-12-p_card_search-deck_grave",
    "trigger_text": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的技能卡在12张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 12,
+     "negate": false,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
    "effect_text": "打分上升量增加%",
@@ -13276,8 +13585,7 @@
     }
    ],
    "text_zh": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，抽取技能卡打分上升量增加5%集中+1（训练内5次）",
-   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%集中+1（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%集中+1（レッスン内5回）"
   },
   {
    "id": "pitem_01-3-186-0",
@@ -13288,8 +13596,27 @@
    "trigger_id": "e_trigger-exam_start_exam-card_search_count_up-21-p_card_search-r-sr-ssr-legend-deck_all",
    "trigger_text": "训练开始时，技能卡（R以上）在21张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "技能卡（R以上）在21张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard",
+      "excluded"
+     ],
+     "min": 21,
+     "negate": false,
+     "filter": {
+      "rarities": [
+       "R",
+       "SR",
+       "SSR",
+       "LEGEND"
+      ]
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
    "effect_text": "好调回合名字包含「基础」的技能卡向除外中移动",
@@ -13308,8 +13635,7 @@
     }
    ],
    "text_zh": "训练开始时，技能卡（R以上）在21张以上的时候，好调5回合名字包含「基础」的技能卡向除外中移动",
-   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、好調5ターン名前に「基本」を含むスキルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、好調5ターン名前に「基本」を含むスキルカードを除外に移動"
   },
   {
    "id": "pitem_01-3-187-0",
@@ -13320,8 +13646,27 @@
    "trigger_id": "e_trigger-exam_start_exam-card_search_count_up-21-p_card_search-r-sr-ssr-legend-deck_all",
    "trigger_text": "训练开始时，技能卡（R以上）在21张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "技能卡（R以上）在21张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard",
+      "excluded"
+     ],
+     "min": 21,
+     "negate": false,
+     "filter": {
+      "rarities": [
+       "R",
+       "SR",
+       "SSR",
+       "LEGEND"
+      ]
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
    "effect_text": "集中+名字包含「基础」的技能卡向除外中移动",
@@ -13340,8 +13685,7 @@
     }
    ],
    "text_zh": "训练开始时，技能卡（R以上）在21张以上的时候，集中+5名字包含「基础」的技能卡向除外中移动",
-   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、集中+5名前に「基本」を含むスキルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、集中+5名前に「基本」を含むスキルカードを除外に移動"
   },
   {
    "id": "pitem_01-3-196-challenge",
@@ -13975,7 +14319,11 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create_random": {
+      "kind": "basic_to_deck_count",
+      "deck_target": 22
+     }
     }
    ],
    "text_zh": "考试开始时，为了使牌堆中的技能卡达到22张，随机名字包含「基础」的技能卡，会在牌堆的随机位置中生成",
@@ -14004,7 +14352,11 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create_random": {
+      "kind": "basic_to_deck_count",
+      "deck_target": 22
+     }
     }
    ],
    "text_zh": "考试开始时，为了使牌堆中的技能卡达到22张，随机名字包含「基础」的技能卡，会在牌堆的随机位置中生成",
@@ -14019,7 +14371,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-01-men-2_034-0_1",
    "trigger_text": "演出计划使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-men-2_034",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamPlayableValueAdd",
    "effect_label": "技能卡使用数追加",
@@ -14057,8 +14416,7 @@
     }
    ],
    "text_zh": "演出计划使用时，技能卡使用数追加+1除外中的暗黑英雄的诞生向手牌中移动好调7回合体力消耗3（训练内1次）",
-   "text_ja": "演出計画使用時、スキルカード使用数追加+1除外にあるダークヒーローの誕生を手札に移動好調7ターン固定体力消費3（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "演出計画使用時、スキルカード使用数追加+1除外にあるダークヒーローの誕生を手札に移動好調7ターン固定体力消費3（レッスン内1回）"
   },
   {
    "id": "pitem_01-3-290-1",
@@ -14069,7 +14427,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-01-men-2_034-0_1",
    "trigger_text": "演出计划使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-men-2_034",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamPlayableValueAdd",
    "effect_label": "技能卡使用数追加",
@@ -14098,8 +14463,7 @@
     }
    ],
    "text_zh": "演出计划使用时，技能卡使用数追加+1除外中的暗黑英雄的诞生向手牌中移动好调9回合（训练内1次）",
-   "text_ja": "演出計画使用時、スキルカード使用数追加+1除外にあるダークヒーローの誕生を手札に移動好調9ターン（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "演出計画使用時、スキルカード使用数追加+1除外にあるダークヒーローの誕生を手札に移動好調9ターン（レッスン内1回）"
   },
   {
    "id": "pitem_01-3-294-0",
@@ -14192,7 +14556,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_lesson_buff-000"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonBuff",
@@ -14224,7 +14592,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_lesson_buff-000"
+    }
    },
    "condition": "",
    "effect_type": "ExamBlock",
@@ -14426,7 +14798,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "card_filter": "ActiveSkill",
-    "lesson_filter": "visual"
+    "lesson_filter": "visual",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "好调在3回合以上的时候",
    "effect_type": "ExamLessonBuff",
@@ -14468,9 +14844,17 @@
    "trigger_text": "【仅限视觉训练・视觉回合】回合开始时，除外中的技能卡在7张以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "lesson_filter": "visual"
+    "lesson_filter": "visual",
+    "zone_count": {
+     "zones": [
+      "excluded"
+     ],
+     "min": 7,
+     "negate": false,
+     "filter": null
+    }
    },
-   "condition": "除外中的技能卡在7张以上的时候",
+   "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
    "effect_text": "好调回合",
@@ -14489,8 +14873,7 @@
     }
    ],
    "text_zh": "【仅限视觉训练・视觉回合】回合开始时，除外中的技能卡在7张以上的时候，好调1回合",
-   "text_ja": "【ビジュアルレッスン・ビジュアルターンのみ】ターン開始時、除外にあるスキルカードが7枚以上の場合、好調1ターン",
-   "trigger_known": false
+   "text_ja": "【ビジュアルレッスン・ビジュアルターンのみ】ターン開始時、除外にあるスキルカードが7枚以上の場合、好調1ターン"
   },
   {
    "id": "pitem_01-3-312-0",
@@ -14503,7 +14886,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 4,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_parameter_buff-000"
+    }
    },
    "condition": "好调在8回合以上的时候",
    "effect_type": "ExamParameterBuffMultiplePerTurn",
@@ -14557,7 +14944,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 4,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_parameter_buff-000"
+    }
    },
    "condition": "好调在6回合以上的时候",
    "effect_type": "ExamParameterBuffMultiplePerTurn",
@@ -14601,7 +14992,9 @@
    "trigger_text": "偶像固有技能卡使用后，体力在80%以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "体力在80%以上的时候",
    "effect_type": "ExamStaminaConsumptionDownFix",
@@ -14653,7 +15046,9 @@
    "trigger_text": "偶像固有技能卡使用后，体力在80%以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "体力在80%以上的时候",
    "effect_type": "ExamStaminaConsumptionDownFix",
@@ -14716,7 +15111,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "好调在5回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -14762,7 +15161,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "好调在5回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -15213,7 +15616,11 @@
    "trigger_text": "主动技能卡使用后，好调在8回合以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "好调在8回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -15255,7 +15662,11 @@
    "trigger_text": "主动技能卡使用后，好调在8回合以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "好调在8回合以上的时候",
    "effect_type": "ExamParameterBuff",
@@ -15386,7 +15797,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLesson",
@@ -15665,7 +16080,9 @@
    "trigger_text": "偶像固有技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "",
    "effect_type": "ExamReview",
@@ -15686,8 +16103,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，好印象+8",
-   "text_ja": "アイドル固有スキルカード使用時、好印象+8",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、好印象+8"
   },
   {
    "id": "pitem_02-0-002-0-009",
@@ -15875,7 +16291,9 @@
    "trigger_text": "偶像固有技能卡使用时，元气在15以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "元气在15以上的时候",
    "effect_type": "ExamLesson",
@@ -15905,8 +16323,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，元气在15以上的时候，好印象的300%数值变为打分上升（训练内3次）",
-   "text_ja": "アイドル固有スキルカード使用時、元気が15以上の場合、好印象の300%分パラメータ上昇（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、元気が15以上の場合、好印象の300%分パラメータ上昇（レッスン内3回）"
   },
   {
    "id": "pitem_02-0-002-0-014",
@@ -16101,7 +16518,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_review-000"
+    }
    },
    "condition": "",
    "effect_type": "ExamReviewMultiple",
@@ -16147,7 +16568,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_review-000"
+    }
    },
    "condition": "",
    "effect_type": "ExamReviewMultiple",
@@ -16378,7 +16803,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardPlayAggressive",
@@ -16634,7 +17063,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-effect_group-visible-exam_card_play_aggressive-000-0_1",
    "trigger_text": "干劲效果的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_card_play_aggressive-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -16714,7 +17148,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-effect_group-visible-exam_block-000-0_1",
    "trigger_text": "元气效果的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_block-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -16826,7 +17265,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-effect_group-visible-exam_block-000-0_1",
    "trigger_text": "元气效果的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_block-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -16906,7 +17350,9 @@
    "trigger_text": "偶像固有技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardPlayAggressive",
@@ -16927,8 +17373,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，干劲+8（训练内2次）",
-   "text_ja": "アイドル固有スキルカード使用時、やる気+8（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、やる気+8（レッスン内2回）"
   },
   {
    "id": "pitem_02-0-006-0-017",
@@ -17206,7 +17651,9 @@
    "trigger_text": "偶像固有技能卡使用时，元气在30以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "元气在30以上的时候",
    "effect_type": "ExamCardPlayAggressive",
@@ -17236,8 +17683,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，元气在30以上的时候，干劲+10元气+2（训练内4次）",
-   "text_ja": "アイドル固有スキルカード使用時、元気が30以上の場合、やる気+10元気+2（レッスン内4回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、元気が30以上の場合、やる気+10元気+2（レッスン内4回）"
   },
   {
    "id": "pitem_02-0-006-0-026",
@@ -17249,7 +17695,9 @@
    "trigger_text": "偶像固有技能卡使用时，元气在30以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "元气在30以上的时候",
    "effect_type": "ExamCardPlayAggressive",
@@ -17279,8 +17727,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，元气在30以上的时候，干劲+10元气+2（训练内4次）",
-   "text_ja": "アイドル固有スキルカード使用時、元気が30以上の場合、やる気+10元気+2（レッスン内4回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、元気が30以上の場合、やる気+10元気+2（レッスン内4回）"
   },
   {
    "id": "pitem_02-0-006-0-027",
@@ -17376,7 +17823,9 @@
    "trigger_text": "偶像固有技能卡使用时，干劲在12以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "干劲在12以上的时候",
    "effect_type": "ExamCardPlayAggressive",
@@ -17406,8 +17855,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，干劲在12以上的时候，干劲+5元气+2（训练内3次）",
-   "text_ja": "アイドル固有スキルカード使用時、やる気が12以上の場合、やる気+5元気+2（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、やる気が12以上の場合、やる気+5元気+2（レッスン内3回）"
   },
   {
    "id": "pitem_02-0-006-0-030",
@@ -17472,7 +17920,9 @@
    "trigger_text": "偶像固有技能卡使用时，干劲在12以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "干劲在12以上的时候",
    "effect_type": "ExamCardPlayAggressive",
@@ -17502,8 +17952,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，干劲在12以上的时候，干劲+5元气+2（训练内3次）",
-   "text_ja": "アイドル固有スキルカード使用時、やる気が12以上の場合、やる気+5元気+2（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、やる気が12以上の場合、やる気+5元気+2（レッスン内3回）"
   },
   {
    "id": "pitem_02-0-006-0-032",
@@ -18245,7 +18694,11 @@
    "trigger_text": "主动技能卡使用时，干劲在5以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "干劲在5以上的时候",
    "effect_type": "ExamBlock",
@@ -18294,7 +18747,11 @@
    "trigger_text": "主动技能卡使用时，干劲在5以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "干劲在5以上的时候",
    "effect_type": "ExamBlock",
@@ -20177,7 +20634,11 @@
    "trigger_text": "辅助技能卡使用后，干劲在5以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "干劲在5以上的时候",
    "effect_type": "ExamCardPlayAggressive",
@@ -20219,7 +20680,11 @@
    "trigger_text": "辅助技能卡使用后，干劲在5以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "干劲在5以上的时候",
    "effect_type": "ExamCardPlayAggressive",
@@ -20323,7 +20788,11 @@
    "trigger_text": "主动技能卡使用后，干劲在12以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "干劲在12以上的时候",
    "effect_type": "ExamLesson",
@@ -20374,7 +20843,11 @@
    "trigger_text": "主动技能卡使用后，干劲在12以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "干劲在12以上的时候",
    "effect_type": "ExamLesson",
@@ -20826,7 +21299,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-effect_group-visible-stamina_recover_fix-000-0_1",
    "trigger_text": "体力回复效果的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-stamina_recover_fix-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamReview",
    "effect_label": "好印象",
@@ -20901,7 +21379,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-effect_group-visible-stamina_recover_fix-000-0_1",
    "trigger_text": "体力回复效果的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-stamina_recover_fix-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamReview",
    "effect_label": "好印象",
@@ -21308,7 +21791,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-02-men-1_032-0_1",
    "trigger_text": "回忆微笑使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-1_032",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamReview",
    "effect_label": "好印象",
@@ -21346,8 +21836,7 @@
     }
    ],
    "text_zh": "回忆微笑使用后，好印象+2技能卡使用数追加+1体力消耗2（训练内3次）",
-   "text_ja": "思い出し笑い使用後、好印象+2スキルカード使用数追加+1固定体力消費2（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "思い出し笑い使用後、好印象+2スキルカード使用数追加+1固定体力消費2（レッスン内3回）"
   },
   {
    "id": "pitem_02-3-071-1",
@@ -21358,7 +21847,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-02-men-1_032-0_1",
    "trigger_text": "回忆微笑使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-1_032",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamReview",
    "effect_label": "好印象",
@@ -21396,8 +21892,7 @@
     }
    ],
    "text_zh": "回忆微笑使用后，好印象+3技能卡使用数追加+1体力消耗1（训练内3次）",
-   "text_ja": "思い出し笑い使用後、好印象+3スキルカード使用数追加+1固定体力消費1（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "思い出し笑い使用後、好印象+3スキルカード使用数追加+1固定体力消費1（レッスン内3回）"
   },
   {
    "id": "pitem_02-3-074-0",
@@ -21408,7 +21903,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-02-act-1_028-0_1",
    "trigger_text": "悠哉闲谈使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-act-1_028",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamStaminaReduceFix",
    "effect_label": "体力消耗",
@@ -21443,8 +21945,7 @@
     }
    ],
    "text_zh": "悠哉闲谈使用时，回合追加+1元气1.5倍体力消耗2（训练内1次）",
-   "text_ja": "ゆるふわおしゃべり使用時、ターン追加+1元気1.5倍固定体力消費2（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ゆるふわおしゃべり使用時、ターン追加+1元気1.5倍固定体力消費2（レッスン内1回）"
   },
   {
    "id": "pitem_02-3-074-1",
@@ -21455,7 +21956,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-02-act-1_028-0_1",
    "trigger_text": "悠哉闲谈使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-act-1_028",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamExtraTurn",
    "effect_label": "回合追加",
@@ -21481,8 +21989,7 @@
     }
    ],
    "text_zh": "悠哉闲谈使用时，回合追加+1元气1.6倍（训练内1次）",
-   "text_ja": "ゆるふわおしゃべり使用時、ターン追加+1元気1.6倍（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ゆるふわおしゃべり使用時、ターン追加+1元気1.6倍（レッスン内1回）"
   },
   {
    "id": "pitem_02-3-075-0",
@@ -21493,7 +22000,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-block_up-7-p_card_search-target-1-p_card-02-men-1_030-0_1",
    "trigger_text": "重新开始使用后，元气在7以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-1_030",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "元气在7以上的时候",
    "effect_type": "ExamStaminaReduceFix",
    "effect_label": "体力消耗",
@@ -21520,8 +22034,7 @@
     }
    ],
    "text_zh": "重新开始使用后，元气在7以上的时候，好印象1.5倍下个回合，除外中的再次飞翔向手牌中移动体力消耗2（训练内2次）",
-   "text_ja": "リスタート使用後、元気が7以上の場合、好印象1.5倍次のターン、除外にあるまた、飛べるを手札に移動固定体力消費2（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "リスタート使用後、元気が7以上の場合、好印象1.5倍次のターン、除外にあるまた、飛べるを手札に移動固定体力消費2（レッスン内2回）"
   },
   {
    "id": "pitem_02-3-075-1",
@@ -21532,7 +22045,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-block_up-7-p_card_search-target-1-p_card-02-men-1_030-0_1",
    "trigger_text": "重新开始使用后，元气在7以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-1_030",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "元气在7以上的时候",
    "effect_type": "ExamReview",
    "effect_label": "好印象",
@@ -21550,8 +22070,7 @@
     }
    ],
    "text_zh": "重新开始使用后，元气在7以上的时候，好印象1.5倍下个回合，除外中的再次飞翔向手牌中移动（训练内2次）",
-   "text_ja": "リスタート使用後、元気が7以上の場合、好印象1.5倍次のターン、除外にあるまた、飛べるを手札に移動（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "リスタート使用後、元気が7以上の場合、好印象1.5倍次のターン、除外にあるまた、飛べるを手札に移動（レッスン内2回）"
   },
   {
    "id": "pitem_02-3-076-0",
@@ -21562,7 +22081,14 @@
    "trigger_id": "e_trigger-exam_card_play-stamina_up_multiple-500-p_card_search-playing-1-p_card-02-men-1_031-0_1",
    "trigger_text": "加油鼓劲使用时，体力在50%以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-1_031",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "体力在50%以上的时候",
    "effect_type": "ExamCardPlayAggressive",
    "effect_label": "干劲",
@@ -21600,8 +22126,7 @@
     }
    ],
    "text_zh": "加油鼓劲使用时，体力在50%以上的时候，干劲+2技能卡使用数追加+1最大体力的15%数值变为体力消耗（训练内5次）",
-   "text_ja": "えいえいおー使用時、体力が50%以上の場合、やる気+2スキルカード使用数追加+1最大体力の15%分固定体力消費（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "えいえいおー使用時、体力が50%以上の場合、やる気+2スキルカード使用数追加+1最大体力の15%分固定体力消費（レッスン内5回）"
   },
   {
    "id": "pitem_02-3-076-1",
@@ -21612,7 +22137,14 @@
    "trigger_id": "e_trigger-exam_card_play-stamina_up_multiple-500-p_card_search-playing-1-p_card-02-men-1_031-0_1",
    "trigger_text": "加油鼓劲使用时，体力在50%以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-1_031",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "体力在50%以上的时候",
    "effect_type": "ExamCardPlayAggressive",
    "effect_label": "干劲",
@@ -21650,8 +22182,7 @@
     }
    ],
    "text_zh": "加油鼓劲使用时，体力在50%以上的时候，干劲+3技能卡使用数追加+1最大体力的15%数值变为体力消耗（训练内5次）",
-   "text_ja": "えいえいおー使用時、体力が50%以上の場合、やる気+3スキルカード使用数追加+1最大体力の15%分固定体力消費（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "えいえいおー使用時、体力が50%以上の場合、やる気+3スキルカード使用数追加+1最大体力の15%分固定体力消費（レッスン内5回）"
   },
   {
    "id": "pitem_02-3-084-challenge",
@@ -21946,7 +22477,11 @@
    "trigger_text": "主动技能卡使用时，干劲在8以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "干劲在8以上的时候",
    "effect_type": "ExamBlock",
@@ -21995,7 +22530,11 @@
    "trigger_text": "主动技能卡使用时，干劲在8以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "干劲在8以上的时候",
    "effect_type": "ExamBlock",
@@ -22214,7 +22753,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "card_filter": "ActiveSkill",
-    "lesson_filter": "vocal"
+    "lesson_filter": "vocal",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -22329,7 +22872,13 @@
      "values": {},
      "text": "生成（训练内1次）",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-02-men-2_054",
+      "upgrade": 1,
+      "zone": "hand",
+      "count": 1
+     }
     }
    ],
    "text_zh": "训练开始后，演出前夜+向手牌中生成（训练内1次）",
@@ -22576,7 +23125,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-02-men-2_052-0_1",
    "trigger_text": "日光浴使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-2_052",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamCardPlayAggressive",
    "effect_label": "干劲",
@@ -22632,8 +23188,7 @@
     }
    ],
    "text_zh": "日光浴使用时，干劲+15消耗体力减少5回合打分上升量减少75%（2回合）3回合后，打分上升量增加50%（4回合）（训练内1次）",
-   "text_ja": "ひなたぼっこ使用時、やる気+15消費体力減少5ターンパラメータ上昇量減少75%（2ターン）3ターン後、パラメータ上昇量増加50%（4ターン）（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ひなたぼっこ使用時、やる気+15消費体力減少5ターンパラメータ上昇量減少75%（2ターン）3ターン後、パラメータ上昇量増加50%（4ターン）（レッスン内1回）"
   },
   {
    "id": "pitem_02-3-154-1",
@@ -22644,7 +23199,14 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-p_card-02-men-2_052-0_1",
    "trigger_text": "日光浴使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-2_052",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamCardPlayAggressive",
    "effect_label": "干劲",
@@ -22700,8 +23262,7 @@
     }
    ],
    "text_zh": "日光浴使用时，干劲+15消耗体力减少5回合打分上升量减少50%（2回合）3回合后，打分上升量增加50%（5回合）（训练内1次）",
-   "text_ja": "ひなたぼっこ使用時、やる気+15消費体力減少5ターンパラメータ上昇量減少50%（2ターン）3ターン後、パラメータ上昇量増加50%（5ターン）（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ひなたぼっこ使用時、やる気+15消費体力減少5ターンパラメータ上昇量減少50%（2ターン）3ターン後、パラメータ上昇量増加50%（5ターン）（レッスン内1回）"
   },
   {
    "id": "pitem_02-3-156-0",
@@ -22712,8 +23273,17 @@
    "trigger_id": "e_trigger-exam_end_turn_interval-2-not-card_search_count_up-9-p_card_search-lost",
    "trigger_text": "每2回合的回合结束时，除外中的技能卡在8张以下的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "除外中的技能卡在8张以下的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "excluded"
+     ],
+     "min": 9,
+     "negate": true,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamReviewMultiple",
    "effect_label": "好印象强化",
    "effect_text": "好印象强化+%（回合）",
@@ -22744,8 +23314,7 @@
     }
    ],
    "text_zh": "每2回合的回合结束时，除外中的技能卡在8张以下的时候，好印象强化+70%（3回合）体力消耗1",
-   "text_ja": "2ターンごとのターン終了時、除外にあるスキルカードが8枚以下の場合、好印象強化+70%（3ターン）固定体力消費1",
-   "trigger_known": false
+   "text_ja": "2ターンごとのターン終了時、除外にあるスキルカードが8枚以下の場合、好印象強化+70%（3ターン）固定体力消費1"
   },
   {
    "id": "pitem_02-3-156-1",
@@ -22756,8 +23325,17 @@
    "trigger_id": "e_trigger-exam_end_turn_interval-2-not-card_search_count_up-9-p_card_search-lost",
    "trigger_text": "每2回合的回合结束时，除外中的技能卡在8张以下的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "除外中的技能卡在8张以下的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "excluded"
+     ],
+     "min": 9,
+     "negate": true,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamReviewMultiple",
    "effect_label": "好印象强化",
    "effect_text": "好印象强化+%（回合）",
@@ -22779,8 +23357,7 @@
     }
    ],
    "text_zh": "每2回合的回合结束时，除外中的技能卡在8张以下的时候，好印象强化+70%（3回合）",
-   "text_ja": "2ターンごとのターン終了時、除外にあるスキルカードが8枚以下の場合、好印象強化+70%（3ターン）",
-   "trigger_known": false
+   "text_ja": "2ターンごとのターン終了時、除外にあるスキルカードが8枚以下の場合、好印象強化+70%（3ターン）"
   },
   {
    "id": "pitem_02-3-160-0",
@@ -22792,7 +23369,11 @@
    "trigger_text": "辅助技能卡使用后，元气在30以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "元气在30以上的时候",
    "effect_type": "ExamReview",
@@ -22843,7 +23424,11 @@
    "trigger_text": "辅助技能卡使用后，元气在30以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "元气在30以上的时候",
    "effect_type": "ExamReview",
@@ -23379,8 +23964,18 @@
    "trigger_id": "e_trigger-start_play-card_search_count_up-12-p_card_search-deck_grave",
    "trigger_text": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的技能卡在12张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 12,
+     "negate": false,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
    "effect_text": "打分上升量增加%",
@@ -23409,8 +24004,7 @@
     }
    ],
    "text_zh": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，抽取技能卡打分上升量增加5%好印象+1（训练内5次）",
-   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%好印象+1（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%好印象+1（レッスン内5回）"
   },
   {
    "id": "pitem_02-3-179-0",
@@ -23421,8 +24015,18 @@
    "trigger_id": "e_trigger-start_play-card_search_count_up-12-p_card_search-deck_grave",
    "trigger_text": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的技能卡在12张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 12,
+     "negate": false,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
    "effect_text": "打分上升量增加%",
@@ -23451,8 +24055,7 @@
     }
    ],
    "text_zh": "回合开始后，牌堆或弃牌中的技能卡在12张以上的时候，抽取技能卡打分上升量增加5%干劲+1（训练内5次）",
-   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%やる気+1（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが12枚以上の場合、スキルカードを引くパラメータ上昇量増加5%やる気+1（レッスン内5回）"
   },
   {
    "id": "pitem_02-3-183-0",
@@ -23525,8 +24128,27 @@
    "trigger_id": "e_trigger-exam_start_exam-card_search_count_up-21-p_card_search-r-sr-ssr-legend-deck_all",
    "trigger_text": "训练开始时，技能卡（R以上）在21张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "技能卡（R以上）在21张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard",
+      "excluded"
+     ],
+     "min": 21,
+     "negate": false,
+     "filter": {
+      "rarities": [
+       "R",
+       "SR",
+       "SSR",
+       "LEGEND"
+      ]
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "ExamReview",
    "effect_label": "好印象",
    "effect_text": "好印象+名字包含「基础」的技能卡向除外中移动",
@@ -23545,8 +24167,7 @@
     }
    ],
    "text_zh": "训练开始时，技能卡（R以上）在21张以上的时候，好印象+5名字包含「基础」的技能卡向除外中移动",
-   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、好印象+5名前に「基本」を含むスキルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、好印象+5名前に「基本」を含むスキルカードを除外に移動"
   },
   {
    "id": "pitem_02-3-189-0",
@@ -23557,8 +24178,27 @@
    "trigger_id": "e_trigger-exam_start_exam-card_search_count_up-21-p_card_search-r-sr-ssr-legend-deck_all",
    "trigger_text": "训练开始时，技能卡（R以上）在21张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "技能卡（R以上）在21张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard",
+      "excluded"
+     ],
+     "min": 21,
+     "negate": false,
+     "filter": {
+      "rarities": [
+       "R",
+       "SR",
+       "SSR",
+       "LEGEND"
+      ]
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "ExamCardPlayAggressive",
    "effect_label": "干劲",
    "effect_text": "干劲+名字包含「基础」的技能卡向除外中移动",
@@ -23577,8 +24217,7 @@
     }
    ],
    "text_zh": "训练开始时，技能卡（R以上）在21张以上的时候，干劲+5名字包含「基础」的技能卡向除外中移动",
-   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、やる気+5名前に「基本」を含むスキルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、やる気+5名前に「基本」を含むスキルカードを除外に移動"
   },
   {
    "id": "pitem_02-3-200-challenge",
@@ -24244,7 +24883,11 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create_random": {
+      "kind": "basic_to_deck_count",
+      "deck_target": 22
+     }
     }
    ],
    "text_zh": "考试开始时，为了使牌堆中的技能卡达到22张，随机名字包含「基础」的技能卡，会在牌堆的随机位置中生成",
@@ -24273,7 +24916,11 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create_random": {
+      "kind": "basic_to_deck_count",
+      "deck_target": 22
+     }
     }
    ],
    "text_zh": "考试开始时，为了使牌堆中的技能卡达到22张，随机名字包含「基础」的技能卡，会在牌堆的随机位置中生成",
@@ -24629,7 +25276,11 @@
    "trigger_text": "辅助技能卡使用后，好印象在6以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "好印象在6以上的时候",
    "effect_type": "ExamBlock",
@@ -24671,7 +25322,11 @@
    "trigger_text": "辅助技能卡使用后，好印象在6以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "好印象在6以上的时候",
    "effect_type": "ExamBlock",
@@ -25020,7 +25675,8 @@
     }
    ],
    "text_zh": "回合内使用过2次技能卡时，好印象+2好印象强化+25%（训练内1次）",
-   "text_ja": "ターン内にスキルカードを2回使用時、好印象+2好印象強化+25%（レッスン内1回）"
+   "text_ja": "ターン内にスキルカードを2回使用時、好印象+2好印象強化+25%（レッスン内1回）",
+   "trigger_known": false
   },
   {
    "id": "pitem_02-3-311-0",
@@ -25231,7 +25887,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "exam",
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "好印象在10以上的时候",
    "effect_type": "ExamReview",
@@ -25266,7 +25926,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "exam",
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "好印象在10以上的时候",
    "effect_type": "ExamReview",
@@ -25413,7 +26077,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "card_filter": "ActiveSkill",
-    "lesson_filter": "vocal"
+    "lesson_filter": "vocal",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "元气在30以下的时候",
    "effect_type": "ExamReview",
@@ -25675,7 +26343,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-effect_group-visible-exam_concentration-000-0_1",
    "trigger_text": "强气效果的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamLesson",
    "effect_label": "打分",
@@ -25739,7 +26412,11 @@
    "trigger_text": "主动技能卡使用后，体力在50%以下的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "体力在50%以下的时候",
    "effect_type": "ExamLesson",
@@ -25773,7 +26450,11 @@
    "trigger_text": "主动技能卡使用后，体力在50%以下的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "体力在50%以下的时候",
    "effect_type": "ExamLesson",
@@ -25912,7 +26593,11 @@
    "trigger_text": "主动技能卡使用后，体力在50%以下的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "体力在50%以下的时候",
    "effect_type": "ExamLesson",
@@ -26091,7 +26776,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
    },
    "condition": "任意的指针的时候，强气效果",
    "effect_type": "ExamEnthusiasticAdditive",
@@ -26136,7 +26825,11 @@
    "trigger_text": "主动技能卡使用后，强气2阶段的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "强气2阶段的时候",
    "effect_type": "ExamBlock",
@@ -26560,7 +27253,9 @@
    "trigger_text": "偶像固有技能卡使用后，全力值在9以下的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "全力值在9以下的时候",
    "effect_type": "ExamFullPowerPointReduce",
@@ -26614,7 +27309,9 @@
    "trigger_text": "偶像固有技能卡使用后，全力值在9以下的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "全力值在9以下的时候",
    "effect_type": "ExamFullPowerPointReduce",
@@ -26918,7 +27615,9 @@
    "trigger_text": "偶像固有技能卡使用时，全力的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "全力的时候",
    "effect_type": "ExamFullPowerPoint",
@@ -26939,8 +27638,7 @@
     }
    ],
    "text_zh": "偶像固有技能卡使用时，全力的时候，全力值+9主动技能卡的打分值增加+25（训练内1次）",
-   "text_ja": "アイドル固有スキルカード使用時、全力の場合、全力値+9アクティブスキルカードのパラメータ値増加+25（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "アイドル固有スキルカード使用時、全力の場合、全力値+9アクティブスキルカードのパラメータ値増加+25（レッスン内1回）"
   },
   {
    "id": "pitem_03-0-014-exam_concentration",
@@ -27068,7 +27766,11 @@
    "trigger_text": "主动技能卡使用后，强气的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "强气的时候",
    "effect_type": "ExamLesson",
@@ -27110,7 +27812,11 @@
    "trigger_text": "主动技能卡使用后，强气的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "强气的时候",
    "effect_type": "ExamLesson",
@@ -27267,7 +27973,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-full_power_up-p_card_search-target-effect_group-visible-exam_preservation-000-0_1",
    "trigger_text": "温存效果的技能卡使用后，全力的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_preservation-000"
+    }
+   },
    "condition": "全力的时候",
    "effect_type": "ExamFullPowerPoint",
    "effect_label": "全力值",
@@ -27305,7 +28016,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-full_power_up-p_card_search-target-effect_group-visible-exam_preservation-000-0_1",
    "trigger_text": "温存效果的技能卡使用后，全力的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_preservation-000"
+    }
+   },
    "condition": "全力的时候",
    "effect_type": "ExamFullPowerPoint",
    "effect_label": "全力值",
@@ -28431,7 +29147,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamStaminaReduceFix",
@@ -28479,7 +29199,11 @@
    "trigger_text": "主动技能卡使用后，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamStaminaReduceFix",
@@ -28941,7 +29665,11 @@
    "trigger_text": "主动技能卡使用后，强气的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "强气的时候",
    "effect_type": "ExamLesson",
@@ -28983,7 +29711,11 @@
    "trigger_text": "主动技能卡使用后，强气的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "强气的时候",
    "effect_type": "ExamLesson",
@@ -29152,7 +29884,14 @@
    "trigger_id": "e_trigger-exam_card_play-preservation_up-p_card_search-playing-1-p_card-03-act-1_040-0_1",
    "trigger_text": "星光使用时，温存的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-act-1_040",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "温存的时候",
    "effect_type": "ExamStaminaConsumptionDown",
    "effect_label": "消耗体力减少",
@@ -29183,8 +29922,7 @@
     }
    ],
    "text_zh": "星光使用时，温存的时候，抽取技能卡消耗体力减少1回合星光的打分值增加+10体力消耗1（训练内3次）",
-   "text_ja": "スターライト使用時、温存の場合、スキルカードを引く消費体力減少1ターンスターライトのパラメータ値増加+10固定体力消費1（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "スターライト使用時、温存の場合、スキルカードを引く消費体力減少1ターンスターライトのパラメータ値増加+10固定体力消費1（レッスン内3回）"
   },
   {
    "id": "pitem_03-3-072-1",
@@ -29195,7 +29933,14 @@
    "trigger_id": "e_trigger-exam_card_play-preservation_up-p_card_search-playing-1-p_card-03-act-1_040-0_1",
    "trigger_text": "星光使用时，温存的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-act-1_040",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "温存的时候",
    "effect_type": "ExamStaminaConsumptionDown",
    "effect_label": "消耗体力减少",
@@ -29226,8 +29971,7 @@
     }
    ],
    "text_zh": "星光使用时，温存的时候，技能卡抽取2张消耗体力减少1回合星光的打分值增加+10体力消耗1（训练内3次）",
-   "text_ja": "スターライト使用時、温存の場合、スキルカードを2枚引く消費体力減少1ターンスターライトのパラメータ値増加+10固定体力消費1（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "スターライト使用時、温存の場合、スキルカードを2枚引く消費体力減少1ターンスターライトのパラメータ値増加+10固定体力消費1（レッスン内3回）"
   },
   {
    "id": "pitem_03-3-077-0",
@@ -29238,7 +29982,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-p_card-03-men-1_049-0_1",
    "trigger_text": "意外惊喜使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-men-1_049",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -29279,8 +30030,7 @@
     }
    ],
    "text_zh": "意外惊喜使用后，打分上升量增加60%（2回合）全力值+10体力消耗1（训练内1次）",
-   "text_ja": "嬉しい誤算使用後、パラメータ上昇量増加60%（2ターン）全力値+10固定体力消費1（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "嬉しい誤算使用後、パラメータ上昇量増加60%（2ターン）全力値+10固定体力消費1（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-077-1",
@@ -29291,7 +30041,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-p_card-03-men-1_049-0_1",
    "trigger_text": "意外惊喜使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-men-1_049",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -29332,8 +30089,7 @@
     }
    ],
    "text_zh": "意外惊喜使用后，打分上升量增加60%（2回合）全力值+15体力消耗1（训练内1次）",
-   "text_ja": "嬉しい誤算使用後、パラメータ上昇量増加60%（2ターン）全力値+15固定体力消費1（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "嬉しい誤算使用後、パラメータ上昇量増加60%（2ターン）全力値+15固定体力消費1（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-078-0",
@@ -29344,7 +30100,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hold-p_card_search-target-1-p_card-03-act-1_038-0_1",
    "trigger_text": "魅力刚刚好使用后，保留中的技能卡在1张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-act-1_038",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "保留中的技能卡在1张以上的时候",
    "effect_type": "ExamFullPowerPoint",
    "effect_label": "全力值",
@@ -29384,7 +30147,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hold-p_card_search-target-1-p_card-03-act-1_038-0_1",
    "trigger_text": "魅力刚刚好使用后，保留中的技能卡在1张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-act-1_038",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "保留中的技能卡在1张以上的时候",
    "effect_type": "ExamPreservation",
    "effect_label": "温存",
@@ -29744,7 +30514,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_full_power-000-0_1",
    "trigger_text": "全力效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_full_power-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -29764,8 +30539,7 @@
     }
    ],
    "text_zh": "全力效果的技能卡使用时，元气+10（训练内1次）",
-   "text_ja": "全力効果のスキルカード使用時、元気+10（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "全力効果のスキルカード使用時、元気+10（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-108-1",
@@ -29776,7 +30550,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_full_power-000-0_1",
    "trigger_text": "全力效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_full_power-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -29796,8 +30575,7 @@
     }
    ],
    "text_zh": "全力效果的技能卡使用时，元气+13（训练内1次）",
-   "text_ja": "全力効果のスキルカード使用時、元気+13（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "全力効果のスキルカード使用時、元気+13（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-109-0",
@@ -29809,7 +30587,11 @@
    "trigger_text": "辅助技能卡使用时，强气2阶段的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "强气2阶段的时候",
    "effect_type": "ExamStaminaReduceFix",
@@ -29842,7 +30624,11 @@
    "trigger_text": "辅助技能卡使用时，强气2阶段的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "强气2阶段的时候",
    "effect_type": "ExamStaminaReduceFix",
@@ -30304,7 +31090,13 @@
      "values": {},
      "text": "生成（训练内1次）",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-03-men-2_066",
+      "upgrade": 1,
+      "zone": "hand",
+      "count": 1
+     }
     }
    ],
    "text_zh": "训练开始后，自尊+向手牌中生成（训练内1次）",
@@ -30320,7 +31112,11 @@
    "trigger_text": "辅助技能卡使用后，温存2阶段的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "温存2阶段的时候",
    "effect_type": "ExamEnthusiasticAdditive",
@@ -30363,7 +31159,11 @@
    "trigger_text": "辅助技能卡使用后，温存2阶段的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "温存2阶段的时候",
    "effect_type": "ExamEnthusiasticAdditive",
@@ -30396,7 +31196,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-full_power_up-p_card_search-target-effect_group-visible-exam_preservation-000-0_1",
    "trigger_text": "温存效果的技能卡使用后，全力的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_preservation-000"
+    }
+   },
    "condition": "全力的时候",
    "effect_type": "ExamStaminaReduceFix",
    "effect_label": "体力消耗",
@@ -30443,7 +31248,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-full_power_up-p_card_search-target-effect_group-visible-exam_preservation-000-0_1",
    "trigger_text": "温存效果的技能卡使用后，全力的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_preservation-000"
+    }
+   },
    "condition": "全力的时候",
    "effect_type": "ExamFullPowerPoint",
    "effect_label": "全力值",
@@ -30873,8 +31683,20 @@
    "trigger_id": "e_trigger-exam_stance_change_from_full_power-card_search_count_up-1-p_card_search-lost-p_card-03-ido-3_144",
    "trigger_text": "全力被解除后，除外中的点缀魔法在1张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "除外中的点缀魔法在1张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "excluded"
+     ],
+     "min": 1,
+     "negate": false,
+     "filter": {
+      "kind": "card",
+      "card_id": "p_card-03-ido-3_144"
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -30883,8 +31705,7 @@
    "max_uses": 3,
    "effects": [],
    "text_zh": "全力被解除后，除外中的点缀魔法在1张以上的时候，点缀魔法向保留中移动点缀魔法的全力值增加+2・打分值增加+5・体力消耗花费值增加+2（训练内3次）",
-   "text_ja": "全力を解除後、除外にあるでこれーとまじっくが1枚以上の場合、でこれーとまじっくを保留に移動でこれーとまじっくの全力値増加+2・パラメータ値増加+5・体力消費コスト値増加+2（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "全力を解除後、除外にあるでこれーとまじっくが1枚以上の場合、でこれーとまじっくを保留に移動でこれーとまじっくの全力値増加+2・パラメータ値増加+5・体力消費コスト値増加+2（レッスン内3回）"
   },
   {
    "id": "pitem_03-3-168-1",
@@ -30895,8 +31716,20 @@
    "trigger_id": "e_trigger-exam_stance_change_from_full_power-card_search_count_up-1-p_card_search-lost-p_card-03-ido-3_144",
    "trigger_text": "全力被解除后，除外中的点缀魔法在1张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "除外中的点缀魔法在1张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "excluded"
+     ],
+     "min": 1,
+     "negate": false,
+     "filter": {
+      "kind": "card",
+      "card_id": "p_card-03-ido-3_144"
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -30905,8 +31738,7 @@
    "max_uses": 3,
    "effects": [],
    "text_zh": "全力被解除后，除外中的点缀魔法在1张以上的时候，点缀魔法向保留中移动点缀魔法的全力值增加+2・打分值增加+12・体力消耗花费值增加+2（训练内3次）",
-   "text_ja": "全力を解除後、除外にあるでこれーとまじっくが1枚以上の場合、でこれーとまじっくを保留に移動でこれーとまじっくの全力値増加+2・パラメータ値増加+12・体力消費コスト値増加+2（レッスン内3回）",
-   "trigger_known": false
+   "text_ja": "全力を解除後、除外にあるでこれーとまじっくが1枚以上の場合、でこれーとまじっくを保留に移動でこれーとまじっくの全力値増加+2・パラメータ値増加+12・体力消費コスト値増加+2（レッスン内3回）"
   },
   {
    "id": "pitem_03-3-173-0",
@@ -30995,8 +31827,18 @@
    "trigger_id": "e_trigger-start_play-card_search_count_up-18-p_card_search-deck_grave",
    "trigger_text": "回合开始后，牌堆或弃牌中的技能卡在18张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的技能卡在18张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 18,
+     "negate": false,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
    "effect_text": "打分上升量增加%",
@@ -31023,8 +31865,7 @@
     }
    ],
    "text_zh": "回合开始后，牌堆或弃牌中的技能卡在18张以上的时候，打分上升量增加25%全力效果的技能卡的打分值增加+10（训练内1次）",
-   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが18枚以上の場合、パラメータ上昇量増加25%全力効果のスキルカードのパラメータ値増加+10（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが18枚以上の場合、パラメータ上昇量増加25%全力効果のスキルカードのパラメータ値増加+10（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-181-0",
@@ -31035,8 +31876,18 @@
    "trigger_id": "e_trigger-start_play-card_search_count_up-18-p_card_search-deck_grave",
    "trigger_text": "回合开始后，牌堆或弃牌中的技能卡在18张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的技能卡在18张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 18,
+     "negate": false,
+     "filter": null
+    }
+   },
+   "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
    "effect_text": "打分上升量增加%",
@@ -31063,8 +31914,7 @@
     }
    ],
    "text_zh": "回合开始后，牌堆或弃牌中的技能卡在18张以上的时候，打分上升量增加25%强气效果的技能卡的打分值增加+10（训练内1次）",
-   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが18枚以上の場合、パラメータ上昇量増加25%強気効果のスキルカードのパラメータ値増加+10（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ターン開始後、山札か捨札にあるスキルカードが18枚以上の場合、パラメータ上昇量増加25%強気効果のスキルカードのパラメータ値増加+10（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-184-0",
@@ -31120,8 +31970,27 @@
    "trigger_id": "e_trigger-exam_start_exam-card_search_count_up-21-p_card_search-r-sr-ssr-legend-deck_all",
    "trigger_text": "训练开始时，技能卡（R以上）在21张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "技能卡（R以上）在21张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard",
+      "excluded"
+     ],
+     "min": 21,
+     "negate": false,
+     "filter": {
+      "rarities": [
+       "R",
+       "SR",
+       "SSR",
+       "LEGEND"
+      ]
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "ExamConcentration",
    "effect_label": "强气",
    "effect_text": "强气效果的技能卡的打分值增加+10名字包含「基础」的技能卡向除外中移动",
@@ -31138,8 +32007,7 @@
     }
    ],
    "text_zh": "训练开始时，技能卡（R以上）在21张以上的时候，强气效果的技能卡的打分值增加+10名字包含「基础」的技能卡向除外中移动",
-   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、強気効果のスキルカードのパラメータ値増加+10名前に「基本」を含むスキルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、強気効果のスキルカードのパラメータ値増加+10名前に「基本」を含むスキルカードを除外に移動"
   },
   {
    "id": "pitem_03-3-191-0",
@@ -31150,8 +32018,27 @@
    "trigger_id": "e_trigger-exam_start_exam-card_search_count_up-21-p_card_search-r-sr-ssr-legend-deck_all",
    "trigger_text": "训练开始时，技能卡（R以上）在21张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "技能卡（R以上）在21张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard",
+      "excluded"
+     ],
+     "min": 21,
+     "negate": false,
+     "filter": {
+      "rarities": [
+       "R",
+       "SR",
+       "SSR",
+       "LEGEND"
+      ]
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "ExamFullPower",
    "effect_label": "全力",
    "effect_text": "全力效果的技能卡的打分值增加+10名字包含「基础」的技能卡向除外中移动",
@@ -31168,8 +32055,7 @@
     }
    ],
    "text_zh": "训练开始时，技能卡（R以上）在21张以上的时候，全力效果的技能卡的打分值增加+10名字包含「基础」的技能卡向除外中移动",
-   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、全力効果のスキルカードのパラメータ値増加+10名前に「基本」を含むスキルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "レッスン開始時、スキルカード（R以上）が21枚以上の場合、全力効果のスキルカードのパラメータ値増加+10名前に「基本」を含むスキルカードを除外に移動"
   },
   {
    "id": "pitem_03-3-204-challenge",
@@ -31759,7 +32645,11 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create_random": {
+      "kind": "basic_to_deck_count",
+      "deck_target": 22
+     }
     }
    ],
    "text_zh": "考试开始时，为了使牌堆中的技能卡达到22张，随机名字包含「基础」的技能卡，会在牌堆的随机位置中生成",
@@ -31788,7 +32678,11 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create_random": {
+      "kind": "basic_to_deck_count",
+      "deck_target": 22
+     }
     }
    ],
    "text_zh": "考试开始时，为了使牌堆中的技能卡达到22张，随机名字包含「基础」的技能卡，会在牌堆的随机位置中生成",
@@ -32065,7 +32959,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
    },
    "condition": "任意的指针的时候，强气效果",
    "effect_type": "ExamEnthusiasticMultiple",
@@ -32118,7 +33016,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
    },
    "condition": "任意的指针的时候，强气效果",
    "effect_type": "ExamEnthusiasticMultiple",
@@ -32205,7 +33107,11 @@
    "trigger_text": "主动技能卡使用时，强气存在次数在4次以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "强气存在次数在4次以上的时候",
    "effect_type": "ExamEnthusiasticAdditive",
@@ -32249,7 +33155,11 @@
    "trigger_text": "主动技能卡使用时，强气存在次数在3次以上的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "强气存在次数在3次以上的时候",
    "effect_type": "ExamEnthusiasticAdditive",
@@ -32354,7 +33264,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-preservation_change_count_up-2-p_card_search-target-p_card-03-ido-3_197-0_1",
    "trigger_text": "伸手所向之处使用后，温存存在次数在2次以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-ido-3_197",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "温存存在次数在2次以上的时候",
    "effect_type": "ExamStaminaReduceFix",
    "effect_label": "体力消耗",
@@ -32374,8 +33291,7 @@
     }
    ],
    "text_zh": "伸手所向之处使用后，温存存在次数在2次以上的时候，伸手所向之处的打分值增加+100下个回合，抽取技能卡体力消耗3（训练内2次）",
-   "text_ja": "手を伸ばした先に使用後、温存になった回数が2回以上の場合、手を伸ばした先にのパラメータ値増加+100次のターン、スキルカードを引く固定体力消費3（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "手を伸ばした先に使用後、温存になった回数が2回以上の場合、手を伸ばした先にのパラメータ値増加+100次のターン、スキルカードを引く固定体力消費3（レッスン内2回）"
   },
   {
    "id": "pitem_03-3-320-1",
@@ -32386,7 +33302,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-preservation_change_count_up-2-p_card_search-target-p_card-03-ido-3_197-0_1",
    "trigger_text": "伸手所向之处使用后，温存存在次数在2次以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-ido-3_197",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "温存存在次数在2次以上的时候",
    "effect_type": "unknown",
    "effect_label": "",
@@ -32396,8 +33319,7 @@
    "max_uses": 2,
    "effects": [],
    "text_zh": "伸手所向之处使用后，温存存在次数在2次以上的时候，伸手所向之处的打分值增加+100下个回合，抽取技能卡（训练内2次）",
-   "text_ja": "手を伸ばした先に使用後、温存になった回数が2回以上の場合、手を伸ばした先にのパラメータ値増加+100次のターン、スキルカードを引く（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "手を伸ばした先に使用後、温存になった回数が2回以上の場合、手を伸ばした先にのパラメータ値増加+100次のターン、スキルカードを引く（レッスン内2回）"
   },
   {
    "id": "pitem_03-3-324-0",
@@ -32551,7 +33473,12 @@
    "trigger_id": "e_trigger-exam_card_play-concentration_up-2-p_card_search-playing-effect_group-visible-exam_concentration-000-0_1",
    "trigger_text": "强气效果的技能卡使用时，强气2阶段的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
+   },
    "condition": "强气2阶段的时候",
    "effect_type": "ExamConcentrationLessonMultipleAdditive",
    "effect_label": "强气强化",
@@ -32579,8 +33506,7 @@
     }
    ],
    "text_zh": "强气效果的技能卡使用时，强气2阶段的时候，强气强化+30%下个回合，温存变更（训练内2次）",
-   "text_ja": "強気効果のスキルカード使用時、強気2段階目の場合、強気強化+35%次のターン、温存に変更（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "強気効果のスキルカード使用時、強気2段階目の場合、強気強化+35%次のターン、温存に変更（レッスン内2回）"
   },
   {
    "id": "pitem_03-3-339-1",
@@ -32591,7 +33517,12 @@
    "trigger_id": "e_trigger-exam_card_play-concentration_up-2-p_card_search-playing-effect_group-visible-exam_concentration-000-0_1",
    "trigger_text": "强气效果的技能卡使用时，强气2阶段的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
+   },
    "condition": "强气2阶段的时候",
    "effect_type": "ExamConcentrationLessonMultipleAdditive",
    "effect_label": "强气强化",
@@ -32619,8 +33550,7 @@
     }
    ],
    "text_zh": "强气效果的技能卡使用时，强气2阶段的时候，强气强化+60%下个回合，温存变更（训练内2次）",
-   "text_ja": "強気効果のスキルカード使用時、強気2段階目の場合、強気強化+60%次のターン、温存に変更（レッスン内2回）",
-   "trigger_known": false
+   "text_ja": "強気効果のスキルカード使用時、強気2段階目の場合、強気強化+60%次のターン、温存に変更（レッスン内2回）"
   },
   {
    "id": "pitem_03-3-350-0",
@@ -32652,7 +33582,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan2-target-0_1",
    "trigger_text": "理性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan2"
+    }
+   },
    "condition": "理性",
    "effect_type": "ExamPreservation",
    "effect_label": "温存",
@@ -32682,7 +33617,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan2-target-0_1",
    "trigger_text": "理性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan2"
+    }
+   },
    "condition": "理性",
    "effect_type": "ExamParameterBuffMultiplePerTurn",
    "effect_label": "绝好调",
@@ -32715,7 +33655,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
    "trigger_text": "感性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan1"
+    }
+   },
    "condition": "感性",
    "effect_type": "ExamReview",
    "effect_label": "好印象",
@@ -32755,7 +33700,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
    "trigger_text": "感性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan1"
+    }
+   },
    "condition": "感性",
    "effect_type": "ExamPreservation",
    "effect_label": "温存",
@@ -32785,7 +33735,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan3-target-0_1",
    "trigger_text": "非凡的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan3"
+    }
+   },
    "condition": "非凡",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -32825,7 +33780,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan2-target-0_1",
    "trigger_text": "理性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan2"
+    }
+   },
    "condition": "理性",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -32900,7 +33860,11 @@
    "trigger_text": "辅助技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamCardPlayAggressive",
@@ -32932,7 +33896,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-02-men-3_002-0_1",
    "trigger_text": "我是明星使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-3_002",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
@@ -32942,8 +33913,7 @@
    "max_uses": 0,
    "effects": [],
    "text_zh": "我是明星使用后，干扰卡向除外中移动",
-   "text_ja": "私がスター使用後、トラブルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "私がスター使用後、トラブルカードを除外に移動"
   },
   {
    "id": "pitem_tower_001-exam_card_play_aggressive-1-stage_016",
@@ -32957,7 +33927,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "turn",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -33041,7 +34015,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -33097,7 +34075,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamStaminaRecoverFix",
@@ -33129,7 +34111,13 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-min_max-4_99-0_1",
    "trigger_text": "使用原本的消耗体力值在4以上的技能卡时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "cost",
+     "cost_min": 4,
+     "cost_max": 99
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -33159,8 +34147,7 @@
     }
    ],
    "text_zh": "使用原本的消耗体力值在4以上的技能卡时，打分上升量增加5%体力消耗6",
-   "text_ja": "元々の消費体力が4以上のスキルカード使用時、パラメータ上昇量増加5%固定体力消費6",
-   "trigger_known": false
+   "text_ja": "元々の消費体力が4以上のスキルカード使用時、パラメータ上昇量増加5%固定体力消費6"
   },
   {
    "id": "pitem_tower_001-exam_card_play_aggressive-1-stage_021-1",
@@ -33252,7 +34239,13 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "discard",
+      "count": 1
+     }
     }
    ],
    "text_zh": "直接效果使干劲增加后，睡意向弃牌中生成",
@@ -33267,8 +34260,20 @@
    "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-7-p_card_search-trouble-deck_grave",
    "trigger_text": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的干扰卡在7张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 7,
+     "negate": false,
+     "filter": {
+      "trouble": true
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -33277,8 +34282,7 @@
    "max_uses": 10,
    "effects": [],
    "text_zh": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，偶像固有P道具的发动次数+1干扰卡向除外中移动（训练内10次）",
-   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）",
-   "trigger_known": false
+   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）"
   },
   {
    "id": "pitem_tower_001-exam_card_play_aggressive-1-stage_023",
@@ -33395,7 +34399,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardPlayAggressive",
@@ -33457,7 +34465,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -33481,7 +34494,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -33722,7 +34740,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -33801,7 +34823,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -33881,7 +34907,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamExtraTurn",
@@ -33975,7 +35005,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_concentration-000-0_1",
    "trigger_text": "强气效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -34008,8 +35043,7 @@
     }
    ],
    "text_zh": "强气效果的技能卡使用时，打分上升量增加20%（20回合）消耗体力追加2（训练内5次）",
-   "text_ja": "強気効果のスキルカード使用時、パラメータ上昇量増加20%（20ターン）消費体力追加2（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "強気効果のスキルカード使用時、パラメータ上昇量増加20%（20ターン）消費体力追加2（レッスン内5回）"
   },
   {
    "id": "pitem_tower_001-exam_concentration-1-stage_016",
@@ -34054,7 +35088,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -34132,7 +35170,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamExtraTurn",
@@ -34163,7 +35205,13 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-min_max-4_99-0_1",
    "trigger_text": "使用原本的消耗体力值在4以上的技能卡时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "cost",
+     "cost_min": 4,
+     "cost_max": 99
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -34193,8 +35241,7 @@
     }
    ],
    "text_zh": "使用原本的消耗体力值在4以上的技能卡时，打分上升量增加5%体力消耗6",
-   "text_ja": "元々の消費体力が4以上のスキルカード使用時、パラメータ上昇量増加5%固定体力消費6",
-   "trigger_known": false
+   "text_ja": "元々の消費体力が4以上のスキルカード使用時、パラメータ上昇量増加5%固定体力消費6"
   },
   {
    "id": "pitem_tower_001-exam_concentration-1-stage_021-1",
@@ -34282,7 +35329,13 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "discard",
+      "count": 1
+     }
     }
    ],
    "text_zh": "直接效果使指针变更的时候，睡意向弃牌中生成",
@@ -34297,8 +35350,20 @@
    "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-7-p_card_search-trouble-deck_grave",
    "trigger_text": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的干扰卡在7张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 7,
+     "negate": false,
+     "filter": {
+      "trouble": true
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -34307,8 +35372,7 @@
    "max_uses": 10,
    "effects": [],
    "text_zh": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，偶像固有P道具的发动次数+1干扰卡向除外中移动（训练内10次）",
-   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）",
-   "trigger_known": false
+   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）"
   },
   {
    "id": "pitem_tower_001-exam_concentration-1-stage_023",
@@ -34425,7 +35489,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardDuplicate",
@@ -34478,7 +35546,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -34502,7 +35575,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -34731,7 +35809,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_preservation-000-0_1",
    "trigger_text": "温存效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_preservation-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -34764,8 +35847,7 @@
     }
    ],
    "text_zh": "温存效果的技能卡使用时，打分上升量增加20%（20回合）消耗体力追加2（训练内5次）",
-   "text_ja": "温存効果のスキルカード使用時、パラメータ上昇量増加20%（20ターン）消費体力追加2（レッスン内5回）",
-   "trigger_known": false
+   "text_ja": "温存効果のスキルカード使用時、パラメータ上昇量増加20%（20ターン）消費体力追加2（レッスン内5回）"
   },
   {
    "id": "pitem_tower_001-exam_full_power-1-stage_016",
@@ -34810,7 +35892,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -34888,7 +35974,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamExtraTurn",
@@ -35032,7 +36122,13 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "discard",
+      "count": 1
+     }
     }
    ],
    "text_zh": "直接效果使全力值增加后，睡意向弃牌中生成",
@@ -35047,8 +36143,20 @@
    "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-7-p_card_search-trouble-deck_grave",
    "trigger_text": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的干扰卡在7张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 7,
+     "negate": false,
+     "filter": {
+      "trouble": true
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -35057,8 +36165,7 @@
    "max_uses": 10,
    "effects": [],
    "text_zh": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，偶像固有P道具的发动次数+1干扰卡向除外中移动（训练内10次）",
-   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）",
-   "trigger_known": false
+   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）"
   },
   {
    "id": "pitem_tower_001-exam_full_power-1-stage_023",
@@ -35175,7 +36282,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardDuplicate",
@@ -35228,7 +36339,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -35252,7 +36368,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -35453,7 +36574,11 @@
    "trigger_text": "辅助技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamParameterBuff",
@@ -35485,7 +36610,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-men-3_006-0_1",
    "trigger_text": "国民级偶像使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-men-3_006",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
@@ -35495,8 +36627,7 @@
    "max_uses": 0,
    "effects": [],
    "text_zh": "国民级偶像使用后，干扰卡向除外中移动",
-   "text_ja": "国民的アイドル使用後、トラブルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "国民的アイドル使用後、トラブルカードを除外に移動"
   },
   {
    "id": "pitem_tower_001-exam_lesson_buff-1-stage_016",
@@ -35510,7 +36641,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "turn",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -35594,7 +36729,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -35650,7 +36789,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamStaminaRecoverFix",
@@ -35793,7 +36936,13 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "discard",
+      "count": 1
+     }
     }
    ],
    "text_zh": "直接效果使集中增加后，睡意向弃牌中生成",
@@ -35808,8 +36957,20 @@
    "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-7-p_card_search-trouble-deck_grave",
    "trigger_text": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的干扰卡在7张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 7,
+     "negate": false,
+     "filter": {
+      "trouble": true
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -35818,8 +36979,7 @@
    "max_uses": 10,
    "effects": [],
    "text_zh": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，偶像固有P道具的发动次数+1干扰卡向除外中移动（训练内10次）",
-   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）",
-   "trigger_known": false
+   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）"
   },
   {
    "id": "pitem_tower_001-exam_lesson_buff-1-stage_023",
@@ -35936,7 +37096,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardDuplicate",
@@ -35989,7 +37153,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -36013,7 +37182,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -36254,7 +37428,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamParameterBuff",
@@ -36341,7 +37519,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -36421,7 +37603,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamExtraTurn",
@@ -36486,7 +37672,11 @@
    "trigger_text": "辅助技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamLessonBuff",
@@ -36518,7 +37708,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-men-3_006-0_1",
    "trigger_text": "国民级偶像使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-01-men-3_006",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
@@ -36528,8 +37725,7 @@
    "max_uses": 0,
    "effects": [],
    "text_zh": "国民级偶像使用后，干扰卡向除外中移动",
-   "text_ja": "国民的アイドル使用後、トラブルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "国民的アイドル使用後、トラブルカードを除外に移動"
   },
   {
    "id": "pitem_tower_001-exam_parameter_buff-1-stage_016",
@@ -36543,7 +37739,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "turn",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -36627,7 +37827,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -36683,7 +37887,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamStaminaRecoverFix",
@@ -36826,7 +38034,13 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "discard",
+      "count": 1
+     }
     }
    ],
    "text_zh": "直接效果使好调增加后，睡意向弃牌中生成",
@@ -36841,8 +38055,20 @@
    "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-7-p_card_search-trouble-deck_grave",
    "trigger_text": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的干扰卡在7张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 7,
+     "negate": false,
+     "filter": {
+      "trouble": true
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -36851,8 +38077,7 @@
    "max_uses": 10,
    "effects": [],
    "text_zh": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，偶像固有P道具的发动次数+1干扰卡向除外中移动（训练内10次）",
-   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）",
-   "trigger_known": false
+   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）"
   },
   {
    "id": "pitem_tower_001-exam_parameter_buff-1-stage_023",
@@ -36969,7 +38194,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardDuplicate",
@@ -37022,7 +38251,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -37046,7 +38280,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -37280,7 +38519,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -37359,7 +38602,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -37439,7 +38686,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamExtraTurn",
@@ -37513,7 +38764,11 @@
    "trigger_text": "辅助技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamReview",
@@ -37545,7 +38800,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-02-men-3_002-0_1",
    "trigger_text": "我是明星使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-02-men-3_002",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
@@ -37555,8 +38817,7 @@
    "max_uses": 0,
    "effects": [],
    "text_zh": "我是明星使用后，干扰卡向除外中移动",
-   "text_ja": "私がスター使用後、トラブルカードを除外に移動",
-   "trigger_known": false
+   "text_ja": "私がスター使用後、トラブルカードを除外に移動"
   },
   {
    "id": "pitem_tower_001-exam_review-1-stage_016",
@@ -37570,7 +38831,11 @@
    "trigger_params": {
     "interval": 2,
     "interval_scope": "turn",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -37654,7 +38919,11 @@
    "trigger_params": {
     "interval": 3,
     "interval_scope": "exam",
-    "card_filter": "MentalSkill"
+    "card_filter": "MentalSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -37710,7 +38979,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamStaminaRecoverFix",
@@ -37742,7 +39015,13 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-min_max-4_99-0_1",
    "trigger_text": "使用原本的消耗体力值在4以上的技能卡时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "cost",
+     "cost_min": 4,
+     "cost_max": 99
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -37772,8 +39051,7 @@
     }
    ],
    "text_zh": "使用原本的消耗体力值在4以上的技能卡时，打分上升量增加5%体力消耗6",
-   "text_ja": "元々の消費体力が4以上のスキルカード使用時、パラメータ上昇量増加5%固定体力消費6",
-   "trigger_known": false
+   "text_ja": "元々の消費体力が4以上のスキルカード使用時、パラメータ上昇量増加5%固定体力消費6"
   },
   {
    "id": "pitem_tower_001-exam_review-1-stage_021-1",
@@ -37865,7 +39143,13 @@
      "values": {},
      "text": "生成",
      "max_uses": 0,
-     "label": "生成"
+     "label": "生成",
+     "create": {
+      "card_id": "p_card-00-acc-0_002",
+      "upgrade": 0,
+      "zone": "discard",
+      "count": 1
+     }
     }
    ],
    "text_zh": "直接效果使好印象增加后，睡意向弃牌中生成",
@@ -37880,8 +39164,20 @@
    "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-7-p_card_search-trouble-deck_grave",
    "trigger_text": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "牌堆或弃牌中的干扰卡在7张以上的时候",
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "discard"
+     ],
+     "min": 7,
+     "negate": false,
+     "filter": {
+      "trouble": true
+     }
+    }
+   },
+   "condition": "",
    "effect_type": "unknown",
    "effect_label": "",
    "effect_text": "",
@@ -37890,8 +39186,7 @@
    "max_uses": 10,
    "effects": [],
    "text_zh": "回合开始时，牌堆或弃牌中的干扰卡在7张以上的时候，偶像固有P道具的发动次数+1干扰卡向除外中移动（训练内10次）",
-   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）",
-   "trigger_known": false
+   "text_ja": "ターン開始時、山札か捨札にあるトラブルカードが7枚以上の場合、アイドル固有Pアイテムの発動回数+1トラブルカードを除外に移動（レッスン内10回）"
   },
   {
    "id": "pitem_tower_001-exam_review-1-stage_023",
@@ -38008,7 +39303,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamCardDuplicate",
@@ -38061,7 +39360,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SSR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -38085,7 +39389,12 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 3,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "rarities": [
+      "SR"
+     ]
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -38325,7 +39634,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
@@ -38404,7 +39717,11 @@
    "trigger_text": "主动技能卡使用时，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "",
    "effect_type": "unknown",
@@ -38484,7 +39801,11 @@
    "trigger_text": "主动技能卡使用时，刚刚使用过辅助技能卡的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "ActiveSkill"
+    "card_filter": "ActiveSkill",
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
    },
    "condition": "刚刚使用过辅助技能卡的时候",
    "effect_type": "ExamExtraTurn",
@@ -38609,7 +39930,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-parameter_buff_up-8-p_card_search-mental_skill-target-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
+   },
    "condition": "好调在8回合以上",
    "effect_type": "ExamLessonBuff",
    "effect_label": "集中",
@@ -38660,7 +39986,20 @@
    "trigger_id": "e_trigger-exam_start_turn-card_search_count_up-2-p_card_search-trouble-not_lost",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "deck",
+      "hand",
+      "discard"
+     ],
+     "min": 2,
+     "negate": false,
+     "filter": {
+      "trouble": true
+     }
+    }
+   },
    "condition": "",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -38693,8 +40032,6 @@
    ],
    "text_zh": "",
    "text_ja": "ターン開始時、除外以外にあるトラブルカードが2枚以上の場合、パラメータ上昇量増加50%絶好調3ターン（レッスン内2回）",
-   "condition_known": false,
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -38944,7 +40281,19 @@
    "trigger_id": "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hand-p_card-00-acc-0_002-p_card_search-target-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "hand"
+     ],
+     "min": 1,
+     "negate": false,
+     "filter": {
+      "kind": "card",
+      "card_id": "p_card-00-acc-0_002"
+     }
+    }
+   },
    "condition": "",
    "effect_type": "ExamParameterBuff",
    "effect_label": "好调",
@@ -38972,8 +40321,6 @@
    ],
    "text_zh": "",
    "text_ja": "スキルカード使用後、手札の眠気が1枚以上の場合、好調の30%分パラメータ上昇",
-   "condition_known": false,
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -38986,7 +40333,19 @@
    "trigger_id": "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hand-p_card-00-acc-0_002-p_card_search-target-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "zone_count": {
+     "zones": [
+      "hand"
+     ],
+     "min": 1,
+     "negate": false,
+     "filter": {
+      "kind": "card",
+      "card_id": "p_card-00-acc-0_002"
+     }
+    }
+   },
    "condition": "",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -39023,8 +40382,6 @@
    ],
    "text_zh": "",
    "text_ja": "スキルカード使用後、手札の眠気が1枚以上の場合、元気+1好調の50%分パラメータ上昇",
-   "condition_known": false,
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -39405,7 +40762,12 @@
    "trigger_id": "e_trigger-exam_card_play-stamina_up_multiple-800-p_card_search-active_skill-playing-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
+   },
    "condition": "体力在80%以上",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -39447,7 +40809,12 @@
    "trigger_id": "e_trigger-exam_card_play-stamina_up_multiple-800-p_card_search-active_skill-playing-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "category",
+     "category": "ActiveSkill"
+    }
+   },
    "condition": "体力在80%以上",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -39633,7 +41000,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 2,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "干劲在5以上",
    "effect_type": "ExamCardPlayAggressive",
@@ -39679,7 +41050,11 @@
    "trigger_domain": "exam",
    "trigger_params": {
     "interval": 2,
-    "interval_scope": "exam"
+    "interval_scope": "exam",
+    "play_filter": {
+     "kind": "category",
+     "category": "MentalSkill"
+    }
    },
    "condition": "干劲在5以上",
    "effect_type": "ExamCardPlayAggressive",
@@ -39786,8 +41161,13 @@
    "trigger_id": "e_trigger-exam_card_play-full_power_point_get_sum_up-10-p_card_search-playing-effect_group-visible-exam_concentration-000-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
-   "condition": "",
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
+   },
+   "condition": "累计全力值在10以上",
    "effect_type": "ExamEnthusiasticAdditive",
    "effect_label": "热意追加",
    "effect_text": "熱意追加+（ターン）次のターン、スキルカードを枚引く（レッスン内3回）",
@@ -39810,8 +41190,6 @@
    ],
    "text_zh": "",
    "text_ja": "強気効果のスキルカード使用時、このレッスン中の累計全力値が10以上の場合、熱意追加+5（1ターン）次のターン、スキルカードを2枚引く（レッスン内3回）",
-   "condition_known": false,
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -39824,7 +41202,12 @@
    "trigger_id": "e_trigger-exam_card_play-p_card_search-playing-effect_group-visible-exam_concentration-000-0_1",
    "trigger_text": "强气效果的技能卡使用时，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "effect_group",
+     "group": "effect_group-visible-exam_concentration-000"
+    }
+   },
    "condition": "",
    "effect_type": "ExamFullPowerPoint",
    "effect_label": "全力值",
@@ -39852,7 +41235,6 @@
    ],
    "text_zh": "",
    "text_ja": "強気効果のスキルカード使用時、全力値+5強気効果のスキルカードのパラメータ値増加+25・パラメータ上昇回数増加+1（レッスン内2回）",
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -39866,7 +41248,9 @@
    "trigger_text": "偶像固有技能卡使用时，全力的时候，",
    "trigger_domain": "exam",
    "trigger_params": {
-    "card_filter": "IdolUnique"
+    "play_filter": {
+     "kind": "idol_unique"
+    }
    },
    "condition": "全力的时候",
    "effect_type": "ExamFullPowerPoint",
@@ -39888,7 +41272,6 @@
    ],
    "text_zh": "",
    "text_ja": "アイドル固有スキルカード使用時、全力の場合、全力値+9アクティブスキルカードのパラメータ値増加+25（レッスン内1回）",
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -39966,7 +41349,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-playing-p_card-03-ido-3_219-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-ido-3_219",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamStaminaReduceFix",
    "effect_label": "体力消耗",
@@ -39987,8 +41377,6 @@
    ],
    "text_zh": "",
    "text_ja": "わずかずつの歩み使用後、除外にあるわずかずつの歩み1枚を山札の一番上に移動固定体力消費1（レッスン内3回）",
-   "condition_known": false,
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -40001,7 +41389,14 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-playing-p_card-03-ido-3_219-0_1",
    "trigger_text": "",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "card",
+     "card_id": "p_card-03-ido-3_219",
+     "upgrade": 0,
+     "count": 1
+    }
+   },
    "condition": "",
    "effect_type": "ExamBlock",
    "effect_label": "元气",
@@ -40022,8 +41417,6 @@
    ],
    "text_zh": "",
    "text_ja": "わずかずつの歩み使用後、除外にあるわずかずつの歩み1枚を山札の一番上に移動元気+2（レッスン内3回）",
-   "condition_known": false,
-   "trigger_known": false,
    "i18n_name_source": "translation_new.json",
    "i18n_text_source": "ja"
   },
@@ -40330,7 +41723,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
    "trigger_text": "感性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan1"
+    }
+   },
    "condition": "感性",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -40364,7 +41762,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
    "trigger_text": "感性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan1"
+    }
+   },
    "condition": "感性",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",
@@ -40398,7 +41801,12 @@
    "trigger_id": "e_trigger-exam_card_play_after-p_card_search-plan1-target-0_1",
    "trigger_text": "感性的技能卡使用后，",
    "trigger_domain": "exam",
-   "trigger_params": {},
+   "trigger_params": {
+    "play_filter": {
+     "kind": "plan",
+     "plan": "Plan1"
+    }
+   },
    "condition": "感性",
    "effect_type": "ExamLessonValueMultiple",
    "effect_label": "打分上升量增加",

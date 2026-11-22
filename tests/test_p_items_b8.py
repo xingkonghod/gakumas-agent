@@ -96,11 +96,17 @@ def test_parse_trigger_id_review_interval_sets_status() -> None:
 
 
 def test_parse_trigger_id_specific_card_is_incomplete() -> None:
-    """指定卡名/手牌指定卡张数的条件解析不了 → complete=False（调用方保守跳过）。"""
+    """B10 起指定卡名/区域张数（tracked 区）已结构化解析 → 不再 incomplete；
+    只剩 hold（保留）区未建模与未知词（period810_hotfix）保守跳过。"""
     for trigger_id in (
         "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_023-0_1",
         "e_trigger-exam_start_turn-card_search_count_up-2-p_card_search-trouble-not_lost",
         "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hand-p_card-00-acc-0_002-p_card_search-target-0_1",
+    ):
+        assert build_p_items.trigger_id_has_unparsed_condition(trigger_id) is False
+    for trigger_id in (
+        "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hold-p_card_search-target-1-p_card-03-act-1_038-0_1",
+        "e_trigger-exam_play_turn_count_interval-2-p_card_search-target-period810_hotfix",
     ):
         assert build_p_items.trigger_id_has_unparsed_condition(trigger_id) is True
 
@@ -167,10 +173,10 @@ def test_real_catalog_b8_stats() -> None:
         (ROOT / "data" / "knowledge" / "p_items.json").read_text(encoding="utf-8-sig")
     )
     stats = payload["stats"]
-    # B8：条件未知 22→6（16 件新语法 id 从 id 解析出来了）；指定卡/手牌限定的
-    # 触发单独记 trigger_unknown（保守跳过）。
-    assert stats["items_condition_unknown"] == 6
-    assert stats["items_trigger_unknown"] == 103
+    # B8：条件未知 22→6；B10：p_card_search 限定结构化后条件未知 6→0、
+    # 触发未知 103→3（hold 保留区 2 件 + period810_hotfix 未知词 1 件，保守跳过）。
+    assert stats["items_condition_unknown"] == 0
+    assert stats["items_trigger_unknown"] == 3
     assert stats["items_trigger_id_parsed"] >= 16
     assert stats["effects_depends_on"] > 0
     assert stats["effects_percent_max"] > 0

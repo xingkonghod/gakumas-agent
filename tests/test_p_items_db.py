@@ -160,9 +160,9 @@ def test_real_catalog_loads_and_covers_implemented_types() -> None:
     # 与 test_p_items.py 同一批已实现效果类型（防止数据层解析口径变化）。
     implemented = coverage["implemented"]
     assert implemented >= 200
-    # B7：47 条上游新增里 22 条的新触发 id 没有中文触发句 → 条件未知、保守不触发，
-    # 单独计数（不混进 implemented 假装建模完成）。
-    assert coverage["condition_unknown"] > 0
+    # B7：47 条上游新增里 22 条的新触发 id 没有中文触发句 → 当时条件未知；
+    # B8 从 id 解析 16 件、B10 把 p_card_search 限定结构化后条件未知清零。
+    assert coverage["condition_unknown"] == 0
 
     known_id = catalog.ids[0]
     loadout = resolve_produce_item_ids([known_id, "pitem_no-such-item-999"], catalog=catalog)
@@ -186,10 +186,11 @@ def test_real_catalog_includes_yaml_only_new_items() -> None:
     assert stats["items_local_master"] == 1068
     assert stats["items_from_yaml"] == 47
     assert stats["items_i18n_text_ja"] == 47
-    # B8：新语法 trigger id 从 id 后缀解析（16 件），条件未知从 22 降到 6；
-    # 指定卡名 / 手牌指定卡张数这类还没法建模的限定单独记 trigger_unknown。
-    assert stats["items_condition_unknown"] == 6
-    assert stats["items_trigger_unknown"] == 103
+    # B8：新语法 trigger id 从 id 后缀解析（16 件）；B10：p_card_search 限定
+    # 结构化（指定卡名/偶像固有/效果组/费用/区域张数）→ 条件未知 6→0、
+    # 触发未知 103→3（hold 保留区 2 件 + period810_hotfix 1 件，都是本地旧行）。
+    assert stats["items_condition_unknown"] == 0
+    assert stats["items_trigger_unknown"] == 3
     assert stats["items_trigger_id_parsed"] >= 16
     assert stats["effects_depends_on"] > 0
     assert stats["effects_percent_max"] > 0
@@ -203,8 +204,8 @@ def test_real_catalog_includes_yaml_only_new_items() -> None:
         assert row["i18n_name_source"] in {"translation_new.json", "ja"}, row["id"]
         # 47 条全部进 catalog：有考试效果的按效果段展开，没效果的落成 unknown no-op 段。
         assert catalog.specs_for(row["id"]), row["id"]
-    assert sum(1 for row in new_rows if row.get("condition_known") is False) == 6
-    assert sum(1 for row in new_rows if row.get("trigger_known") is False) == 8
+    assert sum(1 for row in new_rows if row.get("condition_known") is False) == 0
+    assert sum(1 for row in new_rows if row.get("trigger_known") is False) == 0
 
     # gkbench 505 题模板原先的 11 个未知 id 全部落在新增 47 条里（现在都能解析）。
     for item_id in ("pitem_01-3-349-0", "pitem_02-3-336-1", "pitem_03-3-334-0", "pitem_3-258-research-event-009"):
