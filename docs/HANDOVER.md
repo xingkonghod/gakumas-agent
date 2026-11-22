@@ -1025,6 +1025,7 @@ rules / expectimax(ensemble) / uinet
 
 ```
 （2026-11-22 B3 T5 机制建模：回合规则对齐 + RULES_REFERENCE 核验表）
+d797802 docs(handover): B3 完成交接——回合规则对齐真机 + RULES_REFERENCE 核验表 + 重标定（pytest 985/1，B2 旧模型待重训）
 4316f9a feat(b3): T5 机制建模——模拟器回合规则对齐真机（每回合 1 张 + 自动结束 + 跳过回 2 体力 + safeCeil 取整）
 （2026-11-22 B2 全知数据训练 MLP 叶子）
 5cd23d0 docs(handover): B2 完成交接——状态/基线数字(975/1)/确认段 beam +7.7/负结果与生产接线，下一项 B3
