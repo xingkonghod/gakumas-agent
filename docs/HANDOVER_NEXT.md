@@ -877,7 +877,8 @@ EXPECTIMAX B2-R 末段）；或 T7 剩余 / D1 补采集 / E0 实验（需独立
 文档：WORKPLAN §0/C1/开场白；HANDOVER_NEXT §0/§2/§4 T7/§8/开场白；INDEX；HANDOVER 二·补三十六；
 LIVE_RUN（真机手册 C1 入口：起跑自检第 7 条提权、跑完第 ④ 件 replay_steps 复盘、
 日志/失败标记速查表、已知坑第 6 条 UIPI）。
-提交 `feat 6a47185`（代码+测试+文档）+ `docs(handover) 9a4e054`（哈希记录）+ 交接定稿（哈希见 HANDOVER 七）。
+提交 `feat 6a47185`（代码+测试+文档）+ `docs(handover) 9a4e054`（哈希记录）+ 交接定稿 `1ac8bb2`
+（LIVE_RUN 真机手册 C1 入口；哈希另见 HANDOVER 七）。
 **阶段 E 真机验收 C1 时看**：日志首行 `[priv]`、每步 `data/step_trace.jsonl`、
 `replay_steps.py --episode <ep> [--anomalies]`、局末 `[tap]` 汇总；
 新 failure 种类：`elevation-blocked` / `tap-lost` / `drink-dialog-lost`。
@@ -1129,7 +1130,7 @@ B 站标题宣称 S4+（待核）；PBRS 塑形负结果 −26,884（纯分最�
 **新会话开场白（复制）**
 
 ```
-工作目录 D:\Games\gakumas-agent。
+工作目录 D:\Games\gakumas-agent。当前 HEAD=1ac8bb2。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑基线
 （四条必跑 + ⑤ F0 gkbench 核对可选）。
 期望：洗牌 4/4 场 + 3/3 重洗；pytest 1223 passed / 1 skipped（1224 条收集 / 83 文件）；

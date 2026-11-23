@@ -1903,7 +1903,7 @@ T7 剩余（纯函数状态离线重放、自动复盘页+人工标注转回归�
 **文档**：WORKPLAN §0/C1/开场白；HANDOVER_NEXT §0/§2 期望值（1155→1223）/§4 T7/§8/开场白；
 INDEX；LIVE_RUN（真机手册 C1 入口：提权自检/复盘命令/日志标记速查/UIPI 坑）；本文件二·补三十六。
 
-**提交**：feat `6a47185`（代码+测试+文档）+ docs(handover) `9a4e054`（哈希记录）+ 交接定稿，
+**提交**：feat `6a47185`（代码+测试+文档）+ docs(handover) `9a4e054`（哈希记录）+ 交接定稿 `1ac8bb2`，
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -2126,6 +2126,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 C1 交接定稿：LIVE_RUN 真机手册补 C1 入口——起跑自检第 7 条提权一致、跑完第 ④ 件 replay_steps 逐步复盘、日志/失败标记速查表（[priv]/[tap] retap/[tap][LOST]/drink-dialog-lost/elevation-blocked）、已知坑第 6 条 UIPI；HANDOVER_NEXT §8 补三提交哈希与阶段 E 验收指引、开场白模板补 HEAD）
+1ac8bb2 docs(handover): C1 交接定稿——LIVE_RUN 真机手册补 C1 入口（提权自检/复盘命令/日志标记速查/UIPI 坑）；§8 补哈希与阶段 E 验收指引
 （2026-11-23 C1 执行层可靠性（用户指定本会话唯一任务，纯离线代码+单测，真机验收留阶段 E）：tap 确认/重试 TapGuard（动作前预算下一帧→互验 confirmed/moved 不重试/同屏 retap≤2/lost 上报绝不静默 SKIP/加载暂停 postpone）+ PickerGuard 两段式选牌（选中后只重试确认不重点卡位）+ 提权检查 privilege（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑+管理员提示）+ 每步 step_trace.jsonl（动作理由/预算/互验结果）+ replay_steps.py 离线复盘 + attempt_drink 对话未开重试 + 连续 3 次 lost 止损停局；参考 GKMSMAA 架构自写不拷贝（AGPL）；68 条失败场景单测，pytest 1223/1（1224 收集 / 83 文件），基线 ①③④⑤ 不变）
 6a47185 feat(c1): 执行层可靠性——tap 确认/重试 + 提权检查 + 动作前预算下一帧 + 每步可复盘（68 条失败场景单测）
 （2026-11-23 交接定稿：用户按「先问我」约定确认下一会话 = C1 执行层可靠性；渐退式专家迭代保留为未启动候选；开场白模板补 B2-R 高预算验证/路线关闭/C1 任务定义）
