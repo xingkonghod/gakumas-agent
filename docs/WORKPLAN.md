@@ -39,6 +39,7 @@
 | C1 执行层可靠性（tap 确认/重试 + 提权检查 + 帧预算 + 每步可复盘，2026-11-23，**纯离线代码+单测；真机验收留阶段 E**） | 新 `runtime/tapguard.py`（TapExpectation 动作前预算下一帧 + TapGuard 互验：confirmed/moved 不重试/同屏 retap≤2/lost 上报绝不静默 SKIP + PickerGuard 两段式选牌分级重试）+ `device/privilege.py`（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑+`elevation-blocked` failure）+ `runtime/trace.py`（StepTrace 每步 reason/预算/互验结果）+ `scripts/replay_steps.py` 离线复盘 CLI；`produce_ui.decide()` 每击自动预算（弹窗确认/回合结束「是」/通信错误=dialog-gone）+ card-reward 接 PickerGuard（只重试领取不重点卡位）；`auto_produce` 接 tap 互验（retap/lost/连续 3 次 lost 止损停局）+ `attempt_drink`（对话未开重试槽位≤2，失败留痕）+ 每步 `data/step_trace.jsonl` + 局末 `[tap]` 汇总；参考 GKMSMAA follow/winpriv 架构**自写不拷贝**（AGPL）；新增 4 测试文件 **68 条**；pytest **1223/1（1224 收集 / 83 文件）**；基线 ①③④⑤ 不变；见 HANDOVER 二·补三十六 |
 | B11 渐退式专家迭代 第 1–2 轮（policy/advantage 学生 + 评测门渐退，2026-11-23，**纯离线；r1 确认段 PASS / r2 平台期 CONTINUE**） | 新 `sim/policy_mlp.py`（137 维特征=104 状态+33 动作 → 96→48→1 优势分；`net_action` 硬规矩禁跳/禁回退）+ `sim/policy_data.py`（决策记录+**精确重放分支** on-policy 优势标签 A=R−mean(R)，逐字段全等校验不走搜索镜像）+ `build_ei_dataset.py`/`train_ei_policy.py`/`eval_ei.py`；`eval_known_draw.play` 加 net/greedy（默认逐位不变）；r1：示范 400 局 5747 样本→v0 BC→自对弈 1000 局 14314 样本→v1 70/30；**确认段 120 局 v1 97.5 vs beam 教师 94.9：+2.6 CI[+1.1,+4.1] PASS**（稳健块 +3.8 CI[+1.6,+6.0]；0.40ms/决策）；消融：纯 BC v0 也过门（+2.4），红利主力=逐决策蒸馏+禁跳。**r2（教师←v1、占比 0.15、large 首测）**：`--teacher-net`/`--baseline-net`/`--round` 纯增量；v1 示范 5773 + v1 自对弈 14526（seed 400000+/300000+）→ v2 17089 样本；**确认段 v2 97.9 vs v1 97.5：+0.4 CI[−0.4,+1.2] CONTINUE（平台期，四段全中性，新鲜块 5000 同样中性）**；消融 v2−v2_bc=+0.54 CI[−0.40,+1.48] on-policy 仍未独立证明；**large：v1 比 beam −28.1 CI[−36.0,−20.2]（CLEAR 36.7% vs 53.3%），v2 比 v1 还略差（选择段 −14.8 显著）→ small 训练不泛化 large**；v2−beam small +2.99 CI[+1.37,+4.62] 绝对水位保持；处置：占比不降、生产接线未做、T2 候选不变；新增 15 条测试（r2）。**r3–r8 继续扶（用户指令「显著强于老师才结束」）**：数据×10/epochs×3/容量×2/ε-greedy 探索（`--explore-eps`，+7 测试）全试过，val 饱和 0.862、确认段恒 +0.2~0.6（种子段结构）；**门协议修正（用户批准）扩 500 局 → v6 98.6 vs v1 98.1：+0.6 CI[+0.2,+0.9] PASS**，新鲜块 6000 +1.7 佐证，池化 820 局 +0.71 CI[+0.40,+1.02]；**v6=最佳学生**；large 泛化显著改善（+14.4 vs v1）但仍低于 beam（−13.7）；生产接线仍未做；pytest **1273/1（1274 收集 / 86 文件）**；基线 ①③④⑤ 不变；见 EXPECTIMAX B11 / HANDOVER 二·补三十七/三十九/四十 |
 | B11 v6 生产接线（2026-11-23，**纯增量代码+单测；opt-in，默认逐位不变**） | `LessonPolicy(engine="net", net_model=…)`：可观测状态 `legal_cards` 里 argmax 优势分（无搜索）；`with_plan=False` 不注入采集全知（public-safe 口径）；硬规矩有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异常/失配 → `RuleFallbackBlocked`（**禁回退 rules**）；`eng=net` + 优势分进 reason；auto_produce `--net-model` > `produce.net_model` > 默认入库 v6，缺模型起跑前 return 2；`data/knowledge/ei_policy_v6.json`（tracked，gate 溯源 meta）；T2 增第四臂 `--engine net`（large 生产候选仍是 beam） | `tests/test_ei_wiring.py` 21 条；pytest **1294/1（1295 收集 / 87 文件）**；基线 ①③④⑤ 不变；见 EXPECTIMAX「B11 v6 生产接线」/ HANDOVER 二·补四十一 |
+| B11 r9-large（2026-11-23，**small+large 混合训练；large 首超 beam，small 显著回退 → 复合门未过，不入库**） | `train_ei_policy --selfplay/--demos` 多文件（`nargs="+"`，按序拼接/group 偏移/全局 std/meta.multi_file；**单文件 sha256 逐位不变**）；large 自对弈 5000 局 126969 样本（v6 学生，seed 900000+）+ small r5 全量 145605 + 示范 48101（补采 v1 1600 局解锁 0.15 上限）= 320675 行，192×96/1200ep 同 r6 | **large500 r9 315.4 vs v6 285.8：+29.6 CI[+26.2,+33.0] PASS，vs beam +14.2（首个 large 超 beam 学生网）**，新鲜块 +24.0 佐证；**small500 r9 98.2 vs v6 98.6：−0.42 CI[−0.67,−0.17] 显著回退**（池化 580 −0.47；vs v1 原门未保持）→ 不入库，生产保持 r6；r9 留 out/ 作 large specialist（--net-model 可换）；诊断假设=全局 std 稀释 small 信号（18.71 vs 12.21）；`tests/test_ei_multifile.py` 12 条；pytest **1306/1（1307 收集 / 88 文件）**；见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -548,7 +549,7 @@
   （1156 收集 / 79 文件）**；基线 ①③④⑤ 全部不变。
 - 细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四/三十五。
 
-### B11. 渐退式专家迭代（学 policy/advantage，评测门渐退）🟡 第 1–2 轮 + r3–r8 续完成（2026-11-23，r1 PASS / r2 平台期 / 继续扶 **v6 过门显著强于 v1**；下一步先问用户）
+### B11. 渐退式专家迭代（学 policy/advantage，评测门渐退）🟡 第 1–2 轮 + r3–r8 续 + v6 接线 + r9-large 完成（2026-11-23，**v6 过门并接线；r9 large 首超 beam 但 small 回退 → 不入库**；下一步先问用户）
 - **目标**：B2-R 关闭学习叶子（状态价值）路线后换目标量——学「该打哪张牌 / 这张比
   平均好多少」（policy/advantage），标签来自学生自己的对局（on-policy，绕开价值-策略
   失配）；摸索 70%+老师 30%，教师占比逐轮渐退（30→15→0），**学生过配对评测门
@@ -592,13 +593,26 @@
   **v6（192×96）= 当前最佳学生，显著强于 v1**。探索变量中性（覆盖假设否证）；
   **large 泛化显著改善**（v6 large 291.6 vs v1 277.2：+14.4 CI[+6.5,+22.2]，
   vs beam 缺口 −28.1→−13.7）但仍低于 beam；生产接线仍未做。
+- **r9-large（2026-11-23，用户授权安排；small+large 混合训练，单变量=加 large 数据）**：
+  `train_ei_policy --selfplay/--demos` 多文件纯增量（**单文件 sha256 逐位不变** + 12 条回归测试）；
+  large 自对弈 5000 局 126969 样本（v6 学生，seed 900000–904999）+ small r5 全量 145605 +
+  示范 48101（补采 v1 1600 局 23050 解锁 0.15 上限）= 320675 行，192×96/1200ep 全同 r6。
+  **large500（3000–3499）r9 315.4 vs v6 285.8：+29.6 CI[+26.2,+33.0] PASS；vs beam 301.3
+  +14.2 CI[+10.9,+17.5] —— 首个 large 显著超 beam 的学生网**（CLEAR 62.6% vs beam 50.6%）；
+  新鲜块 6000 +24.0 独立佐证，池化 620 +28.5。**但 small500 r9 98.2 vs v6 98.6：
+  −0.42 CI[−0.67,−0.17] 显著回退**（选择段 −0.8 方向负，池化 580 −0.47；vs v1 +0.16 不显著，
+  原门未保持）→ **复合门（large 改善且 small 不回退）未过 → 不入库**，生产 ei_policy_v6.json
+  保持 r6 权重；r9 留 out/ 作 large specialist（T2 可 --net-model 换臂）。诊断假设：全局 std
+  归一化稀释 small 信号（混合 18.71 vs v6 的 12.21 → 65%）+ v1 示范拉扯；候选修复=按场景 std
+  归一化（下一轮单变量，先问用户）。**F public-safe 仍被 small 回退挡**。
 - **测试/基线**：`tests/test_ei_policy.py` **28 条** + `tests/test_ei_policy_r2.py` **15 条**
-  + `tests/test_ei_explore.py` **7 条**；全量 pytest **1273 passed / 1 skipped
-  （1274 收集 / 86 文件）**；基线 ①③④⑤ 全部不变。
+  + `tests/test_ei_explore.py` **7 条** + `tests/test_ei_wiring.py` **21 条**
+  + `tests/test_ei_multifile.py` **12 条**；全量 pytest **1306 passed / 1 skipped
+  （1307 收集 / 88 文件）**；基线 ①③④⑤ 全部不变。
   环境备注：首跑曾遇 drink_search 延迟守卫受游戏负载（TslGame）抖动失败，负载回落后
   复跑全绿，未改门槛（详见 EXPECTIMAX B11 第 2 轮「测试/基线」）。
-- 细节见 [EXPECTIMAX「B11 渐退式专家迭代（第 1/2 轮 + r3–r8 续）」](EXPECTIMAX.md) /
-  HANDOVER 二·补三十七/三十九/四十。
+- 细节见 [EXPECTIMAX「B11 渐退式专家迭代（第 1/2 轮 + r3–r8 续 + r9-large）」](EXPECTIMAX.md) /
+  HANDOVER 二·补三十七/三十九/四十/四十一/四十二。
 
 ---
 
@@ -849,10 +863,17 @@ public-safe）；有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异�
 auto_produce `--net-model` > `produce.net_model` > 默认入库 v6（data/knowledge/ei_policy_v6.json）；
 T2 增第四臂 `--engine net`（large 生产候选仍是 beam）；21 条新单测，pytest 1294/1（1295 收集 / 87 文件）；
 见 EXPECTIMAX「B11 v6 生产接线」/ HANDOVER 二·补四十一。
-**下一候选（先问用户）**：继续降档（教师←v6、占比 15→0）/ v6 large 训练评测（补泛化缺口，进 F 前必须）/
-收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂）。
+**B11 r9-large 也已完成（2026-11-23，用户授权安排）**：train_ei_policy 多文件混合（单文件逐位不变，
+12 条新单测）；large 自对弈 5000 局 + small 全量 + 示范补量，192×96/1200ep 同 r6；
+**large500 r9 315.4 vs v6 285.8（+29.6 CI[+26.2,+33.0]）且超 beam +14.2 —— 首个 large 超 beam
+学生网**；**small500 −0.42 CI[−0.67,−0.17] 显著回退 → 复合门未过，不入库**（生产保持 r6；
+r9 留 out/ 作 large specialist）；诊断假设=全局 std 稀释 small 信号；pytest 1306/1（1307 收集 / 88 文件）；
+见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二。
+**下一候选（先问用户）**：r10 按场景 std 归一化（修 small 回退、保 large 增益，进 F 前必须）/
+继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 /
+E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂，large A/B 可加 r9 specialist 臂）。
 → 阶段 D（补采集）离线准备 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看
-可观测状态，是未来 public-safe 候选，**但 large 仍显著弱于 beam（−13.7），须先过 large
-训练/评测**）。
+可观测状态，是未来 public-safe 候选，**r9 large 已超 beam 但 small 回退，须先修 small
+（r10 按场景 std 归一化候选）双过才进 F**）。
 ```

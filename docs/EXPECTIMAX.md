@@ -1680,5 +1680,105 @@ v6 − beam = −13.7（v1 − beam = −28.1，缺口收窄一半）。数据�
   基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 全部不变；
 - 细节见 HANDOVER 二·补四十一 / WORKPLAN B11 / HANDOVER_NEXT §8。
 
+## B11 r9-large（2026-11-23）：small+large 混合训练 —— large 首超 beam，small 显著回退（复合门未过，不入库）
+
+**结论先行**：r9 = v6 配方 + **large 自对弈数据**（单变量；教师仍 v1@0.15，容量/epochs/优化器
+全同 r6）。**large 主门 PASS**：500 局 r9 **315.4** vs v6 285.8，**+29.6 CI[+26.2,+33.0]**，
+且 **r9 − beam = +14.2 CI[+10.9,+17.5] —— 首个在 large 显著超 beam 的学生网**（v6 是 −13.7）；
+新鲜块 6000 独立佐证（+24.0）。**但 small 护栏 FAIL**：500 局 r9 **98.2** vs v6 98.6，
+**−0.42 CI[−0.67,−0.17] 显著回退**（池化 580 −0.47；对 v1 原门 +0.16 不显著，未保持）。
+复合门（large 显著改善 **且** small 不回退）未过 → **不入库**：`data/knowledge/ei_policy_v6.json`
+保持 r6 权重，engine=net 默认行为不变；r9 保留 `out/ei_r9_v9_mix.json` 作 **large  specialist**
+（T2 可 `--net-model` 换臂做 large A/B）。**F public-safe 仍被 small 回退挡**（学生网须 small+large 双过）。
+
+### 代码（纯增量：训练脚本多文件混合）
+
+`train_ei_policy.py` `--selfplay` / `--demos` 均改 `nargs="+"`（r9 需要 small+large 自对弈混合、
+示范补量两文件）：
+
+* **单文件 = 原行为逐位不变**（不走拼接分支、meta 不新增键）——改前/改后同命令 3 个参照模型
+  **sha256 完全一致**（`28efed56…` / `b43dc14d…` / `e668547c…`，`data/_r9_multifile_baseline.py`）；
+* 多文件按给出顺序拼接；**group 偏移防跨文件碰撞**（排序命中按决策分组）；seed 保持原值
+  （seed 分组 9:1 切分纪律不变，seed 块重叠会告警）；优势归一化 = **拼接后全局 std**
+  （与单文件「全局 std」同口径——本轮 small 回退的疑似主因，见诊断）；教师占比下采样作用于
+  拼接后的自对弈池（要保 small 全量需补采示范解锁 max_s = n_d×(1−f)/f）；
+* 多文件明细（逐文件行数/scenario/seed 段/标签 std）写进 `meta.multi_file`；`sources` 全列。
+
+### 数据 / 训练（seed 纪律：与评测段互不重叠）
+
+| 数据 | 局数 | 样本 | seed 块 | 说明 |
+|---|---:|---:|---|---|
+| large 自对弈（新采） | 5000 | **126969** | 900000–904999 | v6 学生 argmax，均分 287.8，标签 std 24.09，322.6s；probe 前 100 局逐位复现 |
+| small 自对弈（保留 r5 全量） | 10000 | 145605 | 700000–709999 | v4 argmax（v6 训练原数据，防 small 回退） |
+| v1 示范（r4 存量） | 2000 | 28934 | 410000–411999 | small |
+| v1 示范（新采） | 1600 | 23050 | 420000–421599 | 教师均分 98.6，SKIP 剔除 0，5.9s |
+
+混合：自对弈 272574（small 全保 + large 全保）+ 示范下采样 **48101** = **320675 行**，
+教师占比 **0.150**（max_s = 294576 ≥ 272574，未动自对弈）。192×96 / 1200 epochs / lr 1e-3 /
+l2 1e-4 / seed 0（全同 r6）；**全局优势 std 18.71**（small 12.21 / large 24.09 混合）；
+val 排序 0.824（**混合靶，不可与 v6 的 0.861 直接比**）；训练 1871s
+（`OPENBLAS_NUM_THREADS=8`，复现命令带此 env；默认 24 线程本机反而慢 ~2×）。
+
+### 评测（B1 修正 harness 配对，unknown，--no-within；参照臂逐位校验）
+
+参照臂与 r6 JSON **逐位一致**（small500 v6/beam 全 500 局、large 前 120 v6/beam/greedy）；
+large 前 120 水位复现文档数字：v6 **291.61** / beam **305.34** / v1 **277.24** / greedy **212.41**。
+
+| 段 | r9 | v6 | beam | r9−v6 Δ | 95% CI | 判定 |
+|---|---:|---:|---:|---:|---|---|
+| **large 500（3000–3499，主门）** | **315.4** | 285.8 | 301.3 | **+29.6** | **[+26.2,+33.0]** | **PASS** |
+| large 新鲜块 120（6000–6119） | 322.9 | 298.8 | 312.9 | +24.0 | [+17.8,+30.2] | PASS（佐证） |
+| large 池化 620 | — | — | — | +28.5 | [+25.5,+31.5] | 显著 |
+| **small 500（3000–3499，护栏）** | **98.2** | **98.6** | 96.5 | **−0.42** | **[−0.67,−0.17]** | **显著回退 ❌** |
+| small 选择 80（2000–2079） | 99.2 | 100.1 | 97.3 | −0.8 | [−1.7,+0.1] | 方向负 |
+| small 池化 580 | — | — | — | −0.47 | [−0.72,−0.22] | 显著回退 |
+
+* **large vs beam**：500 局 **+14.2 CI[+10.9,+17.5]** / 池化 620 **+13.3 CI[+10.5,+16.2]**；
+  CLEAR **62.6%** vs beam 50.6% / v6 39.0%（新鲜块 65.0% vs 57.5%）；r9−v1（前 120）+43.0。
+  large 生产候选（离线口径）首次换成学生网——但复合门未过，入库不动；
+* **small vs v1**：+0.16 CI[−0.14,+0.46] → 原 500 局门（显著强于 v1）**未保持**；
+  vs beam +1.73 CI[+0.92,+2.54] 绝对水位仍在；CLEAR 11.2% vs v6 12.2%。
+
+### 诊断（假设，未验证）与候选修复
+
+small 回退疑似主因 = **全局 std 归一化稀释**：混合 std 18.71 vs v6 训练时 12.21 → small
+自对弈标签归一化后缩到 **65%**；large 行占自对弈 46.6% 且标签尺度大 → MSE 梯度偏 large；
+示范 ±1 相对变强、教师=v1（98.1 水平）→ r9 small **98.22 恰落在 v1 98.06 与 v6 98.64 之间**，
+与「稀释 + v1 拉扯」一致。**候选修复（下一轮单变量，先问用户）**：① **按场景 std 归一化**
+（small/large 各除自身 std，纯增量默认不变，最外科）；② small 上采样 / 补采 v6 small 自对弈；
+③ 两段式微调（先混合后 small，需测 large 遗忘）。数据量本身不是问题——large 增益巨大且独立佐证。
+
+### 处置 / 下一步
+
+- **不入库**（small 护栏 FAIL）：生产 `ei_policy_v6.json` 保持 r6 权重、engine=net 默认不变；
+  T2 第四臂默认仍是 r6；**large A/B 可加 `--net-model out\ei_r9_v9_mix.json` specialist 臂**；
+- r9 模型/数据/JSON 全在 out/（gitignore）：`ei_r9_selfplay_large.npz` / `ei_r9_demos.npz` /
+  `ei_r9_v9_mix.json` / `ei_r9_eval_v9_{large500,small500,small_select,large_fresh6000}.json`；
+- **下一候选（先问用户）**：r10 按场景 std 归一化（修 small 回退，保 large 增益）/ 继续降档 /
+  收 loop 转 T7 剩余 / D1 / E0 / 直接阶段 E 真机。
+
+### 复现命令（r9 路径）
+
+```powershell
+# 采集（large 自对弈 + 补采 v1 示范解锁 0.15 占比上限）
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode selfplay --student-model out\ei_r6_v6_mix.json --scenario large --games 5000 --seed 900000 --out out\ei_r9_selfplay_large.npz
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode demos --teacher-net out\ei_r1_v1_mix.json --games 1600 --seed 420000 --out out\ei_r9_demos.npz
+# 训练（多文件混合；OPENBLAS_NUM_THREADS=8 是本机吞吐最优，复现需带）
+$env:OPENBLAS_NUM_THREADS='8'; $env:OMP_NUM_THREADS='8'
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r5_selfplay.npz out\ei_r9_selfplay_large.npz --demos out\ei_r4_demos.npz out\ei_r9_demos.npz --teacher-frac 0.15 --round 9 --epochs 1200 --hidden 192 96 --out out\ei_r9_v9_mix.json
+# 门（500 局修正协议）+ 诊断段
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r9_v9_mix.json --baseline-net out\ei_r6_v6_mix.json --scenario large --games 500 --seed 3000 --no-within --json out\ei_r9_eval_v9_large500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r9_v9_mix.json --baseline-net out\ei_r6_v6_mix.json --games 500 --seed 3000 --no-within --json out\ei_r9_eval_v9_small500.json
+```
+
+### 测试 / 基线
+
+- `tests/test_ei_multifile.py` **12 条**（单文件 golden 权重逐位回归 ×2 / 拼接顺序+group 偏移 /
+  单路径=单文件 / 多文件占比精确 / demos 多文件+meta / scenario+seed 段明细 / 全局 std /
+  拼接池下采样 / 确定性 / seed 重叠告警 / CLI 校验）；ruff 通过；
+- 全量 pytest **1306 passed / 1 skipped（1307 收集 / 88 文件，206.53s）**；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 全部不变；
+- 细节见 HANDOVER 二·补四十二 / WORKPLAN B11 / HANDOVER_NEXT §8。
+
 
 

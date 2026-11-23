@@ -2,12 +2,13 @@
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
-> 新会话第一句话（紧凑版，2026-11-23 B11 v6 生产接线后更新；完整版见 WORKPLAN「新会话开场白」）：
+> 新会话第一句话（紧凑版，2026-11-23 B11 r9-large 后更新；完整版见 WORKPLAN「新会话开场白」）：
 > 「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → docs/WORKPLAN.md →
-> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1294/1，1295 收集 / 87 文件；①③④⑤ 同 B10 口径），不绿先修。
+> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1306/1，1307 收集 / 88 文件；①③④⑤ 同 B10 口径），不绿先修。
 > Hindsight 本地记忆已启用（先 hindsight_sync_status / search_pages 确认）。下一候选先问我：
-> 继续降档（教师←v6、占比 15→0）/ v6 large 训练评测 / 收 loop 转 T7 剩余 / D1 补采集 / E0 实验 /
-> 直接阶段 E 真机（T2 已含 net 第四臂）。规则见 §4 硬约束。」
+> r10 按场景 std 归一化（修 r9 small 回退、保 large 增益，进 F 前必须）/ 继续降档（教师←v6、15→0）/
+> 收 loop 转 T7 剩余 / D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂 + r9 large specialist）。
+> 规则见 §4 硬约束。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
@@ -238,12 +239,27 @@
              （large 生产候选仍是 beam，net 值不值由真机 A/B 定）。21 条新单测；
              pytest **1294/1（1295 收集 / 87 文件）**；基线 ①③④⑤ 不变。
              见 EXPECTIMAX「B11 v6 生产接线」/ WORKPLAN B11 / HANDOVER 二·补四十一。
- 当前最高优先：**v6 已过门 + 生产接线完成**；下一步候选：继续降档（教师←v6、15→0）/
-v6 large 训练评测（补泛化缺口，进 F 前必须）/ 收 loop 转其他任务；T5 剩余（ExamBuffConsumptionAdd
-保持 no-op / 随机生成卡 RNG / hold 保留区 / fresh buff 差一回合需真机截图）均低价值或需真机/补采，不挡路。
-→ **下一候选（先问用户）**：继续降档 / v6 large 训练评测 / 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/
-D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂）
-→ 真机 T3→T1→T2（含 E0 实验）→ F1/F2 gkbench 公开对比（学生网 public-safe 候选须先过 large）
+            ㉑ **B11 r9-large（small+large 混合训练）** 🟡 2026-11-23 完成（用户授权安排；
+             **large 主门 PASS 且首超 beam，small 护栏 FAIL → 复合门未过，不入库**）：
+             `train_ei_policy --selfplay/--demos` 多文件纯增量（单文件 sha256 逐位不变 +
+             12 条回归测试）；large 自对弈 5000 局 126969 样本（v6 学生，seed 900000–904999）+
+             small r5 全量 145605 + 示范 48101（补采 v1 1600 局解锁 0.15 上限）= 320675 行，
+             192×96/1200ep 全同 r6。**large500 r9 315.4 vs v6 285.8：+29.6 CI[+26.2,+33.0] PASS；
+             vs beam 301.3 +14.2 CI[+10.9,+17.5]（首个 large 超 beam 学生网，CLEAR 62.6% vs 50.6%）**；
+             新鲜块 6000 +24.0 佐证。**small500 r9 98.2 vs v6 98.6：−0.42 CI[−0.67,−0.17]
+             显著回退**（池化 580 −0.47；vs v1 +0.16 不显著，原门未保持）→ 不入库，
+             生产 ei_policy_v6.json 保持 r6 权重；r9 留 out/ei_r9_v9_mix.json 作 large specialist
+             （T2 可 --net-model 换臂）。诊断假设：全局 std 稀释 small 信号（18.71 vs 12.21 → 65%）
+             + v1 示范拉扯；候选修复=按场景 std 归一化（r10，先问用户）。12 条新单测；
+             pytest **1306/1（1307 收集 / 88 文件）**；基线 ①③④⑤ 不变。
+             见 EXPECTIMAX B11 r9-large / WORKPLAN B11 / HANDOVER 二·补四十二。
+ 当前最高优先：**r9 large 首超 beam 但 small 显著回退 → 复合门未过、不入库**；下一步候选：
+r10 按场景 std 归一化（修 small 回退、保 large 增益，进 F 前必须）/ 继续降档（教师←v6、15→0）/
+收 loop 转其他任务；T5 剩余（ExamBuffConsumptionAdd 保持 no-op / 随机生成卡 RNG / hold 保留区 /
+fresh buff 差一回合需真机截图）均低价值或需真机/补采，不挡路。
+→ **下一候选（先问用户）**：r10 按场景 std 归一化 / 继续降档 / 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/
+D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂，large A/B 可加 r9 specialist 臂）
+→ 真机 T3→T1→T2（含 E0 实验）→ F1/F2 gkbench 公开对比（学生网 public-safe 候选须 small+large 双过）
 **另**：用户 2026-11-22 指定「开新对话做」候选任务 **T9**（§4；一次会话只做 1 个；
  B7 ✅ / C0 ✅，剩 E0 需真机/独立副本实验）。
 （总计划见 WORKPLAN.md；阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 已完成、
@@ -319,7 +335,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 1294 passed, 1 skipped（1295 条收集 / 87 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + 实机回放黄金值 2 条）
+# ② 全量测试：应为 1306 passed, 1 skipped（1307 条收集 / 88 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + B11 r9 多文件混合 12 条 + 实机回放黄金值 2 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -334,7 +350,14 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-23 21:3x，B11 v6 生产接线后复跑）**：①②③④⑤ 全绿、退出码 0
+**最近一次复核（2026-11-23 22:0x，B11 r9-large 后复跑）**：①②③④⑤ 全绿、退出码 0
+（① 4/4+3/3、② **1306/1（1307 收集 / 88 文件，206.53s，+12 r9 多文件混合单测）**、
+③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
+② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
+当前不是行动页），属预期。r9 评测参照臂与 r6 JSON 逐位一致（small500 v6/beam、
+large 前 120 v6/beam/greedy）；r9 见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二。
+
+**上一次复核（2026-11-23 21:3x，B11 v6 生产接线后复跑）**：①②③④⑤ 全绿、退出码 0
 （① 4/4+3/3、② **1294/1（1295 收集 / 87 文件，202.95s，+21 v6 生产接线单测）**、
 ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
 ② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
@@ -561,8 +584,10 @@ P 道具数据），再上真机重验 F#42/#43 与 T3。
 ### T2（P0，依赖 T3）三引擎真机 A/B ⬜（+ net 第四臂：B11 v6 学生网已接线，2026-11-23）
 **目标**：同偶像、同卡组、同 seed（能同 seed 最好），各跑 rules / expectimax / beam+全知 一局，比考试分。
 **第四臂（可选）**：`--engine net`（B11 v6 学生网，2026-11-23 生产接线完成，见 EXPECTIMAX「B11 v6 生产接线」）——
-small 确认段 v6 显著强于 v1（+0.6 CI[+0.2,+0.9]），但 large 仍比 beam −13.7：
-**large 生产候选仍是 beam**，net 值不值由真机 A/B 定（模拟器保真度是天花板）。
+small 确认段 v6 显著强于 v1（+0.6 CI[+0.2,+0.9]）。**r9-large（2026-11-23）large 首超 beam
+（+14.2）但 small 显著回退（−0.42）→ 复合门未过、未入库**；large A/B 可加
+`--net-model out\ei_r9_v9_mix.json` specialist 臂（生产默认仍是 r6）：
+**large 生产候选离线口径 r9 最强，但须 small+large 双过才入库/进 F**，net 值不值由真机 A/B 定。
 
 **前置（2026-11-21 已做）**：真机之前先跑**模拟器整局 A/B**（`scripts/sim_engine_ab.py`）——
 训练+考试都注入真 `LessonPolicy`，16 局×3 引擎全绿：0 `RuleFallbackBlocked`、0 error、C+ 率 100%，
@@ -958,7 +983,55 @@ expectimax +801.1（CI[+66.3,+1697.9]）；全量 pytest **1154/1（1155 收集 
    - 在 [HANDOVER.md](HANDOVER.md) 的提交记录里加一行。
 5. **写不清=没完成**：DoD 必须能用命令/数字验证；"感觉能跑"不算。
 
-**最近交接记录（2026-11-23，B11 v6 生产接线 —— engine=net opt-in，默认逐位不变）**：
+**最近交接记录（2026-11-23，B11 r9-large —— small+large 混合训练：large 首超 beam，small 显著回退，复合门未过不入库）**：
+用户授权安排（「按你想法给下一个对话安排」→ lead 选定 r9-large，进 F public-safe 前必须）。
+开工基线 ①–⑤ 全绿（HEAD 8641fde，② 1294/1、1295 收集 / 87 文件）；Hindsight synced=true
+（r3–r8 门状态以 EXPECTIMAX + Correction 为准：v6 已过 500 局门）。
+**落地（纯增量）**：`train_ei_policy --selfplay/--demos` 均 `nargs="+"` 多文件——按给出顺序
+拼接、group 偏移防跨文件碰撞、seed 保持原值（重叠告警）、全局 std 归一化、教师占比对拼接池
+下采样、`meta.multi_file` 逐文件明细（scenario/seed 段/标签 std）、sources 全列；
+**单文件默认逐位不变**（改前/改后 3 参照模型 sha256 一致：28efed56…/b43dc14d…/e668547c…，
+`data/_r9_multifile_baseline.py`）。
+**数据（seed 纪律：与评测段互不重叠）**：large 自对弈 5000 局 **126969 样本**（v6 学生 argmax，
+seed 900000–904999，均分 287.8，标签 std 24.09，322.6s；probe 前 100 局逐位复现）+
+small 保留 r5 全量 145605（防 small 回退）+ 补采 v1 示范 1600 局 **23050 样本**
+（seed 420000–421599，教师均分 98.6，SKIP 剔除 0）→ 示范合计 51984 下采样 **48101**，
+自对弈 272574 全保（max_s=294576 解锁），总 **320675 行**，占比精确 **0.150**。
+训练 192×96 / 1200 epochs / lr 1e-3 / l2 1e-4 / seed 0（全同 r6，单变量=加 large 数据）；
+全局优势 std **18.71**；val 排序 0.824（混合靶，不可与 v6 0.861 直接比）；1871s
+（`OPENBLAS_NUM_THREADS=8` 本机最优，复现命令带此 env）。
+**评测（500 局修正协议；参照臂与 r6 JSON 逐位一致；large 前 120 水位 291.61/305.34/277.24/212.41
+复现文档数字）**：
+- **large500（3000–3499，主门）：r9 315.4 vs v6 285.8，+29.6 CI[+26.2,+33.0] PASS**；
+  **vs beam 301.3：+14.2 CI[+10.9,+17.5] —— 首个 large 显著超 beam 的学生网**
+  （CLEAR 62.6% vs beam 50.6% / v6 39.0%）；新鲜块 6000–6119：r9 322.9 vs v6 298.8，
+  +24.0 CI[+17.8,+30.2] 独立佐证；池化 620：+28.5 / vs beam +13.3；
+- **small500（3000–3499，护栏）：r9 98.2 vs v6 98.6，−0.42 CI[−0.67,−0.17] 显著回退 ❌**
+  （W/T/L 16/441/43）；选择段 80：−0.8 CI[−1.7,+0.1] 方向负；池化 580：−0.47 CI[−0.72,−0.22]；
+  vs v1（跨 JSON 同 seed 配对）：+0.16 CI[−0.14,+0.46] → 原 500 局门未保持；
+  vs beam：+1.73 CI[+0.92,+2.54] 绝对水位仍在。
+**判定：复合门（large 显著改善 且 small 不回退）未过 → 不入库**（`data/_r9_promote.py`
+程序化门校验，未执行入库分支）：`data/knowledge/ei_policy_v6.json` 保持 r6 权重，
+engine=net 默认行为不变；r9 保留 `out/ei_r9_v9_mix.json` 作 **large specialist**
+（T2 large A/B 可 `--net-model out\ei_r9_v9_mix.json` 换臂）。**F public-safe 仍被 small 回退挡**。
+**诊断（假设，未验证）**：全局 std 归一化稀释 small 信号——混合 std 18.71 vs v6 的 12.21 →
+small 自对弈标签缩到 65%；large 行占自对弈 46.6% 且尺度大 → 梯度偏 large；示范 ±1 相对变强
+且教师=v1（98.1）→ r9 small 98.22 恰落 v1 98.06 与 v6 98.64 之间，与「稀释+v1 拉扯」一致。
+**候选修复（下一轮单变量，先问用户）**：① 按场景 std 归一化（最外科，纯增量默认不变）；
+② small 上采样/补采 v6 small 自对弈；③ 两段式微调（需测 large 遗忘）。
+**测试/基线**：`tests/test_ei_multifile.py` **12 条**（含单文件 golden 权重逐位锚 ×2）；ruff 通过；
+全量 pytest **1306/1（1307 收集 / 88 文件，206.53s）**；①③④⑤ 复跑不变。
+模型/数据/JSON 全在 out/（gitignore）：`ei_r9_selfplay_large.npz` / `ei_r9_demos.npz` /
+`ei_r9_v9_mix.json` / `ei_r9_eval_v9_{large500,small500,small_select,large_fresh6000}.json` /
+`ei_r9_probe_large.npz` / `_r9_ref_*.json`（逐位参照）。
+文档：EXPECTIMAX B11 r9-large；WORKPLAN §0/B11/开场白；HANDOVER_NEXT §0/§2/§4 T2/§8/开场白；
+INDEX；HANDOVER 二·补四十二。提交 `feat <hash>`（多文件代码+测试+文档）+ docs(handover)
+哈希记录（哈希另见 HANDOVER 七）。
+**下一候选（先问用户）**：r10 按场景 std 归一化（修 small 回退、保 large 增益，进 F 前必须）/
+继续降档（教师←v6、15→0）/ 收 loop 转 T7 剩余 / D1 补采集 / E0 实验 /
+直接阶段 E 真机（T3→T1→T2，T2 已含 net 第四臂 + r9 large specialist）。
+
+**上一轮交接记录（2026-11-23，B11 v6 生产接线 —— engine=net opt-in，默认逐位不变）**：
 开工基线 ①–⑤ 全绿（HEAD 3699403，② 1273/1、1274 收集 / 86 文件，202.74s）；
 Hindsight bank 已播种（synced=false 后台深化中，属正常）；记忆页 B11 门状态过时
 （仍写 r2 未过门）→ 已 ingest Correction 文档纠正（r3–r8 完成 / 500 局门 / v6 PASS）。
@@ -1426,7 +1499,7 @@ B 站标题宣称 S4+（待核）；PBRS 塑形负结果 −26,884（纯分最�
 工作目录 D:\Games\gakumas-agent。当前 HEAD 以 git log -1 为准。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑基线
 （四条必跑 + ⑤ F0 gkbench 核对可选）。
-期望：洗牌 4/4 场 + 3/3 重洗；pytest 1266 passed / 1 skipped（1267 条收集 / 85 文件）；
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 1306 passed / 1 skipped（1307 条收集 / 88 文件）；
 exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28；
 ⑤（可选）scripts/verify_gkbench_shuffle.py = 366/384 精确 / 97.4% 逐张（缺 data/bench_local 数据则跳过）。
 （进度/对手对比先看 docs/COMPARE.md；现状看 docs/HANDOVER.md。）
@@ -1543,11 +1616,25 @@ CI[−36.0,−20.2]（CLEAR 36.7% vs 53.3%），v2 比 v1 还略差 → small �
 **门协议修正（用户批准）扩 500 局 → v6 98.6 vs v1 98.1：+0.6 CI[+0.2,+0.9] PASS**，
 新鲜块 6000 +1.7 佐证，池化 820 局 +0.71 CI[+0.40,+1.02]；**v6=最佳学生**；
 pytest 1273/1（1274 收集 / 86 文件）；见 EXPECTIMAX B11 r3–r8 续 / HANDOVER 二·补四十。
+**B11 v6 生产接线也已完成（2026-11-23，用户授权综合推荐后选定；opt-in 默认逐位不变）**：
+LessonPolicy engine=net（可观测状态 argmax 优势分，无搜索，public-safe；有牌绝不 SKIP；
+缺模型/异常 → [engine][BLOCKED] 禁回退 rules）；auto_produce --net-model > produce.net_model >
+默认入库 v6（data/knowledge/ei_policy_v6.json）；T2 增第四臂 --engine net；21 条单测，
+pytest 1294/1（1295 收集 / 87 文件）；见 EXPECTIMAX「B11 v6 生产接线」/ HANDOVER 二·补四十一。
+**B11 r9-large 也已完成（2026-11-23，用户授权安排）**：train_ei_policy --selfplay/--demos
+多文件混合（单文件 sha256 逐位不变，12 条新单测）；large 自对弈 5000 局 126969 样本
+（v6 学生，seed 900000+）+ small r5 全量 + 示范补量 = 320675 行，192×96/1200ep 同 r6；
+**large500 r9 315.4 vs v6 285.8：+29.6 CI[+26.2,+33.0] PASS，vs beam +14.2——首个 large
+超 beam 学生网**（新鲜块 +24.0 佐证）；**small500 −0.42 CI[−0.67,−0.17] 显著回退 →
+复合门未过，不入库**（生产保持 r6；r9 留 out/ 作 large specialist，--net-model 可换）；
+诊断假设=全局 std 稀释 small 信号（18.71 vs 12.21）；pytest 1306/1（1307 收集 / 88 文件）；
+见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二。
 T5 剩余（随机生成卡 RNG / ExamBuffConsumptionAdd 保持 no-op / hold 保留区 / fresh buff
 需真机截图）均低价值或需真机/补采。**下一候选（先问用户再启动）**：
-继续降档（教师←v6、占比 15→0）/ v6 生产接线 / v6 large 训练评测 / 收 loop
-转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验（需独立副本）/ 直接阶段 E 真机。
-之后真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比（学生网 public-safe 候选须先过 large）。
+r10 按场景 std 归一化（修 r9 small 回退、保 large 增益，进 F 前必须）/
+继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/
+D1 补采集 / E0 实验（需独立副本）/ 直接阶段 E 真机（T2 已含 net 第四臂 + r9 large specialist）。
+之后真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比（学生网 public-safe 候选须 small+large 双过）。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。data/_probe*、bench_local/REPORT.md、
 card_library.json 不提交。纯离线（真机验收留到阶段 E）。
