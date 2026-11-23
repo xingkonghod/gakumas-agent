@@ -153,6 +153,7 @@ def play(
     frontier_budget_ms: float = 5.0,
     leaf_model=None,
     sim_factory=None,
+    net_model=None,
 ) -> dict:
     """跑一局课程，返回分数与统计（fallback = 搜索给的牌在模拟器里执行不了）。
 
@@ -167,6 +168,9 @@ def play(
     ``beam_depth``：beam 层数（0=跑满剩余回合；>0 用于受控截断 + 前沿 policy evaluation）。
     ``frontier_rollout``：只对 beam 最深端点用执行同策略（within）rollout 重排
     （B1 受控 policy evaluation；终局端点不 rollout）。
+    ``net_model``：B11 学生策略网（``policy_mlp.PolicyMLP``）；``policy="net"``
+    时每步 argmax 选牌（只看可观测状态，不用 known_draw；有牌绝不 SKIP）。
+    ``policy="greedy"``：固定优先级基线（同 ``LessonSim.run(greedy_policy)``）。
     """
     if sim_factory is not None:
         sim = sim_factory(deck, config, rng_seed=seed)
@@ -201,6 +205,16 @@ def play(
             sim.step(None)
             continue
         decisions += 1
+        if policy == "greedy":
+            sim.step(greedy_policy(sim))
+            continue
+        if policy == "net":
+            if net_model is None:
+                raise ValueError("policy='net' 需要传入 net_model")
+            from gkagent.sim.policy_mlp import net_action
+
+            sim.step(net_action(sim, net_model))
+            continue
         if policy == "within":
             fallbacks += _play_within(
                 sim, model, known=known, full_info=full_info, budget_ms=budget_ms

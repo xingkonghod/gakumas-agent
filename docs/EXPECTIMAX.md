@@ -1262,4 +1262,133 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
   （高预算验证 FAIL，路线关闭）。
 - 细节见 HANDOVER 二·补三十四 / 二·补三十五 / HANDOVER_NEXT §8（B2-R 交接）。
 
+## B11 渐退式专家迭代（第 1 轮，2026-11-23）：policy/advantage 学生 —— 确认段评测门 PASS
+
+**结论先行**：B2-R 关闭学习叶子（状态价值）路线后，按用户设计意图换目标量启动
+**渐退式专家迭代**（学技巧不学答案、摸索 70%+老师 30%、学生过评测门后当下一轮老师）。
+第 1 轮混合学生 **v1**（70% 学生自对弈 on-policy 优势 + 30% beam 教师示范）在
+**确认段 120 局（seed 3000–3119，未参与采集/训练）显著强于 beam 教师**：
+
+| 段 | 学生 | 教师（beam width4/100ms+tiebreak） | Δ | 95% CI | 胜/平/负 | 判定 |
+|---|---:|---:|---:|---|---|---|
+| 选择段 80 局（2000–2079）v0 纯 BC | 97.4 | 97.3 | +0.1 | [−2.1,+2.4] | 23/34/23 | 中性 |
+| 选择段 80 局 v1 混合 | 99.2 | 97.3 | +1.9 | [−0.2,+4.0] | 24/41/15 | 方向正 |
+| **确认段 120 局（3000–3119）v0 纯 BC** | 97.3 | 94.9 | **+2.4** | **[+0.7,+4.1]** | 42/59/19 | **PASS** |
+| **确认段 120 局 v1 混合** | **97.5** | **94.9** | **+2.6** | **[+1.1,+4.1]** | **39/59/22** | **PASS（放手）** |
+| 稳健块 120 局（4000–4119，未触碰）v1 | 101.6 | 97.8 | +3.8 | [+1.6,+6.0] | 37/65/18 | PASS |
+
+CLEAR 率：确认段 v1 11.7% vs 教师 10.8%；稳健块 17.5% vs 13.3%。教师基线 94.9/97.3
+与 B2-R 逐位一致（harness 同口径）。学生推理 **0.40 ms/决策**（500 局探针，含
+state_from_sim+特征+前向；教师预算 100ms/回合）——纯策略无搜索，约 250× 快。
+
+**消融（如实记录，本轮最重要的诚实结论）**：**纯 BC v0 也过确认段门**（+2.4 CI[+0.7,+4.1]），
+v1−v0 仅 +0.2（不显著）。第 1 轮增益的主力是**逐决策蒸馏 + 硬规矩禁跳**，
+on-policy 优势精化尚未独立证明：
+
+1. 示范采集是**逐决策**记录 beam 计划里的每张牌；学生每步重新 argmax，等价于
+   「每个决策点都重规划的 beam」，而教师执行是「每回合规划一次、按序列执行」
+   （抽牌/状态变化后计划会过期）；
+2. 学生**有牌绝不 SKIP**（用户硬规矩编码进 `net_action`）；教师 beam 会提前 SKIP
+   （400 局示范里 23 个「有牌却 SKIP」决策被剔除）——提前 SKIP 白丢出牌分；
+3. on-policy 优势成分（70% 自对弈）方向为正（选择段 +0.1→+1.9、确认段 +2.4→+2.6、
+   CLEAR 同向），但**尚未独立证明**——第 2 轮（教师←v1、占比 15%）继续检验。
+
+**按设计放手**：评测门 = 学生−教师配对差 95% CI 下界 > 0（显著强才放手，非 inferior 不算）。
+v1 过门 → **第 2 轮教师换成 v1、教师占比 30→15**（下一会话任务，启动前先问用户）。
+
+### 设计（用户 2026-11-23 意图；轮廓见 B2-R「再下一候选方向」）
+
+- **目标量**：学「该打哪张牌 / 这张比平均好多少」（policy/advantage），**不是状态价值**
+  → 绕开 B2-R 确证的两个根因（锐利 σ 放大：学生不估 σ、不做档位概率；价值-策略失配：
+  优势标签来自学生自己的延续，打法变标签跟着变）；
+- **学生**：小 MLP（137 维输入 → 96 → 48 → 1 标量优势分），在**可出牌**里 argmax；
+  特征 = B2 的 104 维结构化状态特征（`leaf_mlp.features`，决策态手牌按叶子口径并入
+  弃牌堆聚合）+ 33 维动作特征（候选牌 23 维静态画像同源 `_card_profile` + 实际费用/
+  体力上下文 + 手牌聚合 + 出牌位上下文）；
+- **优势标签（on-policy，零近似）**：学生自对弈记录每个真实决策点（局面快照+合法动作+
+  动作前缀）；对每张可出牌：`LessonSim(deck, config, seed)` **精确重放前缀**到达逐字段
+  相同局面（`state_from_sim` 全等校验，失配抛错不静默）→ 打候选牌 → **当前学生**打完
+  剩余回合 → 终局分 R(s,a)；`A = R − mean(R)`。模拟器同 seed+同动作序列完全确定，
+  学生 argmax 也确定 → 每个分支是精确 on-policy 延续（分支间共享 rng 状态 = 共同随机数
+  方差缩减）；**不走搜索镜像**（`sim_from_state`），无 B2-R 式快照口径坑；
+- **教师示范（软目标）**：beam width4/100ms/tiebreak1e-3（unknown，B2-R 处置后的 T2
+  候选档）逐决策记录；教师出的牌 +1、其余 −1/(k−1)；k=1 强制决策与教师有牌却 SKIP
+  的决策剔除（学生动作空间没有「有牌 SKIP」）；
+- **混合/渐退**：第 1 轮 70% 自对弈 + 30% 示范（按行数确定性下采样到精确比例）；
+  每轮结束配对评测门，**过门才降教师占比（30→15→0）且教师换成上一轮学生**，
+  不过门继续扶（占比不降，用新学生再采数据）；
+- **硬规矩**：SKIP 只在所有牌付不起（`net_action` 编码）；推理异常直接抛出，
+  无静默回退 rules。
+
+### 实现（纯离线代码 + 单测）
+
+- `src/gkagent/sim/policy_mlp.py`：`decision_features`（137 维）/ `PolicyMLP`
+  （score/choose/save/load，格式 `gkagent.policy_mlp.v1`）/ `net_action`（硬规矩决策）/
+  `train_policy_mlp`（numpy Adam 全批量 MSE，复用 `leaf_mlp._Adam`）/ `ranking_accuracy`；
+- `src/gkagent/sim/policy_data.py`：`DecisionRecordingSim`（只记真实决策）/
+  `replay_to` + `verify_replay`（逐字段全等）/ `advantage_samples`（分支优势）/
+  `demo_samples`（软目标+剔除）/ `play_selfplay`；
+- `scripts/build_ei_dataset.py`（demos/selfplay 两模式）/ `train_ei_policy.py`
+  （BC/混合、seed 分组 9:1、比例下采样）/ `eval_ei.py`（配对评测门，复用
+  `eval_t4_b1._table`；退出码 0=PASS/1=CONTINUE）；
+- `scripts/eval_known_draw.py::play` 加 `policy="net"/"greedy"` + `net_model` 参数
+  （**纯增量，默认行为逐位不变**，回归测试锁定）。
+
+### 第 1 轮数据 / 训练（small：14 张 / 5 回合 / CLEAR 120 / PERFECT 170）
+
+| 集 | 局数 / 决策 | 样本 | 备注 |
+|---|---|---:|---|
+| 教师示范（seed 100000–100399） | 400 / 1985 | 5747 | 剔除强制 37 / 教师 SKIP 23；教师均分 96.3；33s |
+| v0 自对弈（seed 200000–200999） | 1000 / 4905 | 14314 | 优势 std 12.09；v0 均分 96.0；17s（含全部分支重放） |
+
+- **v0（纯 BC）**：5747 样本，train MSE 0.093 / r² 0.816，val MSE 0.204 /
+  **排序命中 0.889**（argmax 预测 = 教师选牌）；
+- **v1（70/30）**：19156 样本（自对弈 13409 / 示范 5747，教师占比 0.300），
+  train MSE 0.241，val MSE 0.292 / 排序命中 0.822（val 集含自对弈组，「最佳动作」
+  定义 = argmax 优势，与 v0 的「教师选牌」不同靶，**不可直接比**）；
+- 训练/评测 seed 纪律：采集 100000+/200000+，选择段 2000–2079，确认段 3000–3119，
+  稳健块 4000–4119，互不重叠；模型/数据/JSON 全在 `out/`（gitignore）。
+
+### 处置 / 风险（如实）
+
+- **生产接线未做**：学生网是研究候选，`LessonPolicy`/`auto_produce` 未接；
+  T2 真机 A/B 候选**暂不变**（beam+全知/tiebreak）；学生网要进 T2 需第 2 轮+
+  生产接线（`engine=` 口径 + 决策可观测性 + 禁跳/禁回退红线）后再议；
+- **模拟器保真度是天花板**（fresh buff / 随机生成卡 RNG 等未建模）→ 离线增益
+  要过 T2 真机 A/B 才算数；本轮仅 small 场景（5 回合），large（9–12 回合真机口径）
+  未测——第 2 轮起应加 large 配对；
+- **v0 也过门**意味着「放手」的第 1 轮红利主要是蒸馏+禁跳，渐退 loop 的自对弈
+  成分待第 2 轮独立验证；若第 2 轮（教师←v1、15%）学生不再显著强于新教师，
+  按设计继续扶或如实记录平台期；
+- 学生只看可观测状态（不用 known_draw/seed）→ 天然 **gkbench ranked 公平算法候选**
+  （F 阶段 public-safe 适配器可复用，留待 F1/F2）；
+- 优势标签是**单条确定性延续**（非采样均值）：跨 seed 体量平均吸收牌序噪声，
+  第 1 轮 14314 样本未见异常；若 large 场景方差大，可加每动作多延续（改 rollout rng）。
+
+### 复现命令
+
+```powershell
+# 采集（约 33s + 17s；out/ 不进 git）
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode demos --games 400 --out out\ei_r1_demos.npz
+.venv\Scripts\python.exe scripts\train_ei_policy.py --demos out\ei_r1_demos.npz --out out\ei_r1_v0_bc.json
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode selfplay --games 1000 --student-model out\ei_r1_v0_bc.json --out out\ei_r1_selfplay.npz
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r1_selfplay.npz --demos out\ei_r1_demos.npz --teacher-frac 0.3 --out out\ei_r1_v1_mix.json
+# 评测（选择段 → 确认段 → 稳健块；退出码 0=PASS）
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r1_v1_mix.json --games 80 --seed 2000 --json out\ei_r1_eval_v1_select.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r1_v1_mix.json --games 120 --seed 3000 --json out\ei_r1_eval_v1_confirm.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r1_v1_mix.json --games 120 --seed 4000 --no-within --json out\ei_r1_eval_v1_robust4000.json
+```
+
+### 测试 / 基线
+
+- `tests/test_ei_policy.py` **28 条**（特征维度/确定性/牌间区分、save/load、argmax、
+  合成可训练、**硬规矩禁跳**、决策记录、**重放逐字段等价+失配抛错**、优势均值 0、
+  **on-policy 分支终局分=原局终局分**、rollout 敏感性、示范软目标/剔除、
+  harness net/greedy 接线、**默认行为逐位不变**）；ruff 通过；
+- 全量 pytest **1251 passed / 1 skipped（1252 收集 / 84 文件，190.62s）**；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变；
+- JSON（out/ gitignore）：`ei_r1_eval_v0_select/v1_select/v0_confirm/v1_confirm/v1_robust4000.json`；
+- 细节见 HANDOVER 二·补三十七 / WORKPLAN B11 / HANDOVER_NEXT §8（B11 交接）。
+
+
 
