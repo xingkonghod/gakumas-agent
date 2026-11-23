@@ -1774,7 +1774,8 @@ JSON（out/ gitignore）：`b2r_eval_old_select / b2r_train_report / b2r_eval_se
 **文档**：EXPECTIMAX「B2 重训（B2-R）」+ B2/B3/B4/B5 节过期说法更新；WORKPLAN §0/阶段 B；
 HANDOVER_NEXT §0/§1/§4/§8；INDEX；本文件二·补三十四。
 
-**提交**：feat `99e88fc`（leaf_data 口径修正 + 重训模型 + 测试）+ docs `ae945dc`（本交接 + 文档数字），
+**提交**：feat `99e88fc`（leaf_data 口径修正 + 重训模型 + 测试）+ docs `ae945dc`（本交接 + 文档数字）
++ revert `432135b`（模型文件按用户指定回退旧版）+ docs `73b12a4`（根因诊断），
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -1997,6 +1998,10 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 B2-R 根因诊断：信息漂移假设被推翻（y_known≈y_unknown、learned μ 近无偏且排序更好、分歧时 71.6% 对）；确证锐利 σ 放大（σ11→60 恢复 −7→−2、analytic μ 对 σ 免疫）+ 价值-策略失配（teacher return ≠ 100ms beam 可执行价值、tiebreak ×100 不改决策）；建议关闭学习叶子路线）
+73b12a4 docs(b2r): 根因诊断——信息漂移假设被推翻；锐利 σ 放大 + 价值-策略失配；建议关闭学习叶子路线
+（2026-11-23 B2-R 模型回退（用户指定）：tracked 恢复旧版 val r²=0.943，重训候选保留 out/b2r_leaf_mlp_small.json；两版都 FAIL、生产 leaf_model 关闭故行为无差）
+432135b revert(b2r): 回退重训叶子模型文件（用户指定）——tracked 恢复旧版，重训候选保留 out/；文档同步
 （2026-11-23 交接：B2-R 完成记录（可复现负结果）+ 提交哈希 99e88fc）
 ae945dc docs(b2r): 记录 B2 按 B3+ 规则重训完成（可复现负结果）——确认段 −7.2 / ens0.75 中性、生产 leaf_model 保持关闭、pytest 1155/1 + 提交哈希 99e88fc
 （2026-11-23 B2-R / B2 学习叶子按 B3+ 规则重训：重采 26.5k beam 全知叶子样本（纯分数标签、不加 PBRS 塑形）→ MLP val r²=0.906/MAE 7.0，确认段 120 局 unknown beam 94.9→learned 87.7（−7.2 CI[−9.5,−5.0]）/ known −11.5 / ensemble 0.75 中性、σ×2/×4 更差——可复现负结果，生产 leaf_model 保持关闭、T2 候选去掉 learned leaf；叶子快照补温存→全力回合边界解除收益口径，pytest 1155/1（1156 收集 / 79 文件），基线 ①③④⑤ 不变）

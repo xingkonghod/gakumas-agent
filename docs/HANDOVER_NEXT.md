@@ -854,7 +854,8 @@ known 96.8→85.3（−11.5 ❌）/ ens 0.75 −0.5/−0.6（中性）；within_
 b2r_train_report / b2r_eval_select / b2r_eval_confirm。下一项候选：**C1 执行层可靠性**
 （tap 确认/重试、提权检查、动作前预算下一帧、每步可复盘）或 T5 剩余（fresh buff 需真机截图 /
 随机生成卡 RNG 需 T6 补采）→ 真机 T3→T1→T2。详见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) /
-[HANDOVER 二·补三十四](HANDOVER.md)。提交 `feat 99e88fc` + `docs ae945dc`（哈希另见 HANDOVER 七）。
+[HANDOVER 二·补三十四](HANDOVER.md)。提交 `feat 99e88fc` + `docs ae945dc` + `revert 432135b`
+（模型按用户指定回退旧版）+ `docs 73b12a4`（根因诊断）（哈希另见 HANDOVER 七）。
 
 **上一轮交接记录（2026-11-23，B10 / T5 剩余机制①② ExamCardCreateId 生成卡 + 指定卡名/手牌张数映射）**：
 纯离线代码任务。语义来源 = masterTrans `ProduceCardSearch.json` 描述表 + 主数据
