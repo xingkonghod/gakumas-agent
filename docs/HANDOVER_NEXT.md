@@ -847,6 +847,21 @@ known 96.8→85.3（−11.5 ❌）/ ens 0.75 −0.5/−0.6（中性）；within_
 ② 剩余 −2 是价值-策略失配（teacher return ≠ 100ms beam 可执行价值；tiebreak ×100 不改决策）。
 **推论：加数据/改特征/提拟合度救不了；建议关闭学习叶子路线**（要正增益需换目标：优势标签/
 动作排序蒸馏，或每战在线自适应——需真机）。详见 EXPECTIMAX「B2 重训（B2-R）·根因诊断」。
+
+**下一会话任务（用户 2026-11-23 指定）：高预算验证——「更强的 bot 能不能兑现学习叶子」**
+- 背景：根因诊断后用户问「为什么不提高 bot 能力让它打出来」；可验证：把搜索拉到 teacher 级
+  （width8/300ms）再配对。若 learned 在高预算下显著转正 → 路线改「强搜索+学习叶子」；
+  若仍平/负 → 关闭路线（当前最好配置 muL+σ60 也只是平手 95.2 vs 97.3）。
+- 前置：§2 基线（期望 ② **1155/1**，1156 收集 / 79 文件）；HEAD=37c59dc。
+  重训候选在 `out/b2r_leaf_mlp_small.json`（gitignore，若被清掉按 EXPECTIMAX B2-R 复现命令重建）。
+- 命令（选择段 80 局，同预算配对；eval_b2 自动跑同预算解析式基线）：
+  ```powershell
+  .venv\Scripts\python.exe scripts\eval_b2.py --leaf-model out\b2r_leaf_mlp_small.json --games 80 --seed 2000 --info unknown --width 8 --beam-budget-ms 300 --within-budget-ms 300 --ensembles 0.75 --json out\b2r_eval_highbudget_select.json
+  ```
+  墙钟约 15–25 分钟（within 家族也跑，可忽略或改探针只跑 beam）。
+- 判定：选择段显著正 → 确认段 `--games 120 --seed 3000 --info unknown known` 复核；
+  仍要过「真机实时预算」关（每步 300ms×局长 vs T1 ≤20 分钟）才谈生产。不显著 → 关闭路线，
+  负结果写回 EXPECTIMAX B2-R，转 C1。一次会话只做这 1 个任务。
 不做：第二轮专家迭代/档位头（B2 已知负结果）、large 重采（预算外，需先更新特征）。
 备选路线：auto-gakumas 每战在线 PPO 自适应（需真机/独立副本，先问用户）。
 测试/基线：ruff 通过；全量 pytest **1155/1（1156 收集 / 79 文件）**；① 4/4+3/3、③ 86/86+24/24、
