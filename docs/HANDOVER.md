@@ -1994,6 +1994,9 @@ harness 接线/默认行为逐位不变）；ruff 通过；全量 pytest **1251 
 WORKPLAN §0/B11/开场白；HANDOVER_NEXT §0/§2 期望值（1223→1251）/§8（含第 2 轮任务定义）/开场白；
 INDEX；本文件二·补三十七。
 
+**提交**：feat `e26387b`（代码+测试+文档）+ docs(handover) 哈希记录（本节），
+开工基线复核 `7689a2e`；见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -2214,6 +2217,11 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 B11 哈希记录：feat e26387b + 开工基线复核 7689a2e；第 2 轮任务定义见 HANDOVER_NEXT §8）
+（2026-11-23 B11 渐退式专家迭代 第 1 轮（用户选定启动，纯离线代码+单测）：学 policy/advantage 而非状态价值——137 维学生网（B2 104 状态特征+33 动作特征→96→48→1 优势分，net_action 硬规矩禁跳/禁回退）+ 精确重放分支 on-policy 优势标签（同 seed 重放前缀逐字段全等校验→打候选→当前学生打完→A=R−mean(R)，不走搜索镜像）+ build_ei_dataset/train_ei_policy/eval_ei；示范 400 局 5747 样本→v0 BC（val 排序命中 0.889）→自对弈 1000 局 14314 样本→v1 70/30；确认段 120 局 v1 97.5 vs beam 教师 94.9：+2.6 CI[+1.1,+4.1] 评测门 PASS（放手），稳健块 4000–4119 +3.8 CI[+1.6,+6.0]，0.40ms/决策；消融：纯 BC v0 也过门（+2.4）→红利主力=逐决策蒸馏+禁跳，on-policy 成分待第 2 轮独立验证；28 条单测，pytest 1251/1（1252 收集 / 84 文件），基线 ①③④⑤ 不变；生产接线未做、large 未测、真机 T2 才算数）
+e26387b feat(b11): 渐退式专家迭代第 1 轮——policy/advantage 学生 + 精确重放 on-policy 优势标签，确认段评测门 PASS（+2.6 CI[+1.1,+4.1]）
+（2026-11-23 新会话开工基线复核：①②③④⑤ 全绿与 17:2x 逐项一致（② 1223/1，1224 收集 / 83 文件，195.97s），HEAD 1376d21；§2 记复核戳）
+7689a2e docs(handover): §2 记新会话开工基线复核（17:4x，HEAD 1376d21，①②③④⑤ 全绿与 17:2x 逐项一致）
 （2026-11-23 C1 交接定稿：LIVE_RUN 真机手册补 C1 入口——起跑自检第 7 条提权一致、跑完第 ④ 件 replay_steps 逐步复盘、日志/失败标记速查表（[priv]/[tap] retap/[tap][LOST]/drink-dialog-lost/elevation-blocked）、已知坑第 6 条 UIPI；HANDOVER_NEXT §8 补三提交哈希与阶段 E 验收指引、开场白模板补 HEAD）
 1ac8bb2 docs(handover): C1 交接定稿——LIVE_RUN 真机手册补 C1 入口（提权自检/复盘命令/日志标记速查/UIPI 坑）；§8 补哈希与阶段 E 验收指引
 （2026-11-23 C1 执行层可靠性（用户指定本会话唯一任务，纯离线代码+单测，真机验收留阶段 E）：tap 确认/重试 TapGuard（动作前预算下一帧→互验 confirmed/moved 不重试/同屏 retap≤2/lost 上报绝不静默 SKIP/加载暂停 postpone）+ PickerGuard 两段式选牌（选中后只重试确认不重点卡位）+ 提权检查 privilege（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑+管理员提示）+ 每步 step_trace.jsonl（动作理由/预算/互验结果）+ replay_steps.py 离线复盘 + attempt_drink 对话未开重试 + 连续 3 次 lost 止损停局；参考 GKMSMAA 架构自写不拷贝（AGPL）；68 条失败场景单测，pytest 1223/1（1224 收集 / 83 文件），基线 ①③④⑤ 不变）
