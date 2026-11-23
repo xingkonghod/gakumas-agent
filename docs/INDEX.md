@@ -100,6 +100,7 @@
 | **MASTER_DATA.md** | 主数据库（286 表）+ seed 发现 |
 | **SIMULATOR.md** | 模拟器设计与实现 |
 | **EXPECTIMAX.md** | 回合内搜索引擎 |
+| **R9_ANALYSIS.md** | B11 r9-large 解释报告（small 回退机制：信号稀释+输入漂移+v1 拉扯；修复预测） |
 | **RULES_REFERENCE.md** | **规则核验表**（回合规则/结算顺序/取整/buff/牌序，对照 gakumas-tools + 真机）|
 | **RULES_FROM_BINARY.md** | 元数据解包结果（枚举/字段/方法签名）|
 | **UNLOCK_REPORT.md** | GakumasUnlock 工具分析 |
