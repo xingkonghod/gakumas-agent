@@ -971,7 +971,8 @@ vs beam 305.3 缺口 −28.1→−13.7（收窄一半）；large 生产候选仍
 **测试/基线**：`tests/test_ei_explore.py` **7 条**；ruff 通过；全量 pytest
 **1273/1（1274 收集 / 86 文件，205.92s）**；①③④⑤ 复跑不变。模型/数据/JSON 全在 out/。
 文档：EXPECTIMAX B11 r3–r8 续；WORKPLAN §0/B11/开场白；HANDOVER_NEXT §0/§2/§8/开场白；
-INDEX；HANDOVER 二·补四十。提交 feat（哈希见 HANDOVER 七）+ docs(handover) 哈希记录。
+INDEX；HANDOVER 二·补四十。提交 `feat 47c1afa`（探索代码+测试+文档）+ docs(handover)
+哈希记录（哈希另见 HANDOVER 七）。
 
 **上一轮交接记录（2026-11-23，B11 渐退式专家迭代 第 2 轮 —— 教师←v1、占比 15%、large 首测：平台期 CONTINUE）**：
 纯离线研究+代码任务（用户按「先问我」约定选定；一次会话 1 个任务 = 第 2 轮）。
