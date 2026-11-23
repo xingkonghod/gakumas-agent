@@ -2305,7 +2305,7 @@ engine=net 默认行为不变；r9 保留 `out/ei_r9_v9_mix.json` 作 **large sp
 **文档**：EXPECTIMAX B11 r9-large；WORKPLAN §0/B11/开场白；HANDOVER_NEXT 开场白/§0/§2
 期望值（1294→1306）/§4 T2 第四臂/§8；INDEX；本文件二·补四十二。
 
-**提交**：feat `<hash>`（多文件代码+测试+文档）+ docs(handover) 哈希记录（本节）；
+**提交**：feat `39c289b`（多文件代码+测试+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -2528,9 +2528,9 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
-（2026-11-23 B11 r9-large 哈希记录：feat <hash>；下一候选见 HANDOVER_NEXT §8）
+（2026-11-23 B11 r9-large 哈希记录：feat 39c289b；下一候选见 HANDOVER_NEXT §8）
 （2026-11-23 B11 r9-large（用户授权安排；small+large 混合训练，单变量=加 large 数据）：train_ei_policy --selfplay/--demos 多文件纯增量（nargs="+"，按序拼接/group 偏移防碰撞/seed 保持原值/全局 std/meta.multi_file 明细；单文件默认逐位不变——改前/改后 3 参照模型 sha256 一致 28efed56…/b43dc14d…/e668547c…）；large 自对弈 5000 局 126969 样本（v6 学生 argmax，seed 900000–904999，均分 287.8，std 24.09）+ small r5 全量 145605 + 补采 v1 示范 1600 局 23050（seed 420000+，SKIP 0）→ 320675 行（自对弈 272574 全保 + 示范 48101，占比精确 0.150），192×96/1200ep 全同 r6，全局 std 18.71，val 排序 0.824（混合靶），1871s（OPENBLAS_NUM_THREADS=8）；large500（3000–3499）r9 315.4 vs v6 285.8：+29.6 CI[+26.2,+33.0] PASS，vs beam 301.3 +14.2 CI[+10.9,+17.5]——首个 large 超 beam 学生网（CLEAR 62.6% vs 50.6%），新鲜块 6000 +24.0 佐证，池化 620 +28.5；small500 r9 98.2 vs v6 98.6：−0.42 CI[−0.67,−0.17] 显著回退（选择段 −0.8 方向负，池化 580 −0.47；vs v1 +0.16 不显著原门未保持）→ 复合门未过不入库，生产 ei_policy_v6.json 保持 r6 权重，r9 留 out/ei_r9_v9_mix.json 作 large specialist（T2 --net-model 可换）；诊断假设=全局 std 稀释 small 信号（18.71 vs 12.21 → 65%）+ v1 示范拉扯，候选修复=按场景 std 归一化（r10 先问用户）；参照臂与 r6 JSON 逐位一致、large 前 120 水位 291.61/305.34/277.24/212.41 复现；12 条新单测（含 golden 权重锚），pytest 1306/1（1307 收集 / 88 文件，206.53s），基线 ①③④⑤ 不变）
-<hash> feat(b11): r9-large 混合训练——train_ei_policy 多文件（单文件逐位不变）+ large 自对弈 5000 局：large 首超 beam（+29.6 vs v6 / +14.2 vs beam）但 small 显著回退（−0.42）→ 复合门未过不入库；12 测试，pytest 1306/1（1307 收集/88 文件）
+39c289b feat(b11): r9-large 混合训练——train_ei_policy 多文件（单文件逐位不变）+ large 自对弈 5000 局：large 首超 beam（+29.6 vs v6 / +14.2 vs beam）但 small 显著回退（−0.42）→ 复合门未过不入库；12 测试，pytest 1306/1（1307 收集/88 文件）
 （2026-11-23 B11 v6 生产接线哈希记录：feat 9428aec；下一候选见 HANDOVER_NEXT §8）
 （2026-11-23 B11 v6 生产接线（用户授权「你推荐综合一下」后 lead 选定；纯增量代码+单测，opt-in 默认逐位不变）：LessonPolicy engine=net + net_model（可观测状态 legal_cards argmax 优势分，无搜索；with_plan=False 不注入采集全知 → public-safe；有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异常/失配 → RuleFallbackBlocked 禁回退 rules；eng=net + 优势分进 reason）；auto_produce --net-model > produce.net_model > 默认入库 v6，缺模型起跑前 return 2 + [engine] net 模型日志；data/knowledge/ei_policy_v6.json tracked（gate 溯源 meta）；T2 增第四臂 --engine net（large 生产候选仍 beam；生产 deck/discard 特征空集与离线全牌库分布有差，如实记录）；21 条新单测，pytest 1294/1（1295 收集 / 87 文件，202.95s），基线 ①③④⑤ 不变；另：Hindsight B11 门状态过时记忆已 ingest Correction 纠正）
 9428aec feat(b11): v6 学生网生产接线——engine=net opt-in（可观测 argmax 优势/禁跳禁回退红线/默认入库 v6），T2 第四臂；21 测试，pytest 1294/1（1295 收集/87 文件），基线①③④⑤不变

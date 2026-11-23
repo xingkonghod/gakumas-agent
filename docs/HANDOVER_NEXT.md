@@ -1025,7 +1025,7 @@ small 自对弈标签缩到 65%；large 行占自对弈 46.6% 且尺度大 → �
 `ei_r9_v9_mix.json` / `ei_r9_eval_v9_{large500,small500,small_select,large_fresh6000}.json` /
 `ei_r9_probe_large.npz` / `_r9_ref_*.json`（逐位参照）。
 文档：EXPECTIMAX B11 r9-large；WORKPLAN §0/B11/开场白；HANDOVER_NEXT §0/§2/§4 T2/§8/开场白；
-INDEX；HANDOVER 二·补四十二。提交 `feat <hash>`（多文件代码+测试+文档）+ docs(handover)
+INDEX；HANDOVER 二·补四十二。提交 `feat 39c289b`（多文件代码+测试+文档）+ docs(handover)
 哈希记录（哈希另见 HANDOVER 七）。
 **下一候选（先问用户）**：r10 按场景 std 归一化（修 small 回退、保 large 增益，进 F 前必须）/
 继续降档（教师←v6、15→0）/ 收 loop 转 T7 剩余 / D1 补采集 / E0 实验 /
