@@ -2,9 +2,11 @@
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
-> 新会话第一句话：
-> 「读 `docs/INDEX.md` → `docs/WORKPLAN.md`，然后照 `docs/HANDOVER_NEXT.md` §2 跑基线
-> （四条必跑 + ⑤ F0 核对可选），再从 WORKPLAN 阶段 B 的 **T5 剩余机制**开始。」
+> 新会话第一句话（紧凑版，2026-11-23 B11 后更新；完整版见 WORKPLAN「新会话开场白」）：
+> 「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → docs/WORKPLAN.md →
+> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1251/1，1252 收集 / 84 文件；①③④⑤ 同 B10 口径），不绿先修。
+> Hindsight 本地记忆已启用（先 hindsight_sync_status / search_pages 确认）。下一候选先问我：
+> B11 第 2 轮 / T7 剩余 / D1 补采集 / E0 实验 / 直接阶段 E 真机。规则见 §4 硬约束。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
