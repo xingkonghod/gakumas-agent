@@ -1787,4 +1787,107 @@ $env:OPENBLAS_NUM_THREADS='8'; $env:OMP_NUM_THREADS='8'
 - 细节见 HANDOVER 二·补四十二 / WORKPLAN B11 / HANDOVER_NEXT §8。
 
 
+## B11 r10（2026-11-23）：按场景 std 归一化 —— small 回退收窄 39% 但仍显著、large 增益保持（复合门未过，不入库）
+
+**结论先行**：r10 = r9 同数据配方 + **`--norm-by-scenario`**（单变量；多文件自对弈各文件按
+自身 std 归一化，不再除拼接后全局 std）。**large 主门 PASS 且增益保持**：500 局 r10 **314.9**
+vs v6 285.8，**+29.1 CI[+25.8,+32.3]**（r9 +29.6，r10−r9 同 seed −0.53 CI[−1.64,+0.57] 中性），
+vs beam **+13.6 CI[+10.3,+16.9]** 仍显著超 beam；新鲜块 6000 +23.0 佐证。**small 护栏仍 FAIL
+（收窄）**：500 局 r10 **98.38** vs v6 98.64，**−0.256 CI[−0.500,−0.012]**——上界 −0.012 < 0，
+仍显著回退（r9 −0.42 → r10 −0.26，收窄 39%；r10−r9 +0.16 CI[−0.06,+0.38] 方向正未显著）；
+**vs v1 原门恢复**：+0.322 CI[+0.032,+0.612]（r9 +0.16 不显著 → r10 显著）。复合门
+（large 显著改善 **且** small 不回退）未过 → **不入库**：`data/knowledge/ei_policy_v6.json`
+保持 r6 权重（sha256 33a80981… 未动），r10 留 `out/ei_r10_v10_mix.json`。**归一化口径修复
+有效但不充分**——与 R9_ANALYSIS §6 预测一致（small 能量 ~49% 实测 49.0%，但输入侧场景漂移
+仍在，small 未必 100% 恢复）。**下一候选（先问用户）**：r11 叠加 small 上采样（候选②）。
+
+### 代码（纯增量：--norm-by-scenario，默认逐位不变）
+
+`train_ei_policy.py` 加 `--norm-by-scenario`（`store_true`，默认关）：
+
+* **只作用于多文件自对弈拼接**：各文件 y 先除**自身 std**（`max(std,1e-6)` 同原口径）再拼接，
+  main 不再除全局 std；scenario 取 npz `meta.args.scenario`（缺失记 `unknown`）；
+* **单文件路径不受影响**（开关开着也走原分支，单文件两者本就相等）；示范软目标（±1）
+  从来不做 std 归一化，开关不影响 demos；
+* 逐文件 std 按**加载时全量文件**计算（教师占比下采样之前）；下采样只挑行不改值；
+* mix 记 `norm_by_scenario=True` + `scenario_std`（scenario → 逐文件 std 列表，按拼接顺序；
+  `selfplay_adv_std=None` 表示无单一全局除数）；`multi_file` 逐文件补 `norm_std`（实际除数）；
+* **默认路径逐位不变**：改前/改后 4 个参照模型 sha256 完全一致——单文件 3 个与 r9 参照
+  相同（`28efed56…`/`b43dc14d…`/`e668547c…`）+ 多文件全局 std 新 golden（`c5d48db7…`，
+  `data/_r10_norm_baseline.py`，不提交）；X 侧 mean/scale 逐位不变（单变量 = 标签口径）。
+
+### 数据 / 训练（复用 r9 数据，无需新采集）
+
+同 r9 配方：自对弈 272574（small r5 全量 145605 + large r9 126969）+ 示范 48101
+（r4 28934 + r9 23050 下采样）= **320675 行**，教师占比 **0.150**；192×96 / 1200 epochs /
+lr 1e-3 / l2 1e-4 / seed 0 全同 r9。**单变量 = 归一化口径**：逐场景 std small **12.2115** /
+large **24.0878**（vs r9 全局 18.7065）。**能量份额实测**（Σy² 代理，R9_ANALYSIS §2 口径）：
+small **20.9%→49.0%** / large **70.9%→42.7%** / demos 8.2% 不变——与 §6 预测（~49%/~43%）
+吻合；归一化后 small/large 标签 std 都回 1.000。val 排序 **0.823**（r9 0.824，混合靶不可与
+v6 0.861 直接比）；train MSE 0.2908 / r² 0.686；训练 **2047.9s**（`OPENBLAS_NUM_THREADS=8`，
+复现命令带此 env）。
+
+### 评测（500 局修正协议，B1 修正 harness 配对，unknown，--no-within；参照臂逐位校验）
+
+参照臂与 r9 JSON **逐位一致**（small500 v6/beam 全 500 局、large500 v6/beam/greedy 全 500 局；
+r9 会话已验 r9 臂与 r6 JSON 一致 → 传递排除 harness 漂移）；large 前 120 水位复现文档数字
+（v6 **291.6083** / beam **305.3417** / greedy **212.4083** / v1 **277.2417**）。
+
+| 段 | r10 | v6 | beam | r10−v6 Δ | 95% CI | 判定 |
+|---|---:|---:|---:|---:|---|---|
+| **large 500（3000–3499，主门）** | **314.9** | 285.8 | 301.3 | **+29.1** | **[+25.8,+32.3]** | **PASS** |
+| large 新鲜块 120（6000–6119） | 321.9 | 298.8 | 312.9 | +23.0 | [+16.7,+29.4] | PASS（佐证） |
+| large 池化 620 | — | — | — | +27.9 | [+25.0,+30.8] | 显著 |
+| **small 500（3000–3499，护栏）** | **98.38** | **98.64** | 96.5 | **−0.256** | **[−0.500,−0.012]** | **仍显著回退 ❌** |
+| small 选择 80（2000–2079） | 99.7 | 100.1 | 97.3 | −0.34 | [−1.2,+0.5] | 中性 |
+| small 池化 580 | — | — | — | −0.267 | [−0.509,−0.026] | 仍显著回退 |
+
+* **large vs beam**：500 局 **+13.6 CI[+10.3,+16.9]** / 池化 620 **+12.7 CI[+9.8,+15.6]**；
+  CLEAR **62.4%** vs beam 50.6% / v6 39.0%（新鲜块 64.2% vs 57.5%）；r10−v1（前 120）+41.4；
+* **small vs v1**：**+0.322 CI[+0.032,+0.612] → 原 500 局门恢复**（r9 +0.16 不显著）；
+  vs beam +1.90 CI[+1.09,+2.70] 绝对水位仍在；CLEAR **12.2% == v6**（r9 11.2%，翻负局已修回）；
+* **r10 vs r9（同 seed 直接对比）**：small500 **+0.162 CI[−0.057,+0.381]**（方向正、未显著；
+  W/T/L 32/448/20）；large500 **−0.534 CI[−1.635,+0.567]**（中性）→ **large 增益保持、
+  small 部分修复**，与「能量份额恢复但输入侧漂移仍在」的机制预期一致。
+
+### 判定 / 处置
+
+- **复合门未过（small 护栏 CI 上界 −0.012 < 0）→ 不入库**（`data/_r10_promote.py` 程序化
+  门校验：参照臂逐位校验全过 → large 主门过 → small 护栏未过 → 退出码 1，未执行入库分支）；
+  生产 `ei_policy_v6.json` 保持 r6 权重、engine=net 默认行为不变；
+- **不硬凑显著**：−0.012 离 0 很近，但预注册判据是 CI 上界 ≥ 0，差一点也是没过；
+  如实记录「收窄 39% 但仍显著」，不用池化/换段捞显著（池化 580 同样显著负）；
+- r10 保留 `out/ei_r10_v10_mix.json`（large 口径与 r9 统计不可分，small 略好但未过门，
+  不作 specialist 推荐——T2 large A/B 臂仍是 r9 或入库 v6）；
+- **F public-safe 仍被 small 回退挡**（须 small+large 双过）；
+- **下一候选（先问用户）**：r11 叠加 small 上采样（R9_ANALYSIS §6 候选②，能量 →~66%，
+  与本轮①叠加）；其他：继续降档（教师←v6、15→0）/ 收 loop 转 T7 剩余 / D1 / E0 / 直接阶段 E。
+
+### 复现命令（r10 路径）
+
+```powershell
+# 无需新采集（复用 r9 数据）；训练（OPENBLAS_NUM_THREADS=8 本机吞吐最优，复现需带）
+$env:OPENBLAS_NUM_THREADS='8'; $env:OMP_NUM_THREADS='8'
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r5_selfplay.npz out\ei_r9_selfplay_large.npz --demos out\ei_r4_demos.npz out\ei_r9_demos.npz --teacher-frac 0.15 --round 10 --epochs 1200 --hidden 192 96 --norm-by-scenario --out out\ei_r10_v10_mix.json
+# 门（500 局修正协议）+ 诊断段（评测须无训练负载）
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r10_v10_mix.json --baseline-net out\ei_r6_v6_mix.json --scenario large --games 500 --seed 3000 --no-within --json out\ei_r10_eval_v10_large500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r10_v10_mix.json --baseline-net out\ei_r6_v6_mix.json --games 500 --seed 3000 --no-within --json out\ei_r10_eval_v10_small500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r10_v10_mix.json --baseline-net out\ei_r6_v6_mix.json --games 80 --seed 2000 --no-within --no-greedy --json out\ei_r10_eval_v10_small_select.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r10_v10_mix.json --baseline-net out\ei_r6_v6_mix.json --scenario large --games 120 --seed 6000 --no-within --no-greedy --json out\ei_r10_eval_v10_large_fresh6000.json
+# 分析 + 程序化门校验（一次性脚本，不提交）
+.venv\Scripts\python.exe data\_r10_eval_analysis.py
+.venv\Scripts\python.exe data\_r10_promote.py   # 退出码 1 = 未过门不入库
+```
+
+### 测试 / 基线
+
+- `tests/test_ei_norm_scenario.py` **12 条**（多文件默认 golden 权重逐位锚 / 开关单文件
+  逐位不变 / 逐文件 std 白盒 / meta 逐场景 std / **能量份额恢复** / X 侧标准化不变 /
+  示范不受影响 / 下采样全量文件 std / 同场景多文件 / scenario 缺失 unknown / 确定性 /
+  开关 golden）；ruff 通过；
+- 全量 pytest **1318 passed / 1 skipped（1319 收集 / 89 文件）**；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 全部不变；
+- 细节见 HANDOVER 二·补四十三 / WORKPLAN B11 / HANDOVER_NEXT §8 / R9_ANALYSIS §8（预测 vs 实测）。
+
+
 

@@ -16,10 +16,23 @@
 * 多文件时决策组号（group）按文件偏移防跨文件碰撞（排序命中按决策分组）；
   seed 保持原值（seed 分组 9:1 切分纪律不变；**各文件 seed 块应互不重叠**，
   重叠会告警——同 seed 样本进同一 train/val 侧，不泄漏但需确认是否有意）；
-* 优势归一化用**拼接后全局 std**（与单文件「全局 std」同口径）；教师占比下采样
+* 优势归一化默认用**拼接后全局 std**（与单文件「全局 std」同口径）；教师占比下采样
   作用于拼接后的自对弈池（示范不足时小文件也会被一起下采样——要保 small 全量，
   需补采示范解锁上限 max_s = n_d×(1−f)/f）；
 * 多文件明细（逐文件行数/scenario/seed 段/标签 std）写进 meta.multi_file。
+
+按场景归一化（r10 纯增量）：``--norm-by-scenario``（默认关 = 上述行为逐位不变）：
+
+* 只作用于**多文件自对弈**拼接：各文件按**自身 std** 归一化（不再除拼接后全局
+  std）——修 r9 诊断的「全局 std 稀释 small 信号」（R9_ANALYSIS §2/§6）；
+  scenario 取 npz ``meta.args.scenario``（缺失记 ``unknown``）；
+* 单文件路径不受影响（开关开着也走原全局 std 分支，单文件两者本就相等）；
+  示范软目标（±1 口径）从来不做 std 归一化，开关不影响 demos；
+* 逐文件 std 按**加载时全量文件**计算（教师占比下采样之前）；下采样只挑行、
+  不改已归一化的值；
+* mix 记 ``norm_by_scenario=True`` + ``scenario_std``（scenario → 逐文件 std 列表，
+  按拼接顺序；``selfplay_adv_std=None`` 表示无单一全局除数）；multi_file 逐文件
+  补 ``norm_std``（实际除数，max(std,1e-6)）。
 
 切分：按 **seed 分组** 9:1（同局样本不跨 train/val，与 B2 训练同纪律）。
 指标：train/val MSE + val 按决策分组的排序命中率（argmax 预测 == argmax 标签）。
@@ -40,6 +53,12 @@
         --selfplay out\\ei_r5_selfplay.npz out\\ei_r9_selfplay_large.npz \
         --demos out\\ei_r4_demos.npz out\\ei_r9_demos.npz \
         --teacher-frac 0.15 --round 9 --epochs 1200 --hidden 192 96 --out out\\ei_r9_v9_mix.json
+    # r10（按场景 std 归一化）：同 r9 数据配方，单变量 = --norm-by-scenario
+    .venv\\Scripts\\python.exe scripts\\train_ei_policy.py \
+        --selfplay out\\ei_r5_selfplay.npz out\\ei_r9_selfplay_large.npz \
+        --demos out\\ei_r4_demos.npz out\\ei_r9_demos.npz \
+        --teacher-frac 0.15 --round 10 --epochs 1200 --hidden 192 96 \
+        --norm-by-scenario --out out\\ei_r10_v10_mix.json
 """
 
 from __future__ import annotations
@@ -90,9 +109,15 @@ def _file_info(part: dict) -> dict:
     }
 
 
-def _load_many(paths: list[Path]) -> dict:
-    """加载 1..n 个 npz。单文件 = ``_load`` 原样返回（默认行为逐位不变）；
-    多文件按给出顺序拼接，group 偏移防跨文件碰撞（seed 保持原值）。"""
+def _load_many(paths: list[Path], *, norm_by_scenario: bool = False) -> dict:
+    """加载 1..n 个 npz。单文件 = ``_load`` 原样返回（默认行为逐位不变，
+    ``norm_by_scenario`` 也不影响单文件路径）；多文件按给出顺序拼接，
+    group 偏移防跨文件碰撞（seed 保持原值）。
+
+    ``norm_by_scenario=True``（r10）：多文件时各文件 y 先除**自身 std**
+    （加载时全量文件口径，下采样之前）再拼接；返回 dict 带
+    ``norm_by_scenario``/``scenario_std``，files 明细补 ``norm_std``。
+    默认 False = 原样拼接（全局 std 归一化在 main 里做，逐位不变）。"""
     loaded = [_load(path) for path in paths]
     if len(loaded) == 1:
         return loaded[0]
@@ -100,12 +125,25 @@ def _load_many(paths: list[Path]) -> dict:
     ys: list[np.ndarray] = []
     seeds: list[np.ndarray] = []
     groups: list[np.ndarray] = []
+    files: list[dict] = []
+    scenario_std: dict[str, list[float]] = {}
     base = 0
     seen_seeds: set[int] = set()
     overlap = False
     for part in loaded:
         xs.append(part["X"])
-        ys.append(part["y"])
+        info = _file_info(part)
+        if norm_by_scenario:
+            std = float(part["y"].std())
+            divisor = max(std, 1e-6)
+            ys.append(part["y"] / divisor)
+            info["norm_std"] = divisor
+            scenario = info["scenario"]
+            key = scenario if scenario is not None else "unknown"
+            scenario_std.setdefault(key, []).append(std)
+        else:
+            ys.append(part["y"])
+        files.append(info)
         seeds.append(part["seed"])
         group = part["group"]
         groups.append(group + base)
@@ -119,15 +157,19 @@ def _load_many(paths: list[Path]) -> dict:
             "⚠️ 多文件 seed 块有重叠：同 seed 样本会进同一 train/val 侧（不泄漏，"
             "但请确认是否有意；采集纪律要求 seed 块互不重叠）"
         )
-    return {
+    combined = {
         "X": np.vstack(xs),
         "y": np.concatenate(ys),
         "seed": np.concatenate(seeds),
         "group": np.concatenate(groups),
         "meta": {"kind": "concat", "n_files": len(loaded)},
         "path": ", ".join(part["path"] for part in loaded),
-        "files": [_file_info(part) for part in loaded],
+        "files": files,
     }
+    if norm_by_scenario:
+        combined["norm_by_scenario"] = True
+        combined["scenario_std"] = scenario_std
+    return combined
 
 
 def _subsample(data: dict, keep: int, rng: np.random.Generator) -> dict:
@@ -156,6 +198,11 @@ def main(argv: list[str] | None = None) -> int:
         help="教师示范 npz，可多文件（按给出顺序拼接；单文件逐位不变）",
     )
     parser.add_argument("--teacher-frac", type=float, default=0.3)
+    parser.add_argument(
+        "--norm-by-scenario", action="store_true",
+        help="多文件自对弈各文件按自身 std 归一化（r10；默认关=拼接后全局 std，逐位不变；"
+             "单文件路径不受影响；scenario 取 npz meta.args.scenario）",
+    )
     parser.add_argument("--round", type=int, default=1, help="专家迭代轮次（写进模型 meta.task）")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--hidden", type=int, nargs=2, default=(96, 48))
@@ -172,7 +219,10 @@ def main(argv: list[str] | None = None) -> int:
 
     started = time.perf_counter()
     rng = np.random.default_rng(args.seed)
-    selfplay = _load_many(args.selfplay) if args.selfplay else None
+    selfplay = (
+        _load_many(args.selfplay, norm_by_scenario=args.norm_by_scenario)
+        if args.selfplay else None
+    )
     demos = _load_many(args.demos) if args.demos else None
 
     # ---- 按行数配教师占比（确定性下采样）----
@@ -189,8 +239,19 @@ def main(argv: list[str] | None = None) -> int:
     parts: list[dict] = []
     kind_cols: list[np.ndarray] = []
     if selfplay is not None:
-        std = float(selfplay["y"].std())
-        selfplay = {**selfplay, "y": selfplay["y"] / max(std, 1e-6), "adv_std": std}
+        if selfplay.get("norm_by_scenario"):
+            # r10：拼接时已按各文件自身 std 归一化，不再除全局 std
+            selfplay = {**selfplay, "adv_std": None}
+            print(
+                "norm-by-scenario: "
+                + " / ".join(
+                    f"{sc} std=" + ",".join(f"{s:.4f}" for s in stds)
+                    for sc, stds in selfplay["scenario_std"].items()
+                )
+            )
+        else:
+            std = float(selfplay["y"].std())
+            selfplay = {**selfplay, "y": selfplay["y"] / max(std, 1e-6), "adv_std": std}
         parts.append(selfplay)
         kind_cols.append(np.zeros(selfplay["X"].shape[0], dtype=np.int64))
     if demos is not None:
@@ -248,6 +309,10 @@ def main(argv: list[str] | None = None) -> int:
         "val_seeds": sorted(val_seeds),
         "elapsed_s": round(time.perf_counter() - started, 2),
     }
+    # r10：按场景归一化时 mix 补逐场景 std（默认路径不新增键，逐位不变）
+    if selfplay is not None and selfplay.get("norm_by_scenario"):
+        metrics["mix"]["norm_by_scenario"] = True
+        metrics["mix"]["scenario_std"] = selfplay["scenario_std"]
     sources: list[str] = []
     if args.selfplay:
         sources.extend(str(path) for path in args.selfplay)

@@ -100,7 +100,7 @@
 | **MASTER_DATA.md** | 主数据库（286 表）+ seed 发现 |
 | **SIMULATOR.md** | 模拟器设计与实现 |
 | **EXPECTIMAX.md** | 回合内搜索引擎 |
-| **R9_ANALYSIS.md** | B11 r9-large 解释报告（small 回退机制：信号稀释+输入漂移+v1 拉扯；修复预测） |
+| **R9_ANALYSIS.md** | B11 r9-large 解释报告（small 回退机制：信号稀释+输入漂移+v1 拉扯；修复预测）+ §8 r10 实测验证（预测 vs 实测） |
 | **RULES_REFERENCE.md** | **规则核验表**（回合规则/结算顺序/取整/buff/牌序，对照 gakumas-tools + 真机）|
 | **RULES_FROM_BINARY.md** | 元数据解包结果（枚举/字段/方法签名）|
 | **UNLOCK_REPORT.md** | GakumasUnlock 工具分析 |
@@ -422,16 +422,28 @@ r9 留 out/ 作 large specialist（T2 可 --net-model 换臂）；诊断假设=�
 信号（18.71 vs 12.21 → 65%）+ v1 示范拉扯，候选修复=按场景 std 归一化（r10，先问用户）。
 新增 12 条测试，全量 pytest **1306 passed / 1 skipped（1307 收集 / 88 文件）**，
 基线 ①③④⑤ 不变。细节见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二。
+**同日 B11 r10 完成**（用户选定；按场景 std 归一化，单变量=归一化口径）：
+`train_ei_policy --norm-by-scenario` 纯增量（默认关=逐位不变，4 参照 sha256 改前/改后一致 +
+12 条回归测试）；复用 r9 数据 320675 行重训（small std 12.2115 / large 24.0878 各除自身，
+vs 全局 18.7065）；能量份额 small 20.9%→49.0% / large 70.9%→42.7%（R9_ANALYSIS 预测吻合）。
+**large500 r10 314.9 vs v6 285.8：+29.1 CI[+25.8,+32.3] PASS，vs beam +13.6 仍显著超**
+（r10−r9 同 seed 中性 → 增益保持）；**small500 r10 98.38 vs v6 98.64：−0.256 CI[−0.500,−0.012]
+仍显著回退**（r9 −0.42 收窄 39%；vs v1 原门恢复 +0.32 CI[+0.03,+0.61]）→ **复合门未过，不入库**：
+生产 ei_policy_v6.json 保持 r6 权重；r10 留 out/ei_r10_v10_mix.json。**归一化修复有效但不充分**
+（输入侧场景漂移仍在，R9_ANALYSIS §8 证实）；下一候选 r11 叠加 small 上采样（先问用户）。
+新增 12 条测试，全量 pytest **1318 passed / 1 skipped（1319 收集 / 89 文件）**，
+基线 ①③④⑤ 不变。细节见 EXPECTIMAX B11 r10 / R9_ANALYSIS §8 / HANDOVER 二·补四十三。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
 v6 生产接线完成（engine=net opt-in，T2 第四臂）+ r9-large 完成（large 首超 beam，small 回退 →
-复合门未过不入库）**、F 数据已下；
-下一步 **先问用户选候选**：r10 按场景 std 归一化（修 r9 small 回退、保 large 增益，进 F 前必须）/
+复合门未过不入库）+ r10 完成（按场景归一化，small 收窄 39% 仍显著、large 保持 → 仍未入库）**、
+F 数据已下；
+下一步 **先问用户选候选**：r11 叠加 small 上采样（修剩余 small 回退，进 F public-safe 前必须）/
 继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 /
 E0 实验（T9 只剩 E0，需真机独立副本）/ 直接阶段 E 真机（T2 已含 net 第四臂 + r9 large specialist）；
 T5 剩余（随机生成卡 RNG / `ExamBuffConsumptionAdd` 保持 no-op /
 hold 保留区 / fresh buff 差一回合需真机截图）均低价值或需真机/补采 → 真机 T3→T1→T2 →
 F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看可观测状态，
-是未来 public-safe 候选，**r9 large 已超 beam 但 small 回退，须 small+large 双过才进 F**）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五/二·补三十六/二·补三十七/二·补三十九/二·补四十/二·补四十一/二·补四十二 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+是未来 public-safe 候选，**r9/r10 large 已超 beam 但 small 仍回退，须 small+large 双过才进 F**）。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五/二·补三十六/二·补三十七/二·补三十九/二·补四十/二·补四十一/二·补四十二/二·补四十三 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
