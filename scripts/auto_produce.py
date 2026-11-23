@@ -35,6 +35,7 @@ from gkagent.data.cards_db import CardLibrary
 from gkagent.data.items_db import ItemLibrary
 from gkagent.data.master import MasterData
 from gkagent.data.run_record import RunRecorder, action_of
+from gkagent.device.privilege import check_tap_privilege
 from gkagent.device.win32 import USER32, Win32Device, find_game_hwnd, user_idle_ms
 from gkagent.nav import Navigator
 from gkagent.policy.lesson import LessonPolicy, RuleFallbackBlocked
@@ -43,6 +44,8 @@ from gkagent.policy.ocr_cards import OcrCardPolicy
 from gkagent.policy.search import SearchPolicy
 from gkagent.runtime.metrics import EpisodeRecord, MetricsLog, StepRecord
 from gkagent.runtime.replay import ReplayDB
+from gkagent.runtime.tapguard import TapGuard, expect_dialog_gone
+from gkagent.runtime.trace import StepTrace, TraceLog
 from gkagent.sim.exam_estimate import SimCard, estimate_score
 from gkagent.sim.exam_plan import ExamDrawPlan, load_exam_setups
 from gkagent.sim.lesson import CardSpec
@@ -56,6 +59,7 @@ from gkagent.tasks.produce_ui import (
     LessonPlayGuard,
     ProduceDriver,
     SameScreenGuard,
+    TickResult,
     clean_card_name,
     clean_lesson_state,
     has_selected_ui,
@@ -127,6 +131,44 @@ LOADING_FAST_OCR_EVERY = 12
 # 必须定期回看：SKIP 后的「回合结束」确认框盖在课程上时，两个模板仍然命中，
 # 若一直用 text="剩余回合" 就永远看不到弹框 → card/force-skip 死循环（ep-finish4）。
 LESSON_FAST_OCR_EVERY = 5
+
+# ---- C1 执行层可靠性 -------------------------------------------------------
+# 饮料槽位（课程左下）与「对话已打开」的判据词；点槽位后对话没开 = tap 丢失，
+# 重试槽位而不是当作已喝（GKMSMAA HIF-112 同类失败：点了两次槽位对话从未打开）。
+DRINK_SLOT = (75, 1182)
+DRINK_DIALOG_WORD = "使用"
+DRINK_MAX_TRIES = 2
+# tap 丢失连续止损：重试预算用尽后重新决策仍连续 lost 这么多次 → 停局修 root cause
+# （提权/坐标/弹窗识别），不带着「点击全落空」空转到 --max-minutes 超时。
+TAP_LOST_STREAK_LIMIT = 3
+
+
+def attempt_drink(
+    agent,
+    driver,
+    *,
+    sleep: Callable[[float], None] = time.sleep,
+    max_tries: int = DRINK_MAX_TRIES,
+) -> tuple[bool, str]:
+    """点饮料槽位 → **验证对话真的打开**（读到「使用」）→ 点使用。
+
+    对话没开（tap 丢失/动画未 settle）就重试槽位，最多 ``max_tries`` 次。
+    返回 ``(是否喝成, 理由)``；失败理由进日志/trace/failure，复盘能回答
+    「这步为什么没喝到饮料」。旧实现点一下槽位就当作已喝，对话没开时
+    白白浪费一次体力回复机会（每节课只允许一次饮料）。
+    """
+    tries = max(1, int(max_tries))
+    for attempt in range(1, tries + 1):
+        agent.device.click_force(*DRINK_SLOT)
+        sleep(1.0)
+        shot = agent.shot()
+        lines = driver.read(shot)
+        use = driver.find(lines, DRINK_DIALOG_WORD)
+        if use is not None:
+            agent.device.click_force(*driver.center(use))
+            sleep(0.8)
+            return True, f"饮料对话第 {attempt} 次点开，已点「使用」"
+    return False, f"饮料槽位点 {tries} 次对话仍未打开（tap 丢失/提权/坐标），本次不喝"
 
 
 def client_size(hwnd: int, user32=None) -> tuple[int, int]:
@@ -323,12 +365,15 @@ class SelfInputClickGuard:
         self.force = False
         self._raw_click: Callable[..., bool] | None = None
         self._raw_swipe: Callable[..., object] | None = None
+        # C1 复盘：本步最近一次点击的落点（每步开头由主循环清零）
+        self.last_point: tuple[int, int] | None = None
 
     def click(self, x: int, y: int, delay: float = 0.4, respect_user: bool = False) -> bool:
         """暂停门点击入口；``respect_user`` 只为兼容旧调用签名，统一由 PauseGate 判断。"""
         raw = self._raw_click
         if raw is None:
             raise RuntimeError("SelfInputClickGuard not installed; call install() first")
+        self.last_point = (int(x), int(y))
         return self.gate.guarded_click(raw, x, y, delay=delay, force=self.force)
 
     def swipe(
@@ -500,6 +545,24 @@ def main() -> int:
     if not hwnd:
         print("no game window", file=sys.stderr)
         return 2
+    # C1 提权检查：游戏 elevated / 本进程 non-elevated 时 UIPI 会静默丢弃点击
+    # （截屏正常、点击全落空）。blocked 直接拒绝起跑 + 留 failure/补救提示，
+    # 不带着「点击全落空」空转到超时；unknown 只告警不拦。
+    priv = check_tap_privilege(hwnd)
+    if priv.status == "blocked":
+        print(f"[priv] {priv.reason}；{priv.hint}", file=sys.stderr)
+        log_failure(
+            episode,
+            0,
+            "elevation-blocked",
+            priv.reason,
+            {
+                "hint": priv.hint,
+                "self_elevated": priv.self_elevated,
+                "game_elevated": priv.game_elevated,
+            },
+        )
+        return 2
     agent = Agent(Win32Device(hwnd).connect(), TemplateMatcher(ROOT / "templates"))
     # 暂停门：排除 bot 自己点击注入的"用户输入"；点击统一走 click_force 补丁
     pause_gate = PauseGate()
@@ -557,6 +620,7 @@ def main() -> int:
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
 
     log_lines: list[str] = []
+    log_lines.append(f"[priv] {priv.reason}")
     log_lines.append(f"[ocr] 模型 = {ocr_model}")
     log_lines.append(f"[engine] 出牌引擎 = {lesson_policy.engine}（来源：{engine_source}）")
     if strict_engine:
@@ -584,6 +648,12 @@ def main() -> int:
     # 同屏兜底：课程状态连续 5 步没变 → 强制 SKIP；连续 10 步 → 记 [stuck] 退出本局。
     # 像素 digest 不能用（角色呼吸/卡面闪光/视频噪点每帧都变），喂语义签名。
     same_screen = SameScreenGuard()
+    # C1 通用 tap 确认/重试（非课程分支）：动作前预算下一帧，动作后互验；
+    # 课程出牌由 LessonPlayGuard 管，进课程分支时 cancel 掉旧预算。
+    tap_guard = TapGuard()
+    tap_lost_streak = 0
+    # C1 每步结构化复盘轨迹（screen/action/point/reason/预算/互验结果）
+    trace_log = TraceLog(ROOT / "data" / "step_trace.jsonl")
     lesson_sig_before_pick: tuple | None = None
     action_key: tuple[str, str] | None = None
     action_streak = 0
@@ -782,6 +852,15 @@ def main() -> int:
         )
 
     for step in range(1, steps + 1):
+        # C1 复盘：本步点击落点/轨迹字段清零（每步一条 StepTrace）
+        click_guard.last_point = None
+        step_reason = ""
+        step_engine_note = ""
+        step_expect = None
+        step_outcome = ""
+        step_tries = 0
+        step_before_sig = ""
+        step_detail = ""
         if stop_requested():
             log_lines.append(f"{step:03d} [stop] 急停触发")
             break
@@ -1095,12 +1174,22 @@ def main() -> int:
             exam_mode = False
             clicked = agent.device.click_force(*TURN_END_YES)
             time.sleep(0.8)
-            result = "[training] 回合结束确认框 → 点「是」"
+            if clicked is False:
+                result = "[pause] 用户正在操作，暂停回合结束确认"
+            else:
+                # C1：预算「确认框应消失」，下一帧互验；没消失就重试「是」
+                step_expect = expect_dialog_gone(("结束回合",), driver._frame_signature(text))
+                tap_guard.budget("end-turn-yes", TURN_END_YES, step_expect, screen="lesson")
+                step_reason = "SKIP 后「回合结束」确认框，点「是」"
+                result = "[training] 回合结束确认框 → 点「是」"
             idle = 0
             same_screen.reset()
         elif lesson_fast or any(word in text for word in LESSON_WORDS):
             action_name, screen_name = "card", "lesson"
             unknown_streak = 0
+            # 课程出牌由 LessonPlayGuard 两段式确认管，通用 tap 预算作废
+            tap_guard.cancel()
+            decision_note_step = ""
             if pending_week is not None:
                 # 已经离开行动页：上一周行动确实开始执行了
                 pending_action_advanced = True
@@ -1404,16 +1493,20 @@ def main() -> int:
                 and lesson_pending is None
                 and not guard_done
             ):
+                # C1：点槽位后验证对话真的打开；没开就重试槽位（tap 丢失），
+                # 失败写 failure + 理由，不再「点一下就当已喝」。
+                drink_ok, drink_reason = attempt_drink(agent, driver)
                 drink_used = True
-                agent.device.click_force(75, 1182)
-                time.sleep(1.0)
-                shot2 = agent.shot()
-                lines2 = driver.read(shot2)
-                use = driver.find(lines2, "使用")
-                if use is not None:
-                    agent.device.click_force(*driver.center(use))
-                time.sleep(0.8)
-                result = f"[training] drink at stamina={stamina}"
+                if not drink_ok:
+                    log_failure(
+                        episode,
+                        step,
+                        "drink-dialog-lost",
+                        drink_reason,
+                        {"stamina": stamina, "turns": turns},
+                    )
+                result = f"[training] drink at stamina={stamina}（{drink_reason}）"
+                step_reason = drink_reason
                 clicked = True
                 action_name = "drink"
                 hand = scan_hand(image)
@@ -1485,6 +1578,7 @@ def main() -> int:
                     break
                 # 决策可观测性：本步到底用哪个引擎、搜索有没有静默退回规则
                 decision_note = lesson_policy.decision_note()
+                decision_note_step = decision_note
                 if lesson_done:
                     lesson_skip = True
                     name_pick = None
@@ -1805,6 +1899,13 @@ def main() -> int:
             # 若继续累计 same_screen 计数，会从 [pause] 直接滑到 [stuck] 退出（ep-t1-l）。
             if result.startswith("[pause]"):
                 same_screen.reset()
+                tap_guard.postpone()
+            # C1 复盘：课程分支的动作理由 = 本步结果串（含体力门/换牌/引擎注记），
+            # 两段式状态机的结论（confirm/close/skip/wait）进 outcome。
+            step_reason = result
+            step_engine_note = decision_note_step
+            if guard_action != "pick":
+                step_outcome = f"lesson-{guard_action}"
         else:
             lesson_pending = None
             drink_used = False
@@ -1817,10 +1918,80 @@ def main() -> int:
             if parsed_stamina is not None:
                 last_stamina = parsed_stamina
             driver.stamina_hint = last_stamina
-            tick = driver.decide(agent, lines, image)
-            result = tick.describe()
-            screen_name, action_name = tick.screen, tick.action
-            clicked = None if screen_name in ("pause", "loading", "blank") else True
+            # C1 tap 确认：先互验上一步 tap 的预算（动作前预算、动作后互验）。
+            # 加载/空白帧不判（postpone 重启重试时钟）；retap = 本步只重试同坐标，
+            # lost = 记 [tap][LOST] + failure，连续 lost 止损停局（绝不静默 SKIP）。
+            frame_sig = driver._frame_signature(text)
+            step_before_sig = frame_sig
+            tap_verdict = None
+            if len(text.strip()) <= 3 or "LOADING" in text.upper():
+                tap_guard.postpone()
+            else:
+                tap_verdict = tap_guard.observe(text, frame_sig)
+            if tap_verdict is not None and tap_verdict.outcome == "retap":
+                clicked = agent.device.click_force(*tap_verdict.point)
+                time.sleep(0.9)
+                tick = TickResult(
+                    tap_verdict.screen or "unknown",
+                    "tap-retap",
+                    ok=clicked is not False,
+                    detail=tap_verdict.reason,
+                    point=tap_verdict.point,
+                    reason=tap_verdict.reason,
+                )
+                result = (
+                    "[pause] 用户正在操作，暂停 tap 重试"
+                    if clicked is False
+                    else f"[tap] retap {tap_verdict.action} at {tap_verdict.point}"
+                    f"（{tap_verdict.reason}）"
+                )
+                screen_name, action_name = tick.screen, tick.action
+                step_outcome = "retap"
+                step_tries = tap_verdict.tries
+                step_reason = tap_verdict.reason
+                step_detail = tap_verdict.reason
+                idle = 0
+            else:
+                if tap_verdict is not None and tap_verdict.outcome == "lost":
+                    tap_lost_streak += 1
+                    log_lines.append(f"{step:03d} [tap][LOST] {tap_verdict.reason}")
+                    log_failure(
+                        episode,
+                        step,
+                        "tap-lost",
+                        tap_verdict.reason,
+                        {
+                            "action": tap_verdict.action,
+                            "point": list(tap_verdict.point) if tap_verdict.point else None,
+                            "expect": tap_verdict.expect_kind,
+                            "streak": tap_lost_streak,
+                        },
+                    )
+                    step_outcome = "lost"
+                    step_tries = tap_verdict.tries
+                    if tap_lost_streak >= TAP_LOST_STREAK_LIMIT:
+                        log_lines.append(
+                            f"{step:03d} [tap][LOST] 连续 {tap_lost_streak} 次 tap 丢失，"
+                            "停止本局去修 root cause（提权/坐标/弹窗识别）"
+                        )
+                        stuck_exit = True
+                        break
+                elif tap_verdict is not None and tap_verdict.outcome == "confirmed":
+                    tap_lost_streak = 0
+                    log_lines.append(f"{step:03d} [tap] {tap_verdict.reason}")
+                    step_outcome = "confirmed"
+                elif tap_verdict is not None and tap_verdict.outcome == "moved":
+                    tap_lost_streak = 0
+                    step_outcome = "moved"
+                tick = driver.decide(agent, lines, image)
+                if tick.point is not None and tick.expect is not None:
+                    tap_guard.budget(tick.action, tick.point, tick.expect, screen=tick.screen)
+                    step_expect = tick.expect
+                result = tick.describe()
+                screen_name, action_name = tick.screen, tick.action
+                clicked = None if screen_name in ("pause", "loading", "blank") else True
+                step_reason = tick.reason or tick.detail
+                step_detail = tick.detail
             # ---- 跑局数据：行动页 = 上一周行动结束 + 新一周行动开始 ----------
             # 这里的 attrs_now 是行动页当前三维（即上一周行动之后的值），
             # stamina 也从同帧读；读不到写 null，不用上一帧顶替。
@@ -1926,6 +2097,25 @@ def main() -> int:
             total_ms=round(total_ms, 1),
             clicked=clicked,
         )
+        # C1 每步可复盘：screen/action/point/理由/引擎注记/下一帧预算/互验结果
+        trace_log.write(
+            StepTrace(
+                episode=episode,
+                step=step,
+                screen=screen_name,
+                action=action_name,
+                point=click_guard.last_point,
+                reason=step_reason or result,
+                engine_note=step_engine_note,
+                expect_kind=step_expect.kind if step_expect is not None else "",
+                expect_words=step_expect.words if step_expect is not None else (),
+                outcome=step_outcome,
+                tries=step_tries,
+                before_sig=step_before_sig,
+                after_sig=driver._frame_signature(text),
+                detail=step_detail,
+            )
+        )
         log_lines.append(f"{step:03d} {result}")
         if idle >= 8:
             log_lines.append(f"{step:03d} 连续 8 步无可执行动作，停止")
@@ -1948,6 +2138,8 @@ def main() -> int:
             progress_markers=markers[:10],
         )
     )
+    # C1 tap 确认/重试复盘汇总（confirmed/retaps/lost/moved）
+    log_lines.append(f"[tap] {tap_guard.summary()}")
     # 考试牌序计划复盘：核对了几回合 / 是否因不符停用 / 重洗几次
     try:
         if exam_plan_selector is not None:
@@ -1981,6 +2173,7 @@ def main() -> int:
                 "duration_s": round(ended_at - started_at, 1),
                 "avg_total_ms": summary.get("avg_total_ms"),
                 "changed_rate": summary.get("changed_rate"),
+                "tap": tap_guard.summary(),
                 "run_record": str(recorder.path),
                 "log": log_lines[-12:],
             },

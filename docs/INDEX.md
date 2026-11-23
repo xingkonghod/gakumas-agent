@@ -351,12 +351,25 @@ out/，tracked 模型按用户指定回退旧版（两版都 FAIL、生产关闭
 锐利 σ 放大 + 价值-策略失配（EXPECTIMAX B2-R·根因诊断/高预算验证）；
 `test_b2_leaf.py` 12 条，全量 pytest **1155 passed / 1 skipped（1156 收集 / 79 文件）**，
 基线 ①③④⑤ 不变。细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四/三十五。
+**同日 C1 执行层可靠性已完成**（用户指定；纯离线代码+单测，真机验收留阶段 E）：新
+`runtime/tapguard.py`（**动作前预算下一帧** TapExpectation + TapGuard 互验：confirmed /
+画面已推进 moved 不重试 / 同屏未生效 retap≤2 / **lost 上报绝不静默 SKIP** / 加载暂停帧
+postpone；PickerGuard 两段式选牌：选中后只重试确认不重点卡位）+ `device/privilege.py`
+（**提权检查**：游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑 +
+`elevation-blocked` failure + 管理员提示）+ `runtime/trace.py` + `scripts/replay_steps.py`
+（**每步可复盘**：`data/step_trace.jsonl` 含动作理由/预算/互验结果，离线逐步复盘）；
+`produce_ui.decide()` 每击自动预算（弹窗确认/回合结束「是」/通信错误=dialog-gone）+
+card-reward 接 PickerGuard；`auto_produce` 接 tap 互验（**连续 3 次 lost 止损停局**）+
+`attempt_drink`（**对话未开**重试槽位≤2，失败留痕）+ 局末 `[tap]` 汇总。参考 GKMSMAA
+follow/winpriv 架构**自写不拷贝**（AGPL）。新增 4 测试文件 **68 条**失败场景单测，
+全量 pytest **1223 passed / 1 skipped（1224 收集 / 83 文件）**，基线 ①③④⑤ 不变。
+细节见 WORKPLAN C1 / HANDOVER 二·补三十六。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
-高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、F 数据已下；
-下一步 **C1 执行层可靠性**（用户指定；T5 剩余 ~~生成卡确定式/指定卡名映射~~ ✅ B10；
-剩随机生成卡 RNG / `ExamBuffConsumptionAdd` 保持 no-op / hold 保留区；**fresh buff 差一回合**
-需真机逐回合截图；均低价值或需真机/补采）→ 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，
-先问用户）→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
-再下一候选（先问用户）：渐退式专家迭代（学 policy/advantage、摸索 70%+老师 30% 逐轮放手、
-学生过评测门后当下一轮老师，EXPECTIMAX B2-R 末段）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、F 数据已下；
+下一步 **先问用户选候选**：渐退式专家迭代（学技巧不学答案、摸索 70%+老师 30% 逐轮放手、
+学生过评测门后当下一轮老师，EXPECTIMAX B2-R 末段）/ T7 剩余（纯函数状态重放/自动复盘页）/
+D1 补采集 / E0 实验（T9 只剩 E0，需真机独立副本）；T5 剩余（随机生成卡 RNG /
+`ExamBuffConsumptionAdd` 保持 no-op / hold 保留区 / fresh buff 差一回合需真机截图）
+均低价值或需真机/补采 → 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，
+只能交不看 seed 的算法）。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五/二·补三十六 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

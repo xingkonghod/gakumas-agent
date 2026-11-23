@@ -168,11 +168,24 @@
              价值-策略失配（EXPECTIMAX B2-R·根因诊断/高预算验证）。**下一步转 C1**（用户指定）。
              pytest **1155/1（1156 收集 / 79 文件）**；基线 ①③④⑤ 不变。
              见 EXPECTIMAX「B2 重训（B2-R）」/ HANDOVER 二·补三十四/三十五。
-当前最高优先：**T5 剩余**（B10 已完成生成卡确定式/指定卡名映射；剩 ExamBuffConsumptionAdd 保持 no-op /
-随机生成卡 RNG / hold 保留区 / fresh buff 差一回合需真机截图；均低价值或需真机/补采）
-→ **B2 按 B3 规则重训 ✅ 2026-11-23 完成（B2-R）：仍 FAIL（确认段 −7.2）；高预算验证
-（width8/300ms）也 FAIL（−4.4 CI[−8.8,−0.0]）→ 学习叶子路线关闭**
-→ **阶段 C1 执行层可靠性（下一会话任务，用户指定）** / D（补采集）
+           ⑯ **C1 执行层可靠性** ✅ 2026-11-23 完成（用户指定；纯离线代码+单测，真机验收留阶段 E）：
+             新 runtime/tapguard.py（TapExpectation 动作前预算下一帧 + TapGuard 互验：
+             confirmed / moved 不重试（rev254）/ 同屏 retap≤2 / lost 上报绝不静默 SKIP /
+             加载暂停帧 postpone；PickerGuard 两段式选牌：选中后只重试确认不重点卡位）
+             + device/privilege.py（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，
+             启动 blocked 拒跑 + elevation-blocked failure + 管理员提示）
+             + runtime/trace.py（StepTrace 每步 reason/预算/互验结果）+ scripts/replay_steps.py
+             离线复盘 CLI；produce_ui.decide() 每击自动预算（弹窗确认/回合结束「是」/通信错误
+             =dialog-gone）+ card-reward 接 PickerGuard；auto_produce 接 tap 互验
+             （连续 3 次 lost 止损停局）+ attempt_drink（对话未开重试槽位≤2，失败留痕）
+             + 每步 data/step_trace.jsonl + 局末 [tap] 汇总。参考 GKMSMAA 架构自写不拷贝（AGPL）。
+             新增 4 测试文件 68 条；pytest **1223/1（1224 收集 / 83 文件）**；基线 ①③④⑤ 不变。
+             见 WORKPLAN C1 / HANDOVER 二·补三十六。
+当前最高优先：**C1 已完成**（tap 确认/重试/提权/帧预算/每步可复盘；真机验收留阶段 E）；
+T5 剩余（ExamBuffConsumptionAdd 保持 no-op / 随机生成卡 RNG / hold 保留区 / fresh buff
+差一回合需真机截图）均低价值或需真机/补采，不挡路。
+→ **下一候选（先问用户）**：渐退式专家迭代（学 policy/advantage、摸索 70%+老师 30% 逐轮放手、
+学生过评测门后当下一轮老师）；或 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验
 → 真机 T3→T1→T2（含 E0 实验）→ F1/F2 gkbench 公开对比
 **另**：用户 2026-11-22 指定「开新对话做」候选任务 **T9**（§4；一次会话只做 1 个；
  B7 ✅ / C0 ✅，剩 E0 需真机/独立副本实验）。
@@ -181,7 +194,7 @@
 ```
 
 > **新会话先读 [WORKPLAN.md](WORKPLAN.md)**：总顺序 = **离线全部做完 → 真机（T3→T1→T2）→ 去 gkbench 比算法**。
-> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / A4 回放素材 ✅ / A5 T3 离线预演 ✅ / B1 T4 修正 ✅ / B2 学习叶子 ✅（B3 后待重训）/ B3 回合规则+核验表 ✅ / B4 T5① 审查倍率 ✅ / B5 T5② 熱意+温存解除 ✅ / B6 T5③ P 道具数据接入 ✅ / B7 T9 P 道具 47 条补全 ✅ / C0 T9 更新断链判据吸收 ✅ / C1 可靠性 / D 数据 / E 真机 / F gkbench / G 收尾）
+> WORKPLAN 里含完整任务表（A1 OCR ✅ / A2 F#42 ✅ / A3 F#43 ✅ / A4 回放素材 ✅ / A5 T3 离线预演 ✅ / B1 T4 修正 ✅ / B2 学习叶子 ✅（B2-R 重训 FAIL，路线关闭）/ B3 回合规则+核验表 ✅ / B4 T5① 审查倍率 ✅ / B5 T5② 熱意+温存解除 ✅ / B6 T5③ P 道具数据接入 ✅ / B7 T9 P 道具 47 条补全 ✅ / C0 T9 更新断链判据吸收 ✅ / C1 可靠性 ✅（真机验收留阶段 E）/ D 数据 / E 真机 / F gkbench / G 收尾）
 > 和「已完成不要重做」清单。
 
 > **2026-11-21 用户硬规矩（不许破）**：SKIP 只在"所有牌都付不起"时允许；读不到分数/费用不是跳过理由，
@@ -248,7 +261,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 1155 passed, 1 skipped（1156 条收集 / 79 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + 实机回放黄金值 2 条）
+# ② 全量测试：应为 1223 passed, 1 skipped（1224 条收集 / 83 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ 实机回放黄金值 2 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -263,7 +276,13 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-23 12:3x，B2-R / B2 按 B3+ 规则重训后复跑）**：①②③④⑤ 全绿、退出码 0
+**最近一次复核（2026-11-23 17:2x，C1 执行层可靠性后复跑）**：①②③④⑤ 全绿、退出码 0
+（① 4/4+3/3、② **1223/1（1224 收集 / 83 文件，181.16s，+68 C1 失败场景单测）**、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
+② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
+当前不是行动页），属预期。C1 见 HANDOVER 二·补三十六 / WORKPLAN C1。
+
+**上一次复核（2026-11-23 12:3x，B2-R / B2 按 B3+ 规则重训后复跑）**：①②③④⑤ 全绿、退出码 0
 （① 4/4+3/3、② **1155/1（1156 收集 / 79 文件，+1 温存解除边界快照回归）**、③ 86/86+24/24、
 ④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
 ② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
@@ -680,13 +699,15 @@ expectimax +801.1（CI[+66.3,+1697.9]）；全量 pytest **1154/1（1155 收集 
 **验收（DoD）**：`verify_shuffle.py` 新增样本全过 + 测试加回归（参考现有 6 条"实战回合算 K 会错"防线）。
 **预算**：采集 1–2 小时 + 40–80k token。
 
-### T7（P2）可靠性工程（照 hiro 三条原则补）⬜
-1. **动作前互验**：点之前预算"下一帧应读到什么"，对不上丢弃重读（照 hiro 原则 3）；
+### T7（P2）可靠性工程（照 hiro 三条原则补）🟡（① 动作前互验 ✅ C1 已做；②③ 剩）
+1. ~~**动作前互验**：点之前预算"下一帧应读到什么"，对不上丢弃重读（照 hiro 原则 3）~~
+   ✅ **C1 已落地**（TapExpectation/TapGuard：预算→互验→retap/lost/moved；见 WORKPLAN C1）；
 2. **纯函数状态 + 离线重放**：`run_record` 有雏形，改成"同观测序列 → 同状态 → 可逐步比对"；
-3. **自动复盘页**：每局生成逐回合页 + 人工标注转回归用例。
+3. **自动复盘页**：每局生成逐回合页 + 人工标注转回归用例
+   （C1 已有 `step_trace.jsonl` + `scripts/replay_steps.py` 离线逐步复盘 CLI，差自动页面/标注闭环）。
 
-**验收（DoD）**：新增测试（互验的假观测序列）；一局自动复盘页样例；`LIVE_RUN.md` 更新。
-**预算**：60–120k token。
+**验收（DoD）**：新增测试（互验的假观测序列）✅ C1 68 条；一局自动复盘页样例；`LIVE_RUN.md` 更新。
+**预算**：60–120k token（剩余 ②③）。
 
 ### F0（P0，2026-11-22 新增）gkbench 官方种子校准收尾 ✅（2026-11-22 完成：366/384）
 **目标**：用 gkbench 官方固定种子题的 `check.hand` 把我们的洗牌模型命中率从 74.5% 推近 100%，
@@ -827,7 +848,36 @@ expectimax +801.1（CI[+66.3,+1697.9]）；全量 pytest **1154/1（1155 收集 
    - 在 [HANDOVER.md](HANDOVER.md) 的提交记录里加一行。
 5. **写不清=没完成**：DoD 必须能用命令/数字验证；"感觉能跑"不算。
 
-**最近交接记录（2026-11-23，B2-R 高预算验证 —— 仍 FAIL，学习叶子路线关闭）**：
+**最近交接记录（2026-11-23，C1 执行层可靠性 —— tap 确认/重试 + 提权检查 + 帧预算 + 每步可复盘）**：
+纯离线代码任务（用户指定本会话唯一任务；真机验收留阶段 E）。开工基线 ①②③④⑤ 全绿
+（① 4/4+3/3、② **1155/1**（1156 收集 / 79 文件，197.90s）、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）；HEAD=92eea36 核对一致。
+**落地**：新 `src/gkagent/runtime/tapguard.py`（TapExpectation 动作前预算下一帧 +
+TapGuard 互验：confirmed / **moved 不重试**（rev254）/ 同屏 retap≤2 / **lost 上报绝不静默 SKIP** /
+加载暂停帧 postpone（rev135）；PickerGuard 两段式选牌：选中后只重试确认不重点卡位、
+selected=None 保守按已选中、failed 重置重新选卡）+ `src/gkagent/device/privilege.py`
+（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击：启动 blocked 拒跑 +
+`elevation-blocked` failure + 管理员提示；unknown 只告警；假 API 可注入）+
+`src/gkagent/runtime/trace.py`（StepTrace 每步 screen/action/point/**reason**/engine_note/
+预算/互验 outcome/tries）+ `scripts/replay_steps.py`（离线复盘 CLI）。
+接线：`TickResult` 补 point/reason/expect（向后兼容）；`decide()` 每击自动预算
+（弹窗确认/回合结束「是」/通信错误=dialog-gone，其余=画面应变化）+ 关键分支动作理由；
+card-reward 接 PickerGuard（同屏只重试「领取」）；`auto_produce` 启动提权检查、
+非课程分支每步先互验再决策（retap/lost/confirmed/moved，**连续 3 次 lost 止损停局**）、
+饮料换 `attempt_drink`（对话未开重试槽位≤2，失败写 `drink-dialog-lost`）、
+每步 `data/step_trace.jsonl`、局末 `[tap]` 汇总。参考 GKMSMAA follow/winpriv 架构
+**全部自写不拷贝**（AGPL）。**DoD**：失败场景单测 68 条（tapguard 28 / privilege 18 /
+trace 12 / wiring 10）+ 每步日志可离线复盘 ✅；用户规则不变（SKIP 只在所有牌付不起、
+禁静默回退 rules、lost 升级=停局修 root cause）。**如实记录**：picker 选中态无可靠离线探针
+（未归档真机奖励选卡帧），阶段 E 可补读回；runas 自动提权未做（约定管理员终端手动跑）；
+T7 剩②纯函数状态重放/③自动复盘页。**测试/基线**：ruff 通过；全量 pytest
+**1223/1（1224 收集 / 83 文件）**；①③④⑤ 不变。**下一候选（先问用户再启动）**：
+渐退式专家迭代（学 policy/advantage、摸索 70%+老师 30% 逐轮放手、学生过评测门后当下一轮老师，
+EXPECTIMAX B2-R 末段）；或 T7 剩余 / D1 补采集 / E0 实验（需独立副本）→ 真机 T3→T1→T2。
+文档：WORKPLAN §0/C1/开场白；HANDOVER_NEXT §0/§2/§4 T7/§8/开场白；INDEX；HANDOVER 二·补三十六。
+提交 `feat（哈希见 HANDOVER 七）` + `docs(handover)` 哈希记录。
+
+**上一轮交接记录（2026-11-23，B2-R 高预算验证 —— 仍 FAIL，学习叶子路线关闭）**：
 纯离线任务（用户指定本会话唯一任务）。开工基线 ①②③④⑤ 全绿（① 4/4+3/3、② **1155/1**
 （1156 收集 / 79 文件，202.32s）、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384
 逐张 1125/1155=97.4%）；HEAD=b2b786e 核对一致；候选模型 `out/b2r_leaf_mlp_small.json`
@@ -1077,7 +1127,7 @@ B 站标题宣称 S4+（待核）；PBRS 塑形负结果 −26,884（纯分最�
 工作目录 D:\Games\gakumas-agent。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑基线
 （四条必跑 + ⑤ F0 gkbench 核对可选）。
-期望：洗牌 4/4 场 + 3/3 重洗；pytest 1155 passed / 1 skipped（1156 条收集 / 79 文件）；
+期望：洗牌 4/4 场 + 3/3 重洗；pytest 1223 passed / 1 skipped（1224 条收集 / 83 文件）；
 exam_setup 4/4 场 86/86 张 + 重洗 24/24；wiring 36/36 手牌 + 3/3 重洗 + known_draw 29/29 + beam 28；
 ⑤（可选）scripts/verify_gkbench_shuffle.py = 366/384 精确 / 97.4% 逐张（缺 data/bench_local 数据则跳过）。
 （进度/对手对比先看 docs/COMPARE.md；现状看 docs/HANDOVER.md。）
@@ -1173,18 +1223,21 @@ TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新后自检 8 步，纯文�
 是解析式基线自己变差（97.3→93.9），learned 绝对分几乎不动（90.3→89.4）→ 学习叶子路线
 关闭**（生产 leaf_model 保持关闭、beam 默认解析式、T2 候选去掉 learned leaf；见 EXPECTIMAX
 「B2 重训（B2-R）」/ HANDOVER 二·补三十四/三十五）。
-**下一会话任务 = C1 执行层可靠性（用户 2026-11-23 已确认）**：tap 确认/重试（tap 丢失、
-对话未开、picker 选牌、同屏循环）、提权检查（游戏 elevated/本进程 non-elevated）、动作前
-预算下一帧（hiro 原则）、每步可复盘（日志已有 eng/fallback，补动作理由）；参考 GKMSMAA
-架构但自写代码不拷贝（AGPL）；DoD = 对应失败场景单测 + 真机日志能复盘每一步（WORKPLAN C1）。
+**C1 执行层可靠性已于 2026-11-23 完成（用户指定；纯离线代码+单测，真机验收留阶段 E）**：
+tap 确认/重试（TapGuard：动作前预算下一帧→互验 confirmed/moved 不重试/同屏 retap≤2/
+lost 上报绝不静默 SKIP；PickerGuard 两段式选牌选中后只重试确认）、提权检查
+（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑+管理员提示）、
+每步可复盘（data/step_trace.jsonl 含动作理由/预算/互验结果 + scripts/replay_steps.py 离线复盘）、
+饮料对话未开重试（attempt_drink）；参考 GKMSMAA 架构自写不拷贝（AGPL）；
+68 条失败场景单测，pytest 1223/1（1224 收集 / 83 文件）；见 WORKPLAN C1 / HANDOVER 二·补三十六。
 T5 剩余（随机生成卡 RNG / ExamBuffConsumptionAdd 保持 no-op / hold 保留区 / fresh buff
-需真机截图）均低价值或需真机/补采，不挡 C1。
-C1/D 离线做完 → 真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比。
-再下一候选（先问用户，未启动）：渐退式专家迭代（学 policy/advantage、摸索 70%+老师 30%
-逐轮放手、学生过评测门后当下一轮老师）。
+需真机截图）均低价值或需真机/补采。**下一候选（先问用户再启动）**：
+渐退式专家迭代（学 policy/advantage、摸索 70%+老师 30% 逐轮放手、学生过评测门后当下一轮老师）；
+或 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验（需独立副本）。
+之后真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；
 真机整局 --ignore-user。一次会话只做 1 个任务。data/_probe*、bench_local/REPORT.md、
-card_library.json 不提交。纯离线（C1 的代码/单测部分；真机验收留到阶段 E）。
+card_library.json 不提交。纯离线（真机验收留到阶段 E）。
 ```
 
 ---

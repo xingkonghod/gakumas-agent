@@ -1833,6 +1833,78 @@ INDEX；本文件二·补三十五。
 **提交**：docs `814c422`（高预算验证负结果 + 路线关闭 + 五文档同步）+ 交接定稿 `366fd2f`
 （用户确认下一会话 C1），见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补三十六、11-23（C1 执行层可靠性：tap 确认/重试 + 提权检查 + 帧预算 + 每步可复盘）
+
+**任务**：用户指定本会话唯一任务（WORKPLAN C1）——tap 确认/重试（tap 丢失、对话未开、
+picker 选牌、同屏循环）、提权检查（游戏 elevated/本进程 non-elevated）、动作前预算下一帧
+（hiro 原则 3）、每步可复盘（日志已有 eng/fallback，补动作理由）。参考 GKMSMAA 架构
+（AGPL 只读参考 follow.py rev184/rev254/rev265 + winpriv.py），**全部自写不拷代码**。
+DoD = 对应失败场景单测 + 真机日志能复盘每一步；**真机验收留阶段 E，本会话纯离线**。
+
+**开工基线（全绿）**：① 4/4+3/3、② **1155/1**（1156 收集 / 79 文件，197.90s）、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 精确 / 1125/1155=97.4% 逐张。HEAD=92eea36 核对一致。
+
+**落地（4 个新模块 + 2 处接线，全部纯离线可测）**：
+
+1. **`src/gkagent/runtime/tapguard.py`**（新）：
+   - `TapExpectation`：动作前预算下一帧——kind（change/dialog-open/dialog-gone/
+     overlay-open/overlay-gone/any）+ 锚点词 + 点击前语义签名；
+   - `TapGuard`：动作后互验——期望满足=confirmed；**画面已推进但期望没满足=moved，
+     重新决策绝不重试**（rev254：六次 unconfirmed 停机五次是 tap 已生效）；同屏未生效
+     → retry_after（1s）后同坐标重试 ≤2 次 → **lost 上报（绝不静默 SKIP）**；
+     加载/暂停/空白帧 postpone 重启重试时钟（rev135）；
+   - `PickerGuard`：两段式选牌（卡位→确认/领取）分级重试——选中后**只重试确认，
+     不回头重点卡位**（重点可能取消选中）；读不到选中态（selected=None）第一次确认
+     发出后按已选中保守处理；任一级预算用尽=failed（重置后可重新选卡，既有同屏兜底封顶）。
+2. **`src/gkagent/device/privilege.py`**（新）：`tap_reach_verdict` 纯判定矩阵
+   （本进程提权→ok；都未提权→ok；**游戏 elevated/令牌 denied 而本进程不是→blocked**，
+   UIPI 静默丢点击、截屏仍正常；未知→unknown 只告警不拦）+ Win32 探测
+   （IsUserAnAdmin / GetWindowThreadProcessId / OpenProcess+OpenProcessToken+
+   GetTokenInformation(TokenElevation)，句柄全关、64 位 restype 修正，假 API 可注入）。
+3. **`src/gkagent/runtime/trace.py`**（新）：`StepTrace` 每步结构化轨迹
+   （screen/action/point/**reason**/engine_note/expect_kind/expect_words/**outcome**/tries/
+   before_sig/after_sig）+ `TraceLog` JSONL + `format_trace`/`summarize_traces` 纯函数。
+4. **`scripts/replay_steps.py`**（新）：离线复盘 CLI——`--episode/--anomalies/--json/--limit`，
+   逐步打印「点了哪/为什么/预算/兑现」+ 异常步清单（lost/failed/stuck）。
+5. **`produce_ui.py` 接线**：`TickResult` 补 point/reason/expect（旧调用兼容）；
+   `decide()` 每次点击自动预算（分支可登记更具体期望：弹窗确认/回合结束「是」/
+   通信错误重试=dialog-gone，其余=画面应变化）；关键分支补动作理由；
+   **card-reward（4.6）接 PickerGuard**：同一奖励屏没关只重试「领取」（claim-retry），
+   预算用尽才重置重新选卡——修掉「每帧盲目重点卡位可能取消选中」的隐患。
+6. **`auto_produce.py` 接线**：
+   - 启动提权检查（hwnd 找到后、建设备前）：blocked → `[priv]` stderr +
+     `elevation-blocked` failure + return 2，不带着「点击全落空」空转；日志首行 `[priv]`；
+   - 非课程分支：每步先 `tap_guard.observe` 互验上一步预算——retap=本步只重试同坐标
+     （`[tap] retap …`）、lost=`[tap][LOST]`+`tap-lost` failure、**连续 3 次 lost 止损停局**
+     （TAP_LOST_STREAK_LIMIT，修 root cause 不空转到超时）、confirmed/moved 正常重新决策；
+     新决策点击后 `tap_guard.budget`；加载/空白帧 postpone、课程分支 cancel（LessonPlayGuard 管）；
+   - 「回合结束」确认框点「是」后预算 dialog-gone（F#36 弹窗的显式互验）；
+   - **饮料分支换 `attempt_drink`**：点槽位后验证对话真打开（读到「使用」），没开重试
+     槽位 ≤2 次，失败写 `drink-dialog-lost` failure + 理由（GKMSMAA HIF-112 同类：
+     旧实现点一下就当已喝，对话没开白浪费一次体力回复）；
+   - 每步写 `data/step_trace.jsonl`（点击落点由 SelfInputClickGuard.last_point 记录）；
+     局末 `[tap] confirmed=… retaps=… lost=… moved=…` 汇总进日志与 stdout JSON。
+
+**DoD 对照**：失败场景单测 **68 条**（tap 丢失重试→lost 不 SKIP / 动画 settle 后 confirmed /
+画面推进不重试 / 加载帧 postpone / 对话未开重试 / picker 卡位丢失·选中后只重试确认·
+预算用尽重置 / 提权判定矩阵+假 API 探测+句柄关闭 / decide 预算登记 / card-reward 分级重试 /
+trace 落盘+复盘 CLI / 接线静态检查+SKIP 红线不变）；真机日志每步有 reason+预算+互验结果，
+`replay_steps.py` 离线逐步复盘（真机验收留阶段 E）。**用户规则不变**：SKIP 只在所有牌
+付不起；禁静默回退 rules；lost 升级=停局修 root cause，不是 SKIP 补偿。
+
+**如实记录（未做/待真机）**：picker 选中态暂无可靠离线探针（未归档真机奖励选卡帧），
+按 selected=None 保守处理，阶段 E 可补选中读回；提权 blocked 后的 runas 自动提权启动
+（GKMSMAA start_elevated）未做——本项目约定管理员终端手动跑，先给明确提示；
+T7 剩余（纯函数状态离线重放、自动复盘页+人工标注转回归）不在本任务。
+
+**测试/基线**：新增 4 个测试文件 68 条；全量 pytest **1223 passed / 1 skipped
+（1224 收集 / 83 文件）**；ruff 通过；基线 ①③④⑤ 不变（C1 不动数据链路）。
+
+**文档**：WORKPLAN §0/C1/开场白；HANDOVER_NEXT §0/§2 期望值（1155→1223）/§4 T7/§8/开场白；
+INDEX；本文件二·补三十六。
+
+**提交**：feat `（哈希见七、最近提交记录）` + docs(handover) 哈希记录。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

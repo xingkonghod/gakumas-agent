@@ -36,6 +36,7 @@
 | B8 T5④ P 道具条件/效果语义（第一批） | `scripts/build_p_items.py`（新语法 trigger id 解析 + 依赖换算标注）+ `sim/p_items.py`（`depends_on`/`percent`/`percent_max`/`zero_stack` + 5 类新触发）+ `sim/lesson.py`/`sim/expectimax.py`（事件/累计量双镜） | 数据层已实现 **445→676/1849 段**；条件未知 22→**6 件**；trigger 未知 103 件/185 段单列保守跳过；gkbench 已实现 34→**59/153 段**；greedy A/B **+225.2（CI [+86.7,+363.6]）**；pytest **1067/1（1068 收集 / 77 文件）**；见 HANDOVER 二·补三十一 / RULES_REFERENCE §5.3 |
 | B9 T5④ P 道具持久倍率/modifier（第二批） | `scripts/build_p_items.py`（`annotate_modifier_effects`：20 类 target / 369 段 + 文本次数上限 9→896 件）+ `sim/p_items.py`（`PItemDelta` 新字段 + `add_timed/tick_timed/timed_dict_*` 纯规则）+ `sim/lesson.py`/`sim/expectimax.py`（分数倍率 f/g、费用修正、回合追加、指針直给、增益倍率、倒计时、canonical/双镜） | 数据层已实现 **676→1025/1849 段**（no-op 1173→824，modifier **337 段**）；gkbench 已实现 **59→103/153 段**；greedy A/B **+110.3（+2.87%，CI [+39.6,+193.3]，20胜/2负/38平）** / expectimax +48.2（CI 含 0）；新增 `tests/test_p_items_b9.py` 49 条；pytest **1116/1（1117 收集 / 78 文件）**；见 HANDOVER 二·补三十二 / RULES_REFERENCE §5.3 |
 | B10 T5 剩余①② 生成卡 + 指定卡名/手牌张数映射 | 新 `scripts/build_card_meta.py` + `data/knowledge/card_meta.json` + `src/gkagent/data/card_meta.py`（idol_unique 参考交叉 340/342 零误报 + effectGroupIds + 日文别名）+ `build_p_items.py`（`parse_card_search` play_filter/zone_count + `annotate_create_effects`）+ `sim/p_items.py`（CardFilter/ZoneCount/CreateCard + exam_start_after + 次数按道具计）+ `sim/lesson.py`/`sim/expectimax.py`（生成卡落牌双镜）+ `play_choice.spec_from_name` | 触发未知 **103→3 件**、条件未知 **6→0**；play_filter 234 件 / zone_count 27 件；生成卡 **11 段确定 + 6 段随机 no-op**；数据层 **1025→1042/1849 段**；greedy A/B **+797.5（+20.76%，CI [+399.0,+1250.1]）** / expectimax +801.1（CI [+66.3,+1697.9]）；新增 `tests/test_p_items_b10.py` 38 条；pytest **1154/1（1155 收集 / 79 文件）**；见 HANDOVER 二·补三十三 / RULES_REFERENCE §5.3 |
+| C1 执行层可靠性（tap 确认/重试 + 提权检查 + 帧预算 + 每步可复盘，2026-11-23，**纯离线代码+单测；真机验收留阶段 E**） | 新 `runtime/tapguard.py`（TapExpectation 动作前预算下一帧 + TapGuard 互验：confirmed/moved 不重试/同屏 retap≤2/lost 上报绝不静默 SKIP + PickerGuard 两段式选牌分级重试）+ `device/privilege.py`（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑+`elevation-blocked` failure）+ `runtime/trace.py`（StepTrace 每步 reason/预算/互验结果）+ `scripts/replay_steps.py` 离线复盘 CLI；`produce_ui.decide()` 每击自动预算（弹窗确认/回合结束「是」/通信错误=dialog-gone）+ card-reward 接 PickerGuard（只重试领取不重点卡位）；`auto_produce` 接 tap 互验（retap/lost/连续 3 次 lost 止损停局）+ `attempt_drink`（对话未开重试槽位≤2，失败留痕）+ 每步 `data/step_trace.jsonl` + 局末 `[tap]` 汇总；参考 GKMSMAA follow/winpriv 架构**自写不拷贝**（AGPL）；新增 4 测试文件 **68 条**；pytest **1223/1（1224 收集 / 83 文件）**；基线 ①③④⑤ 不变；见 HANDOVER 二·补三十六 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -579,11 +580,39 @@
 - **DoD 对照**：检查清单落文档 ✅；不新增依赖/数据 ✅；纯文档 **pytest 仍 1054/1**（复跑见
   HANDOVER 二·补三十）；一次会话只做 1 个任务 ✅。细节见 HANDOVER 二·补三十。
 
-### C1. 执行层可靠性（参考 GKMSMAA 架构，**自写代码不拷贝**）
+### C1. 执行层可靠性（参考 GKMSMAA 架构，**自写代码不拷贝**）✅ 2026-11-23 完成（纯离线代码+单测；真机验收留阶段 E）
 - tap 确认/重试（tap 丢失、对话未开、picker 选牌、同屏循环）；
 - 提权检查（游戏 elevated / 本进程 non-elevated 的失败提示）；
 - 动作前预算下一帧（hiro 原则）、每步可复盘（日志已有 `eng/fallback`，补动作理由）；
 - DoD：对应失败场景单测；真机日志能复盘每一步。
+
+**落地（2026-11-23）**
+- **新模块**：`src/gkagent/runtime/tapguard.py`（`TapExpectation` 下一帧预算：
+  change/dialog-open/dialog-gone/overlay-open/overlay-gone/any + 锚点词 + 点击前签名；
+  `TapGuard` 互验：满足=confirmed、**画面已推进=moved 重新决策绝不重试**（rev254）、
+  同屏未生效=1s 后同坐标 retap≤2 次、预算用尽=lost 上报**绝不静默 SKIP**、
+  加载/暂停帧 postpone 重启时钟（rev135）；`PickerGuard` 两段式选牌：选中后只重试确认
+  不重点卡位、selected=None 保守按已选中、failed 重置后重新选卡）；
+  `src/gkagent/device/privilege.py`（纯判定矩阵 + Win32 探测：IsUserAnAdmin /
+  OpenProcess+TokenElevation，denied=令牌读不到按 blocked；unknown 只告警不拦；
+  假 API 可注入）；`src/gkagent/runtime/trace.py`（StepTrace/TraceLog/format_trace/
+  summarize_traces）；`scripts/replay_steps.py`（离线复盘 CLI：--episode/--anomalies/--json）。
+- **接线**：`TickResult` 补 point/reason/expect（向后兼容）；`decide()` 每击自动预算
+  （弹窗确认/回合结束「是」/通信错误重试=dialog-gone，其余=画面应变化）+ 关键分支动作理由；
+  card-reward（4.6）接 PickerGuard（同屏只重试「领取」，预算用尽才重新选卡）；
+  `auto_produce` 启动提权检查（blocked→`elevation-blocked` failure+return 2，日志首行 `[priv]`）、
+  非课程分支每步先互验再决策（retap/lost/confirmed/moved；**连续 3 次 lost 止损停局**）、
+  回合结束「是」预算 dialog-gone、饮料换 `attempt_drink`（对话未开重试槽位≤2 次，
+  失败写 `drink-dialog-lost`）、每步 `data/step_trace.jsonl`、局末 `[tap]` 汇总。
+- **DoD 对照**：失败场景单测 68 条（4 个新测试文件：tapguard/privilege/trace/wiring）✅；
+  每步日志含 reason+预算+互验结果，`replay_steps.py` 离线逐步复盘 ✅（真机验收留阶段 E）。
+  用户规则不变：SKIP 只在所有牌付不起、禁静默回退 rules、lost 升级=停局修 root cause。
+- **如实记录**：picker 选中态无可靠离线探针（未归档真机奖励选卡帧），selected=None 保守处理，
+  阶段 E 可补读回；runas 自动提权启动未做（约定管理员终端手动跑，先给明确提示）；
+  T7 剩余（纯函数状态重放/自动复盘页）不在本任务。
+- **测试/基线**：全量 pytest **1223 passed / 1 skipped（1224 收集 / 83 文件）**；ruff 通过；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+- 细节见 HANDOVER 二·补三十六 / HANDOVER_NEXT §8。
 
 ---
 
@@ -739,8 +768,12 @@ B10 生成卡确定式/指定卡名映射已完成**；剩 `ExamBuffConsumptionA
 **B2 按 B3+ 规则重训（B2-R）已于 2026-11-23 完成：仍 FAIL（确认段 −7.2，ensemble 0.75 中性）；
 同日高预算验证（width8/300ms 选择段 80 局）也 FAIL（−4.4 CI[−8.8,−0.0]，ens 0.75 中性）→
 学习叶子路线关闭**，负结果记录在案；生产 leaf_model 保持关闭、T2 候选去掉 learned leaf
-（见 EXPECTIMAX「B2 重训（B2-R）」）。**下一步 = C1 执行层可靠性**（用户指定；
-再下一候选「渐退式专家迭代」启动前先问用户）。
-→ 阶段 C1（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2（含 E0 实验）
+（见 EXPECTIMAX「B2 重训（B2-R）」）。**C1 执行层可靠性已于 2026-11-23 完成**（用户指定；
+tap 确认/重试 TapGuard+PickerGuard、提权检查 privilege、动作前预算下一帧、每步 step_trace.jsonl
++ replay_steps.py 离线复盘；68 条失败场景单测，pytest 1223/1（1224 收集 / 83 文件）；
+真机验收留阶段 E；见 WORKPLAN C1 / HANDOVER 二·补三十六）。
+**下一候选（先问用户）**：渐退式专家迭代（学 policy/advantage、摸索 70%+老师 30% 逐轮放手、
+学生过评测门后当下一轮老师）；或 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验。
+→ 阶段 D（补采集）离线准备 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```

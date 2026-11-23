@@ -25,6 +25,12 @@ from gkagent.data.run_record import (
     parse_grade,
     week_from_countdown,
 )
+from gkagent.runtime.tapguard import (
+    PickerGuard,
+    TapExpectation,
+    expect_change,
+    expect_dialog_gone,
+)
 from gkagent.vision.ocr import OcrEngine, OcrLine
 from gkagent.vision.ocr_cache import SemanticScreenCache
 
@@ -679,6 +685,11 @@ class TickResult:
     action: str
     ok: bool = True
     detail: str = ""
+    # C1 执行层可靠性：本次点击的落点 / 动作理由 / 下一帧预算（动作前登记，
+    # 动作后由 TapGuard 互验）。旧调用方不传这三个字段时行为不变。
+    point: tuple[int, int] | None = None
+    reason: str = ""
+    expect: TapExpectation | None = None
 
     def describe(self) -> str:
         text = f"[{self.screen}] {_display_action(self.action)}"
@@ -896,6 +907,12 @@ class ProduceDriver:
     _frame_text: str = field(default="", init=False, repr=False)
     _frame_attrs: tuple[int, int, int] | None = field(default=None, init=False, repr=False)
     _attrs_image: object | None = field(default=None, init=False, repr=False)
+    # C1：本次 decide() 调用内是否发生过点击 / 分支登记的下一帧预算。
+    # last_point 跨调用保留（action-confirm 分支要用上一次的落点），不能重置。
+    _tapped_this_call: bool = field(default=False, init=False, repr=False)
+    _tap_expect: TapExpectation | None = field(default=None, init=False, repr=False)
+    # C1：奖励选卡（卡位 → 领取）两段式 picker 的分级重试状态机
+    reward_picker: PickerGuard = field(default_factory=PickerGuard, init=False)
 
     def __post_init__(self) -> None:
         if self.sleep is None:
@@ -1516,6 +1533,7 @@ class ProduceDriver:
         if result is False:
             raise UserBusy
         self.last_point = point
+        self._tapped_this_call = True
 
     def _click(self, agent, point: tuple[int, int]) -> None:
         self._click_once(agent, point)
@@ -1752,13 +1770,23 @@ class ProduceDriver:
         return self.decide(agent, self.read(image), image)
 
     def decide(self, agent, lines: list[OcrLine], image=None) -> TickResult:
+        # C1 动作前预算下一帧（hiro 原则 3）：先记下点击前的语义签名；
+        # 分支可登记更具体的期望（弹窗消失/对话出现…），没登记的默认「画面应变化」。
+        before = self._frame_signature(self.text_of(lines))
+        self._tapped_this_call = False
+        self._tap_expect = None
         try:
-            return self._decide(agent, lines, image)
+            tick = self._decide(agent, lines, image)
         except UserBusy:
             return TickResult("pause", "user-active", ok=True)
+        if self._tapped_this_call and tick.screen not in ("pause", "loading", "blank", "stuck"):
+            tick.point = tuple(self.last_point) if self.last_point is not None else None
+            tick.expect = self._tap_expect or expect_change(before)
+        return tick
 
     def _decide(self, agent, lines: list[OcrLine], image=None) -> TickResult:
         text = self.text_of(lines)
+        sig0 = self._frame_signature(text)
         if "快进" not in text and "SKIP" not in text:
             self.story_fast_streak = 0
 
@@ -1780,7 +1808,8 @@ class ProduceDriver:
                 self._click_line(agent, retry)
             else:
                 self._click(agent, NET_RETRY)
-            return TickResult("net-error", "retry")
+            self._tap_expect = expect_dialog_gone(("通信错误", "获取资产失败", "返回标题"), sig0)
+            return TickResult("net-error", "retry", reason="通信错误弹窗，点「重试」恢复")
 
         # 0.5) 加载/转场：只等待，不当作「无可执行动作」
         upper = text.upper()
@@ -1800,7 +1829,10 @@ class ProduceDriver:
             cancel_btn = self.find_button(lines, ("取消",))
             if retry_confirm is not None and cancel_btn is not None:
                 self._click_line(agent, retry_confirm)
-                return TickResult("dialog", "retry-confirm")
+                self._tap_expect = expect_dialog_gone((CANCEL_WORD,), sig0)
+                return TickResult(
+                    "dialog", "retry-confirm", reason="再挑战第二段确认框，点「确定」消耗票据重打"
+                )
             # 只有「不合格」才重开；合格的结果屏虽然也有「再挑战」按钮，但点「下一步」继续
             failed = "不合格" in text or "FAILED" in text
             if failed and retry is not None and (free_available or left_available) and self.retry_count < 2:
@@ -1850,7 +1882,10 @@ class ProduceDriver:
                 cancel = self.find_button(lines, ("取消",))
                 if confirm is not None and cancel is not None:
                     self._click_line(agent, confirm)
-                    return TickResult("dialog", "retry-confirm")
+                    self._tap_expect = expect_dialog_gone((CANCEL_WORD,), sig0)
+                    return TickResult(
+                        "dialog", "retry-confirm", reason="再挑战第二段确认框，点「确定」"
+                    )
                 # 授课/课程「再次挑战」确认（消耗道具重上这节课）：取消，继续培育
                 if "再次挑战" in text:
                     cancel_btn = self.find_button(lines, ("取消",))
@@ -1884,7 +1919,13 @@ class ProduceDriver:
             confirm = self.find_button(lines, ("下一步", "确定", "完成", "选择", "OK"))
             if confirm is not None:
                 self._click_line(agent, confirm)
-                return TickResult("dialog", "confirm", detail=confirm.text)
+                self._tap_expect = expect_dialog_gone((CANCEL_WORD,), sig0)
+                return TickResult(
+                    "dialog",
+                    "confirm",
+                    detail=confirm.text,
+                    reason=f"弹窗确认「{confirm.text}」",
+                )
 
         # 1.5) 「回合结束」确认框（SKIP 后必出）：必须先于所有通用「确定」匹配。
         # 之前放在通用按钮匹配之后，问句「确定要结束回合吗？」里的「确定」会先被
@@ -1896,7 +1937,10 @@ class ProduceDriver:
             # 整屏任何含「是」的文本（卡名/说明/问句）都会被误当成按钮，
             # 导致点空后确认框不消失、课程卡死在弹窗上（ep-exp4 step 85 复现）。
             self._click(agent, TURN_END_YES)
-            return TickResult("dialog", "end-turn-yes")
+            self._tap_expect = expect_dialog_gone(("结束回合",), sig0)
+            return TickResult(
+                "dialog", "end-turn-yes", reason="SKIP 后「回合结束」确认框，点「是」"
+            )
 
         # 1.75) 培育记录详情弹窗在 0.7) 的 _settlement_action 里统一处理（返回
         # TickResult("record", "close")），这里不再重复匹配。
@@ -2042,7 +2086,9 @@ class ProduceDriver:
             y = self.event_pending_y
             self.event_pending_y = None
             self._click(agent, (360, y))
-            return TickResult("event-choice", "confirm")
+            return TickResult(
+                "event-choice", "confirm", reason="事件选项两段式第二击：确认选择"
+            )
         # F#43（ep-t3-4）：日文饮料选择屏（ヨーグルトパフェ / つくねハンバーグ / ドリンクバー，
         # 右侧 P -100 / P -50）在选项文字完全读不到时（旧中文 OCR），option_rows=0 也会走到
         # 这里：只要还读得到 P 费标签，就用「最后一个费用标签 +138px」定位免费项，不再交给
@@ -2166,7 +2212,9 @@ class ProduceDriver:
                 self._calib_failed = True
             point = self.last_point or TRAIN_DA
             self._click(agent, point)
-            return TickResult("action-confirm", "confirm")
+            return TickResult(
+                "action-confirm", "confirm", reason="行动已选中（预览屏），同坐标再点一次确认"
+            )
 
         # 4.54) 培育结束后的「回忆概览」页：点「下一步」（页面上的百分比/数字会让飘字分支误判）
         if "回忆概览" in text or ("回忆变换" in text and "重新生成" in text):
@@ -2255,31 +2303,66 @@ class ProduceDriver:
             return TickResult("result-tap", "settle")
 
         # 4.6) 领取奖励（技能卡或 P 饮料）：推荐卡优先，其次分档估值最强，再点「领取」
+        # C1：两段式 picker（卡位 → 领取）分级重试——同一奖励屏没关掉时，
+        # 只重试「领取」（重点已选中的卡可能取消选中）；重试用尽才重置重新选卡。
+        # 选中态暂无可靠离线探针（未归档真机奖励选卡帧），按 selected=None 保守处理：
+        # 第一次领取发出后即按「已选中」，阶段 E 真机验收时可补选中读回。
         if "请选择要领取" in text:
+            picker = self.reward_picker
+            if picker.active and picker.signature == sig0:
+                verdict = picker.observe(selected=None, screen_gone=False)
+                if verdict.outcome == "wait":
+                    self.sleep(0.6)
+                    return TickResult("card-reward", "wait", reason=verdict.reason)
+                if verdict.outcome in ("retap-confirm", "tap-confirm") and verdict.point is not None:
+                    self._click(agent, verdict.point)
+                    picker.confirm_tapped()
+                    self.sleep(0.9)
+                    self._tap_expect = expect_change(sig0)
+                    return TickResult("card-reward", "claim-retry", reason=verdict.reason)
+                if verdict.outcome == "retap-slot" and verdict.point is not None:
+                    self._click(agent, verdict.point)
+                    picker.slot_tapped()
+                    self.sleep(0.6)
+                    if picker.confirm_point is not None:
+                        self._click(agent, picker.confirm_point)
+                        picker.confirm_tapped()
+                    self.sleep(0.9)
+                    self._tap_expect = expect_change(sig0)
+                    return TickResult("card-reward", "pick-retry", reason=verdict.reason)
+                # failed：重试预算用尽 → 重置后重新走完整选卡+领取（既有同屏兜底仍封顶）
+                picker.reset()
             best = self._best_reward_card(lines, image)
             if best is not None:
-                self._click(agent, best)
+                slot = best
             else:
                 recommend = self.find(lines, "推荐")
                 if recommend is not None:
                     cx, cy = self.center(recommend)
                     # 「推荐」标签在卡牌下缘，点它选不中卡；向上 60px 点到卡身
-                    self._click(agent, (cx, max(60, cy - 60)))
+                    slot = (cx, max(60, cy - 60))
                 else:
                     # 三选一的第一张：点**卡面美术中心**。真机 ep-t1-f 用 (240,960)
                     # （卡框下缘/费用徽章附近）时点不中，领取按钮一直是灰的 → 10 步死循环；
                     # 实测 (230,918)（卡面中心）一点就选中、领取点亮。
-                    self._click(agent, (230, 918))
+                    slot = (230, 918)
             # 选卡后「领取」按钮要等一小段才点亮，直接连点会点空 → 反复重进本分支
-            self.sleep(0.6)
             claim = self.find(lines, "领取")
             claim_pt = self.center(claim) if claim else (360, 1095)
+            picker.start(slot, claim_pt, signature=sig0)
+            self._click(agent, slot)
+            picker.slot_tapped()
+            self.sleep(0.6)
             self._click(agent, claim_pt)
+            picker.confirm_tapped()
             self.sleep(0.5)
-            # 点一次没关掉就再点一次（按钮点亮动画的兜底），仍关不掉交给下一帧
+            # 点一次没关掉就再点一次（按钮点亮动画的兜底），仍关不掉交给 picker 重试
             self._click(agent, claim_pt)
             self.sleep(0.9)
-            return TickResult("card-reward", "pick+claim")
+            self._tap_expect = expect_change(sig0)
+            return TickResult(
+                "card-reward", "pick+claim", reason="奖励选卡+领取（两段式：卡位→领取）"
+            )
         # 4.05) "领取完成/已领取以下奖励" 结算弹窗：点关闭，别反复点领取（会死循环）
         if any(word in text for word in ("领取完成", "已领取以下奖励", "已领取以下报酬")):
             close = self.find_button(lines, ("关闭", "确定")) or self.find(lines, "关闭")
