@@ -1510,5 +1510,111 @@ net-vs-net 两臂确定性、不受负载影响，门判定有效。
   **未改测试门槛**；
 - 细节见 HANDOVER 二·补三十九 / WORKPLAN B11 / HANDOVER_NEXT §8（B11 第 2 轮交接）。
 
+## B11 第 2 轮续（r3–r8 继续扶 + 门协议修正，2026-11-23）：v6 过门（显著强于 v1）
+
+**结论先行**：r2 平台期后用户指令「继续迭代直到学生显著强于老师（v1）」。r3–r8 六轮
+继续扶（教师始终 v1@0.15），依次换变量：**新学生数据 / 数据×10 / epochs×3 / 容量×2 /
+ε-greedy 探索（两个体量）**。结果：
+
+1. **确认段 3000–3119（120 局）七轮全是最弱 draw**（+0.2~+0.6，从未单独显著）；
+   稳健段 4000 同样低（+0.2~+0.4）；选择段 2000 恒 +0.9；**未触碰块 6000 恒
+   +1.3~+1.7 显著**。差异由**种子段**决定（该段 v1 还可改进的状态多少），不由模型决定；
+2. 数据量（14.5k→171k）、训练量（400→1200 epochs）、容量（96×48→192×96）、探索
+   （ε=0.15，44k/146k）**全部试过，val 排序饱和 0.860–0.862，确认段不动**——当前目标量
+   在确认段种子上的天花板已至；
+3. **整体显著**：v6 池化 820 局（select 80 + confirm500 + robust 120 + fresh6000 120）
+   **+0.71 CI[+0.40,+1.02]，W/T/L 101/678/41**；
+4. **门协议修正（用户批准）**：120 局门为 r1 检测 +2.6 设计，对 +0.5 效应检验力 ~50%。
+   确认段扩到 **500 局（3000–3499）、判据不变（CI 下界>0）**：**v6 98.6 vs v1 98.1，
+   Δ=+0.6 CI[+0.2,+0.9] → PASS**（W/L 62/27）；独立佐证 fresh6000 **+1.7 CI[+0.6,+2.8]
+   PASS**。**v6 显著强于教师 v1，任务达成**。
+
+### 迭代总表（门基线始终 v1；small；unknown；--no-within）
+
+| 轮 | 学生 | 变量 | 样本 | val 排序 | 确认 3000（120 局） | 新鲜块 |
+|---|---|---|---:|---:|---|---|
+| r2 | v2 | 基线（v1 自对弈 300000+） | 17089 | 0.818 | +0.4 [−0.4,+1.2] | — |
+| r3 | v3 | 新学生数据（v2 自对弈 500000+） | 17160 | 0.827 | +0.2 [−0.3,+0.7] | — |
+| r4 | v4 | 数据×5（v3 自对弈 600000+，5000 局） | 85582 | 0.843 | +0.6 [−0.0,+1.2] | — |
+| r5 | v5 | 数据×10（v4 自对弈 700000+，10000 局） | 171300 | 0.860 | +0.4 [−0.2,+1.0] | 6000: +1.5 PASS |
+| r6 | **v6** | 容量×2（192×96）+ epochs 1200 | 171300 | 0.861 | +0.5 [−0.1,+1.0] | 6000: **+1.7 PASS** |
+| r7 | v7 | ε-greedy 0.15（v6 自对弈 800000+，3000 局） | 51516 | 0.849 | +0.3 [−0.3,+0.8] | 7000: +0.6 |
+| r8 | v8 | ε-greedy 0.15 匹配体量（810000+，10000 局） | 171988 | 0.862 | +0.2 [−0.5,+0.9] | 6000: +1.3 PASS |
+
+r4 起补采 v1 示范 2000 局（seed 410000–411999，28934 样本）解锁 0.15 占比下的自对弈
+上限（示范行数不足时训练脚本会下采样自对弈到 max_s = n_d×(1−f)/f）。探索采集均分
+90.6–90.8（ε=0.15 牺牲 ~9 分），标签仍 on-policy 有效；探索变量中性（v8≈v5）。
+
+### v6 最终评测（过门证据）
+
+| 段 | v6 | v1 | Δ | 95% CI | 胜/平/负 | 判定 |
+|---|---:|---:|---:|---|---|---|
+| **确认 500 局（3000–3499，门）** | **98.6** | **98.1** | **+0.6** | **[+0.2,+0.9]** | 62/411/27 | **PASS** |
+| 新鲜块 120 局（6000–6119） | 101.1 | 99.4 | +1.7 | [+0.6,+2.8] | 18/97/5 | PASS（佐证） |
+| 选择 80 局（2000–2079） | 100.1 | 99.2 | +0.9 | [−0.2,+2.0] | 10/66/4 | 方向正 |
+| 稳健 120 局（4000–4119） | 101.7 | 101.6 | +0.2 | [−0.4,+0.8] | 11/104/5 | 中性 |
+| **池化 820 局** | — | — | **+0.71** | **[+0.40,+1.02]** | 101/678/41 | **显著** |
+
+vs beam 绝对水位：确认 500 局 98.6 vs 96.5（+2.1）；确认 120 局 98.0 vs 94.9（+3.1）。
+CLEAR 确认 500 局 12.2% vs 11.4%。v6 = 192→96 MLP、1200 epochs、171300 样本
+（v4 argmax 自对弈 145605 / v1 示范 25695，占比 0.150）。
+
+**large（31 张 / 9 回合，确认段 120 局）**：v6 **291.6** / v1 277.2 / beam 305.3 /
+greedy 212.4；**v6 − v1 = +14.4 CI[+6.5,+22.2] PASS**（CLEAR 45.0% vs 36.7%）；
+v6 − beam = −13.7（v1 − beam = −28.1，缺口收窄一半）。数据量+容量显著改善 large
+泛化（r2 的 v2 在 large 比 v1 还差 → v6 反转）；large 生产候选仍是 beam。
+
+### 设计变量结论（如实）
+
+- **ε-greedy 探索采集**（r7/r8 新代码，`play_selfplay explore_eps` / `--explore-eps`）：
+  假设「argmax 路径覆盖不足」被**否证**——匹配体量下 v8≈v5，确认段不动。平台期主因
+  不是覆盖，是确认段种子上 v1 已近天花板；
+- **数据/容量/训练量**：val 排序 0.818→0.862 后饱和；剩余误差是单延续标签噪声 +
+  种子段结构，加量不转化成分数；
+- **门协议**：120 局确认门对 <1.0 效应检验力不足（r1 为 +2.6 设计）。**后续轮次门
+  改为 500 局（3000–3499）或多段池化**；单段 120 局只作快速筛查。这是本轮最重要的
+  方法论修正；
+- **种子段结构**：确认/稳健段恒低、选择/新鲜块恒高，跨 7 个模型一致 → 评测段选择
+  本身引入 ±1 分的系统噪声；报告必须多段 + 池化，单段数字不可尽信。
+
+### 处置 / 下一步
+
+- **v6 = 当前最佳学生**（显著强于 v1，门 PASS + 新鲜块佐证）；按设计下一轮可
+  教师←v6、占比 15→0——**但用户任务「显著强于老师」已达成，是否继续降档先问用户**；
+- **生产接线仍未做**（过门后才谈：engine= 口径 + 可观测性 + 禁跳/禁回退红线）；
+  T2 候选暂不变（beam+全知/tiebreak）；
+- **large 泛化显著改善但仍低于 beam**：v6 large 确认段 **291.6 vs v1 277.2：
+  +14.4 CI[+6.5,+22.2] PASS**（CLEAR 45.0% vs 36.7%；`ei_r6_eval_v6_large_confirm.json`）——
+  数据量+容量对 large 泛化有效（r2 的 v2 在 large 比 v1 还差，v6 反转）；
+  但 vs beam 305.3 仍差 −13.7（v1 是 −28.1，缺口收窄一半）。**large 生产候选仍是 beam**；
+  v6 进 F 阶段 public-safe 前建议补 large 训练数据进一步收窄；
+- 模型/数据/JSON 全在 out/（gitignore）：`ei_r3_selfplay.npz` / `ei_r4_selfplay.npz` /
+  `ei_r4_demos.npz` / `ei_r5_selfplay.npz` / `ei_r7_selfplay.npz` / `ei_r8_selfplay.npz` /
+  `ei_r3_v3_mix.json` … `ei_r8_v8_mix.json` / 各轮 eval JSON（含 `ei_r6_eval_v6_confirm500.json`）。
+
+### 复现命令（v6 过门路径）
+
+```powershell
+# r4：补采 v1 示范 + v3 自对弈 5000 局
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode demos --teacher-net out\ei_r1_v1_mix.json --games 2000 --seed 410000 --out out\ei_r4_demos.npz
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode selfplay --student-model out\ei_r3_v3_mix.json --games 5000 --seed 600000 --out out\ei_r4_selfplay.npz
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r4_selfplay.npz --demos out\ei_r4_demos.npz --teacher-frac 0.15 --round 4 --epochs 800 --out out\ei_r4_v4_mix.json
+# r5：v4 自对弈 10000 局
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode selfplay --student-model out\ei_r4_v4_mix.json --games 10000 --seed 700000 --out out\ei_r5_selfplay.npz
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r5_selfplay.npz --demos out\ei_r4_demos.npz --teacher-frac 0.15 --round 5 --epochs 800 --out out\ei_r5_v5_mix.json
+# r6：容量×2 + 1200 epochs（同 r5 数据）
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r5_selfplay.npz --demos out\ei_r4_demos.npz --teacher-frac 0.15 --round 6 --epochs 1200 --hidden 192 96 --out out\ei_r6_v6_mix.json
+# 门（500 局修正协议）+ 新鲜块佐证
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r6_v6_mix.json --baseline-net out\ei_r1_v1_mix.json --games 500 --seed 3000 --no-within --json out\ei_r6_eval_v6_confirm500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r6_v6_mix.json --baseline-net out\ei_r1_v1_mix.json --games 120 --seed 6000 --no-within --json out\ei_r6_eval_v6_fresh6000.json
+```
+
+### 测试 / 基线
+
+- `tests/test_ei_explore.py` **7 条**（ε=0 逐位不变 / ε>0 确定性+真的探索 / 硬规矩禁跳 /
+  参数校验 / 探索局优势仍 on-policy / CLI selfplay 接线 / demos 拒收）；ruff 通过；
+- 全量 pytest **1273 passed / 1 skipped（1274 收集 / 86 文件）**；基线 ①③④⑤ 不变；
+- 细节见 HANDOVER 二·补四十 / WORKPLAN B11 / HANDOVER_NEXT §8。
+
 
 

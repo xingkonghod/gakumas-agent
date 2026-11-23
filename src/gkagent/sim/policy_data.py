@@ -107,10 +107,34 @@ def play_selfplay(
     config: LessonConfig,
     seed: int,
     model: PolicyMLP,
+    *,
+    explore_eps: float = 0.0,
 ) -> tuple[DecisionRecordingSim, dict]:
-    """学生自对弈一局（argmax + 硬规矩禁跳）；返回记录 sim 与成绩。"""
+    """学生自对弈一局（argmax + 硬规矩禁跳）；返回记录 sim 与成绩。
+
+    ``explore_eps``（B11 r7 设计变量，仅采集侧）：>0 时每个决策以概率 ε 在
+    **可出牌**里均匀随机选（ε-greedy 探索），扩大 argmax 路径之外的状态覆盖；
+    优势标签仍由 ``advantage_samples`` 用当前学生精确重放延续（on-policy 不变）。
+    硬规矩不变：探索只在可出牌里选，有牌绝不 SKIP。ε=0 = 原 argmax 行为逐位不变。
+    探索 rng 由 seed 派生（独立偏移），同 seed 完全可复现。
+    """
+    if not 0.0 <= explore_eps <= 1.0:
+        raise ValueError(f"explore_eps 必须在 [0,1]：{explore_eps}")
     sim = DecisionRecordingSim(deck, config, rng_seed=seed)
-    score, _grade = sim.run(lambda current: net_action(current, model))
+    if explore_eps == 0.0:
+        score, _grade = sim.run(lambda current: net_action(current, model))
+    else:
+        rng = np.random.default_rng(seed + 900_000_000)
+
+        def _explore_policy(current: LessonSim) -> Action:
+            playable = [index for index in current.legal_actions() if index is not None]
+            if not playable:
+                return None
+            if rng.random() < explore_eps:
+                return playable[int(rng.integers(len(playable)))]
+            return net_action(current, model)
+
+        score, _grade = sim.run(_explore_policy)
     return sim, {
         "score": float(score),
         "clear": 1.0 if score >= config.target_clear else 0.0,

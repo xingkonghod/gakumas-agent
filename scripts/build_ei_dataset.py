@@ -11,6 +11,8 @@
 * ``--mode selfplay --student-model ...``：学生 argmax 自对弈（硬规矩禁跳），
   每个决策点对每张可出牌做**精确重放分支**（``policy_data.advantage_samples``），
   分支后用**当前学生**打完 → ``A = R − mean(R)``（on-policy 优势标签）。
+  ``--explore-eps ε``（r7 设计变量）：采集时 ε-greedy 探索（概率 ε 随机选可出牌，
+  扩状态覆盖），标签口径与硬规矩不变；0=argmax 逐位不变。
 
 seed 纪律（与评测段错开）：demos 默认 100000 起、selfplay 默认 200000 起；
 评测确认段 3000–3119 / 选择段 2000–2079 不参与采集。第 2 轮：教师←v1 示范
@@ -102,6 +104,10 @@ def main(argv: list[str] | None = None) -> int:
         "--label-stride", type=int, default=1,
         help="selfplay：每 N 个决策标一个（1=全标；优势标签成本 = 每决策 k 次重放+rollout）",
     )
+    parser.add_argument(
+        "--explore-eps", type=float, default=0.0,
+        help="selfplay：ε-greedy 探索采集（r7 设计变量，扩状态覆盖；0=argmax 逐位不变）",
+    )
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.seed is None:
@@ -110,6 +116,10 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--mode selfplay 需要 --student-model")
     if args.teacher_net is not None and args.mode != "demos":
         parser.error("--teacher-net 只用于 --mode demos（selfplay 用 --student-model）")
+    if args.explore_eps != 0.0 and args.mode != "selfplay":
+        parser.error("--explore-eps 只用于 --mode selfplay（教师示范必须 argmax）")
+    if not 0.0 <= args.explore_eps <= 1.0:
+        parser.error("--explore-eps 必须在 [0,1]")
 
     deck, config = ee.build_deck(args.scenario), ee.make_config(args.scenario)
     student = PolicyMLP.load(args.student_model) if args.student_model else None
@@ -126,7 +136,8 @@ def main(argv: list[str] | None = None) -> int:
                 f"tiebreak={args.score_tiebreak:g}, known={args.known})"
             )
             if args.mode == "demos"
-            else f"student={args.student_model} label_stride={args.label_stride}"
+            else f"student={args.student_model} label_stride={args.label_stride} "
+            f"explore_eps={args.explore_eps:g}"
         )
     )
 
@@ -150,7 +161,9 @@ def main(argv: list[str] | None = None) -> int:
                 sim, row = _teacher_game(deck, config, seed, args=args, leaf=leaf)
             fallbacks += int(row.get("fallbacks", 0))
         else:
-            sim, row = play_selfplay(deck, config, seed, student)
+            sim, row = play_selfplay(
+                deck, config, seed, student, explore_eps=args.explore_eps
+            )
         final_scores.append(row["score"])
         for decision_index, record in enumerate(sim.decisions):
             n_decisions += 1
