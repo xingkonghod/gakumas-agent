@@ -1939,6 +1939,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 外部情报：auto-gakumas 分析（T8），只读参考、无许可证禁止拷贝）
+89a7d24 docs(intel): auto-gakumas 分析——零 LLM / Android ADB / 每战在线 PPO + SO-ISMCTS，H.I.F 本戦实机 2回戦 1.59M；无许可证只参考（COMPARE/PROVENANCE/INDEX/HANDOVER 同步）
 （2026-11-23 交接：B10 完成记录 + 提交哈希 fdcfe44）
 56e8f95 docs(b10): 记录 B10 / T5 剩余①② 完成——数据层 1042/1849、触发未知 103→3、A/B +797.5、pytest 1154/1 + 提交哈希 fdcfe44
 （2026-11-23 B10 / T5 剩余①② 生成卡 + 指定卡名/手牌张数映射：card_meta idol_unique 参考交叉 340/342 零误报 + play_filter 234 件/zone_count 27 件 + 生成卡确定式 11 段 + 次数按道具计，数据层 1025→1042/1849 段、触发未知 103→3 件、条件未知 6→0，pytest 1154/1（1155 收集 / 79 文件），greedy A/B +797.5（+20.76%，CI [+399.0,+1250.1]）/ expectimax +801.1（CI [+66.3,+1697.9]），基线 ①③④⑤ 不变）
