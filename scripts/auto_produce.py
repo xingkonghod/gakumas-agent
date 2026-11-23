@@ -587,7 +587,7 @@ def main() -> int:
     # 默认 rules）；只有显式 `--engine rules` 才用规则引擎（仅 A/B 对照/离线复现）。
     engine_override = (arg_value("--engine") or "").strip().lower()
     produce_engine = str(driver._produce_params().get("engine") or "").strip().lower()
-    allowed_engines = ("rules", "expectimax", "beam", "uinet")
+    allowed_engines = ("rules", "expectimax", "beam", "uinet", "net")
     requested_engine = engine_override or produce_engine
     engine_source = (
         "--engine"
@@ -602,7 +602,36 @@ def main() -> int:
             file=sys.stderr,
         )
         return 2
-    lesson_policy = LessonPolicy(buffs=lesson_reader.buffs, engine=lesson_engine)
+    # B11 学生网（engine=net）模型：--net-model 优先，其次 policy.json 的
+    # produce.net_model，都没有时用入库的过门 v6（data/knowledge/ei_policy_v6.json）。
+    # 模型缺失在起跑前大声报错（return 2），不许带着空模型进局再 BLOCKED。
+    net_model_override = (arg_value("--net-model") or "").strip()
+    produce_net_model = str(driver._produce_params().get("net_model") or "").strip()
+    net_model_path = net_model_override or produce_net_model
+    net_model_source = (
+        "--net-model"
+        if net_model_override
+        else ("policy.json produce.net_model" if produce_net_model else "默认 v6")
+    )
+    if lesson_engine == "net":
+        if not net_model_path:
+            net_model_path = str(ROOT / "data" / "knowledge" / "ei_policy_v6.json")
+        net_model_file = Path(net_model_path)
+        if not net_model_file.is_absolute():
+            net_model_file = ROOT / net_model_file
+        if not net_model_file.is_file():
+            print(
+                f"net model missing: {net_model_file}（engine=net 需要 policy_mlp 模型；"
+                "用户规则禁止静默回退 rules）",
+                file=sys.stderr,
+            )
+            return 2
+        net_model_path = str(net_model_file)
+    lesson_policy = LessonPolicy(
+        buffs=lesson_reader.buffs,
+        engine=lesson_engine,
+        net_model=net_model_path if lesson_engine == "net" else None,
+    )
     # 搜索引擎（非 rules）一旦无法决策就中止本局，绝不接老规则路径。
     strict_engine = lesson_policy.engine != "rules"
     # 考试牌序计划（完全信息搜索数据源）：--exam-setup 指向 build_exam_setup.py 的产物。
@@ -623,6 +652,8 @@ def main() -> int:
     log_lines.append(f"[priv] {priv.reason}")
     log_lines.append(f"[ocr] 模型 = {ocr_model}")
     log_lines.append(f"[engine] 出牌引擎 = {lesson_policy.engine}（来源：{engine_source}）")
+    if lesson_engine == "net":
+        log_lines.append(f"[engine] net 模型 = {net_model_path}（来源：{net_model_source}）")
     if strict_engine:
         log_lines.append(
             "[engine] 用户规则：规则回退已禁用——搜索无法决策会记 [engine][BLOCKED] "

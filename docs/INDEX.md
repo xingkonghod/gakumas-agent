@@ -400,15 +400,23 @@ on-policy 成分连续两轮方向正、未独立证明。**large 首测（31 �
 vs beam 缺口 −28.1→−13.7）但仍低于 beam；生产接线仍未做。
 新增 7 条探索测试，全量 pytest **1273 passed / 1 skipped（1274 收集 / 86 文件）**，
 基线 ①③④⑤ 不变。细节见 EXPECTIMAX B11 r3–r8 续 / HANDOVER 二·补四十。
+**同日 B11 v6 生产接线完成**（用户授权综合推荐后选定；纯增量代码+单测，opt-in 默认逐位不变）：
+`LessonPolicy(engine="net", net_model=…)` 在可观测状态可出牌里 argmax 优势分（无搜索、
+不用 known_draw/牌序，public-safe）；硬规矩有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异常/
+失配 → `[engine][BLOCKED]`（禁回退 rules）；`eng=net` + 优势分进 reason；auto_produce
+`--net-model` > `produce.net_model` > 默认入库 v6（`data/knowledge/ei_policy_v6.json`，tracked，
+gate 溯源 meta），缺模型起跑前报错；T2 增第四臂 `--engine net`（large 生产候选仍是 beam，
+net 值不值由真机 A/B 定；生产 deck/discard 读不到 → 特征空集，与离线全牌库分布有差，如实记录）。
+新增 21 条测试，全量 pytest **1294 passed / 1 skipped（1295 收集 / 87 文件）**，
+基线 ①③④⑤ 不变。细节见 EXPECTIMAX「B11 v6 生产接线」/ HANDOVER 二·补四十一。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
-**B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）**、
-F 数据已下；
-下一步 **先问用户选候选**：继续降档（教师←v6、占比 15→0）/ v6 生产接线（engine= 口径+
-可观测性+红线）/ v6 large 训练评测（补泛化缺口，进 F 前必须）/ 收 loop 转
+**B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
+v6 生产接线完成（engine=net opt-in，T2 第四臂）**、F 数据已下；
+下一步 **先问用户选候选**：继续降档（教师←v6、占比 15→0）/ v6 large 训练评测（补泛化缺口，进 F 前必须）/ 收 loop 转
 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验（T9 只剩 E0，需真机独立副本）/
-直接阶段 E 真机；T5 剩余（随机生成卡 RNG / `ExamBuffConsumptionAdd` 保持 no-op /
+直接阶段 E 真机（T2 已含 net 第四臂）；T5 剩余（随机生成卡 RNG / `ExamBuffConsumptionAdd` 保持 no-op /
 hold 保留区 / fresh buff 差一回合需真机截图）均低价值或需真机/补采 → 真机 T3→T1→T2 →
 F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看可观测状态，
 是未来 public-safe 候选，**但须先过 large 训练/评测**）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五/二·补三十六/二·补三十七/二·补三十九/二·补四十 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五/二·补三十六/二·补三十七/二·补三十九/二·补四十/二·补四十一 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

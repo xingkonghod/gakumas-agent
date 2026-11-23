@@ -1616,5 +1616,69 @@ v6 − beam = −13.7（v1 − beam = −28.1，缺口收窄一半）。数据�
 - 全量 pytest **1273 passed / 1 skipped（1274 收集 / 86 文件）**；基线 ①③④⑤ 不变；
 - 细节见 HANDOVER 二·补四十 / WORKPLAN B11 / HANDOVER_NEXT §8。
 
+## B11 v6 生产接线（2026-11-23）：engine=net（opt-in，默认逐位不变）
+
+**结论先行**：v6 过门（显著强于 v1）后，把学生网接进生产引擎口径，让 T2 真机 A/B
+能带上第四臂。**纯增量**：默认引擎不变（bot 入口 expectimax / `LessonPolicy` rules），
+`net_model` 默认 None，其它引擎完全不读它；`engine="net"` 显式打开才走学生网。
+
+### 口径
+
+- **引擎**：`LessonPolicy(engine="net", net_model=<policy_mlp JSON 路径>)`；
+  `_ALLOWED_VALUES["engine"]` 增加 `net`；`_decide_search` 分发到 `_try_net`。
+- **决策**：`_search_state(state, with_plan=False)` 构造可观测 `ExpectState` →
+  `legal_cards`（指針修正后实际牌费付得起 + 有出牌次数，去重）→ `model.score`
+  argmax 优势分 → `_search_action` 映射回原手牌坐标。**无搜索、无叶子、无饮料动作**。
+- **可观测状态（public-safe）**：`with_plan=False` 不注入采集全知字段——挂了激活的
+  `ExamDrawPlan` 也不给 net 喂 `known_draw/deck/discard`（与 B11「学生只看可观测状态」
+  定位一致，F 阶段 public-safe 适配器可复用同口径）。expectimax/beam 的全知注入逐位不变
+  （`with_plan` 默认 True，回归测试锁定）。
+- **硬规矩**：有可出牌绝不 SKIP（argmax 只在可出牌里）；所有牌付不起 → SKIP
+  （`allow_skip=True`）/ wait（考试 `allow_skip=False`）；`decide()` 的 SKIP 拦截照常兜底。
+- **禁回退红线**：模型缺失/文件损坏/格式不符/推理异常/结果不在手牌 →
+  `RuleFallbackBlocked`（真机入口记 `[engine][BLOCKED]` 中止本局），**绝不静默回退 rules**；
+  状态没读全（手牌空/体力未知/回合未知）→ wait 等下一帧。与 B2 `leaf_model`（叠加层，
+  坏了退解析式叶子）不同：net 是引擎本身，坏了就停。`allow_rule_fallback=True` 调试开关
+  沿用旧约定（真机入口永远不传）。
+- **可观测性**：`last_decision["engine"]="net"`，`decision_note()` 打 `eng=net`；
+  动作 reason 带 `net: <牌名>（优势 <分>，<k> 候选，<ms>ms）`，`expected`=优势分。
+
+### 真机入口（auto_produce）
+
+- `allowed_engines` 增加 `net`；模型路径优先级：`--net-model` CLI >
+  `policy.json` 的 `produce.net_model` > **默认入库 v6**（`data/knowledge/ei_policy_v6.json`）。
+- 缺模型在**起跑前**大声报错 return 2（不带空模型进局再 BLOCKED）；相对路径按 ROOT 解析。
+- 日志首行 `[engine] 出牌引擎 = net（来源：…）` + `[engine] net 模型 = <路径>（来源：…）`。
+- 用法：`auto_produce.py 300 ep-ab-net --engine net --ignore-user --max-minutes 30`
+  （`--net-model out\ei_r8_v8_mix.json` 可换其它轮次做 A/B）。
+
+### 入库模型
+
+- `data/knowledge/ei_policy_v6.json`（tracked，≈1.0MB）= `out/ei_r6_v6_mix.json` 逐权重拷贝，
+  meta 补 `production` 溯源（gate：confirm500 v6 98.6 vs v1 98.1 +0.6 CI[+0.2,+0.9] PASS；
+  fresh6000 +1.7；pooled820 +0.71；large −13.7 vs beam）。B2 叶子模型入库同惯例
+  （`b2_leaf_mlp_small.json`）；研究产物仍在 out/（gitignore）。
+- `PolicyMLP.load` 校验格式/动作特征名/状态维（137）/隐层（192×96），不符直接抛错。
+
+### 如实记录的口径差 / 风险
+
+- **生产 deck/discard 未知**：`_search_state` 不带牌库/弃牌堆（读屏拿不到），104 维状态
+  特征里的 deck/discard 聚合段按空集进特征（0）；离线评测 `net_action` 走 `state_from_sim`
+  是**全牌库**分布。这是生产与离线的特征分布差，T2 真机 A/B 才算数（模拟器保真度是天花板）。
+- **large 仍低于 beam**（v6 −13.7）：large 生产候选仍是 beam；net 进 F public-safe 前
+  建议补 large 训练数据（下一候选之一）。
+- 学生网每决策 ~0.4ms（r1 探针口径），无搜索预算参数；推理异常不重试、直接 BLOCKED。
+
+### 测试 / 基线
+
+- `tests/test_ei_wiring.py` **21 条**（引擎开关/默认不变、argmax 优势选牌、只选付得起、
+  全付不起才 SKIP/考试 wait、全零网有牌绝不 SKIP、确定性、状态没读全 wait、
+  缺模型/坏模型/推理异常/CardSpec 失配 → BLOCKED、调试回退开关、rules/expectimax
+  不读 net_model、**net 无视 draw_plan + expectimax 全知注入回归**、入库 v6 load+真模型
+  走生产链路、auto_produce 静态接线）；ruff 通过；
+- 全量 pytest **1294 passed / 1 skipped（1295 收集 / 87 文件，202.95s）**；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 全部不变；
+- 细节见 HANDOVER 二·补四十一 / WORKPLAN B11 / HANDOVER_NEXT §8。
+
 
 

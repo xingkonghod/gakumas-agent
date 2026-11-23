@@ -2197,6 +2197,56 @@ v6 生产接线（engine= 口径+可观测性+禁跳/禁回退红线，过门后
 **提交**：feat `47c1afa`（探索代码+测试+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补四十一、11-23（B11 v6 生产接线 —— engine=net opt-in，默认逐位不变）
+
+**任务选择**：开工基线 ①–⑤ 全绿（HEAD 3699403，② 1273/1、1274 收集 / 86 文件）。
+下一候选按约定先问用户，用户回「你推荐综合一下」→ 综合推荐选定 **v6 生产接线**：
+T2 真机 A/B 的前置、模型无关管道（后续 large 训练出的更强网直接换文件复用）、
+纯离线一会话可完成；继续降档预期收益小（r3–r8 已证确认段增益是种子段结构），
+large 训练计算重且不阻塞接线。Hindsight 记忆页 B11 门状态过时（仍写 r2 未过门）→
+已 ingest Correction 纠正（r3–r8 完成 / 500 局门协议 / v6 PASS）。
+
+**落地（纯增量代码+单测）**：
+- `src/gkagent/policy/lesson.py`：`_ALLOWED_VALUES["engine"]` +`net`；
+  `DEFAULT_PARAMS` +`net_model: None`（其它引擎不读，默认行为逐位不变）；
+  `__init__` +`net_model=` 关键字（优先级最高）；`_decide_search` 分发 `_try_net`；
+  `_search_state` +`with_plan=True` 关键字——**net 传 False**：不注入采集全知
+  （deck/known_draw/discard），学生只看可观测状态（public-safe 口径，F 阶段适配器可复用）；
+  expectimax/beam 全知注入逐位不变（回归测试锁定）；
+- `_net_model()`：缓存加载 `PolicyMLP.load`（格式/特征名/维度校验），缺路径/坏文件直接抛错；
+  与 B2 leaf_model（叠加层坏了退解析式）不同——**net 是引擎本身，坏了就 BLOCKED**；
+- `_try_net`：`legal_cards`（指針修正实际牌费付得起+有出牌次数，去重）里 argmax 优势分，
+  无搜索/无叶子/无饮料；**有可出牌绝不 SKIP**；全付不起 → SKIP（allow_skip）/ wait（考试）；
+  模型缺失/推理异常/结果不在手牌 → `RuleFallbackBlocked`（真机 `[engine][BLOCKED]` 中止，
+  禁回退 rules）；状态没读全 → wait；reason 带 `net: 牌名（优势 x.xx，k 候选，x.xms）`，
+  `expected`=优势分，`decision_note()` 打 `eng=net`；
+- `scripts/auto_produce.py`：`allowed_engines` +`net`；模型路径 `--net-model` >
+  `policy.json produce.net_model` > **默认入库 v6**；缺模型**起跑前** return 2；
+  `[engine] net 模型 = <路径>（来源：…）` 日志；相对路径按 ROOT 解析；
+- **入库模型**：`data/knowledge/ei_policy_v6.json`（tracked，1013237 字节）=
+  `out/ei_r6_v6_mix.json` 逐权重拷贝 + `meta.production` 溯源（gate confirm500 +0.6
+  CI[+0.2,+0.9] PASS / fresh6000 +1.7 / pooled820 +0.71 / large −13.7 vs beam）。
+  B2 叶子模型入库同惯例；研究产物仍在 out/（gitignore）。
+
+**如实记录的口径差/风险**：生产 deck/discard 读屏拿不到 → 104 维状态特征的牌库/弃牌堆
+聚合段按空集（0）进特征，与离线评测 `state_from_sim` 全牌库分布有差 → **T2 真机 A/B 才算数**；
+large 仍 −13.7 vs beam → **large 生产候选仍是 beam**，net 是 T2 第四臂（`--engine net`）不是默认；
+v6 进 F public-safe 前建议补 large 训练数据（下一候选之一）。
+
+**测试/基线**：`tests/test_ei_wiring.py` **21 条**（引擎开关/默认不变、argmax 选牌、
+只选付得起、全付不起才 SKIP/考试 wait、全零网有牌绝不 SKIP、确定性、状态没读全 wait、
+缺模型/坏模型/推理异常/CardSpec 失配 → BLOCKED、调试回退开关、rules/expectimax 不读
+net_model、net 无视 draw_plan + expectimax 全知注入回归、入库 v6 load + 真模型走生产链路、
+auto_produce 静态接线）；ruff 通过；全量 pytest **1294 passed / 1 skipped
+（1295 收集 / 87 文件，202.95s）**；基线 ① 4/4+3/3、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 复跑全部不变。
+
+**文档**：EXPECTIMAX「B11 v6 生产接线」；WORKPLAN §0；HANDOVER_NEXT 开场白/§0/§2 期望值
+（1273→1294）/§4 T2 第四臂/§8；INDEX；本文件二·补四十一。
+
+**提交**：feat（接线代码+测试+文档）+ docs(handover) 哈希记录；
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

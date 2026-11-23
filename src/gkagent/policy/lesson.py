@@ -28,6 +28,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, ClassVar
@@ -53,7 +54,7 @@ _ALLOWED_VALUES: dict[str, frozenset[str]] = {
     # 旧的 "skip" 取值废弃：即使配置写 skip 也按 cheapest 处理。
     "unknown_score_fallback": frozenset({"cheapest"}),
     "plan": frozenset(VALID_PLANS),
-    "engine": frozenset({"rules", "expectimax", "uinet", "beam"}),
+    "engine": frozenset({"rules", "expectimax", "uinet", "beam", "net"}),
 }
 
 
@@ -121,7 +122,9 @@ class LessonPolicy:
         "perfect_target_multiplier": 2.0,
         # 出牌引擎：rules=固定优先级规则（默认，行为不变）；expectimax=回合内搜索；
         # uinet=GKMSUINet 神经网络（ONNX，UIObs v1）；beam=跨回合 beam 规划
-        # （需要 ExamDrawPlan 给 known_draw 才有意义，没有全知数据时改用回合内搜索）。
+        # （需要 ExamDrawPlan 给 known_draw 才有意义，没有全知数据时改用回合内搜索）；
+        # net=B11 学生策略网（policy_mlp，可观测状态 argmax 优势分，无搜索；
+        # 需要 net_model 指向模型 JSON，缺模型/推理失败 → BLOCKED，不回退 rules）。
         # 用户规则（2026-11-21）：**bot 不许回退 rules**——搜索异常/状态不读全时
         # 只会 wait 重读或抛 RuleFallbackBlocked，绝不静默改用规则引擎。
         "engine": "rules",
@@ -135,6 +138,10 @@ class LessonPolicy:
         # 变成 EnsembleLeafValue(analytic, learned, weight)；T2 真机 A/B 再决定打开。
         "leaf_model": None,
         "leaf_model_weight": 0.5,
+        # B11 学生策略网（engine="net" 专用）：policy_mlp.PolicyMLP JSON 路径。
+        # 默认 None = 行为不变（其它引擎完全不读它）；engine=net 时必须给路径
+        # （真机入口默认 data/knowledge/ei_policy_v6.json），缺模型大声报错/BLOCKED。
+        "net_model": None,
     }
 
     def __init__(
@@ -148,6 +155,7 @@ class LessonPolicy:
         params: dict | None = None,
         params_path: str | Path | None = None,
         engine: str | None = None,
+        net_model: str | Path | None = None,
         draw_plan=None,
         allow_rule_fallback: bool = False,
     ) -> None:
@@ -170,6 +178,10 @@ class LessonPolicy:
                     "；用户规则禁止静默回退 rules"
                 )
             self.params["engine"] = normalized
+        # B11 学生网模型路径（显式关键字优先级最高，同 engine）；None = 沿用
+        # params/policy.json 的 net_model。其它引擎不读它，默认行为逐位不变。
+        if net_model is not None:
+            self.params["net_model"] = str(net_model)
         # 兼容旧的显式关键字参数（优先级最高）
         if buff_first is not None:
             self.params["buff_first"] = bool(buff_first)
@@ -230,7 +242,7 @@ class LessonPolicy:
 
     @property
     def engine(self) -> str:
-        """当前出牌引擎：``rules``（默认）/ ``expectimax`` / ``uinet`` / ``beam``。"""
+        """当前出牌引擎：``rules``（默认）/ ``expectimax`` / ``uinet`` / ``beam`` / ``net``。"""
         return str(self.params.get("engine") or "rules")
 
     @property
@@ -387,8 +399,10 @@ class LessonPolicy:
         """按 ``engine`` 决策；**搜索引擎绝不回退 rules**（用户规则，2026-11-21）。
 
         - ``engine="rules"``：显式规则引擎（A/B 对照 / 离线脚本），行为与旧版一致；
-        - ``expectimax`` / ``beam`` / ``uinet``：搜索/规划/神经网络决策。搜索建议
-          SKIP 但还有付得起的牌时，按**搜索结果自己的动作价值**硬打一张（不是规则）；
+        - ``expectimax`` / ``beam`` / ``uinet`` / ``net``：搜索/规划/神经网络决策。
+          搜索建议 SKIP 但还有付得起的牌时，按**搜索结果自己的动作价值**硬打一张
+          （不是 rules）；net（B11 学生网）有可出牌时绝不建议 SKIP（硬规矩编码在
+          模型决策里）；
           状态没读全时返回 ``wait`` 等下一帧重读；搜索异常/结果失配抛
           :class:`RuleFallbackBlocked`，由真机入口记 ``[engine][BLOCKED]`` 并中止
           本局——去修 OCR/卡表，不许用 rules 兜底。只有调试/旧评测显式传
@@ -440,6 +454,8 @@ class LessonPolicy:
             action = self._try_expectimax(state, allow_skip=allow_skip)
         elif self.engine == "beam":
             action = self._try_beam(state, allow_skip=allow_skip)
+        elif self.engine == "net":
+            action = self._try_net(state, allow_skip=allow_skip)
         else:
             action = self._try_uinet(state, allow_skip=allow_skip)
         if action is not None:
@@ -624,12 +640,16 @@ class LessonPolicy:
             return [CardSpec(name=card[0], cost=1, score=10) for card in cards]
         return [item.spec for item in play_cards]
 
-    def _search_state(self, state: LessonState):
+    def _search_state(self, state: LessonState, *, with_plan: bool = True):
         """``LessonState`` → ``(ExpectState, play_cards, reshuffle)``；不可用返回 None。
 
         只映射读屏能确认的字段（手牌/体力/剩余回合/分数/CLEAR 基准）；卡表能补费用
         与效果。挂了激活的 ``draw_plan`` 时把 known_draw / discard_order / 确定性
         重洗钩子一并喂进搜索（完全信息搜索）。
+
+        ``with_plan=False``（B11 net 引擎用）：不注入采集全知字段——学生网只看
+        可观测状态（public-safe 口径，与离线训练/评测的「不用 known_draw/seed」
+        一致）；deck/discard 读不到时按 ExpectState 默认空集进特征。
         """
         from gkagent.sim.expectimax import ExpectState
         from gkagent.sim.play_choice import specs_from_hand
@@ -662,7 +682,7 @@ class LessonPolicy:
             perfect = int(perfect_target(int(gauge)))
         kwargs: dict = {}
         reshuffle = None
-        plan = getattr(self, "draw_plan", None)
+        plan = getattr(self, "draw_plan", None) if with_plan else None
         if plan is not None and getattr(plan, "active", False):
             try:
                 kwargs = plan.expect_state_kwargs(to_specs=self._plan_card_specs)
@@ -1058,6 +1078,93 @@ class LessonPolicy:
             ),
             expected=float(result.utility),
         )
+
+    # ------------------------------------------------------------------ B11 学生网
+    def _net_model(self):
+        """加载 B11 学生网（带缓存）；缺模型/坏格式直接抛错。
+
+        与 B2 ``leaf_model``（叠加层，坏了可退回解析式叶子）不同：net 是引擎本身，
+        加载失败由 :meth:`_try_net` 按决策失败处理 → ``RuleFallbackBlocked``，
+        **绝不静默回退 rules**（用户规则 2026-11-21）。
+        """
+        cached = getattr(self, "_net_cache", None)
+        if cached is not None:
+            return cached
+        from gkagent.sim.policy_mlp import PolicyMLP
+
+        explicit = self.params.get("net_model")
+        if not explicit:
+            raise ValueError(
+                "engine=net 需要 net_model（policy_mlp JSON 路径）；"
+                "缺模型不是回退 rules 的理由"
+            )
+        path = Path(str(explicit))
+        if not path.is_absolute():
+            path = Path.cwd() / path
+        model = PolicyMLP.load(path)
+        self._net_cache = model
+        return model
+
+    def _try_net(self, state: LessonState, *, allow_skip: bool) -> LessonAction | None:
+        """B11 学生网（``engine="net"``）：可出牌里 argmax 优势分，无搜索。
+
+        硬规矩（与 ``policy_mlp.net_action`` 同口径）：有可出牌绝不 SKIP；只有
+        所有牌都付不起（真没体力）才允许 SKIP。学生只看可观测状态
+        （``with_plan=False``，不用 known_draw/牌序）。模型缺失/推理异常/结果
+        失配 → ``None``（调用方抛 blocked，**不回退 rules**）；状态没读全 →
+        wait 等下一帧重读。
+        """
+        try:
+            model = self._net_model()
+            prepared = self._search_state(state, with_plan=False)
+            if prepared is None:
+                return self._wait_action(self.last_fallback_reason or "状态未读全")
+            sim_state, play_cards, _reshuffle = prepared
+            from gkagent.sim.expectimax import legal_cards
+
+            playable = legal_cards(sim_state)
+            if not playable:
+                if not allow_skip:
+                    return self._wait_action(
+                        f"考试没有付得起的牌（体力 {state.stamina}）"
+                    )
+                self.last_fallback_reason = "所有牌都付不起（真没体力）→ 允许 SKIP"
+                return LessonAction(
+                    "skip",
+                    point=state.skip_point,
+                    reason=f"所有牌都付不起（体力 {state.stamina}），允许 SKIP",
+                )
+            start = time.perf_counter()
+            scores = model.score(sim_state, playable)
+            # 首个最大值（与 np.argmax 同序，确定性）；优势分进 reason/expected 供日志复盘
+            choice = max(range(len(playable)), key=lambda i: float(scores[i]))
+            elapsed_ms = (time.perf_counter() - start) * 1000.0
+            card = playable[choice]
+            advantage = float(scores[choice])
+            reason = (
+                f"net: {card.name}（优势 {advantage:.2f}，"
+                f"{len(playable)} 候选，{elapsed_ms:.1f}ms）"
+            )
+            action = self._search_action(
+                state,
+                play_cards,
+                card,
+                allow_skip=allow_skip,
+                reason=reason,
+                expected=advantage,
+            )
+            if action is None:
+                self.last_fallback_reason = "net 结果不在手牌（CardSpec 失配）"
+                logging.getLogger(__name__).warning(
+                    "net 结果不在手牌（禁止回退 rules）：%s", card
+                )
+            return action
+        except RuleFallbackBlocked:
+            raise
+        except Exception as exc:  # noqa: BLE001 - net 失败要暴露，不许退回 rules
+            self.last_fallback_reason = f"net 异常: {exc!r}"
+            logging.getLogger(__name__).warning("net 失败（禁止回退 rules）：%s", exc)
+            return None
 
     def _try_uinet(
         self, state: LessonState, *, allow_skip: bool

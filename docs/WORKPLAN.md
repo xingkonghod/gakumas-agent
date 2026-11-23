@@ -38,6 +38,7 @@
 | B10 T5 剩余①② 生成卡 + 指定卡名/手牌张数映射 | 新 `scripts/build_card_meta.py` + `data/knowledge/card_meta.json` + `src/gkagent/data/card_meta.py`（idol_unique 参考交叉 340/342 零误报 + effectGroupIds + 日文别名）+ `build_p_items.py`（`parse_card_search` play_filter/zone_count + `annotate_create_effects`）+ `sim/p_items.py`（CardFilter/ZoneCount/CreateCard + exam_start_after + 次数按道具计）+ `sim/lesson.py`/`sim/expectimax.py`（生成卡落牌双镜）+ `play_choice.spec_from_name` | 触发未知 **103→3 件**、条件未知 **6→0**；play_filter 234 件 / zone_count 27 件；生成卡 **11 段确定 + 6 段随机 no-op**；数据层 **1025→1042/1849 段**；greedy A/B **+797.5（+20.76%，CI [+399.0,+1250.1]）** / expectimax +801.1（CI [+66.3,+1697.9]）；新增 `tests/test_p_items_b10.py` 38 条；pytest **1154/1（1155 收集 / 79 文件）**；见 HANDOVER 二·补三十三 / RULES_REFERENCE §5.3 |
 | C1 执行层可靠性（tap 确认/重试 + 提权检查 + 帧预算 + 每步可复盘，2026-11-23，**纯离线代码+单测；真机验收留阶段 E**） | 新 `runtime/tapguard.py`（TapExpectation 动作前预算下一帧 + TapGuard 互验：confirmed/moved 不重试/同屏 retap≤2/lost 上报绝不静默 SKIP + PickerGuard 两段式选牌分级重试）+ `device/privilege.py`（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑+`elevation-blocked` failure）+ `runtime/trace.py`（StepTrace 每步 reason/预算/互验结果）+ `scripts/replay_steps.py` 离线复盘 CLI；`produce_ui.decide()` 每击自动预算（弹窗确认/回合结束「是」/通信错误=dialog-gone）+ card-reward 接 PickerGuard（只重试领取不重点卡位）；`auto_produce` 接 tap 互验（retap/lost/连续 3 次 lost 止损停局）+ `attempt_drink`（对话未开重试槽位≤2，失败留痕）+ 每步 `data/step_trace.jsonl` + 局末 `[tap]` 汇总；参考 GKMSMAA follow/winpriv 架构**自写不拷贝**（AGPL）；新增 4 测试文件 **68 条**；pytest **1223/1（1224 收集 / 83 文件）**；基线 ①③④⑤ 不变；见 HANDOVER 二·补三十六 |
 | B11 渐退式专家迭代 第 1–2 轮（policy/advantage 学生 + 评测门渐退，2026-11-23，**纯离线；r1 确认段 PASS / r2 平台期 CONTINUE**） | 新 `sim/policy_mlp.py`（137 维特征=104 状态+33 动作 → 96→48→1 优势分；`net_action` 硬规矩禁跳/禁回退）+ `sim/policy_data.py`（决策记录+**精确重放分支** on-policy 优势标签 A=R−mean(R)，逐字段全等校验不走搜索镜像）+ `build_ei_dataset.py`/`train_ei_policy.py`/`eval_ei.py`；`eval_known_draw.play` 加 net/greedy（默认逐位不变）；r1：示范 400 局 5747 样本→v0 BC→自对弈 1000 局 14314 样本→v1 70/30；**确认段 120 局 v1 97.5 vs beam 教师 94.9：+2.6 CI[+1.1,+4.1] PASS**（稳健块 +3.8 CI[+1.6,+6.0]；0.40ms/决策）；消融：纯 BC v0 也过门（+2.4），红利主力=逐决策蒸馏+禁跳。**r2（教师←v1、占比 0.15、large 首测）**：`--teacher-net`/`--baseline-net`/`--round` 纯增量；v1 示范 5773 + v1 自对弈 14526（seed 400000+/300000+）→ v2 17089 样本；**确认段 v2 97.9 vs v1 97.5：+0.4 CI[−0.4,+1.2] CONTINUE（平台期，四段全中性，新鲜块 5000 同样中性）**；消融 v2−v2_bc=+0.54 CI[−0.40,+1.48] on-policy 仍未独立证明；**large：v1 比 beam −28.1 CI[−36.0,−20.2]（CLEAR 36.7% vs 53.3%），v2 比 v1 还略差（选择段 −14.8 显著）→ small 训练不泛化 large**；v2−beam small +2.99 CI[+1.37,+4.62] 绝对水位保持；处置：占比不降、生产接线未做、T2 候选不变；新增 15 条测试（r2）。**r3–r8 继续扶（用户指令「显著强于老师才结束」）**：数据×10/epochs×3/容量×2/ε-greedy 探索（`--explore-eps`，+7 测试）全试过，val 饱和 0.862、确认段恒 +0.2~0.6（种子段结构）；**门协议修正（用户批准）扩 500 局 → v6 98.6 vs v1 98.1：+0.6 CI[+0.2,+0.9] PASS**，新鲜块 6000 +1.7 佐证，池化 820 局 +0.71 CI[+0.40,+1.02]；**v6=最佳学生**；large 泛化显著改善（+14.4 vs v1）但仍低于 beam（−13.7）；生产接线仍未做；pytest **1273/1（1274 收集 / 86 文件）**；基线 ①③④⑤ 不变；见 EXPECTIMAX B11 / HANDOVER 二·补三十七/三十九/四十 |
+| B11 v6 生产接线（2026-11-23，**纯增量代码+单测；opt-in，默认逐位不变**） | `LessonPolicy(engine="net", net_model=…)`：可观测状态 `legal_cards` 里 argmax 优势分（无搜索）；`with_plan=False` 不注入采集全知（public-safe 口径）；硬规矩有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异常/失配 → `RuleFallbackBlocked`（**禁回退 rules**）；`eng=net` + 优势分进 reason；auto_produce `--net-model` > `produce.net_model` > 默认入库 v6，缺模型起跑前 return 2；`data/knowledge/ei_policy_v6.json`（tracked，gate 溯源 meta）；T2 增第四臂 `--engine net`（large 生产候选仍是 beam） | `tests/test_ei_wiring.py` 21 条；pytest **1294/1（1295 收集 / 87 文件）**；基线 ①③④⑤ 不变；见 EXPECTIMAX「B11 v6 生产接线」/ HANDOVER 二·补四十一 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -842,11 +843,16 @@ large 首测；**确认段 v2 97.9 vs v1 97.5：+0.4 CI[−0.4,+1.2] → CONTINU
 PASS**，新鲜块 6000 +1.7 CI[+0.6,+2.8] 佐证，池化 820 局 +0.71 CI[+0.40,+1.02]；
 **v6（192×96）= 当前最佳学生，显著强于 v1**；pytest 1273/1（1274 收集 / 86 文件）；
 见 EXPECTIMAX B11 r3–r8 续 / HANDOVER 二·补四十。
-**下一候选（先问用户）**：继续降档（教师←v6、占比 15→0）/ v6 生产接线（engine= 口径+
-可观测性+红线）/ v6 large 训练评测（补泛化缺口，进 F 前必须）/ 收 loop 转
-T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验 / 直接阶段 E 真机。
+**B11 v6 生产接线也已完成（2026-11-23，用户授权综合推荐后选定；纯增量，opt-in 默认逐位不变）**：
+`LessonPolicy(engine="net", net_model=…)` 可观测状态 argmax 优势分（无搜索、不用 known_draw，
+public-safe）；有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异常 → [engine][BLOCKED]（禁回退 rules）；
+auto_produce `--net-model` > `produce.net_model` > 默认入库 v6（data/knowledge/ei_policy_v6.json）；
+T2 增第四臂 `--engine net`（large 生产候选仍是 beam）；21 条新单测，pytest 1294/1（1295 收集 / 87 文件）；
+见 EXPECTIMAX「B11 v6 生产接线」/ HANDOVER 二·补四十一。
+**下一候选（先问用户）**：继续降档（教师←v6、占比 15→0）/ v6 large 训练评测（补泛化缺口，进 F 前必须）/
+收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂）。
 → 阶段 D（补采集）离线准备 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看
-可观测状态，是未来 public-safe 候选，**但 r2 large 首测显著弱于 beam，须先过 large
+可观测状态，是未来 public-safe 候选，**但 large 仍显著弱于 beam（−13.7），须先过 large
 训练/评测**）。
 ```
