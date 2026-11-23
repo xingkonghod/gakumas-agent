@@ -667,9 +667,15 @@ expectimax +801.1（CI[+66.3,+1697.9]）；全量 pytest **1154/1（1155 收集 
   `check.stamina` 覆盖 loadout 值。
 - DoD 达成；剩余 `ExamInitialDeck`/开局加牌机制留给 F1（需官方引擎或更多样本），不阻塞 F1/F2。
 
-### T8（P3，低成本）情报与决策记录 ⬜
+### T8（P3，低成本）情报与决策记录 🟡（持续；2026-11-23 新增 auto-gakumas 分析）
 - 每完成一个任务：更新 `QQ_GROUP_NOTES.md` / `HIRO_VIDEO_NOTES.md`（有变化时）、写一条 ADR（`ARCHITECTURE.md`）。
 - 只在有明确收益时更新；别为写文档而写。
+- **2026-11-23**：用户 B 站发现 **tactfullotto/auto-gakumas**（零 LLM / Android ADB /
+  每战在线 PPO + SO-ISMCTS，H.I.F 本戦实机 2回戦 1.59M，B 站宣称 S4+）→
+  [AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md)（公开资料静态分析，未运行未拷贝；
+  **无许可证 → 禁止拷代码/数据**）；COMPARE §2/§3/§7 + PROVENANCE §4/§5 已同步。
+  可吸收候选（须用我们主数据重验）：回忆 Stage 级限 1、干劲经济守卫、饮料 #19/#25 门控、
+  B2 重训「纯分标签不加塑形」（其 PBRS 负结果 −26,884 与我们 B2 负结果同向）。
 
 ---
 
@@ -905,6 +911,17 @@ CI[+9.5,+248.4]）** / expectimax +149.6（+3.98%），其余局逐位不变（3
 P 道具效果覆盖/真机培育侧列表随后）→ 阶段 C/D。详见 [HANDOVER 二·补二十七](HANDOVER.md) 与
 [RULES_REFERENCE §5.3](RULES_REFERENCE.md)。提交 `f531d20`（代码 + 测试 + 文档）/
 哈希记录 `639f0b0`。
+
+**2026-11-23 追加（外部情报，不是任务）**：用户 B 站发现 **tactfullotto/auto-gakumas**
+（GitHub 公开仓库，2026-11-22 新建，无许可证）——零 LLM 全本地 H.I.F 本戦自动培育：
+Android 模拟器（MuMu）ADB + WinRT OCR + MaaFramework；**每战现场训练 2000 eps Maskable PPO
+（纯 NumPy ~60s）+ 每步 64 次 SO-ISMCTS**；AST 执行 gakumas-data DSL（四区守恒/费用修正/
+P 道具触发/**回忆 Stage 级限 1**）；数据同源 gakumas-tools `a82c3a3`（926 卡/28 饮料）。
+实机 live7 2回戦 **+1,594,997**、smoke_v7 W9 第 1（T13 前 962,352 / simQ 1,554,892）；
+B 站标题宣称 S4+（待核）；PBRS 塑形负结果 −26,884（纯分最佳）。**口径不可与我们/gkbench/hiro
+直接比**；其算法只看 UI 理论上可交 ranked，关注后续。分析落
+[AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md)（未运行未拷贝；**无许可证禁止拷代码/数据**，
+吸收须用我们主数据重验）；COMPARE/PROVENANCE/INDEX 同步。提交 `docs`（哈希见 HANDOVER 七）。
 
 **2026-11-22 追加（外部情报，不是任务）**：用户提供作者新的**四游戏整合启动器包**
 （215 MB，11-22 构建）→ 已解包静态分析并归档（7z 在 `data/dl/`、解包在仓库外），新增

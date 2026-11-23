@@ -1745,6 +1745,25 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
   state/action/score 数据是训练/校准模型缺的监督信号（对应 T4 rollout 监督方向）。
   **对外策略**：不公开可复现路径（hook/解密/字段/算法），最多发结论；优先趁封堵窗口自用验证与备份数据。
 
+**auto-gakumas**（tactfullotto，GitHub 公开，2026-11-22 新建，**无许可证**，2026-11-23 用户 B 站发现）：
+
+```
+零 LLM 全本地 H.I.F 本戦自动培育（秦谷美鈴 p_idol=163 / logic 好印象）
+平台  Android 模拟器（MuMu）ADB + WinRT OCR（ja/en）+ MaaFramework；非 DMM PC
+决策  每战扫库后现场训练 2000 eps Maskable PPO（纯 NumPy ~60s，gamma=1.0）
+      + 每步 64 次 SO-ISMCTS（determinized PUCT，value_weight=0.35）；特征信息集安全（无 seed）
+模拟  AST 执行 gakumas-data DSL：四区守恒 / 费用修正 / P 道具触发 / 回忆 Stage 级限 1
+数据  同源 gakumas-tools a82c3a3（2026-11-15）：926 卡 / 28 饮料 / 165 P 偶像 / 111 改造
+成绩  实机 live7 2回戦 +1,594,997；smoke_v7 W9 第 1（T13 前 962,352 / simQ 1,554,892）
+      B 站标题宣称 S4+（待核）；离线 eval30 均值 477,670；PBRS 塑形负结果 −26,884
+红线  无许可证 = 默认版权保留 → 禁止拷代码/数据库/图鉴；吸收须用我们主数据重验
+```
+
+详见 [AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md)（公开资料静态分析，未运行未拷贝）。
+**口径**：其 1.59M 是真机 H.I.F 本戦原始分，与 gkbench/hiro/我们离线分互不可比（COMPARE §3.7）；
+其算法只看 UI，理论上可交 gkbench ranked，关注后续。**可吸收候选**：回忆限 1（我们 catalog
+有 MemoryAbility 表）、干劲经济守卫、饮料 #19/#25 门控、B2 重训纯分标签不加塑形。
+
 详见 `docs/QQ_GROUP_NOTES.md`、`docs/HIRO_VIDEO_NOTES.md`；**我们 vs 他们的完整进度对照
 （口径/数字/唯一可比路径）见 [COMPARE.md](COMPARE.md)**。
 

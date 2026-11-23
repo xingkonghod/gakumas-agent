@@ -28,6 +28,7 @@ B3 补的是"模拟器回合规则与真机对齐"（每回合基础 1 张 + 跳
 |---|---|---|
 | **我们** | bot 能完整跑完一局，但 T1 未验收（目标 ≥C+、≤20 分钟、无 BLOCKED）；决策层修复到 A5/B2/B3 | bot 最好 **C+/5992**（11-15 旧版）；11-21 接管局 **C/4242**（期中 914/第 3）；用户手动 **A/10237**（追赶目标，11-19）、采集局 B/7404 |
 | **hiro**（hiro-gakumas-hero，AGPL） | **Mac 成熟**：40+ 局稳定；Windows DMM 版仍在追赶；工程打磨强（纯函数状态、互验、自动复盘） | H.I.F 本战第 1、最高 **1,303,847**；初 REGULAR **A / 10,428**；120 模块 / 600+ 测试 |
+| **auto-gakumas**（tactfullotto，无许可证，2026-11-22 新建） | **Android 模拟器（MuMu）ADB + WinRT OCR + MaaFramework**；H.I.F 本戦全自动完走（Home→W7/W9→停机）；零 LLM 主链路 | 实机 live7 **2回戦 +1,594,997**；smoke_v7 W9 T13 结算前 962,352 稳拿第 1；B 站标题宣称 **S4+**（待核）；298 测试（见 [AUTO_GAKUMAS_NOTES](AUTO_GAKUMAS_NOTES.md)） |
 | **QQ 群**（群主 Muskot 等） | 微调 **~2B 决策模型** + 魔改 MaaGakumas/macOS 跑完整一局（B 站 demo，约 11-15）；执行层靠 MAA 打磨 | run12（2B，一次前向无搜索）：篠澤広【光景】期中 1st 33,265、期末 **1st 324,063 / SS+ 18,866**（23 选卡 3 reroll，21/22 与参照一致） |
 | **官方 AI** | 不跑真机；gkbench 托管算法 | 见 2.2 |
 
@@ -41,6 +42,7 @@ B3 补的是"模拟器回合规则与真机对齐"（每回合基础 1 张 + 跳
 | **UINet**（群/公开） | 端到端策略网络 | gkbench **578,722（0.4551× oracle）**；群内已说"到头了，10× 训练量指标反而倒退" |
 | **官方 AI** | 私有原生精确引擎 + 50+ 特征 + 计划重放 + 命令预算 | gkbench **232,710（0.2131× oracle）** |
 | **群论文**（花吹雪また一年） | 体系建模 + Bellman/分支定界 + GNRPA（离线最优搜索） | 74 replays 全一致、704 exams 666 匹配；实例 C 141,225→194,962 |
+| **auto-gakumas** | **每战在线训练** Maskable PPO（纯 NumPy 2000 eps ~60s，gamma=1.0）+ 每步 **64 次 SO-ISMCTS**（determinized PUCT，value_weight=0.35）；AST 执行 gakumas-data DSL；信息集安全特征（无 seed） | 离线 W9 真卡组 eval30 均值 **477,670**（bestVal 466,850）；PBRS 塑形负结果 **−26,884**（纯分最佳，与我们 B2 负结果同向）；真机数字见 §2.1（**口径不同，不可与 gkbench/我们离线分直接比**） |
 | **gkbench 基准分母** | oracle（多起点 best-known） | 均值 **1,452,088**（n=960） |
 
 ### 2.3 信息 / 全知链路
@@ -49,6 +51,7 @@ B3 补的是"模拟器回合规则与真机对齐"（每回合基础 1 张 + 跳
 |---|---|
 | **我们** | **唯一完整链路**：MITM 采集 → seed → 洗牌模型 **4/4 场整段逐张复现**（18/18、26/26、15/15、27/27）+ **重洗 3/3**（45/29/46 次掷点后逐张）+ 生产接线 `ExamDrawPlan → ExpectState.known_draw/discard_order` **36/36 手牌、29/29 known_draw**；**外部独立验证（F0）：官方 gkbench 384 组开发种子 `check.hand` → 366/384=95.3% 精确、97.4% 逐张（選抜 100%；剩余 18 组全是考试开始加卡机制，非洗牌错误）**；差 T3 真机实时验收 |
 | **hiro** | 无 seed/牌序途径（LLM + 规则/搜索） |
+| **auto-gakumas** | 无 seed/牌序途径（**纯视觉扫库**： idol 选择长按 + 開始確認詳細滚动扫出牌组/P 道具/回忆词条）→ 特征对牌序置换不变 + ISMCTS determinization |
 | **QQ 群** | seed 反推已做出（2^31 枚举+观测剪枝），但**自己定规矩实战不用**；MITM/RNG 讨论 11-21 深夜才刚起，尚未复现牌堆重建+洗牌+决策全链路 |
 | **官方 AI** | 私有原生引擎能看真实局面/牌序，但**不可迁移**（gkbench 托管只能用公开信息） |
 
@@ -56,8 +59,8 @@ B3 补的是"模拟器回合规则与真机对齐"（每回合基础 1 张 + 跳
 
 | 维度 | 我们 | 别人 |
 |---|---|---|
-| 机件覆盖 | B3 已把回合规则对齐真机（每回合 1 张 + 自动结束回合 + 跳过回 2 体力 + 取整）；**B4 把审查倍率对齐客户端真实公式（分段折线 + 审查基准联动惩罚 + 单精度取整）并让生产读屏幕真实倍率**；**B5 实现熱意独立资源 + 温存解除（+5/+8 熱意、固定元気+5、+1 出牌次数、回合末清零/延長）**；**B7 把 P 道具 catalog 补到上游 1115 件、gkbench 未知 id 清零**；**B8 做了 P 道具条件/效果语义第一批**（新语法 trigger id 结构化解析、依赖换算「X 的 N% 数值变为 Y」、固定/百分比体力、`turn_start_after`/`turn_interval`/`status_gain_interval`/`stance_change`/`stamina_reduce` 五类新触发；数据层 **676/1849 段**、gkbench **59/153 段**；greedy 配对 A/B **+225.2（CI[+86.7,+363.6]）**）；仍缺 P 道具**持续倍率/modifier 类效果**、指定卡名/手牌映射（trigger 未知 103 件保守跳过）/回忆/附魔/选牌/减益、fresh buff（T5 剩余） | 官方 AI / 群论文最全（但私有/原生） |
-| 工程可靠性 | **1067 条测试全绿（1067 passed / 1 skipped，1068 收集 / 77 文件）**、离线评测可复现；真机可靠性（C1：防卡/互验/自动复盘）未做 | hiro：120 模块 / 600+ 测试 / 互验 + 自动复盘页（比我们强） |
+| 机件覆盖 | B3 回合规则对齐真机；B4 审查倍率客户端公式；B5 熱意+温存解除；B7 P 道具 catalog 1115 件/gkbench 未知 id 清零；B8 条件/效果语义第一批；**B9 持久倍率/modifier（20 类 target/369 段）**；**B10 生成卡确定式 + 指定卡名/手牌张数映射**（card_meta idol_unique 参考交叉 340/342 零误报、play_filter 234 件/zone_count 27 件、触发未知 **103→3 件**、数据层 **1042/1849 段**、greedy A/B **+797.5（+20.76%，CI[+399.0,+1250.1]）**）；仍缺**回忆/附魔**、随机生成卡 RNG、hold 保留区、fresh buff（T5 剩余） | 官方 AI / 群论文最全（但私有/原生）；**auto-gakumas**：AST 执行 DSL 四区守恒 + 费用修正 + P 道具触发 + **回忆 Stage 级限 1**（我们缺的它有）；但无审查倍率分段/熱意独立资源的公开证据 |
+| 工程可靠性 | **1154 条测试全绿（1154 passed / 1 skipped，1155 收集 / 79 文件）**、离线评测可复现；真机可靠性（C1：防卡/互验/自动复盘）未做 | hiro：120 模块 / 600+ 测试 / 互验 + 自动复盘页（比我们强）；auto-gakumas：298 测试 + Watchdog/防卡死/完走停机（H.I.F 实机多次完走） |
 | 公开榜单 | **无提交**（ranked 禁 seed；全知路线不适用于榜单） | UIHorizon / UINet / 官方 AI 有公开排名 |
 
 ---
@@ -70,6 +73,7 @@ B3 补的是"模拟器回合规则与真机对齐"（每回合基础 1 张 + 跳
 4. **评价公式不同**：游戏培育评价点（C+/B/A…）≠ gkbench 原始分（÷oracle）≠ run12 的考试分（33,265/324,063）≠ 我们的 LessonSim 分数。
 5. **我们离线数字是模拟器**：B1/B2 全部在 `LessonSim` small 场景（14 张真实卡 / 5 回合），不是真机整局，也不是考试分。
 6. **对手数字会过期**：hiro/群/官方都在动，文档里的数字是"某天的快照"。
+7. **auto-gakumas 的 1.59M 是真机 H.I.F 本戦 2回戦原始分**（特定偶像/卡组/账号），与 gkbench 托管判官分（oracle 1.45M）、hiro 的 1.30M、我们的 LessonSim 离线分（B10 auto 4638）**四者互不可比**；其 simQ 1.55M vs 实机 T13 0.96M 也说明其模拟器偏乐观（同我们 B2 教师偏乐观负结果）。其算法只看 UI（无 seed），**理论上可交 gkbench ranked**——后续关注是否提交。
 
 ---
 
@@ -113,10 +117,22 @@ B6 T5③ P 道具数据接入 ✅（loadout produce_item_ids → PItemSpec；exa
 B7 T9 P 道具 47 条补全 ✅（p_items.json 1068→1115，含 gkbench 11 个未知 id → 83 已知/0 未知；
     结构来自 gkumasu-diff yaml、中文描述缺失处日文+显式标记、条件未知段保守不触发；
     A/B greedy 仍 +128.9 [+9.5,+248.4]）
+B8 T5④ 条件/效果语义第一批 ✅（数据层 676/1849；greedy A/B +225.2）
+B9 T5④ 持久倍率/modifier 第二批 ✅（20 类 target/369 段；数据层 1025/1849；greedy A/B +110.3）
+B10 T5 剩余①② 生成卡确定式 + 指定卡名/手牌张数映射 ✅（触发未知 103→3；数据层 1042/1849；
+    greedy A/B +797.5（+20.76%，CI[+399.0,+1250.1]）；pytest 1154/1）
 → 阶段 C 可靠性 / D 数据
 → 阶段 E 真机：T3 实时全知 → T1 整局验收 → T2 三引擎 A/B
 → 阶段 F gkbench public-safe 适配器（ranked 禁 seed，只交不看牌序的算法）
 ```
+
+> 本会话（2026-11-23）：基线全绿 + **B10 / T5 剩余①②**（生成卡确定式 + 指定卡名/手牌张数
+> 映射；card_meta idol_unique 参考交叉 340/342 零误报；触发未知 103→3 件、条件未知 6→0；
+> 数据层 **1042/1849 段**；greedy A/B **+797.5（+20.76%，CI[+399.0,+1250.1]）** / expectimax
+> +801.1（CI[+66.3,+1697.9]）；38 条新测试，全量 pytest **1154/1（1155 收集 / 79 文件）**；
+> 基线 ①③④⑤ 不变）+ **外部情报 auto-gakumas**（[AUTO_GAKUMAS_NOTES](AUTO_GAKUMAS_NOTES.md)：
+> Android ADB + 每战在线 PPO + SO-ISMCTS，H.I.F 本戦实机 2回戦 1.59M；无许可证只参考；
+> 回忆限 1/干劲守卫/饮料门控为可吸收候选）。见 [HANDOVER 二·补三十三/三十四](HANDOVER.md)。
 
 > 本会话完成：基线全绿 + **T9-B7**（P 道具 catalog 1115 件 / 1849 段、gkbench 未知 id 清零）
 > + **T9-C0**（采集/更新断链排障判据进 TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 自检 8 步）
@@ -155,3 +171,4 @@ B7 T9 P 道具 47 条补全 ✅（p_items.json 1068→1115，含 gkbench 11 个�
 | 官方 AI | [OFFICIAL_AI_NOTES.md](OFFICIAL_AI_NOTES.md)、[README §5](../README.md) | 11-19 ~ 11-21 |
 | gkbench 公开口径 | [GKBENCH.md](GKBENCH.md)（API/参考分/批量下载）、[QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md)、`data/bench_repo`（MIT 本地克隆） | 11-22（API 抓取） |
 | gkbench 官方种子核对（F0） | `scripts/verify_gkbench_shuffle.py`（384 组 check.hand）、[GKBENCH.md §4.5](GKBENCH.md) | 2026-11-22 |
+| auto-gakumas | [AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md)（GitHub API 公开 README/交接/manifest/树/扫库样例；未运行未拷贝） | 2026-11-23（仓库 11-22 创建） |

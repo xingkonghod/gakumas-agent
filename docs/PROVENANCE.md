@@ -65,6 +65,7 @@ flowchart LR
 | 信息论口径（seed 空间/观测收敛） | QQ 群「初星学园情报处理部」公开讨论（匿名） | 仅用作背景口径；我们的收敛是逐回合手牌核对 |
 | 档位效用/期望搜索 | 通用决策理论 + 自研公式 | `EXPECTIMAX.md` |
 | 结算公式/排期 | 社区 wiki、gakumas-tools、leafierlemon 模拟器口径 | 只对口径，代码自写（`RULES_REFERENCE.md`） |
+| 回忆限 1 / 干劲经济守卫 / 饮料门控（候选，未实现） | auto-gakumas 公开交接文档（无许可证，只参考） | 吸收前须用我们主数据（`MemoryAbility` 等）+ BSD-3 参考引擎语义重验；见 [AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md) |
 | 考试属性倍率（审查倍率：分段折线 + 联动惩罚） | 客户端行为：gakumas-tools（BSD-3）`typeMultipliers.js` 同结构公式；hiro-gakumas-hero（AGPL，本地参考）`gakumas_produce/attributes.py` 的客户端反编译还原实现 | **按语义重写** `sim/exam_multiplier.py`（自写 f32/ceil/归一化），数据来自主数据表；**未拷贝 AGPL 代码**（见 RULES_REFERENCE §5.1/许可） |
 | 官方 AI 启发式（H1–H10） | gkbench `algos/official_ai.py`（MIT） | 阅读笔记（`OFFICIAL_AI_NOTES.md`），对照而非搬运 |
 | 工程原则（分层/纯函数/预算下一帧） | hiro-gakumas-hero（AGPL-3.0）视频/仓库笔记 | 只学原则，**未拷贝代码**（ADR-007） |
@@ -82,6 +83,7 @@ flowchart LR
 | MaaGakumasu | https://github.com/SuperWaterGod/MaaGakumasu | 见仓库 | 早期集成适配（`integrations/`），未复制其资源 | 本项目最终独立成栈 |
 | GakumasUnlock | 本机副本 `C:\GakumasLocal\GakumasUnlock` | 社区工具（未核实） | 否（只在本机运行） | MITM 代理/一键启动，**不入库** |
 | hiro-gakumas-hero | 见 [HIRO_VIDEO_NOTES.md](HIRO_VIDEO_NOTES.md) | **AGPL-3.0** | **否** | `data/hiro/` 只做参考，不入库；ADR-007 clean-room |
+| auto-gakumas（tactfullotto） | 见 [AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md) | **无许可证**（README 仅「Research / personal use」，默认版权保留） | **否（禁止拷贝代码/数据库/图鉴）** | 2026-11-23 外部情报：Android ADB + 每战在线 PPO + SO-ISMCTS；算法/规则描述只作候选思路，吸收须用我们主数据 + BSD-3 参考引擎重验 |
 | gakumas-tools / wiki / leafierlemon | 社区站点/项目 | 见各自 | 否 | 公式/排期口径对照 |
 | UIHorizon / UINet | gkbench 算法 | 见 gkbench | 否 | 外部榜单数字作为参照 |
 | 官方 AI | `gkbench/algos/official_ai.py` | MIT | 否（阅读笔记） | 启发式对照 |
