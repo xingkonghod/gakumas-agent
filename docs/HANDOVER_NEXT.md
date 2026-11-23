@@ -161,7 +161,8 @@
              重采 26,500 beam 全知叶子样本（纯分数标签、不加 PBRS 塑形）→ MLP val r²=0.906/MAE 7.0；
              确认段 120 局 unknown beam 94.9→learned **87.7（−7.2 CI[−9.5,−5.0]）** / known −11.5 /
              ensemble 0.75 中性；σ×2/×4 更差（μ 排序本身有害）。**生产 leaf_model 保持关闭、
-             beam 默认解析式叶子、T2 候选去掉 learned leaf**；模型文件替换为新口径。
+             beam 默认解析式叶子、T2 候选去掉 learned leaf**；重训候选保留 out/，tracked 模型
+             按用户指定回退旧版；下一步先诊断 μ 排序根因再定重训变量。
              pytest **1155/1（1156 收集 / 79 文件）**；基线 ①③④⑤ 不变。
              见 EXPECTIMAX「B2 重训（B2-R）」/ HANDOVER 二·补三十四。
 当前最高优先：**T5 剩余**（B10 已完成生成卡确定式/指定卡名映射；剩 ExamBuffConsumptionAdd 保持 no-op /
@@ -499,8 +500,9 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
   auto-gakumas −26,884 负结果同向）→ MLP 104→96→48 val r²=0.906 / MAE 7.0 / σ=11.1。
 - 确认段 120 局：unknown beam 94.9→learned **87.7（−7.2 CI[−9.5,−5.0]）** / known −11.5 /
   ensemble 0.75 中性；within_learned −19.9；σ×2/×4 更差（μ 排序本身有害，非校准）。
-- **处置**：生产 leaf_model 默认关闭不变；beam 默认解析式叶子；模型文件替换为新口径
-  （旧版 git 历史保留）；不做第二轮迭代/档位头（已知负结果）；large 重采需先更新特征（预算外）。
+- **处置**：生产 leaf_model 默认关闭不变；beam 默认解析式叶子；重训候选保留 out/，
+  tracked 模型按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；先诊断 μ 排序根因再定重训变量；
+  不做第二轮迭代/档位头（已知负结果）；large 重采需先更新特征（预算外）。
 
 **改哪儿**：`src/gkagent/sim/expectimax.py`（leaf）、`src/gkagent/sim/v_leaf.py`、`src/gkagent/sim/leaf_mlp.py`、`data/knowledge/b2_leaf_mlp_small.json`、`scripts/eval_*.py`
 **验收（DoD）**：B1 已交（60 局配对 + EXPECTIMAX 更新 + 单测）；**B2 已交**（学习叶子配对增益
@@ -837,7 +839,9 @@ known 96.8→85.3（−11.5 ❌）/ ens 0.75 −0.5/−0.6（中性）；within_
 σ 敏感性：learned σ×2/×4 → −9.0/−12.1（更差）→ μ 排序本身有害，非 σ 校准。
 **结论/处置**：B2 DoD 走「可复现负结果 + 结论」分支达成；口径对齐消掉大部分伤害（−26~−28→−7）
 但未转正；**生产 leaf_model 保持默认关闭、beam 默认解析式叶子、T2 真机 A/B 候选去掉 learned leaf**；
-`data/knowledge/b2_leaf_mlp_small.json` 替换为重训新口径模型（旧版 git 历史保留）。
+`data/knowledge/b2_leaf_mlp_small.json` **按用户指定回退为旧版**（重训候选保留
+`out/b2r_leaf_mlp_small.json`，gitignore；两版都 FAIL、生产关闭故行为无差）；下一步先诊断
+μ 排序有害根因（信息条件漂移假设）再定重训变量。
 不做：第二轮专家迭代/档位头（B2 已知负结果）、large 重采（预算外，需先更新特征）。
 备选路线：auto-gakumas 每战在线 PPO 自适应（需真机/独立副本，先问用户）。
 测试/基线：ruff 通过；全量 pytest **1155/1（1156 收集 / 79 文件）**；① 4/4+3/3、③ 86/86+24/24、

@@ -344,7 +344,8 @@ B9 auto——触发映射+次数口径修正；确定式生成卡不在 hif load
 （纯分数标签、**不加 PBRS 塑形**，auto-gakumas −26,884 负结果同向）→ MLP 104→96→48
 （val r²=0.906 / MAE 7.0）；**确认段 120 局 unknown beam 94.9→learned 87.7（−7.2 CI[−9.5,−5.0]）/
 known −11.5 / ensemble 0.75 中性**；σ×2/×4 更差（μ 排序本身有害）。**生产 leaf_model 保持关闭、
-beam 默认解析式叶子、T2 候选去掉 learned leaf**；模型文件替换为新口径（旧版 git 历史保留）；
+beam 默认解析式叶子、T2 候选去掉 learned leaf**；重训候选保留 out/，tracked 模型按用户指定
+回退旧版（两版都 FAIL、生产关闭故行为无差）；下一步先诊断 μ 排序根因再定重训变量；
 `test_b2_leaf.py` 12 条，全量 pytest **1155 passed / 1 skipped（1156 收集 / 79 文件）**，
 基线 ①③④⑤ 不变。细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）**、F 数据已下；

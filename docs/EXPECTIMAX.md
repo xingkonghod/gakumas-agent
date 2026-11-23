@@ -1099,9 +1099,12 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
   跨回合比较里的权重被放大（排错没有后续出牌机会补救）；解析式叶子的「均卡分 × 剩余回合
   + 好印象年金 + σ=60 档位平滑」在短 horizon 下比 teacher-return 蒸馏更接近真实后续价值；
   全知 teacher 的 return 对 unknown 执行系统性偏乐观（B2 within 负结果的根因）这次在 beam 上也显现。
-- **处置**：生产 `leaf_model` **不打开**（默认 None 不变）；`data/knowledge/b2_leaf_mlp_small.json`
-  已替换为**重训后新口径模型**（旧模型是作废的 3 张口径数据、严格更差；git 历史保留旧版）。
+- **处置**：生产 `leaf_model` **不打开**（默认 None 不变）；**重训模型候选保留在
+  `out/b2r_leaf_mlp_small.json`（gitignore）；tracked `data/knowledge/b2_leaf_mlp_small.json`
+  按用户指定回退为旧版**（2026-11-23；两版都 FAIL、旧版更差 −26~−28，生产关闭故行为无差）。
   beam 默认 = 解析式叶子；T2 真机 A/B 的候选里**去掉 learned leaf**，保留 beam+全知/tiebreak。
+  **下一步：先诊断 μ 排序有害的根因（信息条件漂移假设：known teacher 标签对 unknown 执行
+  系统性偏乐观且随状态变化），再定重训变量**（见 HANDOVER_NEXT §8 B2-R 交接）。
 - **不做（预算/已知负结果）**：第二轮专家迭代（B2 历史：未超第一轮）、档位概率头
   （B2 历史：灾难性 −42~−46）、large 场景重采（本模型是 small 5 回合分布；真机考试 9–12 回合，
   将来若再走学习叶子路线，需 large 数据 + 特征更新（熱意/score_buffs/modifier）先行）。

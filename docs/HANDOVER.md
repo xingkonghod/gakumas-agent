@@ -1755,9 +1755,11 @@ HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；INDEX；本文件二·补三十三
 
 **结论**：数据口径对齐消掉大部分伤害（−26~−28 → −7），但**学习叶子在 B3 每回合 1 张规则下
 仍显著负**；ensemble 0.75 中性。**生产 `leaf_model` 保持默认关闭；beam 默认 = 解析式叶子；
-T2 真机 A/B 候选去掉 learned leaf**。`data/knowledge/b2_leaf_mlp_small.json` 替换为重训后
-新口径模型（旧模型作废且严格更差；git 历史保留）。假设（未证明）：1 张/回合放大叶子排序权重、
-解析式短 horizon 近似更准、全知 teacher return 对 unknown 执行偏乐观。不做：第二轮专家迭代 /
+T2 真机 A/B 候选去掉 learned leaf**。**重训候选保留 `out/b2r_leaf_mlp_small.json`（gitignore）；
+tracked 模型文件按用户指定回退为旧版**（2026-11-23；两版都 FAIL、旧版更差，生产关闭故行为无差）。
+假设（未证明）：1 张/回合放大叶子排序权重、
+解析式短 horizon 近似更准、全知 teacher return 对 unknown 执行偏乐观。**下一步：先诊断 μ 排序
+有害根因再定重训变量**。不做：第二轮专家迭代 /
 档位头（B2 已知负结果）、large 重采（需先更新特征，预算外）。备选路线：auto-gakumas
 每战在线自适应（需真机/独立副本，先问用户）。
 
