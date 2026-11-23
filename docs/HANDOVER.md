@@ -2380,7 +2380,7 @@ engine=net 默认行为不变；r10 保留 `out/ei_r10_v10_mix.json`（不作 sp
 **文档**：EXPECTIMAX B11 r10；R9_ANALYSIS §8（预测 vs 实测）；WORKPLAN §0/B11/开场白；
 HANDOVER_NEXT 开场白/§0/§2 期望值（1306→1318）/§4 T2 第四臂/§8；INDEX；本文件二·补四十三。
 
-**提交**：feat `<哈希见七>`（开关代码+测试+文档）+ docs(handover) 哈希记录（本节）；
+**提交**：feat `ceb63ac`（开关代码+测试+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -2603,6 +2603,9 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 B11 r10 哈希记录：feat ceb63ac；下一候选先问用户，见 HANDOVER_NEXT §8）
+（2026-11-23 B11 r10（用户选定；按场景 std 归一化，单变量=归一化口径）：train_ei_policy --norm-by-scenario 纯增量（store_true 默认关=逐位不变：改前/改后 4 参照 sha256 一致——单文件 3 个与 r9 参照相同 28efed56…/b43dc14d…/e668547c… + 多文件全局 std 新 golden c5d48db7…；多文件自对弈各文件按自身 std（加载时全量文件口径，下采样之前），scenario 取 npz meta.args.scenario（缺失 unknown），mix 记 norm_by_scenario/scenario_std、selfplay_adv_std=None，multi_file 补 norm_std；单文件路径/demos 不受影响；X 侧 mean/scale 逐位不变）；复用 r9 数据 320675 行重训（192×96/1200ep/0.15 全同 r9；small std 12.2115 / large 24.0878 vs 全局 18.7065），能量份额实测 small 20.9%→49.0% / large 70.9%→42.7% / demos 8.2%（R9_ANALYSIS §6 预测吻合），val 排序 0.823，2047.9s（OPENBLAS_NUM_THREADS=8）；参照臂与 r9 JSON 逐位一致（small500 v6/beam、large500 v6/beam/greedy 全 500 局；large 前 120 水位 291.6083/305.3417/212.4083、v1 277.2417 复现）；large500 r10 314.9 vs v6 285.8：+29.1 CI[+25.8,+32.3] PASS，vs beam +13.6 CI[+10.3,+16.9] 仍超（CLEAR 62.4% vs 50.6%），新鲜块 6000 +23.0，池化 620 +27.9，r10−r9 同 seed −0.53 CI[−1.64,+0.57] 中性 → 增益保持；small500 r10 98.38 vs v6 98.64：−0.256 CI[−0.500,−0.012] 仍显著回退（r9 −0.42 收窄 39%；选择段 −0.34 中性，池化 580 −0.267 同显著；vs v1 原门恢复 +0.322 CI[+0.032,+0.612]；CLEAR 12.2%==v6）→ 复合门未过不入库（_r10_promote.py 程序化校验退出码 1），生产 ei_policy_v6.json 保持 r6 权重（sha256 33a80981… 未动），r10 留 out/ei_r10_v10_mix.json；不硬凑显著（−0.012 离 0 近但判据是 CI 上界≥0）；结论=归一化修复有效但不充分（输入侧场景漂移仍在，R9_ANALYSIS §8 证实）；下一候选 r11 叠加 small 上采样（先问用户）；12 条新单测（含默认 golden 锚 + 能量份额），pytest 1318/1（1319 收集 / 89 文件，225.05s），基线 ①③④⑤ 不变）
+ceb63ac feat(b11): r10 按场景 std 归一化——train_ei_policy --norm-by-scenario（默认逐位不变）+ r9 数据重训：small 回退收窄 39% 但仍显著（−0.256 CI 上界 −0.012）、large 增益保持（+29.1 超 beam）→ 复合门未过不入库；12 测试，pytest 1318/1（1319 收集/89 文件）
 （2026-11-23 B11 r9 解释报告（用户「先研究一下给一个解释报告」）：docs c8ba467——R9_ANALYSIS.md 证据链（信号能量 small 91.8%→20.9% / 输入场景维度重映射 / 决策行为 small 96.2% 一致 vs large 59.8%、方向相反）+ 修复预测（按场景 std → small 能量 ~49%）；探针 data/_r9_behavior_probe.py 不提交）
 c8ba467 docs(b11): r9 解释报告——small 回退机制（信号能量 91.8%→20.9% + 输入场景维度重映射 + v1 拉扯）与修复预测（按场景 std）
 （2026-11-23 B11 r9-large 哈希记录：feat 39c289b；下一候选见 HANDOVER_NEXT §8）

@@ -1054,7 +1054,7 @@ CI 上界 ≥ 0，差一点也是没过；池化 580 同样显著负，未换段
 `ei_r10_eval_v10_{large500,small500,small_select,large_fresh6000}.json`。
 文档：EXPECTIMAX B11 r10；R9_ANALYSIS §8（预测 vs 实测）；WORKPLAN §0/B11/开场白；
 HANDOVER_NEXT §0/§2/§4 T2/§8/开场白；INDEX；HANDOVER 二·补四十三。
-提交 `feat <哈希见 HANDOVER 七>`（开关代码+测试+文档）+ docs(handover) 哈希记录。
+提交 `feat ceb63ac`（开关代码+测试+文档）+ docs(handover) 哈希记录。
 **下一候选（先问用户）**：r11 叠加 small 上采样（R9_ANALYSIS §6 候选②，能量 →~66%，
 与①叠加；若仍差再考虑教师←v6 消通道 3）/ 继续降档（教师←v6、15→0）/ 收 loop 转 T7 剩余 /
 D1 补采集 / E0 实验 / 直接阶段 E 真机（T3→T1→T2，T2 已含 net 第四臂 + r9 large specialist）。
