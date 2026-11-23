@@ -1142,7 +1142,7 @@ small 牌组无全力值卡（全力规则零触达）、large 冲刺全力值 1
 _p1_probe*.py 不提交。
 文档：RULES_REFERENCE §0/§1/§2/§5.2/§5.4/§6/§7；R9_ANALYSIS §9；WORKPLAN §0/P1-1/开场白；
 HANDOVER_NEXT §0/§2/§4/§8.0/§8/开场白；INDEX；HANDOVER 二·补四十四；EXPECTIMAX B11 r10 注记。
-提交 `feat <hash>`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
+提交 `feat f430451`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
 **下一会话（P1-2，用户已确认 A 顺序，不用再问）**：④ handDecrease 抽牌修正
 （TurnManager.startTurn cardsToDraw=max(3−handDecrease,0)；来源 ExamHandDecrease 类效果/
 P 道具，BSD-3 有据才做）⑤ pride 自尊（resolveScore f：min(好印象,やる気)×0.02 上限+0.5；
