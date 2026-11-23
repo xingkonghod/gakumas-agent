@@ -2,12 +2,12 @@
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
-> 新会话第一句话（紧凑版，2026-11-23 B11 r9-large 后更新；完整版见 WORKPLAN「新会话开场白」）：
+> 新会话第一句话（紧凑版，2026-11-23 B11 r9-large + 解释报告后更新；完整版见 WORKPLAN「新会话开场白」）：
 > 「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → docs/WORKPLAN.md →
 > docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1306/1，1307 收集 / 88 文件；①③④⑤ 同 B10 口径），不绿先修。
-> Hindsight 本地记忆已启用（先 hindsight_sync_status / search_pages 确认）。下一候选先问我：
-> r10 按场景 std 归一化（修 r9 small 回退、保 large 增益，进 F 前必须）/ 继续降档（教师←v6、15→0）/
-> 收 loop 转 T7 剩余 / D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂 + r9 large specialist）。
+> Hindsight 本地记忆已启用（先 hindsight_sync_status / search_pages 确认；r9 结果与诊断见
+> EXPECTIMAX B11 r9-large + R9_ANALYSIS.md）。本会话任务（用户已选定，不用再问）：
+> B11 r10 按场景 std 归一化（修 r9 small 回退、保 large 增益；做法/门/预测见 §8 下一会话安排）。
 > 规则见 §4 硬约束。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
@@ -1033,6 +1033,27 @@ INDEX；HANDOVER 二·补四十二。提交 `feat 39c289b`（多文件代码+测
 **下一候选（先问用户）**：r10 按场景 std 归一化（修 small 回退、保 large 增益，进 F 前必须）/
 继续降档（教师←v6、15→0）/ 收 loop 转 T7 剩余 / D1 补采集 / E0 实验 /
 直接阶段 E 真机（T3→T1→T2，T2 已含 net 第四臂 + r9 large specialist）。
+**用户已选（2026-11-23 晚，看完解释报告后）：r10 按场景 std 归一化**。
+
+**下一会话安排（2026-11-23 晚用户选定：B11 r10 —— 按场景 std 归一化，修 r9 small 回退）**：
+- **前置**：§2 基线（期望 ② **1306/1**，1307 收集 / 88 文件）；r9 数据/模型齐全在 out/
+  （`ei_r5_selfplay.npz` / `ei_r9_selfplay_large.npz` / `ei_r4_demos.npz` / `ei_r9_demos.npz` /
+  `ei_r9_v9_mix.json`）；解释报告 [R9_ANALYSIS.md](R9_ANALYSIS.md)（证据链 + 修复预测）；
+- **做法（纯增量，默认逐位不变 + 回归测试）**：`train_ei_policy` 加开关（如
+  `--norm-by-scenario`，默认关）：多文件拼接时**各文件按自身 std 归一化**（scenario 取
+  npz meta.args.scenario；单文件路径不受影响）；mix/meta 记逐场景 std。用 r9 同数据配方
+  重训 r10（320675 行 / 192×96 / 1200ep / 0.15 / `OPENBLAS_NUM_THREADS=8`，~31min）；
+  **无需新采集**（复用 r9 数据，单变量=归一化口径）；
+- **门（同 r3–r8 修正协议）**：large500（3000–3499）r10 vs v6 显著正 **且** small500
+  不回退（vs v6 CI 上界≥0，且 vs v1 原门保持）→ 双过入库替换 `ei_policy_v6.json`
+  （meta 补溯源；`data/_r9_promote.py` 门校验脚本改 r10 复用）；不过门如实记录，不硬凑；
+- **预测（R9_ANALYSIS §6，代理估算，以实测为准）**：small 能量 20.9%→~49%、large
+  70.9%→~43% → 大部分 small 回退修复、large 增益可能略缩但仍强；若 small 仍显著回退
+  → r11 叠加 small 上采样（先问用户）；
+- **参照臂**：beam 305.3 / v6 291.6 / v1 277.2 / greedy 212.4（large 前 120，seed 3000–3119）；
+  small v6 98.6 / v1 98.1（500 局 3000–3499）；评测须无训练负载（beam 墙钟预算）；
+- 规则见 §4 硬约束（SKIP 只在真没体力；禁静默回退 rules；一次会话只做 1 个任务）。
+  完成后按 §8 交接：更新文档 + feat 提交 + docs(handover) 哈希提交，下一候选先问我。
 
 **上一轮交接记录（2026-11-23，B11 v6 生产接线 —— engine=net opt-in，默认逐位不变）**：
 开工基线 ①–⑤ 全绿（HEAD 3699403，② 1273/1、1274 收集 / 86 文件，202.74s）；
