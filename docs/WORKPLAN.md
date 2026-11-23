@@ -1,9 +1,10 @@
 # 总作战计划（2026-11-22 起，新会话照此执行）
 
 > 用户定的顺序：**先把所有离线工作全部做完 → 再跑真机 → 最后去 gkbench 比算法**。
+> **2026-11-23 晚用户确认多会话路线图（A 顺序）：阶段1 离线补未知 → 阶段2 重采+练学生+新旧对比 → 阶段3 真机 → 阶段4 gkbench → 阶段5 收尾；每会话 1–3 任务，旧学生/老师数据模型全保留——逐项队列见 [HANDOVER_NEXT.md §8.0](HANDOVER_NEXT.md)（旧路线图未完成项已全并入）。**
 > 本文件是唯一的总清单；具体任务细节在 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)、
 > [GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md)、[EXPECTIMAX.md](EXPECTIMAX.md) 等文档里。
-> 新会话开场：`读 docs/INDEX.md → docs/WORKPLAN.md → docs/HANDOVER_NEXT.md §2 跑基线 → 按 WORKPLAN 顺序做`。
+> 新会话开场：`读 docs/INDEX.md → docs/WORKPLAN.md → docs/HANDOVER_NEXT.md §2 跑基线 → 按 §8.0 路线图做`。
 
 ---
 
@@ -889,10 +890,13 @@ r9 留 out/ 作 large specialist）；诊断假设=全局 std 稀释 small 信�
 仍显著回退（收窄 39%，vs v1 原门恢复）→ 复合门未过，不入库**（生产保持 r6；r10 留 out/）；
 归一化修复有效但不充分（输入侧场景漂移仍在）；pytest 1318/1（1319 收集 / 89 文件）；
 见 EXPECTIMAX B11 r10 / R9_ANALYSIS §8 / HANDOVER 二·补四十三。
-**下一候选（先问用户）**：r11 叠加 small 上采样（R9_ANALYSIS §6 候选②，能量 →~66%，修剩余
-small 回退，进 F 前必须）/ 继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/
-自动复盘页）/ D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂，large A/B 可加 r9 specialist 臂）。
-→ 阶段 D（补采集）离线准备 → 真机 T3→T1→T2（含 E0 实验）
+**下一会话起按多会话路线图推进（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）**：
+阶段1 离线补未知（T5 剩余规则：全力回合额外次数/保留牌/のんびり/handDecrease/pride/hold/buff-cost/
+P 道具语义 + T7②③ 纯函数状态重放/自动复盘页；r10 行为探针）→ 阶段2 重采+练学生 r11（small 上采样，
+small+large 双过入库）+ **新旧对比（旧学生/老师数据模型全保留不覆盖，新批练出来再比）** →
+阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收）→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。
+**每会话 1–3 任务（小任务合并），开新对话做；旧路线图未完成项已全并入 §8.0**。
+需真机数据的建模缺口（考试 RNG 流/fresh buff/附魔/真机 P 道具列表）留阶段3。
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看
 可观测状态，是未来 public-safe 候选，**r9/r10 large 已超 beam 但 small 仍回退，须 small+large
 双过才进 F**）。

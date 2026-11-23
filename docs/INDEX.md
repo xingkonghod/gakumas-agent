@@ -439,11 +439,11 @@ vs 全局 18.7065）；能量份额 small 20.9%→49.0% / large 70.9%→42.7%（
 v6 生产接线完成（engine=net opt-in，T2 第四臂）+ r9-large 完成（large 首超 beam，small 回退 →
 复合门未过不入库）+ r10 完成（按场景归一化，small 收窄 39% 仍显著、large 保持 → 仍未入库）**、
 F 数据已下；
-下一步 **先问用户选候选**：r11 叠加 small 上采样（修剩余 small 回退，进 F public-safe 前必须）/
-继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 /
-E0 实验（T9 只剩 E0，需真机独立副本）/ 直接阶段 E 真机（T2 已含 net 第四臂 + r9 large specialist）；
-T5 剩余（随机生成卡 RNG / `ExamBuffConsumptionAdd` 保持 no-op /
-hold 保留区 / fresh buff 差一回合需真机截图）均低价值或需真机/补采 → 真机 T3→T1→T2 →
-F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看可观测状态，
-是未来 public-safe 候选，**r9/r10 large 已超 beam 但 small 仍回退，须 small+large 双过才进 F**）。
+下一步 **按多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）：
+阶段1 离线补未知（T5 剩余规则 + T7②③ + r10 行为探针）→ 阶段2 重采+练学生 r11（small 上采样，
+双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
+→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。
+需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / hold 保留区 / fresh buff /
+附魔 / 真机 P 道具列表）留阶段3 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；
+B11 学生网只看可观测状态，是未来 public-safe 候选，**r9/r10 large 已超 beam 但 small 仍回退，须 small+large 双过才进 F**）。
 细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五/二·补三十六/二·补三十七/二·补三十九/二·补四十/二·补四十一/二·补四十二/二·补四十三 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
