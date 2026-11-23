@@ -2124,8 +2124,8 @@ v1 11.7% / beam 10.8%；large 确认段 v2 26.7% / v1 36.7% / beam 53.3%。
 **文档**：EXPECTIMAX B11 第 2 轮；WORKPLAN §0/B11/开场白；HANDOVER_NEXT §0/§2 期望值
 （1251→1266）/§8/开场白；INDEX；本文件二·补三十九。
 
-**提交**：feat（代码+测试+文档，哈希见下条记录）+ docs(handover) 哈希记录（本节）；
-见 [七、最近提交记录](#七最近提交记录)。
+**提交**：feat `e307fc6`（代码+测试+文档）+ docs(handover) 哈希记录（本节），
+开工基线复核 `c25509d`；见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
 
@@ -2347,6 +2347,11 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 B11 第 2 轮哈希记录：feat e307fc6 + 开工基线复核 c25509d；下一候选见 HANDOVER_NEXT §8）
+（2026-11-23 B11 渐退式专家迭代 第 2 轮（用户选定，纯增量代码+单测）：教师←v1（--teacher-net 逐决策示范 5773 样本，教师 SKIP 剔除恒 0）+ 门基线←学生（--baseline-net）+ --round；v1 自对弈 14526 优势样本（seed 300000+）→ v2 85/15（17089 样本，占比精确 0.150）+ 消融 v2_bc（纯自蒸馏）；small 确认段 120 局 v2 97.9 vs v1 97.5：+0.4 CI[−0.4,+1.2] → CONTINUE（平台期，选择/确认/稳健 4000/新鲜块 5000 四段全中性）；消融 v2−v2_bc=+0.54 CI[−0.40,+1.48] on-policy 仍未独立证明；large 首测（31 张/9 回合）：v1 比 beam −28.1 CI[−36.0,−20.2]（CLEAR 36.7% vs 53.3%），v2 比 v1 还略差（选择段 −14.8 显著）→ small 训练不泛化 large；绝对水位 v2−beam small +2.99 CI[+1.37,+4.62]；处置：占比不降（保持 0.15）、生产接线未做、T2 候选不变；15 条新单测，pytest 1266/1（1267 收集 / 85 文件），基线 ①③④⑤ 不变；② 首跑延迟守卫受游戏负载（TslGame）抖动、用户确认后继续、负载回落复跑全绿，未改门槛）
+e307fc6 feat(b11): 渐退式专家迭代第 2 轮——教师←v1（--teacher-net）+ 门基线←学生（--baseline-net）+ large 首测：平台期 CONTINUE（v2 +0.4 CI[−0.4,+1.2]），large 泛化缺口（v1 −28.1 vs beam）
+（2026-11-23 新会话开工基线复核：①②③④⑤ 全绿与 18:1x 逐项一致（② 1251/1，1252 收集 / 84 文件，281.87s），HEAD 8768296；§2 记复核戳）
+c25509d docs(handover): §2 记新会话开工基线复核（19:0x，HEAD 8768296，①②③④⑤ 全绿与 18:1x 逐项一致）
 （2026-11-23 环境：Hindsight 本地记忆 daemon 启用（用户指定，选本地 daemon+百炼 qwen）——serverMode daemon（9077，内嵌 PostgreSQL 18）+ mapPathToBank coding-agent::gakumas-agent；LLM qwen-plus / embeddings text-embedding-v4（DashScope 兼容端点，启动实测 200）/ reranker 本地 hs-rerank-1（hf-mirror）；用户环境变量持久化 HINDSIGHT_API_LLM_* + uv 清华镜像（修 PyPI 超时）；坑：DSH 常驻插件老会话客户端钉死旧配置须开新会话、bank 按会话工作目录解析、daemon 首启下载超 CLI 等待窗但进程继续；详见二·补三十八）
 15b736c docs(handover): Hindsight 本地记忆 daemon 启用记录（二·补三十八 / §2 环境前提 / §8 附带）——配置/验证/坑
 （2026-11-23 B11 哈希记录：feat e26387b + 开工基线复核 7689a2e；第 2 轮任务定义见 HANDOVER_NEXT §8）

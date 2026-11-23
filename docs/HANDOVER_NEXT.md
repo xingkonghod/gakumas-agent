@@ -966,7 +966,8 @@ large 配置/net 确定/重放优势/CLI 冒烟）；ruff 通过；全量 pytest
 `ei_r2_eval_v2bc_confirm.json`。
 文档：EXPECTIMAX B11 第 2 轮（结论先行/代码/数据训练/评测/处置风险/复现命令/测试基线）；
 WORKPLAN §0/B11/开场白；HANDOVER_NEXT §0/§2 期望值（1251→1266）/§8/开场白；INDEX；
-HANDOVER 二·补三十九。提交 feat（哈希见 HANDOVER 七）+ docs(handover) 哈希记录。
+HANDOVER 二·补三十九。提交 `feat e307fc6`（代码+测试+文档）+ docs(handover) 哈希记录；
+开工基线复核 `c25509d`（哈希另见 HANDOVER 七）。
 
 **上一轮交接记录（2026-11-23，B11 渐退式专家迭代 第 1 轮 —— policy/advantage 学生，确认段评测门 PASS）**：
 纯离线研究+代码任务（用户按「先问我」约定选定启动；一次会话 1 个任务 = 第 1 轮）。
