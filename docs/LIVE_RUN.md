@@ -36,6 +36,9 @@ schtasks /Run /TN GDEAgent
 5. **上次的局已收尾**：`data/agent_result.json` 里没有未完成的 ep；`data/auto/step_*.png` 最新时间戳距今 >10s。
 6. **记录开始时间**：`Get-Date -Format HH:mm:ss`，写进 `docs/RUNS.md`（每局要能回答"这局用了多少分钟、每个阶段多久"，
    用 `scripts/episode_report.py <ep>` 生成阶段分解）。
+7. **提权一致（C1）**：DMM 版游戏以管理员运行，**跑局终端也必须是管理员**——否则 Windows UIPI
+   静默丢弃点击（截屏正常、点击全落空）。`auto_produce` 启动会自查并在日志首行写 `[priv]`；
+   判 `blocked` 直接拒跑（exit 2 + `elevation-blocked` failure），按提示换管理员终端。
 
 ```powershell
 .venv\Scripts\python.exe scripts\check_wiring.py --live    # 配置接线 + 游戏窗口一次过
@@ -90,7 +93,21 @@ Get-ScheduledTask -TaskName GDEAgent | Select-Object State
 .venv\Scripts\python.exe scripts\calibrate.py
 
 # ③ 最终评价：截图 final_eval_ep-cplus3.png（或看游戏结算屏）
+
+# ④ 逐步复盘（C1）：每步点了哪/为什么/预算下一帧是什么/兑现了没有
+.venv\Scripts\python.exe scripts\replay_steps.py --episode ep-cplus3
+.venv\Scripts\python.exe scripts\replay_steps.py --episode ep-cplus3 --anomalies   # 只看 lost/failed/stuck
 ```
+
+**C1 日志/失败标记速查**（`data/auto_log_<ep>.log` + `data/failures.jsonl` + `data/step_trace.jsonl`）：
+
+| 标记 | 含义 | 怎么办 |
+|---|---|---|
+| `[priv] …blocked` / `elevation-blocked` | 游戏提权/本进程没有，点击会被 UIPI 丢弃 | 换管理员终端重跑 |
+| `[tap] retap …` | 上一击未生效，同坐标重试（≤2 次） | 偶发正常；密集出现查坐标/弹窗识别 |
+| `[tap][LOST]` / `tap-lost` | 重试预算用尽仍没生效 | 连续 3 次会主动停局；复盘该步截图+期望，修 root cause |
+| `drink-dialog-lost` | 饮料槽位点了 2 次对话没开 | 查槽位坐标 (75,1182)/提权；本课不喝 |
+| 局末 `[tap] confirmed=… retaps=… lost=… moved=…` | 本局 tap 互验汇总 | lost>0 逐条复盘 |
 
 ## 3. 回来要改什么
 
@@ -98,7 +115,7 @@ Get-ScheduledTask -TaskName GDEAgent | Select-Object State
 |---|---|
 | `calibrate.py` 给出真实 `周增长/得分` | `src/gkagent/sim/produce.py` 的 `lesson_gain_ratio` |
 | 期末名次/评价 | 复核 `exam_base`（现在 85/205，按真机标定） |
-| 某类界面卡住/空转 | `data/auto/auto_log_<ep>.log` 里 `[training]`/`[action]` 行 + 截图 |
+| 某类界面卡住/空转 | `data/auto/auto_log_<ep>.log` 里 `[training]`/`[action]` 行 + 截图；C1 起先跑 `replay_steps.py --anomalies` 看 lost/stuck 步的预算与理由 |
 | 出牌明显不合理 | 先看 `[training]` 行里的 `分数/体力` 是否读对，再动 `policy.json` |
 
 ## 4. 判定标准
@@ -114,3 +131,5 @@ Get-ScheduledTask -TaskName GDEAgent | Select-Object State
 3. daemon `shell` 有超时（默认 120s），跑整局必须 `--timeout 2400`。
 4. 从非主页起跑要加 `--skip-home`，否则会被 ensure_home 拽回主页打断编成。
 5. `policy.json` 的 lesson 参数是**真机默认值**；模拟器扫出的候选在 `policy_sim.json`，验证过再换。
+6. **游戏提权/本进程没有（C1 新增检查）**：症状是「截屏读得到、点击全落空、画面一动不动」，
+   根因是 UIPI 静默丢消息（GKMSMAA HIF-112 同根因）。启动自查 `[priv]` 会拦；手动跑局务必管理员终端。
