@@ -1997,6 +1997,50 @@ INDEX；本文件二·补三十七。
 **提交**：feat `e26387b`（代码+测试+文档）+ docs(handover) 哈希记录（本节），
 开工基线复核 `7689a2e`；见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补三十八、11-23（环境：Hindsight 本地记忆 daemon 启用——新会话有项目记忆了）
+
+**背景**：插件 `@vectorize-io/hindsight-coding-agents` 早已接进 DSH，但从未配置——默认指向
+Hindsight Cloud 而无 token，每次记忆调用 401（plugin.log 里 11-22 起全是 reflect failed）。
+用户指定「开一下 hindsight」，选定**本地 daemon + 百炼 qwen**（数据全留本机，与本项目
+「细节不公开/只私有存档」口径一致）。
+
+**落地配置**：
+- `~/.hindsight/coding-agent.json`（新建）：`serverMode: "daemon"` +
+  `mapPathToBank: { "D:\\Games\\gakumas-agent": "coding-agent::gakumas-agent" }`
+  （显式路由：会话从别的目录开也不串 bank）。
+- daemon：`hindsight-embed` 1.2.3（uvx），profile `coding-agent`，端口 **9077**，
+  内嵌 PostgreSQL 18（pg0，127.0.0.1:5432）；profile env 在
+  `~/.hindsight/profiles/coding-agent.env`（**含 API key，本机私有**），日志
+  `~/.hindsight/profiles/coding-agent.log`。
+- **LLM**：百炼 **qwen-plus**，provider=openai + BASE_URL=
+  `https://dashscope.aliyuncs.com/compatible-mode/v1`（key 取自 DSH 凭据库
+  `DASHSCOPE_API_KEY`，启动时连接验证 200 OK）；**embeddings**：百炼
+  **text-embedding-v4**（1024 维，200 OK，中文友好，避开 HF 下载）；**reranker**：
+  本地 hindsight-ai/hs-rerank-1（经 `HF_ENDPOINT=https://hf-mirror.com` 下载）。
+- **持久化（用户环境变量）**：`HINDSIGHT_API_LLM_PROVIDER/API_KEY/BASE_URL/MODEL`
+  （daemon 挂了/重启电脑后，新会话的插件 preflight 能过、自动拉起 daemon）+
+  `UV_DEFAULT_INDEX`/`UV_INDEX_URL`=清华镜像（修 files.pythonhosted.org 超时）。
+- 验证：`GET http://127.0.0.1:9077/health` → `{"status":"healthy","database":"connected"}`；
+  `GET /v1/default/banks` → 200。
+
+**坑（接手必读）**：
+1. **DSH 是常驻插件，配置在加载时读一次**：改 `coding-agent.json` 后老会话的
+   `hindsight_*` 工具客户端钉死旧值（本会话全程 401 cloud）；`plugin_manager`
+   热重载 `include:hindsight` 也不重建会话级客户端。**唯一解法：开新会话**
+   （`apiToken` 是唯一热重读字段，serverMode 不是）。
+2. **bank 按会话工作目录解析**：新会话要开在 `D:\Games\gakumas-agent`
+   （mapPathToBank 命中）才进 `coding-agent::gakumas-agent`；从 default-workspace
+   开会落回 `coding-agent::default-workspace`。
+3. daemon 首次启动要装服务端依赖（~600MB，走清华镜像）+ 下载 reranker 模型，
+   embed CLI 等待窗（~180s）可能报 timeout，**但进程继续初始化**——轮询 /health
+   即可，别反复 restart（会打断下载）。
+4. 脱敏教训：凭据值含 `.` 时，`[A-Za-z0-9_-]+` 掩码正则在点号处截断会漏出大半 key
+   （本次 DASHSCOPE key 曾在工具输出露出，仅用户本机可见；介意可去百炼控制台轮换）。
+
+**下一会话起**：记忆工具可用——动手前先 `hindsight_search_pages`（项目约定/历史决策），
+`hindsight_sync_status` 看播种进度（git 历史含 B11 `e26387b` 等提交会自动入库，
+5 个页面后台合成）；会话结束自动写回。B11 第 2 轮候选与规则不变（先问用户）。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

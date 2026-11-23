@@ -336,6 +336,12 @@ C0/T9 见 HANDOVER 二·补三十 /
   配置/模型在 `data/models/ocr_jp/` + `configs/ocr_jp.yaml`（均 gitignore）。
 - Windows + DMM 客户端；VPN 日本节点（TUN 或 7897 任一）；游戏窗口客户区 **540x960**（代码自动缩放，别改成 720x1280，会截崩，见 F#10）。
 - `out/exam_setup.json` 已 gitignore，**每次采集后要重建**。
+- **Hindsight 本地记忆已启用（2026-11-23）**：daemon 模式（127.0.0.1:9077，内嵌 PostgreSQL），
+  LLM=百炼 qwen-plus / embeddings=text-embedding-v4；本仓库 bank = `coding-agent::gakumas-agent`
+  （`~/.hindsight/coding-agent.json` 显式映射）。**新会话工作目录要开在 `D:\Games\gakumas-agent`**
+  才进对 bank；记忆工具可用时先 `hindsight_search_pages` 再动手。daemon 挂了/重启电脑后
+  新会话会自动拉起（用户环境变量已配 LLM + uv 清华镜像）。验证：`hindsight_sync_status`
+  （synced=true）或 `Invoke-WebRequest http://127.0.0.1:9077/health`；细节见 HANDOVER 二·补三十八。
 - 基线不绿就先修基线，不要在新功能上叠 bug。
 
 ---
@@ -926,6 +932,18 @@ WORKPLAN §0/B11/开场白；HANDOVER_NEXT §0/§2 期望值（1223→1251）/§
 HANDOVER 二·补三十七。
 提交 `feat e26387b`（代码+测试+文档）+ docs(handover) 哈希记录；开工基线复核 `7689a2e`
 （哈希另见 HANDOVER 七）。
+**同会话附带（环境，用户指定「开一下 hindsight」）**：Hindsight 本地记忆启用——daemon 模式
+（hindsight-embed 1.2.3，profile coding-agent，127.0.0.1:9077，内嵌 PostgreSQL 18），
+LLM=百炼 qwen-plus（DashScope 兼容端点，key 取自 DSH 凭据库 DASHSCOPE_API_KEY，启动实测 200）/
+embeddings=text-embedding-v4（1024 维）/ reranker=本地 hs-rerank-1（hf-mirror 下载）；
+`~/.hindsight/coding-agent.json` = serverMode daemon + mapPathToBank
+`D:\Games\gakumas-agent → coding-agent::gakumas-agent`；用户环境变量持久化
+HINDSIGHT_API_LLM_*（重启自愈）+ UV_DEFAULT_INDEX/UV_INDEX_URL（清华镜像，修 PyPI 超时）。
+**坑**：DSH 常驻插件配置加载时读一次，改配置后**老会话工具客户端钉死旧值**（plugin_manager
+热重载也不重建会话级客户端）——必须开新会话；bank 按会话工作目录解析，新会话开在
+`D:\Games\gakumas-agent` 才进对 bank；daemon 首次启动含 reranker 下载，CLI 等待窗可能超时
+但进程继续初始化，轮询 /health 即可。下一会话记忆工具可用（先 search_pages）；
+详见 HANDOVER 二·补三十八。
 
 **上一轮交接记录（2026-11-23，C1 执行层可靠性 —— tap 确认/重试 + 提权检查 + 帧预算 + 每步可复盘）**：
 纯离线代码任务（用户指定本会话唯一任务；真机验收留阶段 E）。开工基线 ①②③④⑤ 全绿
