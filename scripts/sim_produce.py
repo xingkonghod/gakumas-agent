@@ -22,6 +22,8 @@ from typing import NamedTuple
 ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 
+from gkagent.sim.stance import leisure_reserve_for  # P1-1 のんびり预约证据表
+
 CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
 # 模拟器（sim/lesson.py）真正建模了的效果类型。
 # 2026-11-16：新卡池 16 种效果接入后从 13 种扩到 29 种；其中 8 种精确建模
@@ -29,6 +31,7 @@ CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
 # 8 种保守近似（检索/生成/移动→抽 1；延迟→立刻；附魔外层展开内层；低下无效
 # 与训练无关；出牌干劲→motivation）。近似口径与误差方向见 sim/lesson.py 模块 docstring。
 # 2026-11-22 T5②：熱意追加/増加/適用倍数 三种接入 → 32 种。
+# 2026-11-24 P1-1：のんびり预约 ExamOverPreservation 接入 → 33 种。
 MODELED_EFFECTS = {
     "ExamLesson",
     "ExamBlock",
@@ -64,6 +67,8 @@ MODELED_EFFECTS = {
     "ExamEnthusiasticAdditive",
     "ExamEnthusiasticMultiple",
     "ExamMultipleEnthusiasticLesson",
+    # ---- P1-1 2026-11-24 のんびり预约（ExamOverPreservation）----
+    "ExamOverPreservation",
 }
 # 卡表里的效果名和卡面语义容易对反，以下以游戏 master 的卡面文本（卡名 + 效果）为准：
 #   准备运动「打分+6 / 集中+2」     -> ExamLessonBuff [2]       = 集中
@@ -128,6 +133,9 @@ class CardRow(NamedTuple):
     enthusiasm_multiple_turns: int = 0
     enthusiasm_extension: int = 0     # ExamEnthusiasticTurnAdd（熱意延長，回合数）
     enthusiasm_multiplier: int = 1000  # ExamMultipleEnthusiasticLesson（本牌熱意適用倍数‰）
+    # ---- P1-1 2026-11-24 のんびり预约（ExamOverPreservation）----
+    leisure_reserve: int = 0          # 剩余触发次数（-1 永久，0 无）
+    leisure_reserve_when_save: bool = True  # True 温存中触发 / False 非温存触发
 
 
 def _buff_turns(effect: dict) -> int:
@@ -146,7 +154,7 @@ def _merge_turns(current: int, new: int) -> int:
 def _effect_fields(row: dict) -> tuple[int, ...]:
     """从卡表一行的 ``effects`` 提取可喂给 ``CardSpec`` 的字段。
 
-    返回 31 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
+    返回 33 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
 
     =====  ============================================================
     索引   字段
@@ -182,6 +190,8 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     28     ``enthusiasm_multiple_turns``
     29     ``enthusiasm_extension``（ExamEnthusiasticTurnAdd 熱意延長，回合数）
     30     ``enthusiasm_multiplier``（ExamMultipleEnthusiasticLesson 本牌熱意適用倍数‰）
+    31     ``leisure_reserve``（P1-1 ExamOverPreservation のんびり预约次数，-1 永久）
+    32     ``leisure_reserve_when_save``（True 温存中触发 / False 非温存触发）
     =====  ============================================================
 
     字段语义以游戏 master 卡面文本为准，effect 名容易误读：
@@ -239,6 +249,8 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     enthusiasm_multiple = enthusiasm_multiple_turns = 0
     enthusiasm_extension = 0
     enthusiasm_multiplier = 1000
+    leisure_reserve = 0
+    leisure_reserve_when_save = True
     approx_draw = 0
 
     def absorb(effects: list[dict]) -> None:
@@ -252,6 +264,7 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         nonlocal enthusiasm_bonus, enthusiasm_bonus_turns
         nonlocal enthusiasm_multiple, enthusiasm_multiple_turns
         nonlocal enthusiasm_extension, enthusiasm_multiplier
+        nonlocal leisure_reserve, leisure_reserve_when_save
         for effect in effects or []:
             kind = effect.get("type")
             values = [v for v in effect.get("values") or [] if v]
@@ -264,6 +277,15 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
                 continue
             if kind == "ExamStatusEnchantEncore":
                 encore = 1
+                continue
+            if kind == "ExamOverPreservation":
+                # P1-1：のんびり预约（values 恒空）。条件/次数不在主数据 JSON 里，
+                # 按 BSD-3 skill_cards.csv 逐卡交叉验证（stance.LEISURE_RESERVE_SOURCES，
+                # 日文卡名↔中文卡名用 card_meta 别名核对）；未知 id 保守 no-op。
+                reserve, when_save = leisure_reserve_for(str(row.get("id") or ""))
+                if reserve != 0:
+                    leisure_reserve = reserve
+                    leisure_reserve_when_save = when_save
                 continue
             if kind in ("ExamForcePlayCardSearch", "ExamCardCreateId", "ExamCardMove"):
                 # 检索/生成/移回手牌 → 至少 +1 抽牌（低估，见 docstring）；
@@ -414,6 +436,8 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         enthusiasm_multiple_turns,
         enthusiasm_extension,
         enthusiasm_multiplier,
+        leisure_reserve,
+        leisure_reserve_when_save,
     )
 
 
@@ -554,6 +578,8 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
             enthusiasm_multiple_turns=row.enthusiasm_multiple_turns,
             enthusiasm_extension=row.enthusiasm_extension,
             enthusiasm_multiplier=row.enthusiasm_multiplier,
+            leisure_reserve=row.leisure_reserve,
+            leisure_reserve_when_save=row.leisure_reserve_when_save,
         )
     name, cost, score, condition, focus = row
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)

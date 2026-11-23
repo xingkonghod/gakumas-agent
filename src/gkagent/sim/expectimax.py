@@ -102,6 +102,7 @@ from gkagent.sim.p_items import (
     total_timed,
 )
 from gkagent.sim.stance import (
+    Stance,
     StanceState,
     apply_full_power_point,
     card_stance_effect,
@@ -109,6 +110,7 @@ from gkagent.sim.stance import (
     score_multiplier,
     stamina_cost_multiplier,
     stamina_pierce,
+    stance_change_allowed,
 )
 
 __all__ = [
@@ -204,6 +206,9 @@ class ExpectState:
     deck: tuple[CardSpec, ...] = ()
     discard: tuple[CardSpec, ...] = ()
     excluded: tuple[CardSpec, ...] = ()
+    # P1-1（2026-11-24）：保留区（held）。来源（holdCard/holdThisCard）留 P1-3；
+    # 全力回合 moveHeldCardsToHand 回手钩子已实现（end_turn_state 进全力时回手）。
+    held: tuple[CardSpec, ...] = ()
     # 全知牌序（完全信息搜索）：已知的后续抽牌顺序，下标 0 = 下一张抽到的牌。
     # 非空时要求它的多重集 == ``deck``；抽牌机会节点退化成确定分支。
     # 空 = 原来「只知多重集」的期望模型（默认，行为不变）。
@@ -244,6 +249,10 @@ class ExpectState:
     parameter_buff: int = 0
     # StanceState 的冻结快照：(stance, strong_level, save_level, full_power_point)
     stance: tuple[str, int, int, int] = ("normal", 0, 0, 0)
+    # P1-1（2026-11-24）：のんびり预约 ((剩余次数, 是否温存中触发), …)；
+    # のんびり→全力 的全体卡打分成长（永久加算，出牌加进白值）。
+    leisure_reserves: tuple[tuple[int, bool], ...] = ()
+    score_growth_all: int = 0
     # 温存期间已打出牌数：旧「温存解除≈好调回合」近似的状态位，T5② 起不再使用
     # （保留字段只为 B2 学习叶子 104 维特征的兼容，恒为 0；新训练应改用熱意特征）。
     save_cards_used: int = 0
@@ -378,6 +387,10 @@ class ExpectState:
             # discard_order 的顺序决定重洗结果，也按原样入键（None/() 有区别）
             self.discard_order,
             _counts_key(self.excluded),
+            # P1-1：保留区组成 / のんびり预约 / 全体卡打分成长（影响后续价值）
+            _counts_key(self.held),
+            self.leisure_reserves,
+            self.score_growth_all,
             self.stamina,
             self.stamina_max,
             self.vitality,
@@ -645,6 +658,10 @@ def sim_from_state(
     )
     sim.excluded = list(state.excluded)
     sim.hand = list(state.hand)
+    # P1-1：保留区 / のんびり预约 / 全体卡打分成长（rollout 必须带上）
+    sim.held = list(state.held)
+    sim.leisure_reserves = [(int(count), bool(when_save)) for count, when_save in state.leisure_reserves]
+    sim.score_growth_all = int(state.score_growth_all)
     if not sim.hand and int(state.turns_left) > 0:
         sim._draw(config.hand_size)
     sim.score = int(state.score)
@@ -1032,7 +1049,7 @@ def _card_award(
 ) -> tuple[int, int]:
     """本牌得分 + 更新后的本回合审查基准加成（与 LessonSim._card_award 对齐）。"""
     award = 0
-    base_score = card.score
+    base_score = card.score + state.score_growth_all
     if base_score > 0 and card.grow_score > 0 and uses > 0:
         base_score = base_score * (100 + uses * card.grow_score) / 100
     if base_score > 0:
@@ -1236,7 +1253,7 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
             state,
             full_power_point_total=state.full_power_point_total + full_power_gain,
         )
-    if effect_card.strong_level > 0:
+    if effect_card.strong_level > 0 and stance_change_allowed(stance, "concentration"):
         delta = card_stance_effect("ExamConcentration", [effect_card.strong_level])
         if delta["stance"] is not None:
             stance = replace(
@@ -1245,7 +1262,7 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
                 strong_level=effect_card.strong_level,
                 save_level=0,
             )
-    if effect_card.preservation > 0:
+    if effect_card.preservation > 0 and stance_change_allowed(stance, "preservation"):
         delta = card_stance_effect("ExamPreservation", [effect_card.preservation])
         if delta["stance"] is not None:
             stance = replace(
@@ -1254,6 +1271,13 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
                 strong_level=0,
                 save_level=max(stance.save_level, int(delta["save_level"])),
             )
+    # P1-1：のんびり预约登记（与 LessonSim._apply_card_stance 同口径；encore 不翻倍）
+    if effect_card.leisure_reserve != 0:
+        state = replace(
+            state,
+            leisure_reserves=state.leisure_reserves
+            + ((int(effect_card.leisure_reserve), bool(effect_card.leisure_reserve_when_save)),),
+        )
     state = state.with_stance(stance)
     # B8：指針变化事件（强气/温存/全力切换）；本牌结算后的新指針已经可见。
     if stance != previous_stance:
@@ -1290,12 +1314,13 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
             status="full_power_point",
             amount=full_power_gain,
         )
-    # 温存解除（参考引擎 STANCE_CHANGED_EFFECTS）：熱意 +5/+8、2 段階固定元気 +5、
-    # 当回合出牌次数 +1。_apply_card_effects 只看本牌结算前后指針（中间切换不可见）。
-    release_enthusiasm, release_genki, release_plays = release_on_stance_change(
-        previous_stance, stance
+    # 温存/のんびり解除（参考引擎 STANCE_CHANGED_EFFECTS）：熱意 +5/+8/+10、
+    # 固定元気 +5、当回合出牌次数 +1、のんびり→全力全体卡打分成长 +10。
+    # _apply_card_effects 只看本牌结算前后指針（中间切换不可见）。
+    release_enthusiasm, release_genki, release_plays, release_growth = (
+        release_on_stance_change(previous_stance, stance)
     )
-    if release_enthusiasm or release_genki or release_plays:
+    if release_enthusiasm or release_genki or release_plays or release_growth:
         state = replace(
             state,
             enthusiasm=state.enthusiasm
@@ -1307,6 +1332,7 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
             # 固定元気：不吃「やる気」加成（参考引擎 resolveFixedGenki）
             vitality=state.vitality + release_genki,
             extra_plays=state.extra_plays + release_plays,
+            score_growth_all=state.score_growth_all + release_growth,
         )
     if effect_card.grow_score > 0:
         uses_map = dict(state.card_uses)
@@ -1766,6 +1792,8 @@ def _passive_state(state: ExpectState) -> PassiveState:
             else 0,
             "stance_preservation": stance.save_level,
             "stance_full_power": 1 if "full" in stance_text else 0,
+            # P1-1：のんびり存在性条件（与 LessonSim._passive_state 同口径）
+            "stance_leisure": 1 if stance_text == Stance.LEISURE else 0,
             # B9：「消耗体力减少状态」条件 = halfCostTurns>0
             "half_cost_state": 1 if state.half_cost_turns > 0 else 0,
         },
@@ -1953,9 +1981,10 @@ def fire_p_items(
     release_enthusiasm_gain = 0
     release_genki_gain = 0
     release_plays_gain = 0
+    release_growth_gain = 0
     for stance_kind in delta.stances:
         previous = stance
-        if stance_kind == "preservation":
+        if stance_kind == "preservation" and stance_change_allowed(stance, "preservation"):
             already = str(stance.stance) == "save"
             level = 2 if already else 1
             stance = replace(
@@ -1964,7 +1993,7 @@ def fire_p_items(
                 save_level=max(int(stance.save_level), level) if already else level,
                 strong_level=0,
             )
-        elif stance_kind == "concentration":
+        elif stance_kind == "concentration" and stance_change_allowed(stance, "concentration"):
             already = "strong" in str(stance.stance)
             level = 2 if already else 1
             stance = replace(
@@ -1973,10 +2002,20 @@ def fire_p_items(
                 strong_level=level,
                 save_level=0,
             )
+        elif stance_kind == "leisure" and stance_change_allowed(stance, "leisure"):
+            # P1-1：のんびり变更（ExamOverPreservation，与 LessonSim 同口径）
+            stance = replace(
+                stance,
+                stance=Stance.LEISURE,
+                strong_level=0,
+                save_level=0,
+            )
         if stance != previous:
             stance_changed = True
-            rel_enth, rel_genki, rel_plays = release_on_stance_change(previous, stance)
-            if rel_enth or rel_genki or rel_plays:
+            rel_enth, rel_genki, rel_plays, rel_growth = release_on_stance_change(
+                previous, stance
+            )
+            if rel_enth or rel_genki or rel_plays or rel_growth:
                 release_enthusiasm_gain += enthusiasm_gain(
                     rel_enth,
                     bonus=max(state.enthusiasm_bonus, p_enthusiasm_bonus),
@@ -1986,6 +2025,7 @@ def fire_p_items(
                 )
                 release_genki_gain += rel_genki
                 release_plays_gain += rel_plays
+                release_growth_gain += rel_growth
     extra_plays += release_plays_gain
     vitality += release_genki_gain
     enthusiasm = state.enthusiasm + int(release_enthusiasm_gain)
@@ -2033,6 +2073,7 @@ def fire_p_items(
         extra_plays=extra_plays,
         enthusiasm=enthusiasm,
         vitality=vitality,
+        score_growth_all=state.score_growth_all + release_growth_gain,
         impression=max(impression, 0),
         focus=max(focus, 0),
         condition_turns=condition_turns,
@@ -2155,6 +2196,9 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     next_stance = end_turn(state.stance_state)
     stance_changed = next_stance != previous_stance
     hand_order = state.discard_order
+    # P1-1：以全力开始的回合——保留牌回手（FULL_POWER_CHANGED_EFFECTS 的
+    # moveHeldCardsToHand；下一手从回手牌开始，抽牌由调用方/全知牌序补）。
+    enters_full = str(next_stance.stance) == Stance.FULL
     next_state = replace(
         state,
         score=score,
@@ -2183,7 +2227,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         extra_turns=0,
         extra_turns_granted=extra_turns_granted,
         parameter_buff=0,
-        hand=(),
+        hand=state.held if enters_full else (),
+        held=() if enters_full else state.held,
         discard=state.discard + state.hand,
         # 回合末弃手牌：进弃牌堆的顺序 = 手牌顺序（已知顺序时继续累积）
         discard_order=None if hand_order is None else hand_order + state.hand,
@@ -2198,13 +2243,16 @@ def end_turn_state(state: ExpectState) -> ExpectState:
             next_stance.full_power_point,
         ),
     )
-    # 温存→全力 的回合边界切换也触发解除收益（参考引擎 startTurn 的
+    # P1-1：全力回合 +1 出牌次数（FULL_POWER_CHANGED_EFFECTS，连续全力每回合都有）
+    if enters_full and next_state.turns_left > 0:
+        next_state = replace(next_state, extra_plays=next_state.extra_plays + 1)
+    # 温存/のんびり→全力 的回合边界切换也触发解除收益（参考引擎 startTurn 的
     # FULL_POWER_EFFECTS → setStance(fullPower)）；次数加在新回合基础次数上。
     if next_state.turns_left > 0:
-        release_enthusiasm, release_genki, release_plays = release_on_stance_change(
-            previous_stance, next_stance
+        release_enthusiasm, release_genki, release_plays, release_growth = (
+            release_on_stance_change(previous_stance, next_stance)
         )
-        if release_enthusiasm or release_genki or release_plays:
+        if release_enthusiasm or release_genki or release_plays or release_growth:
             next_state = replace(
                 next_state,
                 enthusiasm=next_state.enthusiasm
@@ -2215,12 +2263,47 @@ def end_turn_state(state: ExpectState) -> ExpectState:
                 ),
                 vitality=next_state.vitality + release_genki,
                 extra_plays=next_state.extra_plays + release_plays,
+                score_growth_all=next_state.score_growth_all + release_growth,
             )
+        # P1-1：のんびり预约（与 LessonSim._apply_leisure_reserves 同口径）
+        next_state = _apply_leisure_reserves_state(next_state)
     # B8：回合边界的指針切换（全力进入等）发 stance_change（与 LessonSim 同口径）
     if stance_changed:
         next_state = fire_p_items(next_state, STANCE_CHANGE)
     # P 道具：回合结束（好印象/好调结算后、弃手牌前）
     return fire_p_items(next_state, TURN_END)
+
+
+def _apply_leisure_reserves_state(state: ExpectState) -> ExpectState:
+    """P1-1：回合开始结算のんびり预约（ExpectState 纯函数版，双镜 LessonSim）。
+
+    每条预约独立按当时指針判条件；条件成立触发 setStance(leisure)（受全力守卫）
+    并扣次数（-1 永久不扣）；指針变化发 stance_change。进入のんびり无解除收益。
+    """
+    if not state.leisure_reserves:
+        return state
+    stance = state.stance_state
+    remaining: list[tuple[int, bool]] = []
+    changed = False
+    for count, when_save in state.leisure_reserves:
+        stance_now = str(stance.stance)
+        matched = (
+            (stance_now == Stance.SAVE) if when_save else (stance_now != Stance.SAVE)
+        )
+        if matched:
+            if stance_change_allowed(stance, "leisure"):
+                stance = replace(
+                    stance, stance=Stance.LEISURE, strong_level=0, save_level=0
+                )
+                changed = True
+            if count > 0:
+                count -= 1
+        if count != 0:
+            remaining.append((count, when_save))
+    state = replace(state, leisure_reserves=tuple(remaining)).with_stance(stance)
+    if changed:
+        state = fire_p_items(state, STANCE_CHANGE)
+    return state
 
 
 # ---------------------------------------------------------------- 搜索
@@ -2946,6 +3029,13 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         deck=tuple(sim.deck),
         discard=tuple(sim.discard),
         excluded=tuple(getattr(sim, "excluded", ())),
+        # P1-1：保留区 / のんびり预约 / 全体卡打分成长（与 sim_from_state 双镜）
+        held=tuple(getattr(sim, "held", ())),
+        leisure_reserves=tuple(
+            (int(count), bool(when_save))
+            for count, when_save in getattr(sim, "leisure_reserves", ())
+        ),
+        score_growth_all=max(int(getattr(sim, "score_growth_all", 0)), 0),
         known_draw=(tuple(reversed(sim.deck)) if known_deck_order else ()),
         discard_order=tuple(sim.discard),
         stamina=max(int(sim.stamina), 0),

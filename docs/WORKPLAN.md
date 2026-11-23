@@ -42,6 +42,7 @@
 | B11 v6 生产接线（2026-11-23，**纯增量代码+单测；opt-in，默认逐位不变**） | `LessonPolicy(engine="net", net_model=…)`：可观测状态 `legal_cards` 里 argmax 优势分（无搜索）；`with_plan=False` 不注入采集全知（public-safe 口径）；硬规矩有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异常/失配 → `RuleFallbackBlocked`（**禁回退 rules**）；`eng=net` + 优势分进 reason；auto_produce `--net-model` > `produce.net_model` > 默认入库 v6，缺模型起跑前 return 2；`data/knowledge/ei_policy_v6.json`（tracked，gate 溯源 meta）；T2 增第四臂 `--engine net`（large 生产候选仍是 beam） | `tests/test_ei_wiring.py` 21 条；pytest **1294/1（1295 收集 / 87 文件）**；基线 ①③④⑤ 不变；见 EXPECTIMAX「B11 v6 生产接线」/ HANDOVER 二·补四十一 |
 | B11 r9-large（2026-11-23，**small+large 混合训练；large 首超 beam，small 显著回退 → 复合门未过，不入库**） | `train_ei_policy --selfplay/--demos` 多文件（`nargs="+"`，按序拼接/group 偏移/全局 std/meta.multi_file；**单文件 sha256 逐位不变**）；large 自对弈 5000 局 126969 样本（v6 学生，seed 900000+）+ small r5 全量 145605 + 示范 48101（补采 v1 1600 局解锁 0.15 上限）= 320675 行，192×96/1200ep 同 r6 | **large500 r9 315.4 vs v6 285.8：+29.6 CI[+26.2,+33.0] PASS，vs beam +14.2（首个 large 超 beam 学生网）**，新鲜块 +24.0 佐证；**small500 r9 98.2 vs v6 98.6：−0.42 CI[−0.67,−0.17] 显著回退**（池化 580 −0.47；vs v1 原门未保持）→ 不入库，生产保持 r6；r9 留 out/ 作 large specialist（--net-model 可换）；诊断假设=全局 std 稀释 small 信号（18.71 vs 12.21）；`tests/test_ei_multifile.py` 12 条；pytest **1306/1（1307 收集 / 88 文件）**；见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二 |
 | B11 r10（2026-11-23，**按场景 std 归一化；small 回退收窄 39% 但仍显著、large 增益保持 → 复合门未过，不入库**） | `train_ei_policy --norm-by-scenario` 纯增量（默认关=逐位不变，4 参照 sha256 改前/改后一致；多文件各文件按自身 std，scenario 取 npz meta.args.scenario，mix/meta 记逐场景 std）；复用 r9 数据 320675 行重训（单变量=归一化口径，small std 12.2115 / large 24.0878 vs 全局 18.7065）；能量份额 small 20.9%→49.0% / large 70.9%→42.7% | **large500 r10 314.9 vs v6 285.8：+29.1 CI[+25.8,+32.3] PASS，vs beam +13.6 仍超**（r10−r9 中性，增益保持）；**small500 r10 98.38 vs v6 98.64：−0.256 CI[−0.500,−0.012] 仍显著回退**（收窄 39%；vs v1 原门恢复 +0.32 CI[+0.03,+0.61]）→ 不入库，生产保持 r6；r10 留 out/；`tests/test_ei_norm_scenario.py` 12 条；pytest **1318/1（1319 收集 / 89 文件）**；见 EXPECTIMAX B11 r10 / R9_ANALYSIS §8 / HANDOVER 二·补四十三 |
+| P1-1 全力回合 + のんびり指針 + r10 行为探针（2026-11-24，**阶段1 首批规则；BSD-3 有据；评测牌组组成不变**） | `stance.py`（LEISURE ×0/×0 + `stance_change_allowed` 守卫 + `LEISURE_RESERVE_SOURCES` 4 族卡证据表）+ `enthusiasm.py`（解除 4 元组：温存→のんびり不触发；のんびり→全力 = 全体卡打分成长+10）+ `lesson.py`/`expectimax.py`（全力回合 +1 出牌/保留牌回手双镜 + `held`/`leisure_reserves`/`score_growth_all` + canonical/快照/叶子）+ `p_items.py`（stance_leisure 直给）+ `sim_produce`/`play_choice`（ExamOverPreservation 预约解析，MODELED_EFFECTS 32→33，旧误映射移除）+ p_items.json 重标注（modifier 369→371） | r10 探针（R9_ANALYSIS §9）：**残留 small 回退已非 v1 风格贪即时分**（首分歧贪即时分偏置 24:9→11:8，对 v1 耐心比恢复 v6 水平），残留 −0.256 是无方向漂移噪声 → r11 small 上采样仍是对症变量；规则：全力回合 +1（连续全力每回合）/held 回手钩子（来源留 P1-3）/全力禁切指針/のんびり解除收益/预约来源；`tests/test_p1_stance_rules.py` **36 条**；pytest **1354/1（1355 收集 / 90 文件）**；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0）；见 RULES_REFERENCE §5.4 / HANDOVER 二·补四十四 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -631,6 +632,49 @@
 
 ---
 
+### P1-1. 阶段1 首批：r10 行为探针 + 全力回合 + のんびり指針（纯离线）✅ 2026-11-24 完成
+
+**来源**：HANDOVER_NEXT §8.0 多会话路线图 P1-1（用户 2026-11-23 晚确认 A 顺序）。
+**DoD**：参考引擎证据（规则项）+ 代码 + 单测 + RULES_REFERENCE 核验表更新 + sim_engine_ab 重标定。
+
+**① r10 决策行为探针**（`data/_r10_behavior_probe.py`，复用 r9 口径，纯分析；输出
+`out/_r10_behavior_probe.json`）：small 500 局 v6/r10/v1 + large 120 局 v6/r10。
+**判定：残留 small 回退（−0.256）已非 v1 风格贪即时分为主**——首分歧贪即时分偏置
+r9 24:9 → r10 11:8（近均衡），r10 对 v1 耐心比 25:11 恢复 v6 水平（29:13），CLEAR 翻转
+1:1 对称（r9 0:5 全负）；残留是无方向漂移噪声（通道 2 输入侧场景漂移的行为级佐证）。
+large 增益机制不变（早回合 buff、0 次贪即时分分歧）。→ r11 small 上采样仍是对症变量；
+换教师消 v1 拉扯不再是首要杠杆。详见 [R9_ANALYSIS §9](R9_ANALYSIS.md)。
+
+**② 全力回合 +1 出牌/保留牌回手**（BSD-3 `constants.js FULL_POWER_EFFECTS /
+FULL_POWER_CHANGED_EFFECTS` + `TurnManager.startTurn` + `BuffManager.setStance` +
+contest-fidelity 美鈴回放）：以全力开始的回合 `extra_plays += 1`（连续全力每回合都有；
+温存→全力边界后 = 解除 1 + 全力 1 = 2 次额外）；`held` 保留区全部回手（无手牌上限检查，
+同 `moveHeldCardsToHand`；来源 holdCard/holdThisCard 留 P1-3，钩子用合成保留牌验证）；
+**全力期间禁切指針**（`stance_change_allowed` 守卫，全力值获得不受影响）。
+
+**③ のんびり指針**（`STANCE_CHANGED_EFFECTS` leisure 三条 + `resolveScore/resolveCost` ×0 +
+`skill_cards.csv` 540-545/834 预约语义 + wiki 熱意 N=10 + contest-fidelity）：
+`Stance.LEISURE` 分数/费用 ×0；解除 固定元気+5 / +1 出牌 / 熱意+10，**→全力时熱意改为
+全体卡打分成长+10**（`target:all g.score+=10` 是 cardMap growth，`score_growth_all`
+永久加算进白值、可叠加，不是即时分）；**温存→のんびり不触发温存解除**；のんびり期间禁切温存；
+来源=卡预约（`ExamOverPreservation` 4 族 13 行，`LEISURE_RESERVE_SOURCES` 卡 id 证据表，
+回合开始条件触发/次数扣减/永久不扣）+ P 道具 `stance_leisure` 直给（2 件标注；触发时机
+`card_play_interval_after` 未支持仍保守不触发）。`sim_produce` MODELED_EFFECTS 32→33、
+`play_choice` 旧 `ExamOverPreservation→preservation` 误映射移除（values 恒空从未生效）。
+
+**双镜/兼容**：`LessonSim`/`ExpectState` 新字段（held/leisure_reserves/score_growth_all）+
+canonical + state_from_sim/sim_from_state + 叶子快照（leaf_data）对齐；`release_on_stance_change`
+扩 4 元组（6 调用点 + 既有测试断言更新）。**评测牌组组成不变**（のんびり卡 score 0/SSR/Legend
+本就不进 build_pool；small 无全力值卡、large 冲刺 9 回合攒满 10 概率低）→ 重标定改前/改后
+64 局逐位相同（差异=0）。
+**旧 B11 数据/模型是旧规则口径，全保留不覆盖**（阶段2 重采新 seed 块练新批再新旧对比）。
+
+**验证**：`tests/test_p1_stance_rules.py` **36 条**（纯规则/全力/のんびり/P 道具/双镜/解析/叶子）；
+全量 pytest **1354/1（1355 收集 / 90 文件）**；ruff 通过；sim_engine_ab 重标定（seed 9000/9100
+各 16 局 rules/expectimax，budget 800ms）**改前/改后 64 局逐位相同（差异=0**，新规则路径
+未触达；expectimax 仍显著强于 rules Δ+372.2/+219.1，C+ 100%，0 blocked）；基线 ①③④⑤ 不变。
+见 [RULES_REFERENCE §5.4](RULES_REFERENCE.md) / HANDOVER 二·补四十四。
+
 ## 阶段 C：可靠性（离线）
 
 ### C0.（可选，2026-11-22 新增）采集/更新可靠性经验吸收 ✅ 2026-11-22 完成
@@ -825,7 +869,8 @@ turn=1/score=0/stamina 96.1%=starting_stamina/rules=55；见 GKBENCH §4.5 / HAN
 `ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）接入 `sim_produce`（MODELED_EFFECTS 29→32）
 与生产卡表；`tests/test_t5_enthusiasm.py` 16 条；全量 pytest **1023 passed / 1 skipped
 （1024 收集 / 74 文件）**（见 HANDOVER 二·补二十六）。
-未建模：のんびり指針、全力回合額外出牌/保留牌、P 道具/附魔来源、生产读屏未读熱意。
+未建模（P1-1 后更新）：~~のんびり指針、全力回合額外出牌/保留牌~~ ✅ P1-1 已建模（保留区来源
+holdCard/holdThisCard 留 P1-3）；P 道具/附魔熱意来源、生产读屏未读熱意仍缺。
 **B6（T5③ P 道具数据接入）也已完成（2026-11-22）**：新增 `src/gkagent/data/p_items_db.py`
 （loadout `produce_item_ids` → `PItemSpec`，未知 id 显式上报、缺数据抛错）+
 `sim/p_items.py` 新增 **`exam_start`** 触发时机（288 段素材）与
@@ -890,9 +935,22 @@ r9 留 out/ 作 large specialist）；诊断假设=全局 std 稀释 small 信�
 仍显著回退（收窄 39%，vs v1 原门恢复）→ 复合门未过，不入库**（生产保持 r6；r10 留 out/）；
 归一化修复有效但不充分（输入侧场景漂移仍在）；pytest 1318/1（1319 收集 / 89 文件）；
 见 EXPECTIMAX B11 r10 / R9_ANALYSIS §8 / HANDOVER 二·补四十三。
+**P1-1 也已完成（2026-11-24，阶段1 首批：r10 行为探针 + 全力回合 + のんびり指針）**：
+r10 探针（复用 r9 口径，R9_ANALYSIS §9）判定**残留 small 回退已非 v1 风格贪即时分**
+（首分歧贪即时分偏置 24:9→11:8、对 v1 耐心比恢复 v6 水平 25:11≈29:13、CLEAR 翻转 1:1 对称）
+→ 残留 −0.256 是无方向漂移噪声（通道 2），r11 small 上采样仍是对症变量；规则按 BSD-3
+参考引擎 + contest-fidelity 真机回放证据补全：全力回合 +1 出牌（连续全力每回合都有）/
+保留牌回手钩子（held 来源留 P1-3）/全力期间禁切指針/のんびり ×0 倍率 + 解除收益
+（元気+5/次数+1/熱意+10，→全力时改为全体卡打分成长+10）/温存→のんびり不触发温存解除/
+のんびり预约来源（4 族卡 ExamOverPreservation，CSV 逐卡证据表）/P 道具 stance_leisure 直给
+（2 件标注，触发时机 card_play_interval_after 未支持仍保守不触发）；LessonSim/ExpectState
+双镜 + 叶子快照对齐；评测牌组组成不变（のんびり卡 score 0/SSR/Legend 本就不进池）；
+36 条新单测，pytest 1354/1（1355 收集 / 90 文件）；sim_engine_ab 重标定改前/改后 64 局
+逐位相同（差异=0）；见 RULES_REFERENCE §5.4 / R9_ANALYSIS §9 / HANDOVER 二·补四十四。
 **下一会话起按多会话路线图推进（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）**：
-阶段1 离线补未知（T5 剩余规则：全力回合额外次数/保留牌/のんびり/handDecrease/pride/hold/buff-cost/
-P 道具语义 + T7②③ 纯函数状态重放/自动复盘页；r10 行为探针）→ 阶段2 重采+练学生 r11（small 上采样，
+阶段1 离线补未知（~~全力回合额外次数/保留牌/のんびり + r10 行为探针~~ ✅ P1-1；
+**下一会话 P1-2：handDecrease 抽牌修正 + pride 自尊**；再 P1-3 hold / P1-4 buff-cost /
+P1-5 P 道具语义 / P1-6 T7②③ 纯函数状态重放/自动复盘页）→ 阶段2 重采+练学生 r11（small 上采样，
 small+large 双过入库）+ **新旧对比（旧学生/老师数据模型全保留不覆盖，新批练出来再比）** →
 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收）→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。
 **每会话 1–3 任务（小任务合并），开新对话做；旧路线图未完成项已全并入 §8.0**。

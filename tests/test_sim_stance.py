@@ -17,7 +17,11 @@ from gkagent.sim.stance import (
 
 
 def test_multiplier_table_matches_official_values() -> None:
-    """倍率表必须与官方攻略表一致，且全力门槛是 10。"""
+    """倍率表必须与官方攻略表一致，且全力门槛是 10。
+
+    P1-1（2026-11-24）：加 のんびり ×0（参考引擎 resolveScore/resolveCost
+    leisure → score*=0 / cost*=0；contest-fidelity 美鈴回放 zero cost/zero score）。
+    """
     assert MULTIPLIER == {
         "save1": 0.5,
         "save2": 0.25,
@@ -25,18 +29,20 @@ def test_multiplier_table_matches_official_values() -> None:
         "strong1": 2.0,
         "strong2": 2.5,
         "full": 3.0,
+        "leisure": 0.0,
     }
     assert FULL_POWER_POINT_COST == 10
 
 
 def test_score_multiplier_for_each_stance() -> None:
-    """温存 / 強気 / 全力 / 无指針四种指針的倍率；未知指針按无指針保守处理。"""
+    """温存 / 強気 / 全力 / のんびり / 无指針的倍率；未知指針按无指針保守处理。"""
     assert score_multiplier(StanceState()) == 1.0
     assert score_multiplier(StanceState(stance=Stance.SAVE, save_level=1)) == 0.5
     assert score_multiplier(StanceState(stance=Stance.SAVE, save_level=2)) == 0.25
     assert score_multiplier(StanceState(stance=Stance.STRONG1)) == 2.0
     assert score_multiplier(StanceState(stance=Stance.STRONG2)) == 2.5
     assert score_multiplier(StanceState(stance=Stance.FULL)) == 3.0
+    assert score_multiplier(StanceState(stance=Stance.LEISURE)) == 0.0
     assert score_multiplier(StanceState(stance="no-such-stance")) == 1.0
 
 

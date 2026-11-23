@@ -2383,6 +2383,90 @@ HANDOVER_NEXT 开场白/§0/§2 期望值（1306→1318）/§4 T2 第四臂/§8�
 **提交**：feat `ceb63ac`（开关代码+测试+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补四十四、11-24（P1-1 —— 阶段1 首批：r10 行为探针 + 全力回合 + のんびり指針，BSD-3 有据）
+
+**任务选择**：用户确认 A 顺序多会话路线图首批（HANDOVER_NEXT §8.0 P1-1，不用再问）。
+开工基线 ①–⑤ 全绿（HEAD 63bbb1f，② 1318/1、1319 收集 / 89 文件，216.82s）；Hindsight
+记忆确认（synced=false 后台深化中属正常；r10 过时记忆页已 ingest Correction 纠正）。
+
+**① r10 决策行为探针**（`data/_r10_behavior_probe.py`，复用 `data/_r9_behavior_probe.py`
+口径：纯 net、确定性、无搜索预算；输出 `out/_r10_behavior_probe.json`）：small 500 局
+（3000–3499）v6/r10/v1 三方 + large 120 局（3000–3119）v6/r10。**判定：残留 small 回退
+（−0.256）已非 v1 风格贪即时分为主**——首分歧贪即时分偏置（r 选正分牌而 v6 选零分 buff :
+反向）r9 **24:9（2.67×）→ r10 11:8（1.375×，近均衡）**；r10 对 v1 耐心比 **25:11（2.27×）
+恢复 v6 水平（29:13=2.23×）**，r9 当时被拉到 18:17（1.06×）；决策一致率 96.25%→97.25%、
+整局相同 433→447/500、分歧局 67→53、CLEAR 翻转 0:5（全负）→1:1（对称）。残留方向混合
+（更低即时分 20 / 零换正 8 / 正换零 11）= **无方向漂移噪声**（R9_ANALYSIS 通道 2 输入侧
+场景漂移的行为级佐证）。large 增益机制不变（+27.08/120 局、早回合 buff 86/110、0 次贪
+即时分分歧、CLEAR 25:1）。→ **r11 small 上采样仍是对症变量；换教师消 v1 拉扯不再是首要
+杠杆**。详见 [R9_ANALYSIS §9](R9_ANALYSIS.md)。
+
+**② 全力回合 +1 出牌/保留牌回手**（BSD-3 `constants.js FULL_POWER_EFFECTS /
+FULL_POWER_CHANGED_EFFECTS` + `TurnManager.startTurn`（抽牌后触发）+ `BuffManager.setStance`
+守卫 + `tests/contest-fidelity.md` 美鈴回放「全力回合三张牌 / held スパート 回手出牌 /
+全力値 12→2 保留超出」）：以全力开始的回合 `extra_plays += 1`（**连续全力每回合都有**——
+参考先 fullPower→none 再按 charge 进全力，最后检查 stance==fullPower；温存→全力边界后
+新回合 = 解除 1 + 全力 1 = 2 次额外）；`held` 保留区全部回手（`moveHeldCardsToHand`
+无手牌上限检查；**来源 holdCard/holdThisCard 留 P1-3**，当前恒空，钩子用合成保留牌验证）；
+**全力期间禁切指針**（`stance_change_allowed`：full 时只允许 none；全力值获得不受守卫
+影响，resolveFullPowerCharge 独立）。
+
+**③ のんびり指針**（`STANCE_CHANGED_EFFECTS` leisure 三条 + `resolveScore/resolveCost`
+leisure ×0 + `skill_cards.csv` 540-545/834 预约语义 + wiki 熱意条「Nは温存１=5,温存２=8,
+のんびり=10」+ contest-fidelity「のんびり zero cost/zero score、leaving のんびり for 強気
+元気+5 熱意+10 / for 全力 元気+5、card growth applied at each switch」）：
+`Stance.LEISURE` 分数/费用 ×0；解除 固定元気+5 / +1 出牌 / 熱意+10，**→全力时熱意改为
+全体卡打分成长+10**（`target:all { g.score+=10 }` 经 `CardManager.grow` 是 cardMap 每张卡
+growth，之后每次出牌走 resolveScore 加进白值——`score_growth_all` 永久加算、可叠加，
+**不是即时考试分**）；**温存→のんびり不触发温存解除**（`stance!=leisure` 条件）；
+のんびり期间禁切温存（setStance :264）。来源=**卡预约**（`ExamOverPreservation`，主数据
+在 `ExamStatusEnchant.inner`、values 恒空；4 族 13 行：のんびり屋さん/休み休み、前へ/
+屋上からの景色 = 永久·温存中触发（afterStartOfTurn），星々を見下ろす一番星 = limit3·
+非温存触发（startOfTurn）；`stance.LEISURE_RESERVE_SOURCES` 卡 base id 证据表，日文卡名↔
+中文卡名用 card_meta 别名交叉验证；出牌登记、回合开始按当时指針判条件触发/扣次数，
+条件不成立不扣）+ **P 道具 stance_leisure 直给**（夜空を従える花 pitem_03-3-303-0/1 两段
+标注；触发时机 `card_play_interval_after` 是 B8 遗留未支持 → 道具整体仍保守不触发，
+目标机制本身就绪，合成 CARD_PLAY spec 全链路验证）。
+
+**落地（纯增量）**：`stance.py`（LEISURE/MULTIPLIER leisure=0/费用 ×0/
+`stance_change_allowed`/`LEISURE_RESERVE_SOURCES`/`leisure_reserve_for`）+ `enthusiasm.py`
+（`release_on_stance_change` 扩 4 元组 `(熱意,元気,次数,成长)` + LEISURE_RELEASE_* 常量）+
+`lesson.py`/`expectimax.py`（`held`/`leisure_reserves`/`score_growth_all` 双镜 + canonical +
+state_from_sim/sim_from_state + `_move_held_to_hand`/`_apply_leisure_reserves(_state)` +
+全力 `enters_full` 分支 + 守卫接 3 处指針应用点）+ `leaf_data.py`（叶子快照补齐全力边界
++1/回手/预约，与 end_turn_state 逐字段对齐）+ `p_items.py`（STANCE_EFFECT_TARGETS/
+classify/FLAG_TARGETS/STATUS_NAMES/THRESHOLD_KEYS/delta.stances）+ `sim_produce.py`
+（MODELED_EFFECTS 32→33、CardRow 31→33 元组、ExamOverPreservation 预约解析）+
+`play_choice.py`（旧 `ExamOverPreservation→preservation` 误映射移除——values 恒空从未
+生效；ExamStatusEnchant.inner 只认 ExamOverPreservation，不展开其它附魔效果，生产卡表
+既有行为不变）+ `build_p_items.py` 重标注重建 `p_items.json`（modifier 369→371 段；
+**已实现计数仍 1042/1849**：2 段触发未支持）。release 6 调用点 + 既有测试断言随规则更新
+（test_t5_enthusiasm 边界 extra_plays 1→2、test_b2_leaf 快照同、test_sim_stance 倍率表
++leisure、test_sim_produce MODELED 32→33）。
+
+**评测牌组组成不变 / 重标定**：のんびり来源卡 score=0 或 SSR/Legend，本就不进 `build_pool`
+（score>0 过滤）；small 牌组无全力值卡（全力规则零触达）、large 有冲刺（全力值 1）但
+9 回合攒满 10 概率低。**sim_engine_ab 重标定：改前（git stash 对照）/改后 64 局逐位相同
+（差异=0）**——seed 9000/9100 各 16 局 rules/expectimax（budget 800ms），逐局非时间字段
+全等（新规则路径未触达）；expectimax 仍显著强于 rules（评价点 Δ**+372.2**（15/0/1）/
+**+219.1**（11/0/5），C+ 100%，0 blocked / 0 error），B3 重标定结论保持。
+`out/sim_engine_ab_p1_s9{000,100}.json`（改前对照 `out/_p1_ab_old_s9{000,100}.json`）。
+**旧 B11 数据/模型是旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批再
+新旧对比；参照臂需按新规则重评（门基线随之重定，旧 98.6/98.1/305.3 不可直接比）。
+
+**测试/基线**：`tests/test_p1_stance_rules.py` **36 条**（纯规则 6 / 全力 4 / のんびり 9 /
+P 道具 4 / 双镜 8 / 解析 4 / 叶子 1）；ruff 通过；全量 pytest **1354 passed / 1 skipped
+（1355 收集 / 90 文件）**；基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、
+⑤ 366/384 逐张 1125/1155 复跑不变。探针产物 out/_r10_behavior_probe.json（gitignore）；
+一次性脚本 data/_r10_behavior_probe.py / _p1_probe*.py 不提交。
+
+**文档**：RULES_REFERENCE §0/§1/§2/§5.2/§5.4/§6/§7；R9_ANALYSIS §9；WORKPLAN §0/P1-1/
+开场白；HANDOVER_NEXT 开场白/§0/§2 期望值（1318→1354）/§4 T5/§8.0/§8；INDEX；本文件
+二·补四十四；EXPECTIMAX B11 r10 注记。
+
+**提交**：feat `<hash>`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

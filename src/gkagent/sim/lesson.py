@@ -166,9 +166,14 @@
 熱意 +5、2 段階 +8，解除当回合出牌次数 +1，2 段階还额外 +5 固定元気（不吃干劲）。
 获得量 ``(熱意追加 + 基础值) × (1 + 熱意増加‰)``，常量与口径见
 ``sim/enthusiasm.py``（BSD-3 参考引擎 + 官方 wiki 描述；wiki 的 ceil 与参考引擎
-不取整的差异记录在那里）。**未建模**：のんびり（leisure）指針的解除规则、
-P 道具/附魔触发的熱意、以及同一张牌里「温存→強気→温存」这种净指針不变的
-中间解除（我们只看本牌结算前后指針，中间状态看不到）。
+不取整的差异记录在那里）。**P1-1（2026-11-24）补全**：のんびり（leisure）指針
+（分数/费用 ×0、解除 +5 固定元気/+1 次数/熱意+10 或全体卡打分成长+10）与
+全力回合 +1 出牌/保留牌回手（``FULL_POWER_CHANGED_EFFECTS``）；来源见
+``stance.LEISURE_RESERVE_SOURCES``（卡预约）与 P 道具 ``stance_leisure`` 直给。
+**仍未建模**：P 道具/附魔触发的熱意、同一张牌里「温存→強気→温存」这种净指針
+不变的中间解除（我们只看本牌结算前后指針，中间状态看不到）、指針固定
+（lockStanceTurns，来源卡切磋琢磨含保留区效果，留 P1-3）、保留区来源
+（holdCard/holdThisCard，P1-3；回手钩子已按参考实现）。
 
 接口约定：``legal_actions()`` / ``step(action)`` 里的 ``Action`` 是
 **手牌下标（int）或 None**，``None`` 表示 SKIP（结束本回合）；饮料是独立接口
@@ -222,6 +227,7 @@ from gkagent.sim.p_items import (
 )
 from gkagent.sim.stance import (
     FULL_POWER_POINT_COST,
+    Stance,
     StanceState,
     apply_full_power_point,
     card_stance_effect,
@@ -229,6 +235,7 @@ from gkagent.sim.stance import (
     score_multiplier,
     stamina_cost_multiplier,
     stamina_pierce,
+    stance_change_allowed,
 )
 
 __all__ = [
@@ -402,6 +409,14 @@ class CardSpec:
     # ExamMultipleEnthusiasticLesson：本牌熱意適用倍数（千分比，1000 = ×1；
     # 卡面「熱意效果会2倍生效」= 2000）
     enthusiasm_multiplier: int = 1000
+    # ---- P1-1 2026-11-24：のんびり预约（ExamOverPreservation，默认 0 = 旧行为）----
+    # 打出后登记一个回合开始预约：条件满足时把指針切到 のんびり。
+    # leisure_reserve = 剩余触发次数（-1 永久，0 无预约）；
+    # leisure_reserve_when_save = True 温存中才触发（のんびり屋さん等 3 族），
+    # False 非温存才触发（俯瞰群星的启明星，limit 3）。
+    # 证据：stance.LEISURE_RESERVE_SOURCES（BSD-3 skill_cards.csv 逐卡交叉）。
+    leisure_reserve: int = 0
+    leisure_reserve_when_save: bool = True
 
 
 @dataclass(frozen=True)
@@ -559,6 +574,10 @@ class LessonSim:
         # 除外区：レッスン中1回 的卡用掉后本场消失（不进弃牌堆、不会被重新抽到）
         self.excluded: list[CardSpec] = []
         self.hand: list[CardSpec] = []
+        # P1-1（2026-11-24）：保留区（held）。参考引擎 CardManager.holdCard/
+        # holdThisCard 的来源（holdSelected 等）留 P1-3 建模；当前恒空，
+        # 全力回合的 moveHeldCardsToHand 回手钩子已按参考实现（有牌就回手）。
+        self.held: list[CardSpec] = []
 
         self.score: int = 0
         self.stamina: int = config.stamina
@@ -572,8 +591,15 @@ class LessonSim:
         self.plays_per_turn: int = config.plays_per_turn
         self.plays_this_turn: int = 0
         self.extra_plays: int = 0
-        # 非凡指針：温存 / 強気 / 全力 的倍率状态（纯函数模块 stance.py）
+        # 非凡指針：温存 / 強気 / 全力 / のんびり 的倍率状态（纯函数模块 stance.py）
         self.stance = StanceState()
+        # P1-1（2026-11-24）：のんびり预约列表 [(剩余次数, 是否温存中触发), …]
+        # （出牌登记，回合开始结算；-1 永久）。参考引擎 afterStartOfTurn/startOfTurn
+        # 预约在本模型里都在抽牌后结算（期间无其它指針交互，等价）。
+        self.leisure_reserves: list[tuple[int, bool]] = []
+        # P1-1：のんびり→全力 的全体卡打分成长（target:all g.score+=10，永久加算，
+        # 每次出牌加进白值；参考引擎 cardMap growth + resolveScore）。
+        self.score_growth_all: int = 0
         # 熱意（enthusiasm）：回合内分数资源（整数，获得时向上取整），回合末归 0；
         # 温存解除给 5/8（见 enthusiasm.py）
         self.enthusiasm: int = 0
@@ -831,14 +857,15 @@ class LessonSim:
             )
         self._apply_card_buffs(effect_card)
         self._apply_card_stance(effect_card)
-        # 温存解除（参考引擎 STANCE_CHANGED_EFFECTS）：熱意 +5/+8、2 段階固定元気 +5、
-        # 当回合出牌次数 +1；同回合内反复「温存→強気」按次数重复触发。旧实现把熱意
-        # 近似成好调回合，T5② 2026-11-22 改为独立熱意资源（见 enthusiasm.py）。
+        # 温存/のんびり解除（参考引擎 STANCE_CHANGED_EFFECTS）：熱意 +5/+8/+10、
+        # 固定元気 +5、当回合出牌次数 +1、のんびり→全力全体卡打分成长 +10；
+        # 同回合内反复解除按次数重复触发。旧实现把熱意近似成好调回合，
+        # T5② 2026-11-22 改为独立熱意资源（见 enthusiasm.py）。
         if getattr(self.config, "stance_costs", True):
-            release_enthusiasm, release_genki, release_plays = (
+            release_enthusiasm, release_genki, release_plays, release_growth = (
                 release_on_stance_change(previous_stance, self.stance)
             )
-            if release_enthusiasm or release_genki or release_plays:
+            if release_enthusiasm or release_genki or release_plays or release_growth:
                 self.enthusiasm += enthusiasm_gain(
                     release_enthusiasm,
                     bonus=self.buffs.enthusiasm_bonus,
@@ -847,6 +874,7 @@ class LessonSim:
                 # 固定元気：不吃「やる気」加成（参考引擎 resolveFixedGenki）
                 self.vitality += release_genki
                 self.extra_plays += release_plays
+                self.score_growth_all += release_growth
         # 本牌结算后追加本回合可出牌次数（本牌本身仍占一次）
         if effect_card.extra_play > 0:
             self.extra_plays += effect_card.extra_play
@@ -957,7 +985,9 @@ class LessonSim:
         """
         award = 0
         turn_bonus = self._turn_bonus_permil()
-        base_score = card.score
+        # P1-1：のんびり→全力 的全体卡打分成长加进白值（参考引擎 resolveScore
+        # 的 growth[g.score]，在集中/熱意/倍率之前；score=0 的牌吃了成长也进算分）。
+        base_score = card.score + self.score_growth_all
         if base_score > 0 and card.grow_score > 0 and uses > 0:
             base_score = base_score * (100 + uses * card.grow_score) / 100
         if base_score > 0:
@@ -1059,6 +1089,11 @@ class LessonSim:
 
         B8：全力值获得累计进 ``full_power_point_total``（「累计全力值的 N%」换算源），
         指針变化后发一次 ``stance_change`` 事件。
+
+        P1-1（2026-11-24）：指針変更过 ``stance_change_allowed`` 守卫（参考引擎
+        ``BuffManager.setStance``：全力期间不能切指針、のんびり期间不能切温存）；
+        全力值获得不受守卫影响（resolveFullPowerCharge 独立）。``leisure_reserve``
+        牌打出后登记のんびり预约（回合开始结算，见 ``_apply_leisure_reserves``）。
         """
         previous_stance = self.stance
         if card.full_power_point > 0:
@@ -1073,7 +1108,7 @@ class LessonSim:
                 status="full_power_point",
                 amount=points,
             )
-        if card.strong_level > 0:
+        if card.strong_level > 0 and stance_change_allowed(self.stance, "concentration"):
             delta = card_stance_effect("ExamConcentration", [card.strong_level])
             if delta["stance"] is not None:
                 self.stance = replace(
@@ -1082,7 +1117,7 @@ class LessonSim:
                     strong_level=card.strong_level,
                     save_level=0,
                 )
-        if card.preservation > 0:
+        if card.preservation > 0 and stance_change_allowed(self.stance, "preservation"):
             delta = card_stance_effect("ExamPreservation", [card.preservation])
             if delta["stance"] is not None:
                 # 温存段階只升不降：已在 2 段階时再打 1 段階温存牌保持 2 段階
@@ -1092,6 +1127,12 @@ class LessonSim:
                     strong_level=0,
                     save_level=max(self.stance.save_level, int(delta["save_level"])),
                 )
+        if card.leisure_reserve != 0:
+            # のんびり预约（ExamOverPreservation）：登记到回合开始结算。
+            # 再演（encore）不翻倍预约——它是延迟效果，不是本牌直接效果。
+            self.leisure_reserves.append(
+                (int(card.leisure_reserve), bool(card.leisure_reserve_when_save))
+            )
         if self.stance != previous_stance:
             self._fire_p_items(STANCE_CHANGE)
 
@@ -1282,6 +1323,8 @@ class LessonSim:
                 else 0,
                 "stance_preservation": self.stance.save_level,
                 "stance_full_power": 1 if "full" in stance else 0,
+                # P1-1：のんびり存在性条件（悠闲变更类 P 道具/条件用）
+                "stance_leisure": 1 if stance == Stance.LEISURE else 0,
                 # B9：「消耗体力减少状态」条件 = halfCostTurns>0
                 "half_cost_state": 1 if self.half_cost_turns > 0 else 0,
             },
@@ -1508,11 +1551,13 @@ class LessonSim:
 
         参考引擎 ``setStance``：已在同指針时升到 2 段階（``preservation`` →
         ``preservation2`` / ``strength`` → ``strength2``）；否则切到 1 段階。
+        P1-1（2026-11-24）：新增 ``leisure``（のんびり变更，ExamOverPreservation）；
+        所有直给都过 ``stance_change_allowed`` 守卫（全力期间禁切、のんびり禁温存）。
         """
         changed = False
         for kind in kinds:
             previous = self.stance
-            if kind == "preservation":
+            if kind == "preservation" and stance_change_allowed(self.stance, "preservation"):
                 level = 2 if str(self.stance.stance) == "save" else 1
                 self.stance = replace(
                     self.stance,
@@ -1522,7 +1567,7 @@ class LessonSim:
                     else level,
                     strong_level=0,
                 )
-            elif kind == "concentration":
+            elif kind == "concentration" and stance_change_allowed(self.stance, "concentration"):
                 level = 2 if "strong" in str(self.stance.stance) else 1
                 self.stance = replace(
                     self.stance,
@@ -1530,13 +1575,20 @@ class LessonSim:
                     strong_level=level,
                     save_level=0,
                 )
+            elif kind == "leisure" and stance_change_allowed(self.stance, "leisure"):
+                self.stance = replace(
+                    self.stance,
+                    stance=Stance.LEISURE,
+                    strong_level=0,
+                    save_level=0,
+                )
             if self.stance != previous:
                 changed = True
                 if getattr(self.config, "stance_costs", True):
-                    release_enthusiasm, release_genki, release_plays = (
+                    release_enthusiasm, release_genki, release_plays, release_growth = (
                         release_on_stance_change(previous, self.stance)
                     )
-                    if release_enthusiasm or release_genki or release_plays:
+                    if release_enthusiasm or release_genki or release_plays or release_growth:
                         self.enthusiasm += enthusiasm_gain(
                             release_enthusiasm,
                             bonus=self.buffs.enthusiasm_bonus,
@@ -1544,6 +1596,7 @@ class LessonSim:
                         )
                         self.vitality += release_genki
                         self.extra_plays += release_plays
+                        self.score_growth_all += release_growth
         return changed
 
     def _end_turn(self, *, skipped: bool) -> None:
@@ -1682,14 +1735,21 @@ class LessonSim:
             self._fire_p_items(STANCE_CHANGE)
         if self.turns_left > 0:
             self._draw_hand()
-            # 温存→全力 的**回合边界**切换也触发解除收益（参考引擎 startTurn 的
-            # FULL_POWER_EFFECTS 里 setStance(fullPower) 会触发 STANCE_CHANGED_EFFECTS）。
-            # _draw_hand 已把 extra_plays 清零，所以 +1 次数加在新回合的基础次数上。
+            # P1-1（2026-11-24）：FULL_POWER_CHANGED_EFFECTS——以全力开始的回合
+            # +1 出牌次数、保留牌回手（参考 TurnManager.startTurn 抽牌后触发）。
+            # 连续全力回合每回合都 +1（参考先 fullPower→none 再按 charge 进全力，
+            # 最后检查 stance==fullPower；本模型 end_turn 净效果等价）。
+            if str(self.stance.stance) == Stance.FULL:
+                self.extra_plays += 1
+                self._move_held_to_hand()
+            # 温存/のんびり→全力 的**回合边界**切换也触发解除收益（参考引擎 startTurn
+            # 的 FULL_POWER_EFFECTS 里 setStance(fullPower) 会触发 STANCE_CHANGED_EFFECTS）。
+            # _draw_hand 已把 extra_plays 清零，所以次数加在新回合的基础次数上。
             if getattr(self.config, "stance_costs", True):
-                release_enthusiasm, release_genki, release_plays = (
+                release_enthusiasm, release_genki, release_plays, release_growth = (
                     release_on_stance_change(previous_stance, self.stance)
                 )
-                if release_enthusiasm or release_genki or release_plays:
+                if release_enthusiasm or release_genki or release_plays or release_growth:
                     self.enthusiasm += enthusiasm_gain(
                         release_enthusiasm,
                         bonus=self.buffs.enthusiasm_bonus,
@@ -1697,6 +1757,54 @@ class LessonSim:
                     )
                     self.vitality += release_genki
                     self.extra_plays += release_plays
+                    self.score_growth_all += release_growth
+            # P1-1：のんびり预约（afterStartOfTurn/startOfTurn，抽牌后结算）
+            self._apply_leisure_reserves()
+
+    def _move_held_to_hand(self) -> None:
+        """P1-1：全力回合保留牌回手（参考 ``CardManager.moveHeldCardsToHand``）。
+
+        保留区全部牌弹出加进手牌（该接口无手牌上限检查，与参考一致）；
+        保留区来源（holdCard/holdThisCard）留 P1-3，当前恒空。
+        """
+        if self.held:
+            self.hand.extend(self.held)
+            self.held.clear()
+
+    def _apply_leisure_reserves(self) -> None:
+        """P1-1：回合开始结算のんびり预约（出牌时登记，见 _apply_card_stance）。
+
+        参考 ``skill_cards.csv``：``at:afterStartOfTurn { if:isPreservation
+        { setStance(leisure) } }``（永久）/ ``at:startOfTurn { if:!isPreservation
+        { setStance(leisure) }; limit:3 }``。每条预约独立按**当时**指針判条件；
+        条件成立即触发 setStance(leisure)（受全力守卫）并扣次数（永久 -1 不扣）；
+        条件不成立不扣次数。进入のんびり本身无解除收益（温存→のんびり不触发
+        温存解除，见 release_on_stance_change）。
+        """
+        if not self.leisure_reserves:
+            return
+        remaining: list[tuple[int, bool]] = []
+        for count, when_save in self.leisure_reserves:
+            stance_now = str(self.stance.stance)
+            matched = (
+                (stance_now == Stance.SAVE) if when_save else (stance_now != Stance.SAVE)
+            )
+            if matched:
+                previous = self.stance
+                if stance_change_allowed(self.stance, "leisure"):
+                    self.stance = replace(
+                        self.stance,
+                        stance=Stance.LEISURE,
+                        strong_level=0,
+                        save_level=0,
+                    )
+                if self.stance != previous:
+                    self._fire_p_items(STANCE_CHANGE)
+                if count > 0:
+                    count -= 1
+            if count != 0:
+                remaining.append((count, when_save))
+        self.leisure_reserves = remaining
 
     def _draw_hand(self, *, keep_extra_plays: bool = False) -> None:
         # 新手牌 = 新回合：好印象在**下一回合开始时** -1（回合末已按当前层数加分）

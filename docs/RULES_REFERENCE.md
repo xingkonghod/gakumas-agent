@@ -31,23 +31,28 @@
 > 只按本表逐条对齐「机制」；F1 用官方种子做同题同种子复算时，起点状态用 `check`（turn/score/stamina），
 > 并注明对比的 rules 版本。
 
-## 0. 一句话结论（B3 + T5① + T5② + T5④ 后）
+## 0. 一句话结论（B3 + T5① + T5② + T5④ + P1-1 后）
 
 分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
 **跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**、
-**熱意（enthusiasm）与温存解除**（熱意 +5/+8、2 段固定元気 +5、解除当回合 +1 出牌次数、
-熱意算分/获得取整/回合末清零与延長、本牌熱意適用倍数）
+**熱意（enthusiasm）与温存/のんびり解除**（熱意 +5/+8/+10、固定元気 +5、解除当回合 +1 出牌次数、
+熱意算分/获得取整/回合末清零与延長、本牌熱意適用倍数）、**全力回合 +1 出牌/保留牌回手**、
+**のんびり指針**（分数/费用 ×0、解除收益、预约来源、全力/のんびり指針守卫）
 都已按参考引擎/客户端语义/真机对齐；**P 道具**已接数据管线（gkbench loadout，catalog 1115 件）
 并实现两批**条件/效果语义**（B8：新语法 trigger id 结构化解析、依赖换算「X 的 N% 数值变为 Y」、
 固定/百分比体力消耗与回复、新触发时机；B9：**持续倍率 / modifier 类**——打分上升量增加/减少
 （`resolveScore` f/g）、好印象强化/追加发动、热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、
 费用削减/追加/减少回合/增加回合、回合追加、温存/强气指針直给；B10：**生成卡确定式 +
 指定卡名/手牌张数映射**——card_meta（idol_unique/effectGroupIds）+ play_filter/zone_count
-结构化 + ExamCardCreateId 落牌；数据层 **1042/1849 段**，见 §5.3 B8/B9/B10）。
+结构化 + ExamCardCreateId 落牌；**P1-1 のんびり直给** stance_leisure；数据层 **1042/1849 段**
+（modifier 标注 369→371，+2 段 stance_leisure 因触发时机未支持仍保守不触发），
+见 §5.3 B8/B9/B10 / §5.4 P1-1）。
 剩余差距是 **随机生成卡**（H.I.F应援棒，考试 RNG 流未知）、**强化状态花费卡类**
 （`ExamBuffConsumptionAdd` 的落点——我们的卡牌模型不建「以强化状态为花费」的卡）、
-**hold 保留区张数条件**（2 件，保留区未建模）、**附魔**、**fresh buff 的差一回合衰减**、
-**のんびり（leisure）指針与全力回合額外出牌/保留牌**、**依赖分结算顺序**（我们保守口径）等。
+**hold 保留区来源/张数条件**（holdCard/holdThisCard 未建模，P1-3；回手钩子已实现）、
+**指針固定 lockStanceTurns**（来源卡切磋琢磨含保留区效果，随 P1-3）、
+**card_play_interval_after 触发时机**（2 件のんびり道具因此仍保守不触发）、
+**附魔**、**fresh buff 的差一回合衰减**、**依赖分结算顺序**（我们保守口径）等。
 
 ---
 
@@ -61,8 +66,9 @@
 | 额外出牌 = 使用次数 +N | `ExamPlayableValueAdd` 效果（卡 / P 道具）加 `cardUsesRemaining`；真机 7 个 2 张回合里 3 个首张牌带该效果 | `CardSpec.extra_play` → `LessonSim.extra_plays` / `ExpectState.extra_plays`；T5③ 起 P 道具同效果（`PItemDelta.extra_plays`，考试开始/回合开始/出牌后都会加，见 §5.3） | ✅ 卡效果 + P 道具（仅 loadout 能拿到的数据；真机培育侧列表待补采） | `test_extra_play_keeps_turn_open_then_auto_ends`、`test_exam_start_extra_play_keeps_first_turn_open`、fixture |
 | 每回合开始抽 3 张（手牌 3） | `TurnManager.startTurn`: `cardsToDraw = max(3 - handDecrease, 0)` | `LessonConfig.hand_size=3`，每回合 `_draw_hand` | ✅（handDecrease 未建模 ⚠️） | `test_sim_lesson.py` 各回合测试 |
 | 抽牌/手牌**上限 5** | `CardManager.drawCard`: `if handCards.length >= 5 return` | `LessonSim._draw` 不设上限 | ⚠️ 只有抽牌卡溢出时才不同 | — |
-| 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | T5②（2026-11-22）按参考引擎实现：熱意独立资源 +5/+8、2 段**固定元気 +5**（不吃やる気）、解除当回合 **+1 出牌次数**；回合末熱意清零（有熱意延長则保留）；同回合重复解除可叠加 | ✅（のんびり/全力回合额外出牌未建模） | `tests/test_t5_enthusiasm.py`（纯规则 + LessonSim） |
-| 全力回合：+1 次出牌、保留牌回手 | `constants.js FULL_POWER_EFFECTS` / `FULL_POWER_CHANGED_EFFECTS` | 只建模全力 ×3 分数与全力值消耗 | ⚠️ 额外次数/保留牌未建模 | `test_full_power_point_triggers_triple_next_turn` |
+| 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | T5②（2026-11-22）按参考引擎实现：熱意独立资源 +5/+8、2 段**固定元気 +5**（不吃やる気）、解除当回合 **+1 出牌次数**；回合末熱意清零（有熱意延長则保留）；同回合重复解除可叠加；**温存→のんびり不触发**（`stance!=leisure` 条件，P1-1 补） | ✅ | `tests/test_t5_enthusiasm.py`（纯规则 + LessonSim）+ `tests/test_p1_stance_rules.py` |
+| 全力回合：+1 次出牌、保留牌回手 | `constants.js FULL_POWER_EFFECTS` / `FULL_POWER_CHANGED_EFFECTS`；`TurnManager.startTurn` 抽牌后触发；contest-fidelity 美鈴回放「全力回合三张牌」「held スパート used in the 全力 turn」 | **P1-1（2026-11-24）**：以全力开始的回合 `extra_plays += 1`（连续全力每回合都有）+ `held` 全部回手（`_move_held_to_hand`，无手牌上限检查同参考）；全力值 ≥10 消耗 10 进全力（超出保留）口径不变；**全力期间禁切指針**（`stance_change_allowed`，setStance 守卫）；保留区来源 holdCard/holdThisCard 留 P1-3（当前恒空，钩子已验） | ✅ 额外次数/回手/守卫；⚠️ 保留区来源未建模 | `test_full_power_turn_grants_extra_play` / `test_consecutive_full_power_turns_each_grant_extra_play` / `test_full_power_moves_held_cards_to_hand` / `test_full_power_blocks_stance_changes_but_not_charge` |
+| のんびり（leisure）指針：分数/费用 ×0；解除 固定元気+5 / +1 次出牌 / 熱意+10（→全力时改为**全体卡打分成长+10**）；温存→のんびり不触发温存解除；のんびり期间禁切温存 | `constants.js STANCE_CHANGED_EFFECTS`（:57-68）；`resolveScore`/`resolveCost` leisure ×0；`BuffManager.setStance`（:264）；contest-fidelity 美鈴回放「のんびり zero cost/zero score、leaving のんびり for 強気 元気+5 熱意+10、for 全力 元気+5」 | **P1-1（2026-11-24）**：`Stance.LEISURE` + `MULTIPLIER["leisure"]=0` + 费用 ×0；`release_on_stance_change` 扩 4 元组（末位=全体卡成长，`score_growth_all` 永久加算进白值，参考 `target:all g.score+=10` 是 cardMap growth 不是即时分）；来源=卡预约（`ExamOverPreservation`，4 族卡 CSV 逐卡证据表 `LEISURE_RESERVE_SOURCES`，回合开始条件触发/次数扣减）+ P 道具 `stance_leisure` 直给 | ✅ 规则/来源/双镜；⚠️ 2 件道具触发时机 card_play_interval_after 未支持（保守不触发） | `tests/test_p1_stance_rules.py` 36 条 |
 | 饮料不占出牌次数 | 真机 UI/用户确认 | `use_drink` 不动 `plays_this_turn` | ✅ | `test_mechanism_corrections.py::test_drinking_does_not_consume_play_slots` |
 | `turnSkipped` 是独立触发时机（P 道具） | `PHASES` 含 `turnSkipped`；master 里 12 个 turn_skip P 道具 | P 道具接口只触发 turn_start/turn_end/card_play/status_gain | ⚠️ 跳过类 P 道具未触发 | — |
 
@@ -90,10 +96,10 @@
 |---|---|---|---|---|
 | 集中加在白值上（乘之前） | `resolveScore` a；实机 250% 情熱ターン 集中 0/3/6 → 28/35/43 | `_card_award`: `(base + focus) × …` | ✅ | `test_audition_multiplier_matches_captured_real_machine_scores` |
 | やる気（motivation）→ **元气获得量** | `resolveGenki`: `genki += motivation × multiplier`；实机回放 やる気 放大元气 | `motivation` 字段：获得元气时 `vitality += value + motivation` | ✅ | `test_mechanism_corrections.py::test_motivation_and_vitality_are_separate_and_persist` |
-| 熱意（enthusiasm）→ **本牌分数加算** | `resolveScore` b：`score += enthusiasm × enthusiasmMultiplier`；温存解除给 5/8；熱意属 `WHOLE_FIELDS`，获得时向上取整；`ExamMultipleEnthusiasticLesson` 本牌倍数 ×2 | `sim/enthusiasm.py` + `LessonSim.enthusiasm` / `ExpectState.enthusiasm`（整数）；`CardSpec.enthusiasm_bonus / enthusiasm_multiple / enthusiasm_extension / enthusiasm_multiplier`；生产卡表 `_effect_fields` 映射 | ✅（のんびり/P 道具来源未建模） | `tests/test_t5_enthusiasm.py` 16 条 |
+| 熱意（enthusiasm）→ **本牌分数加算** | `resolveScore` b：`score += enthusiasm × enthusiasmMultiplier`；温存解除给 5/8、のんびり解除给 10；熱意属 `WHOLE_FIELDS`，获得时向上取整；`ExamMultipleEnthusiasticLesson` 本牌倍数 ×2 | `sim/enthusiasm.py` + `LessonSim.enthusiasm` / `ExpectState.enthusiasm`（整数）；`CardSpec.enthusiasm_bonus / enthusiasm_multiple / enthusiasm_extension / enthusiasm_multiplier`；生产卡表 `_effect_fields` 映射 | ✅（のんびり来源 P1-1 已建模；P 道具熱意触发未接入） | `tests/test_t5_enthusiasm.py` 16 条 + `test_p1_stance_rules.py` |
 | 好调倍率 `1+(0.5+绝好调0.1×g)×倍率` | `resolveScore` d；wiki `1.5+0.1×好调回合`（绝好调） | `Buffs.condition_turns/perfect_condition_turns` 同式 | ✅ | `test_lesson_rules_reference.py` |
-| 指針倍率（0.5/0.25/2/2.5/3） | `resolveScore` e；实机回放 強気 9→18、温存 9→5/15→8 | `sim/stance.py MULTIPLIER` | ✅ | `test_preservation_card_halves_later_scores`、实机黄金值 |
-| 指針牌费（温存减半/強気双倍/強気2 穿透 1） | `resolveCost`（费用是负数，`floor(-cost×m)` = 绝对值向上取整） | `_effective_cost` 用 `ceil(cost×m)`（同语义） | ✅ | `test_mechanism_corrections.py::test_stance_cost_modifiers_and_strong_pierce` |
+| 指針倍率（0.5/0.25/2/2.5/3/のんびり 0） | `resolveScore` e；实机回放 強気 9→18、温存 9→5/15→8；contest-fidelity のんびり アッチェレランド/ジャストアピール 0 分 | `sim/stance.py MULTIPLIER`（P1-1 加 leisure=0） | ✅ | `test_preservation_card_halves_later_scores`、实机黄金值、`test_leisure_turn_zero_score_zero_cost` |
+| 指針牌费（温存减半/強気双倍/強気2 穿透 1/のんびり ×0） | `resolveCost`（费用是负数，`floor(-cost×m)` = 绝对值向上取整）；contest-fidelity のんびり zero cost | `_effective_cost` 用 `ceil(cost×m)`（同语义）；P1-1 加 leisure=0 | ✅ | `test_mechanism_corrections.py::test_stance_cost_modifiers_and_strong_pierce`、`test_leisure_turn_zero_score_zero_cost` |
 | 分数增益/减益（scoreBuffs/scoreDebuffs） | `resolveScore` f/g；实机回放「審査基準 +1500‰ = ×1.5」 | `parameter_buff` 千分比近似（乘在最终分上，`int()`） | ⚠️ 语义近似（卡表把它映射成好调/审查基准两种口径） | `test_parameter_buff_*` |
 | 自尊 pride `min(好印象,やる気)×0.02` 上限 +0.5 | `resolveScore` f | 未建模 | ❌ 影响小（需要 prideTurns 来源） | — |
 | メタモルフォーゼ：披露 +25% / 支度 ×0.75 | `resolveScore` f/g；实机回放 100→ceil(125)、100→ceil(75) | `Buffs.metamorphosis` | ✅ 分数；❌ 支度→披露半场翻转未做 | `test_lesson_rules_reference.py` |
@@ -104,7 +110,7 @@
 | **分数倍率 buff/debuff**（P 道具 `ExamLessonValueMultiple(+Down)`） | `resolveScore` f/g：`score *= 1 + Σ scoreBuff`，再 `score *= max(1 − Σ scoreDebuff, 0)`（`BuffManager.setScoreBuff(amount, turns)` 按 turns 分组、amount 加算、回合末倒计时、turns=None 永久） | B9（2026-11-22）：`LessonSim.score_buffs/score_debuffs` + `ExpectState` 双镜（列表元素 `(千分比, 剩余回合)`，`add_timed/tick_timed` 纯函数）；出牌分与回合末好印象都按 f/g 顺序乘（在メタモルフォーゼ披露之后、支度/不调之前）；取整仍走 `safe_ceil` 一次 | ✅（fresh buff 差一回合问题不适用于 startOfTurn 触发；卡触发的 P 道具沿用同一「回合末 -1」口径，见 §3 fresh buff 行） | `tests/test_p_items_b9.py`（score buff/debuff/加算/倒计时/双镜/算分一致） |
 | **费用修正**（P 道具 `ExamStaminaConsumptionDownFix/AddFix/Down/Add`） | `resolveCost`：`cost = floor(cost × 指針 × halfCostTurns × doubleCostTurns)`（负数 floor = 幅度向上取整）→ `cost += costReduction − costIncrease` → 夹到 ≤0（我们正数口径夹 ≥0） | B9：`cost_reduction/cost_increase`（永久加减）、`half_cost_turns/double_cost_turns`（接下来 N 回合 ×0.5/×2 计数器）；`LessonSim._effective_cost` 与 `expectimax.effective_cost` 同式；「随机 1 张手牌」版本保守 no-op（无手牌定位） | ✅（全局费用修正）；随机手牌版本 ❌ 不猜 | `tests/test_p_items_b9.py::test_lesson_half_cost_turns_*` / `test_lesson_cost_reduction_and_increase` |
 | 单精度舍入（JS double vs Python float） | 两边都是 IEEE-754 double；参考 `safeCeil` 有 1e-9 epsilon；属性倍率乘用**单精度**（`CalcCurrentTurnBattleBonus`） | `safe_ceil` 同实现；`exam_multiplier.f32`/`battle_bonus_score` 用 struct 模拟 f32 | ✅ | 实机黄金值 + `test_battle_bonus_score_matches_client_rounding` |
-| growth（成长表） | `resolveScore` ① 用 growth 表的**加算**（g.score 等） | `grow_score` 是卡面百分比乘白值；数据为空 → 恒 0 | ❌ 数据缺口（`ProduceCardGrowEffect` 未下载） | — |
+| growth（成长表） | `resolveScore` ① 用 growth 表的**加算**（g.score 等） | `grow_score` 是卡面百分比乘白值；数据为空 → 恒 0。**P1-1 例外**：のんびり→全力 的 `target:all g.score+=10` 是规则触发的全体卡成长，已按加算实现（`score_growth_all`，每次出牌加进白值、永久、可叠加） | ❌ 卡表成长数据缺口（`ProduceCardGrowEffect` 未下载）；✅ のんびり→全力成长 | `test_leisure_to_full_boundary_grants_growth` / `test_expect_award_includes_growth_all` |
 
 ## 3. Buff 生命周期 / 好印象年金 W(r,T)
 
@@ -190,11 +196,12 @@
 
 **口径与剩余差距（如实记录）**：
 
-- のんびり（leisure）指針本模拟器没建模：其解除规则（固定元気+5、熱意+10、のんびり→全力
-  `g.score+10`）未实现；全力回合的 +1 出牌次数/保留牌回手也未建模（这两项在 §1 仍标 ⚠️）。
+- ~~のんびり（leisure）指針本模拟器没建模~~ ✅ **P1-1（2026-11-24）已建模**（解除规则/×0 倍率/
+  预约来源/守卫，见 §5.4）；全力回合 +1 出牌/保留牌回手同批补全（§1 已改 ✅）。
 - 参考引擎 fidelity 的实机黄金值只用于口径核对（`training-fidelity.md`：温存 9/2/15→5/1/8 +
   「leaving 温存 grants 5 熱意 and an extra use」；`contest-fidelity.md`：温存 2 段解除给
-  5 元気/8 熱意/额外出牌、のんびり→強気 元気+5 熱意+10）；我们没有逐帧 fixture JSON，未做逐分回放。
+  5 元気/8 熱意/额外出牌、のんびり→強気 元気+5 熱意+10、のんびり zero cost/zero score、
+  全力回合 held スパート 回手出牌）；我们没有逐帧 fixture JSON，未做逐分回放。
 - 生产读屏还没读熱意图标/当前温存段階：`policy/lesson.py::_search_state` 每步按回合开始（熱意 0）建模，
   同回合第二张（額外出牌）时不会带上上一张刚获得的熱意——与现有「不读好调/集中层数」同口径；
   真机逐分核对留到 T6/读屏补强。
@@ -463,14 +470,48 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
 - 微熱ノスタルジー♡ 无 origin 字段 → 不算偶像固有；12 张快照后新卡无 meta → 限定不可判（保守）。
 - fresh buff 差一回合（需真机逐回合截图，§3）、真机培育侧列表（T6/D1）、主道具附魔/回忆。
 
+### 5.4 P1-1 全力回合 + のんびり指針（2026-11-24 完成）
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **全力回合 +1 出牌**：以全力开始的回合 `extra_plays += 1`（连续全力每回合都有；与温存解除的 +1 是两条独立效果，温存→全力边界后新回合 = 2 次额外） | `LessonSim._end_turn` / `expectimax.end_turn_state`（`enters_full` 分支） | `constants.js FULL_POWER_CHANGED_EFFECTS`（`if:stance==fullPower { cardUsesRemaining+=1; moveHeldCardsToHand }`）+ `TurnManager.startTurn`（抽牌后触发；先 fullPower→none 再按 charge 进全力，故连续全力也触发）；contest-fidelity 美鈴回放「switch to 全力 keeps the extra 1, that turn's three cards score 778」 | `test_full_power_turn_grants_extra_play` / `test_consecutive_full_power_turns_each_grant_extra_play` / `test_end_turn_state_full_entry_extra_play_and_held` |
+| **保留牌回手**：全力回合 `held` 全部弹回手牌（无手牌上限检查，同参考） | `LessonSim.held` / `ExpectState.held` + `_move_held_to_hand`；`end_turn_state` 把回手牌放进下一手 | `CardManager.moveHeldCardsToHand`（:1008-1027）；contest-fidelity「held スパート used in the 全力 turn」多场 | `test_full_power_moves_held_cards_to_hand` / `test_leaf_snapshot_full_boundary_held_and_extra` |
+| **指針守卫**：全力期间禁切指針（setStance 只允许 none）；のんびり期间禁切温存；全力值获得不受守卫影响 | `stance.stance_change_allowed`；`_apply_card_stance` / `_apply_direct_stances` / expectimax 双镜同守卫 | `BuffManager.setStance`（:258-265）；`resolveFullPowerCharge` 独立 | `test_stance_change_guards_match_set_stance` / `test_full_power_blocks_stance_changes_but_not_charge` / `test_leisure_blocks_preservation_card` |
+| **のんびり倍率**：分数 ×0、费用 ×0 | `Stance.LEISURE` + `MULTIPLIER["leisure"]=0` + `stamina_cost_multiplier` leisure=0 | `resolveScore`（:168-169）/`resolveCost`（:56-57）；contest-fidelity「のんびり zero cost and zero score」 | `test_leisure_multipliers_are_zero` / `test_leisure_turn_zero_score_zero_cost` / `test_apply_card_full_guard_and_leisure_cost` |
+| **のんびり解除**：固定元気+5 / +1 出牌 / 熱意+10；**→全力时熱意改为全体卡打分成长+10**（`target:all g.score+=10` 是 cardMap growth，每次出牌加进白值、永久、可叠加，不是即时分）；温存→のんびり不触发温存解除 | `release_on_stance_change` 扩 4 元组 `(熱意, 元気, 次数, 成长)`；`LessonSim.score_growth_all` / `ExpectState.score_growth_all`（canonical/快照往返/叶子双镜） | `constants.js STANCE_CHANGED_EFFECTS`（:57-68）；`CardManager.grow` + `targeting.js target:all`；wiki 熱意条「Nは温存１=5,温存２=8,のんびり=10」；contest-fidelity「leaving のんびり for 強気 元気+5 熱意+10 / for 全力 元気+5」「card growth applied at each switch」 | `test_leisure_release_to_non_full` / `test_leisure_release_to_full_is_card_growth` / `test_leisure_to_full_boundary_grants_growth` / `test_expect_award_includes_growth_all` |
+| **卡牌来源（预约）**：`ExamOverPreservation`（主数据在 `ExamStatusEnchant.inner`，values 恒空）→ 出牌登记预约，回合开始按条件触发 setStance(leisure)：温存中触发（のんびり屋さん/休み休み、前へ/屋上からの景色，永久）/ 非温存触发（星々を見下ろす一番星，limit 3）；条件不成立不扣次数 | `CardSpec.leisure_reserve / leisure_reserve_when_save`；`stance.LEISURE_RESERVE_SOURCES`（卡 base id → 条件/次数证据表）；`LessonSim.leisure_reserves` / `ExpectState.leisure_reserves` + `_apply_leisure_reserves(_state)`；`sim_produce._effect_fields`（MODELED_EFFECTS 32→33）/ `play_choice._effect_fields`（旧 `ExamOverPreservation→preservation` 误映射移除） | 主数据 card_table 4 族 13 行 + BSD-3 `skill_cards.csv` 540-545/834 逐卡 DSL（日文卡名↔中文卡名用 card_meta 别名交叉）；contest-fidelity「のんびり屋さん's 温存→のんびり at each turn's start」「全力后 stance goes back to のんびり」 | `test_leisure_reserve_evidence_table` / `test_leisure_reservation_fires_at_turn_start` / `test_leisure_reserve_limit_variant_decrements` / `test_sim_produce_leisure_parse_real_cards` / `test_play_choice_leisure_spec` |
+| **P 道具来源**：`ExamOverPreservation` → `stance_leisure` 直给（「悠闲变更/のんびりに変更」文本判定）；数据层 2 件标注（夜空を従える花 pitem_03-3-303-0/1），modifier 标注 **369→371 段**（已实现计数仍 1042：触发时机未支持） | `sim/p_items.py`（STANCE_EFFECT_TARGETS / classify / FLAG_TARGETS / STATUS_NAMES / delta.stances）；`scripts/build_p_items.py` 重标注重建 p_items.json | 参考 `p_items.csv` 419-420（`setStance(leisure); setEnthusiasmBuff(0.4,1); genki+=3`）；主数据 p_items.json 两件「悠闲变更」段 | `test_classify_exam_over_preservation` / `test_catalog_leisure_items_target_annotated` / `test_apply_passive_leisure_delta` / `test_lesson_sim_p_item_leisure_direct_and_release` / `test_fire_p_items_leisure_mirror` |
+
+**口径与剩余差距（如实记录）**：
+
+- **评测牌组组成不变**：4 族のんびり来源卡 score=0 或 SSR/Legend，本就不进 `build_pool`
+  （score>0 过滤）；small/large 评测牌组逐张不变（`test_eval_deck_composition_unchanged` /
+  `test_pool_excludes_leisure_cards`）。small 牌组无全力值卡（全力规则零触达）；large 有
+  冲刺（全力值 1）但 9 回合攒满 10 概率低。**sim_engine_ab 重标定（P1-1）：改前/改后
+  64 局逐位相同（差异=0）**——seed 9000/9100 各 16 局 rules/expectimax（budget 800ms），
+  逐局非时间字段全等（新规则路径未触达）；expectimax 仍显著强于 rules（Δ+372.2 / +219.1
+  评价点，C+ 100%，0 blocked / 0 error），B3 重标定结论保持。
+- **保留区来源未建模**（holdCard/holdThisCard/holdSelected，P1-3）：`held` 当前恒空，
+  回手钩子用合成保留牌验证；**指針固定 lockStanceTurns** 来源卡切磋琢磨含 holdSelected，
+  随 P1-3 一并补（当前恒 0，全力进入门 `lockStanceTurns==0` 自然满足）。
+- **2 件のんびり P 道具仍保守不触发**：触发时机 `card_play_interval_after`（强气卡每使用
+  3 次后）是 B8 遗留未支持触发（`test_p_items.py::test_unsupported_trigger_is_noop` 锁定）；
+  `stance_leisure` 目标机制本身就绪（合成 CARD_PLAY spec 全链路验证）。
+- 预约时机近似：参考 `afterStartOfTurn`（抽牌后）/`startOfTurn`（抽牌前）两种预约在本模型
+  都在抽牌后结算——期间无其它指針交互，观测等价；再演（encore）不翻倍预约（延迟效果非直接效果）。
+- 旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：本批规则改动后阶段2 重采新 seed
+  块练新批再新旧对比（HANDOVER_NEXT §8.0）；参照臂需按新规则重评。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
    剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
 2. ~~**熱意（enthusiasm）**~~ ✅ **2026-11-22 T5② 完成**：独立整数资源（出牌分加算 +
    温存解除 +5/+8 等来源 + 熱意追加/増加/延長/本牌適用倍数卡牌效果 + 回合末清零/延長）；
-   见 §5.2。剩余来源（のんびり/P 道具）未建模。
+   见 §5.2。~~剩余来源（のんびり/P 道具）未建模~~ のんびり来源 ✅ **P1-1 完成**（§5.4）；
+   P 道具熱意触发仍未接入。
 3. ~~**温存解除的额外出牌次数/元气**~~ ✅ **2026-11-22 T5② 完成**：+1 出牌次数、2 段 +5 固定元気、
-   同回合重复解除可叠加；见 §5.2。全力回合額外次数/保留牌仍未建模。
+   同回合重复解除可叠加；见 §5.2。~~全力回合額外次数/保留牌仍未建模~~ ✅ **P1-1 完成**（§5.4；
+   保留区来源 holdCard/holdThisCard 留 P1-3）。
 4. **fresh buff 保护**（差一回合）：好调/好印象/绝好调持续时间可能整体少 1 回合，需真机逐回合截图核实。
 5. ~~**P 道具数据接入**~~ ✅ **2026-11-22 T5③ 完成（§5.3）**：gkbench/离线 loadout 的
    `produce_item_ids` → `PItemSpec` 已接入模拟器/评测/提交；exam_start 与 extra_plays 新支持；
@@ -498,8 +539,13 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
    **随机式（H.I.F应援棒）与 panic/search/move 的 RNG 流仍未知**（T6 补采；`exam_risk` 事前检测不变）。
 7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。
-8. **抽牌上限 5 / handDecrease / 保留牌（held cards）**。
-9. **自尊 pride / growth 成长表 / 支度→披露半场翻转**（小项）。
+8. **抽牌上限 5 / handDecrease / 保留牌来源（holdCard/holdThisCard）**（P1-2/P1-3；
+   全力回手钩子 P1-1 已实现，保留区当前恒空）。
+9. **自尊 pride / growth 成长表 / 支度→披露半场翻转**（小项；のんびり→全力 的全体卡成长
+   P1-1 已按规则实现，见 §2 growth 行）。
+10. **指針固定 lockStanceTurns**（来源卡切磋琢磨含 holdSelected，随 P1-3 hold 建模一并补；
+    当前恒 0，全力进入门不受影响）/ **card_play_interval_after 触发时机**（2 件のんびり
+    道具「夜空を従える花」因此仍保守不触发；stance_leisure 目标机制本身就绪）。
 
 ## 7. 复现
 
@@ -526,6 +572,12 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
 
 # T5② 熱意 + 温存解除（纯规则 / LessonSim / ExpectState 镜像 / 生产卡表映射）
 .venv\Scripts\python.exe -m pytest tests\test_t5_enthusiasm.py -q
+
+# P1-1 全力回合 + のんびり指針（纯规则 / 双镜 / 解析 / P 道具 / 叶子快照）
+.venv\Scripts\python.exe -m pytest tests\test_p1_stance_rules.py -q
+.venv\Scripts\python.exe scripts\build_p_items.py --check  # modifier 标注 371（stance_leisure 2；已实现仍 1042）
+# P1-1 重标定（评测牌组无のんびり来源、small 无全力值卡 → 实测改前/改后 64 局逐位相同）
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9000 --out out\sim_engine_ab_p1.json
 
 # T5③ P 道具数据接入（catalog / loadout 解析 / exam_start / extra_plays / 提交适配器）
 .venv\Scripts\python.exe -m pytest tests\test_p_items.py tests\test_p_items_db.py tests\test_p_items_integration.py -q

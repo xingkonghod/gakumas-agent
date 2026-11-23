@@ -23,9 +23,14 @@ from dataclasses import replace
 import numpy as np
 
 from gkagent.sim.enthusiasm import enthusiasm_gain, release_on_stance_change
-from gkagent.sim.expectimax import ExpectState, state_from_sim
+from gkagent.sim.expectimax import (
+    ExpectState,
+    _apply_leisure_reserves_state,
+    state_from_sim,
+)
 from gkagent.sim.leaf_mlp import DIM, features
 from gkagent.sim.lesson import LessonSim
+from gkagent.sim.stance import Stance
 
 
 def leaf_state_at_draw(sim: LessonSim) -> ExpectState:
@@ -53,10 +58,14 @@ def leaf_state_at_draw(sim: LessonSim) -> ExpectState:
     )
     previous_stance = getattr(sim, "_pre_end_turn_stance", None)
     if previous_stance is not None and int(sim.turns_left) > 0:
-        release_enthusiasm, release_genki, release_plays = release_on_stance_change(
-            previous_stance, sim.stance
+        release_enthusiasm, release_genki, release_plays, release_growth = (
+            release_on_stance_change(previous_stance, sim.stance)
         )
-        if release_enthusiasm or release_genki or release_plays:
+        # P1-1（2026-11-24）：全力回合 +1 出牌/保留牌回手 + のんびり预约也在
+        # _draw_hand 之后结算，叶子快照同样补上（与 end_turn_state 逐字段对齐）。
+        enters_full = str(sim.stance.stance) == Stance.FULL
+        extra_plays = release_plays + (1 if enters_full else 0)
+        if release_enthusiasm or release_genki or extra_plays or release_growth:
             leaf = replace(
                 leaf,
                 enthusiasm=leaf.enthusiasm
@@ -66,8 +75,12 @@ def leaf_state_at_draw(sim: LessonSim) -> ExpectState:
                     multiple_permil=state.enthusiasm_multiple,
                 ),
                 vitality=leaf.vitality + release_genki,
-                extra_plays=release_plays,
+                extra_plays=extra_plays,
+                score_growth_all=leaf.score_growth_all + release_growth,
             )
+        if enters_full:
+            leaf = replace(leaf, hand=tuple(sim.held), held=())
+        leaf = _apply_leisure_reserves_state(leaf)
     return leaf
 
 

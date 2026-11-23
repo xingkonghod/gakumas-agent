@@ -100,7 +100,7 @@
 | **MASTER_DATA.md** | 主数据库（286 表）+ seed 发现 |
 | **SIMULATOR.md** | 模拟器设计与实现 |
 | **EXPECTIMAX.md** | 回合内搜索引擎 |
-| **R9_ANALYSIS.md** | B11 r9-large 解释报告（small 回退机制：信号稀释+输入漂移+v1 拉扯；修复预测）+ §8 r10 实测验证（预测 vs 实测） |
+| **R9_ANALYSIS.md** | B11 r9-large 解释报告（small 回退机制：信号稀释+输入漂移+v1 拉扯；修复预测）+ §8 r10 实测验证（预测 vs 实测）+ §9 r10 行为探针（残留回退已非 v1 贪即时分） |
 | **RULES_REFERENCE.md** | **规则核验表**（回合规则/结算顺序/取整/buff/牌序，对照 gakumas-tools + 真机）|
 | **RULES_FROM_BINARY.md** | 元数据解包结果（枚举/字段/方法签名）|
 | **UNLOCK_REPORT.md** | GakumasUnlock 工具分析 |
@@ -433,6 +433,19 @@ vs 全局 18.7065）；能量份额 small 20.9%→49.0% / large 70.9%→42.7%（
 （输入侧场景漂移仍在，R9_ANALYSIS §8 证实）；下一候选 r11 叠加 small 上采样（先问用户）。
 新增 12 条测试，全量 pytest **1318 passed / 1 skipped（1319 收集 / 89 文件）**，
 基线 ①③④⑤ 不变。细节见 EXPECTIMAX B11 r10 / R9_ANALYSIS §8 / HANDOVER 二·补四十三。
+**2026-11-24 P1-1 完成**（阶段1 首批，用户确认 A 顺序；纯离线规则+探针，BSD-3 有据）：
+**① r10 行为探针**（复用 r9 口径，R9_ANALYSIS §9）——残留 small 回退 −0.256 **已非 v1 风格
+贪即时分**（首分歧贪即时分偏置 24:9→11:8、对 v1 耐心比恢复 v6 水平、CLEAR 翻转 1:1 对称）
+→ 无方向漂移噪声（通道 2），r11 small 上采样仍对症；**② 全力回合** +1 出牌（连续全力每回合）/
+保留牌回手钩子（held 来源留 P1-3）/全力期间禁切指針；**③ のんびり指針** 分数/费用 ×0 +
+解除（元気+5/次数+1/熱意+10，→全力 = 全体卡打分成长+10）+ 温存→のんびり不触发温存解除 +
+4 族卡预约来源（ExamOverPreservation，CSV 逐卡证据表）+ P 道具 stance_leisure 直给（2 件标注，
+触发时机未支持仍保守不触发）；LessonSim/ExpectState 双镜 + 叶子对齐；**评测牌组组成不变**
+→ sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，expectimax 仍显著强于 rules）；
+旧 B11 数据/模型旧规则口径全保留（阶段2 重采新批再对比）。
+新增 `tests/test_p1_stance_rules.py` 36 条，全量 pytest **1354 passed / 1 skipped
+（1355 收集 / 90 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.4 / R9_ANALYSIS §9 /
+WORKPLAN P1-1 / HANDOVER 二·补四十四。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
@@ -440,7 +453,8 @@ v6 生产接线完成（engine=net opt-in，T2 第四臂）+ r9-large 完成（l
 复合门未过不入库）+ r10 完成（按场景归一化，small 收窄 39% 仍显著、large 保持 → 仍未入库）**、
 F 数据已下；
 下一步 **按多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）：
-阶段1 离线补未知（T5 剩余规则 + T7②③ + r10 行为探针）→ 阶段2 重采+练学生 r11（small 上采样，
+阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；**下一会话 P1-2：handDecrease + pride**；
+剩 hold/buff-cost/P 道具语义 + T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
 双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
 → 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。
 需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / hold 保留区 / fresh buff /

@@ -232,7 +232,7 @@
   "effects_depends_on": 65,
   "effects_percent_max": 9,
   "effects_zero_stack": 3,
-  "effects_modifier": 369,
+  "effects_modifier": 371,
   "effects_modifier_targets": {
    "score_buff": 93,
    "cost_increase": 32,
@@ -253,6 +253,7 @@
    "enthusiasm_bonus": 9,
    "enthusiasm_multiple": 6,
    "full_power_charge": 8,
+   "stance_leisure": 2,
    "stance_concentration": 2,
    "review_times": 4
   },
@@ -32978,6 +32979,7 @@
      "values": {},
      "text": "悠闲变更",
      "max_uses": 0,
+     "target": "stance_leisure",
      "label": "悠闲"
     },
     {
@@ -33035,6 +33037,7 @@
      "values": {},
      "text": "悠闲变更",
      "max_uses": 0,
+     "target": "stance_leisure",
      "label": "悠闲"
     },
     {

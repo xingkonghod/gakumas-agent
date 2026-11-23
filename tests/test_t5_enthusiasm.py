@@ -55,20 +55,24 @@ def _sim(deck: list[CardSpec], hand: list[CardSpec], **config) -> LessonSim:
 
 
 def test_release_rules_match_reference_constants() -> None:
-    """温存 1/2 段階解除的基础值、固定元気、+1 出牌次数（参考引擎常量）。"""
+    """温存 1/2 段階解除的基础值、固定元気、+1 出牌次数（参考引擎常量）。
+
+    P1-1（2026-11-24）：返回值扩成 4 元组，末位是全体卡打分成长
+    （のんびり→全力 才有，温存解除恒 0）。
+    """
     normal = StanceState()
     save1 = StanceState(stance="save", save_level=1)
     save2 = StanceState(stance="save", save_level=2)
     strong = StanceState(stance="strong1")
     full = StanceState(stance="full")
 
-    assert release_on_stance_change(save1, strong) == (5, 0, 1)
-    assert release_on_stance_change(save2, strong) == (8, 5, 1)
-    assert release_on_stance_change(save1, full) == (5, 0, 1)  # 解除到全力也触发
+    assert release_on_stance_change(save1, strong) == (5, 0, 1, 0)
+    assert release_on_stance_change(save2, strong) == (8, 5, 1, 0)
+    assert release_on_stance_change(save1, full) == (5, 0, 1, 0)  # 解除到全力也触发
     # 进入温存 / 温存段階升级 / 离开的不是温存 → 不触发
-    assert release_on_stance_change(normal, save1) == (0, 0, 0)
-    assert release_on_stance_change(save1, save2) == (0, 0, 0)
-    assert release_on_stance_change(strong, normal) == (0, 0, 0)
+    assert release_on_stance_change(normal, save1) == (0, 0, 0, 0)
+    assert release_on_stance_change(save1, save2) == (0, 0, 0, 0)
+    assert release_on_stance_change(strong, normal) == (0, 0, 0, 0)
 
 
 def test_enthusiasm_gain_formula_and_rounding() -> None:
@@ -236,7 +240,11 @@ def test_enthusiasm_extension_keeps_enthusiasm_across_turn_end() -> None:
 
 
 def test_save_release_at_turn_boundary_grants_next_turn_extra_play() -> None:
-    """温存→全力 的回合边界切换也触发解除收益（参考引擎 startTurn 的 setStance）。"""
+    """温存→全力 的回合边界切换也触发解除收益（参考引擎 startTurn 的 setStance）。
+
+    P1-1（2026-11-24）：全力回合本身再 +1 出牌次数（FULL_POWER_CHANGED_EFFECTS，
+    与温存解除的 +1 是两条独立效果）→ 边界后新回合 extra_plays = 1 + 1 = 2。
+    """
     save = CardSpec("温存攒点", 0, 0, preservation=1, full_power_point=10)
     filler = CardSpec("占位", 1, 0)
     sim = _sim([save, filler], [save, filler], plays_per_turn=2)
@@ -246,7 +254,7 @@ def test_save_release_at_turn_boundary_grants_next_turn_extra_play() -> None:
     assert sim.stance.stance == "full"
     assert sim.turns_left == 1
     assert sim.enthusiasm == 5
-    assert sim.extra_plays == 1
+    assert sim.extra_plays == 2
 
 
 # ---------------------------------------------------------------- ExpectState 镜像

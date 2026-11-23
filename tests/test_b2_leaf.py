@@ -157,7 +157,8 @@ def test_leaf_snapshot_includes_stance_boundary_release() -> None:
     leaf = sim.leaf_states[0]
     assert leaf.enthusiasm == expected.enthusiasm > 0
     assert leaf.vitality == expected.vitality
-    assert leaf.extra_plays == expected.extra_plays == 1
+    # P1-1（2026-11-24）：解除 +1 之外，全力回合本身再 +1（FULL_POWER_CHANGED_EFFECTS）
+    assert leaf.extra_plays == expected.extra_plays == 2
     for f in fields(expected):
         assert getattr(leaf, f.name) == getattr(expected, f.name), f"字段 {f.name} 不一致"
 

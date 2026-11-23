@@ -118,6 +118,8 @@ IMPRESSION_REDUCE_EFFECTS = frozenset({"ExamReviewReduce"})  # 好印象减少
 STANCE_EFFECT_TARGETS = {
     "ExamPreservation": "stance_preservation",
     "ExamConcentration": "stance_concentration",
+    # P1-1（2026-11-24）：のんびり变更（ExamOverPreservation，卡面「悠闲变更」）
+    "ExamOverPreservation": "stance_leisure",
 }
 
 #: effect_type -> 新目标（不含需要看文本才能判定的指針直给式）。
@@ -179,7 +181,9 @@ DURATION_TARGETS = frozenset(
     }
 )
 #: 纯标记类目标（数值固定 1 / 只看触发时机）。
-FLAG_TARGETS = frozenset({"extra_turn", "stance_preservation", "stance_concentration"})
+FLAG_TARGETS = frozenset(
+    {"extra_turn", "stance_preservation", "stance_concentration", "stance_leisure"}
+)
 #: 新目标的全部集合（供 summarize / implemented 判定）。
 MODIFIER_TARGETS = frozenset(
     set(TARGET_BY_EFFECT.values()) | set(STANCE_EFFECT_TARGETS.values())
@@ -215,6 +219,8 @@ STATUS_NAMES = {
     "强气": "stance_concentration",
     "温存": "stance_preservation",
     "全力": "stance_full_power",
+    # P1-1：のんびり（悠闲）存在性条件
+    "悠闲": "stance_leisure",
     # B9：条件里的「消耗体力减少状态」= halfCostTurns>0（P 道具/卡效果给的
     # 消耗体力减少回合数），用伪 stack key 表达"是否在状态中"。
     "消耗体力减少": "half_cost_state",
@@ -232,6 +238,7 @@ THRESHOLD_KEYS = frozenset(
         "stance_concentration",
         "stance_preservation",
         "stance_full_power",
+        "stance_leisure",
     }
 )
 
@@ -674,6 +681,11 @@ def classify_effect_target(effect_type: str, text: str = "") -> str:
             if head.startswith(("温存变更", "温存阶段变更", "温存に変更")):
                 return "stance_preservation"
             return ""
+        if effect_type == "ExamOverPreservation":
+            # P1-1：のんびり变更（p_items.json 中文「悠闲变更」/ 日文「のんびりに変更」）
+            if head.startswith(("悠闲变更", "のんびりに変更", "悠闲に変更")):
+                return "stance_leisure"
+            return ""
         if head.startswith(("强气变更", "强気変更", "強気変更", "强气に変更")):
             return "stance_concentration"
         return ""
@@ -1085,6 +1097,10 @@ def _apply_modifier_target(spec: PItemSpec, target: str, delta: PItemDelta) -> b
         return True
     if target == "stance_concentration":
         delta.stances.append("concentration")
+        return True
+    if target == "stance_leisure":
+        # P1-1：のんびり变更（参考 setStance(leisure)；守卫/解除在调用方结算）
+        delta.stances.append("leisure")
         return True
     if target == "impression_reduce":
         # 「好印象减少」：层数减少（结算时夹到 ≥0）

@@ -41,6 +41,7 @@ from gkagent.sim.lesson import (
     LessonSim,
     greedy_policy,
 )
+from gkagent.sim.stance import leisure_reserve_for
 
 if TYPE_CHECKING:
     from gkagent.data.card_table import CardTable
@@ -148,6 +149,9 @@ def _effect_fields(row: dict) -> dict[str, int]:
         "enthusiasm_multiple_turns": 0,
         "enthusiasm_extension": 0,
         "enthusiasm_multiplier": 1000,
+        # P1-1（2026-11-24）：のんびり预约（ExamOverPreservation）
+        "leisure_reserve": 0,
+        "leisure_reserve_when_save": True,
     }
     mapping = {
         "ExamLessonBuff": "condition",
@@ -160,12 +164,29 @@ def _effect_fields(row: dict) -> dict[str, int]:
         "ExamPlayableValueAdd": "extra_play",
         "ExamParameterBuff": "parameter_buff",
         "ExamPreservation": "preservation",
-        "ExamOverPreservation": "preservation",
         "ExamFullPowerPoint": "full_power_point",
     }
     for effect in row.get("effects") or []:
         kind = str(effect.get("type") or "")
         values = [value for value in effect.get("values") or [] if value]
+        # P1-1：のんびり预约（ExamOverPreservation，values 恒空，在
+        # ExamStatusEnchant.inner 里）。只认这一种内层效果——其它内层不展开
+        # （生产卡表保持既有行为）。条件/次数按 BSD-3 skill_cards.csv 逐卡
+        # 交叉验证（stance.LEISURE_RESERVE_SOURCES）；未知 id 保守 no-op。
+        # 旧映射 ExamOverPreservation→preservation 是误读（那是悠闲变更，
+        # 不是温存），values 恒空从未生效，本次移除。
+        if kind == "ExamOverPreservation" or (
+            kind == "ExamStatusEnchant"
+            and any(
+                str(inner.get("type") or "") == "ExamOverPreservation"
+                for inner in effect.get("inner") or []
+            )
+        ):
+            reserve, when_save = leisure_reserve_for(str(row.get("id") or ""))
+            if reserve != 0:
+                fields["leisure_reserve"] = reserve
+                fields["leisure_reserve_when_save"] = when_save
+            continue
         if not values:
             continue
         if kind == "ExamLessonBuffDependParameterBuff":

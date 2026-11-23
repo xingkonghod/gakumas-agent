@@ -11,6 +11,7 @@
 強気 1 段階   2.00    体力消耗增加（本模块不建模）
 強気 2 段階   2.50    同上
 全力          3.00    参数上升量 +200%，仅持续下一回合
+のんびり      0.00    分数/费用都 ×0（P1-1 2026-11-24 接入）
 ===========  ======  ==========================================
 
 状态机（按真机规则做的近似）：
@@ -34,6 +35,7 @@ from enum import StrEnum
 
 __all__ = [
     "FULL_POWER_POINT_COST",
+    "LEISURE_RESERVE_SOURCES",
     "MAX_STANCE_LEVEL",
     "MULTIPLIER",
     "Stance",
@@ -41,9 +43,11 @@ __all__ = [
     "apply_full_power_point",
     "card_stance_effect",
     "end_turn",
+    "leisure_reserve_for",
     "score_multiplier",
     "stamina_cost_multiplier",
     "stamina_pierce",
+    "stance_change_allowed",
 ]
 
 # 攒满 10 点全力值，回合结束时消耗 10 点进入下一回合的「全力」。
@@ -53,11 +57,12 @@ MAX_STANCE_LEVEL = 2
 
 
 class Stance(StrEnum):
-    """指針的五个对外常量。
+    """指針的六个对外常量。
 
     ``SAVE`` 的段階放在 ``StanceState.save_level``；強気的倍率表只有
     1/2 段階两档，因此这里直接给出 ``STRONG1`` / ``STRONG2`` 两个值。
     ``strong_level`` 字段仍保留，用于兼容"只写基础形态 strong + level"的调用方。
+    ``LEISURE``（のんびり）无段階：分数/费用 ×0，解除收益见 enthusiasm.py。
     """
 
     SAVE = "save"
@@ -65,9 +70,12 @@ class Stance(StrEnum):
     STRONG1 = "strong1"
     STRONG2 = "strong2"
     FULL = "full"
+    LEISURE = "leisure"
 
 
 # 有效的指針倍率。温存按段階拆成两个 key；其余 key 与 Stance 的字符串值一致。
+# のんびり（leisure）×0：参考引擎 resolveScore ``stance=="leisure" → score*=0``
+# （P1-1 2026-11-24，BSD-3 gakumas-engine Executor/resolvers.js）。
 MULTIPLIER: dict[str, float] = {
     "save1": 0.5,
     "save2": 0.25,
@@ -75,6 +83,7 @@ MULTIPLIER: dict[str, float] = {
     "strong1": 2.0,
     "strong2": 2.5,
     "full": 3.0,
+    "leisure": 0.0,
 }
 
 
@@ -125,7 +134,8 @@ def score_multiplier(state: StanceState) -> float:
 def stamina_cost_multiplier(state: StanceState) -> float:
     """出牌体力消耗倍率（wiki 核实，2026-11-16）。
 
-    温存 1 段階 0.5、2 段階 0.25；強気 1/2 段階 ×2；无指針/全力 ×1。
+    温存 1 段階 0.5、2 段階 0.25；強気 1/2 段階 ×2；无指針/全力 ×1；
+    のんびり ×0（参考引擎 resolveCost ``leisure → cost*=0``，P1-1）。
     实际扣费在 ```LessonSim._pay_card_cost`` 里向上取整。
     """
     key = _multiplier_key(state)
@@ -135,7 +145,61 @@ def stamina_cost_multiplier(state: StanceState) -> float:
         return 0.25
     if key in ("strong1", "strong2"):
         return 2.0
+    if key == "leisure":
+        return 0.0
     return 1.0
+
+
+def stance_change_allowed(state: StanceState, kind: str) -> bool:
+    """参考引擎 ``BuffManager.setStance`` 的指針変更守卫（P1-1 2026-11-24）。
+
+    - 全力期间不能切指針（``stance=="fullPower"`` 时只允许 ``setStance(none)``，
+      那由 ``end_turn`` 的全力解除走，不走这里）；
+    - のんびり期间不能切温存（``leisure && stance.startsWith("preservation")``
+      直接 return）；
+    - ``lockStanceTurns``（指針固定）未建模：当前卡池唯一来源「切磋琢磨」
+      含 holdSelected 保留区效果，整体留 P1-3 hold 建模时一并补（恒 0 = 不锁）。
+
+    ``kind`` 取 ``"preservation"`` / ``"concentration"`` / ``"leisure"``。
+    全力值获得（``ExamFullPowerPoint``）走 ``resolveFullPowerCharge``，
+    不受 setStance 守卫影响，不在本函数管辖内。
+    """
+    stance = str(state.stance)
+    if stance == Stance.FULL:
+        return False
+    return not (stance == Stance.LEISURE and kind == "preservation")
+
+
+# のんびり预约来源（P1-1 2026-11-24）：卡 base id → (条件, 次数)。
+# 主数据里这些卡的 ``ExamStatusEnchant.inner`` 是 ``ExamOverPreservation``
+# （values 空），条件/次数不在主数据 JSON 里，按 BSD-3 参考引擎
+# ``packages/gakumas-data/csv/skill_cards.csv`` 的 DSL 逐卡交叉验证
+# （日文卡名 ↔ 中文卡名用 data/knowledge/card_meta.json 别名表核对）：
+#   540-541 のんびり屋さん（悠闲自在的人）:
+#     at:afterStartOfTurn { if:isPreservation { setStance(leisure) } }（永久）
+#   542-543 休み休み、前へ（走走停停，继续前进）: 同上（永久）
+#   544-545 屋上からの景色（从天台看到的景色）: 同上（永久）
+#   834 星々を見下ろす一番星（俯瞰群星的启明星）:
+#     at:startOfTurn { if:!isPreservation { setStance(leisure) }; limit:3 }
+#     （主数据 ExamStatusEnchant.count=3 与 limit:3 一致）
+# 条件 True = 温存中才触发（afterStartOfTurn 时机）；False = 非温存才触发
+# （startOfTurn 时机；本模型两时机都在抽牌后结算，期间无其它指針交互，等价）。
+# 次数 -1 = 永久（turn=-1）；N = 触发 N 次后失效。未知 id 保守 no-op（不猜）。
+LEISURE_RESERVE_SOURCES: dict[str, tuple[bool, int]] = {
+    "p_card-03-ido-1_054": (True, -1),
+    "p_card-03-ido-2_084": (True, -1),
+    "p_card-03-ido-3_077": (True, -1),
+    "p_card-03-ido-100_047": (False, 3),
+}
+
+
+def leisure_reserve_for(card_id: str) -> tuple[int, bool]:
+    """卡 base id → のんびり预约 ``(剩余次数, 是否温存中触发)``。
+
+    未知 id 返回 ``(0, True)``（不登记预约，保守 no-op）。
+    """
+    when_save, limit = LEISURE_RESERVE_SOURCES.get(str(card_id), (True, 0))
+    return limit, when_save
 
 
 def stamina_pierce(state: StanceState) -> int:
