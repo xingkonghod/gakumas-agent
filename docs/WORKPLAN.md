@@ -26,7 +26,7 @@
 | A5 T3 离线预演（`--current` 候选 + `ExamPlanSelector` 逐回合锁定） | `scripts/verify_exam_plan_offline.py`：最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12），四场 sweep 全部 T1–T2 锁定且选对真值；候选收敛到 1、`locked_turn<=3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；`docs/HANDOVER` 二·补十八 |
 | B1 T4 修正（评测执行器 bug + 受控 frontier 叶子） | `tests/test_beam_frontier.py` 6 条；`scripts/eval_t4_b1.py` 60 局配对：beam unknown **164.0** / known **165.5** vs within **143.1**（+20.9 / +22.4，CI 全正；决策门 114.6%/115.7% PASS）；frontier 叶子中性；全量 pytest **964/1（965 收集 / 70 文件）**；`docs/EXPECTIMAX` T4 修正 |
 | B2 全知数据训练 MLP 叶子 | `scripts/build_b2_dataset.py` + `train_b2_leaf.py` + `eval_b2.py`；beam 全知自对弈 26.5k 叶子样本 → MLP 104→96→48（val r²=0.943）；**确认段 120 局配对：beam 157.8 → 165.5（learned，+7.7 CI[+4.2,+11.2]）/ 166.9（ensemble 0.5，+9.0 CI[+5.8,+12.2]）**；CLEAR 95→98.3%、PERFECT 33.3→50%；within 用 learned 变差 −3.3（负结果记录）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件）**；`docs/EXPECTIMAX` B2 学习叶子（**B3 后旧模型失效；B2-R 已重训，仍 FAIL，见下**） |
-| B2-R B2 按 B3+ 规则重训（2026-11-23，**负结果**） | 同配方重采 26.5k beam 全知叶子样本（B10 后模拟器）→ MLP val r²=0.906/MAE 7.0；确认段 120 局 unknown beam 94.9→learned 87.7（**−7.2 CI[−9.5,−5.0]**）/ known −11.5 / ensemble 0.75 中性；σ×2/×4 更差（非校准问题）；旧模型 −26.1/−27.9 → 重训收窄到 −7 但未转正；**生产 leaf_model 保持关闭、beam 默认解析式叶子、T2 候选去掉 learned leaf**；快照口径修正（温存解除回合边界）+1 测试；pytest **1155/1（1156 收集 / 79 文件）**；`docs/EXPECTIMAX`「B2 重训（B2-R）」/ HANDOVER 二·补三十四 |
+| B2-R B2 按 B3+ 规则重训（2026-11-23，**负结果；高预算验证后路线关闭**） | 同配方重采 26.5k beam 全知叶子样本（B10 后模拟器）→ MLP val r²=0.906/MAE 7.0；确认段 120 局 unknown beam 94.9→learned 87.7（**−7.2 CI[−9.5,−5.0]**）/ known −11.5 / ensemble 0.75 中性；σ×2/×4 更差（非校准问题）；旧模型 −26.1/−27.9 → 重训收窄到 −7 但未转正；**高预算验证（width8/300ms）选择段 80 局仍 FAIL：93.9→89.4（−4.4 CI[−8.8,−0.0]）/ ens 0.75 中性，收窄主因是解析式基线自己变差（97.3→93.9）→ 学习叶子路线关闭**；**生产 leaf_model 保持关闭、beam 默认解析式叶子、T2 候选去掉 learned leaf**；快照口径修正（温存解除回合边界）+1 测试；pytest **1155/1（1156 收集 / 79 文件）**；`docs/EXPECTIMAX`「B2 重训（B2-R）」/ HANDOVER 二·补三十四/三十五 |
 | B3 T5 机制建模（回合规则 + 核验表） | 模拟器对齐真机：每回合基础 **1 张** + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`（`sim/lesson`、`sim/expectimax`、`sim/uiobs` 等）；真机 39 回合配对回归（`tests/fixtures/t5_exam_turn_rules.json` + `scripts/export_t5_turn_rules.py`）；`RULES_REFERENCE.md` 重写逐条核验表；实机回放黄金值 12 条；重标定：`sim_engine_ab` expectimax 显著强于 rules（+342~+429 评价点）、B1 60 局 within 89.1→beam 95.7（+6.6，门 107.4% PASS）、B2 旧模型 FAIL 待重训；全量 pytest **985/1（986 收集 / 72 文件）**；`docs/HANDOVER` 二·补二十一 |
 | B4 T5① 审查倍率分段 + 联动惩罚 | `src/gkagent/sim/exam_multiplier.py`（分段折线 + 联动惩罚 + 客户端 f32/ceil 取整）+ `src/gkagent/data/exam_bonus.py`（主数据 → 配置）+ `LessonConfig.attribute_bonuses/turn_attributes`（模拟器按回合属性乘，含依赖分与回合末好印象）+ `policy.audition_coefficient`（真机屏幕「舞蹈 207%」→ 搜索倍率，日志 `attr=2.07`）；夹具 `tests/fixtures/t5_exam_multipliers.json`（11-20 采集局期中 Vo/Da/Vi **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**；Vi/Vo/Da 低于审查基准的联动惩罚已对上）；`tests/test_exam_multiplier.py` 21 条；全量 pytest **1006 passed / 1 skipped（1007 收集 / 73 文件）**；`docs/RULES_REFERENCE` §5.1 |
 | B5 T5② 熱意 + 温存解除 | `src/gkagent/sim/enthusiasm.py`（熱意获得/回合末清零/延長/温存解除纯规则）+ `LessonSim`/`ExpectState` 熱意字段与算分（集中之后、好调/指針之前；整数获得时 ceil）；温存解除 1 段 +5 熱意/2 段 +8 熱意 +5 固定元気 + 解除当回合 **+1 出牌次数**（同回合可重复）；卡牌效果 `ExamEnthusiasticAdditive/Multiple`（熱意追加/増加 buff）、`ExamEnthusiasticTurnAdd`（延長）、`ExamMultipleEnthusiasticLesson`（本牌熱意適用倍数 ×2）接入 `sim_produce`（MODELED_EFFECTS 29→32）与生产卡表 `play_choice`；回合边界 温存→全力 也结算解除收益；`tests/test_t5_enthusiasm.py` 16 条 + sim_produce/play_choice/mechanism 更新；全量 pytest **1023 passed / 1 skipped（1024 收集 / 74 文件）**；`docs/RULES_REFERENCE` §5.2 |
@@ -513,7 +513,7 @@
   `ExamBuffConsumptionAdd` 保持 no-op。
 - 细节见 [RULES_REFERENCE §5.3](RULES_REFERENCE.md) / HANDOVER 二·补三十三。
 
-### B2-R. B2 学习叶子按 B3+ 规则重训（纯离线）✅ 2026-11-23 完成（**可复现负结果**）
+### B2-R. B2 学习叶子按 B3+ 规则重训（纯离线）✅ 2026-11-23 完成（**可复现负结果；高预算验证后路线关闭**）
 - **目标**：T5 机制（B4–B10）补齐后，按 EXPECTIMAX「B2 学习叶子」同配方重采/重训/配对评测，
   回答「B3 每回合 1 张规则下学习叶子还有没有收益」。
 - **完成**：① 旧模型 FAIL 复现（选择段 −26.1，与 B3 重测逐位一致 → B4–B10 对 small harness
@@ -527,14 +527,23 @@
   known 96.8→85.3（−11.5）；ensemble 0.75 两段中性（−0.5/−0.6，CI 含 0）；
   within_learned −19.9；learned σ×2/×4 更差（−9.0/−12.1）→ μ 排序本身有害，非 σ 校准。
   旧模型 −26~−28 → 重训 −7：**口径对齐消掉大部分伤害，但没转正**。
-- **处置**：生产 `leaf_model` 默认关闭不变；beam 默认 = 解析式叶子；**T2 真机 A/B 候选
+- **高预算验证（2026-11-23 同日，用户指定「更强的 bot 能不能兑现学习叶子」）**：
+  width8/300ms（teacher 级）选择段 80 局 seed 2000 配对：beam 解析式 93.9→learned **89.4
+  （−4.4 CI[−8.8,−0.0] 显著负）** / ensemble 0.75 +0.0（中性）→ **FAIL，不跑确认段**。
+  伤害 −7.0→−4.4 收窄，但**主因是解析式基线自己在高预算下变差（97.3→93.9，CLEAR
+  11.2%→7.5%），learned 绝对分几乎不动（90.3→89.4）**——加预算兑现不了学习叶子；
+  within 家族与 200ms 逐位相同、评测墙钟 <80s（small 场景搜索提前收敛，预算很少触顶）。
+- **处置（路线关闭）**：生产 `leaf_model` 默认关闭不变；beam 默认 = 解析式叶子；**T2 真机 A/B 候选
   去掉 learned leaf**；重训候选保留 `out/b2r_leaf_mlp_small.json`（gitignore），tracked 模型
-  按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；根因诊断已完成：锐利 σ 放大 + 价值-策略失配，建议关闭学习叶子路线（EXPECTIMAX B2-R·根因诊断）。
+  按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；根因诊断已完成：锐利 σ 放大 + 价值-策略失配；
+  **高预算验证也 FAIL → 学习叶子（状态价值 MLP 叶子）路线正式关闭，不再投入**
+  （EXPECTIMAX B2-R「高预算验证」）。**下一步转 C1 执行层可靠性**（用户指定）。
   不做第二轮专家迭代/档位头（B2 已知负结果）；large 场景重采需先更新特征（熱意/score_buffs/
-  modifier），预算外。备选路线：auto-gakumas 每战在线自适应（需真机/独立副本，先问用户）。
+  modifier），预算外。再下一候选：渐退式专家迭代（学 policy/advantage 而非状态价值，
+  换目标量的新路线，**启动前先问用户**）；备选：auto-gakumas 每战在线自适应（需真机/独立副本，先问用户）。
 - **测试/基线**：`tests/test_b2_leaf.py` 12 条；全量 pytest **1155 passed / 1 skipped
   （1156 收集 / 79 文件）**；基线 ①③④⑤ 全部不变。
-- 细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四。
+- 细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四/三十五。
 
 ---
 
@@ -727,8 +736,11 @@ CAPTURE_PIPELINE 更新后自检 8 步，纯文档不改代码），剩 E0**（�
 B10 生成卡确定式/指定卡名映射已完成**；剩 `ExamBuffConsumptionAdd`（强化状态花费卡机制
 不在模型里，保持 no-op）、**随机生成卡**（H.I.F应援棒，考试 RNG 流未知）、hold 保留区
 张数条件（2 件）；**fresh buff 差一回合**仍需真机逐回合截图）。
-**B2 按 B3+ 规则重训（B2-R）已于 2026-11-23 完成：仍 FAIL（确认段 −7.2，ensemble 0.75 中性），
-负结果记录在案；生产 leaf_model 保持关闭、T2 候选去掉 learned leaf**（见 EXPECTIMAX「B2 重训（B2-R）」）。
+**B2 按 B3+ 规则重训（B2-R）已于 2026-11-23 完成：仍 FAIL（确认段 −7.2，ensemble 0.75 中性）；
+同日高预算验证（width8/300ms 选择段 80 局）也 FAIL（−4.4 CI[−8.8,−0.0]，ens 0.75 中性）→
+学习叶子路线关闭**，负结果记录在案；生产 leaf_model 保持关闭、T2 候选去掉 learned leaf
+（见 EXPECTIMAX「B2 重训（B2-R）」）。**下一步 = C1 执行层可靠性**（用户指定；
+再下一候选「渐退式专家迭代」启动前先问用户）。
 → 阶段 C1（执行层可靠性）/ D（补采集）离线做完 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
 ```

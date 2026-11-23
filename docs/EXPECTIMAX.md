@@ -799,8 +799,9 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 
 > ⚠️ **本节数字是 B3 之前的旧回合口径**（每回合 3 张）。B3 把模拟器改成真机 1 张/回合 +
 > 跳过回体力后，本模型**失效**（确认段 beam −27.9 显著负）。**2026-11-23 已按 B3+ 规则
-> 重采/重训（B2-R）：仍 FAIL（确认段 −7.2，ensemble 0.75 中性），负结果与结论见文末
-> 「B2 重训（B2-R）」**；生产 `leaf_model` 保持默认关闭。
+> 重采/重训（B2-R）：仍 FAIL（确认段 −7.2，ensemble 0.75 中性）；同日高预算验证
+> （width8/300ms）也 FAIL（选择段 −4.4 CI[−8.8,−0.0]）→ 学习叶子路线已关闭**，
+> 负结果与结论见文末「B2 重训（B2-R）」；生产 `leaf_model` 保持默认关闭。
 
 **结论先行**：用**全知 beam 自我对弈**的「叶子状态 → 实际后续得分」样本训练 104 维结构化
 MLP 叶子，接进 **B1 修正后的 beam**：真实小牌组 120 局配对（全新 seed 3000–3119，
@@ -1015,6 +1016,14 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
 > within_learned −19.9（显著负）**。**B2 DoD 走「可复现负结果 + 结论」分支达成**：
 > B3 每回合 1 张规则下，学习叶子仍不能替代解析式叶子——重训把旧模型的 −26.1/−27.9
 > 收窄到 −7.0/−7.2，但没能转正。**生产 `leaf_model` 保持默认关闭；beam 默认仍用解析式叶子。**
+>
+> **高预算验证（2026-11-23，用户指定「更强的 bot 能不能兑现学习叶子」）：仍 FAIL →
+> 学习叶子路线关闭**。width8/300ms（teacher 级预算）选择段 80 局配对：beam 解析式 93.9 →
+> learned 89.4（**−4.4，CI[−8.8,−0.0] 显著负**）/ ensemble 0.75 +0.0（中性）。
+> 伤害从 −7.0 收窄到 −4.4，但**收窄主要来自解析式基线自己在高预算下变差（97.3→93.9），
+> learned 绝对分几乎不动（90.3→89.4）**——提高搜索预算没有兑现学习叶子。
+> 按用户判定规则（显著正才重开）：**路线关闭，负结果记录在案，转 C1 执行层可靠性**。
+> 见下「高预算验证」小节。
 
 ### 做了什么
 
@@ -1130,8 +1139,9 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
 3. **推论：加数据/改特征/提拟合度都救不了这条路线**——目标量本身（teacher return）
    不是有限搜索的可执行价值。要正增益需换目标（优势标签/动作排序蒸馏）或换路线
    （每战在线自适应，需真机）。**建议关闭学习叶子路线，保留负结果，beam 用解析式叶子。**
-   **待验证（用户 2026-11-23 指定，下一会话）**：「提高 bot 能力能否兑现」——width8/300ms
-   高预算配对（命令与判定见 HANDOVER_NEXT §8 B2-R 交接）；显著正才重开路线，否则关闭。
+   **已验证（2026-11-23 高预算配对，用户指定）**：「提高 bot 能力能否兑现」——width8/300ms
+   选择段 80 局 learned **−4.4 CI[−8.8,−0.0] 仍显著负** / ensemble 0.75 中性 → 按判定规则
+   （显著正才重开）**路线关闭**，见下「高预算验证」小节。
 
 **再下一候选方向（用户 2026-11-23 设计意图，高预算验证之后）**：
 「教怎么拿更高分；学生学的不是答案，是技巧；自己摸索 70% + 老师教 30%」，
@@ -1150,7 +1160,61 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
 - 风险（如实）：① 学生自对弈标签弱时 100% 自学可能平台/退化 → 必须有评测门兜底；
   ② **模拟器保真度是天花板**（fresh buff / 随机生成卡 RNG 等未建模）→ 离线增益要过
   T2 真机 A/B 才算数；③ 每轮 = 采集+训练+评测，多会话预算；
-- 定位：多会话研究任务（80–150k token 级/轮），不保证正增益；先做高预算验证再问用户启动。
+- 定位：多会话研究任务（80–150k token 级/轮），不保证正增益；**高预算验证已完成（FAIL，
+  学习叶子路线关闭）——本候选是换目标量的新路线（policy/advantage，不是状态价值），
+  启动前先问用户**（2026-11-23 用户：之后候选，先问我）。
+
+### 高预算验证（width8/300ms，2026-11-23）：仍 FAIL → 学习叶子路线关闭
+
+**背景**：根因诊断后用户问「为什么不提高 bot 能力让它打出来」——把搜索拉到 teacher 级
+预算（width8/300ms，与重采数据第 3 批 teacher 同档）再配对，检验「价值-策略失配」是否
+随执行力增强而消失。判定规则（用户指定）：选择段显著正 → 确认段 120 局复核再谈路线重开；
+不显著 → 关闭路线、负结果写回、转 C1。
+
+**命令**（选择段 80 局 seed 2000–2079，unknown，同预算配对；eval_b2 自动跑同预算解析式基线）：
+
+```powershell
+.venv\Scripts\python.exe scripts\eval_b2.py --leaf-model out\b2r_leaf_mlp_small.json --games 80 --seed 2000 --info unknown --width 8 --beam-budget-ms 300 --within-budget-ms 300 --ensembles 0.75 --json out\b2r_eval_highbudget_select.json
+```
+
+**结果（small 14 张 / 5 回合 / CLEAR 120 / PERFECT 170；0 fallbacks）**：
+
+| 策略 | 均值 | P50 | CLEAR | vs 解析式 | 95% CI | 胜/平/负 |
+|---|---:|---:|---:|---:|---|---|
+| beam 解析式（width8/300ms） | 93.9 | 94 | 7.5% | — | — | — |
+| beam + learned | 89.4 | 92 | 7.5% | **−4.4** | [−8.8,−0.0] ❌ 显著负 | 32/14/34 |
+| beam + ensemble 0.75 | 93.9 | 97 | 8.8% | +0.0 | [−1.9,+2.0] — 中性 | 23/38/19 |
+| within 解析式（300ms） | 89.1 | 84 | 7.5% | — | — | — |
+| within + learned | 69.7 | 66 | 5.0% | −19.4 | [−25.0,−13.9] ❌ | 12/2/66 |
+| within + ensemble 0.75 | 89.2 | 90 | 8.8% | +0.1 | [−3.5,+3.8] — | 17/28/35 |
+
+**判定：FAIL**（unknown 下无任何 learned/ensemble 配置显著正）→ 按用户规则**不跑确认段，
+学习叶子路线关闭**。
+
+**三个事实（如实记录）**：
+
+1. **伤害收窄但没转正**：learned vs 解析式 −7.0（width4/100ms）→ **−4.4**（width8/300ms），
+   CI 上界 −0.03 仍 <0。与「执行力增强 → 失配减小」方向一致，但 teacher 级预算也兑现不了
+   teacher return——**失配不是预算能消掉的**。
+2. **收窄的主因是解析式基线自己变差，不是 learned 变好**：解析式 97.3→**93.9**（−3.4，
+   CLEAR 11.2%→7.5%），learned 绝对分 90.3→**89.4**（几乎不动）。**更强的搜索对解析式叶子
+   也不是免费午餐**——width8 更深地优化悲观启发式，选择段反而掉分（小场景口径；
+   生产/T2 候选仍是 width4/100ms+tiebreak，本结果不改该候选，只说明「加预算」不是改进方向）。
+3. **within 家族与 200ms 基线逐位相同**（89.1/69.7/89.2，CI 逐位一致）：within 搜索在
+   预算内早已收敛；整个评测墙钟 <80s（远低于 15–25 分钟预估）——**small 场景 width8 搜索
+   提前收敛，300ms 预算很少触顶**，预算不是小场景的约束，宽度才是。
+
+**处置（2026-11-23，路线关闭）**：
+- 生产 `leaf_model` 保持默认关闭（不变）；beam 默认 = 解析式叶子（不变）；
+  T2 真机 A/B 候选不含 learned leaf（不变）。
+- **学习叶子（状态价值 MLP 叶子）路线正式关闭**：B2 旧口径 +7.7 是 B3 前 3 张/回合的
+  产物；B3+ 规则下重训 FAIL（−7.2）、高预算 FAIL（−4.4）、σ 校准 FAIL（×2/×4 更差）、
+  根因 = 锐利 σ 放大 + 价值-策略失配（目标量本身不对）。加数据/改特征/提拟合度/加预算
+  都已证伪或判定无效，**不再投入**。
+- 重训候选 `out/b2r_leaf_mlp_small.json` 与本次 JSON `out/b2r_eval_highbudget_select.json`
+  保留 out/（gitignore）作负结果证据；tracked 模型维持旧版（用户指定，生产关闭故行为无差）。
+- **下一步转 C1 执行层可靠性**（用户指定）。再下一候选 = 渐退式专家迭代（学 policy/advantage
+  而非状态价值，上节「再下一候选方向」）——**换目标量的新路线，启动前先问用户**。
 
 ### 结论与假设（如实记录）
 
@@ -1164,8 +1228,9 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
   `out/b2r_leaf_mlp_small.json`（gitignore）；tracked `data/knowledge/b2_leaf_mlp_small.json`
   按用户指定回退为旧版**（2026-11-23；两版都 FAIL、旧版更差 −26~−28，生产关闭故行为无差）。
   beam 默认 = 解析式叶子；T2 真机 A/B 的候选里**去掉 learned leaf**，保留 beam+全知/tiebreak。
-  **下一步：先诊断 μ 排序有害的根因（信息条件漂移假设：known teacher 标签对 unknown 执行
-  系统性偏乐观且随状态变化），再定重训变量**（见 HANDOVER_NEXT §8 B2-R 交接）。
+  ~~下一步：先诊断 μ 排序有害的根因，再定重训变量~~ **根因诊断已完成（锐利 σ 放大 +
+  价值-策略失配）；高预算验证（width8/300ms）也已完成：仍 FAIL（−4.4 CI[−8.8,−0.0]）→
+  学习叶子路线关闭，转 C1**（见上「高预算验证」/ HANDOVER_NEXT §8）。
 - **不做（预算/已知负结果）**：第二轮专家迭代（B2 历史：未超第一轮）、档位概率头
   （B2 历史：灾难性 −42~−46）、large 场景重采（本模型是 small 5 回合分布；真机考试 9–12 回合，
   将来若再走学习叶子路线，需 large 数据 + 特征更新（熱意/score_buffs/modifier）先行）。
@@ -1183,6 +1248,8 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
 .venv\Scripts\python.exe scripts\train_b2_leaf.py --data out\b2r_leaf_beam_known.npz out\b2r_leaf_beam_known2.npz out\b2r_leaf_beam_strong.npz --out out\b2r_leaf_mlp_small.json --hidden 96 48 --epochs 700 --report out\b2r_train_report.json
 # 评测（选择段 → 确认段；确认段把 --seed 改 3000、--games 120、--info unknown known、--ensembles 0.75）
 .venv\Scripts\python.exe scripts\eval_b2.py --leaf-model out\b2r_leaf_mlp_small.json --games 80 --seed 2000 --info unknown --ensembles 0.25 0.5 0.75 --json out\b2r_eval_select.json
+# 高预算验证（2026-11-23，width8/300ms 选择段；FAIL → 路线关闭，未跑确认段）
+.venv\Scripts\python.exe scripts\eval_b2.py --leaf-model out\b2r_leaf_mlp_small.json --games 80 --seed 2000 --info unknown --width 8 --beam-budget-ms 300 --within-budget-ms 300 --ensembles 0.75 --json out\b2r_eval_highbudget_select.json
 ```
 
 ### 测试 / 基线
@@ -1191,7 +1258,8 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
   全量 pytest **1155 passed / 1 skipped（1156 收集 / 79 文件）**；
   基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
 - JSON（out/ gitignore）：`b2r_eval_old_select.json`（旧模型 FAIL 复现）/ `b2r_train_report.json` /
-  `b2r_eval_select.json` / `b2r_eval_confirm.json`。
-- 细节见 HANDOVER 二·补三十四 / HANDOVER_NEXT §8（B2-R 交接）。
+  `b2r_eval_select.json` / `b2r_eval_confirm.json` / `b2r_eval_highbudget_select.json`
+  （高预算验证 FAIL，路线关闭）。
+- 细节见 HANDOVER 二·补三十四 / 二·补三十五 / HANDOVER_NEXT §8（B2-R 交接）。
 
 

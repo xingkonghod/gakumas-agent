@@ -343,14 +343,20 @@ B9 auto——触发映射+次数口径修正；确定式生成卡不在 hif load
 （`RecordingLessonSim._pre_end_turn_stance`，+1 回归测试）；重采 **26,500** beam 全知叶子样本
 （纯分数标签、**不加 PBRS 塑形**，auto-gakumas −26,884 负结果同向）→ MLP 104→96→48
 （val r²=0.906 / MAE 7.0）；**确认段 120 局 unknown beam 94.9→learned 87.7（−7.2 CI[−9.5,−5.0]）/
-known −11.5 / ensemble 0.75 中性**；σ×2/×4 更差（μ 排序本身有害）。**生产 leaf_model 保持关闭、
-beam 默认解析式叶子、T2 候选去掉 learned leaf**；重训候选保留 out/，tracked 模型按用户指定
-回退旧版（两版都 FAIL、生产关闭故行为无差）；根因诊断已完成：锐利 σ 放大 + 价值-策略失配，建议关闭学习叶子路线（EXPECTIMAX B2-R·根因诊断）；
+known −11.5 / ensemble 0.75 中性**；σ×2/×4 更差（μ 排序本身有害）。**同日高预算验证
+（width8/300ms 选择段 80 局）也 FAIL：93.9→89.4（−4.4 CI[−8.8,−0.0]）/ ens 0.75 中性；
+收窄主因是解析式基线自己变差（97.3→93.9），learned 绝对分几乎不动 → 学习叶子路线关闭**。
+**生产 leaf_model 保持关闭、beam 默认解析式叶子、T2 候选去掉 learned leaf**；重训候选保留
+out/，tracked 模型按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；根因诊断已完成：
+锐利 σ 放大 + 价值-策略失配（EXPECTIMAX B2-R·根因诊断/高预算验证）；
 `test_b2_leaf.py` 12 条，全量 pytest **1155 passed / 1 skipped（1156 收集 / 79 文件）**，
-基线 ①③④⑤ 不变。细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四。
-阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）**、F 数据已下；
-下一步 **T5 剩余**（~~生成卡确定式/指定卡名映射~~ ✅ B10；剩随机生成卡 RNG / `ExamBuffConsumptionAdd`
-保持 no-op / hold 保留区；**fresh buff 差一回合**需真机逐回合截图；均低价值或需真机/补采）
-或 **C1 执行层可靠性** → 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，先问用户）
-→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
-细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
+基线 ①③④⑤ 不变。细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四/三十五。
+阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
+高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、F 数据已下；
+下一步 **C1 执行层可靠性**（用户指定；T5 剩余 ~~生成卡确定式/指定卡名映射~~ ✅ B10；
+剩随机生成卡 RNG / `ExamBuffConsumptionAdd` 保持 no-op / hold 保留区；**fresh buff 差一回合**
+需真机逐回合截图；均低价值或需真机/补采）→ 阶段 C1/D（T9 只剩 **E0** 需真机独立副本实验，
+先问用户）→ 真机 T3→T1→T2 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法）。
+再下一候选（先问用户）：渐退式专家迭代（学 policy/advantage、摸索 70%+老师 30% 逐轮放手、
+学生过评测门后当下一轮老师，EXPECTIMAX B2-R 末段）。
+细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。
