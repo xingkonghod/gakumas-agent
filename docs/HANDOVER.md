@@ -1758,8 +1758,12 @@ HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；INDEX；本文件二·补三十三
 T2 真机 A/B 候选去掉 learned leaf**。**重训候选保留 `out/b2r_leaf_mlp_small.json`（gitignore）；
 tracked 模型文件按用户指定回退为旧版**（2026-11-23；两版都 FAIL、旧版更差，生产关闭故行为无差）。
 假设（未证明）：1 张/回合放大叶子排序权重、
-解析式短 horizon 近似更准、全知 teacher return 对 unknown 执行偏乐观。**下一步：先诊断 μ 排序
-有害根因再定重训变量**。不做：第二轮专家迭代 /
+解析式短 horizon 近似更准、全知 teacher return 对 unknown 执行偏乐观。**根因诊断已完成
+（2026-11-23，模型回退后）**：信息漂移假设被推翻（y_known≈y_unknown；learned μ 近无偏、
+排序更好、分歧时 71.6% 对）；确证 = 锐利 σ≈11 把准确 μ 推进档位效用饱和/尾部（σ 换 60
+恢复 −7→−2；analytic μ 对 σ 免疫）+ 价值-策略失配（teacher return ≠ 100ms beam 可执行价值，
+tiebreak ×100 不改决策）。**推论：加数据/改特征/提拟合度救不了；建议关闭学习叶子路线**
+（详见 EXPECTIMAX「B2 重训（B2-R）·根因诊断」）。不做：第二轮专家迭代 /
 档位头（B2 已知负结果）、large 重采（需先更新特征，预算外）。备选路线：auto-gakumas
 每战在线自适应（需真机/独立副本，先问用户）。
 

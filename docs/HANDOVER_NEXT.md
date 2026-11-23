@@ -162,7 +162,7 @@
              确认段 120 局 unknown beam 94.9→learned **87.7（−7.2 CI[−9.5,−5.0]）** / known −11.5 /
              ensemble 0.75 中性；σ×2/×4 更差（μ 排序本身有害）。**生产 leaf_model 保持关闭、
              beam 默认解析式叶子、T2 候选去掉 learned leaf**；重训候选保留 out/，tracked 模型
-             按用户指定回退旧版；下一步先诊断 μ 排序根因再定重训变量。
+             按用户指定回退旧版；根因诊断已完成：锐利 σ 放大 + 价值-策略失配，建议关闭学习叶子路线（EXPECTIMAX B2-R·根因诊断）。
              pytest **1155/1（1156 收集 / 79 文件）**；基线 ①③④⑤ 不变。
              见 EXPECTIMAX「B2 重训（B2-R）」/ HANDOVER 二·补三十四。
 当前最高优先：**T5 剩余**（B10 已完成生成卡确定式/指定卡名映射；剩 ExamBuffConsumptionAdd 保持 no-op /
@@ -501,7 +501,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 - 确认段 120 局：unknown beam 94.9→learned **87.7（−7.2 CI[−9.5,−5.0]）** / known −11.5 /
   ensemble 0.75 中性；within_learned −19.9；σ×2/×4 更差（μ 排序本身有害，非校准）。
 - **处置**：生产 leaf_model 默认关闭不变；beam 默认解析式叶子；重训候选保留 out/，
-  tracked 模型按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；先诊断 μ 排序根因再定重训变量；
+  tracked 模型按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；根因诊断已完成（锐利 σ 放大 + 价值-策略失配，建议关闭学习叶子路线）；
   不做第二轮迭代/档位头（已知负结果）；large 重采需先更新特征（预算外）。
 
 **改哪儿**：`src/gkagent/sim/expectimax.py`（leaf）、`src/gkagent/sim/v_leaf.py`、`src/gkagent/sim/leaf_mlp.py`、`data/knowledge/b2_leaf_mlp_small.json`、`scripts/eval_*.py`
@@ -841,7 +841,12 @@ known 96.8→85.3（−11.5 ❌）/ ens 0.75 −0.5/−0.6（中性）；within_
 但未转正；**生产 leaf_model 保持默认关闭、beam 默认解析式叶子、T2 真机 A/B 候选去掉 learned leaf**；
 `data/knowledge/b2_leaf_mlp_small.json` **按用户指定回退为旧版**（重训候选保留
 `out/b2r_leaf_mlp_small.json`，gitignore；两版都 FAIL、生产关闭故行为无差）；下一步先诊断
-μ 排序有害根因（信息条件漂移假设）再定重训变量。
+μ 排序有害根因（信息条件漂移假设）再定重训变量。**诊断已完成（2026-11-23）**：
+信息漂移假设被推翻（y_known≈y_unknown、learned μ 近无偏且排序更好、分歧时 71.6% 对）；
+确证根因 = ① 锐利 σ≈11 把准确 μ 推进档位效用饱和/尾部（σ 换 60 恢复 −7→−2，analytic μ 对 σ 免疫）
+② 剩余 −2 是价值-策略失配（teacher return ≠ 100ms beam 可执行价值；tiebreak ×100 不改决策）。
+**推论：加数据/改特征/提拟合度救不了；建议关闭学习叶子路线**（要正增益需换目标：优势标签/
+动作排序蒸馏，或每战在线自适应——需真机）。详见 EXPECTIMAX「B2 重训（B2-R）·根因诊断」。
 不做：第二轮专家迭代/档位头（B2 已知负结果）、large 重采（预算外，需先更新特征）。
 备选路线：auto-gakumas 每战在线 PPO 自适应（需真机/独立副本，先问用户）。
 测试/基线：ruff 通过；全量 pytest **1155/1（1156 收集 / 79 文件）**；① 4/4+3/3、③ 86/86+24/24、

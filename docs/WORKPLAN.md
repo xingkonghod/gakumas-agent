@@ -529,7 +529,7 @@
   旧模型 −26~−28 → 重训 −7：**口径对齐消掉大部分伤害，但没转正**。
 - **处置**：生产 `leaf_model` 默认关闭不变；beam 默认 = 解析式叶子；**T2 真机 A/B 候选
   去掉 learned leaf**；重训候选保留 `out/b2r_leaf_mlp_small.json`（gitignore），tracked 模型
-  按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；下一步先诊断 μ 排序根因再定重训变量。
+  按用户指定回退旧版（两版都 FAIL、生产关闭故行为无差）；根因诊断已完成：锐利 σ 放大 + 价值-策略失配，建议关闭学习叶子路线（EXPECTIMAX B2-R·根因诊断）。
   不做第二轮专家迭代/档位头（B2 已知负结果）；large 场景重采需先更新特征（熱意/score_buffs/
   modifier），预算外。备选路线：auto-gakumas 每战在线自适应（需真机/独立副本，先问用户）。
 - **测试/基线**：`tests/test_b2_leaf.py` 12 条；全量 pytest **1155 passed / 1 skipped
