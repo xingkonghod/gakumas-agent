@@ -2532,7 +2532,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
-（2026-11-23 B11 r9 解释报告（用户「先研究一下给一个解释报告」）：docs <hash>——R9_ANALYSIS.md 证据链（信号能量 small 91.8%→20.9% / 输入场景维度重映射 / 决策行为 small 96.2% 一致 vs large 59.8%、方向相反）+ 修复预测（按场景 std → small 能量 ~49%）；探针 data/_r9_behavior_probe.py 不提交）
+（2026-11-23 B11 r9 解释报告（用户「先研究一下给一个解释报告」）：docs c8ba467——R9_ANALYSIS.md 证据链（信号能量 small 91.8%→20.9% / 输入场景维度重映射 / 决策行为 small 96.2% 一致 vs large 59.8%、方向相反）+ 修复预测（按场景 std → small 能量 ~49%）；探针 data/_r9_behavior_probe.py 不提交）
+c8ba467 docs(b11): r9 解释报告——small 回退机制（信号能量 91.8%→20.9% + 输入场景维度重映射 + v1 拉扯）与修复预测（按场景 std）
 （2026-11-23 B11 r9-large 哈希记录：feat 39c289b；下一候选见 HANDOVER_NEXT §8）
 （2026-11-23 B11 r9-large（用户授权安排；small+large 混合训练，单变量=加 large 数据）：train_ei_policy --selfplay/--demos 多文件纯增量（nargs="+"，按序拼接/group 偏移防碰撞/seed 保持原值/全局 std/meta.multi_file 明细；单文件默认逐位不变——改前/改后 3 参照模型 sha256 一致 28efed56…/b43dc14d…/e668547c…）；large 自对弈 5000 局 126969 样本（v6 学生 argmax，seed 900000–904999，均分 287.8，std 24.09）+ small r5 全量 145605 + 补采 v1 示范 1600 局 23050（seed 420000+，SKIP 0）→ 320675 行（自对弈 272574 全保 + 示范 48101，占比精确 0.150），192×96/1200ep 全同 r6，全局 std 18.71，val 排序 0.824（混合靶），1871s（OPENBLAS_NUM_THREADS=8）；large500（3000–3499）r9 315.4 vs v6 285.8：+29.6 CI[+26.2,+33.0] PASS，vs beam 301.3 +14.2 CI[+10.9,+17.5]——首个 large 超 beam 学生网（CLEAR 62.6% vs 50.6%），新鲜块 6000 +24.0 佐证，池化 620 +28.5；small500 r9 98.2 vs v6 98.6：−0.42 CI[−0.67,−0.17] 显著回退（选择段 −0.8 方向负，池化 580 −0.47；vs v1 +0.16 不显著原门未保持）→ 复合门未过不入库，生产 ei_policy_v6.json 保持 r6 权重，r9 留 out/ei_r9_v9_mix.json 作 large specialist（T2 --net-model 可换）；诊断假设=全局 std 稀释 small 信号（18.71 vs 12.21 → 65%）+ v1 示范拉扯，候选修复=按场景 std 归一化（r10 先问用户）；参照臂与 r6 JSON 逐位一致、large 前 120 水位 291.61/305.34/277.24/212.41 复现；12 条新单测（含 golden 权重锚），pytest 1306/1（1307 收集 / 88 文件，206.53s），基线 ①③④⑤ 不变）
 39c289b feat(b11): r9-large 混合训练——train_ei_policy 多文件（单文件逐位不变）+ large 自对弈 5000 局：large 首超 beam（+29.6 vs v6 / +14.2 vs beam）但 small 显著回退（−0.42）→ 复合门未过不入库；12 测试，pytest 1306/1（1307 收集/88 文件）
