@@ -257,7 +257,8 @@
 r10 按场景 std 归一化（修 small 回退、保 large 增益，进 F 前必须）/ 继续降档（教师←v6、15→0）/
 收 loop 转其他任务；T5 剩余（ExamBuffConsumptionAdd 保持 no-op / 随机生成卡 RNG / hold 保留区 /
 fresh buff 差一回合需真机截图）均低价值或需真机/补采，不挡路。
-→ **下一候选（先问用户）**：r10 按场景 std 归一化 / 继续降档 / 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/
+→ **下一会话任务（用户 2026-11-23 晚已选定，不用再问）：r10 按场景 std 归一化**（见 §8 安排）；
+其他候选（先问用户）：继续降档 / 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/
 D1 补采集 / E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂，large A/B 可加 r9 specialist 臂）
 → 真机 T3→T1→T2（含 E0 实验）→ F1/F2 gkbench 公开对比（学生网 public-safe 候选须 small+large 双过）
 **另**：用户 2026-11-22 指定「开新对话做」候选任务 **T9**（§4；一次会话只做 1 个；
@@ -1654,9 +1655,9 @@ pytest 1294/1（1295 收集 / 87 文件）；见 EXPECTIMAX「B11 v6 生产接�
 诊断假设=全局 std 稀释 small 信号（18.71 vs 12.21）；pytest 1306/1（1307 收集 / 88 文件）；
 见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二。
 T5 剩余（随机生成卡 RNG / ExamBuffConsumptionAdd 保持 no-op / hold 保留区 / fresh buff
-需真机截图）均低价值或需真机/补采。**下一候选（先问用户再启动）**：
-r10 按场景 std 归一化（修 r9 small 回退、保 large 增益，进 F 前必须）/
-继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/
+需真机截图）均低价值或需真机/补采。**下一会话任务（用户 2026-11-23 晚已选定，不用再问）：
+B11 r10 按场景 std 归一化**（修 r9 small 回退、保 large 增益，进 F 前必须；做法/门/预测见 §8 安排）。
+其他候选（先问用户）：继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/
 D1 补采集 / E0 实验（需独立副本）/ 直接阶段 E 真机（T2 已含 net 第四臂 + r9 large specialist）。
 之后真机（T3→T1→T2，含 E0 实验）→ F1/F2 gkbench 公开对比（学生网 public-safe 候选须 small+large 双过）。
 用户规则：SKIP 只在真没体力；禁止静默回退 rules（搜索失败=[engine][BLOCKED] 中止+修 root cause）；

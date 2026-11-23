@@ -869,7 +869,8 @@ T2 增第四臂 `--engine net`（large 生产候选仍是 beam）；21 条新单
 学生网**；**small500 −0.42 CI[−0.67,−0.17] 显著回退 → 复合门未过，不入库**（生产保持 r6；
 r9 留 out/ 作 large specialist）；诊断假设=全局 std 稀释 small 信号；pytest 1306/1（1307 收集 / 88 文件）；
 见 EXPECTIMAX B11 r9-large / HANDOVER 二·补四十二。
-**下一候选（先问用户）**：r10 按场景 std 归一化（修 small 回退、保 large 增益，进 F 前必须）/
+**下一会话任务（用户 2026-11-23 晚已选定，不用再问）：r10 按场景 std 归一化**（修 small 回退、
+保 large 增益，进 F 前必须；做法/门/预测见 HANDOVER_NEXT §8 安排）。其他候选（先问用户）：
 继续降档（教师←v6、占比 15→0）/ 收 loop 转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 /
 E0 实验 / 直接阶段 E 真机（T2 已含 net 第四臂，large A/B 可加 r9 specialist 臂）。
 → 阶段 D（补采集）离线准备 → 真机 T3→T1→T2（含 E0 实验）

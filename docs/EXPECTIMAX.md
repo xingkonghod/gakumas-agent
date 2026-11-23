@@ -1759,7 +1759,8 @@ small 回退疑似主因 = **全局 std 归一化稀释**：混合 std 18.71 vs 
   T2 第四臂默认仍是 r6；**large A/B 可加 `--net-model out\ei_r9_v9_mix.json` specialist 臂**；
 - r9 模型/数据/JSON 全在 out/（gitignore）：`ei_r9_selfplay_large.npz` / `ei_r9_demos.npz` /
   `ei_r9_v9_mix.json` / `ei_r9_eval_v9_{large500,small500,small_select,large_fresh6000}.json`；
-- **下一候选（先问用户）**：r10 按场景 std 归一化（修 small 回退，保 large 增益）/ 继续降档 /
+- **下一会话任务（用户已选定）**：r10 按场景 std 归一化（修 small 回退，保 large 增益；
+  见 HANDOVER_NEXT §8 安排 / R9_ANALYSIS §6 预测）；其他候选（先问用户）：继续降档 /
   收 loop 转 T7 剩余 / D1 / E0 / 直接阶段 E 真机。
 
 ### 复现命令（r9 路径）
