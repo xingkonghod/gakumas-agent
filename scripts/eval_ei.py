@@ -1,16 +1,21 @@
-"""B11 渐退式专家迭代：配对评测门（学生 vs beam 教师，B1 修正 harness）。
+"""B11 渐退式专家迭代：配对评测门（学生 vs 教师，B1 修正 harness）。
 
-同牌组 / 同 seed 配对（small：14 张 / 5 回合 / CLEAR 120 / PERFECT 170）：
+同牌组 / 同 seed 配对（small：14 张 / 5 回合 / CLEAR 120 / PERFECT 170；
+``--scenario large``：31 张 / 9 回合 / CLEAR 300 / PERFECT 450，真机口径）：
 
-* ``net``：学生策略网（argmax，只看可观测状态；有牌绝不 SKIP——硬规矩）；
-* ``beam_analytic``：教师 = width4/100ms/tiebreak1e-3 解析式叶子（B2-R 处置后
-  的 T2 候选档）；**评测门的基线**；
+* ``net``：候选学生策略网（argmax，只看可观测状态；有牌绝不 SKIP——硬规矩）；
+* ``beam_analytic``：beam 教师 = width4/100ms/tiebreak1e-3 解析式叶子（B2-R
+  处置后的 T2 候选档）；**第 1 轮评测门的基线**，第 2 轮起保留作绝对水位参照；
+* ``teacher_net``（``--baseline-net <model>`` 时）：**上一轮学生网当教师**，
+  第 2 轮起的评测门基线（渐退式专家迭代：过门后教师←学生）；
 * ``within_analytic`` / ``greedy``：上下文参照（回合内 expectimax / 固定优先级）。
 
-**放手门（用户设计：学生 ≥ 教师才放手）**：``net − beam`` 配对差 95% CI
-下界 > 0（显著强）→ PASS，下一轮教师占比降档（30→15→0）且教师换成上一轮学生；
+**放手门（用户设计：学生显著强于教师才放手）**：``net − 基线`` 配对差 95% CI
+下界 > 0 → PASS，下一轮教师占比降档（30→15→0）且教师换成上一轮学生；
 否则 CONTINUE（继续扶：教师占比不降，用新学生再采自对弈数据迭代）。
 非 inferior 不算过——「学生强于老师后反过来当老师」要求显著正。
+基线默认 = beam 教师（第 1 轮口径，行为逐位不变）；``--baseline-net`` 给出时
+基线 = 该学生网（第 2 轮：v2 vs v1）。
 
 seed 纪律：确认段默认 3000–3119（120 局，不参与采集/训练）；选择段 2000–2079。
 
@@ -18,6 +23,10 @@ seed 纪律：确认段默认 3000–3119（120 局，不参与采集/训练）�
 
     .venv\\Scripts\\python.exe scripts\\eval_ei.py --net-model out\\ei_r1_v1_mix.json \
         --games 120 --seed 3000 --json out\\ei_r1_eval_confirm.json
+    # 第 2 轮：门基线 = 上一轮学生 v1，同时报 vs beam 的绝对水位
+    .venv\\Scripts\\python.exe scripts\\eval_ei.py --net-model out\\ei_r2_v2_mix.json \
+        --baseline-net out\\ei_r1_v1_mix.json --games 120 --seed 3000 \
+        --json out\\ei_r2_eval_v2_confirm.json
 """
 
 from __future__ import annotations
@@ -39,11 +48,26 @@ import eval_t4_b1 as eb1
 from gkagent.sim.policy_mlp import PolicyMLP
 
 
-def _run_rows(deck, config, args, net: PolicyMLP, *, info: str) -> dict[str, list[dict]]:
+def _run_rows(
+    deck,
+    config,
+    args,
+    net: PolicyMLP,
+    *,
+    info: str,
+    baseline_net: PolicyMLP | None = None,
+) -> dict[str, list[dict]]:
     known = info == "known"
     rows: dict[str, list[dict]] = {}
 
-    def run(name: str, policy: str, *, budget: float, tiebreak: float) -> None:
+    def run(
+        name: str,
+        policy: str,
+        *,
+        budget: float,
+        tiebreak: float,
+        net_override: PolicyMLP | None = None,
+    ) -> None:
         rows[name] = [
             ekd.play(
                 deck,
@@ -54,12 +78,14 @@ def _run_rows(deck, config, args, net: PolicyMLP, *, info: str) -> dict[str, lis
                 budget_ms=budget,
                 width=args.width,
                 score_tiebreak=tiebreak,
-                net_model=net if policy == "net" else None,
+                net_model=(net_override or net) if policy == "net" else None,
             )
             for offset in range(args.games)
         ]
 
     run("net", "net", budget=0.0, tiebreak=0.0)
+    if baseline_net is not None:
+        run("teacher_net", "net", budget=0.0, tiebreak=0.0, net_override=baseline_net)
     run(
         "beam_analytic",
         "beam",
@@ -75,8 +101,12 @@ def _run_rows(deck, config, args, net: PolicyMLP, *, info: str) -> dict[str, lis
 
 def main(argv: list[str] | None = None) -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    parser = argparse.ArgumentParser(description="B11 学生网配对评测门（vs beam 教师）")
+    parser = argparse.ArgumentParser(description="B11 学生网配对评测门（vs 教师）")
     parser.add_argument("--net-model", type=Path, required=True)
+    parser.add_argument(
+        "--baseline-net", type=Path, default=None,
+        help="门基线=上一轮学生网（第 2 轮渐退教师←学生）；缺省基线=beam 教师（第 1 轮口径）",
+    )
     parser.add_argument("--games", type=int, default=120)
     parser.add_argument("--seed", type=int, default=3000)
     parser.add_argument("--scenario", choices=("small", "large"), default="small")
@@ -91,12 +121,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     net = PolicyMLP.load(args.net_model)
+    baseline_net = PolicyMLP.load(args.baseline_net) if args.baseline_net else None
+    baseline_key = "teacher_net" if baseline_net is not None else "beam_analytic"
     deck, config = ee.build_deck(args.scenario), ee.make_config(args.scenario)
     print(
         f"net={args.net_model} scenario={args.scenario} games={args.games} "
         f"seeds={args.seed}..{args.seed + args.games - 1} "
         f"teacher=beam(width={args.width}, {args.beam_budget_ms:.0f}ms, "
         f"tiebreak={args.score_tiebreak:g})"
+        + (f" baseline_net={args.baseline_net}" if baseline_net is not None else "")
     )
     if net.meta.get("mix"):
         print(f"  训练混合：{net.meta['mix']}")
@@ -105,10 +138,13 @@ def main(argv: list[str] | None = None) -> int:
     verdicts: dict[str, dict] = {}
     started = time.perf_counter()
     for info in args.info:
-        rows = _run_rows(deck, config, args, net, info=info)
-        table = eb1._table(rows, "beam_analytic")
+        rows = _run_rows(deck, config, args, net, info=info, baseline_net=baseline_net)
+        table = eb1._table(rows, baseline_key)
         results[info] = table
-        print(f"\n=== {info}（基线 = beam 教师） ===")
+        baseline_label = (
+            f"上一轮学生 {args.baseline_net.name}" if baseline_net is not None else "beam 教师"
+        )
+        print(f"\n=== {info}（基线 = {baseline_label}） ===")
         print(
             f"{'策略':<18}{'均值':>8}{'P50':>7}{'CLEAR':>8}{'PERFECT':>9}"
             f"{'vs 教师':>10}{'95% CI':>18}{'胜/平/负':>11}{'回退':>5}"
@@ -127,9 +163,12 @@ def main(argv: list[str] | None = None) -> int:
         gate_pass = net_delta["ci_low"] > 0
         verdicts[info] = {
             "gate_pass": gate_pass,
-            "criterion": "net − beam 配对差 95% CI 下界 > 0（学生显著强于教师才放手）",
+            "baseline": baseline_key,
+            "baseline_model": str(args.baseline_net) if args.baseline_net else None,
+            "criterion": f"net − {baseline_key} 配对差 95% CI 下界 > 0（学生显著强于教师才放手）",
             "net_mean": table["net"]["mean"],
-            "teacher_mean": table["beam_analytic"]["mean"],
+            "teacher_mean": table[baseline_key]["mean"],
+            "beam_mean": table["beam_analytic"]["mean"],
             "delta": net_delta["mean"],
             "ci_low": net_delta["ci_low"],
             "ci_high": net_delta["ci_high"],
@@ -142,7 +181,7 @@ def main(argv: list[str] | None = None) -> int:
         }
         print(
             f"\n评测门 [{info}]：{'PASS（放手）' if gate_pass else 'CONTINUE（继续扶）'}"
-            f"  net {table['net']['mean']:.1f} vs 教师 {table['beam_analytic']['mean']:.1f}"
+            f"  net {table['net']['mean']:.1f} vs 基线 {table[baseline_key]['mean']:.1f}"
             f"  Δ={net_delta['mean']:+.1f} CI [{net_delta['ci_low']:+.1f},{net_delta['ci_high']:+.1f}]"
         )
 

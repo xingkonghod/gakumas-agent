@@ -4,8 +4,9 @@
 
 * ``--demos``：教师示范软目标（+1 / −1/(k−1)），单独用 = 行为克隆 warm start（v0）；
 * ``--selfplay``：学生自对弈优势标签（原始 A），训练前按全局 std 归一化；
-* ``--teacher-frac``：混合里教师样本占比（第 1 轮 0.3 = 摸索 70% + 老师 30%）。
-  按行数**确定性下采样**到精确比例（rng seed 固定），实际比例写进 meta。
+* ``--teacher-frac``：混合里教师样本占比（第 1 轮 0.3 = 摸索 70% + 老师 30%；
+  第 2 轮 0.15，教师=上一轮学生网的示范）。按行数**确定性下采样**到精确比例
+  （rng seed 固定），实际比例写进 meta。``--round`` 写进 meta.task（默认 1）。
 
 切分：按 **seed 分组** 9:1（同局样本不跨 train/val，与 B2 训练同纪律）。
 指标：train/val MSE + val 按决策分组的排序命中率（argmax 预测 == argmax 标签）。
@@ -18,6 +19,9 @@
     # v1：70% 自对弈 + 30% 示范
     .venv\\Scripts\\python.exe scripts\\train_ei_policy.py --selfplay out\\ei_r1_selfplay.npz \
         --demos out\\ei_r1_demos.npz --teacher-frac 0.3 --out out\\ei_r1_v1_mix.json
+    # v2（第 2 轮）：85% v1 自对弈 + 15% v1 教师示范
+    .venv\\Scripts\\python.exe scripts\\train_ei_policy.py --selfplay out\\ei_r2_selfplay.npz \
+        --demos out\\ei_r2_demos.npz --teacher-frac 0.15 --round 2 --out out\\ei_r2_v2_mix.json
 """
 
 from __future__ import annotations
@@ -73,6 +77,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--selfplay", type=Path, default=None)
     parser.add_argument("--demos", type=Path, default=None)
     parser.add_argument("--teacher-frac", type=float, default=0.3)
+    parser.add_argument("--round", type=int, default=1, help="专家迭代轮次（写进模型 meta.task）")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--hidden", type=int, nargs=2, default=(96, 48))
     parser.add_argument("--epochs", type=int, default=400)
@@ -166,7 +171,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     model.meta = {
         **model.meta,
-        "task": "B11 expert-iteration round1",
+        "task": f"B11 expert-iteration round{args.round}",
         "sources": [part["path"] for part in parts],
         "val_metrics": metrics["val"],
         "train_metrics": history,

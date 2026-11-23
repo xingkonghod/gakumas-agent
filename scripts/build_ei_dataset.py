@@ -2,15 +2,19 @@
 
 两种模式（第 1 轮数据 = 70% 自对弈 + 30% 教师示范，比例在训练脚本里配）：
 
-* ``--mode demos``：beam 教师（width4/100ms/tiebreak1e-3，默认 unknown 信息，
-  与 B2-R 处置后的 T2 候选同档）跑局，记录每个决策点；教师出的牌 +1、其余
+* ``--mode demos``：教师跑局，记录每个决策点；教师出的牌 +1、其余
   −1/(k−1) 软目标。k=1 强制决策 / 教师有牌却 SKIP 的决策剔除并计数。
+  教师默认 = beam（width4/100ms/tiebreak1e-3，默认 unknown 信息，与 B2-R
+  处置后的 T2 候选同档）；**第 2 轮起可 ``--teacher-net <model>`` 把教师换成
+  上一轮学生网**（渐退式专家迭代：过门后教师←学生），走 ``net_action``
+  逐决策记录（硬规矩禁跳 → 不会出现「教师有牌却 SKIP」剔除），软目标同口径。
 * ``--mode selfplay --student-model ...``：学生 argmax 自对弈（硬规矩禁跳），
   每个决策点对每张可出牌做**精确重放分支**（``policy_data.advantage_samples``），
   分支后用**当前学生**打完 → ``A = R − mean(R)``（on-policy 优势标签）。
 
 seed 纪律（与评测段错开）：demos 默认 100000 起、selfplay 默认 200000 起；
-评测确认段 3000–3119 / 选择段 2000–2079 不参与采集。
+评测确认段 3000–3119 / 选择段 2000–2079 不参与采集。第 2 轮：教师←v1 示范
+seed 400000 起、v1 自对弈 seed 300000 起（与第 1 轮采集段错开）。
 
 用法::
 
@@ -84,6 +88,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=None, help="默认 demos=100000 / selfplay=200000")
     parser.add_argument("--scenario", choices=("small", "large"), default="small")
     parser.add_argument("--student-model", type=Path, default=None, help="selfplay 模式必填")
+    parser.add_argument(
+        "--teacher-net", type=Path, default=None,
+        help="demos 模式：教师=学生网（第 2 轮渐退教师←上一轮学生），逐决策 net_action 记录",
+    )
     parser.add_argument("--known", action="store_true", help="教师用 known_draw 全知（默认 unknown）")
     parser.add_argument("--budget-ms", type=float, default=100.0)
     parser.add_argument("--width", type=int, default=4)
@@ -100,16 +108,23 @@ def main(argv: list[str] | None = None) -> int:
         args.seed = 100_000 if args.mode == "demos" else 200_000
     if args.mode == "selfplay" and args.student_model is None:
         parser.error("--mode selfplay 需要 --student-model")
+    if args.teacher_net is not None and args.mode != "demos":
+        parser.error("--teacher-net 只用于 --mode demos（selfplay 用 --student-model）")
 
     deck, config = ee.build_deck(args.scenario), ee.make_config(args.scenario)
     student = PolicyMLP.load(args.student_model) if args.student_model else None
+    teacher_net = PolicyMLP.load(args.teacher_net) if args.teacher_net else None
     leaf = AnalyticLeafValue(sigma=args.sigma, score_tiebreak=args.score_tiebreak)
     print(
         f"mode={args.mode} scenario={args.scenario} games={args.games} "
         f"seeds={args.seed}..{args.seed + args.games - 1} "
         + (
-            f"teacher=beam(width={args.width}, {args.budget_ms:.0f}ms, "
-            f"tiebreak={args.score_tiebreak:g}, known={args.known})"
+            (
+                f"teacher=net({args.teacher_net})"
+                if teacher_net is not None
+                else f"teacher=beam(width={args.width}, {args.budget_ms:.0f}ms, "
+                f"tiebreak={args.score_tiebreak:g}, known={args.known})"
+            )
             if args.mode == "demos"
             else f"student={args.student_model} label_stride={args.label_stride}"
         )
@@ -128,8 +143,12 @@ def main(argv: list[str] | None = None) -> int:
     for offset in range(args.games):
         seed = args.seed + offset
         if args.mode == "demos":
-            sim, row = _teacher_game(deck, config, seed, args=args, leaf=leaf)
-            fallbacks += int(row["fallbacks"])
+            if teacher_net is not None:
+                # 教师=学生网：net_action 逐决策（硬规矩禁跳），软目标同口径
+                sim, row = play_selfplay(deck, config, seed, teacher_net)
+            else:
+                sim, row = _teacher_game(deck, config, seed, args=args, leaf=leaf)
+            fallbacks += int(row.get("fallbacks", 0))
         else:
             sim, row = play_selfplay(deck, config, seed, student)
         final_scores.append(row["score"])
@@ -171,6 +190,11 @@ def main(argv: list[str] | None = None) -> int:
     elapsed = time.perf_counter() - started
     meta = {
         "kind": args.mode,
+        "teacher_kind": (
+            ("net" if teacher_net is not None else "beam")
+            if args.mode == "demos"
+            else "student"
+        ),
         "args": {
             key: (str(value) if isinstance(value, Path) else value)
             for key, value in vars(args).items()

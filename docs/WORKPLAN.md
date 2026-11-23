@@ -37,7 +37,7 @@
 | B9 T5④ P 道具持久倍率/modifier（第二批） | `scripts/build_p_items.py`（`annotate_modifier_effects`：20 类 target / 369 段 + 文本次数上限 9→896 件）+ `sim/p_items.py`（`PItemDelta` 新字段 + `add_timed/tick_timed/timed_dict_*` 纯规则）+ `sim/lesson.py`/`sim/expectimax.py`（分数倍率 f/g、费用修正、回合追加、指針直给、增益倍率、倒计时、canonical/双镜） | 数据层已实现 **676→1025/1849 段**（no-op 1173→824，modifier **337 段**）；gkbench 已实现 **59→103/153 段**；greedy A/B **+110.3（+2.87%，CI [+39.6,+193.3]，20胜/2负/38平）** / expectimax +48.2（CI 含 0）；新增 `tests/test_p_items_b9.py` 49 条；pytest **1116/1（1117 收集 / 78 文件）**；见 HANDOVER 二·补三十二 / RULES_REFERENCE §5.3 |
 | B10 T5 剩余①② 生成卡 + 指定卡名/手牌张数映射 | 新 `scripts/build_card_meta.py` + `data/knowledge/card_meta.json` + `src/gkagent/data/card_meta.py`（idol_unique 参考交叉 340/342 零误报 + effectGroupIds + 日文别名）+ `build_p_items.py`（`parse_card_search` play_filter/zone_count + `annotate_create_effects`）+ `sim/p_items.py`（CardFilter/ZoneCount/CreateCard + exam_start_after + 次数按道具计）+ `sim/lesson.py`/`sim/expectimax.py`（生成卡落牌双镜）+ `play_choice.spec_from_name` | 触发未知 **103→3 件**、条件未知 **6→0**；play_filter 234 件 / zone_count 27 件；生成卡 **11 段确定 + 6 段随机 no-op**；数据层 **1025→1042/1849 段**；greedy A/B **+797.5（+20.76%，CI [+399.0,+1250.1]）** / expectimax +801.1（CI [+66.3,+1697.9]）；新增 `tests/test_p_items_b10.py` 38 条；pytest **1154/1（1155 收集 / 79 文件）**；见 HANDOVER 二·补三十三 / RULES_REFERENCE §5.3 |
 | C1 执行层可靠性（tap 确认/重试 + 提权检查 + 帧预算 + 每步可复盘，2026-11-23，**纯离线代码+单测；真机验收留阶段 E**） | 新 `runtime/tapguard.py`（TapExpectation 动作前预算下一帧 + TapGuard 互验：confirmed/moved 不重试/同屏 retap≤2/lost 上报绝不静默 SKIP + PickerGuard 两段式选牌分级重试）+ `device/privilege.py`（游戏 elevated/本进程 non-elevated → UIPI 静默丢点击，启动 blocked 拒跑+`elevation-blocked` failure）+ `runtime/trace.py`（StepTrace 每步 reason/预算/互验结果）+ `scripts/replay_steps.py` 离线复盘 CLI；`produce_ui.decide()` 每击自动预算（弹窗确认/回合结束「是」/通信错误=dialog-gone）+ card-reward 接 PickerGuard（只重试领取不重点卡位）；`auto_produce` 接 tap 互验（retap/lost/连续 3 次 lost 止损停局）+ `attempt_drink`（对话未开重试槽位≤2，失败留痕）+ 每步 `data/step_trace.jsonl` + 局末 `[tap]` 汇总；参考 GKMSMAA follow/winpriv 架构**自写不拷贝**（AGPL）；新增 4 测试文件 **68 条**；pytest **1223/1（1224 收集 / 83 文件）**；基线 ①③④⑤ 不变；见 HANDOVER 二·补三十六 |
-| B11 渐退式专家迭代 第 1 轮（policy/advantage 学生 + 评测门渐退，2026-11-23，**纯离线；确认段 PASS**） | 新 `sim/policy_mlp.py`（137 维特征=104 状态+33 动作 → 96→48→1 优势分；`net_action` 硬规矩禁跳/禁回退）+ `sim/policy_data.py`（决策记录+**精确重放分支** on-policy 优势标签 A=R−mean(R)，逐字段全等校验不走搜索镜像）+ `build_ei_dataset.py`/`train_ei_policy.py`/`eval_ei.py`；`eval_known_draw.play` 加 net/greedy（默认逐位不变）；示范 400 局 5747 样本→v0 BC→自对弈 1000 局 14314 样本→v1 70/30；**确认段 120 局 v1 97.5 vs beam 教师 94.9：+2.6 CI[+1.1,+4.1] PASS**（稳健块 +3.8 CI[+1.6,+6.0]；0.40ms/决策）；消融：纯 BC v0 也过门（+2.4），红利主力=逐决策蒸馏+禁跳，on-policy 成分待第 2 轮独立验证；新增 28 条测试；pytest **1251/1（1252 收集 / 84 文件）**；基线 ①③④⑤ 不变；见 EXPECTIMAX B11 / HANDOVER 二·补三十七 |
+| B11 渐退式专家迭代 第 1–2 轮（policy/advantage 学生 + 评测门渐退，2026-11-23，**纯离线；r1 确认段 PASS / r2 平台期 CONTINUE**） | 新 `sim/policy_mlp.py`（137 维特征=104 状态+33 动作 → 96→48→1 优势分；`net_action` 硬规矩禁跳/禁回退）+ `sim/policy_data.py`（决策记录+**精确重放分支** on-policy 优势标签 A=R−mean(R)，逐字段全等校验不走搜索镜像）+ `build_ei_dataset.py`/`train_ei_policy.py`/`eval_ei.py`；`eval_known_draw.play` 加 net/greedy（默认逐位不变）；r1：示范 400 局 5747 样本→v0 BC→自对弈 1000 局 14314 样本→v1 70/30；**确认段 120 局 v1 97.5 vs beam 教师 94.9：+2.6 CI[+1.1,+4.1] PASS**（稳健块 +3.8 CI[+1.6,+6.0]；0.40ms/决策）；消融：纯 BC v0 也过门（+2.4），红利主力=逐决策蒸馏+禁跳。**r2（教师←v1、占比 0.15、large 首测）**：`--teacher-net`/`--baseline-net`/`--round` 纯增量；v1 示范 5773 + v1 自对弈 14526（seed 400000+/300000+）→ v2 17089 样本；**确认段 v2 97.9 vs v1 97.5：+0.4 CI[−0.4,+1.2] CONTINUE（平台期，四段全中性，新鲜块 5000 同样中性）**；消融 v2−v2_bc=+0.54 CI[−0.40,+1.48] on-policy 仍未独立证明；**large：v1 比 beam −28.1 CI[−36.0,−20.2]（CLEAR 36.7% vs 53.3%），v2 比 v1 还略差（选择段 −14.8 显著）→ small 训练不泛化 large**；v2−beam small +2.99 CI[+1.37,+4.62] 绝对水位保持；处置：占比不降、生产接线未做、T2 候选不变；新增 15 条测试（r2）；pytest **1266/1（1267 收集 / 85 文件）**；基线 ①③④⑤ 不变；见 EXPECTIMAX B11 / HANDOVER 二·补三十七/三十九 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -547,7 +547,7 @@
   （1156 收集 / 79 文件）**；基线 ①③④⑤ 全部不变。
 - 细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四/三十五。
 
-### B11. 渐退式专家迭代（学 policy/advantage，评测门渐退）🟡 第 1 轮完成（2026-11-23，确认段 PASS；第 2 轮先问用户）
+### B11. 渐退式专家迭代（学 policy/advantage，评测门渐退）🟡 第 1–2 轮完成（2026-11-23，r1 确认段 PASS / r2 平台期 CONTINUE；下一轮先问用户）
 - **目标**：B2-R 关闭学习叶子（状态价值）路线后换目标量——学「该打哪张牌 / 这张比
   平均好多少」（policy/advantage），标签来自学生自己的对局（on-policy，绕开价值-策略
   失配）；摸索 70%+老师 30%，教师占比逐轮渐退（30→15→0），**学生过配对评测门
@@ -565,12 +565,29 @@
   **消融（如实）**：纯 BC v0 也过门（+2.4 CI[+0.7,+4.1]），v1−v0=+0.2 不显著 →
   第 1 轮红利主力 = 逐决策蒸馏 + 硬规矩禁跳（教师每回合规划一次会过期/提前 SKIP），
   on-policy 优势成分方向正但未独立证明。
-- **第 2 轮（下一会话，先问用户）**：教师←v1、占比 30→15；加 large 场景（9 回合真机口径）
-  配对；过门继续降档，不过门继续扶/如实记录平台期。生产接线未做（T2 候选暂不变）；
-  模拟器保真度是天花板，离线增益要过 T2 真机 A/B 才算数。
-- **测试/基线**：`tests/test_ei_policy.py` **28 条**；全量 pytest **1251 passed / 1 skipped
-  （1252 收集 / 84 文件）**；基线 ①③④⑤ 全部不变。
-- 细节见 [EXPECTIMAX「B11 渐退式专家迭代（第 1 轮）」](EXPECTIMAX.md) / HANDOVER 二·补三十七。
+- **第 2 轮落地（2026-11-23，用户选定；纯增量代码+单测）**：`build_ei_dataset --teacher-net`
+  （教师=学生网逐决策示范，软目标同口径，教师 SKIP 剔除恒 0）+ `eval_ei --baseline-net`
+  （门基线=上一轮学生，beam 臂保留作绝对水位）+ `train_ei_policy --round`；默认行为逐位不变。
+  v1 示范 400 局 5773 样本（seed 400000+，教师均分 98.1）+ v1 自对弈 1000 局 14526 优势样本
+  （seed 300000+，std 12.0）→ **v2 85/15**（17089 样本，教师占比精确 0.150，val 排序 0.818）
+  + 消融 **v2_bc**（纯 v1 示范自蒸馏，val 排序 0.933）。
+- **第 2 轮结果（平台期 + large 泛化缺口）**：small 确认段 120 局 **v2 97.9 vs v1 97.5：
+  +0.4 CI[−0.4,+1.2] → CONTINUE**（选择/稳健 4000/新鲜块 5000 四段全中性，98/120 局逐位相同）；
+  消融 v2_mix−v2_bc=+0.54 CI[−0.40,+1.48]（on-policy 成分连续两轮方向正、未独立证明）；
+  纯自蒸馏 v2_bc−v1 中性。**large 首测（31 张/9 回合）**：v1 比 beam **−28.1 CI[−36.0,−20.2]**
+  （277.2 vs 305.3，CLEAR 36.7% vs 53.3%），v2 比 v1 还略差（选择段 −14.8 显著）→
+  small 训练不泛化 large，large 天花板是 beam 跨回合规划；两学生仍显著强于 greedy（+58~65）。
+  绝对水位：v2−beam small +2.99 CI[+1.37,+4.62]；beam 参照臂 94.9/97.3/97.8 与 r1 逐位一致。
+- **处置**：按设计**教师占比不降（保持 0.15）**、如实记录平台期（渐退节奏是超参不是定律）；
+  生产接线未做（T2 候选暂不变：beam+全知/tiebreak）；v1 仍是 small 最佳学生。
+  **下一轮候选（先问用户）**：继续扶（换变量：large 训练数据/更大学生网/多延续标签，
+  同配方再采边际收益存疑）/ 收 loop 于 v1 转 T7/D1/E0/E。学生网要进 F 阶段 public-safe
+  候选必须先过 large 训练/评测（gkbench hif 本戦 9–12 回合口径）。
+- **测试/基线**：`tests/test_ei_policy.py` **28 条** + `tests/test_ei_policy_r2.py` **15 条**；
+  全量 pytest **1266 passed / 1 skipped（1267 收集 / 85 文件）**；基线 ①③④⑤ 全部不变。
+  环境备注：首跑曾遇 drink_search 延迟守卫受游戏负载（TslGame）抖动失败，负载回落后
+  复跑全绿，未改门槛（详见 EXPECTIMAX B11 第 2 轮「测试/基线」）。
+- 细节见 [EXPECTIMAX「B11 渐退式专家迭代（第 1/2 轮）」](EXPECTIMAX.md) / HANDOVER 二·补三十七/三十九。
 
 ---
 
@@ -802,10 +819,18 @@ tap 确认/重试 TapGuard+PickerGuard、提权检查 privilege、动作前预�
 （137 维学生网）+ 精确重放分支 on-policy 优势标签 + 70/30 混合；**确认段 120 局
 v1 97.5 vs beam 教师 94.9：+2.6 CI[+1.1,+4.1] 评测门 PASS（放手）**，稳健块 +3.8；
 消融：纯 BC v0 也过门（+2.4）→ 红利主力=逐决策蒸馏+禁跳，on-policy 成分待第 2 轮验证；
-28 条单测，pytest 1251/1（1252 收集 / 84 文件）；见 EXPECTIMAX B11 / HANDOVER 二·补三十七。
-**下一候选（先问用户）**：B11 第 2 轮（教师←v1、占比 30→15、加 large 场景配对）；
-或 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验 / 直接阶段 E 真机。
+28 条单测；见 EXPECTIMAX B11 / HANDOVER 二·补三十七。
+**B11 第 2 轮也已于 2026-11-23 完成（用户选定）**：教师←v1（--teacher-net）、占比 0.15、
+large 首测；**确认段 v2 97.9 vs v1 97.5：+0.4 CI[−0.4,+1.2] → CONTINUE（平台期，四段全中性，
+新鲜块 5000 同样中性）**；消融 v2−v2_bc=+0.54 CI[−0.40,+1.48] on-policy 仍未独立证明；
+**large：v1 比 beam −28.1 CI[−36.0,−20.2]（CLEAR 36.7% vs 53.3%），v2 比 v1 还略差
+（选择段 −14.8 显著）→ small 训练不泛化 large**；v2−beam small +2.99 CI[+1.37,+4.62]；
+处置：占比不降、生产接线未做、T2 候选不变；15 条新单测，pytest 1266/1（1267 收集 / 85 文件）；
+见 EXPECTIMAX B11 第 2 轮 / HANDOVER 二·补三十九。
+**下一候选（先问用户）**：B11 第 3 轮继续扶（换变量：large 训练数据/更大学生网/多延续标签）/
+收 loop 于 v1 转 T7 剩余（纯函数状态重放/自动复盘页）/ D1 补采集 / E0 实验 / 直接阶段 E 真机。
 → 阶段 D（补采集）离线准备 → 真机 T3→T1→T2（含 E0 实验）
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看
-可观测状态，是未来 public-safe 候选）。
+可观测状态，是未来 public-safe 候选，**但 r2 large 首测显著弱于 beam，须先过 large
+训练/评测**）。
 ```

@@ -1390,5 +1390,125 @@ v1 过门 → **第 2 轮教师换成 v1、教师占比 30→15**（下一会话
 - JSON（out/ gitignore）：`ei_r1_eval_v0_select/v1_select/v0_confirm/v1_confirm/v1_robust4000.json`；
 - 细节见 HANDOVER 二·补三十七 / WORKPLAN B11 / HANDOVER_NEXT §8（B11 交接）。
 
+## B11 渐退式专家迭代（第 2 轮，2026-11-23）：教师←v1、占比 15%、large 首测 —— 平台期（CONTINUE）
+
+**结论先行**：第 1 轮 PASS 后按设计放手——第 2 轮教师换成 v1 学生网、教师占比 30→15、
+自对弈用 v1 采新数据，并**首次加 large 场景（31 张 / 9 回合真机口径）配对**。结果：
+
+1. **small 评测门 CONTINUE（平台期）**：确认段 120 局 v2 97.9 vs v1 97.5，
+   Δ=+0.4 CI[−0.4,+1.2] 不显著；选择/稳健 4000/**新鲜块 5000（两轮均未触碰）**四段全中性
+   （|Δ|≤0.4，CI 全含 0；确认段 98/120 局逐位相同）。**按设计教师占比不降（保持 0.15）**，
+   渐退节奏是超参不是定律——如实记录平台期；
+2. **on-policy 成分仍未独立证明**：消融 v2_mix − v2_bc（纯 v1 示范自蒸馏）= +0.54
+   CI[−0.40,+1.48]，方向正但不显著（与第 1 轮 v1−v0=+0.2 同向）；纯自蒸馏 v2_bc − v1 =
+   −0.13 CI[−0.87,+0.60] 中性（克隆自己≈自己，符合预期）；
+3. **large 首测 = 泛化缺口（本轮最重要的新信息）**：small 训练的学生到 large 显著弱于 beam——
+   v1 −28.1 CI[−36.0,−20.2]（确认段 277.2 vs 305.3，CLEAR 36.7% vs 53.3%）；
+   **v2 比 v1 还略差**（选择段 −14.8 CI[−21.3,−8.3] 显著；确认段 −6.5 CI[−13.2,+0.3]）。
+   两学生仍显著强于 greedy（+58~+65）→ 学到的技巧真实，但 9 回合长 horizon 的天花板是
+   beam 的跨回合规划；**large 要进生产要么用 beam（现 T2 候选），要么采 large 数据训练**；
+4. **绝对水位保持**：v2 − beam（small 确认段）= +2.99 CI[+1.37,+4.62]；
+   v1 − beam = +2.58 CI[+1.07,+4.10] 与第 1 轮**逐位一致**（beam 参照臂 94.9/97.3/97.8
+   三个段全部逐位复现 → small beam 提前收敛、不受机器负载影响，数字可比）。
+
+**处置**：生产接线未做（T2 候选暂不变：beam+全知/tiebreak）；v1 仍是 small 最佳学生；
+下一轮候选（继续扶 / 采 large 训练数据 / 收 loop 于 v1 转 T7/D1/E0/E）**先问用户**。
+
+### 第 2 轮代码（纯增量，默认行为逐位不变）
+
+- `build_ei_dataset.py --teacher-net <model>`（demos 模式）：教师=学生网，走 `net_action`
+  逐决策记录（硬规矩禁跳 → 「教师有牌却 SKIP」剔除恒 0），软目标同口径（+1/−1/(k−1)）；
+  selfplay 模式拒收（`parser.error`）；meta 记 `teacher_kind`；
+- `eval_ei.py --baseline-net <model>`：评测门基线=上一轮学生（`teacher_net` 臂），
+  beam 臂保留作绝对水位参照；缺省基线=beam（第 1 轮口径不变）；verdict 记
+  `baseline/baseline_model/beam_mean`；
+- `train_ei_policy.py --round N`：meta.task 轮次（默认 1，第 1 轮输出不变）；
+- large 场景无需新代码（`--scenario large` 第 1 轮已支持，本轮首次用于配对）。
+
+### 第 2 轮数据 / 训练（small；seed 纪律：示范 400000–400399 / 自对弈 300000–300999，与 r1 错开）
+
+| 集 | 局数 / 决策 | 样本 | 备注 |
+|---|---|---:|---|
+| v1 教师示范（`--teacher-net`） | 400 / 1981 | 5773 | 剔除强制 40 / 教师 SKIP **0**（硬规矩）；教师均分 98.1；2.1s |
+| v1 自对弈优势 | 1000 / 4946 | 14526 | std 12.00；v1 均分 98.0；37.3s（含全部分支重放） |
+
+- **v2（85/15）**：17089 样本（自对弈 14526 / 示范 2563，教师占比**精确 0.150**），
+  train MSE 0.196 / r² 0.788，val MSE 0.254 / 排序命中 0.818（1721 样本 / 140 seeds）；
+- **v2_bc（消融，纯 v1 示范自蒸馏）**：5773 样本，val MSE 0.137 / 排序命中 0.933
+  （靶=v1 选牌，克隆保真度高；与 v2 的 val 靶不同不可直接比）。
+
+### 评测（B1 修正 harness 配对，unknown，`--no-within`；门基线 = v1）
+
+**small（14 张 / 5 回合）**：
+
+| 段 | v2 | v1（门基线） | Δ | 95% CI | 胜/平/负 | beam 参照 |
+|---|---:|---:|---:|---|---|---:|
+| 选择 80 局（2000–2079） | 99.2 | 99.2 | −0.0 | [−0.9,+0.9] | 5/64/11 | 97.3 |
+| **确认 120 局（3000–3119）** | 97.9 | 97.5 | **+0.4** | **[−0.4,+1.2]** | 11/98/11 | 94.9 |
+| 稳健 120 局（4000–4119） | 101.3 | 101.6 | −0.2 | [−0.8,+0.3] | 8/101/11 | 97.8 |
+| 新鲜块 120 局（5000–5119，两轮未触碰） | 97.5 | 97.6 | −0.1 | [−1.2,+1.1] | 13/93/14 | 96.3 |
+
+CLEAR 确认段：v2 10.0% / v1 11.7% / beam 10.8%（均值微升、CLEAR 微降，噪声级）。
+消融（确认段配对）：v2_bc 97.4（−0.1 vs v1，CI[−0.9,+0.6]）；
+**v2_mix − v2_bc = +0.54 CI[−0.40,+1.48]**（on-policy 成分，13/96/11）；
+v2 − beam = +2.99 CI[+1.37,+4.62]（41/56/23）。
+
+**large（31 张 / 9 回合 / 体力 60 / CLEAR 300 / PERFECT 450，首测）**：
+
+| 段 | v2 | v1 | Δ(v2−v1) | 95% CI | beam | greedy |
+|---|---:|---:|---:|---|---:|---:|
+| 选择 80 局（2000–2079） | 266.6 | 281.4 | **−14.8** | **[−21.3,−8.3]** | 302.5 | 219.9 |
+| 确认 120 局（3000–3119） | 270.8 | 277.2 | −6.5 | [−13.2,+0.3] | 305.3 | 212.4 |
+
+CLEAR：选择段 v2 23.8% / v1 35.0% / beam 46.2%；确认段 v2 26.7% / v1 36.7% / beam 53.3%。
+v1 − beam（确认段）= **−28.1 CI[−36.0,−20.2]**（94/1/25 beam 胜）——small 蒸馏红利
+（逐决策重评估+禁跳）在 large 不足以补上跨回合规划差距；v2 的 small 平台期训练还轻微
+损害了 large 泛化。large beam 臂虽在游戏负载下测得，**另跑复核逐位复现**
+（305.3/277.2/270.8，`ei_r2_eval_v2_large_confirm_recheck.json`）→ 数字稳定可比；
+net-vs-net 两臂确定性、不受负载影响，门判定有效。
+
+### 处置 / 风险（如实）
+
+- **平台期**：两轮下来红利主力仍是第 1 轮的「逐决策蒸馏+禁跳」，on-policy 精化连续两轮
+  方向正但不显著。继续扶的边际收益存疑——下一轮若做，建议换变量（large 训练数据 /
+  更大学生网 / 多延续优势标签）而不是同配方再采一遍；
+- **确认段复用风险**：3000–3119 与 4000–4119 两轮都用于评测（协议内），新鲜块 5000–5119
+  本轮首次使用、同样中性 → 平台期结论不是段选择伪影；
+- **large 泛化缺口**：学生只看可观测状态、特征含 turns_left/体力等，但 5 回合训练分布
+  覆盖不了 9 回合的长 horizon 信用分配；gkbench hif 本戦是 9–12 回合口径 → **学生网要进
+  F 阶段 public-safe 候选，必须先过 large 训练/评测**；
+- 生产接线未做、T2 候选不变；模拟器保真度天花板与真机验收口径同第 1 轮；
+- 模型/数据/JSON 全在 `out/`（gitignore）：`ei_r2_demos.npz` / `ei_r2_selfplay.npz` /
+  `ei_r2_v2_mix.json` / `ei_r2_v2_bc.json` / `ei_r2_eval_v2_select/confirm/robust4000/fresh5000/`
+  `large_select/large_confirm/large_confirm_recheck.json` / `ei_r2_eval_v2bc_confirm.json`。
+
+### 复现命令
+
+```powershell
+# 采集（约 2s + 37s；out/ 不进 git）
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode demos --teacher-net out\ei_r1_v1_mix.json --games 400 --seed 400000 --out out\ei_r2_demos.npz
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode selfplay --student-model out\ei_r1_v1_mix.json --games 1000 --seed 300000 --out out\ei_r2_selfplay.npz
+# 训练（v2 混合 + v2_bc 消融）
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r2_selfplay.npz --demos out\ei_r2_demos.npz --teacher-frac 0.15 --round 2 --out out\ei_r2_v2_mix.json
+.venv\Scripts\python.exe scripts\train_ei_policy.py --demos out\ei_r2_demos.npz --round 2 --out out\ei_r2_v2_bc.json
+# 评测（门基线=v1；退出码 0=PASS/1=CONTINUE）
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r2_v2_mix.json --baseline-net out\ei_r1_v1_mix.json --games 120 --seed 3000 --no-within --json out\ei_r2_eval_v2_confirm.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r2_v2_mix.json --baseline-net out\ei_r1_v1_mix.json --scenario large --games 120 --seed 3000 --no-within --json out\ei_r2_eval_v2_large_confirm.json
+```
+
+### 测试 / 基线
+
+- `tests/test_ei_policy_r2.py` **15 条**（teacher-net 示范软目标/确定性/selfplay 拒收/
+  峰值=net 选牌/beam 默认路径不变；baseline-net 门/默认仍 beam/同模型自比逐位中性；
+  0.15 精确占比/round meta/默认 round1 不变；large 牌组配置/net 确定性/重放优势/
+  eval 与 selfplay CLI 冒烟）；ruff 通过；
+- 全量 pytest **1266 passed / 1 skipped（1267 收集 / 85 文件）**；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 复跑全部不变；
+- 环境备注：本轮全量 pytest 首跑曾遇 `test_drink_search_latency_stays_bounded` 失败
+  （11.8–12.4ms > 10ms）——证实为机器游戏负载（TslGame）所致的墙钟抖动（同搜索 5 轮
+  6.6–12.1ms 随负载波动；同 HEAD 19:0x 基线全绿；代码改动不碰搜索），负载回落后复跑全绿，
+  **未改测试门槛**；
+- 细节见 HANDOVER 二·补三十九 / WORKPLAN B11 / HANDOVER_NEXT §8（B11 第 2 轮交接）。
+
 
 
