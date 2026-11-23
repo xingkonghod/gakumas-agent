@@ -2036,6 +2036,16 @@ Hindsight Cloud 而无 token，每次记忆调用 401（plugin.log 里 11-22 起
    即可，别反复 restart（会打断下载）。
 4. 脱敏教训：凭据值含 `.` 时，`[A-Za-z0-9_-]+` 掩码正则在点号处截断会漏出大半 key
    （本次 DASHSCOPE key 曾在工具输出露出，仅用户本机可见；介意可去百炼控制台轮换）。
+5. **qwen-plus 输出上限坑（19:1x 已修）**：Hindsight 提取默认请求
+   `max_tokens=64000`（`DEFAULT_RETAIN_MAX_COMPLETION_TOKENS`），qwen-plus 上限 32768 →
+   400 `InternalError.Algo.InvalidParameter`，提取全失败 → bank 0 事实 → 新会话「无可播种记忆」。
+   修：`HINDSIGHT_API_RETAIN_MAX_COMPLETION_TOKENS=32000`（已写 profile env + 用户环境变量；
+   约束：须 > RETAIN_CHUNK_SIZE）。另：播种瞬间曾遇百炼 400「account in good standing」
+   （扣费后短暂账户状态异常，数分钟后自愈）——提取失败先查 daemon log 的 400 原文再定因。
+   修后 daemon 重启自动 recover 失败任务，dry-run-extract 验证通过、bank 入库 8 事实。
+   **计费口径**：本地 = 服务/数据库/存储本机；LLM（qwen-plus）与 embeddings（text-embedding-v4）
+   走百炼 API 按量付费（用户选定）——播种长 git 历史 + 每会话写回/注入会持续产生小额费用
+   （首次播种约 ¥0.1）；要零 API 成本需换 Ollama 本地模型（provider=ollama，需本机算力）。
 
 **下一会话起**：记忆工具可用——动手前先 `hindsight_search_pages`（项目约定/历史决策），
 `hindsight_sync_status` 看播种进度（git 历史含 B11 `e26387b` 等提交会自动入库，
