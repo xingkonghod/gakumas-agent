@@ -135,6 +135,33 @@ def test_leaf_state_at_draw_matches_draw_entry_convention() -> None:
     assert recorded.hand == ()
 
 
+def test_leaf_snapshot_includes_stance_boundary_release() -> None:
+    """快照必须含温存→全力回合边界的解除收益（B5）。
+
+    ``LessonSim._end_turn`` 在 ``_draw_hand()`` 之后才结算回合边界解除
+    （熱意/固定元気/+1 出牌），而搜索侧 ``end_turn_state`` 把它算进叶子——
+    快照点天然缺这块，``RecordingLessonSim`` 记录回合结束前指針后补上。
+    训练/推理分布必须逐字段一致（2026-11-23 B2 重训前核对）。
+    """
+    from dataclasses import fields
+
+    from gkagent.sim.stance import Stance, StanceState
+
+    sim = RecordingLessonSim(_deck(), _config(turns=2), rng_seed=16)
+    sim.stance = StanceState(stance=Stance.SAVE, save_level=2, full_power_point=10)
+    pre = state_from_sim(sim)
+    sim.step(None)  # SKIP → 回合结束：全力值 10 → 全力；温存 2 段階解除 +8 熱意/+5 固定元気/+1 出牌
+    expected = end_turn_state(pre)
+    assert expected.stance_state.stance != Stance.SAVE, "构造的场景必须触发回合边界解除"
+    assert sim.leaf_states, "turns_left>0 的回合结束应记录叶子快照"
+    leaf = sim.leaf_states[0]
+    assert leaf.enthusiasm == expected.enthusiasm > 0
+    assert leaf.vitality == expected.vitality
+    assert leaf.extra_plays == expected.extra_plays == 1
+    for f in fields(expected):
+        assert getattr(leaf, f.name) == getattr(expected, f.name), f"字段 {f.name} 不一致"
+
+
 def test_mlp_predict_utility_and_save_load(tmp_path: Path) -> None:
     model = _make_model(seed=5)
     sim = LessonSim(_deck(), _config(turns=2), rng_seed=6)

@@ -22,6 +22,7 @@ from dataclasses import replace
 
 import numpy as np
 
+from gkagent.sim.enthusiasm import enthusiasm_gain, release_on_stance_change
 from gkagent.sim.expectimax import ExpectState, state_from_sim
 from gkagent.sim.leaf_mlp import DIM, features
 from gkagent.sim.lesson import LessonSim
@@ -32,9 +33,17 @@ def leaf_state_at_draw(sim: LessonSim) -> ExpectState:
 
     与 ``expectimax.end_turn_state`` 对齐：好印象已加分但在这里还没 -1（``LessonSim``
     在下一回合抽手牌时才 -1）、本回合出牌数/额外次数/饮料计数已归零。
+
+    **温存解除回合边界**（B5 后必须对齐）：``LessonSim._end_turn`` 在
+    ``_draw_hand()`` **之后**才结算温存→全力的回合边界解除收益（熱意/固定元気/
+    +1 出牌次数），而搜索侧 ``end_turn_state`` 把这部分算进叶子状态。快照点
+    在 ``_draw_hand`` 入口，天然缺这块——``RecordingLessonSim`` 会在 ``_end_turn``
+    入口记下回合结束前的指針（``_pre_end_turn_stance``），这里据此补上解除收益，
+    保证训练分布与推理分布逐字段一致（2026-11-23 B2 重训前核对）。
+    普通 ``LessonSim``（没有该记录）保持旧行为。
     """
     state = state_from_sim(sim)
-    return replace(
+    leaf = replace(
         state,
         hand=(),
         impression=max(int(state.impression) - 1, 0),
@@ -42,6 +51,24 @@ def leaf_state_at_draw(sim: LessonSim) -> ExpectState:
         extra_plays=0,
         drinks_used_this_turn=0,
     )
+    previous_stance = getattr(sim, "_pre_end_turn_stance", None)
+    if previous_stance is not None and int(sim.turns_left) > 0:
+        release_enthusiasm, release_genki, release_plays = release_on_stance_change(
+            previous_stance, sim.stance
+        )
+        if release_enthusiasm or release_genki or release_plays:
+            leaf = replace(
+                leaf,
+                enthusiasm=leaf.enthusiasm
+                + enthusiasm_gain(
+                    release_enthusiasm,
+                    bonus=state.enthusiasm_bonus,
+                    multiple_permil=state.enthusiasm_multiple,
+                ),
+                vitality=leaf.vitality + release_genki,
+                extra_plays=release_plays,
+            )
+    return leaf
 
 
 def terminal_leaf_state(sim: LessonSim) -> ExpectState:
@@ -63,9 +90,16 @@ class RecordingLessonSim(LessonSim):
     def __init__(self, *args, **kwargs) -> None:
         self.leaf_states: list[ExpectState] = []
         self._record_enabled = False
+        # 回合结束前的指針快照：温存→全力 的回合边界解除收益在 sim 里是
+        # _draw_hand 之后才结算的，叶子快照要补上（见 leaf_state_at_draw）。
+        self._pre_end_turn_stance = None
         super().__init__(*args, **kwargs)
         # __init__ 里的首发手牌不是叶子，打开开关后才开始记录回合间快照。
         self._record_enabled = True
+
+    def _end_turn(self, *, skipped: bool) -> None:
+        self._pre_end_turn_stance = replace(self.stance)
+        super()._end_turn(skipped=skipped)
 
     def _draw_hand(self, *, keep_extra_plays: bool = False) -> None:
         if self._record_enabled and int(self.turns_left) > 0:
