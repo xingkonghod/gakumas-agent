@@ -2000,6 +2000,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 交接：下一会话任务 = 高预算验证（width8/300ms 配对，用户指定）；显著正才重开学习叶子路线，否则关闭转 C1）
+1862f35 docs(b2r): 交接下一会话任务——高预算验证（width8/300ms 配对）；命令/判定/前置基线写入 HANDOVER_NEXT §8
 （2026-11-23 B2-R 根因诊断：信息漂移假设被推翻（y_known≈y_unknown、learned μ 近无偏且排序更好、分歧时 71.6% 对）；确证锐利 σ 放大（σ11→60 恢复 −7→−2、analytic μ 对 σ 免疫）+ 价值-策略失配（teacher return ≠ 100ms beam 可执行价值、tiebreak ×100 不改决策）；建议关闭学习叶子路线）
 73b12a4 docs(b2r): 根因诊断——信息漂移假设被推翻；锐利 σ 放大 + 价值-策略失配；建议关闭学习叶子路线
 （2026-11-23 B2-R 模型回退（用户指定）：tracked 恢复旧版 val r²=0.943，重训候选保留 out/b2r_leaf_mlp_small.json；两版都 FAIL、生产 leaf_model 关闭故行为无差）
