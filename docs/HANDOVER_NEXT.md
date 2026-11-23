@@ -859,7 +859,7 @@ within 逐位相同佐证）——小场景的约束是宽度不是预算。
 ①③④⑤ 不变。JSON（out/ gitignore）：`b2r_eval_highbudget_select.json`。
 文档：EXPECTIMAX B2-R（结论先行/根因诊断/高预算验证/结论与假设/复现命令）；WORKPLAN §0/
 阶段 B/开场白；HANDOVER_NEXT §0/§4 T4/§8；INDEX；HANDOVER 二·补三十五。
-提交 `docs`（哈希见 HANDOVER 七）。
+提交 `docs 814c422`（哈希另见 HANDOVER 七）。
 
 **上一轮交接记录（2026-11-23，B2-R / B2 学习叶子按 B3+ 规则重训 —— 可复现负结果）**：
 纯离线任务（用户二选一选了 B）。开工基线 ①②③④⑤ 全绿（② 1154/1，HEAD=7b57343 核对一致）。
