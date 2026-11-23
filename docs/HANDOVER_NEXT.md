@@ -1130,7 +1130,7 @@ B 站标题宣称 S4+（待核）；PBRS 塑形负结果 −26,884（纯分最�
 **新会话开场白（复制）**
 
 ```
-工作目录 D:\Games\gakumas-agent。当前 HEAD=1ac8bb2。
+工作目录 D:\Games\gakumas-agent。当前 HEAD 以 git log -1 为准（C1 系列：feat 6a47185 → 定稿 1ac8bb2）。
 读 docs/INDEX.md → docs/WORKPLAN.md（总计划）→ docs/HANDOVER_NEXT.md §2 跑基线
 （四条必跑 + ⑤ F0 gkbench 核对可选）。
 期望：洗牌 4/4 场 + 3/3 重洗；pytest 1223 passed / 1 skipped（1224 条收集 / 83 文件）；
