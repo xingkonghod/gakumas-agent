@@ -1719,6 +1719,58 @@ HANDOVER_NEXT §0/§1/§2/§4/§8/开场白；INDEX；本文件二·补三十三
 **提交**：feat `fdcfe44`（代码 + 数据 + 测试）+ docs `56e8f95`（本交接 + 文档数字），
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补三十四、11-23（B2-R：B2 学习叶子按 B3+ 规则重训 —— 仍 FAIL，可复现负结果）
+
+**任务**：用户二选一选了 B（B2 按 B3 规则重训学习叶子）。T5 机制 B4–B10 已补齐，
+旧模型（B3 前 3 张口径数据）确认段 −27.9 FAIL → 按 [EXPECTIMAX「B2 学习叶子」](EXPECTIMAX.md)
+同配方重采/重训/配对评测。**DoD 走「可复现负结果 + 结论」分支达成**。
+
+**开工基线（B10 后口径，全绿）**：① 4/4+3/3、② **1154/1**（208.96s）、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 精确 / 1125/1155=97.4% 逐张。HEAD=7b57343 核对一致。
+
+**做了什么**：
+1. **旧模型 FAIL 复现**（选择段 seed 2000–2079，B10 后口径）：beam 97.3→71.2
+   （−26.1 CI[−31.4,−20.8]），与 B3 重测**逐位一致** → B4–B10 对 small harness 零影响
+   （config 无 P 道具/属性倍率、牌组无熱意卡），解析式基线稳定（within 89.1 / beam 97.3/94.9/96.8）。
+2. **训练/推理分布等价性探针**（`data/_probe_b2_leaf_equiv.py`，未跟踪）：greedy 300 局 +
+   beam 全知 200 局共 2000 叶子快照 vs `end_turn_state` **逐字段等价**；查出并修掉潜在口径差：
+   B5 温存→全力**回合边界**解除收益在 sim 里 `_draw_hand` 之后结算、搜索叶子却含这块 →
+   `RecordingLessonSim` 记录回合结束前指針、`leaf_state_at_draw` 补上解除收益
+   （small 场景 0 次边界，数据不受影响；修长回合场景重采学歪的隐患）。+1 回归测试。
+3. **重采**：3 批 beam 全知自对弈（width4/100ms ×1500+×3000、width8/300ms ×800；
+   seed 100000/600000/500000 与评测段错开；顺序跑避免 CPU 争用）→ **26,500 样本、0 fallbacks**，
+   teacher 最终分 97.4–97.7。标签 = **纯 on-policy 后续得分，不加 PBRS 塑形**
+   （auto-gakumas PBRS 负结果 −26,884 同向，AUTO_GAKUMAS_NOTES §2.4/§5）。
+4. **重训**：MLP 104→96→48、700 epochs、seed 分组 9:1 → train r²=0.898 /
+   **val r²=0.906 / MAE 7.0 / corr 0.952**（ridge 0.896），σ=11.1。特征保持 104 维
+   （save_cards_used 仍废弃；熱意特征未加——small 场景 0 熱意事件；large 重训时再更新）。
+5. **配对评测**（eval_b2，B1 修正 harness）：
+   - 选择段 80 局 unknown：beam 97.3→learned 90.3（−7.0 ❌）/ ens 0.25 −2.2 / 0.5 −1.5 /
+     **0.75 +0.1（中性）**；within_learned −19.4 ❌。
+   - **确认段 120 局（seed 3000–3119，未参与选择）**：unknown beam 94.9→**87.7（−7.2
+     CI[−9.5,−5.0] ❌）** / ens 0.75 94.4（−0.5 CI[−2.0,+1.0] 中性）；known 96.8→**85.3
+     （−11.5 ❌）** / ens 0.75 −0.6（中性）；within_learned −19.9 ❌（与 B2 历史负结果同向）。
+   - **σ 敏感性诊断（负）**：learned σ×2/×4 → −9.0/−12.1（更差）→ 不是 σ 校准问题，
+     μ 排序本身在 B3 规则下对 beam 有害。
+
+**结论**：数据口径对齐消掉大部分伤害（−26~−28 → −7），但**学习叶子在 B3 每回合 1 张规则下
+仍显著负**；ensemble 0.75 中性。**生产 `leaf_model` 保持默认关闭；beam 默认 = 解析式叶子；
+T2 真机 A/B 候选去掉 learned leaf**。`data/knowledge/b2_leaf_mlp_small.json` 替换为重训后
+新口径模型（旧模型作废且严格更差；git 历史保留）。假设（未证明）：1 张/回合放大叶子排序权重、
+解析式短 horizon 近似更准、全知 teacher return 对 unknown 执行偏乐观。不做：第二轮专家迭代 /
+档位头（B2 已知负结果）、large 重采（需先更新特征，预算外）。备选路线：auto-gakumas
+每战在线自适应（需真机/独立副本，先问用户）。
+
+**测试/基线**：`tests/test_b2_leaf.py` 11→**12 条**（+温存解除回合边界快照回归）；ruff 通过；
+全量 pytest **1155 passed / 1 skipped（1156 收集 / 79 文件）**；基线 ①③④⑤ 全部不变。
+JSON（out/ gitignore）：`b2r_eval_old_select / b2r_train_report / b2r_eval_select / b2r_eval_confirm`。
+
+**文档**：EXPECTIMAX「B2 重训（B2-R）」+ B2/B3/B4/B5 节过期说法更新；WORKPLAN §0/阶段 B；
+HANDOVER_NEXT §0/§1/§4/§8；INDEX；本文件二·补三十四。
+
+**提交**：feat `99e88fc`（leaf_data 口径修正 + 重训模型 + 测试）+ docs（本交接 + 文档数字），
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -1939,6 +1991,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 B2-R / B2 学习叶子按 B3+ 规则重训：重采 26.5k beam 全知叶子样本（纯分数标签、不加 PBRS 塑形）→ MLP val r²=0.906/MAE 7.0，确认段 120 局 unknown beam 94.9→learned 87.7（−7.2 CI[−9.5,−5.0]）/ known −11.5 / ensemble 0.75 中性、σ×2/×4 更差——可复现负结果，生产 leaf_model 保持关闭、T2 候选去掉 learned leaf；叶子快照补温存→全力回合边界解除收益口径，pytest 1155/1（1156 收集 / 79 文件），基线 ①③④⑤ 不变）
+99e88fc feat(b2r): B2 按 B3+ 规则重训学习叶子——重采 26.5k 样本/重训 val r²=0.906，配对仍 FAIL（确认段 −7.2 / ens0.75 中性），生产 leaf_model 保持关闭；快照口径修正（+1 测试）
 （2026-11-23 外部情报：auto-gakumas 分析（T8），只读参考、无许可证禁止拷贝）
 89a7d24 docs(intel): auto-gakumas 分析——零 LLM / Android ADB / 每战在线 PPO + SO-ISMCTS，H.I.F 本戦实机 2回戦 1.59M；无许可证只参考（COMPARE/PROVENANCE/INDEX/HANDOVER 同步）
 （2026-11-23 交接：B10 完成记录 + 提交哈希 fdcfe44）

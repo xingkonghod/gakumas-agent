@@ -798,8 +798,9 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 ## B2 学习叶子（2026-11-22）：全知数据 MLP 叶子 + B1 修正 harness
 
 > ⚠️ **本节数字是 B3 之前的旧回合口径**（每回合 3 张）。B3 把模拟器改成真机 1 张/回合 +
-> 跳过回体力后，本模型**失效**（确认段 beam −27.9 显著负），必须按 B3 规则重采数据重训——
-> 见文末「B3 规则修正与重标定」。
+> 跳过回体力后，本模型**失效**（确认段 beam −27.9 显著负）。**2026-11-23 已按 B3+ 规则
+> 重采/重训（B2-R）：仍 FAIL（确认段 −7.2，ensemble 0.75 中性），负结果与结论见文末
+> 「B2 重训（B2-R）」**；生产 `leaf_model` 保持默认关闭。
 
 **结论先行**：用**全知 beam 自我对弈**的「叶子状态 → 实际后续得分」样本训练 104 维结构化
 MLP 叶子，接进 **B1 修正后的 beam**：真实小牌组 120 局配对（全新 seed 3000–3119，
@@ -935,13 +936,10 @@ B3 把模拟器从"每回合 3 张"改成真机规则（每回合基础 1 张、
 
 - 原因：`leaf_mlp` 的 104 维特征里 `play_limit`/出牌位/回合内分数分布全是旧 3 张口径，
   训练标签（未来得分）与 B3 后的真实分布差一个量级 → 模型输出系统性偏乐观/偏悲观。
-- **结论**：生产接线保持默认关闭（本来就没开）；B2 的有效结论作废，**重训留到 T5 机制
-  （审查倍率/熱意/P 道具）补齐后**，否则重训一次还要再废一次。JSON：
+- **结论**：生产接线保持默认关闭（本来就没开）；B2 的有效结论作废。**2026-11-23 更新：
+  T5 机制（B4–B10）补齐后已重采/重训（B2-R），仍 FAIL（确认段 −7.2，ensemble 0.75 中性）——
+  见文末「B2 重训（B2-R）」负结果与结论**。JSON：
   `out/b3_eval_b2_select.json` / `out/b3_eval_b2_confirm.json`。
-  （2026-11-22 进展：B4 倍率 / B5 熱意 / B6 P 道具**数据接入** / B7 P 道具 47 条补全
-  （数据缺口清零）/**B8 P 道具条件/效果语义第一批**（依赖换算/固定体力/新触发，676/1849 段，
-  gkbench 59/153 段，greedy 配对 A/B +225.2）已补；仍缺 P 道具**持续倍率/modifier 类**
-  与 fresh buff → 重训继续等这两项。）
 
 ### 整局 A/B（`scripts/sim_engine_ab.py`，76 局）：expectimax 从"噪声内"变"显著更强"
 
@@ -978,11 +976,9 @@ beam 跨回合比较、以及"先铺 buff 还是先打分"的长期收益都是�
    等 `ExamDrawPlan` 能给出逐回合 `parameterType` 后可以换成逐回合倍率——这一步留给 T3 实战验收/后续。
    注意：**不要**为了离线评测好看而把倍率写成 1.0 或常数 4.11，真机是逐回合不同的。
 
-**与 B2 重训的关系**：B2 旧模型的特征/标签是"分数"量级，B3 改规则 + B4 改倍率后旧模型更不可用；
-**重训仍等 T5 剩余机制（fresh buff / P 道具持续倍率与 modifier 类效果）补齐后一次做完**（避免再废一次；
-熱意已于 B5 补齐，P 道具**数据接入** B6、**47 条补全/未知 id 清零** B7、**条件/效果语义第一批**
-B8 已完成（676/1849 段，gkbench 59/153 段，依赖换算/固定体力/5 类新触发；配对 A/B greedy +225.2），
-剩余持续倍率类 `ExamLessonValueMultiple` 等未建模），
+**与 B2 重训的关系**：B2 旧模型的特征/标签是"分数"量级，B3 改规则 + B4 改倍率后旧模型更不可用。
+**2026-11-23 更新：T5 机制（B4–B10）补齐后已重训（B2-R），仍 FAIL**——small harness 无 P 道具/
+属性倍率，B4–B10 对其局零影响（基线逐位不变）；重训负结果与结论见文末「B2 重训（B2-R）」。
 生产 `leaf_model` 保持关闭。
 
 **基线**：`tests/test_exam_multiplier.py` 21 条；全量 pytest 1006 passed / 1 skipped
@@ -1003,9 +999,135 @@ B8 已完成（676/1849 段，gkbench 59/153 段，依赖换算/固定体力/5 �
    因此会更愿意在回合内做「解除温存」的连招；
 2. 熱意適用倍数 ×2 的卡（`ExamMultipleEnthusiasticLesson`）在熱意 >0 时价值翻倍，搜索能自己发现；
 3. 叶子估值：熱意回合末清零 → `end_turn_state` 里已归 0（延長除外），解析式叶子的口径不变；
-   但 B2 学习叶子的 `save_cards_used` 特征已废弃（恒 0），**重训时再换熱意特征**。
+   但 B2 学习叶子的 `save_cards_used` 特征已废弃（恒 0）。**B2-R（2026-11-23）重训保持
+   104 维旧特征**（small 场景熱意/解除事件 0 次，不影响结论）；将来按 large/真机分布重训时
+   再换熱意/score_buffs/modifier 特征（见文末 B2-R）。
 
 **基线**：`tests/test_t5_enthusiasm.py` 16 条；全量 pytest 1023 passed / 1 skipped
 （1024 收集 / 74 文件）。细节见 [RULES_REFERENCE §5.2](RULES_REFERENCE.md) / HANDOVER 二·补二十六。
+
+## B2 重训（B2-R，2026-11-23）：按 B3+ 规则重采/重训 —— 仍 FAIL（可复现负结果）
+
+> **结论先行**：T5 机制（B4–B10）补齐后，按本文件「B2 学习叶子」同配方在 B10 后模拟器上
+> 重采 **26,500** 个 beam 全知自对弈叶子样本、重训 104 维 MLP（val r²=0.906 / MAE 7.0），
+> B1 修正 harness 配对：**确认段 120 局 unknown beam 94.9 → learned 87.7（−7.2，
+> CI[−9.5,−5.0]）/ known 96.8 → 85.3（−11.5）；ensemble 0.75 两段都中性（CI 含 0、点估计微负）；
+> within_learned −19.9（显著负）**。**B2 DoD 走「可复现负结果 + 结论」分支达成**：
+> B3 每回合 1 张规则下，学习叶子仍不能替代解析式叶子——重训把旧模型的 −26.1/−27.9
+> 收窄到 −7.0/−7.2，但没能转正。**生产 `leaf_model` 保持默认关闭；beam 默认仍用解析式叶子。**
+
+### 做了什么
+
+1. **重训前口径核对**：旧模型 FAIL 复现（选择段 seed 2000–2079，B10 后口径）——
+   beam 解析式 97.3 → learned 71.2（−26.1，CI[−31.4,−20.8]），与 B3 重测**逐位一致**；
+   within 89.1 / beam 97.3（选择段）、94.9/96.8（确认段 unknown/known）也逐位一致。
+   说明 B4–B10 对 small harness 的局**零影响**（config 无 P 道具/属性倍率、牌组无熱意卡），
+   解析式基线稳定，重训有干净对照。
+2. **训练/推理分布等价性探针**（`data/_probe_b2_leaf_equiv.py`，未跟踪不提交）：
+   greedy 300 局 + beam 全知 200 局，共 2000 个叶子快照 vs `end_turn_state` **逐字段等价**。
+   查出并修掉一个**潜在口径差**（根因修复）：B5 温存→全力**回合边界**解除收益在
+   `LessonSim._end_turn` 里是 `_draw_hand()` **之后**才结算的，而搜索侧 `end_turn_state`
+   把它算进叶子——快照点（`_draw_hand` 入口）天然缺这块。`RecordingLessonSim` 现在在
+   `_end_turn` 入口记录回合结束前指針（`_pre_end_turn_stance`），`leaf_state_at_draw`
+   据此补上解除收益（熱意/固定元気/+1 出牌）。small 场景 2000 叶子 **0 次边界**（SAVE 只在
+   全力值≥10 的回合末才切换），数据不受影响；修的是长回合场景重采会学歪的隐患。
+   新增 1 条强制边界回归测试（`tests/test_b2_leaf.py` 11→**12 条**）。
+3. **重采数据**（`scripts/build_b2_dataset.py`，3 批顺序跑避免 CPU 争用扭曲墙钟预算）：
+   width4/100ms ×1500 局（seed 100000）+ ×3000 局（seed 600000）+ width8/300ms ×800 局
+   （seed 500000），与评测段（2000–2079 / 3000–3119）错开 → **26,500 样本、0 fallbacks**，
+   teacher 最终分 mean 97.4–97.7（与解析式 beam 基线一致）。标签 = **纯 on-policy 后续得分**
+   （`y = 最终分 − 叶子分`），**不加 PBRS 势能塑形**——auto-gakumas 的 PBRS 负结果
+   （−26,884）与我们 B2 历史负结果同向，见 [AUTO_GAKUMAS_NOTES §2.4/§5](AUTO_GAKUMAS_NOTES.md)。
+4. **重训**（`scripts/train_b2_leaf.py`，B2 同配方）：MLP 104→96→48、700 epochs、
+   seed 分组 9:1（val_mod=10）→ train r²=0.898 / **val r²=0.906 / MAE 7.0 / corr 0.952**
+   （ridge val r²=0.896）；σ=11.1。**特征保持 104 维不变**（与 B2 配方可比；
+   `save_cards_used` 仍废弃恒 0、熱意特征未加——small 场景熱意/解除事件 0 次，不影响本结论；
+   将来若按 large/真机分布重训，先更新特征再采）。
+5. **评测**（`scripts/eval_b2.py`，B1 修正 harness，同牌组同 seed 配对 + 95% CI）：
+   选择段 80 局 seed 2000 选权重 → 确认段 120 局 seed 3000（unknown + known，未参与选择）。
+
+### 配对数字（B3 后口径；small 14 张 / 5 回合 / CLEAR 120 / PERFECT 170）
+
+**A. 选择段 seed 2000–2079（80 局，unknown）**：
+
+| 策略 | 均值 | CLEAR | vs 解析式 | 95% CI |
+|---|---:|---:|---:|---|
+| within 解析式 | 89.1 | 7.5% | — | — |
+| within + learned | 69.7 | 5.0% | −19.4 | [−25.0,−13.9] ❌ |
+| within + ensemble 0.75 | 89.2 | 8.8% | +0.1 | [−3.5,+3.8] — |
+| beam 解析式 | 97.3 | 11.2% | — | — |
+| beam + learned | 90.3 | 5.0% | **−7.0** | [−10.4,−3.6] ❌ |
+| beam + ensemble 0.25 | 95.1 | 10.0% | −2.2 | [−4.8,+0.4] — |
+| beam + ensemble 0.5 | 95.8 | 12.5% | −1.5 | [−4.1,+1.2] — |
+| beam + ensemble 0.75 | 97.3 | 11.2% | +0.1 | [−1.8,+2.0] — |
+
+**B. 确认段 seed 3000–3119（120 局，模型/权重选定后才跑）**：
+
+| 策略 | 信息 | 均值 | CLEAR | vs 解析式 | 95% CI |
+|---|---|---:|---:|---:|---|
+| beam 解析式 | unknown | 94.9 | 10.8% | — | — |
+| beam + learned | unknown | 87.7 | 7.5% | **−7.2** | [−9.5,−5.0] ❌ |
+| beam + ensemble 0.75 | unknown | 94.4 | 10.0% | −0.5 | [−2.0,+1.0] — |
+| beam 解析式 | known | 96.8 | 11.7% | — | — |
+| beam + learned | known | 85.3 | 9.2% | **−11.5** | [−14.6,−8.5] ❌ |
+| beam + ensemble 0.75 | known | 96.3 | 11.7% | −0.6 | [−1.4,+0.3] — |
+| within 解析式 | 两者 | 91.1 | 9.2% | — | — |
+| within + learned | 两者 | 71.2 | 5.8% | −19.9 | [−24.9,−15.0] ❌ |
+| within + ensemble 0.75 | 两者 | 88.2 | 9.2% | −3.0 | [−6.0,+0.1] — |
+
+（within 的 known/unknown 逐位相同：within 不吃 known_draw，与 B1/B2 口径一致。）
+
+### 诊断：σ 敏感性（负结果，排除校准假设）
+
+假设「learned σ=11.1 相对解析式 σ=60 过小 → 过度自信」——选择段 beam only 放大 learned σ：
+
+| 配置 | vs 解析式 | 95% CI |
+|---|---:|---|
+| learned σ×2 | −9.0 | [−12.9,−5.0] ❌ |
+| learned σ×4 | −12.1 | [−16.0,−8.3] ❌ |
+| ensemble 0.75 σ×2 | −0.8 | [−2.7,+1.2] — |
+| ensemble 0.75 σ×4 | −3.0 | [−5.1,−1.0] ❌ |
+
+**放大 σ 更差** → 不是 σ 校准问题，是 **μ 排序本身**在 B3 规则下对 beam 有害。
+
+### 结论与假设（如实记录）
+
+- **事实**：拟合良好（val r²=0.906、MAE 7.0，比旧口径的 8.8 还低）但 beam 排序显著变差；
+  ensemble 0.75 中性；within 显著负（与 B2 历史负结果 1 同向）。旧模型（B3 前 3 张口径数据）
+  −26.1/−27.9 → 重训 −7.0/−7.2：**数据口径对齐消掉了大部分伤害，但消不掉剩余负增益**。
+- **假设（未证明，供后续参考）**：每回合 1 张后一局只有 ~5 张牌可打，叶子排序在 beam
+  跨回合比较里的权重被放大（排错没有后续出牌机会补救）；解析式叶子的「均卡分 × 剩余回合
+  + 好印象年金 + σ=60 档位平滑」在短 horizon 下比 teacher-return 蒸馏更接近真实后续价值；
+  全知 teacher 的 return 对 unknown 执行系统性偏乐观（B2 within 负结果的根因）这次在 beam 上也显现。
+- **处置**：生产 `leaf_model` **不打开**（默认 None 不变）；`data/knowledge/b2_leaf_mlp_small.json`
+  已替换为**重训后新口径模型**（旧模型是作废的 3 张口径数据、严格更差；git 历史保留旧版）。
+  beam 默认 = 解析式叶子；T2 真机 A/B 的候选里**去掉 learned leaf**，保留 beam+全知/tiebreak。
+- **不做（预算/已知负结果）**：第二轮专家迭代（B2 历史：未超第一轮）、档位概率头
+  （B2 历史：灾难性 −42~−46）、large 场景重采（本模型是 small 5 回合分布；真机考试 9–12 回合，
+  将来若再走学习叶子路线，需 large 数据 + 特征更新（熱意/score_buffs/modifier）先行）。
+- **备选路线（外部情报）**：auto-gakumas 的**每战在线 PPO 自适应**是分布漂移的另一条路
+  （[AUTO_GAKUMAS_NOTES §5](AUTO_GAKUMAS_NOTES.md)），需真机/独立副本，不在本会话。
+
+### 复现命令
+
+```powershell
+# 采集（3 批顺序跑，约 2+4+2 分钟；out/ 不进 git）
+.venv\Scripts\python.exe scripts\build_b2_dataset.py --games 1500 --policy beam --known --out out\b2r_leaf_beam_known.npz --seed 100000
+.venv\Scripts\python.exe scripts\build_b2_dataset.py --games 3000 --policy beam --known --out out\b2r_leaf_beam_known2.npz --seed 600000
+.venv\Scripts\python.exe scripts\build_b2_dataset.py --games 800 --policy beam --known --width 8 --budget-ms 300 --out out\b2r_leaf_beam_strong.npz --seed 500000
+# 训练（约 40s）
+.venv\Scripts\python.exe scripts\train_b2_leaf.py --data out\b2r_leaf_beam_known.npz out\b2r_leaf_beam_known2.npz out\b2r_leaf_beam_strong.npz --out out\b2r_leaf_mlp_small.json --hidden 96 48 --epochs 700 --report out\b2r_train_report.json
+# 评测（选择段 → 确认段；确认段把 --seed 改 3000、--games 120、--info unknown known、--ensembles 0.75）
+.venv\Scripts\python.exe scripts\eval_b2.py --leaf-model out\b2r_leaf_mlp_small.json --games 80 --seed 2000 --info unknown --ensembles 0.25 0.5 0.75 --json out\b2r_eval_select.json
+```
+
+### 测试 / 基线
+
+- `tests/test_b2_leaf.py` **12 条**（+1 温存解除回合边界快照回归）；ruff 通过；
+  全量 pytest **1155 passed / 1 skipped（1156 收集 / 79 文件）**；
+  基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
+- JSON（out/ gitignore）：`b2r_eval_old_select.json`（旧模型 FAIL 复现）/ `b2r_train_report.json` /
+  `b2r_eval_select.json` / `b2r_eval_confirm.json`。
+- 细节见 HANDOVER 二·补三十四 / HANDOVER_NEXT §8（B2-R 交接）。
 
 

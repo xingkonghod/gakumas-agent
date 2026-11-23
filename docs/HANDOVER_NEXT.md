@@ -94,7 +94,8 @@
         ② 没做过同卡组真机 A/B（三引擎谁强不知道）
         ③ 采集进程 ↔ 决策进程**代码已接**、离线预演已通（A5），但真机跑局时采集没开 → 全知 0 锁定，差实战验收
         ④ 策略强度：B1 已推翻「beam 不如 within」的旧结论（B3 重测 within 89.1→beam 95.7）；
-           B2 旧模型在 B3 规则下失效（确认段 −27.9，必须按新规则重训）。
+           B2 旧模型在 B3 规则下失效（确认段 −27.9）→ **B2-R 已重训（2026-11-23）：仍 FAIL
+            （确认段 −7.2，ensemble 0.75 中性），学习叶子不进 T2 候选、生产保持关闭**。
            剩余：T5 机制（~~审查倍率分段+联动惩罚~~ ✅ B4 已完成、~~熱意~~ ✅ B5、~~温存解除额外次数~~ ✅ B5、
            ~~P 道具数据接入（离线 loadout 侧）~~ ✅ B6；~~P 道具 47 条补全/未知 id~~ ✅ B7；
            剩 fresh buff 差一回合（需真机截图）+ P 道具条件/效果语义 + 真机培育侧列表）
@@ -154,8 +155,19 @@
             **仍保持 no-op**：`ExamBuffConsumptionAdd`（强化状态花费卡，不猜）、
             **随机生成卡**（H.I.F应援棒 6 段 / gkbench 172 段权重，考试 RNG 流未知）、
             hold 保留区张数条件（2 件，保留区未建模）。
+           ⑮ **B2 按 B3+ 规则重训（B2-R）** ✅ 2026-11-23 完成（**可复现负结果**）：
+             旧模型 FAIL 复现（−26.1，与 B3 重测逐位一致）；2000 叶子快照 vs end_turn_state
+             逐字段等价探针 + 温存→全力回合边界解除收益快照口径修正（+1 回归测试）；
+             重采 26,500 beam 全知叶子样本（纯分数标签、不加 PBRS 塑形）→ MLP val r²=0.906/MAE 7.0；
+             确认段 120 局 unknown beam 94.9→learned **87.7（−7.2 CI[−9.5,−5.0]）** / known −11.5 /
+             ensemble 0.75 中性；σ×2/×4 更差（μ 排序本身有害）。**生产 leaf_model 保持关闭、
+             beam 默认解析式叶子、T2 候选去掉 learned leaf**；模型文件替换为新口径。
+             pytest **1155/1（1156 收集 / 79 文件）**；基线 ①③④⑤ 不变。
+             见 EXPECTIMAX「B2 重训（B2-R）」/ HANDOVER 二·补三十四。
 当前最高优先：**T5 剩余**（B10 已完成生成卡确定式/指定卡名映射；剩 ExamBuffConsumptionAdd 保持 no-op /
-随机生成卡 RNG / hold 保留区 / fresh buff 差一回合需真机截图）→ **B2 按 B3 规则重训**（旧模型 FAIL）
+随机生成卡 RNG / hold 保留区 / fresh buff 差一回合需真机截图；均低价值或需真机/补采）
+→ **B2 按 B3 规则重训 ✅ 2026-11-23 完成（B2-R）：仍 FAIL（确认段 −7.2，ensemble 0.75 中性），
+负结果记录在案；生产 leaf_model 保持关闭、T2 候选去掉 learned leaf**
 → 阶段 C（执行层可靠性 C1；C0 已完成）/ D（补采集）
 → 真机 T3→T1→T2（含 E0 实验）→ F1/F2 gkbench 公开对比
 **另**：用户 2026-11-22 指定「开新对话做」候选任务 **T9**（§4；一次会话只做 1 个；
@@ -208,7 +220,7 @@
 | A4 离线回放素材 | [tests/fixtures/README.md](../tests/fixtures/README.md) 8 张真机帧溯源 + [scan_frames.py](../scripts/scan_frames.py) 批量挑帧 | `tests/test_frames_replay_a4.py` 9 条（六类关键屏真帧回放；回合结束确认框用真机课程帧文字 + F#36 文案，真机帧已被轮转覆盖）；全量 pytest **950/1（951 收集 / 68 文件）**；F#44 `_checkbox_bands` 修复；见 HANDOVER 二·补十七 |
 | A5 T3 离线预演 | [verify_exam_plan_offline.py](../scripts/verify_exam_plan_offline.py)：`--current` 候选（--refresh 现场重建）+ 四场 sweep，truth 驱动 `ExamPlanSelector` | 最新场 3 候选第 2 回合锁定 `config_turns=12`（真值 12）；四场 sweep T1–T2 锁定、选中 = 9/11/9/12 全对；候选→1、`locked_turn≤3`；`tests/test_exam_plan_offline.py` 8 条；全量 pytest **958/1（959 收集 / 69 文件）**；见 HANDOVER 二·补十八 |
 | B1 T4 修正（评测 bug + 受控 frontier 叶子） | [eval_t4_b1.py](../scripts/eval_t4_b1.py)：`_execute_plan` 白丢回合修复 + `search_beam(frontier_value=…)` | 60 局配对：beam unknown **164.0** / known **165.5** vs within **143.1**（+20.9 / +22.4，CI 全正），决策门 **114.6%/115.7% PASS**；frontier 中性；`tests/test_beam_frontier.py` 6 条；全量 pytest **964/1（965 收集 / 70 文件）**；见 HANDOVER 二·补十九 / EXPECTIMAX「T4 修正」 |
-| B2 全知数据训练 MLP 叶子 | [build_b2_dataset.py](../scripts/build_b2_dataset.py) + [leaf_data.py](../src/gkagent/sim/leaf_data.py)（叶子状态快照）+ [leaf_mlp.py](../src/gkagent/sim/leaf_mlp.py)（104 维 MLP 叶子）+ [train_b2_leaf.py](../scripts/train_b2_leaf.py) + [eval_b2.py](../scripts/eval_b2.py) | 26.5k 全知 beam 自对弈样本，val r²=0.943 / MAE 8.8；B1 修正 harness 配对：选择段 seed 2000–2079 beam **166.8→173.7（+6.8）** / ensemble 174.4（+7.5）；**确认段 seed 3000–3119（120 局）beam 157.8→165.5（+7.7 CI[+4.2,+11.2]）/ ensemble 0.5 166.9（+9.0 CI[+5.8,+12.2]）**，known 同向；within 用 learned 变差 −3.3（负结果、只对 engine=beam 有益）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件，B3 前口径）**；**B3 后旧模型失效，待按 1 张/回合规则重训**；见 HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」 |
+| B2 全知数据训练 MLP 叶子 | [build_b2_dataset.py](../scripts/build_b2_dataset.py) + [leaf_data.py](../src/gkagent/sim/leaf_data.py)（叶子状态快照）+ [leaf_mlp.py](../src/gkagent/sim/leaf_mlp.py)（104 维 MLP 叶子）+ [train_b2_leaf.py](../scripts/train_b2_leaf.py) + [eval_b2.py](../scripts/eval_b2.py) | 26.5k 全知 beam 自对弈样本，val r²=0.943 / MAE 8.8；B1 修正 harness 配对：选择段 seed 2000–2079 beam **166.8→173.7（+6.8）** / ensemble 174.4（+7.5）；**确认段 seed 3000–3119（120 局）beam 157.8→165.5（+7.7 CI[+4.2,+11.2]）/ ensemble 0.5 166.9（+9.0 CI[+5.8,+12.2]）**，known 同向；within 用 learned 变差 −3.3（负结果、只对 engine=beam 有益）；`tests/test_b2_leaf.py` 11 条；全量 pytest **975/1（976 收集 / 71 文件，B3 前口径）**；**B3 后旧模型失效；B2-R（2026-11-23）已按新规则重采/重训，仍 FAIL（确认段 −7.2，ensemble 0.75 中性），生产保持关闭**；见 HANDOVER 二·补二十 / EXPECTIMAX「B2 学习叶子」+「B2 重训（B2-R）」 |
 | B3 T5 机制建模（回合规则 + 核验表） | [RULES_REFERENCE.md](RULES_REFERENCE.md) 重写为逐条核验表 + [export_t5_turn_rules.py](../scripts/export_t5_turn_rules.py)（真机 39 回合摘要）+ [t5_exam_turn_rules.json](../tests/fixtures/t5_exam_turn_rules.json) + `safe_ceil`（`sim/lesson.py`） | 模拟器对齐真机：每回合基础 **1 张** + 打完自动结束回合 + SKIP 回 2 体力 + 取整 `safeCeil`；实机回放黄金值 12 条；真机 39 回合配对回归（32×1 张 / 7×2 张 / 手牌全 3 张）；重标定：sim_engine_ab expectimax 显著强于 rules（+342~+429 评价点）、B1 60 局 within 89.1→beam 95.7（+6.6，门 107.4% PASS）、B2 旧模型 FAIL 待重训；`tests/test_t5_turn_rules.py` 9 条；全量 pytest **985/1（986 收集 / 72 文件）**；见 HANDOVER 二·补二十一 / SIMULATOR §11 |
 | **B4 T5① 审查倍率（分段 + 联动惩罚）** | [exam_multiplier.py](../src/gkagent/sim/exam_multiplier.py)（纯公式）+ [exam_bonus.py](../src/gkagent/data/exam_bonus.py)（主数据解析）+ [export_exam_multipliers.py](../scripts/export_exam_multipliers.py)（真机夹具）+ `LessonConfig.attribute_bonuses/turn_attributes` + `policy.audition_coefficient` | 客户端真实公式：分数表分段折线 × 审查基准联动惩罚（`common=1000−Σpenalties` 三项共乘）× 单精度取整；11-20 采集局期中 Vo/Da/Vi **4.09/2.20/2.60×**、期末 **6.97/2.85/4.96×**（Vi/Vo/Da 低于基准的联动惩罚已对上）；生产读屏 「舞蹈 207%」→ 搜索 `attribute_coefficient=2.07`（日志 `attr=`）；`tests/test_exam_multiplier.py` 21 条；全量 pytest **1006/1（1007 收集 / 73 文件）**；真机逐分回放仍差 P 道具附魔/生成卡等未建模项；见 HANDOVER 二·补二十五 / RULES_REFERENCE §5.1 |
 | **B5 T5② 熱意 + 温存解除** | [enthusiasm.py](../src/gkagent/sim/enthusiasm.py)（纯规则：温存解除/熱意获得/回合末清零延長）+ `LessonSim`/`ExpectState` 熱意字段与算分 + [sim_produce.py](../scripts/sim_produce.py)（MODELED_EFFECTS 29→32）+ [play_choice.py](../src/gkagent/sim/play_choice.py)（生产卡表映射） | 参考引擎（BSD-3）+ 官方 wiki：熱意出牌分加算、获得时 ceil、回合末清零/延長；温存解除 1 段 +5 / 2 段 +8 熱意 + 5 固定元気 + **+1 出牌次数**（同回合可重复、温存→全力回合边界也触发）；卡牌 `ExamEnthusiasticAdditive/Multiple/TurnAdd` 与 `ExamMultipleEnthusiasticLesson`（本牌倍率 ×2）接入；`tests/test_t5_enthusiasm.py` 16 条；全量 pytest **1023/1（1024 收集 / 74 文件）**；见 HANDOVER 二·补二十六 / RULES_REFERENCE §5.2 |
@@ -247,7 +259,13 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-23 00:3x，B10 / T5 剩余①② 后复跑）**：①②③④⑤ 全绿、退出码 0（① 4/4+3/3、
+**最近一次复核（2026-11-23 12:3x，B2-R / B2 按 B3+ 规则重训后复跑）**：①②③④⑤ 全绿、退出码 0
+（① 4/4+3/3、② **1155/1（1156 收集 / 79 文件，+1 温存解除边界快照回归）**、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
+② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
+当前不是行动页），属预期。
+
+**上一次复核（2026-11-23 00:3x，B10 / T5 剩余①② 后复跑）**：①②③④⑤ 全绿、退出码 0（① 4/4+3/3、
 ② 1154/1、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
 ② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
 当前不是行动页），属预期。B4/T5① 见 HANDOVER 二·补二十五，B5/T5② 见 HANDOVER 二·补二十六，
@@ -435,7 +453,7 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 **验收（DoD）**：三局成绩表（考试分 + 评价 + 时长 + `fallback=` 次数）+ 明确结论"哪个引擎值得默认"。
 **预算**：3 局×20 分钟真机 + 30–50k token。
 
-### T4（P1）策略强度：V_leaf + beam 调优 ✅（B1 修评测 bug；B2 学习叶子：beam 再 +7.7）
+### T4（P1）策略强度：V_leaf + beam 调优 ✅（B1 修评测 bug；B2 学习叶子：B3 前 +7.7；**B2-R 重训仍 FAIL，leaf 不进 T2 候选**）
 **目标**：让"全知 + beam"的离线优势变成分数。~~当前证据：构造抽牌牌组 beam known−unknown **+44.6**，但真实牌组只有 **+3.0**，因为 leaf 估不准~~（旧口径；B1 已推翻"beam 弱于 within"的前提）。
 
 **B1 完成（2026-11-22，见 [EXPECTIMAX](EXPECTIMAX.md)「T4 修正」/ HANDOVER 二·补十九）**
@@ -466,10 +484,23 @@ expectimax 与 rules 评价点差异在噪声内（P50 5063 vs 5049）。模拟�
 
 **下一步（T2 真机 A/B 的前置）**
 1. T5 剩余机制（~~审查倍率~~ ✅ B4、~~熱意~~ ✅ B5、~~温存解除额外次数~~ ✅ B5、
-   ~~P 道具数据接入（离线 loadout）~~ ✅ B6；剩 fresh buff 差一回合（需真机截图）+
-   P 道具效果覆盖/真机培育侧列表）+ B2 按 B3 规则重训——不先对齐，真机叶子收益不可保证；
-2. T2 真机 A/B：同卡组 rules / expectimax / beam+全知(+learned leaf) 各一局；
+   ~~P 道具数据接入（离线 loadout）~~ ✅ B6、~~条件/效果语义~~ ✅ B8、~~持久倍率/modifier~~ ✅ B9、
+   ~~生成卡确定式/卡名映射~~ ✅ B10；剩 fresh buff 差一回合（需真机截图）/ 随机生成卡 RNG /
+   hold 保留区 / 真机培育侧列表）。**B2 按 B3+ 规则重训 ✅ 2026-11-23 完成（B2-R）：
+   仍 FAIL（确认段 −7.2，ensemble 0.75 中性）——学习叶子不进 T2 候选**；
+2. T2 真机 A/B：同卡组 rules / expectimax / beam+全知 各一局（**去掉 learned leaf**，B2-R 负结果）；
 3. 生产默认在 T2/T3 前保持 expectimax（leaf_model 不开）。
+
+**B2-R 完成（2026-11-23，见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四）**
+- 旧模型 FAIL 复现（选择段 −26.1，与 B3 重测逐位一致 → B4–B10 对 small harness 零影响）；
+  2000 叶子快照 vs `end_turn_state` 逐字段等价探针 + 温存→全力回合边界解除收益快照口径修正
+  （`RecordingLessonSim._pre_end_turn_stance`，+1 回归测试，`test_b2_leaf.py` 12 条）。
+- 重采 26,500 beam 全知叶子样本（3 批顺序跑；纯 on-policy 分数标签、**不加 PBRS 塑形**，
+  auto-gakumas −26,884 负结果同向）→ MLP 104→96→48 val r²=0.906 / MAE 7.0 / σ=11.1。
+- 确认段 120 局：unknown beam 94.9→learned **87.7（−7.2 CI[−9.5,−5.0]）** / known −11.5 /
+  ensemble 0.75 中性；within_learned −19.9；σ×2/×4 更差（μ 排序本身有害，非校准）。
+- **处置**：生产 leaf_model 默认关闭不变；beam 默认解析式叶子；模型文件替换为新口径
+  （旧版 git 历史保留）；不做第二轮迭代/档位头（已知负结果）；large 重采需先更新特征（预算外）。
 
 **改哪儿**：`src/gkagent/sim/expectimax.py`（leaf）、`src/gkagent/sim/v_leaf.py`、`src/gkagent/sim/leaf_mlp.py`、`data/knowledge/b2_leaf_mlp_small.json`、`scripts/eval_*.py`
 **验收（DoD）**：B1 已交（60 局配对 + EXPECTIMAX 更新 + 单测）；**B2 已交**（学习叶子配对增益
@@ -784,7 +815,39 @@ expectimax +801.1（CI[+66.3,+1697.9]）；全量 pytest **1154/1（1155 收集 
    - 在 [HANDOVER.md](HANDOVER.md) 的提交记录里加一行。
 5. **写不清=没完成**：DoD 必须能用命令/数字验证；"感觉能跑"不算。
 
-**最近交接记录（2026-11-23，B10 / T5 剩余机制①② ExamCardCreateId 生成卡 + 指定卡名/手牌张数映射）**：
+**最近交接记录（2026-11-23，B2-R / B2 学习叶子按 B3+ 规则重训 —— 可复现负结果）**：
+纯离线任务（用户二选一选了 B）。开工基线 ①②③④⑤ 全绿（② 1154/1，HEAD=7b57343 核对一致）。
+① 旧模型 FAIL 复现：选择段 seed 2000–2079 beam 97.3→learned 71.2（−26.1 CI[−31.4,−20.8]），
+与 B3 重测**逐位一致** → B4–B10 对 small harness（无 P 道具/属性倍率/熱意卡）零影响，
+解析式基线稳定（within 89.1 / beam 97.3/94.9/96.8）。② 训练/推理分布等价性探针
+（`data/_probe_b2_leaf_equiv.py`，未跟踪不提交）：greedy 300 局 + beam 全知 200 局共 2000 叶子
+快照 vs `end_turn_state` 逐字段等价；修掉潜在口径差——B5 温存→全力**回合边界**解除收益
+在 sim 里 `_draw_hand` 之后结算、搜索叶子却含这块：`RecordingLessonSim` 记录回合结束前指針
+（`_pre_end_turn_stance`）、`leaf_state_at_draw` 补上解除收益（small 场景 0 次边界，数据不受影响；
+修长回合场景重采学歪的隐患）；+1 强制边界回归测试（`test_b2_leaf.py` 11→12 条）。
+③ 重采 3 批 beam 全知自对弈（width4/100ms ×1500+×3000、width8/300ms ×800；seed
+100000/600000/500000 与评测段错开；**顺序跑**避免 CPU 争用扭曲墙钟预算）→ **26,500 样本、
+0 fallbacks**，teacher 最终分 97.4–97.7；标签 = 纯 on-policy 后续得分，**不加 PBRS 塑形**
+（auto-gakumas −26,884 负结果同向，AUTO_GAKUMAS_NOTES §2.4/§5）。④ 重训 MLP 104→96→48、
+700 epochs、seed 分组 9:1 → val r²=0.906 / MAE 7.0 / corr 0.952（ridge 0.896）、σ=11.1；
+特征保持 104 维（save_cards_used 仍废弃；熱意特征未加——small 0 熱意事件；large 重训先更新特征）。
+⑤ 配对评测（eval_b2，B1 修正 harness）：选择段 80 局 beam 97.3→learned 90.3（−7.0 ❌）/
+ens 0.75 +0.1（中性）；**确认段 120 局 seed 3000–3119：unknown 94.9→87.7（−7.2 CI[−9.5,−5.0] ❌）/
+known 96.8→85.3（−11.5 ❌）/ ens 0.75 −0.5/−0.6（中性）；within_learned −19.9 ❌**；
+σ 敏感性：learned σ×2/×4 → −9.0/−12.1（更差）→ μ 排序本身有害，非 σ 校准。
+**结论/处置**：B2 DoD 走「可复现负结果 + 结论」分支达成；口径对齐消掉大部分伤害（−26~−28→−7）
+但未转正；**生产 leaf_model 保持默认关闭、beam 默认解析式叶子、T2 真机 A/B 候选去掉 learned leaf**；
+`data/knowledge/b2_leaf_mlp_small.json` 替换为重训新口径模型（旧版 git 历史保留）。
+不做：第二轮专家迭代/档位头（B2 已知负结果）、large 重采（预算外，需先更新特征）。
+备选路线：auto-gakumas 每战在线 PPO 自适应（需真机/独立副本，先问用户）。
+测试/基线：ruff 通过；全量 pytest **1155/1（1156 收集 / 79 文件）**；① 4/4+3/3、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。JSON（out/ gitignore）：b2r_eval_old_select /
+b2r_train_report / b2r_eval_select / b2r_eval_confirm。下一项候选：**C1 执行层可靠性**
+（tap 确认/重试、提权检查、动作前预算下一帧、每步可复盘）或 T5 剩余（fresh buff 需真机截图 /
+随机生成卡 RNG 需 T6 补采）→ 真机 T3→T1→T2。详见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) /
+[HANDOVER 二·补三十四](HANDOVER.md)。提交 `feat 99e88fc` + `docs`（哈希见 HANDOVER 七）。
+
+**上一轮交接记录（2026-11-23，B10 / T5 剩余机制①② ExamCardCreateId 生成卡 + 指定卡名/手牌张数映射）**：
 纯离线代码任务。语义来源 = masterTrans `ProduceCardSearch.json` 描述表 + 主数据
 `ProduceCard.effectGroupIds`/`originIdolCardId`/`originCharacterId` + BSD-3 参考引擎
 gakumas-tools（`usedCardBaseId` base id 不限强化 / `countCards` 区域 / `addCardToHand`
