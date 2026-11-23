@@ -1768,7 +1768,7 @@ JSON（out/ gitignore）：`b2r_eval_old_select / b2r_train_report / b2r_eval_se
 **文档**：EXPECTIMAX「B2 重训（B2-R）」+ B2/B3/B4/B5 节过期说法更新；WORKPLAN §0/阶段 B；
 HANDOVER_NEXT §0/§1/§4/§8；INDEX；本文件二·补三十四。
 
-**提交**：feat `99e88fc`（leaf_data 口径修正 + 重训模型 + 测试）+ docs（本交接 + 文档数字），
+**提交**：feat `99e88fc`（leaf_data 口径修正 + 重训模型 + 测试）+ docs `ae945dc`（本交接 + 文档数字），
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -1991,6 +1991,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 交接：B2-R 完成记录（可复现负结果）+ 提交哈希 99e88fc）
+ae945dc docs(b2r): 记录 B2 按 B3+ 规则重训完成（可复现负结果）——确认段 −7.2 / ens0.75 中性、生产 leaf_model 保持关闭、pytest 1155/1 + 提交哈希 99e88fc
 （2026-11-23 B2-R / B2 学习叶子按 B3+ 规则重训：重采 26.5k beam 全知叶子样本（纯分数标签、不加 PBRS 塑形）→ MLP val r²=0.906/MAE 7.0，确认段 120 局 unknown beam 94.9→learned 87.7（−7.2 CI[−9.5,−5.0]）/ known −11.5 / ensemble 0.75 中性、σ×2/×4 更差——可复现负结果，生产 leaf_model 保持关闭、T2 候选去掉 learned leaf；叶子快照补温存→全力回合边界解除收益口径，pytest 1155/1（1156 收集 / 79 文件），基线 ①③④⑤ 不变）
 99e88fc feat(b2r): B2 按 B3+ 规则重训学习叶子——重采 26.5k 样本/重训 val r²=0.906，配对仍 FAIL（确认段 −7.2 / ens0.75 中性），生产 leaf_model 保持关闭；快照口径修正（+1 测试）
 （2026-11-23 外部情报：auto-gakumas 分析（T8），只读参考、无许可证禁止拷贝）
