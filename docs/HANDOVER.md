@@ -2041,6 +2041,8 @@ Hindsight Cloud 而无 token，每次记忆调用 401（plugin.log 里 11-22 起
 `hindsight_sync_status` 看播种进度（git 历史含 B11 `e26387b` 等提交会自动入库，
 5 个页面后台合成）；会话结束自动写回。B11 第 2 轮候选与规则不变（先问用户）。
 
+**提交**：docs(handover) `15b736c`（启用记录）+ 哈希记录（本节）；见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -2261,6 +2263,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 环境：Hindsight 本地记忆 daemon 启用（用户指定，选本地 daemon+百炼 qwen）——serverMode daemon（9077，内嵌 PostgreSQL 18）+ mapPathToBank coding-agent::gakumas-agent；LLM qwen-plus / embeddings text-embedding-v4（DashScope 兼容端点，启动实测 200）/ reranker 本地 hs-rerank-1（hf-mirror）；用户环境变量持久化 HINDSIGHT_API_LLM_* + uv 清华镜像（修 PyPI 超时）；坑：DSH 常驻插件老会话客户端钉死旧配置须开新会话、bank 按会话工作目录解析、daemon 首启下载超 CLI 等待窗但进程继续；详见二·补三十八）
+15b736c docs(handover): Hindsight 本地记忆 daemon 启用记录（二·补三十八 / §2 环境前提 / §8 附带）——配置/验证/坑
 （2026-11-23 B11 哈希记录：feat e26387b + 开工基线复核 7689a2e；第 2 轮任务定义见 HANDOVER_NEXT §8）
 （2026-11-23 B11 渐退式专家迭代 第 1 轮（用户选定启动，纯离线代码+单测）：学 policy/advantage 而非状态价值——137 维学生网（B2 104 状态特征+33 动作特征→96→48→1 优势分，net_action 硬规矩禁跳/禁回退）+ 精确重放分支 on-policy 优势标签（同 seed 重放前缀逐字段全等校验→打候选→当前学生打完→A=R−mean(R)，不走搜索镜像）+ build_ei_dataset/train_ei_policy/eval_ei；示范 400 局 5747 样本→v0 BC（val 排序命中 0.889）→自对弈 1000 局 14314 样本→v1 70/30；确认段 120 局 v1 97.5 vs beam 教师 94.9：+2.6 CI[+1.1,+4.1] 评测门 PASS（放手），稳健块 4000–4119 +3.8 CI[+1.6,+6.0]，0.40ms/决策；消融：纯 BC v0 也过门（+2.4）→红利主力=逐决策蒸馏+禁跳，on-policy 成分待第 2 轮独立验证；28 条单测，pytest 1251/1（1252 收集 / 84 文件），基线 ①③④⑤ 不变；生产接线未做、large 未测、真机 T2 才算数）
 e26387b feat(b11): 渐退式专家迭代第 1 轮——policy/advantage 学生 + 精确重放 on-policy 优势标签，确认段评测门 PASS（+2.6 CI[+1.1,+4.1]）
