@@ -980,8 +980,9 @@ T2 才算数）；large 仍 −13.7 vs beam → large 生产候选仍是 beam；
 **测试/基线**：`tests/test_ei_wiring.py` **21 条**；ruff 通过；全量 pytest
 **1294/1（1295 收集 / 87 文件，202.95s）**；① 4/4+3/3、③ 86/86+24/24、
 ④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 复跑不变。
-文档：EXPECTIMAX「B11 v6 生产接线」；WORKPLAN §0；HANDOVER_NEXT 开场白/§0/§2/§4 T2/§8；
-INDEX；HANDOVER 二·补四十一。提交哈希见 HANDOVER 七。
+文档：EXPECTIMAX「B11 v6 生产接线」；WORKPLAN §0/开场白；HANDOVER_NEXT 开场白/§0/§2/§4 T2/§8；
+INDEX；HANDOVER 二·补四十一。提交 `feat 9428aec`（接线代码+测试+文档）+ docs(handover)
+哈希记录（哈希另见 HANDOVER 七）。
 **下一候选（先问用户）**：继续降档（教师←v6、15→0）/ v6 large 训练评测（进 F 前必须）/
 收 loop 转 T7 剩余 / D1 补采集 / E0 实验 / 直接阶段 E 真机（T3→T1→T2，T2 已含 net 第四臂）。
 

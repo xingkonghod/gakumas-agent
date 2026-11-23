@@ -2244,7 +2244,7 @@ auto_produce 静态接线）；ruff 通过；全量 pytest **1294 passed / 1 ski
 **文档**：EXPECTIMAX「B11 v6 生产接线」；WORKPLAN §0；HANDOVER_NEXT 开场白/§0/§2 期望值
 （1273→1294）/§4 T2 第四臂/§8；INDEX；本文件二·补四十一。
 
-**提交**：feat（接线代码+测试+文档）+ docs(handover) 哈希记录；
+**提交**：feat `9428aec`（接线代码+测试+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -2467,6 +2467,9 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-23 B11 v6 生产接线哈希记录：feat 9428aec；下一候选见 HANDOVER_NEXT §8）
+（2026-11-23 B11 v6 生产接线（用户授权「你推荐综合一下」后 lead 选定；纯增量代码+单测，opt-in 默认逐位不变）：LessonPolicy engine=net + net_model（可观测状态 legal_cards argmax 优势分，无搜索；with_plan=False 不注入采集全知 → public-safe；有牌绝不 SKIP / 全付不起才 SKIP；缺模型/推理异常/失配 → RuleFallbackBlocked 禁回退 rules；eng=net + 优势分进 reason）；auto_produce --net-model > produce.net_model > 默认入库 v6，缺模型起跑前 return 2 + [engine] net 模型日志；data/knowledge/ei_policy_v6.json tracked（gate 溯源 meta）；T2 增第四臂 --engine net（large 生产候选仍 beam；生产 deck/discard 特征空集与离线全牌库分布有差，如实记录）；21 条新单测，pytest 1294/1（1295 收集 / 87 文件，202.95s），基线 ①③④⑤ 不变；另：Hindsight B11 门状态过时记忆已 ingest Correction 纠正）
+9428aec feat(b11): v6 学生网生产接线——engine=net opt-in（可观测 argmax 优势/禁跳禁回退红线/默认入库 v6），T2 第四臂；21 测试，pytest 1294/1（1295 收集/87 文件），基线①③④⑤不变
 （2026-11-23 B11 r3–r8 续哈希记录：feat 47c1afa；下一候选见 HANDOVER_NEXT §8）
 （2026-11-23 B11 r3–r8 继续扶 + 门协议修正（用户指令「显著强于老师才结束」）：六轮换变量（新学生数据/数据×10/epochs×3/容量×2/ε-greedy 探索 --explore-eps +7 测试，探索中性、覆盖假设否证），val 排序饱和 0.862；确认段 3000 七轮恒 +0.2~0.6 = 种子段结构（v1 近天花板），120 局门检验力 ~50%；门协议修正（用户批准）扩 500 局 3000–3499 判据不变 → v6 98.6 vs v1 98.1：+0.6 CI[+0.2,+0.9] PASS，fresh6000 +1.7 CI[+0.6,+2.8] 佐证，池化 820 局 +0.71 CI[+0.40,+1.02]（W/L 101/41）；v6（192×96/1200ep/171300 样本）= 最佳学生；large 泛化显著改善 v6 291.6 vs v1 277.2 +14.4 CI[+6.5,+22.2]（vs beam 缺口 −28.1→−13.7，large 生产候选仍 beam）；生产接线未做；pytest 1273/1（1274 收集 / 86 文件），基线 ①③④⑤ 不变；另：Hindsight gitlog 播种修复（API 重注入 300 commits → synced=true，脚本 data/_hindsight_seed_gitlog.py 不提交））
 47c1afa feat(b11): r3–r8 继续扶 + ε-greedy 探索采集（--explore-eps）+ 门协议修正 500 局——v6 显著强于 v1（确认段 +0.6 CI[+0.2,+0.9] PASS，池化 820 局 +0.71，large +14.4 vs v1）
