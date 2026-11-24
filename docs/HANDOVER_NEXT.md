@@ -1389,7 +1389,7 @@ ep-kinami1/ep-rule1/ep-verify1 `--verify` 三方对账全一致；**ep-t1-g 卡�
 out/review/ gitignore。
 文档：WORKPLAN §0/P1-6/C1 注记/开场白；HANDOVER_NEXT 开场白/§0/§2/§4 T7/§6/§8.0/§8；
 LIVE_RUN §2/§2.1/§3；INDEX；HANDOVER 二·补五十。
-提交 feat <哈希>（代码+测试+夹具+样例页+文档）+ docs(handover) 哈希记录。
+提交 feat 5ea7c0e（代码+测试+夹具+样例页+文档）+ docs(handover) 哈希记录。
 **下一会话（先问用户）**：阶段1 剩 **P 道具后续批次**（好调增加量增加 ExamParameterBuffAdditive /
 元气增加无效 ExamBlockRestriction / 不安 ExamBlockAddDown / 塔 gimmick / 全力・强气效果卡打分 /
 日文好調の%分 / ExamParameterBuffReduce——证据充分但需新机制，no-op 如实记），**或直接进

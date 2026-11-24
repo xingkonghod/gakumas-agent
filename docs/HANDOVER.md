@@ -2872,7 +2872,7 @@ surfaced**（duplicates 计数 + 复盘页黄底——正是复盘页要抓的�
 
 **文档**：WORKPLAN §0/P1-6/C1 注记/开场白；HANDOVER_NEXT 开场白/§0/§2/§4 T7/§6/§8.0/§8；
 LIVE_RUN §2/§2.1/§3；INDEX；本文件二·补五十。
-**提交**：feat <哈希>（代码+测试+夹具+样例页+文档）+ docs(handover) 哈希记录；
+**提交**：feat 5ea7c0e（代码+测试+夹具+样例页+文档）+ docs(handover) 哈希记录；
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -3095,8 +3095,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
-（2026-11-24 P1-6 哈希记录：feat <哈希> + docs(handover) 本节；阶段1 第六批 T7②③ 离线可靠性工程——⑨ 纯函数状态重放 data/run_replay.py（apply_event无副作用/深不可变RunState/同观测序列两遍重放指纹逐位相等/compare_replays逐步比对首个分歧步/legacy_events旧格式确定式重建/consistency_check三方对账）+ RunRecorder增量events观测日志（旧文件续跑先重建）+ scripts/replay_run.py --verify/--compare；⑩ 自动复盘页 report/review_page.py 自包含HTML（逐回合/考试/结算/重放一致性/C1逐步轨迹/行内标注导出导入）+ report/annotations.py 标注转回归（verdict=bad带expected→整态/分类结论冻结进tests/fixtures/review_regressions.json）+ scripts/review_page.py/annotations_to_regression.py；auto_produce局末自动生成[review]；样例docs/review_sample.html（ep-rule1真实记录+合成演示轨迹显著标注）；不改考试规则、sim/零引用新模块→评测零影响无需重标定、旧B11数据模型全保留；61条新单测(38+20+3)、pytest 1564/1(1565收集/97文件)、基线①③④⑤不变；ep-t1-g卡屏局28次重复观测被显式surfaced；WORKPLAN P1-6/LIVE_RUN §2.1/HANDOVER_NEXT §4 T7+§8.0+§8/INDEX/二·补五十；下一任务先问用户：阶段1 P道具后续批次 vs 阶段2 重采+练学生r11）
-<哈希> feat(reliability): P1-6 T7②③ 纯函数状态重放+自动复盘页+标注转回归闭环（run_replay纯函数/RunRecorder events日志/replay_run --verify/--compare；review_page自包含HTML+annotations转回归夹具；auto_produce局末[review]；样例页+61条单测、pytest 1564/1；不改规则、评测零影响）
+（2026-11-24 P1-6 哈希记录：feat 5ea7c0e + docs(handover) 本节；阶段1 第六批 T7②③ 离线可靠性工程——⑨ 纯函数状态重放 data/run_replay.py（apply_event无副作用/深不可变RunState/同观测序列两遍重放指纹逐位相等/compare_replays逐步比对首个分歧步/legacy_events旧格式确定式重建/consistency_check三方对账）+ RunRecorder增量events观测日志（旧文件续跑先重建）+ scripts/replay_run.py --verify/--compare；⑩ 自动复盘页 report/review_page.py 自包含HTML（逐回合/考试/结算/重放一致性/C1逐步轨迹/行内标注导出导入）+ report/annotations.py 标注转回归（verdict=bad带expected→整态/分类结论冻结进tests/fixtures/review_regressions.json）+ scripts/review_page.py/annotations_to_regression.py；auto_produce局末自动生成[review]；样例docs/review_sample.html（ep-rule1真实记录+合成演示轨迹显著标注）；不改考试规则、sim/零引用新模块→评测零影响无需重标定、旧B11数据模型全保留；61条新单测(38+20+3)、pytest 1564/1(1565收集/97文件)、基线①③④⑤不变；ep-t1-g卡屏局28次重复观测被显式surfaced；WORKPLAN P1-6/LIVE_RUN §2.1/HANDOVER_NEXT §4 T7+§8.0+§8/INDEX/二·补五十；下一任务先问用户：阶段1 P道具后续批次 vs 阶段2 重采+练学生r11）
+5ea7c0e feat(reliability): P1-6 T7②③ 纯函数状态重放+自动复盘页+标注转回归闭环（run_replay纯函数/RunRecorder events日志/replay_run --verify/--compare；review_page自包含HTML+annotations转回归夹具；auto_produce局末[review]；样例页+61条单测、pytest 1564/1；不改规则、评测零影响）
 （2026-11-24 P1-5 哈希记录：feat 4a55cc8 + docs(handover) 本节；阶段1 第五批 P 道具剩余效果语义补全 bounded batch——层数减少类 干劲/集中/全力值-=N夹取>=0 + 体力减少 ExamStaminaDamage + 好调N回合 ExamParameterBuff turn列 + 好调依赖换算 好调的N%数值变为打分/集中，BSD-3+主数据+DSL三重核实；implemented 1067→1164/1849(+97)、依赖换算65→76、p_items.json仅24记录变化；sim_produce不引用p_items→评测零P道具结算、sim_engine_ab改前/改后64局差异=0；38条新单测、pytest 1503/1(1504收集/94文件)、基线①③④⑤不变；留后续 好调增加量增加/元气增加无效/不安/塔gimmick/全力强气效果卡打分/日文好調の%分；旧B11数据模型全保留；RULES_REFERENCE §5.8/WORKPLAN P1-5/HANDOVER_NEXT §8.0+§8/INDEX/二·补四十九；下一会话 P1-6 T7②③ 纯函数状态重放/自动复盘页）
 4a55cc8 feat(rules): P1-5 P道具剩余效果语义补全(bounded batch)——层数减少+好调回合+好调依赖换算（BSD-3+DSL三重核实；implemented 1067→1164/1849；sim_engine_ab改前/改后64局差异=0；38条单测、pytest 1503/1；RULES_REFERENCE §5.8）
 （2026-11-24 Hindsight 停用哈希记录：docs(handover) 2699e79；排查实锤=Hindsight daemon 用普通 DASHSCOPE_API_KEY+标准 dashscope 按量端点跑 qwen-plus/text-embedding-v4，不在千问 Token Plan 订阅（sk-sp-/token-plan 端点）覆盖内→两天约¥10 余额；用户删普通 key 止血后指定直接停用：禁用 bundle @vectorize-io/hindsight-coding-agents + 杀 daemon 进程树 PID36048 + pg_ctl 停内嵌PG，9077/5432 释放；主 agent 订阅不受影响、hindsight_* 工具下线、上下文靠 docs 交接；二·补四十八 + 二·补三十八前置注记 + HANDOVER_NEXT 开场白/§2/§8；恢复选项留待用户决定）
