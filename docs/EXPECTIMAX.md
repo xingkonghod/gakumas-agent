@@ -2031,3 +2031,62 @@ $env:OPENBLAS_NUM_THREADS='8'; $env:OMP_NUM_THREADS='8'
   基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 全部不变；
 - 细节见 HANDOVER 二·补五十三 / WORKPLAN B11+P2 / HANDOVER_NEXT §8.0 / R9_ANALYSIS §10（预测 vs 实测）。
 
+## B11 r12（2026-11-24）：降档 15→0（去 v1 示范）—— **small 中性、通道 3 关闭，不入库（生产保持 r11）**
+
+**结论先行**：r12 = r11 配方**去掉 v1 示范**（`--teacher-frac 0`，无 `--demos`，纯自对弈），单变量=教师占比 0.15→0（R9_ANALYSIS §6 留后续候选「继续降档」/§10 通道 3）。同阶段2 新规则数据（v6 argmax 自对弈 small 145565 + large 128103），`--norm-by-scenario --upsample-small 2` 全同 r11。**small 未显著超 v6（本轮目的未达）→ 不入库**，生产 `ei_policy_v6.json` 保持 r11 权重；r12 留 out/。**通道 3（v1 示范拉扯）被彻底关闭**：去掉教师对 small/large 均无显著影响，与 §9 行为探针「拉扯已大幅消退」一致。
+
+| 段 | r12 | v6（新规则） | beam | r12−v6 Δ | 95% CI | 判定 |
+|---|---:|---:|---:|---:|---|---|
+| **small 500（3000–3499，目的门）** | **98.656** | 98.640 | 96.488 | **+0.016** | **[−0.286,+0.318]** | **中性（下界<0，未显著超 v6）** |
+| small 500 vs v1（原门） | 98.656 | 98.062 | — | +0.594 | [+0.188,+1.000] | 保持 ✅ |
+| **large 500（3000–3499，主门）** | **314.670** | 287.818 | 301.612 | **+26.852** | **[+23.834,+29.870]** | **PASS** |
+| large 新鲜块 120（6000–6119） | 322.825 | 301.700 | 310.375 | +21.125 | [+14.951,+27.299] | PASS（佐证） |
+| small 选择 80（2000–2079） | 99.400 | 100.062 | 97.263 | −0.662 | [−2.033,+0.708] | 中性 |
+
+* **r12 vs r11（同新规则，纯学生变化，零规则分移）**：small **+0.008 CI[−0.224,+0.240]** 中性、large **+0.750 CI[−0.412,+1.912]** 中性 → r12 与 r11 统计不可分（去示范无显著增益/损失）；
+* **r12 vs r9/r10**：small r12−r9 **+0.434 CI[+0.095,+0.773] 显著正**（修复 r9 回退保持）、r12−r10 +0.272 CI[−0.089,+0.633] 中性；large r12−r9 +1.224 CI[−0.392,+2.840] / r12−r10 +1.058 CI[−0.474,+2.590] 中性（增益保持）；
+* **large vs beam**：500 局 **+13.058 CI[+10.010,+16.106]** 仍显著超；CLEAR **60.2%** vs beam 49.8%/v6 40.4%（新鲜块 65.8% vs 58.3%）；PERFECT 1.0%；
+* **small**：CLEAR 12.0% ≈ v6 12.2%；vs beam +2.168 CI[+1.368,+2.968] 绝对水位仍在。
+
+### 代码 / 数据 / 训练（零代码改动，单变量=去示范）
+
+* **零代码改动**：`train_ei_policy.py` 已支持 `--teacher-frac 0`（校验 [0,1]，0 时跳过下采样分支）+ 省略 `--demos` → 纯自对弈。无新开关、无新测试（默认路径不受影响）；
+* **数据**：复用 r11 新规则自对弈 `ei_r11_selfplay_small.npz`（145565）+ `ei_r11_selfplay_large.npz`（128103），**不用** `ei_r11_demos.npz`（v1 示范 51985 留 out/ 保留）；
+* **训练**：419233 行（small ×2=291130 + large 128103，示范 0，教师占比 0.000）；192×96/1200ep/lr1e-3/l2 1e-4/seed0 全同 r11；逐场景 std small 12.1718/large 24.3013（与 r11 逐位相同）；**能量份额 small 69.4%/large 30.6%/demos 0%**（r11 65.6/28.9/5.5，去示范后 small +3.8pp）；val 排序 **0.817**（r11 0.822）/train MSE 0.2387/r² 0.762；训练 **3226.5s**（OPENBLAS_NUM_THREADS=8）。
+* **val 切分差异说明**：r11 的 rng 在示范下采样时消耗了一次 `rng.choice`，r12 无示范 → seed 9:1 切分的 rng 状态不同 → val 种子集不同（val 排序 0.817 vs 0.822 不可直接比）；**评测门用 seed3000–3499（与训练 seed 1100000+/1200000+ 全错开），不受 val 切分影响**。
+
+### 判定 / 处置（预注册门，比 r11 更严）
+
+`data/_r12_promote.py` 程序化门校验（参照臂 v6/beam/greedy 逐位 **6/6** 全过 → 数字可信）：
+1. large500 r12−v6 +26.852 CI 下界>0 ✅（主门保持）；
+2. **small500 r12−v6 +0.016 CI[−0.286,+0.318] 下界<0 ❌（目的门：显著超 v6 未达）**；
+3. small500 vs v1 +0.594 CI 下界>0 ✅（原门保持）；
+4. large500 r12−r11 +0.750 CI 上界≥0 ✅（不显著回退生产）。
+→ **目的门（2）未过 → 不入库**，生产保持 r11（`ei_policy_v6.json` 未动）。**不硬凑显著**：small 学生改进本身中性（+0.016，与 r11 +0.008 统计不可分），去掉 v1 示范没有带来显著增益。
+
+### 机制结论（通道 3 关闭）
+
+§9 行为探针判定 r10/r11 的残留 small 回退**已非 v1 贪即时分**（通道 3 拉扯大幅消退）。r12 把教师**整个去掉**（最彻底的通道 3 干预）：small +0.016（中性）、large +0.750（中性）→ **v1 示范对当前 small/large 均无显著拉扯**，通道 3 正式关闭。small 平台期（恢复到 v6 而非超越）**不是教师相关**——剩余瓶颈是 §5 通道 2（输入侧场景漂移）修复后的「学生≈教师」蒸馏天花板（v6 argmax 自对弈的精确重放优势标签，学生最多逼近 v6 的决策质量；要超越需探索/更强标签，r3–r8 ε-greedy 已试、平台期）。**若仍需 small 显著超 v6，剩候选③两段式微调（small 专属预算，large 遗忘风险）/ 探索增量，非必需**；阶段3 真机 T2 才是下一步验证。
+
+### 复现命令（r12 路径）
+
+```powershell
+# 训练（零代码改动；复用 r11 自对弈数据，去 demos；OPENBLAS_NUM_THREADS=8 复现需带）
+$env:OPENBLAS_NUM_THREADS='8'; $env:OMP_NUM_THREADS='8'
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r11_selfplay_small.npz out\ei_r11_selfplay_large.npz --teacher-frac 0 --round 12 --epochs 1200 --hidden 192 96 --norm-by-scenario --upsample-small 2 --out out\ei_r12_v12_mix.json
+# 评测（500 局双门 + 新鲜块/选择段；评测须无训练负载）
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r12_v12_mix.json --baseline-net out\ei_r6_v6_mix.json --games 500 --seed 3000 --scenario small --no-within --json out\ei_r12_eval_v12_small500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r12_v12_mix.json --baseline-net out\ei_r6_v6_mix.json --games 500 --seed 3000 --scenario large --no-within --json out\ei_r12_eval_v12_large500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r12_v12_mix.json --baseline-net out\ei_r6_v6_mix.json --games 120 --seed 6000 --scenario large --no-within --no-greedy --json out\ei_r12_eval_v12_large_fresh6000.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r12_v12_mix.json --baseline-net out\ei_r6_v6_mix.json --games 80 --seed 2000 --scenario small --no-within --no-greedy --json out\ei_r12_eval_v12_small_select.json
+.venv\Scripts\python.exe data\_r12_compare.py   # 配对 + 能量分解
+.venv\Scripts\python.exe data\_r12_promote.py   # 退出码 1 = 目的门未过不入库（生产保持 r11）
+```
+
+### 测试 / 基线
+
+- **零代码改动 → 无新测试**；`test_ei_wiring.py` 入库断言**不变**（生产仍 r11，round11+revision r11）；ruff 通过；
+- 全量 pytest **1657 passed / 1 skipped（1658 收集 / 100 文件）**（复跑不变）；基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155 全部不变；
+- r12 模型/评测 out/ei_r12_*（gitignore）；一次性脚本 data/_r12_*.py 不提交；旧数据/模型全保留（r11 入库位未动、v1 示范 npz 保留）；
+- 细节见 HANDOVER 二·补五十四 / WORKPLAN B11+P2 / HANDOVER_NEXT §8.0 / R9_ANALYSIS §11（预测 vs 实测）。
+
