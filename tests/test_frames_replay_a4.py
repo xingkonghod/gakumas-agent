@@ -307,3 +307,30 @@ def test_drink_limit_dialog_checks_checkbox_row(ocr) -> None:
     assert x == 632, f"应点勾选框列，实际 ({x},{y})"
     assert any(top <= y <= bottom for top, bottom in bands), (y, bands)
     assert agent.device.swipes == [], "勾完一行就应返回，不该先滚动"
+
+
+def test_drink_limit_ocr_misses_need_still_checks_row(ocr) -> None:
+    """F#48（真机 ep-t31-i）：OCR 漏读「还可选择N」/「保留」时仍按勾选框补勾。
+
+    旧逻辑 ``need`` 只信 OCR「还可选择N」：漏读 → need=0 → 跳过补勾直接点禁用态
+    「保留」(360,1166) → 空转 tap-lost 停局。修复：有图且读到「手持的饮料」标题就扫描
+    补勾。这里用真夹具图 + 模拟 OCR 漏读（删掉「还可选择」「保留」行）验证。
+    """
+    image, lines = _read(ocr, DRINK_FRAME)
+    filtered = [
+        ln for ln in lines
+        if "还可选择" not in ln.text and ln.text.strip() != "保留"
+    ]
+    text = _driver().text_of(filtered)
+    assert "持有上限" in text, text
+    assert "还可选择" not in text, text
+    assert "手持的饮料" in text, text
+
+    driver = _driver(ocr)
+    agent = FakeAgent()
+    tick = driver.decide(agent, filtered, image)
+    assert (tick.screen, tick.action) == ("drink-keep", "check-row"), tick.describe()
+    x, y = agent.device.clicks[-1]
+    assert x == 632, f"应点勾选框列补勾，实际 ({x},{y})"
+    assert y > 665, f"应点手持段未勾选行（header_y=645+20），实际 y={y}"
+    assert agent.device.swipes == []

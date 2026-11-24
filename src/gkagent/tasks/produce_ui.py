@@ -41,6 +41,9 @@ if TYPE_CHECKING:
 PRODUCE_ENTRY = (359, 1006)  # 主页「プロデュース」
 REGULAR_DIFFICULTY = (220, 915)  # 难度选择页「レギュラー」按钮中心（2026-11-21 实测：旧值
 # (359,900) 落在「レギュラー」和「プロ」两个按钮之间的缝隙，点了没反应）
+# 「プロ」按钮中心：与レギュラー关于 x=360 对称（720 宽布局）。⚠️ 对称推算值，
+# 真机坐标待下次跑局实测确认（F#28 教训：别点两按钮缝隙）；优先用 OCR 定位「プロ」行。
+PRO_DIFFICULTY = (500, 915)
 NEXT_BUTTON = (398, 1124)  # 编成三步/开始确认 底部主按钮
 AUTO_SUPPORT = (600, 1041)  # 支援卡页「自动」
 DIALOG_OK = (456, 1190)  # 二级确认弹窗「确定/完成/下一步」
@@ -1367,6 +1370,7 @@ class ProduceDriver:
             "attr_choice": "weight",
             "min_stamina_for_class": 10,
             "outing_below": -1,
+            "difficulty": "regular",
         }
         try:
             import json as _json
@@ -1653,7 +1657,7 @@ class ProduceDriver:
             return True
         return re.search(r"20\d\d[/年]", value) is not None
 
-    def _scenario_step(self, agent, text: str) -> TickResult:
+    def _scenario_step(self, agent, text: str, lines: list[OcrLine] | None = None) -> TickResult:
         """培育页点难度按钮；同一屏点不动就逐级降级，最后返回 ``stuck`` 退出本局。
 
         F#15 真机 ep-cplus13：结算后停在「培育记录」详情（标题含「定期公演」），这里
@@ -1687,6 +1691,16 @@ class ProduceDriver:
         if streak == self.scenario_record_close_after and self._looks_like_record_title(text):
             self._click(agent, PRODUCE_RECORD_CLOSE)
             return TickResult("record", "close-fallback")
+        # 难度选择（opt-in）：produce.difficulty="pro" 点「プロ」，默认 "regular" 点「レギュラー」。
+        # PRO 优先 OCR 定位「プロ」按钮行（抗布局变化），读不到才用对称推算坐标。
+        difficulty = str(self._produce_params().get("difficulty", "regular")).strip().lower()
+        if difficulty == "pro":
+            pro = self.find_button(lines or [], ("プロ", "PRO"))
+            if pro is not None:
+                self._click_line(agent, pro)
+            else:
+                self._click(agent, PRO_DIFFICULTY)
+            return TickResult("scenario", "pro")
         self._click(agent, REGULAR_DIFFICULTY)
         return TickResult("scenario", "regular")
 
@@ -1985,7 +1999,7 @@ class ProduceDriver:
 
         # 2) 培育页：定期公演 + 难度（带同屏降级：5 次改点中央，11 次 stuck 退出）
         if is_produce_page(text):
-            return self._scenario_step(agent, text)
+            return self._scenario_step(agent, text, lines)
 
         # 3) 开始前编成四步
         if "选择偶像" in text:
@@ -2020,10 +2034,13 @@ class ProduceDriver:
             need_match = re.search(r"还可选择\s*(\d+)", text)
             if need_match:
                 need = int(need_match.group(1))
-            if need > 0 and image is not None:
+            hand_header = self.find(lines, "手持的饮料")
+            # F#48（真机 ep-t31-i）：OCR 漏读「还可选择N」→ need 误判 0 → 跳过补勾直接点
+            # 禁用态「保留」(360,1166) 空转 tap-lost。只要有图且（OCR 说还要选 OR 读到了
+            # 手持段标题），就按勾选框列扫描补勾，不单纯信 OCR 的 need。
+            if image is not None and (need > 0 or hand_header is not None):
                 # 「获得的饮料」段勾选是灰的（不可选)；按勾选框列扫描出行位置，
                 # 只补勾「手持的饮料」下面未勾选的行（行位置和文字行 y 有 20-50px 偏差，不能直接用文字行）
-                hand_header = self.find(lines, "手持的饮料")
                 header_y = hand_header.box[1] if hand_header is not None else 400
                 clicked = False
                 for top, bottom in self._checkbox_bands(image):
@@ -2037,7 +2054,7 @@ class ProduceDriver:
                 if clicked:
                     return TickResult("drink-keep", "check-row")
                 # 找不到未勾选行：第三瓶可能在列表下方（需要滚动）
-                if self.drink_scroll < 2:
+                if need > 0 and self.drink_scroll < 2:
                     self.drink_scroll += 1
                     agent.device.swipe(360, 1020, 360, 760)
                     time.sleep(0.8)

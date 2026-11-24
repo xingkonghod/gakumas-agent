@@ -295,6 +295,41 @@ def test_scenario_page_clicks_regular() -> None:
     assert agent.device.clicks[-1] == produce_ui.REGULAR_DIFFICULTY
 
 
+def test_scenario_page_pro_clicks_pro_button() -> None:
+    """opt-in PRO 难度：produce.difficulty="pro" 优先 OCR 定位「プロ」按钮行。"""
+    agent = FakeAgent()
+    driver = _driver()
+    driver._produce_cfg = {"difficulty": "pro"}
+    lines = _lines("培育", "定期公演「初」", "レギュラー", "プロ")
+    result = driver.decide(agent, lines)
+    assert result.screen == "scenario"
+    assert result.action == "pro"
+    # 「プロ」在第 3 行（index 3）→ 点该行中心，而非レギュラー坐标
+    assert agent.device.clicks[-1] == _center(3)
+    assert agent.device.clicks[-1] != produce_ui.REGULAR_DIFFICULTY
+
+
+def test_scenario_page_pro_falls_back_to_pro_coordinate() -> None:
+    """PRO 难度但 OCR 没读到「プロ」行 → 用对称推算坐标 PRO_DIFFICULTY。"""
+    agent = FakeAgent()
+    driver = _driver()
+    driver._produce_cfg = {"difficulty": "pro"}
+    result = driver.decide(agent, _lines("培育", "定期公演「初」", "研修"))
+    assert result.screen == "scenario"
+    assert result.action == "pro"
+    assert agent.device.clicks[-1] == produce_ui.PRO_DIFFICULTY
+
+
+def test_scenario_difficulty_regular_explicit_unchanged() -> None:
+    """显式 difficulty="regular" 与默认行为一致（点レギュラー）。"""
+    agent = FakeAgent()
+    driver = _driver()
+    driver._produce_cfg = {"difficulty": "regular"}
+    result = driver.decide(agent, _lines("培育", "定期公演「初」", "レギュラー", "プロ"))
+    assert result.action == "regular"
+    assert agent.device.clicks[-1] == produce_ui.REGULAR_DIFFICULTY
+
+
 def test_produce_record_popup_closes_with_x() -> None:
     """F#15：培育记录详情弹窗同样含「定期公演」，必须先识别并点底部 X 关闭。
 

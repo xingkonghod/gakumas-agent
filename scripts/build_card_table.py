@@ -160,6 +160,9 @@ def main(argv: list[str]) -> int:
     print(f"master 条目: {len(master)}")
 
     table: dict[str, dict] = {}
+    # 日文卡名（YAML name，含 + 后缀）→ 中文卡名。游戏汉化 overlay 滞后时新卡
+    # （尤其新偶像卡）会显示日文，OCR 读日文名；查表走别名才能命中（F#48）。
+    ja_aliases: dict[str, str] = {}
     matched = 0
     for entry in entries:
         key = (entry.get("id", ""), int(entry.get("upgradeCount") or 0))
@@ -170,6 +173,9 @@ def main(argv: list[str]) -> int:
         name = row.get("name") or entry.get("name")
         if not name:
             continue
+        ja = str(entry.get("name") or "").strip()
+        if ja and ja != name:
+            ja_aliases.setdefault(ja, name)
         effects = compact_effects(entry)
         resolved = resolve_effects(entry.get("playEffectIds") or [], effect_table)
         if resolved:
@@ -187,7 +193,7 @@ def main(argv: list[str]) -> int:
             "category": (entry.get("category") or "").replace("ProduceCardCategory_", ""),
             "effects": effects,
         }
-    print(f"匹配到中文卡名: {matched} / 写入 {len(table)} 条")
+    print(f"匹配到中文卡名: {matched} / 写入 {len(table)} 条 / 日文别名 {len(ja_aliases)}")
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(
         json.dumps(
@@ -195,6 +201,7 @@ def main(argv: list[str]) -> int:
                 "source": "vertesan/gakumasu-diff ProduceCard.yaml",
                 "count": len(table),
                 "cards": table,
+                "ja_aliases": ja_aliases,
             },
             ensure_ascii=False,
             indent=0,

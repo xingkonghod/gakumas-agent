@@ -37,12 +37,15 @@ class CardTable:
     def __init__(self, path: str | Path | None = None) -> None:
         self.path = Path(path) if path else DEFAULT_PATH
         self._cards: dict[str, dict] = {}
+        self._ja_aliases: dict[str, str] = {}
         if self.path.exists():
             try:
                 raw = json.loads(self.path.read_text(encoding="utf-8"))
                 self._cards = dict(raw.get("cards") or {})
+                self._ja_aliases = dict(raw.get("ja_aliases") or {})
             except (OSError, json.JSONDecodeError):
                 self._cards = {}
+                self._ja_aliases = {}
 
     def __len__(self) -> int:
         return len(self._cards)
@@ -50,12 +53,26 @@ class CardTable:
     def get(self, name: str) -> dict | None:
         if not name:
             return None
-        row = self._cards.get(name.strip())
+        name = name.strip()
+        row = self._cards.get(name)
         if row is not None:
             return row
         # OCR 常丢末尾的 "+"：退回未强化版本
-        base = name.strip().rstrip("+＋")
-        return self._cards.get(base)
+        base = name.rstrip("+＋")
+        row = self._cards.get(base)
+        if row is not None:
+            return row
+        # 日文别名 fallback（F#48）：汉化 overlay 滞后时新卡显示日文，OCR 读日文名。
+        # 先精确别名，再丢 "+" 退回别名基础版（与 CardMetaIndex._normalize 同口径）。
+        zh = self._ja_aliases.get(name) or self._ja_aliases.get(base)
+        if zh:
+            row = self._cards.get(zh)
+            if row is not None:
+                return row
+            row = self._cards.get(zh.rstrip("+＋"))
+            if row is not None:
+                return row
+        return None
 
     def cost(self, name: str) -> int | None:
         row = self.get(name)
