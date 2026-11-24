@@ -1439,7 +1439,7 @@ revision r11）；ruff 通过；全量 pytest **1657/1（1658 收集 / 100 文�
 out/_p2_ab_{9000,9100}.json + 参照臂 out/ei_r11_ref_*.json + r11 评测 out/ei_r11_eval_v11_*.json（gitignore）；
 一次性脚本 data/_r11_*.py / _r11_eval_run.ps1 不提交。文档：EXPECTIMAX B11 r11 + P2-1b；R9_ANALYSIS §10；
 WORKPLAN B11+P2；HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；HANDOVER 二·补五十三。
-提交 feat <哈希>（--upsample-small 代码+测试+入库 r11+文档）+ docs(handover) 哈希记录。
+提交 feat 3b2a1c4（--upsample-small 代码+测试+入库 r11+文档）+ docs(handover) 哈希记录。
 **下一会话（先问用户）**：r11 双过入库 → **阶段3 真机 T3→T1→T2**（+T6/D1 补采 + E0；C1 真机验收随 T1/T2）；
 **或如需 small 显著超 v6 可 r12 续**（教师←v6 消 v1 拉扯 / 降档 15→0 / 两段式微调候选③，非必需——当前 small
 恢复到 v6 已满足双过门/F 入场券）。用户选定后按 §8 交接+再发开场白。
