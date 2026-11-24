@@ -219,6 +219,7 @@ from gkagent.sim.p_items import (
     PItemSpec,
     add_timed,
     apply_passive,
+    intercept_debuff_entries,
     normalize_turns,
     tick_timed,
     timed_dict_add,
@@ -584,6 +585,12 @@ class LessonSim:
         # 自尊剩余回合（参考 prideTurns：EOT_DECREMENT_FIELDS 回合末 -1；
         # >0 时 resolveScore f 加算 min(min(好印象,干劲)×20, 500) 千分比）。
         self.pride_turns: int = 0
+        # ---- P1-4（2026-11-24）：低下状态无效（nullifyDebuff，消耗式计数器）----
+        # 参考 BuffManager.initializeState 标量、不在 EOT_DECREMENT_FIELDS（无回合
+        # 倒计时）；Executor.executeAssignment/executeCallAction：>0 时拦截一次
+        # debuff 施加（setScoreDebuff/setHandDecrease 等）并 -1。来源 ExamAntiDebuff
+        # values.count（P 道具侧；卡侧 4 SSR 族 values 恒空延迟，见 RULES_REFERENCE §5.7）。
+        self.nullify_debuff: int = 0
         # 其它持久倍率：key -> ((数值, 剩余回合), …)
         # （review_times / concentration_effect / concentration_gain / impression_gain /
         #   motivation_gain / full_power_charge）
@@ -1532,14 +1539,29 @@ class LessonSim:
         if delta.score_buffs:
             for buff_amount, buff_turns in delta.score_buffs:
                 self.score_buffs = add_timed(self.score_buffs, buff_amount, buff_turns)
-        if delta.score_debuffs:
-            for buff_amount, buff_turns in delta.score_debuffs:
+        # P1-4：低下状态无效次数先累加（本事件的 ExamAntiDebuff），再拦截本事件的
+        # debuff 施加（参考 Executor：nullifyDebuff>0 时每条 setScoreDebuff/
+        # setHandDecrease 消耗 1 次并整条跳过）。拦截顺序 score_debuffs → hand_decreases
+        # （delta 批量聚合，固定顺序近似参考逐动作顺序；评测无来源零触达）。
+        if delta.nullify_debuff:
+            self.nullify_debuff += int(delta.nullify_debuff)
+        score_debuff_entries = delta.score_debuffs
+        hand_decrease_entries = delta.hand_decreases
+        if self.nullify_debuff > 0:
+            self.nullify_debuff, score_debuff_entries = intercept_debuff_entries(
+                self.nullify_debuff, delta.score_debuffs
+            )
+            self.nullify_debuff, hand_decrease_entries = intercept_debuff_entries(
+                self.nullify_debuff, delta.hand_decreases
+            )
+        if score_debuff_entries:
+            for buff_amount, buff_turns in score_debuff_entries:
                 self.score_debuffs = add_timed(
                     self.score_debuffs, buff_amount, buff_turns
                 )
         # P1-2：手牌减少（setHandDecrease 同口径 timed 列表）/ 自尊回合数
-        if delta.hand_decreases:
-            for hd_amount, hd_turns in delta.hand_decreases:
+        if hand_decrease_entries:
+            for hd_amount, hd_turns in hand_decrease_entries:
                 self.hand_decreases = add_timed(self.hand_decreases, hd_amount, hd_turns)
         if delta.pride_turns:
             self.pride_turns += int(delta.pride_turns)

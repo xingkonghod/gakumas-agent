@@ -2605,6 +2605,83 @@ C+ 100%，0 blocked / 0 error）。**旧 B11 数据/模型旧规则口径全保�
 **提交**：feat 81fcdc6（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补四十七、11-24（P1-4 —— 阶段1 第四批：nullifyDebuff 低下状态无效拦截 + ⑦ ExamBuffConsumptionAdd / countDebuffs 评估，BSD-3 有据）
+
+**任务来源**：HANDOVER_NEXT §8.0 多会话路线图 P1-4（用户确认 A 顺序，不用再问）。
+开工基线 ①–⑤ 全绿（HEAD 2dca848，② 1435/1、1436 收集 / 92 文件，233.88s）。
+
+**⑦ ExamBuffConsumptionAdd 评估保持 no-op**（BSD-3 Executor/index.js :463
+`doubleBuffCostTurns>0 && BUFF_FIELDS.includes(lhs) → rhsValue*=2`（processCost/checkCost）+
+CardManager.useCard :654 buffCostConsumed 触发 + Executor.triggerChangeEffects :345
+（processCost 时 BUFF_FIELDS 减少 → buffCostConsumed=true）+ constants.js
+doubleBuffCostTurns ∈ EOT_DECREMENT_FIELDS/DEBUFF_FIELDS）：主数据 4 段（不息的风暴
+pitem_03-3-345-0/1、迷倒世界的模样 pitem_01-3-349-0/1 ↔ p_items.csv 488/489 止まない嵐 /
+500/501 世界を魅了する姿 `doubleBuffCostTurns+=1`），gkbench 22 loadout。**为什么无落点**：
+参考有 88 张 buff-cost 卡（skill_cards.csv cost 列 concentration-=3/motivation-=3/
+goodImpressionTurns-=2/fullPowerCharge-=2 等），6 张在 build_pool（潮流领袖/行走步调/
+齐声应援±）、潮流领袖在 eval large、gkbench 牌组 340 条 buff-cost entry；**但我们的卡模型
+不承载 buff 花费**（card_table 这些卡 cost=0 只提取体力费、CardSpec 无 buff_cost 字段、
+可用性/支付/buffCostConsumed 触发未建模）→ 落地需先扩卡模型，超出本批 bounded 范围，
+**保持 no-op 不猜**，语义/段数/loadout 写进 RULES_REFERENCE §5.7。
+
+**nullifyDebuff 拦截落地**（P1-2 遗留；BSD-3 Executor/index.js executeAssignment :429 /
+executeCallAction :507 / executeSpecialAction :545：`nullifyDebuff>0` 且 lhs∈DEBUFF_FIELDS
+或动作∈DEBUFF_SPECIAL_ACTIONS → nullifyDebuff-- 整条跳过；constants.js
+DEBUFF_SPECIAL_ACTIONS = setScoreDebuff/decreaseFullPowerCharge/setHandDecrease :379、
+nullifyDebuff ∉ EOT_DECREMENT_FIELDS = 消耗式计数器无回合倒计时；BuffManager.initializeState
+:118 标量 0；参考单测 BuffManager.test.mjs「nullifyDebuff blocks setHandDecrease」）：
+
+- LessonSim.nullify_debuff / ExpectState.nullify_debuff + canonical + state_from_sim/
+  sim_from_state + end_turn_state 携带（无回合倒计时）；intercept_debuff_entries 纯函数
+  逐条消耗。本批拦截已建模的两个 DEBUFF_SPECIAL_ACTIONS：**setScoreDebuff**（score_debuffs
+  列表逐条）/**setHandDecrease**（hand_decreases 列表逐条），顺序 score_debuffs→hand_decreases。
+- **来源（P 道具侧）**：ExamAntiDebuff values.count → nullify_debuff 目标，主数据 11 段
+  （偷懒的毛巾 pitem_00-2-116-0 おさぼりタオル 舞蹈回合开始无效 1 次 limit1 ↔ p_items.csv 317
+  `at:turn { nullifyDebuff+=1; limit:1 }` + 塔 gimmick 初星灯光/旗帜/道具 10 段
+  status_gain/card_play_interval 触发）。
+- **卡侧 4 SSR 族来源延迟**（偶像之魂 p_card-00-men-3_003 / 精确无比的标牌制作
+  p_card-01-ido-3_080 / 红叶下奔跑 p_card-00-sup-3_093 / 甜蜜陷阱♡ p_card-02-ido-3_248，
+  参考 skill_cards.csv 158/159/350/351/452/453/887/888 `nullifyDebuff+=1`）：主数据
+  ExamAntiDebuff **values 恒空**（同 P1-3 hold，需逐卡证据表从参考 DSL 取 count）、
+  SSR 不进 build_pool → CardSpec.nullify_debuff 延迟，本批只落 P 道具侧。
+- **拦截范围（如实）**：标量 DEBUFF_FIELDS（cost_increase/double_cost_turns/
+  poor_condition_turns/lock_stance_turns 等）拦截未建模——P 道具 delta 把同类标量聚合，
+  丢失参考逐动作施加粒度，无法忠实逐次消耗；decreaseFullPowerCharge 本模型未建模；
+  lock_stance_turns 是卡效果路径（切磋琢磨）非 P 道具 delta，亦未拦截。留后续（评测零触达）。
+
+**countDebuffs 保持未建模**（低下状態の数，无落点）：参考 BuffManager.countDebuffs :331
+（DEBUFF_FIELDS>0 计数 + scoreDebuffs/handDecreases 条目数，DEBUFF_LIST_FIELDS :43，
+标注 **UNVERIFIED**）；参考全部 CSV（skill_cards/p_items/stages 等）+ 主数据**零使用**
+（仅 removeDebuffs 用于「属于我的色彩」わたしらしい色 csv 534/535）。
+
+**落地（纯增量）**：p_items.py（ANTI_DEBUFF_EFFECTS/TARGET_BY_EFFECT/effect_value 读 count/
+PItemDelta.nullify_debuff/intercept_debuff_entries）+ lesson.py/expectimax.py（计数器+拦截+
+canonical+快照往返，默认 0=旧行为）+ p_items.json 重标注重建（**无需改代码**，分类纯函数
+驱动；逐条 diff 校验仅 **11 条记录**变化，全是 ExamAntiDebuff target None→nullify_debuff）。
+implemented **1056→1067/1849**（+11），modifier 标注 385→396。
+
+**评测牌组/gkbench loadout 组成不变 / 重标定**：nullifyDebuff 来源评测零落点（gkbench
+688 loadout / 94 唯一道具 id 无 116/tower；build_pool 无 ExamAntiDebuff 卡）→
+**sim_engine_ab 重标定：改前（git stash）/改后 64 局逐位相同（差异=0）**——seed 9000/9100
+各 16 局 rules/expectimax budget 800ms，逐局非时间字段全等；expectimax 仍显著强于 rules
+（Δ+372.2 / +219.1，15/0/1 与 11/0/5，C+ 100%，0 blocked / 0 error）。**旧 B11 数据/模型
+旧规则口径全保留**（阶段2 重采新批再对比）。
+
+**测试/基线**：tests/test_p14_nullify_debuff.py **30 条**（纯规则/P 道具解析/LessonSim/
+双镜/数据层 no-op 记录）+ 既有断言随规则更新（test_p13 implemented 1056→1067）；ruff 通过；
+全量 pytest **1465/1（1466 收集 / 93 文件）**；①③④⑤ 复跑不变。
+
+**剩余（如实记录）**：卡侧 nullifyDebuff 来源（4 SSR 族 values 恒空需逐卡证据表）、
+标量 DEBUFF_FIELDS 拦截（delta 聚合粒度）、decreaseFullPowerCharge（未建模）、
+⑦ buff-cost 卡模型扩展（需先承载 buff 花费：数据/可用性/支付/buffCostConsumed 触发）、
+P 道具剩余效果语义（P1-5）、一般 buff fresh 差一回合。
+
+文档：RULES_REFERENCE §0/§1/§5.5/§5.7/§6/§7；WORKPLAN §0/P1-4/开场白；HANDOVER_NEXT
+开场白/§0/§2 期望值（1435→1465）/§4 T5/§8.0/§8；INDEX；本文件二·补四十七。
+
+**提交**：feat（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

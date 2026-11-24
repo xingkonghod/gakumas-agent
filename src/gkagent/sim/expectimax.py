@@ -96,6 +96,7 @@ from gkagent.sim.p_items import (
     TimedAmounts,
     add_timed,
     apply_passive,
+    intercept_debuff_entries,
     normalize_turns,
     tick_timed,
     timed_dict_add,
@@ -287,6 +288,9 @@ class ExpectState:
     # 自尊剩余回合（prideTurns：回合末 -1；>0 时 resolveScore f 加算
     # min(min(好印象,干劲)×20, 500) 千分比）。
     pride_turns: int = 0
+    # ---- P1-4（2026-11-24）：低下状态无效（nullifyDebuff，与 LessonSim 双镜）----
+    # 消耗式计数器（无回合倒计时）；>0 时拦截 setScoreDebuff/setHandDecrease 施加。
+    nullify_debuff: int = 0
     # ---- P1-3（2026-11-24）：指針固定（lockStanceTurns，与 LessonSim 双镜）----
     # >0 时禁切指針 + 全力进入门不满足；回合末 -1，fresh 保护（卡效果 0→正
     # 的当回合末不扣，锁下一回合；参考 Executor freshBuffs）。
@@ -457,6 +461,8 @@ class ExpectState:
             # P1-2：手牌减少（影响后续抽牌）/ 自尊（影响后续算分）
             self.hand_decreases,
             self.pride_turns,
+            # P1-4：低下状态无效（影响后续 debuff 施加）
+            self.nullify_debuff,
             # P1-3：指針固定（影响后续指針切换/全力进入）
             self.lock_stance_turns,
             self.lock_stance_fresh,
@@ -715,6 +721,8 @@ def sim_from_state(
     # P1-2：手牌减少 / 自尊（rollout 必须带上，否则抽牌数/算分与搜索不一致）
     sim.hand_decreases = tuple(state.hand_decreases)
     sim.pride_turns = int(state.pride_turns)
+    # P1-4：低下状态无效（rollout 必须带上，否则 debuff 拦截与搜索不一致）
+    sim.nullify_debuff = int(state.nullify_debuff)
     # P1-3：指針固定（rollout 必须带上，否则指針守卫/全力进入与搜索不一致）
     sim.lock_stance_turns = int(state.lock_stance_turns)
     sim._lock_stance_fresh = bool(state.lock_stance_fresh)
@@ -2100,11 +2108,23 @@ def fire_p_items(
     for buff_amount, buff_turns in delta.score_buffs:
         score_buffs = add_timed(score_buffs, buff_amount, buff_turns)
     score_debuffs = state.score_debuffs
-    for buff_amount, buff_turns in delta.score_debuffs:
+    # P1-4：低下状态无效次数先累加，再拦截 debuff 施加（与 LessonSim._fire_p_items
+    # 同口径：score_debuffs → hand_decreases 逐条消耗 nullify_debuff）。
+    nullify_debuff = state.nullify_debuff + int(delta.nullify_debuff)
+    score_debuff_entries = delta.score_debuffs
+    hand_decrease_entries = delta.hand_decreases
+    if nullify_debuff > 0:
+        nullify_debuff, score_debuff_entries = intercept_debuff_entries(
+            nullify_debuff, delta.score_debuffs
+        )
+        nullify_debuff, hand_decrease_entries = intercept_debuff_entries(
+            nullify_debuff, delta.hand_decreases
+        )
+    for buff_amount, buff_turns in score_debuff_entries:
         score_debuffs = add_timed(score_debuffs, buff_amount, buff_turns)
     # P1-2：手牌减少（setHandDecrease 同口径）/ 自尊回合数（prideTurns+=N）
     hand_decreases = state.hand_decreases
-    for hd_amount, hd_turns in delta.hand_decreases:
+    for hd_amount, hd_turns in hand_decrease_entries:
         hand_decreases = add_timed(hand_decreases, hd_amount, hd_turns)
     pride_turns = state.pride_turns + int(delta.pride_turns)
     modifiers = dict(state.modifiers)
@@ -2262,6 +2282,7 @@ def fire_p_items(
         score_debuffs=score_debuffs,
         hand_decreases=hand_decreases,
         pride_turns=pride_turns,
+        nullify_debuff=nullify_debuff,
         modifiers=tuple(sorted(modifiers.items())),
         review_multiple=p_review_multiple,
         review_multiple_turns=p_review_multiple_turns,
@@ -3302,6 +3323,8 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         # P1-2：手牌减少 / 自尊（与 sim_from_state 双镜）
         hand_decreases=tuple(getattr(sim, "hand_decreases", ())),
         pride_turns=max(int(getattr(sim, "pride_turns", 0)), 0),
+        # P1-4：低下状态无效（与 sim_from_state 双镜）
+        nullify_debuff=max(int(getattr(sim, "nullify_debuff", 0)), 0),
         # P1-3：指針固定（与 sim_from_state 双镜）
         lock_stance_turns=max(int(getattr(sim, "lock_stance_turns", 0)), 0),
         lock_stance_fresh=bool(getattr(sim, "_lock_stance_fresh", False)),

@@ -135,6 +135,13 @@ IMPRESSION_REDUCE_EFFECTS = frozenset({"ExamReviewReduce"})  # 好印象减少
 #     turn=2/3（p_items.csv 354/355 prideTurns+=2/3；pIdol 117/118 = 雨夜燕）。
 HAND_DECREASE_EFFECTS = frozenset({"ExamGimmickStartTurnCardDrawDown"})  # 手牌减少
 PRIDE_EFFECTS = frozenset({"ExamLessonValueMultipleDependReviewOrAggressive"})  # 自尊回合
+# P1-4（2026-11-24）：低下状态无效（nullifyDebuff）。参考引擎 Executor.executeAssignment/
+# executeCallAction：nullifyDebuff>0 时拦截一次 debuff 施加（DEBUFF_FIELDS 赋值 /
+# DEBUFF_SPECIAL_ACTIONS setScoreDebuff/setHandDecrease/decreaseFullPowerCharge）并 -1；
+# 计数器无回合倒计时（消耗式，BuffManager.initializeState 标量、不在 EOT_DECREMENT_FIELDS）。
+# 主数据 ExamAntiDebuff values.count = 无效次数（P 道具侧有值；卡侧 4 SSR 族 values 恒空，
+# 需逐卡证据表、不在 build_pool，见 RULES_REFERENCE §5.7，延迟）。
+ANTI_DEBUFF_EFFECTS = frozenset({"ExamAntiDebuff"})  # 低下状态无效次数
 STANCE_EFFECT_TARGETS = {
     "ExamPreservation": "stance_preservation",
     "ExamConcentration": "stance_concentration",
@@ -166,6 +173,8 @@ TARGET_BY_EFFECT: dict[str, str] = {
     # P1-2（2026-11-24）：抽牌修正 / 自尊
     **{effect: "hand_decrease" for effect in HAND_DECREASE_EFFECTS},
     **{effect: "pride_turns" for effect in PRIDE_EFFECTS},
+    # P1-4（2026-11-24）：低下状态无效次数（nullifyDebuff 计数器）
+    **{effect: "nullify_debuff" for effect in ANTI_DEBUFF_EFFECTS},
 }
 
 #: 百分比类目标：effect.values.percent1 是「人类百分比」（50 = +50%），
@@ -523,6 +532,8 @@ class PItemDelta:
     # EOT 倒计时整数资源，不是 timed 列表）。
     hand_decreases: list[tuple[int, int]] = field(default_factory=list)
     pride_turns: int = 0
+    # P1-4（2026-11-24）：低下状态无效次数（nullifyDebuff+=N，消耗式计数器，无回合倒计时）
+    nullify_debuff: int = 0
     # 其它持久倍率：key -> (千分比/数值, 剩余回合)。key 见 MODIFIER_TARGETS。
     modifiers: list[tuple[str, int, int]] = field(default_factory=list)
     # 固定/百分比费用修正（永久，整场累计）；half/double 是「接下来 N 回合」计数器
@@ -555,6 +566,7 @@ class PItemDelta:
             or self.score_debuffs
             or self.hand_decreases
             or self.pride_turns
+            or self.nullify_debuff
             or self.modifiers
             or self.cost_reduction
             or self.cost_increase
@@ -580,6 +592,7 @@ class PItemDelta:
             "score_debuffs": list(self.score_debuffs),
             "hand_decreases": list(self.hand_decreases),
             "pride_turns": self.pride_turns,
+            "nullify_debuff": self.nullify_debuff,
             "modifiers": list(self.modifiers),
             "create_cards": list(self.create_cards),
         }
@@ -597,6 +610,7 @@ class PItemDelta:
         self.score_debuffs.extend(other.score_debuffs)
         self.hand_decreases.extend(other.hand_decreases)
         self.pride_turns += other.pride_turns
+        self.nullify_debuff += other.nullify_debuff
         self.modifiers.extend(other.modifiers)
         self.cost_reduction += other.cost_reduction
         self.cost_increase += other.cost_increase
@@ -622,6 +636,7 @@ class PItemDelta:
             score_debuffs=list(self.score_debuffs),
             hand_decreases=list(self.hand_decreases),
             pride_turns=self.pride_turns,
+            nullify_debuff=self.nullify_debuff,
             modifiers=list(self.modifiers),
             cost_reduction=self.cost_reduction,
             cost_increase=self.cost_increase,
@@ -635,6 +650,30 @@ class PItemDelta:
         )
         merged += other
         return merged
+
+
+# ---- P1-4（2026-11-24）：nullifyDebuff 拦截（参考 Executor.executeAssignment/
+# executeCallAction：nullifyDebuff>0 时拦截一次 debuff 施加并 -1）----
+def intercept_debuff_entries(
+    nullify: int, entries: list[tuple[int, int]]
+) -> tuple[int, list[tuple[int, int]]]:
+    """逐条消耗 ``nullify_debuff`` 次数拦截 debuff 施加，返回 (剩余次数, 保留条目)。
+
+    参考引擎每条 ``setScoreDebuff``/``setHandDecrease`` 调用（DEBUFF_SPECIAL_ACTIONS）
+    消耗 1 次无效次数并整条跳过；这里对 timed 列表逐条同口径。``nullify<=0`` 时
+    原样返回（不拦截）。标量 DEBUFF_FIELDS（cost_increase/double_cost_turns/
+    poor_condition 等）与 decreaseFullPowerCharge/lock_stance 卡路径未建模拦截，
+    见 RULES_REFERENCE §5.7。
+    """
+    if nullify <= 0:
+        return nullify, list(entries)
+    kept: list[tuple[int, int]] = []
+    for entry in entries:
+        if nullify > 0:
+            nullify -= 1
+        else:
+            kept.append(entry)
+    return nullify, kept
 
 
 # ---- B9：定时倍率列表的纯函数（参考引擎 BuffManager.setBuff/decrementBuffTurns）----
@@ -781,6 +820,9 @@ def effect_value(effect: Mapping, target: str | None = None) -> int:
     ):
         return int(values.get("turn") or 0)
     if effect.get("type") == "ExamPlayableValueAdd":
+        return int(values.get("count") or values.get("value1") or 0)
+    # P1-4：低下状态无效次数（ExamAntiDebuff values.count；参考 nullifyDebuff+=N）
+    if kind == "nullify_debuff":
         return int(values.get("count") or values.get("value1") or 0)
     return int(values.get("value1") or 0)
 
@@ -1116,6 +1158,12 @@ def _apply_modifier_target(spec: PItemSpec, target: str, delta: PItemDelta) -> b
             return False
         delta.pride_turns += spec.value
         return True
+    # P1-4（2026-11-24）：低下状态无效次数（nullifyDebuff+=count，消耗式计数器）。
+    if target == "nullify_debuff":
+        if spec.value <= 0:
+            return False
+        delta.nullify_debuff += spec.value
+        return True
     if target in PERCENT_TARGETS:  # review_multiple / enthusiasm_multiple / 增益倍率…
         if spec.value <= 0:
             return False
@@ -1445,6 +1493,7 @@ __all__ = [
     "effect_target",
     "effect_value",
     "evaluate_condition",
+    "intercept_debuff_entries",
     "load_p_items",
     "normalize_turns",
     "record_to_specs",

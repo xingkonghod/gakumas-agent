@@ -232,12 +232,13 @@
   "effects_depends_on": 65,
   "effects_percent_max": 9,
   "effects_zero_stack": 3,
-  "effects_modifier": 385,
+  "effects_modifier": 396,
   "effects_modifier_targets": {
    "score_buff": 93,
    "cost_increase": 32,
    "poor_condition_turns": 8,
    "double_cost_turns": 14,
+   "nullify_debuff": 11,
    "stance_preservation": 29,
    "cost_reduction": 26,
    "half_cost_turns": 21,
@@ -260,7 +261,7 @@
    "hand_decrease": 12,
    "review_times": 4
   },
-  "items_with_modifier": 300,
+  "items_with_modifier": 311,
   "items_text_limit": 896
  },
  "items": [
@@ -4249,6 +4250,7 @@
      },
      "text": "低下状态无效次（训练内1次）",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -34080,6 +34082,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -34891,6 +34894,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -35156,6 +35160,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -35962,6 +35967,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -36800,6 +36806,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -37593,6 +37600,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -37900,6 +37908,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -38678,6 +38687,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -38994,6 +39004,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],
@@ -39795,6 +39806,7 @@
      },
      "text": "低下状态无效次",
      "max_uses": 0,
+     "target": "nullify_debuff",
      "label": "低下状态无效"
     }
    ],

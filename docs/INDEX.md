@@ -484,6 +484,24 @@ expectimax 仍显著强于 rules Δ+372.2/+219.1）；旧 B11 数据/模型旧�
 新增 `tests/test_p13_hold_zone.py` 46 条，全量 pytest **1435 passed / 1 skipped
 （1436 收集 / 92 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.6 /
 WORKPLAN P1-3 / HANDOVER 二·补四十六。
+**2026-11-24 P1-4 完成**（阶段1 第四批，用户确认 A 顺序；纯离线，BSD-3 有据）：
+**nullifyDebuff 低下状态无效拦截**（P1-2 遗留；参考 Executor executeAssignment :429 /
+executeCallAction :507 / executeSpecialAction :545——nullifyDebuff>0 拦截一次 debuff 施加
+并 -1，消耗式计数器无回合倒计时）：`LessonSim/ExpectState.nullify_debuff` + canonical +
+快照往返 + `intercept_debuff_entries` 纯函数，拦截已建模的 setScoreDebuff/setHandDecrease
+（列表逐条）；来源 P 道具侧 `ExamAntiDebuff` values.count **11 段**（偷懒的毛巾
+pitem_00-2-116-0 ↔ p_items.csv 317 + 塔 gimmick 初星灯光/旗帜/道具 10 段）。
+**⑦ ExamBuffConsumptionAdd 评估保持 no-op**（参考 doubleBuffCostTurns 语义/主数据 4 段
+「不息的风暴/迷倒世界的模样±」/gkbench 22 loadout 如实记；**卡模型不承载 buff 花费**——
+88 张参考 buff-cost 卡 card_table cost=0、CardSpec 无 buff_cost 字段，无落点不猜）；
+**countDebuffs 无落点**（低下状態の数参考+主数据零使用，仅 removeDebuffs 用于「属于我的色彩」）。
+卡侧 4 SSR 族来源（values 恒空需逐卡证据表）/标量 DEBUFF_FIELDS 拦截/decreaseFullPowerCharge
+留后续。implemented **1056→1067/1849**（+11，modifier 385→396，p_items.json 仅 11 条记录变化）；
+评测零落点 → sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，expectimax 仍显著强于
+rules Δ+372.2/+219.1）；旧 B11 数据/模型旧规则口径全保留。新增 `tests/test_p14_nullify_debuff.py`
+30 条（+test_p13 implemented 断言更新），全量 pytest **1465 passed / 1 skipped
+（1466 收集 / 93 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.7 /
+WORKPLAN P1-4 / HANDOVER 二·补四十七。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
@@ -492,8 +510,8 @@ v6 生产接线完成（engine=net opt-in，T2 第四臂）+ r9-large 完成（l
 F 数据已下；
 下一步 **按多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）：
 阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease + pride~~ ✅ P1-2；
-~~hold 保留区 + lockStanceTurns~~ ✅ P1-3；**下一会话 P1-4：ExamBuffConsumptionAdd buff-cost 卡**
-（证据不足保持 no-op 如实记）；剩 P 道具语义 + T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
+~~hold 保留区 + lockStanceTurns~~ ✅ P1-3；~~nullifyDebuff 拦截 + ⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；
+**下一会话 P1-5：P 道具剩余效果语义补全**（离线可做段 bounded batch，1067/1849 往上推）；剩 T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
 双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
 → 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。
 需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / fresh buff /

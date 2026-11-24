@@ -31,7 +31,7 @@
 > 只按本表逐条对齐「机制」；F1 用官方种子做同题同种子复算时，起点状态用 `check`（turn/score/stamina），
 > 并注明对比的 rules 版本。
 
-## 0. 一句话结论（B3 + T5① + T5② + T5④ + P1-1 + P1-2 + P1-3 后）
+## 0. 一句话结论（B3 + T5① + T5② + T5④ + P1-1 + P1-2 + P1-3 + P1-4 后）
 
 分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
 **跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**、
@@ -50,10 +50,15 @@ min(好印象,やる気)×0.02 上限+0.5，来源主数据+参考 DSL 交叉；
 指針固定**——holdThisCard/holdSelected/moveHeldCardsToHand 卡效果（上限 2、跨回合保留、
 超限最旧进弃牌堆、全力回手 LIFO）+ lockStanceTurns（EOT 递减 + fresh 保护锁下一回合 +
 setStance 守卫 + 全力进入门）+ hold 区张数条件（countCards[held]）+ 温存 2 段階直给；
-数据层 **1056/1849 段**（P1-3 机制本就支持、触发未知 **3→0 件**清零），
-见 §5.3 B8/B9/B10 / §5.4 P1-1 / §5.5 P1-2 / §5.6 P1-3）。
+**P1-4 nullifyDebuff 低下状态无效拦截**——消耗式计数器（无回合倒计时）拦截
+setScoreDebuff/setHandDecrease 施加（P 道具侧 ExamAntiDebuff count 11 段；卡侧 4 SSR 族
+values 恒空延迟）；**⑦ ExamBuffConsumptionAdd / countDebuffs 评估保持 no-op**（卡模型不承载
+buff 花费 / 低下状態の数参考+主数据零使用，无落点）；
+数据层 **1067/1849 段**（P1-4 +11 ExamAntiDebuff；P1-3 触发未知 **3→0 件**清零），
+见 §5.3 B8/B9/B10 / §5.4 P1-1 / §5.5 P1-2 / §5.6 P1-3 / §5.7 P1-4）。
 剩余差距是 **随机生成卡**（H.I.F应援棒，考试 RNG 流未知）、**强化状态花费卡类**
-（`ExamBuffConsumptionAdd` 的落点——我们的卡牌模型不建「以强化状态为花费」的卡）、
+（`ExamBuffConsumptionAdd` 的落点——我们的卡牌模型不建「以强化状态为花费」的卡，
+88 张参考 buff-cost 卡 card_table cost=0、CardSpec 无 buff_cost 字段，P1-4 评估保持 no-op）、
 **保留区卡成长 target:held**（g.scoreTimes/g.score/g.cost，新的舞台+/发挥本领/
 实现的觉悟 等）与 **holdCard P 道具来源**（那一天的塑料伞/章鱼烧科幻小狗/彼此许下的约定，
 效果文本未结构化）、**card_play_interval_after 触发时机**（2 件のんびり道具因此仍保守不触发）、
@@ -70,7 +75,7 @@ setStance 守卫 + 全力进入门）+ hold 区张数条件（countCards[held]�
 | 打完最后一张**自动结束回合** | `CardManager.useCard` 末尾 `cardUsesRemaining < 1 → endTurn` | `LessonSim.step`：次数用尽或手牌空 → `_end_turn`；搜索侧 `plays_left<=0` 即按 `end_turn_state` 叶子处理 | ✅ | `test_one_card_auto_ends_turn_without_stamina_recovery` |
 | SKIP/没出完牌 → 体力 **+2**（封顶最大体力） | `TurnManager.endTurn`: `if (cardUsesRemaining > 0) stamina = min(stamina+2, max)` | `LessonSim._end_turn` / `end_turn_state`：`plays_this_turn < 上限` 时 +2 | ✅ | `test_skip_recovers_two_stamina_capped_at_max`、`test_skip_recovery_matches_expect_state_rule` |
 | 额外出牌 = 使用次数 +N | `ExamPlayableValueAdd` 效果（卡 / P 道具）加 `cardUsesRemaining`；真机 7 个 2 张回合里 3 个首张牌带该效果 | `CardSpec.extra_play` → `LessonSim.extra_plays` / `ExpectState.extra_plays`；T5③ 起 P 道具同效果（`PItemDelta.extra_plays`，考试开始/回合开始/出牌后都会加，见 §5.3） | ✅ 卡效果 + P 道具（仅 loadout 能拿到的数据；真机培育侧列表待补采） | `test_extra_play_keeps_turn_open_then_auto_ends`、`test_exam_start_extra_play_keeps_first_turn_open`、fixture |
-| 每回合开始抽 3 张（手牌 3），**handDecrease 抽牌修正** | `TurnManager.startTurn`: `cardsToDraw = max(3 - handDecrease, 0)`；`BuffManager.setHandDecrease(amount, turns?)` / `getHandDecrease`（handDecreases 列表按 turns 分组加算、回合末倒计时）；wiki buffs.json「手札減少」合算 ≥3 抽 0、只影响回合开始抽牌 | `LessonConfig.hand_size=3`；**P1-2（2026-11-24）**：`LessonSim.hand_decreases` / `ExpectState.hand_decreases`（timed 列表，-1 永久）+ `_draw_hand` / `turn_draw_count` / beam 下一手 / `sim_from_state` 补手牌同口径 `max(hand_size−Σ,0)`；来源 `ExamGimmickStartTurnCardDrawDown`（塔 gimmick 12 段，exam_start）；卡效果抽牌不受影响 | ✅（nullifyDebuff 拦截未建模，见 §5.5） | `test_sim_lesson.py` 各回合测试 + `tests/test_p12_hand_decrease_pride.py` |
+| 每回合开始抽 3 张（手牌 3），**handDecrease 抽牌修正** | `TurnManager.startTurn`: `cardsToDraw = max(3 - handDecrease, 0)`；`BuffManager.setHandDecrease(amount, turns?)` / `getHandDecrease`（handDecreases 列表按 turns 分组加算、回合末倒计时）；wiki buffs.json「手札減少」合算 ≥3 抽 0、只影响回合开始抽牌 | `LessonConfig.hand_size=3`；**P1-2（2026-11-24）**：`LessonSim.hand_decreases` / `ExpectState.hand_decreases`（timed 列表，-1 永久）+ `_draw_hand` / `turn_draw_count` / beam 下一手 / `sim_from_state` 补手牌同口径 `max(hand_size−Σ,0)`；来源 `ExamGimmickStartTurnCardDrawDown`（塔 gimmick 12 段，exam_start）；卡效果抽牌不受影响 | ✅（nullifyDebuff 拦截 P1-4 已建模，见 §5.7） | `test_sim_lesson.py` 各回合测试 + `tests/test_p12_hand_decrease_pride.py` |
 | 抽牌/手牌**上限 5** | `CardManager.drawCard`: `if handCards.length >= 5 return` | `LessonSim._draw` 不设上限 | ⚠️ 只有抽牌卡溢出时才不同 | — |
 | 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | T5②（2026-11-22）按参考引擎实现：熱意独立资源 +5/+8、2 段**固定元気 +5**（不吃やる気）、解除当回合 **+1 出牌次数**；回合末熱意清零（有熱意延長则保留）；同回合重复解除可叠加；**温存→のんびり不触发**（`stance!=leisure` 条件，P1-1 补） | ✅ | `tests/test_t5_enthusiasm.py`（纯规则 + LessonSim）+ `tests/test_p1_stance_rules.py` |
 | 全力回合：+1 次出牌、保留牌回手 | `constants.js FULL_POWER_EFFECTS` / `FULL_POWER_CHANGED_EFFECTS`；`TurnManager.startTurn` 抽牌后触发；contest-fidelity 美鈴回放「全力回合三张牌」「held スパート used in the 全力 turn」 | **P1-1（2026-11-24）**：以全力开始的回合 `extra_plays += 1`（连续全力每回合都有）+ `held` 全部回手（`_move_held_to_hand`，无手牌上限检查同参考）；全力值 ≥10 消耗 10 进全力（超出保留）口径不变；**全力期间禁切指針**（`stance_change_allowed`，setStance 守卫）；**P1-3**：保留区来源接通（holdThisCard/holdSelected，逐卡证据表）+ 回手 **LIFO**（参考 `pop()`）+ **指針固定期间全力进入门不满足**（`lockStanceTurns==0`，全力值不消耗） | ✅ 额外次数/回手/守卫/来源/固定门 | `test_full_power_turn_grants_extra_play` / `test_full_power_moves_held_cards_to_hand` / `test_p13_hold_zone.py::test_full_power_returns_held_lifo_real_card` / `test_lock_blocks_full_entry_next_turn_fresh` |
@@ -530,11 +535,10 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
   评价点，15/0/1 与 11/0/5，C+ 100%，0 blocked / 0 error），B3 结论保持。
   数据层 implemented **1042→1056/1849 段**（+12 hand_decrease +2 pride_turns），
   modifier 标注 371→385；p_items.json 重建仅 14 条记录标注变化（逐条 diff 校验）。
-- **nullifyDebuff 拦截未建模**：参考 `BuffManager.test.mjs`「nullifyDebuff blocks
-  setHandDecrease」（低下状态无效会消耗 1 层拦截 setHandDecrease/setScoreDebuff/
-  decreaseFullPowerCharge）；本模型 `ExamAntiDebuff` 本就是 no-op（无低下状态资源），
-  交互留待 buff-cost/低下状态建模（P1-4 相关）。`countDebuffs`（低下状態の数，含
-  handDecreases 条目）同未建模。
+- **nullifyDebuff 拦截**：~~未建模~~ ✅ **P1-4 已建模**（§5.7）——消耗式计数器拦截
+  setScoreDebuff/setHandDecrease（P 道具侧 ExamAntiDebuff count 11 段）；卡侧 4 SSR 族
+  values 恒空延迟、标量 DEBUFF_FIELDS/decreaseFullPowerCharge 拦截点留后续。
+  `countDebuffs`（低下状態の数）参考+主数据零使用 → 无落点，保持未建模（§5.7）。
 - **参考引擎 setHandDecrease 标注 UNVERIFIED**（未对真机截图核验）：机制按参考引擎
   实现、来源/数值按主数据 + wiki 口径；真机核验留阶段3（T6/D1）。
 - **fresh buff 保护**沿用既有口径（P 道具 timed 列表回合末 -1，不做 fresh 跳过；
@@ -596,6 +600,60 @@ seed 9000/9100 各 16 局 rules/expectimax budget 800ms，逐局非时间字段�
 rules（Δ+372.2 / +219.1 评价点，15/0/1 与 11/0/5，C+ 100%，0 blocked / 0 error），
 B3 重标定结论保持。产物 out/_p13_ab_{before,after}_{9000,9100}.json（gitignore）。
 
+### 5.7 P1-4 nullifyDebuff 低下状态无效拦截 + ⑦ ExamBuffConsumptionAdd / countDebuffs 评估（2026-11-24 完成）
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **nullifyDebuff 拦截**（P1-2 遗留）：`nullifyDebuff>0` 时拦截一次 debuff 施加并 -1（消耗式计数器，**无回合倒计时**，不在 EOT_DECREMENT_FIELDS）；本批拦截已建模的两个 DEBUFF_SPECIAL_ACTIONS：`setScoreDebuff`（score_debuffs 列表逐条）/`setHandDecrease`（hand_decreases 列表逐条） | [sim/p_items.py](../src/gkagent/sim/p_items.py)（`intercept_debuff_entries` 纯函数）+ [sim/lesson.py](../src/gkagent/sim/lesson.py)（`nullify_debuff` 计数器 + `_fire_p_items` 拦截）+ [sim/expectimax.py](../src/gkagent/sim/expectimax.py)（`ExpectState.nullify_debuff` + canonical + `fire_p_items` 拦截 + `state_from_sim`/`sim_from_state` + `end_turn_state` 携带） | BSD-3 `Executor/index.js` executeAssignment（:429 `if nullifyDebuff && DEBUFF_FIELDS.includes(lhs) → nullifyDebuff--; return`）/ executeCallAction（:507）/ executeSpecialAction（:545）；`constants.js` DEBUFF_SPECIAL_ACTIONS = setScoreDebuff/decreaseFullPowerCharge/setHandDecrease（:379）、nullifyDebuff ∉ EOT_DECREMENT_FIELDS；`BuffManager.initializeState`（:118 标量 0）；参考单测 `BuffManager.test.mjs`「nullifyDebuff blocks setHandDecrease」 | `test_intercept_*`（5 条纯规则）/ `test_nullify_blocks_score_debuff` / `test_nullify_blocks_hand_decrease` / `test_nullify_blocks_both_order` / `test_nullify_no_eot_decrement` / `test_lesson_expect_nullify_parity` |
+| **nullifyDebuff 来源（P 道具侧）**：`ExamAntiDebuff` values.count → `nullify_debuff` 目标（主数据 P 道具侧有 count 值）；11 段：偷懒的毛巾（pitem_00-2-116-0，おさぼりタオル，舞蹈回合开始无效 1 次 limit1）+ 塔 gimmick 初星灯光/旗帜/道具 10 段（status_gain / card_play_interval 触发） | [sim/p_items.py](../src/gkagent/sim/p_items.py)（ANTI_DEBUFF_EFFECTS / TARGET_BY_EFFECT / `effect_value` 读 count / PItemDelta.nullify_debuff / `_apply_modifier_target`）；`build_p_items.py` 重标注（分类纯函数驱动） | 主数据 p_items.json 11 段 ExamAntiDebuff values.count；BSD-3 `p_items.csv` 317 おさぼりタオル `at:startOfTurn { if:isDanceTurn { fixedGenki+=4; at:turn { nullifyDebuff+=1; limit:1 } } limit:1 }`；塔 gimmick 主数据 trigger_id 结构化 | `test_classify_exam_anti_debuff` / `test_effect_value_reads_count` / `test_apply_passive_nullify_delta` / `test_catalog_anti_debuff_specs` / `test_real_item_towel_spec` / `test_anti_debuff_implemented_not_noop` |
+| **⑦ ExamBuffConsumptionAdd 保持 no-op**（强化状态花费卡机制无落点）：参考语义 = `doubleBuffCostTurns`（processCost/checkCost 时 BUFF_FIELDS 花费 ×2，EOT 递减，∈ DEBUFF_FIELDS）；主数据 4 段（不息的风暴 pitem_03-3-345-0/1、迷倒世界的模样 pitem_01-3-349-0/1），gkbench 22 loadout | 无代码改动（classify_effect_target 返回 ""，no-op） | BSD-3 `Executor/index.js`（:463 `if doubleBuffCostTurns>0 && BUFF_FIELDS.includes(lhs) → rhsValue*=2`）+ `constants.js` EOT_DECREMENT_FIELDS/DEBUFF_FIELDS；`CardManager.useCard`（:654 buffCostConsumed 触发）+ `Executor.triggerChangeEffects`（:345 processCost 时 BUFF_FIELDS 减少 → buffCostConsumed=true）；主数据 4 段 ↔ `p_items.csv` 488/489 止まない嵐 / 500/501 世界を魅了する姿 `doubleBuffCostTurns+=1` | `test_exam_buff_consumption_add_classify_noop` / `test_buff_consumption_add_catalog_noop` |
+| **countDebuffs 保持未建模**（低下状態の数，无落点）：参考 `BuffManager.countDebuffs`（:331，DEBUFF_FIELDS>0 计数 + scoreDebuffs/handDecreases 条目数，标注 **UNVERIFIED**）；参考全部 CSV + 主数据**零使用**（仅 removeDebuffs 用于「属于我的色彩」わたしらしい色 csv 534/535） | 无代码改动 | BSD-3 `BuffManager.js` countDebuffs / DEBUFF_LIST_FIELDS（:43）；`skill_cards.csv`/`p_items.csv`/`stages.csv` 等全部 CSV 无 countDebuffs 用法；主数据无 debuff 计数触发/效果 | `test_count_debuffs_no_landing_point` |
+
+**口径与剩余差距（如实记录）**：
+
+- **⑦ 为什么无落点**：`ExamBuffConsumptionAdd`（doubleBuffCostTurns）的作用是「以强化状态
+  作为花费值的技能卡」花费翻倍。参考引擎确实有 **88 张 buff-cost 卡**（skill_cards.csv cost
+  列含 `concentration-=3`/`motivation-=3`/`goodImpressionTurns-=2`/`fullPowerCharge-=2` 等），
+  其中 6 张在 `build_pool`（潮流领袖/行走步调/齐声应援 ±）、潮流领袖在 eval large 牌组、
+  gkbench hif 牌组 340 条 buff-cost 卡 entry。**但我们的卡模型不承载 buff 花费**：
+  card_table.json 这些卡 `cost=0`（只提取了体力费）、`CardSpec` 无 buff_cost 字段、
+  可用性/支付/buffCostConsumed 触发均未建模。要落地 doubleBuffCostTurns 必须先扩卡模型
+  （buff 花费数据 + 可用性检查 + 支付消耗层数 + buffCostConsumed 时机），超出本批 bounded
+  范围 → **保持 no-op，不猜**。机制语义/主数据 4 段/gkbench 22 loadout 已如实记录。
+- **nullifyDebuff 卡侧来源延迟**：4 个 SSR 卡族（偶像之魂 p_card-00-men-3_003 /
+  精确无比的标牌制作 p_card-01-ido-3_080 / 红叶下奔跑 p_card-00-sup-3_093 /
+  甜蜜陷阱♡ p_card-02-ido-3_248，参考 skill_cards.csv 158/159/350/351/452/453/887/888
+  `nullifyDebuff+=1`）主数据 `ExamAntiDebuff` **values 恒空**（同 P1-3 hold，需逐卡证据表
+  从参考 DSL 取 count），且 SSR 不进 build_pool → 卡侧 `CardSpec.nullify_debuff` 延迟，
+  本批只落 P 道具侧（count 有值）。`test_nullify_card_side_deferred` 记录此口径。
+- **nullifyDebuff 拦截范围（如实）**：本批拦截已建模的两个 DEBUFF_SPECIAL_ACTIONS
+  （setScoreDebuff/setHandDecrease，列表逐条消耗）。**标量 DEBUFF_FIELDS**（cost_increase/
+  double_cost_turns/poor_condition_turns/lock_stance_turns 等）的拦截未建模——P 道具 delta
+  把同类标量聚合（`delta.cost_increase += …`），丢失参考逐动作施加的粒度，无法忠实逐次消耗；
+  `decreaseFullPowerCharge`（DEBUFF_SPECIAL_ACTIONS 之一）本模型未建模；lock_stance_turns
+  是卡效果路径（切磋琢磨）非 P 道具 delta，亦未拦截。这些拦截点留待后续（评测零触达）。
+- **拦截顺序近似**：参考按动作触发顺序逐条消耗；本模型 delta 批量聚合，固定按
+  score_debuffs → hand_decreases 顺序拦截（评测无来源零触达，顺序差异不影响重标定）。
+- **评测牌组 / gkbench loadout 组成不变**：nullifyDebuff 来源（偷懒的毛巾 P 道具 +
+  塔 gimmick + 4 SSR 卡族）**评测零落点**——gkbench 688 loadout / 94 唯一道具 id
+  **无 116（おさぼりタオル）也无 tower**（塔 gimmick 塔阶段专用）；build_pool 无
+  ExamAntiDebuff 卡（SSR）。**sim_engine_ab 重标定（P1-4）：改前/改后 64 局逐位相同
+  （差异=0）**——seed 9000/9100 各 16 局 rules/expectimax（budget 800ms），逐局非时间
+  字段全等（新规则路径未触达）；expectimax 仍显著强于 rules（Δ+372.2 / +219.1 评价点，
+  15/0/1 与 11/0/5，C+ 100%，0 blocked / 0 error），B3 结论保持。
+  数据层 implemented **1056→1067/1849 段**（+11 ExamAntiDebuff），modifier 标注 385→396；
+  p_items.json 重建仅 **11 条记录**标注变化（逐条 diff 校验，全是 ExamAntiDebuff target
+  None→nullify_debuff）。
+- 旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批
+  再新旧对比（HANDOVER_NEXT §8.0）；参照臂需按新规则重评。
+
+**重标定数字（P1-4）**：sim_engine_ab 改前（git stash）/改后 **64 局逐位相同（差异=0）**——
+seed 9000/9100 各 16 局 rules/expectimax budget 800ms，逐局非时间字段全等
+（`data/_p14_ab_compare.py`，不提交）。nullifyDebuff 来源评测零落点，新规则路径未触达。
+expectimax 仍显著强于 rules（Δ+372.2 / +219.1 评价点，15/0/1 与 11/0/5，C+ 100%，
+0 blocked / 0 error），B3 重标定结论保持。产物 out/_p14_ab_{before,after}_{9000,9100}.json
+（gitignore）。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
    剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
@@ -621,7 +679,8 @@ B3 重标定结论保持。产物 out/_p13_ab_{before,after}_{9000,9100}.json（
    数据层 676→**1025/1849 段**、gkbench 59→**103/153 段**；greedy 配对 A/B
    **+110.3（CI [+39.6,+193.3]）**。
    **剩余**：~~生成卡（`ExamCardCreateId`）~~ ✅ **B10 确定式已实现**（随机基础卡 RNG 未知保持 no-op）、
-   强化状态花费卡（`ExamBuffConsumptionAdd` 无落点，保持 no-op）、
+   强化状态花费卡（`ExamBuffConsumptionAdd` 无落点，保持 no-op；**P1-4 评估**：卡模型不承载
+   buff 花费，88 张参考 buff-cost 卡 card_table cost=0，见 §5.7）、
    ~~指定卡名/手牌张数限定~~ ✅ **B10 已结构化**（触发未知 103→3 件：hold 保留区 2 + hotfix 1）、
    fresh buff 差一回合、真机培育侧列表（T6/D1 补采）、主道具附魔/回忆。
    **B10（T5 剩余①②，2026-11-23）**：card_meta（idol_unique 参考交叉 340/342 零误报 +
@@ -635,7 +694,7 @@ B3 重标定结论保持。产物 out/_p13_ab_{before,after}_{9000,9100}.json（
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。
 8. **抽牌上限 5 / ~~handDecrease~~ / ~~保留牌来源（holdCard/holdThisCard）~~**：
    ~~handDecrease~~ ✅ **P1-2 完成**（§5.5：cardsToDraw=max(3−Σ,0) + 塔 gimmick 12 段来源；
-   nullifyDebuff 拦截未建模）；抽牌上限 5 仍 ⚠️（只有抽牌卡溢出时才不同）；
+   nullifyDebuff 拦截 ✅ **P1-4 完成**，见 §5.7）；抽牌上限 5 仍 ⚠️（只有抽牌卡溢出时才不同）；
    ~~保留区来源~~ ✅ **P1-3 完成**（§5.6：holdThisCard/holdSelected/moveHeldCardsToHand
    13 族卡证据表 + 上限 2 + 跨回合保留 + 全力回手 LIFO；hold 区张数条件 + hotfix 清零；
    剩余 target:held 成长 / holdCard P 道具来源未建模）。
@@ -647,6 +706,12 @@ B3 重标定结论保持。产物 out/_p13_ab_{before,after}_{9000,9100}.json（
      EOT 递减 + fresh 保护锁下一回合 + setStance 守卫 + 全力进入门）；
      **card_play_interval_after 触发时机**（2 件のんびり道具「夜空を従える花」因此仍保守
      不触发；stance_leisure 目标机制本身就绪）/ **target:held 保留区卡成长**（P1-3 遗留）。
+11. ~~**nullifyDebuff 低下状态无效拦截**~~ ✅ **P1-4 完成**（§5.7：消耗式计数器拦截
+      setScoreDebuff/setHandDecrease，P 道具侧 ExamAntiDebuff count 11 段，implemented
+      1056→1067）；**卡侧 4 SSR 族来源**（values 恒空需逐卡证据表）/ **标量 DEBUFF_FIELDS
+      拦截**（delta 聚合丢失逐动作粒度）/ **decreaseFullPowerCharge**（未建模）留后续；
+      **⑦ ExamBuffConsumptionAdd / countDebuffs 保持 no-op**（卡模型不承载 buff 花费 /
+      低下状態の数参考+主数据零使用，无落点，P1-4 评估如实记录）。
 
 ## 7. 复现
 
@@ -693,6 +758,13 @@ B3 重标定结论保持。产物 out/_p13_ab_{before,after}_{9000,9100}.json（
 # P1-3 重标定（冲刺/积累 draw 近似移除 → large 牌组组成变化；改前/改后 64 局逐局对照）
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9000 --out out\_p13_ab_after_9000.json
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9100 --out out\_p13_ab_after_9100.json
+
+# P1-4 nullifyDebuff 拦截 + ⑦/countDebuffs 评估（纯规则 / P 道具解析 / 双镜 / no-op 记录）
+.venv\Scripts\python.exe -m pytest tests\test_p14_nullify_debuff.py -q
+.venv\Scripts\python.exe scripts\build_p_items.py --check  # nullify_debuff 11 段；已实现 1056→1067
+# P1-4 重标定（nullifyDebuff 来源评测零落点 → 实测改前/改后 64 局逐位相同）
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9000 --out out\_p14_ab_after_9000.json
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9100 --out out\_p14_ab_after_9100.json
 
 # T5③ P 道具数据接入（catalog / loadout 解析 / exam_start / extra_plays / 提交适配器）
 .venv\Scripts\python.exe -m pytest tests\test_p_items.py tests\test_p_items_db.py tests\test_p_items_integration.py -q
