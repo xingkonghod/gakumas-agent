@@ -162,7 +162,7 @@
   },
   "effect_type_kinds": 58,
   "primary_effect_type": {
-   "ExamLesson": 94,
+   "ExamLesson": 95,
    "ExamLessonValueMultiple": 76,
    "ExamPlayableValueAdd": 22,
    "unknown": 213,
@@ -171,7 +171,7 @@
    "ExamCardPlayAggressive": 78,
    "ExamBlock": 93,
    "ExamStaminaDamage": 2,
-   "ExamParameterBuff": 78,
+   "ExamParameterBuff": 77,
    "ExamStaminaRecoverFix": 33,
    "ExamConcentration": 18,
    "ExamFullPower": 18,
@@ -229,7 +229,7 @@
   "effects_create_card": 11,
   "effects_create_random": 6,
   "items_trigger_id_parsed": 22,
-  "effects_depends_on": 76,
+  "effects_depends_on": 78,
   "effects_percent_max": 9,
   "effects_zero_stack": 3,
   "effects_modifier": 442,
@@ -40452,27 +40452,29 @@
     }
    },
    "condition": "",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好調の%分",
+   "effect_type": "ExamLesson",
+   "effect_label": "打分",
+   "effect_text": "パラメータ上昇",
    "value": 30,
    "value_unit": "percent1",
    "max_uses": 0,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 30
-     },
+     "values": {},
      "text": "好調の%分",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 30
+     },
      "text": "パラメータ上昇",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     }
    ],
@@ -40522,18 +40524,20 @@
     },
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 50
-     },
+     "values": {},
      "text": "好調の%分",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 50
+     },
      "text": "パラメータ上昇",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     }
    ],

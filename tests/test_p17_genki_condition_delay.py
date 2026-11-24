@@ -500,9 +500,9 @@ def test_delay_annotation_count() -> None:
 
 
 def test_p17_implemented_delta() -> None:
-    """P1-7 +15：condition_gain 4 + nullify_genki 9 + unease 2。"""
+    """P1-7 +15：condition_gain 4 + nullify_genki 9 + unease 2（P1-8 后总数 1181）。"""
     summary = summarize(load_p_items())
-    assert summary["implemented"] == 1179
+    assert summary["implemented"] == 1181
     tgt = summary["implemented_modifier_targets"]
     assert tgt.get("condition_gain") == 4
     assert tgt.get("nullify_genki_turns") == 9

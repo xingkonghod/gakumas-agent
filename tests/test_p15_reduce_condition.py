@@ -379,10 +379,10 @@ def test_end_turn_carries_condition_turns() -> None:
 
 
 def test_catalog_condition_conversion_specs() -> None:
-    """好调依赖换算目标 11 段（7 ExamLesson + 4 ExamLessonBuff），源段标 conversion_source。"""
+    """好调依赖换算目标 13 段（9 ExamLesson + 4 ExamLessonBuff；P1-8 +2 天生的才能）。"""
     specs = load_p_items()
     targets = [s for s in specs if s.depends_on == "parameter_buff" and s.percent > 0]
-    assert len(targets) == 11
+    assert len(targets) == 13
     types = {s.effect_type for s in targets}
     assert types == {"ExamLesson", "ExamLessonBuff"}
     assert all(s.implemented for s in targets)
@@ -414,11 +414,11 @@ def test_catalog_condition_turns_specs() -> None:
 
 
 def test_p_items_implemented_count() -> None:
-    """implemented 1067→1164（P1-5 +97）→1179（P1-7 +15）。"""
+    """implemented 1067→1164（P1-5 +97）→1179（P1-7 +15）→1181（P1-8 +2）。"""
     summary = summarize(load_p_items())
-    assert summary["implemented"] == 1179
-    assert summary["noop"] == 670
-    assert summary["depends_on_specs"] == 76
+    assert summary["implemented"] == 1181
+    assert summary["noop"] == 668
+    assert summary["depends_on_specs"] == 78
 
 
 def test_deferred_good_condition_gain_noop() -> None:
@@ -450,9 +450,17 @@ def test_deferred_parameter_buff_reduce_unsupported_trigger() -> None:
     assert all(not s.implemented for s in specs)
 
 
-def test_deferred_japanese_condition_conversion_noop() -> None:
-    """日文好調の%分（天生的才能，眠気卡张数条件、无中文）留后续 → 源段未标换算。"""
+def test_japanese_condition_conversion_implemented() -> None:
+    """日文好調の%分（天生的才能）P1-5 留后续 → P1-8 已实现换算（眠気卡张数条件 B10 已解析）。
+
+    源段（ExamParameterBuff 好調の%分）只作系数 value=0/无 depends_on；目标段
+    （ExamLesson パラメータ上昇）挂 depends_on=parameter_buff + percent=30/50。
+    """
     specs = [s for s in load_p_items() if s.item_id in ("pitem_01-3-346-0", "pitem_01-3-346-1")]
     pb = [s for s in specs if s.effect_type == "ExamParameterBuff"]
     assert pb
-    assert all(s.value == 0 and not s.depends_on for s in pb)
+    assert all(s.value == 0 and not s.depends_on for s in pb)  # 源段只作系数
+    lesson = [s for s in specs if s.effect_type == "ExamLesson"]
+    assert len(lesson) == 2
+    assert all(s.depends_on == "parameter_buff" and s.implemented for s in lesson)
+    assert sorted(s.percent for s in lesson) == [30, 50]

@@ -31,7 +31,7 @@
 > 只按本表逐条对齐「机制」；F1 用官方种子做同题同种子复算时，起点状态用 `check`（turn/score/stamina），
 > 并注明对比的 rules 版本。
 
-## 0. 一句话结论（B3 + T5① + T5② + T5④ + P1-1 + P1-2 + P1-3 + P1-4 + P1-5 后）
+## 0. 一句话结论（B3 + T5① + T5② + T5④ + P1-1 + P1-2 + P1-3 + P1-4 + P1-5 + P1-7 + P1-8 后）
 
 分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
 **跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**、
@@ -56,9 +56,13 @@ values 恒空延迟）；**⑦ ExamBuffConsumptionAdd / countDebuffs 评估保�
 buff 花费 / 低下状態の数参考+主数据零使用，无落点）；**P1-5 P 道具剩余效果语义补全
 （bounded batch）**——层数减少类（干劲/集中/全力值 -= N 夹取 ≥0 + 体力减少）、好调回合
 （ExamParameterBuff turn 列 → condition_turns）、好调依赖换算（好调的N%数值变为打分/集中，
-好调=condition_turns 整数）；
-数据层 **1164/1849 段**（P1-5 +97；P1-4 +11 ExamAntiDebuff；P1-3 触发未知 **3→0 件**清零），
-见 §5.3 B8/B9/B10 / §5.4 P1-1 / §5.5 P1-2 / §5.6 P1-3 / §5.7 P1-4 / §5.8 P1-5）。
+好调=condition_turns 整数）；**P1-7 P 道具后续批次**——好调增加量增加（condition_gain 增益倍率）、
+元气增加无效（nullify_genki_turns）/ 不安（unease_turns）、固定元气分离（fixed_vitality）、
+通用延迟生效（yaml timer ↔ DSL delay/嵌套 at:turn）；**P1-8 日文好調の%分（天生的才能）**——
+日文换算源标注（CONVERSION_SOURCES_JA），眠気卡张数条件 baseId(23) B10 已解析，复用 P1-5 换算渠道；
+数据层 **1181/1849 段**（P1-8 +2；P1-7 +15；P1-5 +97；P1-4 +11 ExamAntiDebuff；P1-3 触发未知
+**3→0 件**清零），见 §5.3 B8/B9/B10 / §5.4 P1-1 / §5.5 P1-2 / §5.6 P1-3 / §5.7 P1-4 /
+§5.8 P1-5 / §5.9 P1-7 / §5.10 P1-8）。
 剩余差距是 **随机生成卡**（H.I.F应援棒，考试 RNG 流未知）、**强化状态花费卡类**
 （`ExamBuffConsumptionAdd` 的落点——我们的卡牌模型不建「以强化状态为花费」的卡，
 88 张参考 buff-cost 卡 card_table cost=0、CardSpec 无 buff_cost 字段，P1-4 评估保持 no-op）、
@@ -795,6 +799,65 @@ out/_p17_ab_{before,after}_{9000,9100}.json（gitignore）。
 旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批再新旧对比
 （HANDOVER_NEXT §8.0）；参照臂需按新规则重评。
 
+### 5.10 P1-8 P 道具剩段 bounded batch（日文好調の%分 / 天生的才能，2026-11-24 完成）
+
+目标：P1-7 之后把剩段里「证据充分、离线可定、**映射既有机制**」的低风险段再往上推
+（1179/1849 → **1181/1849**，+2）。本批**只做一块**——日文好調の%分（天生的才能），
+其余剩段（全力・强气效果卡打分 / 塔 gimmick / ExamParameterBuffReduce）证据充分但需
+**新机制/真机**，**保持 no-op 如实记录**（见下「留后续」）。语义经 BSD-3 参考引擎
+（gakumas-tools）+ 主数据 + 参考 DSL（`p_items.csv`）三重核实。
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **日文好調の%分（天生的才能 pitem_01-3-346-0/1）→ 好调依赖换算**（2 段）：参考 DSL `at:afterCardUsed { if:countCards[hand & baseId(23)]>=1 { score+=goodConditionTurns*0.3 } }`（+ 变体 `genki+=1; score+=goodConditionTurns*0.5`）；眠気卡张数条件 baseId(23) 已由 B10 `zone_count` 结构化（hand≥1，card_id=`p_card-00-acc-0_002`）；本批只补「好調の%分」→ `parameter_buff` 的**日文换算源标注**，结算复用 P1-5 依赖换算渠道（目标增量 `int(condition_turns×N/100)`，源段只作系数不消耗好调回合） | [scripts/build_p_items.py](../scripts/build_p_items.py)（`CONVERSION_SOURCES_JA` / `_CONVERSION_SOURCE_TEXT_JA` / `annotate_effects` 日文分支）；**sim/ 零改动**（换算/zone_count 双镜 P1-5/B10 就绪） | BSD-3 DSL `p_items.csv` 天性の才能 493/494（pIdol 158）；主数据 `pitem_01-3-346-0/1` ExamParameterBuff percent1=30/50「好調の%分」+ ExamLesson「パラメータ上昇」（values 恒空）+ 变体 ExamBlock value1=1；`skill_cards.csv` 23 眠気（trouble）↔ `card_table.json`/`card_meta.json` 睡意 `p_card-00-acc-0_002`（ja_aliases 眠気→睡意） | `test_ja_source_annotation_basic` / `test_ja_source_annotation_plus_variant` / `test_zh_source_still_works` / `test_ja_unknown_source_not_converted` / `test_talent_minus_specs` / `test_talent_zone_count_parsed` / `test_apply_minus_score` / `test_apply_minus_ja_alias` / `test_apply_plus_score_genki` / `test_expect_fire_talent_conversion` / `test_lesson_expect_talent_parity` |
+
+**数据/回归（P1-8）**：catalog 1849 段不变；implemented **1179→1181（+2）**、no-op 670→668；
+依赖换算 76→**78 段**（好调换算目标 11→**13**：9 ExamLesson + 4 ExamLessonBuff）。
+p_items.json 重建**仅 2 条记录**变化（逐条 diff 校验：天生的才能 -0/-1 的 ExamParameterBuff
+源段标 `role=conversion_source`/percent1 移除，ExamLesson 目标段挂 `depends_on=parameter_buff`
++ percent1=30/50）。新增 `tests/test_p18_ja_condition_conversion.py` **32 条**；既有断言随
+规则更新（test_p13/test_p14/test_p15/test_p17 implemented 1179→1181、test_p15 noop 670→668 /
+depends_on 76→78 / 好调换算 11→13、test_p15 日文 deferred-noop 改断言已实现）；ruff 通过。
+
+**口径（如实记录）**：
+
+- **日文换算源目前仅 好調**（`CONVERSION_SOURCES_JA = {"好調": "parameter_buff"}`）：全 catalog
+  「の%分」仅天生的才能 2 段（探针核实），不贪多、无误伤；其它日文源（如 集中の%分）保守不换算。
+- **取整与 P1-5 同口径**：目标增量 `int(condition_turns×N/100)` 向下取整（初陣の証・佑芽
+  `score+=goodConditionTurns*0.3` 同渠道）；眠気张数条件 ≥1 是**门槛**不是按张乘（2 张眠気仍
+  结算一次换算）；区域限定 hand（眠気在牌堆不在手牌不触发）；日文卡名 眠気 经 ja_aliases 命中。
+- **N.I.A/hajime 限定道具 stage 限制未建模**（既有限制，非本批新增）；天生的才能是 sense pIdol 158
+  道具，**不在 gkbench hif loadout**（94 唯一 id 无 346）→ local_bench 零触达。
+
+**重标定（P1-8）**：`sim_produce.py`（培育模拟）`p_items` 默认 `()`、`sim_engine_ab.py` 不注入
+P 道具（grep 0 命中）→ 评测路径零 P 道具结算；本批又**只改数据层标注**（sim/ 零改动）→
+非 P 道具路径行为不变。**改前（git stash）/改后 64 局逐位相同（差异=0）**——seed 9000/9100
+各 16 局 rules/expectimax budget 800ms，逐局非时间字段全等（`data/_p18_ab_compare.py`，不提交）；
+expectimax 仍显著强于 rules（Δ+372.2 / +219.1，B3 结论保持）。产物
+out/_p18_ab_{before,after}_{9000,9100}.json（gitignore）。
+
+**留后续（证据充分但需新机制/真机，保持 no-op 如实记录，不猜）**：
+
+- **全力・强气效果卡打分**（ExamFullPower/ExamConcentration「打分值增加+N」**43 段**）：参考 DSL
+  `target:effect(fullPowerCharge) & active { g.score+=11 }`（まあるい春色 234/235）/
+  `target:effect(strength) { g.score+=10 }`（はつぼしメダル黒 376 / ガラスはつみ黒 377）
+  = **per-card g.score 成长**（按效果组过滤，`resolveScore` growth[g.score] 加算），
+  **非** setFullPowerEffectBuff/setStrengthEffectBuff（那是全力/强气指針倍率，另一机制）；
+  主数据 values 恒空需**逐卡证据表 + per-card 成长新机制**（同 P1-3 target:held 成长留后续），
+  超出 bounded 范围，本批不做。触发分布 exam_start 28 / stance_change 5 /
+  produce_end_before_audition_refresh 4 / turn_start 2 / card_played 2 / turn_start_after 2。
+- **塔 gimmick**（低谷 ExamGimmickSlump 11 / 紧张 ExamGimmickLessonDebuff 6 / 弱气
+  ExamGimmickSleepy 6 / 体力回复无效 ExamStaminaRecoverRestriction 6 = **29 段**）：参考引擎
+  **无对应独立字段**（constants.js ALL_FIELDS 无 slump/tension/sleepy/staminaRecover，全引擎
+  grep 仅「extension」子串误命中；全部 CSV 零用法），语义需真机核实；gkbench loadout 无 tower
+  → 评测零触达，留后续。
+- **ExamParameterBuffReduce**（好调减少 **3 段**）：触发 produce_start_lesson（强化哑铃紫）/
+  buff_consume（迈向广阔的未来±，条件好调≥3）未支持；buff_consume 依赖强化状态花费卡机制
+  （P1-4 ⑦ 已记卡模型不承载 buff 花费，88 张参考 buff-cost 卡 card_table cost=0）→ 无落点 no-op。
+
+旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批再新旧对比
+（HANDOVER_NEXT §8.0）；参照臂需按新规则重评。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
    剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
@@ -855,10 +918,13 @@ out/_p17_ab_{before,after}_{9000,9100}.json（gitignore）。
       低下状態の数参考+主数据零使用，无落点，P1-4 评估如实记录）。
 12. ~~**P 道具层数减少 / 好调回合 / 好调依赖换算**~~ ✅ **P1-5 完成**（§5.8：干劲/集中/全力值
     -= N 夹取 ≥0 + 体力减少 + 好调N回合 turn 列 + 好调的N%数值变为打分/集中，implemented
-    1067→1164）；**留后续**（证据充分需新机制）：好调增加量增加（setGoodConditionTurnsBuff
-    增益倍率接线）/ 元气增加无效（nullifyGenkiTurns）/ 不安（uneaseTurns，delay）/ 塔 gimmick
-    （低谷/紧张/弱气/体力回复无效）/ 全力・强气效果卡打分（setFullPowerEffectBuff/
-    setStrengthEffectBuff）/ 日文好調の%分（眠気卡条件）/ ExamParameterBuffReduce（触发未支持）。
+    1067→1164）；~~好调增加量增加 / 元气增加无效 / 不安 / 通用延迟生效~~ ✅ **P1-7 完成**
+    （§5.9：condition_gain / nullify_genki_turns / unease_turns / fixed_vitality / delay_turns，
+    1164→1179）；~~日文好調の%分（眠気卡条件）~~ ✅ **P1-8 完成**（§5.10：天生的才能
+    CONVERSION_SOURCES_JA 日文换算源标注，baseId(23) B10 已解析，1179→1181）；
+    **留后续**（证据充分需新机制/真机）：塔 gimmick（低谷/紧张/弱气/体力回复无效，参考无字段）/
+    全力・强气效果卡打分（per-card g.score 成长，values 恒空需逐卡证据表）/
+    ExamParameterBuffReduce（produce/buff_consume 触发未支持）。
 
 ## 7. 复现
 
@@ -919,6 +985,13 @@ out/_p17_ab_{before,after}_{9000,9100}.json（gitignore）。
 # P1-5 重标定（sim_produce 不引用 p_items → 评测零 P 道具结算；实测改前/改后 64 局逐位相同）
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9000 --out out\_p15_ab_after_9000.json
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9100 --out out\_p15_ab_after_9100.json
+
+# P1-8 日文好調の%分（天生的才能；数据层日文换算源标注 / 眠気张数条件 / 双镜 / no-op 记录）
+.venv\Scripts\python.exe -m pytest tests\test_p18_ja_condition_conversion.py -q
+.venv\Scripts\python.exe scripts\build_p_items.py --check  # 好调换算 13 段；已实现 1179→1181
+# P1-8 重标定（只改数据层标注 sim/ 零改动 + 评测零 P 道具结算；实测改前/改后 64 局逐位相同）
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9000 --out out\_p18_ab_after_9000.json
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9100 --out out\_p18_ab_after_9100.json
 
 # T5③ P 道具数据接入（catalog / loadout 解析 / exam_start / extra_plays / 提交适配器）
 .venv\Scripts\python.exe -m pytest tests\test_p_items.py tests\test_p_items_db.py tests\test_p_items_integration.py -q

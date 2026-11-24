@@ -545,6 +545,19 @@ sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，expecti
 旧 B11 数据/模型旧规则口径全保留。新增 `tests/test_p17_genki_condition_delay.py` 48 条，全量 pytest
 **1612 passed / 1 skipped（1613 收集 / 98 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.9 /
 WORKPLAN P1-7 / HANDOVER 二·补五十一。
+**2026-11-24 P1-8 完成**（阶段1 第八批，用户选定 P 道具剩段；纯离线，BSD-3 + DSL 三重核实；
+**只改数据层标注 sim/ 零改动**）：**P 道具剩段 bounded batch**——日文好調の%分（天生的才能
+pitem_01-3-346-0/1）：DSL 天性の才能 493/494 `score+=goodConditionTurns*0.3/0.5` +
+`countCards[hand & baseId(23)]>=1`（眠気卡张数条件 B10 zone_count 已解析，baseId 23↔睡意
+p_card-00-acc-0_002）；本批补 `CONVERSION_SOURCES_JA` 日文换算源标注（「Xの%分」），复用 P1-5
+依赖换算渠道。**保持 no-op 如实记**：全力・强气效果卡打分（per-card g.score 成长 43 段，values 恒空
+需逐卡证据表+新机制，超出 bounded）/塔 gimmick（29 段参考无字段）/ExamParameterBuffReduce
+（3 段 produce/buff_consume 触发未支持）。implemented **1179→1181/1849**（+2）、依赖换算 76→78
+（好调换算 11→13）；p_items.json 仅 2 条记录变化；**评测零 P 道具结算 + sim/ 零改动** →
+sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，expectimax 仍显著强于 rules Δ+372.2/+219.1）；
+旧 B11 数据/模型旧规则口径全保留。新增 `tests/test_p18_ja_condition_conversion.py` 32 条，全量 pytest
+**1644 passed / 1 skipped（1645 收集 / 99 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.10 /
+WORKPLAN P1-8 / HANDOVER 二·补五十二。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
@@ -557,9 +570,10 @@ F 数据已下；
 ~~P 道具层数减少 + 好调回合 + 好调依赖换算~~ ✅ P1-5（1067→1164/1849）；
 ~~T7②③ 纯函数状态重放/自动复盘页~~ ✅ P1-6（不改规则/不作废 B11 数据）；
 ~~P 道具后续批次（好调增加量增加/元气增加无效/不安/通用延迟生效）~~ ✅ P1-7（1164→1179/1849）；
-**阶段1 剩 P 道具后续批次**（塔 gimmick/全力・强气效果卡打分/日文好調の%分/ExamParameterBuffReduce
-——证据充分需新机制/真机）；**P1-7 完成后先问用户**：继续 P 道具剩段，还是直接进
-阶段2 重采+练学生 r11）→ 阶段2 重采+练学生 r11（small 上采样，
+~~P 道具剩段 bounded batch（日文好調の%分 / 天生的才能）~~ ✅ P1-8（1179→1181/1849，sim/ 零改动）；
+**阶段1 剩 P 道具后续批次**（塔 gimmick/全力・强气效果卡打分/ExamParameterBuffReduce
+——证据充分需新机制/真机；日文好調の%分 ✅ P1-8）；**P1-8 完成后先问用户**：继续 P 道具剩段
+（per-card 成长等新机制），还是直接进阶段2 重采+练学生 r11）→ 阶段2 重采+练学生 r11（small 上采样，
 双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
 → 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。
 需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / fresh buff /

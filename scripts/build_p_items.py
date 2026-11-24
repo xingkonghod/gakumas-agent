@@ -773,14 +773,26 @@ CONVERSION_SOURCES = {
     # 参考 DSL score+=goodConditionTurns*0.3（初陣の証・佑芽）/ concentration+=
     # goodConditionTurns*0.4（アニメイト装備）——「好调的N%数值变为打分上升/集中」
     # 源段只作系数（不消耗好调回合），目标增量 = int(condition_turns × N / 100)。
-    # 日文变体「好調の%分」（天生的才能，含眠気卡张数条件、无中文描述）留后续。
+    # 日文变体「好調の%分」（天生的才能）见 CONVERSION_SOURCES_JA（P1-8）。
     "好调": "parameter_buff",
+}
+# P1-8（2026-11-24）：日文换算源「Xの%分」（无中文描述的新道具）。目前仅
+# 天生的才能（pitem_01-3-346-0/1）的「好調の%分」——参考 DSL 天性の才能 493/494
+# ``at:afterCardUsed { if:countCards[hand & baseId(23)]>=1 { score+=goodConditionTurns*0.3 } }``
+# （+ 变体 genki+=1; score+=goodConditionTurns*0.5）。眠気卡张数条件 baseId(23)
+# 已由 B10 zone_count 结构化解析（card_id=p_card-00-acc-0_002 ↔ skill_cards.csv 23 眠気）；
+# 这里只补「好調の%分」→ parameter_buff 的换算源标注，结算复用 P1-5 依赖换算渠道。
+CONVERSION_SOURCES_JA = {
+    "好調": "parameter_buff",
 }
 CONVERSION_TARGET_TYPES = frozenset(
     {"ExamLesson", "ExamReview", "ExamBlock", "ExamLessonBuff", "ExamCardPlayAggressive", "ExamParameterBuff"}
 )
 _CONVERSION_SOURCE_TEXT = re.compile(
     r"^(?P<src>" + "|".join(CONVERSION_SOURCES) + r")的%数值变为"
+)
+_CONVERSION_SOURCE_TEXT_JA = re.compile(
+    r"^(?P<src>" + "|".join(CONVERSION_SOURCES_JA) + r")の%分"
 )
 _ZERO_TEXT = re.compile(r"^(?P<src>" + "|".join(CONVERSION_SOURCES) + r")变为0$")
 
@@ -801,19 +813,23 @@ def annotate_effects(effects: list[dict], zh_text: str) -> list[dict]:
         percent = values.get("percent1")
         if percent:
             match = _CONVERSION_SOURCE_TEXT.match(text)
-            if match:
-                source = CONVERSION_SOURCES.get(match.group("src"), "")
-                if source:
-                    for target in effects[index + 1 : index + 3]:
-                        if target.get("type") not in CONVERSION_TARGET_TYPES:
-                            continue
-                        if target.get("values"):
-                            continue
-                        target["depends_on"] = source
-                        target["values"] = {"percent1": int(percent)}
-                        effect["role"] = "conversion_source"
-                        values.pop("percent1", None)
-                        break
+            source = CONVERSION_SOURCES.get(match.group("src"), "") if match else ""
+            if not source:
+                # P1-8：日文换算源「Xの%分」（天生的才能 好調の%分，无中文描述）。
+                ja_match = _CONVERSION_SOURCE_TEXT_JA.match(text)
+                if ja_match:
+                    source = CONVERSION_SOURCES_JA.get(ja_match.group("src"), "")
+            if source:
+                for target in effects[index + 1 : index + 3]:
+                    if target.get("type") not in CONVERSION_TARGET_TYPES:
+                        continue
+                    if target.get("values"):
+                        continue
+                    target["depends_on"] = source
+                    target["values"] = {"percent1": int(percent)}
+                    effect["role"] = "conversion_source"
+                    values.pop("percent1", None)
+                    break
             # 最大体力的 N% 被挂到前一个效果上（文本里「…数值变为」是标志）
             if "数值变为" in text:
                 for target in effects[index + 1 : index + 3]:
