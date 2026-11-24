@@ -1300,7 +1300,7 @@ out/_p14_ab_{before,after}_{9000,9100}.json（gitignore）；一次性脚本 dat
 _p14_probe.py / _p14_pitems_head.json 不提交。
 文档：RULES_REFERENCE §0/§1/§5.5/§5.7/§6/§7；WORKPLAN §0/P1-4/开场白；
 HANDOVER_NEXT §0/§2/§4 T5/§8.0/§8；INDEX；HANDOVER 二·补四十七。
-提交 feat（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
+提交 feat 1b58a0f（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
 **下一会话（P1-5，用户已确认 A 顺序，不用再问）**：⑧ P 道具剩余效果语义补全（离线可做段，
 1067/1849 往上推；bounded batch，别一口吃成胖子）。每项 DoD：参考证据+代码+单测+
 RULES_REFERENCE 更新+sim_engine_ab 重标定；旧数据模型全保留；完成后按 §8 交接+发 P1-6 开场白。
