@@ -1196,7 +1196,7 @@ expectimax 仍显著强于 rules（Δ+372.2 / +219.1 评价点，15/0/1 与 11/0
 data/_p12_ab_compare.py / _p12_idol_map.json 不提交。
 文档：RULES_REFERENCE §0/§1/§2/§5.5/§6/§7；WORKPLAN §0/P1-2/开场白；
 HANDOVER_NEXT §0/§2/§4 T5/§8.0/§8/开场白；INDEX；HANDOVER 二·补四十五。
-提交 `feat <hash>`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
+提交 `feat b8fc944`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
 **下一会话（P1-3，用户已确认 A 顺序，不用再问）**：⑥ hold 保留区建模（zone +
 2 件张数条件 + hotfix 1；LessonSim/ExpectState 双镜；holdCard/holdThisCard/holdSelected
 来源 + lockStanceTurns 随同；P1-1 回手钩子已就绪）。每项 DoD：参考证据+代码+单测+
