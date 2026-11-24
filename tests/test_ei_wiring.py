@@ -381,11 +381,12 @@ def test_tracked_v6_model_loads() -> None:
     model = PolicyMLP.load(TRACKED_V6)
     assert model.w1.shape == (INPUT_DIM, 192)
     assert model.w2.shape == (192, 96)
-    # 2026-11-24 阶段2 r11 双过入库（small+large 复合门）：入库位 ei_policy_v6.json
-    # 现为 r11 权重（new-rules + small 上采样 ×2 + norm-by-scenario），替换 r6。
-    assert model.meta.get("task") == "B11 expert-iteration round11"
+    # 2026-11-24 r13 完整渐退迭代入库（教师←r11，占比渐退 0.15→0.075，复合门基线=r11）：
+    # 入库位 ei_policy_v6.json 现为 r13 权重（large500 r13−r11 +2.882 CI[+1.309,+4.455] 主门 PASS /
+    # small500 r13−r11 −0.028 不回退 / vs v1 +0.558 保持），替换 r11。
+    assert model.meta.get("task") == "B11 expert-iteration round13"
     assert "PASS" in model.meta["production"]["gate"]
-    assert model.meta["production"]["revision"].startswith("r11")
+    assert model.meta["production"]["revision"].startswith("r13")
 
 
 def test_tracked_v6_decides_on_synthetic_state(tmp_path: Path) -> None:

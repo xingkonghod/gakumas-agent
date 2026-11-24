@@ -3050,6 +3050,42 @@ out/ei_r12_v12_mix.json）。不硬凑显著：small 学生改进本身中性（
 HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；本文件二·补五十四。
 **提交**：feat 6d30e8c（r12 文档+中性结果记录）+ docs(handover) 哈希记录；见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补五十五、11-24（r13 —— P2-3 完整渐退迭代：教师←r11、占比渐退 0.15→0.075 → large 显著超 r11 入库为生产，small 维持天花板）
+
+**用户追问「不应该逐渐调老师学生占比吗，让最新的当老师」** → 澄清 r12 是通道 3 ablation（复用 v6 数据去示范，
+没让 r11 当老师）≠ 完整渐退协议（每过门：占比渐退 + 教师←最新过门学生 + 采新数据 + 门基线换最新）；用户选定 A
+按完整协议跑 r13。开工基线 ①–⑤ 全绿（HEAD 015f04c，② 1657/1、1658 收集 / 100 文件，202.75s）。Hindsight 已停用。
+🔒 旧数据/模型全保留（r11 保留 out/ei_r11_v11_mix.json、r12/v1/v6 参照保留）。
+
+**完整渐退一步（教师←最新入库学生 r11）**：采 r11 argmax 新自对弈 small 10000 局 145578（1400000+，std 12.058，
+均分 99.2≈v6 99.4）/ large 5000 局 135679（1500000+，std 24.591，**均分 317.8≫v6 288.9**，样本更密）+ r11 示范
+3600 局 51912（1600000+，std 0.713，均分 99.0，剔除强制 382、教师-SKIP 0）；新 seed 块与评测段及 r11 块全错开。
+train_ei_policy --teacher-frac 0.075（**渐退减半 0.15→0.075**，不跳 0）--round 13 --norm-by-scenario --upsample-small 2
+（r11 配方保持），449639 行（自对弈 426835 + 示范下采样 22804，small ×2=291156，教师行占比 0.051），192×96/1200ep；
+逐场景 std small 12.0584/large 24.5906；能量 small 66.4%/large 31.0%/demos 2.6%（r11@0.15: 65.6/28.9/5.5）；
+val 排序 0.829（r11 0.822/r12 0.817）/train MSE 0.2267/r² 0.768；训练 3213.4s（8 线程）。
+
+**门基线换 r11**（学生要超最新老师，而非 v6）。**500 局复合门（参照臂 r11(net)/beam/greedy 逐位 6/6）**：
+large500 r13 316.802 vs r11 313.920 +2.882 CI[+1.309,+4.455] 主门 PASS（显著超最新老师；vs v6 +28.984
+CI[+25.978,+31.990]、vs beam +15.190 CI[+12.082,+18.298]，CLEAR 61.4% vs r11 60.6%/beam 49.8%；新鲜块 6000
+r13 325.292 vs r11 322.508 +2.783 CI[−0.256,+5.822] 方向正）；small500 r13 98.620 vs r11 98.648 −0.028
+CI[−0.265,+0.209] 不回退（目的「显著超 r11」未达，蒸馏天花板；CLEAR 12.0%==r11；vs beam +2.132）；vs v1 +0.558
+CI[+0.172,+0.944] 原门保持；选择段 80 −0.338 中性；r13−r12 large +2.132 CI[+0.595,+3.669] 显著正 / small −0.036 中性。
+
+**复合门通过 → 入库**：data/_r13_promote.py 程序化门校验（参照臂逐位 6/6 → large 主门下界>0 ✅ → small 护栏上界≥0 ✅ →
+vs v1 下界>0 ✅ → 入库分支）→ ei_policy_v6.json 替换 r13 权重（1004426 字节，权重逐位一致，meta.production revision
+r13-teacher-r11-gradual-fade）。目的（small 显著超 r11）未达但**不门**——large 主门显著正即真实前进（与 r11 入库同逻辑）。
+
+**机制结论**：① 「让最新当老师」对 large 有效——学生变强（r11 large +26 vs v6）→ large 自对弈数据更优（均分 317.8、
+样本更密 135679）→ r13 large 再超 r11 +2.882（累计 vs v6 +28.984），渐退迭代在 large 持续产生增益。② small 蒸馏天花板
+三重佐证（r3–r8 平台期 + r12 通道 3 关闭 + r13 换最新老师仍中性 −0.028）——纯自对弈优势标签下 small 学生最多逼近老师，
+要超越需探索/更强标签/候选③两段式微调（非必需）。③ 占比渐退本身影响小（r12 已证 demos 无拉扯），增益主因教师←r11 更优 large 数据。
+
+**验证**：test_ei_wiring.py 入库断言随 r13 更新（round13+revision r13）；ruff 通过；全量 pytest 1657/1（1658 收集 / 100 文件，
+199.37s）；基线 ①③④⑤ 不变。r13 模型/评测 out/ei_r13_*（gitignore）；一次性脚本 data/_r13_*.py 不提交。
+文档：EXPECTIMAX B11 r13；R9_ANALYSIS §12；WORKPLAN B11+P2；HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；本文件二·补五十五。
+**提交**：feat（r13 入库+wiring 断言+文档）+ docs(handover) 哈希记录；见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -3270,6 +3306,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-24 r13 哈希记录：feat <待补> + docs(handover) 本节；P2-3 完整渐退迭代（用户追问「不应该逐渐调老师学生占比吗，让最新的当老师」后选定A；教师←最新入库学生r11，占比渐退0.15→0.075，门基线换r11）：采r11 argmax新自对弈small10000局145578(1400000+,std12.058,均分99.2)/large5000局135679(1500000+,std24.591,均分317.8≫v6288.9,样本更密)+r11示范3600局51912(1600000+,0教师SKIP)；train_ei_policy --teacher-frac 0.075(渐退减半)--round13 --norm-by-scenario --upsample-small 2(r11配方保持),449639行(small×2=291156/large135679/demos22804,教师行占比0.051),192×96/1200ep,能量small66.4%/large31.0%/demos2.6%(r11@0.15:65.6/28.9/5.5),val排序0.829(r11 0.822/r12 0.817),train MSE0.2267/r²0.768,训练3213.4s(8线程)。500局复合门(参照臂r11(net)/beam/greedy逐位6/6,基线=r11)：large r13 316.802 vs r11 313.920 +2.882 CI[+1.309,+4.455]主门PASS(显著超最新老师;vs v6+28.984 CI[+25.978,+31.990]/vs beam+15.190,新鲜块6000+2.783 CI[−0.256,+5.822]方向正)/small r13 98.620 vs r11 98.648 −0.028 CI[−0.265,+0.209]不回退(目的显著超r11未达,蒸馏天花板)/vs v1 +0.558 CI[+0.172,+0.944]原门保持/选择段80−0.338中性;r13−r12 large+2.132 CI[+0.595,+3.669]显著正/small−0.036中性→复合门通过→入库ei_policy_v6.json=r13权重(1004426字节,meta.production revision r13-teacher-r11-gradual-fade,旧r11保留out/ei_r11_v11_mix.json)。机制:「让最新当老师」对large有效(学生变强→large自对弈数据更优均分317.8样本更密135679→r13再超r11+2.882,累计vs v6+28.984,渐退迭代large持续增益);small蒸馏天花板三重佐证(r3–r8平台期+r12通道3关闭+r13换最新老师仍中性−0.028,纯自对弈优势标签学生最多逼近老师,要超越需探索/更强标签/候选③两段式微调非必需);占比渐退本身影响小(r12已证demos无拉扯),增益主因教师←r11更优large数据。目的(small显著超r11)未达但不门(large主门显著正即真实前进,与r11入库同逻辑)。test_ei_wiring入库断言随r13更新(round13)、ruff通过、pytest 1657/1(1658收集/100文件,199.37s)、基线①③④⑤不变;旧数据模型全保留(r11/r12/v1/v6参照保留);r13模型评测out/ei_r13_*(gitignore)、一次性脚本data/_r13_*.py不提交;EXPECTIMAX B11 r13/R9_ANALYSIS §12/WORKPLAN B11+P2/HANDOVER_NEXT §0+§2+§8.0+§8/INDEX/二·补五十五；下一任务:阶段3真机T3→T1→T2(net第四臂用入库r13),可选r14教师←r13继续渐退）
+<待补> feat(ei): r13 完整渐退迭代入库——教师←r11占比渐退0.15→0.075，large显著超r11+2.882、small维持天花板（采r11新自对弈small145578/large135679(均分317.8≫v6288.9)/demos51912新seed块；--teacher-frac 0.075 --round13 --norm-by-scenario --upsample-small 2；449639行能量small66.4%；门基线换r11；500局复合门large+2.882 CI[+1.309,+4.455]主门PASS/small−0.028不回退/vs v1+0.558保持→ei_policy_v6.json=r13；参照臂逐位6/6；「让最新当老师」对large有效、small蒸馏天花板三重佐证；wiring断言round13、pytest 1657/1；EXPECTIMAX B11 r13/R9_ANALYSIS §12/WORKPLAN P2/二·补五十五）
 （2026-11-24 r12 哈希记录：feat 6d30e8c + docs(handover) 本节；P2-2 降档15→0去v1示范（单变量=教师占比0.15→0，零代码改动）：train_ei_policy --teacher-frac 0 无--demos纯自对弈，复用r11新规则数据(small145565/large128103)+--norm-by-scenario --upsample-small 2；419233行(small×2=291130/large128103/demos0,教师占比0.000),192×96/1200ep,能量small69.4%/large30.6%/demos0%(r11 65.6/28.9/5.5),val排序0.817(r11 0.822,val切分rng状态不同不可直接比;评测门seed3000–3499与训练seed全错开),train MSE0.2387/r²0.762,训练3226.5s(8线程)。500局双门(参照臂v6/beam/greedy逐位6/6)：large r12 314.670 vs v6 287.818 +26.852 CI[+23.834,+29.870]主门PASS(vs beam+13.058,新鲜块6000+21.125 CI[+14.951,+27.299])/small r12 98.656 vs v6 98.640 +0.016 CI[−0.286,+0.318]中性(目的门「显著超v6」下界<0未达)/vs v1 +0.594 CI[+0.188,+1.000]原门保持/选择段80 −0.662中性；r12−r11(纯学生变化零规则分移)small+0.008 CI[−0.224,+0.240]/large+0.750 CI[−0.412,+1.912]均中性(r12与r11统计不可分);r12−r9 small+0.434 CI[+0.095,+0.773]显著正(修复r9回退保持)/large+1.224中性、r12−r10 small+0.272/large+1.058中性。预注册目的门(small500 r12−v6 CI下界>0)未过→不入库:data/_r12_promote.py程序化门校验(参照臂逐位6/6→large主门✅→small目的门❌→退出1入库文件未动)→生产ei_policy_v6.json保持r11权重(r12留out/ei_r12_v12_mix.json)。不硬凑显著(small学生改进本身中性+0.016)。机制结论通道3关闭:去v1教师整个去掉后small/large均无显著变化→v1示范无显著拉扯(与§9行为探针一致),small平台期非教师相关、是通道2修复后「学生≈教师」蒸馏天花板;若仍需small超v6剩候选③两段式微调/探索增量非必需,教师←v6因通道3已关闭预期中性不再优先。零代码改动→无新测试、wiring入库断言不变(生产仍r11 round11+revision r11)、ruff通过、pytest 1657/1(1658收集/100文件,202.75s)、基线①③④⑤不变;旧数据模型全保留(r11入库位未动/v1示范npz保留);r12模型评测out/ei_r12_*(gitignore)、一次性脚本data/_r12_*.py不提交;EXPECTIMAX B11 r12/R9_ANALYSIS §11/WORKPLAN B11+P2/HANDOVER_NEXT §0+§2+§8.0+§8/INDEX/二·补五十四；下一任务:阶段3真机T3→T1→T2(+T6/D1补采+E0+C1真机验收)）
 6d30e8c feat(ei): r12 降档15→0去v1示范——small中性、通道3关闭、不入库保持r11（单变量=教师占比0.15→0零代码改动；--teacher-frac 0无--demos纯自对弈复用r11新规则数据+--norm-by-scenario --upsample-small 2；419233行能量small69.4%；500局双门large+26.852主门PASS/small+0.016中性目的门未达/vs v1+0.594保持/r12−r11中性→ei_policy_v6.json保持r11；参照臂逐位6/6；通道3正式关闭small平台期非教师相关；零代码改动无新测试wiring断言不变、pytest 1657/1；EXPECTIMAX B11 r12/R9_ANALYSIS §11/WORKPLAN P2/二·补五十四）
 （2026-11-24 阶段2 r11 哈希记录：feat 3b2a1c4 + docs(handover) 本节；P2-0/P2-1/P2-1b 新规则重采+small上采样×2+norm-by-scenario→small+large双过入库（首个双过学生）。前置sim_engine_ab重标定与P1-8逐位一致(0/32,Δ+372.2/+219.1)+参照臂v6/v1/beam/r9/r10新规则重评：small规则零分移(v6 98.640/v1 98.062/beam 96.488)、large分移±2(v6 285.836→287.818+1.982/r9 315.424→313.446−1.978/r10 314.890→313.612−1.278/beam 301.268→301.612+0.344)，门基线重定。P2-0重采(v6 argmax新seed块)：small 10000局145565(1100000+,std12.172)/large 5000局128103(1200000+,std24.301)/v1示范3600局51985(1300000+,0教师SKIP)。P2-1 train_ei_policy --upsample-small N纯增量(默认1逐位不变,r9/r10 24条回归全过;small行重复N份,教师占比下采样之后调用,重复行保持seed/group不泄漏,_load_many逐行scenario_col/_subsample同步切,mix记upsample_small)+13条回归；467527行(small×2=291130/large128103/demos48294,教师行占比0.103),192×96/1200ep,能量small65.6%/large28.9%/demos5.5%(§6候选②~66%吻合),val排序0.822,训练3747.9s(8线程)。500局双门(参照臂逐位6/6)：large r11 313.92 vs v6 287.82 +26.10 CI[+23.06,+29.14] PASS(vs beam+12.31,新鲜块6000+20.81)/small r11 98.648 vs v6 98.640 +0.008 CI[−0.253,+0.269]不回退(上界≥0)/vs v1 +0.586 CI[+0.245,+0.927]保持→复合门首次双过→入库ei_policy_v6.json=r11权重(1004369字节,meta.production revision r11-new-rules-upsample-small,旧r6保留out/ei_r6_v6_mix.json)。P2-1b新旧对比：large headline r11 vs旧v6 +28.084=学生改进+26.102(93%)+规则分移+1.982(7%),small规则零分移;r11 small显著优于r9(+0.426 CI[+0.159,+0.693]修复r9回退)、large与r9/r10中性(增益保持)。F public-safe入场券拿到。13条新单测+wiring入库断言更新(round11)、pytest 1657/1(1658收集/100文件)、基线①③④⑤不变；旧B11数据模型全保留;EXPECTIMAX B11 r11+P2-1b/R9_ANALYSIS §10/WORKPLAN B11+P2/HANDOVER_NEXT §0+§2+§8.0+§8/INDEX/二·补五十三；下一任务先问用户：阶段3真机T3→T1→T2 vs r12续(small显著超v6,非必需)）

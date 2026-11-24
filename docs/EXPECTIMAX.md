@@ -2090,3 +2090,74 @@ $env:OPENBLAS_NUM_THREADS='8'; $env:OMP_NUM_THREADS='8'
 - r12 模型/评测 out/ei_r12_*（gitignore）；一次性脚本 data/_r12_*.py 不提交；旧数据/模型全保留（r11 入库位未动、v1 示范 npz 保留）；
 - 细节见 HANDOVER 二·补五十四 / WORKPLAN B11+P2 / HANDOVER_NEXT §8.0 / R9_ANALYSIS §11（预测 vs 实测）。
 
+## B11 r13（2026-11-24）：完整渐退迭代（教师←r11，占比 0.15→0.075）—— **large 显著超 r11 入库，small 维持天花板**
+
+**结论先行**：r13 = 渐退式专家迭代**完整一步**（用户追问「不应该逐渐调老师学生占比吗，让最新的当老师」后选定 A）：教师←最新入库学生 **r11**，采 r11 argmax **新**自对弈（small 1400000+ / large 1500000+）+ r11 示范（1600000+），占比**渐退 0.15→0.075**（减半，不跳 0），配方保持 r11 的 `--norm-by-scenario --upsample-small 2`。**门基线换 r11**（学生要超最新老师，而非 v6）。**复合门通过 → 入库**：`ei_policy_v6.json` 替换 r13 权重（1004426 字节，参照臂逐位 6/6，旧 r11 保留 out/ei_r11_v11_mix.json）。**large 显著超 r11（+2.882）——「让最新当老师」对 large 有效**（r11 采的 large 数据均分 317.8 ≫ v6 288.9，质量更高）；**small 维持天花板**（−0.028 中性，蒸馏上限如预测）。
+
+| 段 | r13 | r11（基线） | beam | r13−r11 Δ | 95% CI | 判定 |
+|---|---:|---:|---:|---:|---|---|
+| **large 500（3000–3499，主门）** | **316.802** | 313.920 | 301.612 | **+2.882** | **[+1.309,+4.455]** | **PASS（显著超最新老师）** |
+| large 新鲜块 120（6000–6119） | 325.292 | 322.508 | 310.375 | +2.783 | [−0.256,+5.822] | 方向正（120 局未显著） |
+| **small 500（3000–3499，护栏）** | **98.620** | 98.648 | 96.488 | **−0.028** | **[−0.265,+0.209]** | **不回退 ✅（上界≥0）** |
+| small 500 vs v1（原门） | 98.620 | 98.062 | — | +0.558 | [+0.172,+0.944] | 保持 ✅ |
+| small 选择 80（2000–2079） | 99.388 | 99.725 | 97.263 | −0.338 | [−1.767,+1.092] | 中性 |
+
+* **绝对水位（vs v6 新规则）**：large500 r13−v6 **+28.984 CI[+25.978,+31.990]**（r11 是 +26.10，再进一步）；small500 r13−v6 −0.020 CI[−0.304,+0.264] 中性（≈v6）；
+* **large vs beam**：500 局 **+15.190 CI[+12.082,+18.298]**（r11 是 +12.31）；CLEAR **61.4%** vs r11 60.6% / beam 49.8%（新鲜块 67.5% vs 65.0%/58.3%）；PERFECT 1.0%；
+* **r13 vs r12**：large **+2.132 CI[+0.595,+3.669] 显著正**（r12 是 v6 数据去示范 ablation，r13 用 r11 更优 large 数据再超）；small −0.036 CI[−0.331,+0.259] 中性；
+* **small**：CLEAR 12.0% == r11；vs beam +2.132 CI[+1.339,+2.925] 绝对水位仍在。
+
+### 数据 / 训练（教师←r11，新 seed 块新文件）
+
+r11 argmax 自对弈 + r11 示范，**新 seed 块与评测段（3000–3499）及 r11 块（1100000/1200000/1300000）全错开**：
+
+| 文件 | 场景 | 局数 | 样本 | seed 块 | 标签 std | 学生/教师均分 |
+|---|---|---:|---:|---|---:|---:|
+| `ei_r13_selfplay_small.npz` | small | 10000 | 145578 | 1400000–1409999 | 12.058 | r11 99.2（≈v6 99.4） |
+| `ei_r13_selfplay_large.npz` | large | 5000 | 135679 | 1500000–1504999 | 24.591 | **r11 317.8（≫v6 288.9）** |
+| `ei_r13_demos.npz` | small | 3600 | 51912 | 1600000–1603599 | 0.713 | r11 99.0（剔除强制 382、教师-SKIP 0） |
+
+**large 数据质量提升是关键**：r11 large 比 v6 强 +26（313.9 vs 287.8），用 r11 采的 large 自对弈均分 317.8、样本更多（135679 vs r11 的 128103，r11 出牌更多决策更密）→ r13 large 再超 r11。small 数据因 r11≈v6 几乎不变（145578≈145565）。
+
+训练：自对弈 281257（small 145578 + large 135679）+ 示范 51912 → 教师占比 0.075 下采样示范至 22804 → small ×2 上采样（145578→291156）= **449639 行**（自对弈 426835 / 示范 22804，教师**行**占比 0.051）；192×96/1200ep/lr1e-3/l2 1e-4/seed0 全同 r11；逐场景 std small **12.0584** / large **24.5906**；**能量份额 small 66.4% / large 31.0% / demos 2.6%**（r11@0.15: 65.6/28.9/5.5；r12@0: 69.4/30.6/0）；val 排序 **0.829**（r11 0.822 / r12 0.817，新鲜 r11 数据更优）/train MSE 0.2267/r² 0.768；训练 **3213.4s**（OPENBLAS_NUM_THREADS=8）。
+
+### 判定 / 处置（复合门，基线=r11）
+
+`data/_r13_promote.py` 程序化门校验（参照臂 r11(net)/beam/greedy 逐位 **6/6** 全过 → 数字可信）：
+1. large500 r13−r11 +2.882 CI 下界>0 ✅（主门：显著超最新老师）；
+2. small500 r13−r11 −0.028 CI 上界≥0 ✅（不回退）；
+3. small500 vs v1 +0.558 CI 下界>0 ✅（原门保持）。
+→ **复合门通过 → 入库**：`ei_policy_v6.json` 替换 r13 权重（权重逐位一致，meta.production revision r13-teacher-r11-gradual-fade）。**目的（small 显著超 r11）未达**（−0.028 中性，蒸馏天花板）但**不门**——large 主门显著正即构成真实前进（与 r11 入库同逻辑：small 中性 + large 显著）。
+
+### 机制结论（渐退协议验证）
+
+* **「让最新当老师」对 large 有效**：r11→r13 用更优 large 自对弈数据，large +2.882 显著前进（累计 vs v6 +28.984）。渐退迭代在 large 上持续产生增益（数据质量随学生变强而提升）。
+* **small 蒸馏天花板确认**：r11 small ≈ v6，r13 small ≈ r11（−0.028 中性）——纯自对弈优势标签下学生最多逼近老师决策质量，small 难显著超老师（r3–r8 平台期 + r12 通道 3 关闭 + r13 换最新老师仍中性，三重佐证）。要 small 超越需探索/更强标签/候选③两段式微调（非必需）。
+* **占比渐退 0.15→0.075**：demos 能量 5.5%→2.6%，small/large 自对弈主导；r12 已证 demos 无显著拉扯（通道 3 关闭），渐退占比对结果影响小，主要增益来自「教师←r11 的更优 large 数据」。
+
+### 复现命令（r13 路径）
+
+```powershell
+# 采 r11 新数据（教师←最新入库学生 r11，新 seed 块）
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode selfplay --scenario small --student-model out\ei_r11_v11_mix.json --games 10000 --seed 1400000 --out out\ei_r13_selfplay_small.npz
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode selfplay --scenario large --student-model out\ei_r11_v11_mix.json --games 5000 --seed 1500000 --out out\ei_r13_selfplay_large.npz
+.venv\Scripts\python.exe scripts\build_ei_dataset.py --mode demos --scenario small --teacher-net out\ei_r11_v11_mix.json --games 3600 --seed 1600000 --out out\ei_r13_demos.npz
+# 训练（占比渐退 0.15→0.075；OPENBLAS_NUM_THREADS=8 复现需带）
+$env:OPENBLAS_NUM_THREADS='8'; $env:OMP_NUM_THREADS='8'
+.venv\Scripts\python.exe scripts\train_ei_policy.py --selfplay out\ei_r13_selfplay_small.npz out\ei_r13_selfplay_large.npz --demos out\ei_r13_demos.npz --teacher-frac 0.075 --round 13 --epochs 1200 --hidden 192 96 --norm-by-scenario --upsample-small 2 --out out\ei_r13_v13_mix.json
+# 评测（门基线=r11；评测须无训练负载）
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r13_v13_mix.json --baseline-net out\ei_r11_v11_mix.json --games 500 --seed 3000 --scenario small --no-within --json out\ei_r13_eval_v13_small500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r13_v13_mix.json --baseline-net out\ei_r11_v11_mix.json --games 500 --seed 3000 --scenario large --no-within --json out\ei_r13_eval_v13_large500.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r13_v13_mix.json --baseline-net out\ei_r11_v11_mix.json --games 120 --seed 6000 --scenario large --no-within --no-greedy --json out\ei_r13_eval_v13_large_fresh6000.json
+.venv\Scripts\python.exe scripts\eval_ei.py --net-model out\ei_r13_v13_mix.json --baseline-net out\ei_r11_v11_mix.json --games 80 --seed 2000 --scenario small --no-within --no-greedy --json out\ei_r13_eval_v13_small_select.json
+.venv\Scripts\python.exe data\_r13_compare.py   # 配对 + 能量分解
+.venv\Scripts\python.exe data\_r13_promote.py   # 退出码 0 = 复合门过入库
+```
+
+### 测试 / 基线
+
+- `test_ei_wiring.py` 入库断言随 r13 更新（round13 + revision r13）；ruff 通过；
+- 全量 pytest **1657 passed / 1 skipped（1658 收集 / 100 文件）**（复跑不变）；基线 ①③④⑤ 不变；
+- r13 模型/评测 out/ei_r13_*（gitignore）；一次性脚本 data/_r13_*.py 不提交；旧数据/模型全保留（r11 保留 out/ei_r11_v11_mix.json、r12 保留、v1/v6 参照保留）；
+- 细节见 HANDOVER 二·补五十五 / WORKPLAN B11+P2 / HANDOVER_NEXT §8.0 / R9_ANALYSIS §12（预测 vs 实测）。
+
