@@ -1421,7 +1421,7 @@ deferred-noop 改断言已实现）；ruff 通过；全量 pytest **1644/1（164
 ①③④⑤ 复跑不变（① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155）。
 重标定产物 out/_p18_ab_{before,after}_{9000,9100}.json（gitignore）；一次性脚本 data/_p18_*.py 不提交。
 文档：RULES_REFERENCE §0/§5.10/§6/§7；WORKPLAN §0/P1-8/路线图；HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；HANDOVER 二·补五十二。
-提交 feat <HASH>（数据层标注+测试+数据重建+文档）+ docs(handover) 哈希记录。
+提交 feat 4e2df82（数据层标注+测试+数据重建+文档）+ docs(handover) 哈希记录。
 **下一会话（先问用户）**：阶段1 剩 **P 道具后续批次**（塔 gimmick/全力・强气效果卡打分/
 ExamParameterBuffReduce——证据充分但需新机制/真机，no-op 如实记；日文好調の%分 ✅ P1-8），
 **或直接进阶段2 重采+练学生 r11**（small 上采样 + --norm-by-scenario，新 seed 块新文件，参照臂按新规则重评，
