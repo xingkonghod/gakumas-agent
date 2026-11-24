@@ -602,6 +602,16 @@ WORKPLAN P2 / HANDOVER 二·补五十五。
 （氷渡香名江·感性）。**T1 待续**（drink-keep 屏 tap-lost 待修 + 期末窗口最小化中断）；**T2 未开始**（beam 臂依赖卡表刷新）。
 C1 真机生效（tap 互验/提权/复盘）。全量 pytest **1671/1（1672 收集 / 102 文件）**，基线 ①③④⑤ 不变。
 细节见 HANDOVER_NEXT §2/§8.0/§8 / FAILURES #45–47 / WORKPLAN 阶段 E。
+**2026-11-25 ep-t31 C+ 调查 + F#48 日文别名修复 + F#49 drink-keep + PRO 难度 opt-in**（用户选定先调查后主线，纯离线不跑真机）：
+调查结论——最终评价点 **5493=C+**（公式逐位命中；旧记 B/7404 的 7404 是另一字段，真实评价点字段 110043881.7，
+11-20 手动 REGULAR=6750=B）；bot 打 **REGULAR 非 PRO**（期中恰好 900=REGULAR forceEnd 线）；A/10237 参照是 PRO 跨难度不可比；
+同难度缺口 −1257=三维 −575（训练）+期末折算 −682（考试）。**修正「卡表过期→beam 停用」假设**：beam 从未启用（全程 expectimax）、
+卡表已含新卡，真正根因=**新偶像卡「柔らかな光の中で」日文名查表落空**（汉化 overlay 9/16 滞后，F#48）→ score=0 盲打 + T8 全知停用。
+修复：build_card_table 全量 ja_aliases 1765（cards 逐位不变）+ CardTable.get 别名 fallback；T3 离线 sweep **6/6**（期末 12/12）。
+**剩期中 T5 重洗 ❌ = 新偶像卡考试内生成卡 grave 15 vs 模型 13（生成卡重洗模型缺口，留后续）**。F#49 drink-keep：OCR 漏读
+「还可选择N」→ 点禁用态保留空转 → 改按勾选框扫描补勾。PRO opt-in（produce.difficulty="pro"，默认 regular，坐标待真机实测）。
+基线工件恢复 B10 口径 4 场绿（6 场版留 *_v361.json）。全量 pytest **1681/1（1682 收集 / 103 文件）**。
+细节见 RUNS「2026-11-25 ep-t31 C+ 疑问调查」/ FAILURES #48–49 / HANDOVER_NEXT §2/§8 / WORKPLAN E1–E3。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+

@@ -491,7 +491,16 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-24 22:5x，阶段3 真机首跑 + v3.6.1 更新适配后）**：①③④⑤ 开工全绿
+**最近一次复核（2026-11-25 00:4x，ep-t31 C+ 调查 + F#48 别名 + F#49 drink-keep + PRO opt-in 后）**：
+①③④⑤ **B10 口径 4 场全绿**（① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155）；
+② **1681/1（1682 收集 / 103 文件，231.79s）**（+10 条：F#48 别名 6 + PRO 3 + drink-keep 1）。② 唯一 skip =
+`tests/test_produce_ui.py:1181`（step_047 活帧被覆写，属预期）。**基线工件纪律**：reconstruct_deck 重跑后
+deck_snapshots/exam_setup 含 6 场，① verify_shuffle 暴露期中 T5 重洗 ❌（新偶像卡考试内生成卡 grave 15 vs 模型 13，
+5/6）；为守 B10 口径绿，基线工件恢复 4 场，6 场版保留 `out/exam_setup_v361.json` +
+`C:\GakumasLocal\GakumasUnlock\out\deck_snapshots_v361.json` 供新场 T3 佐证（sweep 6/6、wiring 6/6）。
+**新场 T3 离线重验**：期末初始 23/23✅、locked_turn=1/手牌 12/12/known_draw 10/10；期中生成卡重洗缺口留后续。
+
+**上一次复核（2026-11-24 22:5x，阶段3 真机首跑 + v3.6.1 更新适配后）**：①③④⑤ 开工全绿
 （① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155）；
 ② 开工 **1657/1（1658 收集 / 100 文件）**，收尾 **1671/1（1672 收集 / 102 文件，313.23s）**
 （+14 条 F#45–47 真机卡点回归；`test_ocr_jp_model.py` 改指稳定 fixture，见下）。② 唯一 skip =
@@ -1436,11 +1445,12 @@ ExamParameterBuffReduce（触发未支持）。
 **阶段 3 · 真机（旧 T1/T2/T3/T6/D1/E0/C1 真机验收并入）** 🟡 **2026-11-24 首跑：v3.6.1 更新适配✓ + F#45–47 修复✓ + T3 管道✓（差卡表刷新）+ 期中第1/900；T1/T2 待续**
 - **游戏更新适配✓**（v3.6.0→3.6.1）：C 盘副本同步 334 文件 + `gakumas.exe._` DRM 配对修复（崩溃根因）；hook 45/45、AES key、汉化、登录全验通。旧版备份 `C:\GakumasLocal\_backup_pre_361`。**`gakumas.exe._` 是 DRM 配对解密体，同步更新集不可跳过**。
 - **F#45–47 真机卡点修复✓**（FAILURES #45–47，14 条回归）：开场二选一描述层/技能卡强化屏/授课三选一 >> 箭头确认/P饮料详情弹窗。`test_ocr_jp_model.py` 改指稳定 fixture（活帧覆写假红修复）。pytest **1671/1（102 文件）**。
-- **T3** 实时考试验收：**管道✓**（重载→挂上→逐回合核对真机生效；期末 locked_turn=1/config_turns=12/verified=7）；**数据层差卡表刷新**（v3.6.1 新卡/强化变体卡表查不到→mismatch）。**下一会话先从新 master 重建卡表→T3 全过**。期中 expectimax **第1/900**（氷渡香名江）。
-- **T1** 整局无人值守：跑通开场→期中第1→后续周→期末；**drink-keep 持有上限保留饮料屏 tap-lost 待修** + 期末窗口最小化中断（F#9 类）；**未完成 ≥C+ 整局**，下一会话修 drink-keep 后重跑。
-- **T2** 三引擎 A/B：未开始（beam 臂依赖卡表刷新→known_draw）。net 第四臂用入库 r13。
+- **T3** 实时考试验收：**管道✓**（重载→挂上→逐回合核对真机生效；期末 locked_turn=1/config_turns=12/verified=7）；**2026-11-25 修正诊断**：不是整表过期，是**新偶像卡日文名查表落空**（F#48，汉化 overlay 9/16 滞后）→ 已补 ja_aliases 1765 + CardTable.get 别名 fallback；离线 sweep **6/6**（期末 12/12，用 *_v361.json 工件）。**剩期中 T5 重洗 ❌ = 新偶像卡考试内生成卡 grave 15 vs 模型 13（生成卡重洗模型缺口，留后续）**。期中 expectimax **第1/900**（氷渡香名江）。
+- **T1** 整局无人值守：跑通开场→期中第1→后续周→期末；**drink-keep tap-lost 2026-11-25 已离线修**（F#49，OCR 漏读 need 时按勾选框扫描补勾；严重失败帧待真机补拍）+ 期末窗口最小化中断（F#9 类）；**未完成 ≥C+ 整局**，下一会话真机重跑。
+- **T2** 三引擎 A/B：未开始（beam 臂卡表已可用→known_draw）。net 第四臂用入库 r13。
 - **C1 真机验收**：tap 互验真机生效（confirmed/retap/lost 全程记录，连续 3 lost 止损✓）；提权自查✓（非管理员游戏+非管理员进程消息点击可达）；复盘页自动生成✓。
 - **T6/D1 补采**：本会话采集 traffic 含 v3.6.1 期中+期末两场考试（新 master/新卡数据）→ **下一会话提取新 master 重建卡表**（解 T3/T2 阻塞）+ 回补阶段1 建模缺口。
+- **2026-11-25 离线追加**：ep-t31 C+ 调查（评价点 5493=C+/REGULAR/缺口 −1257=三维 −575+期末 −682，详见 RUNS）+ F#48 日文别名 + F#49 drink-keep + **PRO 难度 opt-in**（produce.difficulty="pro"，默认 regular；PRO 坐标待真机实测）。pytest **1681/1（103 文件）**。
 - **T9-E0** 离线培育测试台（可选，需独立游戏副本 + 用户配合）。
 
 **阶段 4 · 网站（旧 F1/F2）**
@@ -1463,7 +1473,37 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
-**最近交接记录（2026-11-24，阶段3 真机首跑 —— v3.6.1 更新适配 + F#45–47 修复 + T3 管道验通 + 期中第1/900；T1/T2 待续）**：
+**最近交接记录（2026-11-25，ep-t31 C+ 调查 + F#48 日文别名修复 + F#49 drink-keep + PRO 难度 opt-in；纯离线，真机 T1/T2 留下会话）**：
+用户选定「先调查 C+ 疑问 → 再主线（修日文别名 → 重验 T3 → drink-keep）+ 加 PRO 难度选项」，本会话不跑真机。
+开工基线 ①–⑤ 全绿（HEAD c75f5a8，② 1671/1、1672 收集 / 102 文件）；Hindsight 已停用。
+**调查结论（详见 RUNS.md「2026-11-25 ep-t31 C+ 疑问调查」）**：① 最终评价点 **5493=C+**（公式逐位命中；
+RUNS 旧记「B/7404」的 7404 是另一字段 163783316.9，真实评价点字段 110043881.7，11-20 手动局=6750=B）；
+② bot 打 **REGULAR 非 PRO**（硬编码点击 + 期中恰好 900=REGULAR forceEnd 线；PRO 线 1700）；公平对照=11-20
+手动 REGULAR B/6750，A/10237 参照是 PRO（跨难度不可比）；③ 同难度缺口 −1257 = 三维 −575（训练）+ 期末折算 −682（考试）；
+④ **修正「卡表过期→beam 停用」假设**：beam 从未启用（全程 expectimax）；卡表已含新卡；真正根因=新偶像卡
+「柔らかな光の中で」日文名查表落空（F#48）→ score=0/盲打 + T8 全知停用。
+**F#48 修复（日文别名）**：`build_card_table.py` 全量生成 `ja_aliases`（YAML 日文名 ⋈ 中文卡名 1765 条）写入
+card_table.json（**cards 逐位不变**，纯增量）；`CardTable.get` 增日文别名 fallback（精确+丢「+」退基础版）。
+6 条回归（test_card_ja_alias_f48.py）。**T3 离线重验**：reconstruct_deck 重跑 → 期末初始 23/23✅；
+`verify_exam_plan_offline` sweep **6/6**（期末 locked_turn=1/手牌 12/12/known_draw 10/10）、`verify_exam_wiring` 6/6
+（用 out/exam_setup_v361.json + deck_snapshots_v361.json 工件）。**期中 T5 重洗 ❌ = v3.6.1 新偶像卡考试内生成卡
+使 grave 15 vs 模型 13（id/数量差）→ 生成卡重洗模型缺口，留后续深挖（选项 C）**。
+**F#49 修复（drink-keep）**：OCR 漏读「还可选择N」→ need 误判 0 → 点禁用态保留 (360,1166) 空转 tap-lost；
+改为有图且（need>0 或读到「手持的饮料」标题）即按勾选框扫描补勾。1 条真夹具+模拟漏读回归。
+**遗留**：ep-t31-i 严重 OCR 失败帧（连标题都漏读）已轮转，下次真机补拍。
+**PRO 难度 opt-in**：`produce.difficulty="pro"`（默认 regular 零行为变化）；`_scenario_step` PRO 优先 OCR
+定位「プロ」行，读不到用对称推算坐标 PRO_DIFFICULTY=(500,915)（**真机坐标待下次跑局实测确认**，F#28 教训）。
+3 条回归（默认 regular 不变）。
+**基线纪律**：重建快照把新场纳入后 ① verify_shuffle 暴露期中重洗 ❌（5/6）；为守 B10 口径绿，基线工件
+（out/exam_setup.json + deck_snapshots.json）恢复 4 场，6 场版保留为 `*_v361.json` 供新场 T3 佐证。
+**测试**：+10 条（F#48 别名 6 + PRO 3 + drink-keep 1），全量 pytest **1681/1（1682 收集 / 103 文件）**；
+①③④⑤ 恢复 B10 口径绿（4/4+3/3、86/86+24/24、36/36+3/3+29/29+beam 28、366/384）。
+一次性探针 data/_probe_*.py 不提交；card_library.json/REPORT.md 既有改动不提交。
+**下一会话（先问用户）**：① 真机跑局补拍 drink-keep 严重失败帧 + 实测 PRO 按钮坐标；② T1 整局 ≥C+ ≤20min
+（REGULAR，别名修复后期末不再盲打）；③ T2 三引擎+net(r13) A/B（beam 臂卡表已可用）；④ 可选：期中生成卡重洗缺口深挖 /
+PRO 路线冲 A。用户选定后按 §8 交接+再发开场白。
+
+**上一轮交接记录（2026-11-24，阶段3 真机首跑 —— v3.6.1 更新适配 + F#45–47 修复 + T3 管道验通 + 期中第1/900；T1/T2 待续）**：
 用户选定阶段3 真机 T3→T1→T2（先问用户）。开工基线 ①–⑤ 全绿（HEAD 52ec9ab，② 1657/1、1658 收集 / 100 文件）；Hindsight 已停用（不用 hindsight_* 工具）。
 **突发：游戏 v3.6.0→3.6.1 更新**（DMM 20:29 更新 32 文件，用户告知）。按 TROUBLESHOOTING §四 13 条 + CAPTURE_PIPELINE 更新自检适配：
 ① C 盘副本同步今日更新集 334 文件（sha256 逐文件校验，旧版关键二进制备份 `C:\GakumasLocal\_backup_pre_361`）；② **崩溃根因 = `gakumas.exe._` DRM 配对**：壳 exe（import 仅混色 KeRnEl32.dLl）读旧解密体→0xc0000005 AV（KERNELBASE!RaiseException，读 0xFFFFFFFFFFFFFFFF），dump 仅 4 模块（Unity 初始化前）；补新版 `gakumas.exe._`（661280B）即愈——**它是 DRM 配对解密体不是备份，同步不可跳过**；③ hook 导出面 45/45（yaha_hook_check exit 0）、AES key Kb31v85u 仍在、汉化 version.dll 载体未更新（D 盘 generic_orig.json 今日再生证实插件活跃）、System/Check+User/Get+Home/Login+Home/Enter 全 200。网络一度波动（校园网 NAT，直连/代理半死）后恢复。

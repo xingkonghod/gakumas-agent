@@ -1217,24 +1217,31 @@ budget 800ms，逐局非时间字段全等（data/_p18_ab_compare.py，不提交
   素材需求；更新 [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md) 与 HANDOVER。
 - 说明见 [HANDOVER_NEXT §4 T9](HANDOVER_NEXT.md) / [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)。
 
-### E1. T3 实战验收 🟡（2026-11-24 管道✓ / 数据层差卡表刷新）
+### E1. T3 实战验收 🟡（2026-11-24 管道✓ / 2026-11-25 日文别名修复✓ 离线 sweep 6/6 / 剩期中生成卡重洗缺口）
 - 开采集 → bot 起局 → 考试中 `build_exam_setup --current` → 验收：
   `[exam-plan] locked_turn=2~3`、`verified == 实战回合数`、无错误牌序；
 - **2026-11-24 首跑**：v3.6.1 更新适配后真机验通**管道**（watcher 自动 --current + bot 运行时重载 +
   ExamPlanSelector 挂上逐回合核对）。**期末 summary locked_turn=1 / config_turns=12 / verified=7 /
   alive=1（seed 0x41EDB911）**，仅 T8 卡表查不到 v3.6.1 新卡（演出计划/柔らかな光の中で+/平衡感）判
   mismatch；期中 locked_turn=0。**机制完全验通，唯一阻塞卡表过期** → 下一会话从新 master 重建卡表后全过。
-- DoD：真机日志 + HANDOVER/RUNS 记录（管道✓已记 HANDOVER_NEXT §2/§8；卡表刷新后补全过记录）。
+- **2026-11-25 修正诊断 + 修复**：不是整表过期，是**新偶像卡日文名查表落空**（F#48，汉化 overlay 9/16
+  滞后，新偶像卡显示日文）→ 补 ja_aliases 1765 + CardTable.get 别名 fallback。离线 sweep **6/6**
+  （期末 12/12，用 *_v361.json 工件）。**剩期中 T5 重洗 ❌ = 新偶像卡考试内生成卡 grave 15 vs 模型 13
+  （生成卡重洗模型缺口，留后续深挖）**。
+- DoD：真机日志 + HANDOVER/RUNS 记录（管道✓已记 HANDOVER_NEXT §2/§8；别名修复✓；真机重验留下会话）。
 
-### E2. T1 整局验收 🟡（2026-11-24 跑通期中第1/900，整局待续）
+### E2. T1 整局验收 🟡（2026-11-24 跑通期中第1/900；2026-11-25 drink-keep 离线修✓；整局待续）
 - 严格引擎（expectimax）、`--ignore-user`、`--max-minutes 30`、禁静默回退；
 - **2026-11-24 首跑**：修 F#45–47 后跑通开场→第1周→**期中第1/900**（氷渡香名江）→后续周→期末；
   **drink-keep 持有上限保留饮料屏 tap-lost 待修** + 期末窗口最小化中断（F#9 类）→ 未完成 ≥C+ 整局。
-- DoD：≥ C+、≤20 分钟、无"有牌却 SKIP"、无 `[engine][BLOCKED]`；写 RUNS。（下一会话修 drink-keep 后重跑）
+- **2026-11-25**：F#49 drink-keep 离线修（OCR 漏读 need 时按勾选框扫描补勾；严重失败帧待真机补拍）；
+  F#48 别名修复后期末不再盲打；**PRO 难度 opt-in**（produce.difficulty="pro"，坐标待真机实测）。
+- DoD：≥ C+、≤20 分钟、无"有牌却 SKIP"、无 `[engine][BLOCKED]`；写 RUNS。（下一会话真机重跑）
 
-### E3. T2 三引擎真机 A/B ⬜（2026-11-24 未开始；beam 臂依赖卡表刷新）
+### E3. T2 三引擎真机 A/B ⬜（2026-11-24 未开始；2026-11-25 卡表别名已修，beam 臂可用）
 - 同卡组/同 setup：rules（仅对照）/ expectimax / beam+全知 + net 第四臂（入库 r13），各一局；
-- **前置**：卡表刷新（E1 阻塞同源）→ known_draw 可用 → beam 臂才有效；
+- **前置**：~~卡表刷新~~ ✅ F#48 别名修复（known_draw 可用，离线 sweep 6/6）；剩期中生成卡重洗缺口
+  可能影响期中 beam 臂（期末已全通）；
 - 记录考试分/评价/时长/fallback；结论写 EXPECTIMAX.md。
 
 ---
