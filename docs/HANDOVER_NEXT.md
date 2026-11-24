@@ -1437,7 +1437,7 @@ large 主门下界>0 ✅ → small 目的门下界>0 ❌ → 退出 1，入库�
 （生产仍 r11，round11+revision r11）；ruff 通过；全量 pytest **1657/1（1658 收集 / 100 文件，202.75s）**；
 ①③④⑤ 复跑不变。r12 模型/评测 out/ei_r12_*（gitignore）；一次性脚本 data/_r12_*.py 不提交；旧数据/模型全保留
 （r11 入库位未动、v1 示范 npz 保留）。文档：EXPECTIMAX B11 r12；R9_ANALYSIS §11；WORKPLAN B11+P2；
-HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；HANDOVER 二·补五十四。提交 feat（r12 文档+中性结果记录）+ docs(handover) 哈希记录。
+HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；HANDOVER 二·补五十四。提交 feat 6d30e8c（r12 文档+中性结果记录）+ docs(handover) 哈希记录。
 **下一会话**：r11 双过入库（生产）+ r12 降档完成（通道 3 关闭）→ **阶段3 真机 T3→T1→T2**（+T6/D1 补采 + E0；
 C1 真机验收随 T1/T2）；如仍需 small 显著超 v6 剩候选③两段式微调/探索增量（非必需）。用户选定后按 §8 交接+再发开场白。
 
