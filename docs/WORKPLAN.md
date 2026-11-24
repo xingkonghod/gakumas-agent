@@ -47,6 +47,7 @@
 | P1-3 hold 保留区建模 + lockStanceTurns 指針固定（2026-11-24，**阶段1 第三批规则；BSD-3 有据；B10 遗留 trigger_unknown 清零**） | 新 `sim/hold.py`（HOLD_LIMIT=2 + 13 族卡证据表 HOLD_SOURCES + hold_pick 确定性选牌）+ `stance.py`（stance_change_allowed/end_turn locked 守卫）+ `lesson.py`/`expectimax.py`（_apply_hold(_state)/_enforce_hold_limit/lock_stance_turns+fresh 双镜 + canonical + 快照往返 + 叶子 LIFO + known_draw/discard_order 同步）+ `p_items.py`（PassiveState.held + zone_count held + preservation2 直给）+ `build_p_items.py`（hold→held 映射 + period810_hotfix 非限定标记白名单）+ `sim_produce`/`play_choice`（ExamCardMove 逐卡证据表 + StanceLock，MODELED 34→35、41 元组）+ p_items.json 重建（9 条记录变化） | ⑥ hold 保留区（上限 2/跨回合保留/holdThisCard 不进弃牌除外/holdSelected 选牌/moveHeldCardsToHand LIFO；冲刺/积累/切磋琢磨/潜在能力/互动的基础/觉悟/新的舞台/努力了，哦/那一天，在这里/对战请多指教！/让群星散落吧/爱意彩虹/一点一滴的进步 13 族，表外保留旧近似）+ lockStanceTurns（切磋琢磨 StanceLock turn=1，EOT+fresh 锁下一回合+setStance 守卫+全力进入门）+ hold 区张数条件（实现的觉悟 countCards[held]>=1 ↔ 叶える覚悟）+ hotfix（咲季营养餐・改 period810_hotfix 三源证实非限定）+ preservation2（7 段）；**trigger_unknown 3→0 件**、implemented 保持 1056/1849；**large 评测牌组组成变化**（冲刺/积累 draw 近似移除，保真度修正；small 不变）；`tests/test_p13_hold_zone.py` **46 条**；见 RULES_REFERENCE §5.6 / HANDOVER 二·补四十六 |
 | P1-4 nullifyDebuff 低下状态无效拦截 + ⑦ ExamBuffConsumptionAdd / countDebuffs 评估（2026-11-24，**阶段1 第四批；BSD-3 有据；评测零落点**） | `p_items.py`（ANTI_DEBUFF_EFFECTS / nullify_debuff 目标 / effect_value 读 count / PItemDelta.nullify_debuff / intercept_debuff_entries 纯函数）+ `lesson.py`/`expectimax.py`（nullify_debuff 计数器 + score_debuffs/hand_decreases 逐条拦截 + canonical + 快照往返 + end_turn 携带）+ p_items.json 重建（11 条记录变化） | nullifyDebuff 消耗式计数器（无回合倒计时）拦截 setScoreDebuff/setHandDecrease（P 道具侧 ExamAntiDebuff count 11 段：偷懒的毛巾 + 塔 gimmick）；**⑦ ExamBuffConsumptionAdd 保持 no-op**（doubleBuffCostTurns 语义/主数据 4 段/gkbench 22 loadout 如实记；卡模型不承载 buff 花费，88 张参考 buff-cost 卡 card_table cost=0）；**countDebuffs 无落点**（参考+主数据零使用）；卡侧 4 SSR 族来源/标量 DEBUFF_FIELDS 拦截延迟；implemented **1056→1067/1849**；`tests/test_p14_nullify_debuff.py` **30 条**；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0）；见 RULES_REFERENCE §5.7 / HANDOVER 二·补四十七 |
 | P1-5 P 道具剩余效果语义补全（bounded batch：层数减少 + 好调回合 + 好调依赖换算）（2026-11-24，**阶段1 第五批；BSD-3 + DSL 三重核实；评测零 P 道具结算**） | `p_items.py`（3 REDUCE frozenset / TARGET_BY_EFFECT / effect_value 读 ExamParameterBuff turn 列 / PItemDelta.full_power_point_reduce / _apply_modifier_target 负层数 / ExamStaminaDamage 并入 STAMINA_LOSS）+ `lesson.py`/`expectimax.py`（全力值减少 max(0,fp−N) 双镜）+ `build_p_items.py`（CONVERSION_SOURCES 好调:parameter_buff）+ p_items.json 重建（24 条记录变化） | 层数减少（干劲/集中/全力值 -= N 夹取 ≥0，DSL motivation-=1/concentration-=1/fullPowerCharge-=2；全力值独立字段不计累计）+ 体力减少（cost-=1 genki==0 穿透）+ 好调N回合（turn 列 → condition_turns，DSL goodConditionTurns+=N）+ 好调依赖换算（好调的N%数值变为打分/集中，DSL score+=goodConditionTurns*0.3）；**留后续**：好调增加量增加/元气增加无效/不安/塔 gimmick/全力・强气效果卡打分/日文好調の%分（证据充分需新机制，no-op 如实记）；implemented **1067→1164/1849**（+97）、依赖换算 65→76；`tests/test_p15_reduce_condition.py` **38 条**；pytest **1503/1（1504 收集 / 94 文件）**；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0，sim_produce 不引用 p_items）；见 RULES_REFERENCE §5.8 / HANDOVER 二·补四十九 |
+| P1-6 T7②③ 离线可靠性工程（纯函数状态重放 + 自动复盘页 + 标注转回归闭环）（2026-11-24，**阶段1 第六批；不改考试规则、不作废 B11 数据**） | 新 `data/run_replay.py`（apply_event 纯函数 + RunState 深不可变 + replay/legacy_events/fingerprint/compare_replays 逐步比对 + consistency_check 三方对账）+ `run_record.py` 增量 events 观测日志（note_* 追加、旧文件续跑先重建）+ 新 `report/review_page.py`（自包含 HTML：逐回合/考试/结算/重放一致性/观测日志/C1 逐步轨迹/标注工具栏）+ `report/annotations.py`（标注 → 回归用例冻结）+ `scripts/replay_run.py`（--verify/--compare）/`scripts/review_page.py`/`scripts/annotations_to_regression.py`；auto_produce 局末自动生成复盘页（[review]，best-effort） | ⑨ 同观测序列→同状态（两遍重放指纹逐位相等）→逐步比对（首个分歧步+字段差异）；旧格式汇总确定式重建与 events 日志终态语义一致；ep-t1-g 真实卡屏 28 次重复观测被显式 surfaced；⑩ 每局逐回合页 + 行内标注（verdict/comment/expected）→ 导出 JSON → 转回归夹具（tests/fixtures/review_regressions.json，2 条 synthetic-demo 演示用例）；样例页 docs/review_sample.html（ep-rule1 真实记录 + 合成演示轨迹显著标注）；`tests/test_run_replay.py` **38 条** + `test_review_page.py` **20 条** + `test_review_regressions.py` **3 条**；pytest **1564/1（1565 收集 / 97 文件）**；sim/ 零引用 run_record/run_replay/report → 评测零影响、无需重标定；基线 ①③④⑤ 不变；见 LIVE_RUN §2.1 / HANDOVER 二·补五十 |
 | 私有存档/私有仓库（bundle+裸仓库+Gitee private） | `docs/ARCHIVE.md`，`scripts/archive_private.ps1 -Push` |
 | 群情报归档（论文/2B run/GKMSMAA/手机实验版） | `GROUP_FILES_ANALYSIS.md`、`QQ_GROUP_NOTES.md` |
 
@@ -890,6 +891,57 @@ LessonSim/双镜/数据层 no-op 记录）+ 既有断言随规则更新（test_p
 1067→1164）；全量 pytest **1503/1（1504 收集 / 94 文件）**；ruff 通过；基线 ①③④⑤ 不变。
 见 [RULES_REFERENCE §5.8](RULES_REFERENCE.md) / HANDOVER 二·补四十九。
 
+### P1-6. 阶段1 第六批：T7②③ 离线可靠性工程（纯函数状态重放 + 自动复盘页 + 标注转回归闭环）✅ 2026-11-24 完成
+- **目标**（HANDOVER_NEXT §4 T7②③ / §8.0 P1-6，用户确认 A 顺序）：照 hiro 三原则补剩余两条——
+  ② 纯函数状态 + 离线重放（`run_record` 雏形 → 同观测序列→同状态→可逐步比对）；
+  ③ 自动复盘页（每局逐回合页 + 人工标注转回归用例；C1 已有 step_trace.jsonl + replay_steps.py，
+  差自动页面/标注闭环）。**不改考试规则、不作废 B11 数据**（纯可靠性工程）。
+- **DoD**：新增测试（假观测序列重放/逐步比对）✅ 61 条；一局自动复盘页样例 ✅
+  [docs/review_sample.html](review_sample.html)；LIVE_RUN.md 更新 ✅ §2.1。
+
+**落地（2026-11-24，纯增量）**
+- **⑨ 纯函数状态重放**：新 `src/gkagent/data/run_replay.py`——`apply_event(state, event)`
+  无副作用（深不可变 `RunState`/`ExamSnapshot`/`FinalSnapshot`，不读时钟/文件/随机数）；
+  事件 5 类 action/backfill/lesson/exam/final（与 note_* 一一对应；考试类型在 `exam_kind`，
+  不跟事件类型 `kind` 混）；null 观测不抹已知值（最后已知值优先，与补写语义一致）；
+  未知事件种类显式 ValueError（不静默丢观测）。`replay` 逐事件快照 + `fingerprint`
+  sha256（同序列两遍重放逐位相等）+ `compare_replays` 逐步比对（首个分歧步 + 逐字段差异 +
+  长度差）+ `legacy_events` 旧格式汇总确定式重建 + `consistency_check` 三方对账
+  （events 重放 vs 旧格式重建 vs 记录汇总；`missing_fields`/`lesson_unread` 是观测级计数，
+  合并视图不可比，排除在对账外只作展示）。`RunRecorder` 增量 `events` 有序观测日志
+  （每个 note_* 追加、随 flush 原子落盘；**旧格式文件续跑先把汇总重建成日志再续编号**，
+  重放覆盖整局）；note_final 日志记**兜底前**原始读数，重放独立重兜底——记录器/重放器
+  互为独立实现，漂移可被抓（单测实证：暂存覆盖丢分/汇总篡改都能定位）。
+  新 `scripts/replay_run.py`：逐事件状态推进 + 终态摘要 + 三方对账；`--verify` 退出码=DoD
+  （两遍指纹相等 + 对账一致）；`--compare` 两条序列逐步比对；`--json` 机器可读。
+- **⑩ 自动复盘页 + 标注闭环**：新 `src/gkagent/report/review_page.py`——`build_review_html`
+  纯函数渲染自包含 HTML（同输入同输出、全量 HTML 转义、内嵌 JSON `<`/`>` Unicode 转义防逃逸）：
+  周行动逐回合表（重复观测黄底/null 灰显）/ 考试表 / 结算 / 重放一致性（指纹+三方对账）/
+  观测事件日志 / C1 逐步轨迹表（lost/failed/stuck 红底；合成轨迹显著 banner）/ 标注工具栏。
+  行内标注 verdict（ok/bad/unsure）+ 评论 + expected（k=v;k=v），localStorage 自动保存
+  （键含指纹前 8 位不串局），导出 `annotations_<ep>.json` / 导入 / 清除。
+  新 `src/gkagent/report/annotations.py`：`parse_expected`/`normalize_annotations`（坏 schema
+  显式报错）/`cases_from_annotations`（**verdict=bad 且带 expected** 才转用例：周/考试/结算
+  修正 → 追加观测事件重放**整态冻结**；逐步修正 → `summarize_traces` 分类结论冻结）/
+  `merge_cases`（按 id 去重合并）。新 `scripts/review_page.py`（CLI 生成）+
+  `scripts/annotations_to_regression.py`（标注 JSON → `tests/fixtures/review_regressions.json`，
+  原子写、幂等）；`tests/test_review_regressions.py` 逐条重算比对（期望在转换时冻结，
+  被测代码不给自己出题）。**auto_produce 局末自动生成**（`[review]` 日志行 + summary
+  `review_page` 键；best-effort，失败只留痕不影响收尾/退出码）。
+- **样例**：[docs/review_sample.html](review_sample.html)——记录 = 真机 ep-rule1（bot 最好
+  C+/5992，真实数据）；轨迹 = 合成演示 6 步（本局跑在 C1 之前无真机 step_trace，页面
+  `trace_source=synthetic-demo` 显著标注，不当真机数据引用）。夹具 2 条演示用例
+  provenance=synthetic-demo（演示闭环，非真机 ground truth；真机标注后追加真实案例）。
+- **验证**：`tests/test_run_replay.py` 38 条 + `tests/test_review_page.py` 20 条 +
+  `tests/test_review_regressions.py` 3 条 = **61 条**；ruff 通过；全量 pytest
+  **1564/1（1565 收集 / 97 文件）**；基线 ①③④⑤ 复跑不变。**sim/ 零引用
+  run_record/run_replay/report（grep 0 命中）→ 模拟器/评测零影响，无需 sim_engine_ab 重标定**；
+  旧 B11 数据/模型全保留。真实记录端到端：ep-kinami1/ep-rule1/ep-verify1 `--verify` 全一致；
+  ep-t1-g 卡屏局 28 次重复观测被重放显式 surfaced。一次性脚本 data/_p16_*.py 不提交。
+- 细节见 HANDOVER_NEXT §4 T7 / §8.0 P1-6 / LIVE_RUN §2.1 / HANDOVER 二·补五十。
+
+---
+
 ## 阶段 C：可靠性（离线）
 
 ### C0.（可选，2026-11-22 新增）采集/更新可靠性经验吸收 ✅ 2026-11-22 完成
@@ -951,7 +1003,7 @@ LessonSim/双镜/数据层 no-op 记录）+ 既有断言随规则更新（test_p
   用户规则不变：SKIP 只在所有牌付不起、禁静默回退 rules、lost 升级=停局修 root cause。
 - **如实记录**：picker 选中态无可靠离线探针（未归档真机奖励选卡帧），selected=None 保守处理，
   阶段 E 可补读回；runas 自动提权启动未做（约定管理员终端手动跑，先给明确提示）；
-  T7 剩余（纯函数状态重放/自动复盘页）不在本任务。
+  ~~T7 剩余（纯函数状态重放/自动复盘页）不在本任务~~ ✅ **P1-6 已完成（2026-11-24）**。
 - **测试/基线**：全量 pytest **1223 passed / 1 skipped（1224 收集 / 83 文件）**；ruff 通过；
   基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 全部不变。
 - 细节见 HANDOVER 二·补三十六 / HANDOVER_NEXT §8。
@@ -1198,12 +1250,25 @@ DSL goodConditionTurns+=N）+ 好调依赖换算（好调的N%数值变为打分
 implemented 1067→1164/1849（+97）、依赖换算 65→76；**sim_produce 不引用 p_items → 评测零 P 道具
 结算**；38 条新单测，pytest 1503/1（1504 收集 / 94 文件）；sim_engine_ab 重标定改前/改后 64 局
 逐位相同（差异=0）；见 RULES_REFERENCE §5.8 / HANDOVER 二·补四十九。
+**P1-6（阶段1 第六批：T7②③ 离线可靠性工程）也已完成（2026-11-24）**：⑨ 纯函数状态重放——
+新 data/run_replay.py（apply_event 无副作用 + 深不可变 RunState + 同观测序列两遍重放指纹逐位
+相等 + compare_replays 逐步比对首个分歧步 + legacy_events 旧格式确定式重建 + consistency_check
+三方对账）；RunRecorder 增量 events 观测日志（旧文件续跑先重建）；scripts/replay_run.py
+--verify/--compare。⑩ 自动复盘页——report/review_page.py 自包含 HTML（逐回合/考试/结算/
+重放一致性/C1 逐步轨迹/行内标注导出导入）+ report/annotations.py 标注转回归（verdict=bad 带
+expected → 整态/分类结论冻结进 tests/fixtures/review_regressions.json）+ scripts/review_page.py
++ scripts/annotations_to_regression.py；auto_produce 局末自动生成（[review]）；样例页
+docs/review_sample.html（ep-rule1 真实记录 + 合成演示轨迹显著标注）。**不改考试规则、不作废
+B11 数据**；sim/ 零引用新模块 → 评测零影响、无需重标定；61 条新单测，pytest 1564/1
+（1565 收集 / 97 文件）；基线 ①③④⑤ 不变；见 WORKPLAN P1-6 / LIVE_RUN §2.1 / HANDOVER 二·补五十。
 **下一会话起按多会话路线图推进（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）**：
 阶段1 离线补未知（~~全力回合额外次数/保留牌/のんびり + r10 行为探针~~ ✅ P1-1；
 ~~handDecrease 抽牌修正 + pride 自尊~~ ✅ P1-2；~~hold 保留区 + lockStanceTurns~~ ✅ P1-3；
 ~~nullifyDebuff 拦截 + ⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；~~P 道具剩余效果语义补全
-（层数减少 + 好调回合 + 好调依赖换算）~~ ✅ P1-5；**下一会话 P1-6：T7②③ 纯函数状态重放/
-自动复盘页**（离线可靠性工程，不改考试规则、不作废 B11 数据）；P 道具剩余 no-op 段留后续批次）→
+（层数减少 + 好调回合 + 好调依赖换算）~~ ✅ P1-5；~~T7②③ 纯函数状态重放/自动复盘页~~ ✅ P1-6；
+**阶段1 剩 P 道具后续批次**（好调增加量增加/元气增加无效/不安/塔 gimmick/全力・强气效果卡
+打分/日文好調の%分——证据充分需新机制）；**P1-6 完成后先问用户**：继续阶段1 P 道具后续批次，
+还是直接进阶段2 重采+练学生 r11）→
 阶段2 重采+练学生 r11（small 上采样，
 small+large 双过入库）+ **新旧对比（旧学生/老师数据模型全保留不覆盖，新批练出来再比）** →
 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收）→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。

@@ -2,16 +2,18 @@
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
-> 新会话第一句话（紧凑版，2026-11-24 P1-5 完成后更新；完整版见 WORKPLAN「新会话开场白」）：
+> 新会话第一句话（紧凑版，2026-11-24 P1-6 完成后更新；完整版见 WORKPLAN「新会话开场白」）：
 > 「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → docs/WORKPLAN.md →
-> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1503/1（1504 收集 / 94 文件）；①③④⑤ 同 B10 口径），不绿先修。
+> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1564/1（1565 收集 / 97 文件）；①③④⑤ 同 B10 口径），不绿先修。
 > Hindsight 记忆已停用（2026-11-24，因后台 qwen-plus/text-embedding-v4 走普通按量 key 烧阿里云余额；不用 hindsight_* 工具，跨会话上下文靠 docs 交接）。
 > **按 §8.0 多会话路线图做**（用户确认 A 顺序：阶段1 离线补未知 → 阶段2 重采+练学生+新旧对比 →
 > 阶段3 真机 → 阶段4 gkbench → 阶段5 收尾；每会话 1–3 任务，旧学生/老师数据模型全保留不覆盖）。
-> 下一会话从 **P1-6** 起（T7②③ 纯函数状态重放/自动复盘页，离线可靠性工程，不改考试规则、不作废 B11 数据）；
+> **P1-6 已完成，下一任务先问用户**：阶段1 剩 P 道具后续批次（好调增加量增加/元气增加无效/不安/
+> 塔 gimmick/全力・强气效果卡打分/日文好調の%分，证据充分需新机制），或直接进阶段2 重采+练学生 r11；
 > P1-1 ✅（r10 探针 + 全力回合 + のんびり）、P1-2 ✅（handDecrease + pride）、
 > P1-3 ✅（hold 保留区 + lockStanceTurns）、P1-4 ✅（nullifyDebuff 拦截 + ⑦ buff-cost/countDebuffs 评估 no-op）、
-> P1-5 ✅（P 道具层数减少 + 好调回合 + 好调依赖换算，1067→1164/1849）；
+> P1-5 ✅（P 道具层数减少 + 好调回合 + 好调依赖换算，1067→1164/1849）、
+> P1-6 ✅（T7②③ 纯函数状态重放 + 自动复盘页 + 标注转回归闭环，不改规则/不作废 B11 数据）；
 > 旧路线图未完成项已全并入 §8.0。规则见 §4 硬约束。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
@@ -362,12 +364,34 @@
               sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0）。30 条新单测（+test_p13
               implemented 断言更新）；pytest **1465/1（1466 收集 / 93 文件）**；基线 ①③④⑤ 不变。
               见 RULES_REFERENCE §5.7 / WORKPLAN P1-4 / HANDOVER 二·补四十七。
+             ㉗ **P1-5 阶段1 第五批：P 道具剩余效果语义补全 bounded batch（层数减少 + 好调回合 +
+               好调依赖换算）** ✅ 2026-11-24 完成（BSD-3 + DSL 三重核实；详见 §8 交接记录）：
+               implemented **1067→1164/1849**（+97）、依赖换算 65→76；sim_produce 不引用 p_items →
+               评测零 P 道具结算，sim_engine_ab 改前/改后 64 局差异=0；38 条新单测，pytest
+               **1503/1（1504 收集 / 94 文件）**；留后续（需新机制，no-op 如实记）：好调增加量增加/
+               元气增加无效/不安/塔 gimmick/全力・强气效果卡打分/日文好調の%分。
+               见 RULES_REFERENCE §5.8 / WORKPLAN P1-5 / HANDOVER 二·补四十九。
+             ㉘ **P1-6 阶段1 第六批：T7②③ 离线可靠性工程（纯函数状态重放 + 自动复盘页 +
+               标注转回归闭环）** ✅ 2026-11-24 完成（用户确认 A 顺序；**不改考试规则、不作废 B11 数据**）：
+               ⑨ 新 `data/run_replay.py`（apply_event 纯函数/深不可变 RunState/同观测序列两遍重放
+               指纹逐位相等/compare_replays 逐步比对首个分歧步/legacy_events 旧格式确定式重建/
+               consistency_check 三方对账）+ RunRecorder 增量 events 观测日志（旧文件续跑先重建）+
+               `scripts/replay_run.py`（--verify/--compare，退出码=DoD）；⑩ 新 `report/review_page.py`
+               自包含 HTML（逐回合/考试/结算/重放一致性/观测日志/C1 逐步轨迹/行内标注导出导入，
+               全量转义+内嵌 JSON 防逃逸）+ `report/annotations.py`（verdict=bad 带 expected →
+               整态/分类结论**冻结**进 tests/fixtures/review_regressions.json）+
+               `scripts/review_page.py`/`scripts/annotations_to_regression.py`；auto_produce 局末
+               自动生成（[review]，best-effort 不影响收尾）；样例页 docs/review_sample.html
+               （ep-rule1 真实记录 + 合成演示轨迹显著标注）；ep-t1-g 真实卡屏 28 次重复观测被
+               重放显式 surfaced。**sim/ 零引用新模块 → 评测零影响、无需重标定**；61 条新单测
+               （38+20+3），pytest **1564/1（1565 收集 / 97 文件）**；基线 ①③④⑤ 不变。
+               见 WORKPLAN P1-6 / LIVE_RUN §2.1 / HANDOVER 二·补五十。
  当前最高优先：**按 §8.0 多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序：先补离线规则→重采→
 练学生→真机→网站；每会话 1–3 任务；旧学生/老师数据模型全保留，新批练出来再新旧对比；
 旧路线图未完成项已全并入 §8.0）。r10 后 small 仍显著回退（−0.256 CI 上界 −0.012）→ 复合门未过、不入库；
 **P1-1 探针判定残留回退已非 v1 贪即时分（通道 2 漂移噪声）→ r11 small 上采样仍是对症变量**。
-→ **下一会话从 P1-6 起**（T7②③ 纯函数状态重放/自动复盘页，离线可靠性工程，不改考试规则、不作废 B11 数据）；
-阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease/pride~~ ✅ P1-2；~~hold/lockStanceTurns~~ ✅ P1-3；~~nullifyDebuff/⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；~~P 道具层数减少/好调回合/好调依赖换算~~ ✅ P1-5；剩 P 道具后续批次 + T7②③）→
+→ **P1-6 已完成，下一任务先问用户**：阶段1 剩 P 道具后续批次（证据充分需新机制），或直接进阶段2 重采+练学生 r11；
+阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease/pride~~ ✅ P1-2；~~hold/lockStanceTurns~~ ✅ P1-3；~~nullifyDebuff/⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；~~P 道具层数减少/好调回合/好调依赖换算~~ ✅ P1-5；~~T7②③ 纯函数状态重放/自动复盘页~~ ✅ P1-6；剩 P 道具后续批次）→
 阶段2 重采+练学生 r11（small 上采样，双过入库）+新旧对比 →
 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收）→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。
 T5 剩余里需真机数据的（RNG 流/fresh buff/附魔/真机 P 道具列表）留阶段3。
@@ -435,6 +459,8 @@ B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台
 | F 阶段数据 + F0 预检（gkbench） | [bench_download.py](../scripts/bench_download.py)（公开 API + 令牌批量下载，断点续传）+ [GKBENCH.md](GKBENCH.md)（API/令牌边界/下载清单/参考分/F0） | hif 已下 80 run / **36,350 条对局路线** / 329 题官方种子+check / 505 题存档 / fixed+template 榜单；**官方 check.hand 核洗牌模型 286/384=74.5%**（npc 按 stage：選抜 5、本戦 2；sel1 60/60）；不一致根因=initial_add 自定义 + isInitial 变体（F0 收尾）；数据在 `data/bench_local/gkbench_dl/`（gitignore）；令牌在仓库外 `~/.config/gkbench/token`；见 HANDOVER 二·补二十二 |
 | **F0 收尾（gkbench 官方种子校准）** | [verify_gkbench_shuffle.py](../scripts/verify_gkbench_shuffle.py)（384 组 check.hand 核对 + 起点校准，只读本地数据）+ [GKBENCH §4.5](GKBENCH.md) | **initial 按 base id（含强化变体）+ initial_add、npc 按 idol 卡（jsna 4 人制/fktn 2 人制/其余 3 人制）+ round 兜底** → **366/384=95.3% 精确 / 97.4% 逐张**（sel1 60/60、sel2 55/55、main1 96/97；逐题 311/329 全中）；剩余 18 组全是考试开始加卡机制（ExamInitialDeck 15 + kllj 开局 +1 手牌 3），**无一洗牌错误**；起点校准 turn=1/score=0/stamina 96.1%=starting_stamina/rules=55(commit f4d9e6e6148d)；见 HANDOVER 二·补二十四 |
 
+| **P1-6 T7②③ 离线可靠性工程（2026-11-24，不改考试规则）** | [run_replay.py](../src/gkagent/data/run_replay.py)（纯函数重放/逐步比对/三方对账）+ `RunRecorder.events` 观测日志 + [replay_run.py](../scripts/replay_run.py)（--verify/--compare）+ [review_page.py](../src/gkagent/report/review_page.py)（自包含复盘页）+ [annotations.py](../src/gkagent/report/annotations.py)（标注转回归）+ [review_page.py](../scripts/review_page.py)/[annotations_to_regression.py](../scripts/annotations_to_regression.py) + auto_produce 局末 `[review]` | 同观测序列两遍重放指纹逐位相等；ep-kinami1/ep-rule1/ep-verify1 三方对账一致；ep-t1-g 卡屏 28 次重复观测显式 surfaced；样例 [docs/review_sample.html](review_sample.html)；夹具 2 条 synthetic-demo 演示用例；61 条新单测，pytest **1564/1（1565 收集 / 97 文件）**；sim/ 零引用 → 评测零影响；见 WORKPLAN P1-6 / LIVE_RUN §2.1 / HANDOVER 二·补五十 |
+
 **改动以上任何部分的规矩**：先跑 §2 基线命令（四条必跑 + ⑤ 可选）；数值/状态语义改动必须补单测并更新对应文档（`EXPECTIMAX.md` / `MASTER_DATA.md` / `HANDOVER.md`）。
 
 ---
@@ -446,7 +472,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 1503 passed, 1 skipped（1504 条收集 / 94 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + B11 r9 多文件混合 12 条 + B11 r10 按场景归一化 12 条 + P1-1 全力回合/のんびり指針 36 条 + P1-2 handDecrease/pride 36 条 + P1-3 hold 保留区/lockStanceTurns 46 条 + P1-4 nullifyDebuff 拦截/⑦评估 30 条 + P1-5 层数减少/好调回合/好调依赖换算 38 条 + 实机回放黄金值 2 条）
+# ② 全量测试：应为 1564 passed, 1 skipped（1565 条收集 / 97 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + B11 r9 多文件混合 12 条 + B11 r10 按场景归一化 12 条 + P1-1 全力回合/のんびり指針 36 条 + P1-2 handDecrease/pride 36 条 + P1-3 hold 保留区/lockStanceTurns 46 条 + P1-4 nullifyDebuff 拦截/⑦评估 30 条 + P1-5 层数减少/好调回合/好调依赖换算 38 条 + P1-6 纯函数状态重放 38 条 + 复盘页/标注闭环 20 条 + 标注回归夹具 3 条 + 实机回放黄金值 2 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -461,7 +487,17 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-24 10:3x，P1-5 后复跑）**：①②③④⑤ 全绿、退出码 0
+**最近一次复核（2026-11-24 13:1x，P1-6 后复跑）**：①②③④⑤ 全绿、退出码 0
+（① 4/4+3/3、② **1564/1（1565 收集 / 97 文件，+61 P1-6 重放/复盘页/标注回归单测）**、
+③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
+② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
+当前不是行动页），属预期。**本批不改考试规则**（T7②③ 纯可靠性工程）：新模块
+run_replay/report 与 sim/ 零耦合（grep 0 命中）→ 评测零影响、无需 sim_engine_ab 重标定；
+旧 B11 数据/模型全保留。真实记录端到端 `replay_run.py --verify`：ep-kinami1/ep-rule1/
+ep-verify1 三方对账全一致；ep-t1-g 卡屏局 28 次重复观测被显式 surfaced。
+P1-6 见 WORKPLAN P1-6 / LIVE_RUN §2.1 / HANDOVER 二·补五十。
+
+**上一次复核（2026-11-24 10:3x，P1-5 后复跑）**：①②③④⑤ 全绿、退出码 0
 （① 4/4+3/3、② **1503/1（1504 收集 / 94 文件，223.75s，+38 P1-5 层数减少/好调单测）**、
 ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
 ② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
@@ -1091,15 +1127,25 @@ ExamParameterBuffReduce（触发未支持）。
 **验收（DoD）**：`verify_shuffle.py` 新增样本全过 + 测试加回归（参考现有 6 条"实战回合算 K 会错"防线）。
 **预算**：采集 1–2 小时 + 40–80k token。
 
-### T7（P2）可靠性工程（照 hiro 三条原则补）🟡（① 动作前互验 ✅ C1 已做；②③ 剩）
+### T7（P2）可靠性工程（照 hiro 三条原则补）✅（① 动作前互验 C1；②③ P1-6，2026-11-24 完成）
 1. ~~**动作前互验**：点之前预算"下一帧应读到什么"，对不上丢弃重读（照 hiro 原则 3）~~
    ✅ **C1 已落地**（TapExpectation/TapGuard：预算→互验→retap/lost/moved；见 WORKPLAN C1）；
-2. **纯函数状态 + 离线重放**：`run_record` 有雏形，改成"同观测序列 → 同状态 → 可逐步比对"；
-3. **自动复盘页**：每局生成逐回合页 + 人工标注转回归用例
-   （C1 已有 `step_trace.jsonl` + `scripts/replay_steps.py` 离线逐步复盘 CLI，差自动页面/标注闭环）。
+2. ~~**纯函数状态 + 离线重放**：`run_record` 有雏形，改成"同观测序列 → 同状态 → 可逐步比对"~~
+   ✅ **P1-6 已落地**：`data/run_replay.py`（apply_event 纯函数 + 深不可变 RunState +
+   fingerprint 两遍重放逐位相等 + compare_replays 逐步比对首个分歧步 + legacy_events 旧格式
+   确定式重建 + consistency_check 三方对账）；RunRecorder 增量 events 观测日志（旧文件续跑
+   先重建）；`scripts/replay_run.py --verify/--compare`（退出码=DoD）。
+3. ~~**自动复盘页**：每局生成逐回合页 + 人工标注转回归用例~~ ✅ **P1-6 已落地**：
+   `report/review_page.py` 自包含 HTML（逐回合/考试/结算/重放一致性/C1 逐步轨迹/行内标注
+   导出导入）+ `report/annotations.py` 标注转回归（verdict=bad 带 expected → 整态/分类结论
+   冻结进 `tests/fixtures/review_regressions.json`）+ `scripts/review_page.py` /
+   `scripts/annotations_to_regression.py`；auto_produce 局末自动生成（`[review]`）。
 
-**验收（DoD）**：新增测试（互验的假观测序列）✅ C1 68 条；一局自动复盘页样例；`LIVE_RUN.md` 更新。
-**预算**：60–120k token（剩余 ②③）。
+**验收（DoD）**：新增测试（互验的假观测序列）✅ C1 68 条 + P1-6 61 条（假观测序列重放/逐步
+比对 38 + 复盘页/标注闭环 20 + 标注回归夹具 3）；一局自动复盘页样例 ✅
+[docs/review_sample.html](review_sample.html)（ep-rule1 真实记录 + 合成演示轨迹显著标注）；
+`LIVE_RUN.md` 更新 ✅ §2.1。细节见 WORKPLAN P1-6 / HANDOVER 二·补五十。
+**预算**：60–120k token（剩余 ②③）→ 已用完结项。
 
 ### F0（P0，2026-11-22 新增）gkbench 官方种子校准收尾 ✅（2026-11-22 完成：366/384）
 **目标**：用 gkbench 官方固定种子题的 `check.hand` 把我们的洗牌模型命中率从 74.5% 推近 100%，
@@ -1202,6 +1248,13 @@ ExamParameterBuffReduce（触发未支持）。
 .venv\Scripts\python.exe scripts\extract_exams.py
 # 一局体检
 .venv\Scripts\python.exe scripts\episode_report.py ep-xxx
+# P1-6 纯函数状态重放（同观测序列→同状态→逐步比对；--verify 退出码=DoD）
+.venv\Scripts\python.exe scripts\replay_run.py --episode ep-xxx --verify
+.venv\Scripts\python.exe scripts\replay_run.py --episode ep-a --compare data\runs\ep-b.json
+# P1-6 自动复盘页（逐回合+逐步轨迹+行内标注；auto_produce 局末也自动生成 out/review/<ep>.html）
+.venv\Scripts\python.exe scripts\review_page.py --episode ep-xxx
+# P1-6 标注闭环：复盘页导出 annotations_<ep>.json → 回归用例夹具（tests/test_review_regressions.py 逐条守）
+.venv\Scripts\python.exe scripts\annotations_to_regression.py annotations_ep-xxx.json
 ```
 
 ---
@@ -1254,7 +1307,7 @@ ExamParameterBuffReduce（触发未支持）。
 - **P1-3** ✅ **2026-11-24 完成**：⑥ hold 保留区建模（上限 2/跨回合保留/holdThisCard/holdSelected/moveHeldCardsToHand LIFO，13 族卡证据表；lockStanceTurns 切磋琢磨 EOT+fresh 锁下一回合+守卫+全力进入门；B10 遗留 trigger_unknown 3 件清零：hold 区张数条件 实现的觉悟 + hotfix 咲季营养餐・改；preservation2 直给 7 段）；46 条单测；RULES_REFERENCE §5.6；implemented 保持 1056/1849；large 评测牌组组成变化（冲刺/积累 draw 近似移除，保真度修正；small 不变）→ sim_engine_ab 改前/改后逐局对照（见 §8）
 - **P1-4** ✅ **2026-11-24 完成**：⑦ `ExamBuffConsumptionAdd` buff-cost 卡评估**保持 no-op**（参考 doubleBuffCostTurns 语义/主数据 4 段/gkbench 22 loadout 如实记；卡模型不承载 buff 花费，88 张参考 buff-cost 卡 card_table cost=0、CardSpec 无 buff_cost 字段，无落点不猜）+ **nullifyDebuff 拦截落地**（P1-2 遗留；消耗式计数器拦截 setScoreDebuff/setHandDecrease，P 道具侧 ExamAntiDebuff count 11 段；卡侧 4 SSR 族/标量 DEBUFF_FIELDS 拦截延迟）+ **countDebuffs 无落点**（低下状態の数参考+主数据零使用）；30 条单测，pytest 1465/1（1466 收集 / 93 文件）；RULES_REFERENCE §5.7；implemented 1056→1067/1849；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0，评测零落点）
 - **P1-5** ✅ **2026-11-24 完成**：⑧ P 道具剩余效果语义补全（bounded batch：层数减少类 干劲/集中/全力值 -= N 夹取 ≥0 + 体力减少 ExamStaminaDamage + 好调N回合 ExamParameterBuff turn 列 → condition_turns + 好调依赖换算 好调的N%数值变为打分/集中；BSD-3 + DSL 三重核实）；38 条单测，pytest 1503/1（1504 收集 / 94 文件）；RULES_REFERENCE §5.8；implemented 1067→1164/1849（+97）、依赖换算 65→76；**sim_produce 不引用 p_items → 评测零 P 道具结算**，sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0）；**留后续**（证据充分需新机制，no-op 如实记）：好调增加量增加/元气增加无效/不安/塔 gimmick/全力・强气效果卡打分/日文好調の%分/ExamParameterBuffReduce
-- **P1-6（T7②③，离线可靠性工程，不改考试规则、不作废 B11 数据）**：⑨ 纯函数状态重放（`run_record` 雏形 → 同观测序列→同状态→逐步比对）⑩ 自动复盘页（每局逐回合页 + 人工标注转回归；C1 已有 `step_trace.jsonl`+`replay_steps.py`，差页面/标注闭环）
+- **P1-6** ✅ **2026-11-24 完成**（T7②③，离线可靠性工程，**不改考试规则、不作废 B11 数据**）：⑨ 纯函数状态重放（`data/run_replay.py` apply_event 无副作用/深不可变 RunState/同观测序列两遍重放指纹逐位相等/compare_replays 逐步比对首个分歧步/legacy_events 旧格式确定式重建/consistency_check 三方对账；RunRecorder 增量 events 观测日志，旧文件续跑先重建；`scripts/replay_run.py --verify/--compare`）⑩ 自动复盘页（`report/review_page.py` 自包含 HTML 逐回合/考试/结算/重放一致性/C1 逐步轨迹/行内标注导出导入 + `report/annotations.py` verdict=bad 带 expected → 整态/分类结论冻结进 `tests/fixtures/review_regressions.json` + `scripts/review_page.py`/`annotations_to_regression.py`；auto_produce 局末自动生成 `[review]`；样例 docs/review_sample.html）；61 条单测（38+20+3），pytest 1564/1（1565 收集 / 97 文件）；**sim/ 零引用新模块 → 评测零影响、无需重标定**；基线 ①③④⑤ 不变；ep-t1-g 真实卡屏 28 次重复观测被显式 surfaced。**阶段1 剩 P 道具后续批次；下一任务先问用户（P 道具批次 vs 阶段2 r11）**
 - 每项 DoD：参考引擎证据（规则项）+ 代码 + 单测 + [RULES_REFERENCE](RULES_REFERENCE.md) 核验表更新（规则项）+ `sim_engine_ab` 重标定（规则项，如 B3 例）。
 - **留阶段 3（离线做不了，需真机数据）**：考试 RNG 流（随机生成卡 H.I.F应援棒 / panic / search / move）、fresh buff 差一回合衰减（真机逐回合截图）、附魔/主道具回忆、真机培育侧 P 道具列表（T6/D1）。
 - **T8 情报跟踪**：持续低成本，有变化才更新 QQ_GROUP_NOTES/HIRO_VIDEO_NOTES/AUTO_GAKUMAS_NOTES + ADR，不单独占会话。
@@ -1293,7 +1346,57 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
-**最近交接记录（2026-11-24，P1-5 —— 阶段1 第五批：P 道具剩余效果语义补全 bounded batch：层数减少 + 好调回合 + 好调依赖换算，BSD-3 + DSL 三重核实）**：
+**最近交接记录（2026-11-24，P1-6 —— 阶段1 第六批：T7②③ 离线可靠性工程，纯函数状态重放 + 自动复盘页 + 标注转回归闭环；不改考试规则、不作废 B11 数据）**：
+用户已确认 A 顺序（不用再问）。开工基线 ①–⑤ 全绿（HEAD f98f6a8，② 1503/1、
+1504 收集 / 94 文件，224.17s）；Hindsight 记忆已停用（不用 hindsight_* 工具，跨会话靠 docs）。
+**⑨ 纯函数状态重放**：新 `src/gkagent/data/run_replay.py`——`apply_event(state, event)`
+无副作用（深不可变 `RunState`/`ExamSnapshot`/`FinalSnapshot`，不读时钟/文件/随机数）；
+事件 5 类 action/backfill/lesson/exam/final 与 note_* 一一对应（考试类型在 `exam_kind`，
+不跟事件类型 `kind` 混）；null 观测不抹已知值（最后已知值优先=补写语义）；未知种类显式
+ValueError（不静默丢观测）。`replay` 逐事件快照 + `fingerprint` sha256（**同观测序列两遍
+重放指纹逐位相等**）+ `compare_replays` 逐步比对（首个分歧步+逐字段差异+长度差）+
+`legacy_events` 旧格式汇总确定式重建 + `consistency_check` 三方对账（events 重放 vs 旧格式
+重建 vs 记录汇总；`missing_fields`/`lesson_unread` 是观测级计数、合并视图不可比，排除在
+对账外只作展示）。`RunRecorder` 增量 `events` 有序观测日志（每个 note_* 追加、随 flush
+原子落盘；**旧格式文件续跑先把汇总重建成日志再续编号**，重放覆盖整局）；note_final 日志记
+**兜底前**原始读数、重放独立重兜底——记录器/重放器互为独立实现，漂移可被抓（单测实证：
+暂存覆盖丢分 → lesson_total 分歧；汇总篡改 → stamina 分歧）。新 `scripts/replay_run.py`：
+逐事件状态推进+终态摘要+三方对账；`--verify` 退出码=DoD；`--compare` 两条序列逐步比对；
+`--json`。**⑩ 自动复盘页+标注闭环**：新 `src/gkagent/report/review_page.py`——
+`build_review_html` 纯函数渲染自包含 HTML（同输入同输出、全量 HTML 转义、内嵌 JSON
+`<`/`>` Unicode 转义防逃逸）：周行动逐回合表（重复观测黄底/null 灰显）/考试/结算/重放
+一致性（指纹+三方对账）/观测事件日志/C1 逐步轨迹表（lost/failed/stuck 红底；合成轨迹
+显著 banner）/标注工具栏；行内 verdict（ok/bad/unsure）+评论+expected（k=v;k=v），
+localStorage 自动保存（键含指纹前 8 位不串局），导出 `annotations_<ep>.json`/导入/清除。
+新 `src/gkagent/report/annotations.py`：`parse_expected`/`normalize_annotations`（坏 schema
+显式报错）/`cases_from_annotations`（**verdict=bad 且带 expected** 才转用例：周/考试/结算
+修正→追加观测事件重放**整态冻结**；逐步修正→`summarize_traces` 分类结论冻结——期望在
+转换时冻结，被测代码不给自己出题）/`merge_cases`（按 id 去重）。新 `scripts/review_page.py`
++ `scripts/annotations_to_regression.py`（原子写、幂等）；`tests/test_review_regressions.py`
+逐条重算比对。**auto_produce 局末自动生成**（`[review]` 日志行 + summary `review_page` 键；
+best-effort，失败只留痕不影响收尾/退出码）。
+**样例/夹具**：docs/review_sample.html——记录=真机 ep-rule1（bot 最好 C+/5992，真实数据）；
+轨迹=合成演示 6 步（本局跑在 C1 之前无真机 step_trace，`trace_source=synthetic-demo` 显著
+标注，不当真机数据引用）。夹具 2 条演示用例 provenance=synthetic-demo（演示闭环，非真机
+ground truth；真机标注后由转换脚本追加真实案例）。
+**验证**：tests/test_run_replay.py **38 条** + test_review_page.py **20 条** +
+test_review_regressions.py **3 条** = 61 条；ruff 通过；全量 pytest **1564/1（1565 收集 /
+97 文件）**；①③④⑤ 复跑不变（① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、
+⑤ 366/384 逐张 1125/1155）。**sim/ 零引用 run_record/run_replay/report（grep 0 命中）→
+模拟器/评测零影响，无需 sim_engine_ab 重标定**；旧 B11 数据/模型全保留。真实记录端到端：
+ep-kinami1/ep-rule1/ep-verify1 `--verify` 三方对账全一致；**ep-t1-g 卡屏局 28 次重复观测
+被重放显式 surfaced**（duplicates 计数 + 复盘页黄底）。一次性脚本 data/_p16_*.py 不提交；
+out/review/ gitignore。
+文档：WORKPLAN §0/P1-6/C1 注记/开场白；HANDOVER_NEXT 开场白/§0/§2/§4 T7/§6/§8.0/§8；
+LIVE_RUN §2/§2.1/§3；INDEX；HANDOVER 二·补五十。
+提交 feat <哈希>（代码+测试+夹具+样例页+文档）+ docs(handover) 哈希记录。
+**下一会话（先问用户）**：阶段1 剩 **P 道具后续批次**（好调增加量增加 ExamParameterBuffAdditive /
+元气增加无效 ExamBlockRestriction / 不安 ExamBlockAddDown / 塔 gimmick / 全力・强气效果卡打分 /
+日文好調の%分 / ExamParameterBuffReduce——证据充分但需新机制，no-op 如实记），**或直接进
+阶段2 重采+练学生 r11**（small 上采样 + --norm-by-scenario，新 seed 块新文件，参照臂按新规则
+重评，small+large 双过入库 + 新旧对比；旧数据模型全保留）。用户选定后按 §8 交接+再发开场白。
+
+**上一轮交接记录（2026-11-24，P1-5 —— 阶段1 第五批：P 道具剩余效果语义补全 bounded batch：层数减少 + 好调回合 + 好调依赖换算，BSD-3 + DSL 三重核实）**：
 用户已确认 A 顺序（不用再问）。开工基线 ①–⑤ 全绿（HEAD edb65a6，② 1465/1、
 1466 收集 / 93 文件，222.83s）；Hindsight 记忆已停用（不用 hindsight_* 工具，跨会话靠 docs）。
 **本批挑「证据充分、离线可定、映射既有机制」的低风险段**（bounded batch，不贪多），语义全部经

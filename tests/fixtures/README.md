@@ -54,6 +54,23 @@
 - 注意：这是**主数据计算结果**的回归快照，不是官方逐分真值；真机逐分回放还差 P 道具附魔/
   考试内生成卡等未建模机制（见 RULES_REFERENCE §5.1 的「剩余差距」）。
 
+## 非图片素材：人工标注回归夹具（WORKPLAN P1-6 / T7③）
+
+`review_regressions.json` 不是截图，是**复盘页人工标注转成的回归用例**（schema
+`gkagent-review-regressions/1`）：每条用例带 `kind`（replay=观测序列重放整态冻结 /
+trace=逐步轨迹分类结论冻结）、`events`/`rows`、转换时冻结的 `expect`、`provenance`。
+[`tests/test_review_regressions.py`](../test_review_regressions.py) 逐条重算比对——
+以后重放语义/复盘口径变了（同观测不再同状态），这里立刻红。
+
+- 来源：复盘页（`scripts/review_page.py` / auto_produce 局末 `[review]`）行内标注
+  （verdict=bad + expected 修正值）→ 导出 `annotations_<ep>.json` →
+  `scripts/annotations_to_regression.py` 转换合并（按 id 去重、幂等、原子写）。
+- **当前 2 条都是 `provenance=synthetic-demo`**：演示闭环用的合成样例
+  （ep-demo-review，记录/轨迹均合成），**不是真机 ground truth**。真机跑局标注后
+  追加真实案例（provenance=human-annotation），测试自动逐条覆盖。
+- 样例页：[docs/review_sample.html](../../docs/review_sample.html)（记录 = 真机 ep-rule1
+  C+/5992；轨迹 = 合成演示 6 步，页面显著标注 synthetic-demo）。
+
 ## 缺的真机帧：回合结束确认框（F#8/F#36）
 
 `step_NNN.png` 是**轮转覆盖**的，含「回合结束 / 尚可使用技能卡 / 确定要结束回合吗？」的

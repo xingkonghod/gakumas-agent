@@ -97,7 +97,47 @@ Get-ScheduledTask -TaskName GDEAgent | Select-Object State
 # ④ 逐步复盘（C1）：每步点了哪/为什么/预算下一帧是什么/兑现了没有
 .venv\Scripts\python.exe scripts\replay_steps.py --episode ep-cplus3
 .venv\Scripts\python.exe scripts\replay_steps.py --episode ep-cplus3 --anomalies   # 只看 lost/failed/stuck
+
+# ⑤ 自动复盘页（P1-6）：auto_produce 局末已自动生成 out/review/<ep>.html（日志 [review] 行）；
+#    补生成/换局：
+.venv\Scripts\python.exe scripts\review_page.py --episode ep-cplus3
+
+# ⑥ 纯函数状态重放（P1-6）：同观测序列→同状态→三方对账；--verify 退出码=DoD
+.venv\Scripts\python.exe scripts\replay_run.py --episode ep-cplus3 --verify
 ```
+
+## 2.1 自动复盘页与标注闭环（P1-6，T7②③）
+
+**每局一个自包含 HTML**（`out/review/<ep>.html`，gitignore；浏览器直接打开，无外部资源）：
+
+| 区块 | 内容 | 看什么 |
+|---|---|---|
+| ① 周行动（逐回合） | 周/行动/课程分/三维/体力/note | **黄底 = 同周同行动重复观测**（疑似卡屏/轮转，ep-t1-g 真实故障形态）；null = 没读到（不编造） |
+| ② 考试 / ③ 结算 | 期中/期末名次分数全员 / 最终评价 | 缺字段 note 如实显示 |
+| ④ 重放一致性 | 指纹 + 三方对账（events 重放 vs 旧格式重建 vs 记录汇总） | **不一致 = 记录器/重放器漂移**，逐字段列出 |
+| ⑤ 逐步轨迹 | C1 step_trace（屏幕/动作/坐标/理由/预算/互验/重试） | **红底 = lost/failed/stuck**；合成演示轨迹有显著 banner（不当真机数据） |
+| ⑥ 人工标注 | 每行 verdict（ok/bad/unsure）+ 评论 + expected（k=v;k=v） | 见下闭环 |
+
+**标注 → 回归闭环**（人工判断变成永久防线）：
+
+```powershell
+# 1) 浏览器打开复盘页，在可疑行打 verdict=bad + expected 修正值（如 lesson_score=152 / outcome=moved），
+#    点「导出标注 JSON」→ annotations_<ep>.json（localStorage 自动保存，键含重放指纹前 8 位不串局）
+# 2) 转回归用例（只转 verdict=bad 且带 expected 的；期望在转换时冻结，被测代码不给自己出题）
+.venv\Scripts\python.exe scripts\annotations_to_regression.py annotations_ep-cplus3.json
+# 3) 用例进 tests/fixtures/review_regressions.json，tests/test_review_regressions.py 逐条守：
+#    以后重放语义/复盘口径变了（同观测不再同状态），全量 pytest 立刻红
+.venv\Scripts\python.exe -m pytest tests/test_review_regressions.py
+```
+
+- 周/考试/结算修正 → 作为**新观测事件**追加到该局观测序列，重放**整态冻结**为期望；
+  逐步修正 → `summarize_traces` 分类结论（是否异常/outcome 计数）冻结。
+- 样例：[docs/review_sample.html](review_sample.html)（记录 = 真机 ep-rule1 C+/5992；
+  轨迹 = 合成演示 6 步，页面显著标注 `synthetic-demo`——本局跑在 C1 之前无真机轨迹）。
+  夹具里 `provenance=synthetic-demo` 的条目是演示闭环用合成样例，**不是真机 ground truth**；
+  真机跑局标注后追加真实案例。
+- 重放 CLI 也能独立用：`replay_run.py --episode ep-a --compare data\runs\ep-b.json`
+  逐步比对两条观测序列（首个分歧步 + 字段差异）；`--json` 机器可读。
 
 **C1 日志/失败标记速查**（`data/auto_log_<ep>.log` + `data/failures.jsonl` + `data/step_trace.jsonl`）：
 
@@ -115,7 +155,7 @@ Get-ScheduledTask -TaskName GDEAgent | Select-Object State
 |---|---|
 | `calibrate.py` 给出真实 `周增长/得分` | `src/gkagent/sim/produce.py` 的 `lesson_gain_ratio` |
 | 期末名次/评价 | 复核 `exam_base`（现在 85/205，按真机标定） |
-| 某类界面卡住/空转 | `data/auto/auto_log_<ep>.log` 里 `[training]`/`[action]` 行 + 截图；C1 起先跑 `replay_steps.py --anomalies` 看 lost/stuck 步的预算与理由 |
+| 某类界面卡住/空转 | 先开复盘页 `out/review/<ep>.html`（周重复黄底 + 轨迹异常红底一眼定位）；`data/auto/auto_log_<ep>.log` 里 `[training]`/`[action]` 行 + 截图；C1 起先跑 `replay_steps.py --anomalies` 看 lost/stuck 步的预算与理由；定位后在复盘页标注 → 转回归（§2.1） |
 | 出牌明显不合理 | 先看 `[training]` 行里的 `分数/体力` 是否读对，再动 `policy.json` |
 
 ## 4. 判定标准

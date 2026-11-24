@@ -2181,6 +2181,17 @@ def main() -> int:
             )
     except Exception as exc:  # noqa: BLE001 - 复盘日志不能影响收尾
         log_lines.append(f"[exam-plan] summary 失败：{exc}")
+    # T7③ 自动复盘页：局末 best-effort 生成（逐回合 + 逐步轨迹 + 标注闭环入口），
+    # 失败只留痕，绝不影响跑局收尾/退出码。
+    review_path = None
+    try:
+        from gkagent.report.review_page import write_review_page
+
+        episode_rows = [row for row in trace_log.read() if row.get("episode") == episode]
+        review_path = write_review_page(recorder.data, episode_rows, out_dir=ROOT / "out" / "review")
+        log_lines.append(f"[review] {review_path}")
+    except Exception as exc:  # noqa: BLE001 - 复盘页生成不能影响收尾
+        log_lines.append(f"[review] 生成失败：{exc}")
     LOG.write_text("\n".join(log_lines), encoding="utf-8")
     # 每局单独留一份，避免被下一局/手工测试覆盖
     (SHOT_DIR / f"auto_log_{episode}.log").write_text("\n".join(log_lines), encoding="utf-8")
@@ -2206,6 +2217,7 @@ def main() -> int:
                 "changed_rate": summary.get("changed_rate"),
                 "tap": tap_guard.summary(),
                 "run_record": str(recorder.path),
+                "review_page": str(review_path) if review_path is not None else None,
                 "log": log_lines[-12:],
             },
             ensure_ascii=False,

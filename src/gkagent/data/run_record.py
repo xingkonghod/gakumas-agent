@@ -376,6 +376,8 @@ class RunRecorder:
             "exams": [],
             "final": None,
             "meta": meta,
+            # T7② 有序观测日志（run_replay 纯函数重放的输入）；旧文件没有此键。
+            "events": [],
         }
 
     def _load_existing(self) -> dict[str, Any] | None:
@@ -393,7 +395,20 @@ class RunRecorder:
         payload.setdefault("final", None)
         meta = payload.get("meta")
         payload["meta"] = dict(meta) if isinstance(meta, Mapping) else load_meta()
+        if not isinstance(payload.get("events"), list):
+            payload["events"] = []
+        if not payload["events"] and (payload["weeks"] or payload["exams"] or payload["final"]):
+            # 旧格式续跑：先把已有汇总确定式重建成观测日志，新观测接着编号，
+            # 重放才能覆盖整局而不是只有续跑后的半局（T7②）。
+            from gkagent.data.run_replay import legacy_events
+
+            payload["events"] = legacy_events(payload)
         return payload
+
+    def _log_event(self, kind: str, **fields: Any) -> None:
+        """追加一条有序观测（seq 连续）；随下一次 flush 原子落盘。"""
+        events = self.data.setdefault("events", [])
+        events.append({"seq": len(events), "kind": kind, **fields})
 
     def _last_attrs_from_weeks(self) -> list[int] | None:
         for week in reversed(self.data.get("weeks") or []):
@@ -440,10 +455,18 @@ class RunRecorder:
             if stamina_value is not None:
                 last["stamina"] = stamina_value
             record = last
+            self._log_event("backfill", week=week_value, attrs_after=attrs_value, stamina=stamina_value)
         else:
             if action_value != "lesson":
                 record["lesson_score"] = None
             self.data["weeks"].append(record)
+            self._log_event(
+                "action",
+                week=week_value,
+                action=action_value,
+                attrs_after=attrs_value,
+                stamina=stamina_value,
+            )
 
         if (
             record.get("action") == "lesson"
@@ -466,6 +489,7 @@ class RunRecorder:
         没读到分时，这一节的分数会错误填到上一周。
         """
         value = _as_int(score, minimum=0, maximum=999999)
+        self._log_event("lesson", score=value)
         last = self.data["weeks"][-1] if self.data["weeks"] else None
         if (
             isinstance(last, dict)
@@ -480,6 +504,7 @@ class RunRecorder:
             return last
         self._pending_lesson = value
         self._has_pending_lesson = True
+        self.flush()
         return None
 
     # ------------------------------------------------------------------ 考试
@@ -501,7 +526,16 @@ class RunRecorder:
         if others_value is not None and len(others_value) < 6:
             extra.append(f"只读到 {len(others_value)}/6 人分数")
         _refresh_note(record, extra=extra)
+        self._log_event(
+            "exam",
+            exam_kind=kind_value,
+            rank=rank_value,
+            score=score_value,
+            others=others_value,
+        )
         if self.data["exams"] and self.data["exams"][-1] == record:
+            # 重复结算观测：汇总不重复入账，但观测日志如实保留（重放同口径去重）
+            self.flush()
             return self.data["exams"][-1]
         self.data["exams"].append(record)
         self.flush()
@@ -532,6 +566,20 @@ class RunRecorder:
                 "grade": None,
             }
             self.data["final"] = final
+        # T7② 观测日志记**兜底前**的原始读数（可 JSON 化），重放时由 run_replay
+        # 用同一口径从状态重新兜底——记录器与重放器互为独立实现，漂移可被抓出。
+        self._log_event(
+            "final",
+            attrs=_as_attrs(attrs),
+            rank=_as_int(rank, minimum=1, maximum=6),
+            exam_score=_as_int(exam_score, minimum=0, maximum=999999),
+            eval_points=(
+                eval_points
+                if isinstance(eval_points, (int, str)) and not isinstance(eval_points, bool)
+                else None
+            ),
+            grade=grade if isinstance(grade, str) else None,
+        )
         attrs_value = _as_attrs(attrs) or self.last_attrs or self._last_attrs_from_weeks()
         if attrs_value is not None:
             final["attrs"] = attrs_value

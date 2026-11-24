@@ -2810,6 +2810,71 @@ ruff 通过；全量 pytest **1503/1（1504 收集 / 94 文件，223.75s）**；
 **提交**：feat 4a55cc8（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录；
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补五十、11-24（P1-6 —— 阶段1 第六批：T7②③ 离线可靠性工程，纯函数状态重放 + 自动复盘页 + 标注转回归闭环；不改考试规则、不作废 B11 数据）
+
+**任务**：HANDOVER_NEXT §8.0 路线图 P1-6 / §4 T7②③（用户确认 A 顺序）。照 hiro 三原则补
+剩余两条：② 纯函数状态 + 离线重放（run_record 雏形 → 同观测序列→同状态→可逐步比对）；
+③ 自动复盘页（每局逐回合页 + 人工标注转回归；C1 已有 step_trace.jsonl + replay_steps.py，
+差自动页面/标注闭环）。开工基线 ①–⑤ 全绿（HEAD f98f6a8，② 1503/1、1504 收集 / 94 文件，
+224.17s）。Hindsight 已停用（不用记忆工具，靠 docs 交接）。
+
+**⑨ 纯函数状态重放**（新 `src/gkagent/data/run_replay.py`）：
+- `apply_event(state, event)` **无副作用**：深不可变 `RunState`/`ExamSnapshot`/`FinalSnapshot`
+  （全字段可哈希），不读时钟/文件/随机数；未知事件种类显式 ValueError（不静默丢观测）。
+- 事件 5 类 action/backfill/lesson/exam/final 与 `RunRecorder.note_*` 一一对应；考试类型在
+  `exam_kind`（事件类型占用 `kind`）；null 观测不抹已知值（最后已知值优先=补写语义）；
+  backfill 不重复计周（与旧格式「一周一条合并行」重建出的状态一致）；考试重复结算去重、
+  final 兜底口径与 note_final 完全一致（attrs 用最后已知三维、rank/exam_score 只从期末补）。
+- `replay` 逐事件快照 + `fingerprint` sha256：**同观测序列两遍重放指纹逐位相等**；
+  `compare_replays` 逐步比对（首个分歧步 + 逐字段差异 + 长度差）；`legacy_events` 旧格式
+  汇总确定式重建；`consistency_check` 三方对账（events 重放 vs 旧格式重建 vs 记录汇总）。
+  `missing_fields`/`lesson_unread` 是**观测级**计数（合并视图分不清「观测到 null」与「从未
+  观测」、补写前的缺失被抹平），排除在对账外只作复盘页展示。
+- `RunRecorder` 增量 `events` 有序观测日志：每个 note_* 追加、随 flush 原子落盘；
+  **旧格式文件续跑先把汇总重建成日志再续编号**（重放覆盖整局）；note_final 日志记**兜底前**
+  原始读数、重放独立重兜底——记录器/重放器互为独立实现，漂移可被抓（单测实证：note_lesson
+  暂存覆盖丢分 → lesson_total 分歧；汇总篡改 → stamina 分歧）。
+- 新 `scripts/replay_run.py`：逐事件状态推进 + 终态摘要 + 三方对账；`--verify` 退出码=DoD
+  （两遍指纹相等 + 对账一致）；`--compare` 两条序列逐步比对；`--json` 机器可读。
+
+**⑩ 自动复盘页 + 标注闭环**（新 `src/gkagent/report/`）：
+- `review_page.py`：`build_review_html` 纯函数渲染自包含 HTML（同输入同输出、全量 HTML
+  转义、内嵌 JSON `<`/`>` Unicode 转义防逃逸，离线打开即用无外部资源）：周行动逐回合表
+  （重复观测黄底/null 灰显）/ 考试表 / 结算 / 重放一致性（指纹+三方对账）/ 观测事件日志 /
+  C1 逐步轨迹表（lost/failed/stuck 红底；合成轨迹显著 banner）/ 标注工具栏。行内标注
+  verdict（ok/bad/unsure）+ 评论 + expected（k=v;k=v），localStorage 自动保存（键含指纹前
+  8 位不串局），导出 `annotations_<ep>.json` / 导入 / 清除。`write_review_page` 原子写盘。
+- `annotations.py`：`parse_expected`/`normalize_annotations`（坏 schema 显式报错）/
+  `cases_from_annotations`（**verdict=bad 且带 expected** 才转用例：周/考试/结算修正 →
+  追加观测事件重放**整态冻结**；逐步修正 → `summarize_traces` 分类结论冻结）/`merge_cases`
+  （按 id 去重合并）。期望在**转换时**（人工复核过的代码版本）冻结进 JSON，测试只重算
+  比对——被测代码不给自己出题。
+- 新 `scripts/review_page.py`（CLI 生成）+ `scripts/annotations_to_regression.py`（标注 →
+  `tests/fixtures/review_regressions.json`，原子写、幂等）；`tests/test_review_regressions.py`
+  逐条守夹具。**auto_produce 局末自动生成**（`[review]` 日志行 + summary `review_page` 键；
+  best-effort，失败只留痕不影响收尾/退出码）。
+
+**样例/夹具（如实标注）**：[docs/review_sample.html](review_sample.html)——记录 = 真机
+ep-rule1（bot 最好 C+/5992，真实数据）；轨迹 = 合成演示 6 步（本局跑在 C1 之前无真机
+step_trace，页面 `trace_source=synthetic-demo` 显著标注，不当真机数据引用）。夹具 2 条
+演示用例 provenance=synthetic-demo（演示闭环用合成样例，非真机 ground truth；真机跑局
+标注后由转换脚本追加真实案例，测试自动逐条覆盖）。
+
+**验证**：`tests/test_run_replay.py` **38 条** + `tests/test_review_page.py` **20 条** +
+`tests/test_review_regressions.py` **3 条** = **61 条**；ruff 通过；全量 pytest
+**1564/1（1565 收集 / 97 文件）**；基线 ①③④⑤ 复跑不变（① 4/4+3/3、③ 86/86+24/24、
+④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155）。**不改考试规则**：sim/ 零引用
+run_record/run_replay/report（grep 0 命中）→ 模拟器/评测零影响，**无需 sim_engine_ab
+重标定**；旧 B11 数据/模型全保留。真实记录端到端：ep-kinami1/ep-rule1/ep-verify1
+`replay_run.py --verify` 三方对账全一致；**ep-t1-g 卡屏局 28 次重复观测被重放显式
+surfaced**（duplicates 计数 + 复盘页黄底——正是复盘页要抓的故障形态）。
+一次性脚本 data/_p16_*.py 不提交；out/review/ gitignore。
+
+**文档**：WORKPLAN §0/P1-6/C1 注记/开场白；HANDOVER_NEXT 开场白/§0/§2/§4 T7/§6/§8.0/§8；
+LIVE_RUN §2/§2.1/§3；INDEX；本文件二·补五十。
+**提交**：feat <哈希>（代码+测试+夹具+样例页+文档）+ docs(handover) 哈希记录；
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：
@@ -3030,6 +3095,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-24 P1-6 哈希记录：feat <哈希> + docs(handover) 本节；阶段1 第六批 T7②③ 离线可靠性工程——⑨ 纯函数状态重放 data/run_replay.py（apply_event无副作用/深不可变RunState/同观测序列两遍重放指纹逐位相等/compare_replays逐步比对首个分歧步/legacy_events旧格式确定式重建/consistency_check三方对账）+ RunRecorder增量events观测日志（旧文件续跑先重建）+ scripts/replay_run.py --verify/--compare；⑩ 自动复盘页 report/review_page.py 自包含HTML（逐回合/考试/结算/重放一致性/C1逐步轨迹/行内标注导出导入）+ report/annotations.py 标注转回归（verdict=bad带expected→整态/分类结论冻结进tests/fixtures/review_regressions.json）+ scripts/review_page.py/annotations_to_regression.py；auto_produce局末自动生成[review]；样例docs/review_sample.html（ep-rule1真实记录+合成演示轨迹显著标注）；不改考试规则、sim/零引用新模块→评测零影响无需重标定、旧B11数据模型全保留；61条新单测(38+20+3)、pytest 1564/1(1565收集/97文件)、基线①③④⑤不变；ep-t1-g卡屏局28次重复观测被显式surfaced；WORKPLAN P1-6/LIVE_RUN §2.1/HANDOVER_NEXT §4 T7+§8.0+§8/INDEX/二·补五十；下一任务先问用户：阶段1 P道具后续批次 vs 阶段2 重采+练学生r11）
+<哈希> feat(reliability): P1-6 T7②③ 纯函数状态重放+自动复盘页+标注转回归闭环（run_replay纯函数/RunRecorder events日志/replay_run --verify/--compare；review_page自包含HTML+annotations转回归夹具；auto_produce局末[review]；样例页+61条单测、pytest 1564/1；不改规则、评测零影响）
 （2026-11-24 P1-5 哈希记录：feat 4a55cc8 + docs(handover) 本节；阶段1 第五批 P 道具剩余效果语义补全 bounded batch——层数减少类 干劲/集中/全力值-=N夹取>=0 + 体力减少 ExamStaminaDamage + 好调N回合 ExamParameterBuff turn列 + 好调依赖换算 好调的N%数值变为打分/集中，BSD-3+主数据+DSL三重核实；implemented 1067→1164/1849(+97)、依赖换算65→76、p_items.json仅24记录变化；sim_produce不引用p_items→评测零P道具结算、sim_engine_ab改前/改后64局差异=0；38条新单测、pytest 1503/1(1504收集/94文件)、基线①③④⑤不变；留后续 好调增加量增加/元气增加无效/不安/塔gimmick/全力强气效果卡打分/日文好調の%分；旧B11数据模型全保留；RULES_REFERENCE §5.8/WORKPLAN P1-5/HANDOVER_NEXT §8.0+§8/INDEX/二·补四十九；下一会话 P1-6 T7②③ 纯函数状态重放/自动复盘页）
 4a55cc8 feat(rules): P1-5 P道具剩余效果语义补全(bounded batch)——层数减少+好调回合+好调依赖换算（BSD-3+DSL三重核实；implemented 1067→1164/1849；sim_engine_ab改前/改后64局差异=0；38条单测、pytest 1503/1；RULES_REFERENCE §5.8）
 （2026-11-24 Hindsight 停用哈希记录：docs(handover) 2699e79；排查实锤=Hindsight daemon 用普通 DASHSCOPE_API_KEY+标准 dashscope 按量端点跑 qwen-plus/text-embedding-v4，不在千问 Token Plan 订阅（sk-sp-/token-plan 端点）覆盖内→两天约¥10 余额；用户删普通 key 止血后指定直接停用：禁用 bundle @vectorize-io/hindsight-coding-agents + 杀 daemon 进程树 PID36048 + pg_ctl 停内嵌PG，9077/5432 释放；主 agent 订阅不受影响、hindsight_* 工具下线、上下文靠 docs 交接；二·补四十八 + 二·补三十八前置注记 + HANDOVER_NEXT 开场白/§2/§8；恢复选项留待用户决定）

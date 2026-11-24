@@ -1,0 +1,188 @@
+{
+ "schema": "gkagent-review-regressions/1",
+ "cases": [
+  {
+   "id": "ep-demo-review:step:12",
+   "kind": "trace",
+   "episode": "ep-demo-review",
+   "target": "step",
+   "key": 12,
+   "comment": "演示闭环（合成样例）：画面已推进应判 moved 而非 retap",
+   "provenance": "synthetic-demo",
+   "rows": [
+    {
+     "episode": "ep-demo-review",
+     "step": 12,
+     "screen": "action",
+     "action": "tap-card",
+     "point": [
+      270,
+      600
+     ],
+     "reason": "演示：选卡",
+     "expect_kind": "change",
+     "expect_words": [
+      "行动"
+     ],
+     "outcome": "moved",
+     "tries": 1
+    }
+   ],
+   "expect": {
+    "anomaly": false,
+    "outcomes": {
+     "moved": 1
+    },
+    "retaps": 0,
+    "lost": 0
+   }
+  },
+  {
+   "id": "ep-demo-review:week:1",
+   "kind": "replay",
+   "episode": "ep-demo-review",
+   "target": "week",
+   "key": 1,
+   "comment": "演示闭环（合成样例）：人工读课程结算屏补 week2 lesson_score=152",
+   "provenance": "synthetic-demo",
+   "events": [
+    {
+     "kind": "action",
+     "week": 1,
+     "action": "train",
+     "attrs_after": [
+      132,
+      165,
+      224
+     ],
+     "stamina": 27,
+     "seq": 0
+    },
+    {
+     "kind": "action",
+     "week": 2,
+     "action": "lesson",
+     "attrs_after": [
+      132,
+      170,
+      270
+     ],
+     "stamina": 27,
+     "seq": 1
+    },
+    {
+     "kind": "lesson",
+     "score": null,
+     "seq": 2
+    },
+    {
+     "kind": "action",
+     "week": 3,
+     "action": "lesson",
+     "attrs_after": [
+      140,
+      180,
+      280
+     ],
+     "stamina": 22,
+     "seq": 3
+    },
+    {
+     "kind": "lesson",
+     "score": 152,
+     "seq": 4
+    },
+    {
+     "kind": "exam",
+     "exam_kind": "mid",
+     "rank": 3,
+     "score": 217,
+     "others": [
+      603,
+      387,
+      217,
+      206,
+      205
+     ],
+     "seq": 5
+    },
+    {
+     "kind": "final",
+     "attrs": [
+      140,
+      180,
+      280
+     ],
+     "rank": 1,
+     "exam_score": 17300,
+     "eval_points": 5577,
+     "grade": "C+",
+     "seq": 6
+    },
+    {
+     "kind": "lesson",
+     "score": 152,
+     "seq": 7
+    }
+   ],
+   "expect": {
+    "seq": 7,
+    "n_events": 8,
+    "week": 3,
+    "phase": "mid",
+    "attrs": [
+     140,
+     180,
+     280
+    ],
+    "stamina": 22,
+    "weeks_seen": 3,
+    "duplicates": 0,
+    "last_action_key": [
+     3,
+     "lesson"
+    ],
+    "action_counts": [
+     [
+      "lesson",
+      2
+     ],
+     [
+      "train",
+      1
+     ]
+    ],
+    "lesson_total": 304,
+    "lesson_known": 2,
+    "lesson_unread": 1,
+    "exams": [
+     {
+      "kind": "mid",
+      "rank": 3,
+      "score": 217,
+      "others": [
+       603,
+       387,
+       217,
+       206,
+       205
+      ]
+     }
+    ],
+    "exam_score_total": 217,
+    "final": {
+     "attrs": [
+      140,
+      180,
+      280
+     ],
+     "rank": 1,
+     "exam_score": 17300,
+     "eval_points": 5577,
+     "grade": "C+"
+    },
+    "missing_fields": 1
+   }
+  }
+ ]
+}
