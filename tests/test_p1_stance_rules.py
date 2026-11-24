@@ -629,7 +629,16 @@ def test_play_choice_leisure_spec() -> None:
 
 
 def test_eval_deck_composition_unchanged() -> None:
-    """规则接入不改评测牌组：のんびり来源卡都不在 small/large 牌组（score 0/SSR/Legend）。"""
+    """评测牌组组成：small 恒不变；P1-3 起 large 组成变化（如实记录）。
+
+    P1-1/P1-2 时 のんびり/自尊来源卡都不进池（score 0/SSR/Legend），牌组逐张不变。
+    **P1-3（2026-11-24）**：冲刺/积累 的 ``ExamCardMove`` 从 +1 抽牌近似改为
+    真实 holdThisCard（温存中保留自身，**不是抽牌**）→ draw 1→0，large 牌组
+    的「抽牌机制签名槽」改选 决不停歇（表外卡保留近似），冲刺/积累 让出槽位。
+    这是保真度修正（旧近似把保留当抽牌是高估），不是牌池组成变化；
+    small 牌组（14 张基础卡）不受影响。新 hold 规则在 eval_expectimax 牌组
+    零触达（large 无已建模 hold 卡），sim_engine_ab 奖励池仍可采到冲刺/积累。
+    """
     import eval_expectimax as ee
 
     leisure_names = {"悠闲自在的人", "走走停停，继续前进", "从天台看到的景色", "俯瞰群星的启明星"}
@@ -639,10 +648,19 @@ def test_eval_deck_composition_unchanged() -> None:
         names = {card.name for card in deck}
         assert not (names & leisure_names), scenario
         assert all(card.leisure_reserve == 0 for card in deck)
-    # 牌组里的指針/全力卡仍在（规则有可触达来源）
+    small = {card.name for card in ee.build_deck("small")}
+    assert "冲刺" not in small and "积累" not in small
     large = {card.name: card for card in ee.build_deck("large")}
-    assert large["冲刺"].full_power_point == 1
+    # P1-3：冲刺/积累 不再进 large（draw 近似移除）；决不停歇 接抽牌签名槽
+    assert "冲刺" not in large and "积累" not in large
+    assert large["决不停歇"].draw == 1  # 表外卡保留旧近似（干扰卡计数条件未建模）
     assert large["猛烈地"].strong_level == 1
+    # 已建模 hold 卡的字段正确（牌组外，奖励池/真实卡表可触达）
+    from gkagent.sim.play_choice import spec_from_name
+
+    sprint = spec_from_name("冲刺")
+    assert sprint is not None and sprint.hold_this == 1 and sprint.hold_this_when_save
+    assert sprint.draw == 0 and sprint.full_power_point == 1
 
 
 def test_pool_excludes_leisure_cards() -> None:

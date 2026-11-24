@@ -257,11 +257,13 @@ def test_stance_effects_only_when_text_says_change() -> None:
         only_spec(record([{"type": "ExamPreservation", "values": {}, "text": "温存变更"}])).target
         == "stance_preservation"
     )
+    # P1-3：「温存阶段变更」（value1=2）= 温存 2 段階直给（参考 setStance(preservation2)，
+    # 叶える覚悟+/はつぼしフィギュア/まあるい春色/夢見る星 交叉）
     assert (
         only_spec(
-            record([{"type": "ExamPreservation", "values": {}, "text": "温存阶段变更"}])
+            record([{"type": "ExamPreservation", "values": {"value1": 2}, "text": "温存阶段变更"}])
         ).target
-        == "stance_preservation"
+        == "stance_preservation2"
     )
     assert (
         only_spec(

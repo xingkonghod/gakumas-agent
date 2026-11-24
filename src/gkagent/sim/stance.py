@@ -150,15 +150,17 @@ def stamina_cost_multiplier(state: StanceState) -> float:
     return 1.0
 
 
-def stance_change_allowed(state: StanceState, kind: str) -> bool:
+def stance_change_allowed(state: StanceState, kind: str, *, locked: bool = False) -> bool:
     """参考引擎 ``BuffManager.setStance`` 的指針変更守卫（P1-1 2026-11-24）。
 
     - 全力期间不能切指針（``stance=="fullPower"`` 时只允许 ``setStance(none)``，
       那由 ``end_turn`` 的全力解除走，不走这里）；
     - のんびり期间不能切温存（``leisure && stance.startsWith("preservation")``
       直接 return）；
-    - ``lockStanceTurns``（指針固定）未建模：当前卡池唯一来源「切磋琢磨」
-      含 holdSelected 保留区效果，整体留 P1-3 hold 建模时一并补（恒 0 = 不锁）。
+    - **P1-3（2026-11-24）**：``lockStanceTurns``（指針固定）>0 时禁切指針
+      （参考 ``else if (state[S.lockStanceTurns]) return;``）。``locked`` 由
+      调用方传 ``lock_stance_turns > 0``（默认 False = 旧行为）；来源卡切磋琢磨
+      （``StanceLock`` turn=1 ↔ DSL ``lockStanceTurns+=1``）。
 
     ``kind`` 取 ``"preservation"`` / ``"concentration"`` / ``"leisure"``。
     全力值获得（``ExamFullPowerPoint``）走 ``resolveFullPowerCharge``，
@@ -166,6 +168,8 @@ def stance_change_allowed(state: StanceState, kind: str) -> bool:
     """
     stance = str(state.stance)
     if stance == Stance.FULL:
+        return False
+    if locked:
         return False
     return not (stance == Stance.LEISURE and kind == "preservation")
 
@@ -220,17 +224,23 @@ def apply_full_power_point(state: StanceState, delta: int) -> StanceState:
     return replace(state, full_power_point=max(0, state.full_power_point + gain))
 
 
-def end_turn(state: StanceState) -> StanceState:
+def end_turn(state: StanceState, *, locked: bool = False) -> StanceState:
     """回合结束结算指針，返回新状态。
 
     近似真机的顺序：
 
-    - 若全力值 ≥ 10：消耗 10 点，下一回合进入「全力」；
-      超过 10 的部分保留，供下一次全力使用。
-    - 否则若当前是「全力」：全力只持续一个回合，回合结束回到无指針。
+    - 若全力值 ≥ 10 **且指針未固定**：消耗 10 点，下一回合进入「全力」；
+      超过 10 的部分保留，供下一次全力使用。参考 ``FULL_POWER_EFFECTS``：
+      ``if:lockStanceTurns==0 & fullPowerCharge>=10 { fullPowerCharge-=10;
+      setStance(fullPower) }``——固定期间全力值**不消耗**、指針不变。
+    - 否则若当前是「全力」：全力只持续一个回合，回合结束回到无指針
+      （全力解除 = ``setStance(none)``，参考 setStance 的 fullPower 分支
+      不受 lockStanceTurns 守卫，固定期间也照常解除）。
     - 其它情况原样返回（不改段階、不扣全力值）。
+
+    ``locked`` 由调用方传 ``lock_stance_turns > 0``（P1-3，默认 False = 旧行为）。
     """
-    if state.full_power_point >= FULL_POWER_POINT_COST:
+    if state.full_power_point >= FULL_POWER_POINT_COST and not locked:
         return replace(
             state,
             stance=Stance.FULL,

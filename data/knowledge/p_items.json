@@ -214,7 +214,7 @@
   },
   "items_with_effects": 902,
   "items_with_value": 752,
-  "items_with_condition": 313,
+  "items_with_condition": 311,
   "items_with_max_uses": 896,
   "items_missing_yaml": 0,
   "items_missing_trigger_text": 38,
@@ -223,9 +223,9 @@
   "items_i18n_name_ja": 0,
   "items_i18n_text_ja": 47,
   "items_condition_unknown": 0,
-  "items_trigger_unknown": 3,
+  "items_trigger_unknown": 0,
   "items_play_filter": 234,
-  "items_zone_count": 27,
+  "items_zone_count": 29,
   "effects_create_card": 11,
   "effects_create_random": 6,
   "items_trigger_id_parsed": 22,
@@ -238,7 +238,7 @@
    "cost_increase": 32,
    "poor_condition_turns": 8,
    "double_cost_turns": 14,
-   "stance_preservation": 36,
+   "stance_preservation": 29,
    "cost_reduction": 26,
    "half_cost_turns": 21,
    "concentration_gain": 10,
@@ -254,6 +254,7 @@
    "enthusiasm_bonus": 9,
    "enthusiasm_multiple": 6,
    "full_power_charge": 8,
+   "stance_preservation2": 7,
    "stance_leisure": 2,
    "stance_concentration": 2,
    "hand_decrease": 12,
@@ -25680,8 +25681,7 @@
     }
    ],
    "text_zh": "回合内使用过2次技能卡时，好印象+2好印象强化+25%（训练内1次）",
-   "text_ja": "ターン内にスキルカードを2回使用時、好印象+2好印象強化+25%（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ターン内にスキルカードを2回使用時、好印象+2好印象強化+25%（レッスン内1回）"
   },
   {
    "id": "pitem_02-3-311-0",
@@ -28670,7 +28670,7 @@
      },
      "text": "温存阶段变更",
      "max_uses": 0,
-     "target": "stance_preservation",
+     "target": "stance_preservation2",
      "label": "温存"
     },
     {
@@ -29644,7 +29644,7 @@
      },
      "text": "温存阶段变更",
      "max_uses": 0,
-     "target": "stance_preservation",
+     "target": "stance_preservation2",
      "label": "温存"
     },
     {
@@ -30111,9 +30111,17 @@
      "card_id": "p_card-03-act-1_038",
      "upgrade": 0,
      "count": 1
+    },
+    "zone_count": {
+     "zones": [
+      "held"
+     ],
+     "min": 1,
+     "negate": false,
+     "filter": null
     }
    },
-   "condition": "保留中的技能卡在1张以上的时候",
+   "condition": "",
    "effect_type": "ExamFullPowerPoint",
    "effect_label": "全力值",
    "effect_text": "全力值+保留中的技能卡的打分上升次数增加+1・花费值增加+2（训练内1次）",
@@ -30140,8 +30148,7 @@
     }
    ],
    "text_zh": "魅力刚刚好使用后，保留中的技能卡在1张以上的时候，温存变更全力值+2保留中的技能卡的打分上升次数增加+1・花费值增加+2（训练内1次）",
-   "text_ja": "ジャストアピール使用後、保留にあるスキルカードが1枚以上の場合、温存に変更全力値+2保留にあるスキルカードのパラメータ上昇回数増加+1・コスト値増加+2（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ジャストアピール使用後、保留にあるスキルカードが1枚以上の場合、温存に変更全力値+2保留にあるスキルカードのパラメータ上昇回数増加+1・コスト値増加+2（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-078-1",
@@ -30158,9 +30165,17 @@
      "card_id": "p_card-03-act-1_038",
      "upgrade": 0,
      "count": 1
+    },
+    "zone_count": {
+     "zones": [
+      "held"
+     ],
+     "min": 1,
+     "negate": false,
+     "filter": null
     }
    },
-   "condition": "保留中的技能卡在1张以上的时候",
+   "condition": "",
    "effect_type": "ExamPreservation",
    "effect_label": "温存",
    "effect_text": "温存阶段变更",
@@ -30175,7 +30190,7 @@
      },
      "text": "温存阶段变更",
      "max_uses": 0,
-     "target": "stance_preservation",
+     "target": "stance_preservation2",
      "label": "温存"
     },
     {
@@ -30189,8 +30204,7 @@
     }
    ],
    "text_zh": "魅力刚刚好使用后，保留中的技能卡在1张以上的时候，温存2阶段变更全力值+4保留中的技能卡的打分上升次数增加+1・花费值增加+1（训练内1次）",
-   "text_ja": "ジャストアピール使用後、保留にあるスキルカードが1枚以上の場合、温存2段階目に変更全力値+4保留にあるスキルカードのパラメータ上昇回数増加+1・コスト値増加+1（レッスン内1回）",
-   "trigger_known": false
+   "text_ja": "ジャストアピール使用後、保留にあるスキルカードが1枚以上の場合、温存2段階目に変更全力値+4保留にあるスキルカードのパラメータ上昇回数増加+1・コスト値増加+1（レッスン内1回）"
   },
   {
    "id": "pitem_03-3-088-challenge",
@@ -30688,7 +30702,7 @@
      },
      "text": "温存阶段变更",
      "max_uses": 0,
-     "target": "stance_preservation",
+     "target": "stance_preservation2",
      "label": "温存"
     },
     {
@@ -30736,7 +30750,7 @@
      },
      "text": "温存阶段变更（训练内2次）",
      "max_uses": 0,
-     "target": "stance_preservation",
+     "target": "stance_preservation2",
      "label": "温存"
     }
    ],
@@ -31625,7 +31639,7 @@
      },
      "text": "温存阶段变更",
      "max_uses": 0,
-     "target": "stance_preservation",
+     "target": "stance_preservation2",
      "label": "温存"
     }
    ],
@@ -31672,7 +31686,7 @@
      },
      "text": "温存阶段变更",
      "max_uses": 0,
-     "target": "stance_preservation",
+     "target": "stance_preservation2",
      "label": "温存"
     }
    ],

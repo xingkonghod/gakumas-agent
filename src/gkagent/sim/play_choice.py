@@ -34,6 +34,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
+from gkagent.sim.hold import hold_source_for
 from gkagent.sim.lesson import (
     AUDITION_ATTRIBUTE_COEFFICIENT,
     Buffs,
@@ -43,6 +44,13 @@ from gkagent.sim.lesson import (
     greedy_policy,
 )
 from gkagent.sim.stance import leisure_reserve_for
+
+#: P1-3：HoldSource.zones → CardSpec.hold_select_zones 键（与 sim_produce 同口径）
+_HOLD_ZONES_KEY = {
+    ("hand",): "hand",
+    ("deck",): "deck",
+    ("deck", "discard"): "deck_grave",
+}
 
 if TYPE_CHECKING:
     from gkagent.data.card_table import CardTable
@@ -176,6 +184,13 @@ def _effect_fields(row: dict) -> dict[str, int]:
         # P1-2（2026-11-24）：自尊 pride（ExamLessonValueMultipleDependReviewOrAggressive）
         "pride_turns": 0,
         "pride_min_motivation": 0,
+        # P1-3（2026-11-24）：hold 保留区（ExamCardMove）+ 指針固定（StanceLock）
+        "hold_this": 0,
+        "hold_this_when_save": False,
+        "hold_select_zones": "",
+        "hold_select_count": 1,
+        "hold_move_to_hand": False,
+        "lock_stance_turns": 0,
     }
     mapping = {
         "ExamLessonBuff": "condition",
@@ -224,6 +239,31 @@ def _effect_fields(row: dict) -> dict[str, int]:
                     fields["pride_min_motivation"] = max(
                         fields["pride_min_motivation"], gate
                     )
+            continue
+        if kind == "ExamCardMove":
+            # P1-3：保留区（values 恒空，语义按 BSD-3 skill_cards.csv 逐卡证据表
+            # hold.HOLD_SOURCES，与 sim_produce 同口径）。表外卡保守 no-op
+            # （生产卡表路径本来就没有 +1 抽牌近似，保持既有行为）。
+            source = hold_source_for(
+                str(row.get("id") or ""), int(row.get("upgrade") or 0)
+            )
+            if source is not None:
+                if source.mode == "this":
+                    fields["hold_this"] = 1
+                    fields["hold_this_when_save"] = source.when_save
+                elif source.mode == "select":
+                    fields["hold_select_zones"] = _HOLD_ZONES_KEY[source.zones]
+                    fields["hold_select_count"] = max(
+                        fields["hold_select_count"], source.count
+                    )
+                elif source.mode == "move_hand":
+                    fields["hold_move_to_hand"] = True
+            continue
+        if kind == "StanceLock":
+            # P1-3：指針固定（turn 列 = N ↔ lockStanceTurns+=N，切磋琢磨）
+            turns = int(effect.get("turn") or 0)
+            if turns > 0:
+                fields["lock_stance_turns"] = max(fields["lock_stance_turns"], turns)
             continue
         if not values:
             continue

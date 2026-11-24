@@ -68,6 +68,7 @@ from gkagent.sim.enthusiasm import (
     release_on_stance_change,
     turn_end_enthusiasm,
 )
+from gkagent.sim.hold import HOLD_LIMIT, HOLD_SELECT_ZONES, hold_pick
 from gkagent.sim.lesson import (
     Buffs,
     CardSpec,
@@ -286,6 +287,11 @@ class ExpectState:
     # 自尊剩余回合（prideTurns：回合末 -1；>0 时 resolveScore f 加算
     # min(min(好印象,干劲)×20, 500) 千分比）。
     pride_turns: int = 0
+    # ---- P1-3（2026-11-24）：指針固定（lockStanceTurns，与 LessonSim 双镜）----
+    # >0 时禁切指針 + 全力进入门不满足；回合末 -1，fresh 保护（卡效果 0→正
+    # 的当回合末不扣，锁下一回合；参考 Executor freshBuffs）。
+    lock_stance_turns: int = 0
+    lock_stance_fresh: bool = False
     # 其它持久倍率：((key, ((数值, 剩余回合), …)), …)，key 见 MODIFIER_TARGETS。
     # 用 tuple 存（canonical 要可哈希）；读取见 mod_total / gain_multiple。
     modifiers: tuple[tuple[str, TimedAmounts], ...] = ()
@@ -451,6 +457,9 @@ class ExpectState:
             # P1-2：手牌减少（影响后续抽牌）/ 自尊（影响后续算分）
             self.hand_decreases,
             self.pride_turns,
+            # P1-3：指針固定（影响后续指針切换/全力进入）
+            self.lock_stance_turns,
+            self.lock_stance_fresh,
             self.modifiers,
             self.cost_reduction,
             self.cost_increase,
@@ -706,6 +715,9 @@ def sim_from_state(
     # P1-2：手牌减少 / 自尊（rollout 必须带上，否则抽牌数/算分与搜索不一致）
     sim.hand_decreases = tuple(state.hand_decreases)
     sim.pride_turns = int(state.pride_turns)
+    # P1-3：指針固定（rollout 必须带上，否则指針守卫/全力进入与搜索不一致）
+    sim.lock_stance_turns = int(state.lock_stance_turns)
+    sim._lock_stance_fresh = bool(state.lock_stance_fresh)
     sim.modifiers = {key: tuple(entries) for key, entries in state.modifiers}
     sim.cost_reduction = int(state.cost_reduction)
     sim.cost_increase = int(state.cost_increase)
@@ -1242,6 +1254,17 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     # 门槛才给 prideTurns（参考 if:motivation>=9；本牌干劲加成在之后才生效）。
     if effect_card.pride_turns > 0 and state.motivation >= effect_card.pride_min_motivation:
         state = replace(state, pride_turns=state.pride_turns + effect_card.pride_turns)
+    # P1-3：指針固定守卫取**本牌 lock 应用前**的值（与 LessonSim._apply_card_stance
+    # 同口径：本牌自己的锁不挡自己的指針变更；DSL 里 lockStanceTurns 在指針动作之后）。
+    locked = state.lock_stance_turns > 0
+    # P1-3：指針固定（StanceLock ↔ lockStanceTurns+=N；0→正 打 fresh 标记，
+    # 获得当回合末不扣）。
+    if effect_card.lock_stance_turns > 0:
+        state = replace(
+            state,
+            lock_stance_turns=state.lock_stance_turns + effect_card.lock_stance_turns,
+            lock_stance_fresh=state.lock_stance_fresh or state.lock_stance_turns == 0,
+        )
     condition_gain = effect_card.condition
     if condition_gain > 0 and state.condition_additive > 0:
         condition_gain += state.condition_additive
@@ -1282,7 +1305,9 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
             state,
             full_power_point_total=state.full_power_point_total + full_power_gain,
         )
-    if effect_card.strong_level > 0 and stance_change_allowed(stance, "concentration"):
+    if effect_card.strong_level > 0 and stance_change_allowed(
+        stance, "concentration", locked=locked
+    ):
         delta = card_stance_effect("ExamConcentration", [effect_card.strong_level])
         if delta["stance"] is not None:
             stance = replace(
@@ -1291,7 +1316,9 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
                 strong_level=effect_card.strong_level,
                 save_level=0,
             )
-    if effect_card.preservation > 0 and stance_change_allowed(stance, "preservation"):
+    if effect_card.preservation > 0 and stance_change_allowed(
+        stance, "preservation", locked=locked
+    ):
         delta = card_stance_effect("ExamPreservation", [effect_card.preservation])
         if delta["stance"] is not None:
             stance = replace(
@@ -1466,6 +1493,92 @@ def _discard_push(state: ExpectState, card: CardSpec) -> ExpectState:
     )
 
 
+def _remove_first(zone: tuple[CardSpec, ...], card: CardSpec) -> tuple[CardSpec, ...]:
+    """从区域多重集移除第一张相等牌（值相等口径，与 LessonSim list.remove 一致）。"""
+    cards = list(zone)
+    cards.remove(card)
+    return tuple(cards)
+
+
+def _apply_hold_state(state: ExpectState, played: CardSpec) -> tuple[ExpectState, bool]:
+    """P1-3：保留区结算（ExpectState 纯函数版，双镜 ``LessonSim._apply_hold``）。
+
+    调用时打出的牌已不在 ``state.hand``（与 LessonSim.step 先 pop 同口径）。
+    holdThisCard 条件用**当前指針**（本牌结算后、出牌后 P 道具触发前——参考
+    processCard 阶段求值，afterCardUsed 之前）。holdSelected 从目标区按白值分
+    降序确定性选牌（``hold.hold_pick``）；移入后 enforceHoldLimit（上限 2，
+    最旧进弃牌堆，``discard_order`` 同步）。从牌堆移牌同步 ``known_draw``
+    （牌堆顺序 = reversed(known_draw)，移除牌堆首张相等 = 移除 known_draw
+    末张相等）；从弃牌堆移牌同步 ``discard_order``（首张相等）。
+    返回 ``(新状态, 本牌是否被 holdThisCard 保留)``。
+    """
+    held_this = False
+    held = state.held
+    discard = state.discard
+    discard_order = state.discard_order
+    hand = state.hand
+    deck = state.deck
+    known_draw = state.known_draw
+
+    def enforce_limit() -> None:
+        nonlocal held, discard, discard_order
+        while len(held) > HOLD_LIMIT:
+            oldest = held[0]
+            held = held[1:]
+            discard = discard + (oldest,)
+            if discard_order is not None:
+                discard_order = discard_order + (oldest,)
+
+    if played.hold_this and (
+        not played.hold_this_when_save
+        or str(state.stance_state.stance) == Stance.SAVE
+    ):
+        held = held + (played,)
+        enforce_limit()
+        held_this = True
+    if played.hold_select_zones:
+        zone_names = HOLD_SELECT_ZONES[played.hold_select_zones]
+        pools = {"hand": hand, "deck": deck, "discard": discard}
+        candidates = [c for zone in zone_names for c in pools[zone]]
+        for picked in hold_pick(candidates, played.hold_select_count):
+            for zone in zone_names:
+                if picked in pools[zone]:
+                    if zone == "hand":
+                        hand = _remove_first(hand, picked)
+                    elif zone == "deck":
+                        deck = _remove_first(deck, picked)
+                        if known_draw:
+                            # 牌堆首张相等 = known_draw 末张相等（reversed 对应）
+                            drawn = list(known_draw)
+                            drawn.reverse()
+                            drawn.remove(picked)
+                            drawn.reverse()
+                            known_draw = tuple(drawn)
+                    else:
+                        discard = _remove_first(discard, picked)
+                        if discard_order is not None:
+                            discard_order = _remove_first(discard_order, picked)
+                    break
+            held = held + (picked,)
+        enforce_limit()
+    if played.hold_move_to_hand:
+        # moveHeldCardsToHand：LIFO 回手（参考 pop()），无手牌上限检查
+        hand = hand + tuple(reversed(held))
+        held = ()
+    return (
+        replace(
+            state,
+            hand=hand,
+            deck=deck,
+            discard=discard,
+            held=held,
+            known_draw=known_draw,
+            discard_order=discard_order,
+        ),
+        held_this,
+    )
+
+
 def _reshuffle_successor(
     state: ExpectState, need: int, reshuffle: ReshuffleFn | None
 ) -> ExpectState | None:
@@ -1617,6 +1730,8 @@ def apply_card(
     hand = list(after.hand)
     hand.remove(card)
     after = replace(after, hand=tuple(hand))
+    # P1-3：保留区结算在抽牌之前（参考 DSL hold 先于 drawCard；与 LessonSim 同口径）
+    after, held_this = _apply_hold_state(after, card)
     outcomes = _draw_distribution(after, draw, reshuffle=reshuffle)
     results: list[tuple[float, ExpectState]] = []
     for probability, successor in outcomes:
@@ -1631,7 +1746,10 @@ def apply_card(
             cards_played_this_turn=successor.plays_used,
             cards_played_total=successor.cards_played_total,
         )
-        if card.once:
+        if held_this:
+            # P1-3：holdThisCard 已进保留区，不再弃牌/除外（参考 thisCardHeld）
+            pass
+        elif card.once:
             successor = replace(successor, excluded=successor.excluded + (card,))
         else:
             successor = _discard_push(successor, card)
@@ -1760,6 +1878,8 @@ def sample_apply_card(
     hand = list(after.hand)
     hand.remove(card)
     after = replace(after, hand=tuple(hand))
+    # P1-3：保留区结算（与 apply_card / LessonSim.step 同口径）
+    after, held_this = _apply_hold_state(after, card)
     after = sample_draws(after, draw, rng, reshuffle=reshuffle)
     after = replace(after, cards_played_total=state.cards_played_total + 1)
     after = fire_p_items(
@@ -1770,6 +1890,8 @@ def sample_apply_card(
         cards_played_this_turn=after.plays_used,
         cards_played_total=after.cards_played_total,
     )
+    if held_this:
+        return after
     if card.once:
         return replace(after, excluded=after.excluded + (card,))
     return _discard_push(after, card)
@@ -1829,10 +1951,12 @@ def _passive_state(state: ExpectState) -> PassiveState:
         status_counts=dict(state.status_counts),
         uses=dict(state.p_item_uses),
         # B10：四个 tracked 区的卡名（区域张数条件 zone_count 求值用）。
+        # P1-3：保留区（hold 区张数条件，与 LessonSim._passive_state 同口径）。
         hand=tuple(card.name for card in state.hand),
         deck=tuple(card.name for card in state.deck),
         discard=tuple(card.name for card in state.discard),
         excluded=tuple(card.name for card in state.excluded),
+        held=tuple(card.name for card in state.held),
         zones_known=True,
     )
 
@@ -2016,9 +2140,12 @@ def fire_p_items(
     release_genki_gain = 0
     release_plays_gain = 0
     release_growth_gain = 0
+    locked = state.lock_stance_turns > 0
     for stance_kind in delta.stances:
         previous = stance
-        if stance_kind == "preservation" and stance_change_allowed(stance, "preservation"):
+        if stance_kind == "preservation" and stance_change_allowed(
+            stance, "preservation", locked=locked
+        ):
             already = str(stance.stance) == "save"
             level = 2 if already else 1
             stance = replace(
@@ -2027,7 +2154,20 @@ def fire_p_items(
                 save_level=max(int(stance.save_level), level) if already else level,
                 strong_level=0,
             )
-        elif stance_kind == "concentration" and stance_change_allowed(stance, "concentration"):
+        elif stance_kind == "preservation2" and stance_change_allowed(
+            stance, "preservation", locked=locked
+        ):
+            # P1-3：温存 2 段階直给（「温存阶段变更」↔ setStance(preservation2)，
+            # 与 LessonSim._apply_direct_stances 同口径）
+            stance = replace(
+                stance,
+                stance="save",
+                save_level=2,
+                strong_level=0,
+            )
+        elif stance_kind == "concentration" and stance_change_allowed(
+            stance, "concentration", locked=locked
+        ):
             already = "strong" in str(stance.stance)
             level = 2 if already else 1
             stance = replace(
@@ -2036,7 +2176,9 @@ def fire_p_items(
                 strong_level=level,
                 save_level=0,
             )
-        elif stance_kind == "leisure" and stance_change_allowed(stance, "leisure"):
+        elif stance_kind == "leisure" and stance_change_allowed(
+            stance, "leisure", locked=locked
+        ):
             # P1-1：のんびり变更（ExamOverPreservation，与 LessonSim 同口径）
             stance = replace(
                 stance,
@@ -2206,6 +2348,14 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     )
     # P1-2：自尊回合末 -1（参考 EOT_DECREMENT_FIELDS 的 prideTurns）
     pride_turns = state.pride_turns - 1 if state.pride_turns > 0 else 0
+    # P1-3：指針固定回合末 -1（fresh 保护：获得当回合末不扣，锁下一回合；
+    # 与 LessonSim._end_turn 同口径，见该处注释）。
+    if state.lock_stance_fresh:
+        lock_stance_turns = state.lock_stance_turns
+        lock_stance_fresh = False
+    else:
+        lock_stance_turns = max(state.lock_stance_turns - 1, 0)
+        lock_stance_fresh = False
     condition_additive_turns = _tick_turns(state.condition_additive_turns)
     condition_additive = state.condition_additive if condition_additive_turns != 0 else 0
     review_multiple_turns = _tick_turns(state.review_multiple_turns)
@@ -2236,11 +2386,13 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         state.enthusiasm, state.enthusiasm_extension_turns
     )
     previous_stance = state.stance_state
-    next_stance = end_turn(state.stance_state)
+    # P1-3：指針固定期间全力进入门不满足（全力值不消耗；与 LessonSim 同口径）
+    next_stance = end_turn(state.stance_state, locked=lock_stance_turns > 0)
     stance_changed = next_stance != previous_stance
     hand_order = state.discard_order
     # P1-1：以全力开始的回合——保留牌回手（FULL_POWER_CHANGED_EFFECTS 的
     # moveHeldCardsToHand；下一手从回手牌开始，抽牌由调用方/全知牌序补）。
+    # P1-3：LIFO（参考 pop() 从尾部弹，与 LessonSim._move_held_to_hand 对齐）。
     enters_full = str(next_stance.stance) == Stance.FULL
     next_state = replace(
         state,
@@ -2266,13 +2418,15 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         score_debuffs=score_debuffs,
         hand_decreases=hand_decreases,
         pride_turns=pride_turns,
+        lock_stance_turns=lock_stance_turns,
+        lock_stance_fresh=lock_stance_fresh,
         modifiers=modifiers,
         half_cost_turns=half_cost_turns,
         double_cost_turns=double_cost_turns,
         extra_turns=0,
         extra_turns_granted=extra_turns_granted,
         parameter_buff=0,
-        hand=state.held if enters_full else (),
+        hand=tuple(reversed(state.held)) if enters_full else (),
         held=() if enters_full else state.held,
         discard=state.discard + state.hand,
         # 回合末弃手牌：进弃牌堆的顺序 = 手牌顺序（已知顺序时继续累积）
@@ -2336,7 +2490,9 @@ def _apply_leisure_reserves_state(state: ExpectState) -> ExpectState:
             (stance_now == Stance.SAVE) if when_save else (stance_now != Stance.SAVE)
         )
         if matched:
-            if stance_change_allowed(stance, "leisure"):
+            if stance_change_allowed(
+                stance, "leisure", locked=state.lock_stance_turns > 0
+            ):
                 stance = replace(
                     stance, stance=Stance.LEISURE, strong_level=0, save_level=0
                 )
@@ -3146,6 +3302,9 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         # P1-2：手牌减少 / 自尊（与 sim_from_state 双镜）
         hand_decreases=tuple(getattr(sim, "hand_decreases", ())),
         pride_turns=max(int(getattr(sim, "pride_turns", 0)), 0),
+        # P1-3：指針固定（与 sim_from_state 双镜）
+        lock_stance_turns=max(int(getattr(sim, "lock_stance_turns", 0)), 0),
+        lock_stance_fresh=bool(getattr(sim, "_lock_stance_fresh", False)),
         modifiers=tuple(
             sorted(
                 (str(key), tuple(tuple(entry) for entry in entries))

@@ -79,7 +79,8 @@ def leaf_state_at_draw(sim: LessonSim) -> ExpectState:
                 score_growth_all=leaf.score_growth_all + release_growth,
             )
         if enters_full:
-            leaf = replace(leaf, hand=tuple(sim.held), held=())
+            # P1-3：回手 LIFO（参考 moveHeldCardsToHand pop()，与 end_turn_state 对齐）
+            leaf = replace(leaf, hand=tuple(reversed(sim.held)), held=())
         leaf = _apply_leisure_reserves_state(leaf)
     return leaf
 

@@ -514,7 +514,8 @@ def test_pride_trigger_gate_parser() -> None:
 
 
 def test_sim_produce_pride_card_parse() -> None:
-    """sim_produce：真实卡表「我、绝不」四变体 → pride_turns=5 / 门槛 9（35 元组末两位）。"""
+    """sim_produce：真实卡表「我、绝不」四变体 → pride_turns=5 / 门槛 9
+   （P1-3 起 41 元组，索引 33/34 仍是自尊两位）。"""
     import json
 
     import sim_produce as sp
@@ -522,7 +523,7 @@ def test_sim_produce_pride_card_parse() -> None:
     table = json.loads((ROOT / "data" / "knowledge" / "card_table.json").read_text(encoding="utf-8"))["cards"]
     for name in ("我、绝不", "我、绝不+", "我、绝不++", "我、绝不+++"):
         fields = sp._effect_fields(table[name])
-        assert len(fields) == 35
+        assert len(fields) == 41
         assert fields[33] == 5, name
         assert fields[34] == 9, name
         spec = sp._spec_from_row(sp._rich_row(name, int(table[name]["cost"]), fields))

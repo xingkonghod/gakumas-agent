@@ -22,10 +22,18 @@ from typing import NamedTuple
 ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 
+from gkagent.sim.hold import hold_source_for  # P1-3 hold 保留区逐卡证据表
 from gkagent.sim.play_choice import (
     pride_min_motivation_from_trigger,  # P1-2 自尊条件门（主数据 trigger 解析）
 )
 from gkagent.sim.stance import leisure_reserve_for  # P1-1 のんびり预约证据表
+
+#: P1-3：HoldSource.zones → CardSpec.hold_select_zones 键（与 hold.HOLD_SELECT_ZONES 互逆）
+_HOLD_ZONES_KEY = {
+    ("hand",): "hand",
+    ("deck",): "deck",
+    ("deck", "discard"): "deck_grave",
+}
 
 CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
 # 模拟器（sim/lesson.py）真正建模了的效果类型。
@@ -75,6 +83,8 @@ MODELED_EFFECTS = {
     "ExamOverPreservation",
     # ---- P1-2 2026-11-24 自尊（pride，「我、绝不」p_card-02-ido-3_140）----
     "ExamLessonValueMultipleDependReviewOrAggressive",
+    # ---- P1-3 2026-11-24 指針固定（StanceLock，切磋琢磨；ExamCardMove 已在集内）----
+    "StanceLock",
 }
 # 卡表里的效果名和卡面语义容易对反，以下以游戏 master 的卡面文本（卡名 + 效果）为准：
 #   准备运动「打分+6 / 集中+2」     -> ExamLessonBuff [2]       = 集中
@@ -145,6 +155,13 @@ class CardRow(NamedTuple):
     # ---- P1-2 2026-11-24 自尊（ExamLessonValueMultipleDependReviewOrAggressive）----
     pride_turns: int = 0              # 自尊回合数（prideTurns+=N，turn 列）
     pride_min_motivation: int = 0     # 触发门槛：出牌前干劲 >= N（0 = 无门槛）
+    # ---- P1-3 2026-11-24 hold 保留区（ExamCardMove）+ 指針固定（StanceLock）----
+    hold_this: int = 0                # holdThisCard（1 = 保留自身）
+    hold_this_when_save: bool = False  # True = 仅温存中触发（isPreservation）
+    hold_select_zones: str = ""       # holdSelected 目标区（""/hand/deck/deck_grave）
+    hold_select_count: int = 1        # 选牌张数
+    hold_move_to_hand: bool = False   # moveHeldCardsToHand 卡效果版
+    lock_stance_turns: int = 0        # 指針固定回合数（StanceLock turn 列）
 
 
 def _buff_turns(effect: dict) -> int:
@@ -163,7 +180,7 @@ def _merge_turns(current: int, new: int) -> int:
 def _effect_fields(row: dict) -> tuple[int, ...]:
     """从卡表一行的 ``effects`` 提取可喂给 ``CardSpec`` 的字段。
 
-    返回 35 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
+    返回 41 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
 
     =====  ============================================================
     索引   字段
@@ -203,6 +220,12 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     32     ``leisure_reserve_when_save``（True 温存中触发 / False 非温存触发）
     33     ``pride_turns``（P1-2 ExamLessonValueMultipleDependReviewOrAggressive 自尊回合数）
     34     ``pride_min_motivation``（自尊触发门槛：出牌前干劲 >= N，0 = 无门槛）
+    35     ``hold_this``（P1-3 ExamCardMove → holdThisCard，逐卡证据表）
+    36     ``hold_this_when_save``（True = 仅温存中触发）
+    37     ``hold_select_zones``（holdSelected 目标区 ""/hand/deck/deck_grave）
+    38     ``hold_select_count``（选牌张数）
+    39     ``hold_move_to_hand``（moveHeldCardsToHand 卡效果版）
+    40     ``lock_stance_turns``（StanceLock turn 列 → lockStanceTurns+=N）
     =====  ============================================================
 
     字段语义以游戏 master 卡面文本为准，effect 名容易误读：
@@ -226,10 +249,14 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
       ``ExamStatusEnchantEncore``、``ExamReviewMultiple``、
       ``ExamParameterBuffAdditiveFix``、``ExamFullPowerLessonMultipleAdditive``、
       ``ExamEnthusiasticTurnAdd``、``ExamAddGrowEffect``；
-    - 近似：``ExamForcePlayCardSearch`` / ``ExamCardCreateId`` / ``ExamCardMove``
-      → ``draw = max(draw, 1)``（真机是免费检索/生成/移回手牌，这里只算 +1 抽牌，
+    - 近似：``ExamForcePlayCardSearch`` / ``ExamCardCreateId``
+      → ``draw = max(draw, 1)``（真机是免费检索/生成，这里只算 +1 抽牌，
       **低估**；若本牌同时有 ``ExamPlayableValueAdd`` 则不再加抽牌——资源收益
-      已由次数表达，也避免 0 费循环无限过牌）；``ExamStatusEnchant`` → 递归展开
+      已由次数表达，也避免 0 费循环无限过牌）；``ExamCardMove``（P1-3）→
+      逐卡证据表 ``hold.HOLD_SOURCES``（BSD-3 skill_cards.csv 交叉）命中时
+      映射 hold 字段（**不再加抽牌**——保留不是抽牌），表外交互未建模的卡
+      保留旧 +1 抽牌近似；``StanceLock`` → ``lock_stance_turns``（turn 列）；
+      ``ExamStatusEnchant`` → 递归展开
       内层、本回合立刻结算（**通常高估当回合**）；``ExamEffectTimer`` /
       ``ExamEffectTimerEndTurn`` → 无字段，被延迟的效果本回合立刻生效
       （**通常高估当回合**）；``ExamAntiDebuff`` → no-op（训练没有低下状态，
@@ -264,6 +291,12 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     leisure_reserve_when_save = True
     pride_turns = 0
     pride_min_motivation = 0
+    hold_this = 0
+    hold_this_when_save = False
+    hold_select_zones = ""
+    hold_select_count = 1
+    hold_move_to_hand = False
+    lock_stance_turns = 0
     approx_draw = 0
 
     def absorb(effects: list[dict]) -> None:
@@ -279,6 +312,8 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         nonlocal enthusiasm_extension, enthusiasm_multiplier
         nonlocal leisure_reserve, leisure_reserve_when_save
         nonlocal pride_turns, pride_min_motivation
+        nonlocal hold_this, hold_this_when_save, hold_select_zones
+        nonlocal hold_select_count, hold_move_to_hand, lock_stance_turns
         for effect in effects or []:
             kind = effect.get("type")
             values = [v for v in effect.get("values") or [] if v]
@@ -313,8 +348,36 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
                         pride_turns = max(pride_turns, turns)
                         pride_min_motivation = max(pride_min_motivation, gate)
                 continue
-            if kind in ("ExamForcePlayCardSearch", "ExamCardCreateId", "ExamCardMove"):
-                # 检索/生成/移回手牌 → 至少 +1 抽牌（低估，见 docstring）；
+            if kind == "ExamCardMove":
+                # P1-3：保留区（values 恒空，语义按 BSD-3 skill_cards.csv 逐卡
+                # 证据表 hold.HOLD_SOURCES；日文卡名↔中文卡名用 card_meta 别名
+                # 交叉）。命中 → hold 字段（保留不是抽牌，不再加 approx_draw）；
+                # 表外（全力值消耗/holdSelectedUpto/target:held 成长/干扰卡计数
+                # 等交互未建模）→ 保留旧 +1 抽牌近似，不猜。
+                source = hold_source_for(
+                    str(row.get("id") or ""), int(row.get("upgrade") or 0)
+                )
+                if source is not None:
+                    if source.mode == "this":
+                        hold_this = 1
+                        hold_this_when_save = source.when_save
+                    elif source.mode == "select":
+                        hold_select_zones = _HOLD_ZONES_KEY[source.zones]
+                        hold_select_count = max(hold_select_count, source.count)
+                    elif source.mode == "move_hand":
+                        hold_move_to_hand = True
+                    continue
+                approx_draw = 1
+                continue
+            if kind == "StanceLock":
+                # P1-3：指針固定（turn 列 = N ↔ DSL lockStanceTurns+=N，
+                # 切磋琢磨 424/425；values 恒空）。
+                turns = int(effect.get("turn") or 0)
+                if turns > 0:
+                    lock_stance_turns = max(lock_stance_turns, turns)
+                continue
+            if kind in ("ExamForcePlayCardSearch", "ExamCardCreateId"):
+                # 检索/生成 → 至少 +1 抽牌（低估，见 docstring）；
                 # 若本牌同时有"可出牌次数追加"，资源收益已由次数表达，不再加抽牌
                 # （否则 0 费循环会在 LessonSim 里无限过牌）。
                 approx_draw = 1
@@ -466,6 +529,12 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         leisure_reserve_when_save,
         pride_turns,
         pride_min_motivation,
+        hold_this,
+        hold_this_when_save,
+        hold_select_zones,
+        hold_select_count,
+        hold_move_to_hand,
+        lock_stance_turns,
     )
 
 
@@ -610,6 +679,12 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
             leisure_reserve_when_save=row.leisure_reserve_when_save,
             pride_turns=row.pride_turns,
             pride_min_motivation=row.pride_min_motivation,
+            hold_this=row.hold_this,
+            hold_this_when_save=row.hold_this_when_save,
+            hold_select_zones=row.hold_select_zones,
+            hold_select_count=row.hold_select_count,
+            hold_move_to_hand=row.hold_move_to_hand,
+            lock_stance_turns=row.lock_stance_turns,
         )
     name, cost, score, condition, focus = row
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)

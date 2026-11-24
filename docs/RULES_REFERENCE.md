@@ -31,7 +31,7 @@
 > 只按本表逐条对齐「机制」；F1 用官方种子做同题同种子复算时，起点状态用 `check`（turn/score/stamina），
 > 并注明对比的 rules 版本。
 
-## 0. 一句话结论（B3 + T5① + T5② + T5④ + P1-1 + P1-2 后）
+## 0. 一句话结论（B3 + T5① + T5② + T5④ + P1-1 + P1-2 + P1-3 后）
 
 分数结算顺序、好调/指針/メタモルフォーゼ/不调、**取整**、**每回合 1 张牌**、
 **跳过回 2 体力**、牌序（洗牌 / 支援强化 / 重洗 / 回合属性）、**审查倍率（分段 + 联动惩罚）**、
@@ -46,15 +46,19 @@
 指定卡名/手牌张数映射**——card_meta（idol_unique/effectGroupIds）+ play_filter/zone_count
 结构化 + ExamCardCreateId 落牌；**P1-1 のんびり直给** stance_leisure；**P1-2 handDecrease
 抽牌修正 + pride 自尊**——`cardsToDraw=max(3−handDecrease,0)`、`resolveScore` f 的
-min(好印象,やる気)×0.02 上限+0.5，来源主数据+参考 DSL 交叉；数据层 **1056/1849 段**
-（modifier 标注 371→385，+12 段 hand_decrease / +2 段 pride_turns），
-见 §5.3 B8/B9/B10 / §5.4 P1-1 / §5.5 P1-2）。
+min(好印象,やる気)×0.02 上限+0.5，来源主数据+参考 DSL 交叉；**P1-3 hold 保留区建模 +
+指針固定**——holdThisCard/holdSelected/moveHeldCardsToHand 卡效果（上限 2、跨回合保留、
+超限最旧进弃牌堆、全力回手 LIFO）+ lockStanceTurns（EOT 递减 + fresh 保护锁下一回合 +
+setStance 守卫 + 全力进入门）+ hold 区张数条件（countCards[held]）+ 温存 2 段階直给；
+数据层 **1056/1849 段**（P1-3 机制本就支持、触发未知 **3→0 件**清零），
+见 §5.3 B8/B9/B10 / §5.4 P1-1 / §5.5 P1-2 / §5.6 P1-3）。
 剩余差距是 **随机生成卡**（H.I.F应援棒，考试 RNG 流未知）、**强化状态花费卡类**
 （`ExamBuffConsumptionAdd` 的落点——我们的卡牌模型不建「以强化状态为花费」的卡）、
-**hold 保留区来源/张数条件**（holdCard/holdThisCard 未建模，P1-3；回手钩子已实现）、
-**指針固定 lockStanceTurns**（来源卡切磋琢磨含保留区效果，随 P1-3）、
-**card_play_interval_after 触发时机**（2 件のんびり道具因此仍保守不触发）、
-**附魔**、**fresh buff 的差一回合衰减**、**依赖分结算顺序**（我们保守口径）等。
+**保留区卡成长 target:held**（g.scoreTimes/g.score/g.cost，新的舞台+/发挥本领/
+实现的觉悟 等）与 **holdCard P 道具来源**（那一天的塑料伞/章鱼烧科幻小狗/彼此许下的约定，
+效果文本未结构化）、**card_play_interval_after 触发时机**（2 件のんびり道具因此仍保守不触发）、
+**附魔**、**fresh buff 的差一回合衰减**（lockStanceTurns 已按参考 fresh 实现，其余 buff 仍缺）、
+**依赖分结算顺序**（我们保守口径）等。
 
 ---
 
@@ -69,7 +73,9 @@ min(好印象,やる気)×0.02 上限+0.5，来源主数据+参考 DSL 交叉；
 | 每回合开始抽 3 张（手牌 3），**handDecrease 抽牌修正** | `TurnManager.startTurn`: `cardsToDraw = max(3 - handDecrease, 0)`；`BuffManager.setHandDecrease(amount, turns?)` / `getHandDecrease`（handDecreases 列表按 turns 分组加算、回合末倒计时）；wiki buffs.json「手札減少」合算 ≥3 抽 0、只影响回合开始抽牌 | `LessonConfig.hand_size=3`；**P1-2（2026-11-24）**：`LessonSim.hand_decreases` / `ExpectState.hand_decreases`（timed 列表，-1 永久）+ `_draw_hand` / `turn_draw_count` / beam 下一手 / `sim_from_state` 补手牌同口径 `max(hand_size−Σ,0)`；来源 `ExamGimmickStartTurnCardDrawDown`（塔 gimmick 12 段，exam_start）；卡效果抽牌不受影响 | ✅（nullifyDebuff 拦截未建模，见 §5.5） | `test_sim_lesson.py` 各回合测试 + `tests/test_p12_hand_decrease_pride.py` |
 | 抽牌/手牌**上限 5** | `CardManager.drawCard`: `if handCards.length >= 5 return` | `LessonSim._draw` 不设上限 | ⚠️ 只有抽牌卡溢出时才不同 | — |
 | 温存解除：熱意 +5/+8、元气 +5（2 段）、**+1 次出牌** | `constants.js STANCE_CHANGED_EFFECTS`；实机回放「leaving 温存 grants 5 熱意 and an extra use」 | T5②（2026-11-22）按参考引擎实现：熱意独立资源 +5/+8、2 段**固定元気 +5**（不吃やる気）、解除当回合 **+1 出牌次数**；回合末熱意清零（有熱意延長则保留）；同回合重复解除可叠加；**温存→のんびり不触发**（`stance!=leisure` 条件，P1-1 补） | ✅ | `tests/test_t5_enthusiasm.py`（纯规则 + LessonSim）+ `tests/test_p1_stance_rules.py` |
-| 全力回合：+1 次出牌、保留牌回手 | `constants.js FULL_POWER_EFFECTS` / `FULL_POWER_CHANGED_EFFECTS`；`TurnManager.startTurn` 抽牌后触发；contest-fidelity 美鈴回放「全力回合三张牌」「held スパート used in the 全力 turn」 | **P1-1（2026-11-24）**：以全力开始的回合 `extra_plays += 1`（连续全力每回合都有）+ `held` 全部回手（`_move_held_to_hand`，无手牌上限检查同参考）；全力值 ≥10 消耗 10 进全力（超出保留）口径不变；**全力期间禁切指針**（`stance_change_allowed`，setStance 守卫）；保留区来源 holdCard/holdThisCard 留 P1-3（当前恒空，钩子已验） | ✅ 额外次数/回手/守卫；⚠️ 保留区来源未建模 | `test_full_power_turn_grants_extra_play` / `test_consecutive_full_power_turns_each_grant_extra_play` / `test_full_power_moves_held_cards_to_hand` / `test_full_power_blocks_stance_changes_but_not_charge` |
+| 全力回合：+1 次出牌、保留牌回手 | `constants.js FULL_POWER_EFFECTS` / `FULL_POWER_CHANGED_EFFECTS`；`TurnManager.startTurn` 抽牌后触发；contest-fidelity 美鈴回放「全力回合三张牌」「held スパート used in the 全力 turn」 | **P1-1（2026-11-24）**：以全力开始的回合 `extra_plays += 1`（连续全力每回合都有）+ `held` 全部回手（`_move_held_to_hand`，无手牌上限检查同参考）；全力值 ≥10 消耗 10 进全力（超出保留）口径不变；**全力期间禁切指針**（`stance_change_allowed`，setStance 守卫）；**P1-3**：保留区来源接通（holdThisCard/holdSelected，逐卡证据表）+ 回手 **LIFO**（参考 `pop()`）+ **指針固定期间全力进入门不满足**（`lockStanceTurns==0`，全力值不消耗） | ✅ 额外次数/回手/守卫/来源/固定门 | `test_full_power_turn_grants_extra_play` / `test_full_power_moves_held_cards_to_hand` / `test_p13_hold_zone.py::test_full_power_returns_held_lifo_real_card` / `test_lock_blocks_full_entry_next_turn_fresh` |
+| **hold 保留区**（P1-3）：上限 2、超限最旧进弃牌堆、跨回合保留、holdThisCard 不进弃牌/除外 | `CardManager.hold/enforceHoldLimit/holdThisCard/holdSelectedByTarget/moveHeldCardsToHand`（:959-1102）+ `useCard` thisCardHeld（:639）+ `TurnManager.endTurn` 只弃手牌 | **P1-3（2026-11-24）**：`LessonSim.held` / `ExpectState.held`（P1-1 已有字段，来源接通）；`hold.HOLD_SOURCES` 13 族卡证据表（BSD-3 skill_cards.csv 逐卡交叉）；holdThisCard（温存条件）/holdSelected（hand/deck/deck_grave，白值分降序确定性选牌）/moveHeldCardsToHand 卡效果；`_enforce_hold_limit`；known_draw/discard_order 同步；表外 ExamCardMove 卡保留旧 +1 抽牌近似 | ✅ 已建模 13 族；⚠️ 表外（全力值消耗/holdSelectedUpto/target:held 成长/干扰卡计数）保留近似 | `tests/test_p13_hold_zone.py`（纯规则/LessonSim/双镜/解析） |
+| **指針固定 lockStanceTurns**（P1-3）：>0 禁切指針 + 全力进入门不满足；回合末 -1（fresh 保护锁下一回合） | `constants.js` EOT_DECREMENT_FIELDS / FULL_POWER_EFFECTS（`lockStanceTurns==0` 门）；`BuffManager.setStance`（:262）/ `decrementBuffTurns`（freshBuffs 位）；`Executor/index.js`（:271-279 fresh 保护）；skill_cards.csv 424/425 切磋琢磨 `lockStanceTurns+=1` | **P1-3（2026-11-24）**：`LessonSim.lock_stance_turns` / `ExpectState.lock_stance_turns`（+fresh 标记）；`StanceLock` turn=N 卡效果（切磋琢磨）；`stance_change_allowed(locked=…)` / `end_turn(locked=…)` 守卫；fresh 保护按参考实现（获得当回合末不扣——「锁下一回合」是卡面确定语义） | ✅（一般 buff 的 fresh 差一回合缺口仍留真机核实，见 §3） | `test_lock_stance_gain_real_card` / `test_lock_blocks_stance_change_mid_turn` / `test_lock_blocks_full_entry_next_turn_fresh` / `test_lock_expires_after_next_turn` / `test_lock_does_not_block_full_exit` |
 | のんびり（leisure）指針：分数/费用 ×0；解除 固定元気+5 / +1 次出牌 / 熱意+10（→全力时改为**全体卡打分成长+10**）；温存→のんびり不触发温存解除；のんびり期间禁切温存 | `constants.js STANCE_CHANGED_EFFECTS`（:57-68）；`resolveScore`/`resolveCost` leisure ×0；`BuffManager.setStance`（:264）；contest-fidelity 美鈴回放「のんびり zero cost/zero score、leaving のんびり for 強気 元気+5 熱意+10、for 全力 元気+5」 | **P1-1（2026-11-24）**：`Stance.LEISURE` + `MULTIPLIER["leisure"]=0` + 费用 ×0；`release_on_stance_change` 扩 4 元组（末位=全体卡成长，`score_growth_all` 永久加算进白值，参考 `target:all g.score+=10` 是 cardMap growth 不是即时分）；来源=卡预约（`ExamOverPreservation`，4 族卡 CSV 逐卡证据表 `LEISURE_RESERVE_SOURCES`，回合开始条件触发/次数扣减）+ P 道具 `stance_leisure` 直给 | ✅ 规则/来源/双镜；⚠️ 2 件道具触发时机 card_play_interval_after 未支持（保守不触发） | `tests/test_p1_stance_rules.py` 36 条 |
 | 饮料不占出牌次数 | 真机 UI/用户确认 | `use_drink` 不动 `plays_this_turn` | ✅ | `test_mechanism_corrections.py::test_drinking_does_not_consume_play_slots` |
 | `turnSkipped` 是独立触发时机（P 道具） | `PHASES` 含 `turnSkipped`；master 里 12 个 turn_skip P 道具 | P 道具接口只触发 turn_start/turn_end/card_play/status_gain | ⚠️ 跳过类 P 道具未触发 | — |
@@ -536,6 +542,60 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
 - 旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批
   再新旧对比（HANDOVER_NEXT §8.0）；参照臂需按新规则重评。
 
+### 5.6 P1-3 hold 保留区建模 + lockStanceTurns 指針固定（2026-11-24 完成）
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **hold 保留区机制**：上限 2（超限最旧进弃牌堆）、跨回合保留（endTurn 只弃手牌）、holdThisCard 本牌不进弃牌/除外、holdSelected 从目标区选牌移入、moveHeldCardsToHand **LIFO** 回手（无手牌上限检查） | [sim/hold.py](../src/gkagent/sim/hold.py)（纯规则 + 证据表）+ [sim/lesson.py](../src/gkagent/sim/lesson.py)（`_apply_hold`/`_enforce_hold_limit`/`_move_held_to_hand`）+ [sim/expectimax.py](../src/gkagent/sim/expectimax.py)（`_apply_hold_state`，known_draw/discard_order 同步） | BSD-3 `CardManager/index.js` hold/enforceHoldLimit/holdCard/holdThisCard/holdSelectedByTarget/moveHeldCardsToHand（:959-1102）+ useCard thisCardHeld（:639）+ `TurnManager.endTurn` discardHand；contest-fidelity「held スパート used in the 全力 turn」 | `test_hold_limit_evicts_oldest_to_discard` / `test_held_persists_across_turns` / `test_hold_this_precedes_once_exclusion` / `test_full_power_held_lifo_order` / `test_hold_select_syncs_known_draw` / `test_hold_select_syncs_discard_order_and_limit` |
+| **卡牌来源（13 族逐卡证据表）**：主数据 `ExamCardMove`（values 恒空）→ `hold.HOLD_SOURCES`（BSD-3 skill_cards.csv 行号交叉，card_meta 别名核对）：冲刺/积累（holdThisCard 温存中，trigger preservation_up 交叉）、潜在能力/互动的基础（holdSelected[hand]）、切磋琢磨/觉悟/新的舞台/努力了，哦/那一天，在这里/对战请多指教！/让群星散落吧（holdSelected[deck\|discarded]，那一天 +/++/+++ 2 张）、爱意彩虹（holdSelected[deck]）、一点一滴的进步（moveHeldCardsToHand） | [sim/hold.py](../src/gkagent/sim/hold.py) `HOLD_SOURCES`/`hold_source_for` + [scripts/sim_produce.py](../scripts/sim_produce.py)（MODELED 34→35 StanceLock、41 元组）+ [sim/play_choice.py](../src/gkagent/sim/play_choice.py)（生产卡表同口径） | skill_cards.csv 372/373/388/389/416/417/424/425/444/445/486/487/492/493/526/527/528/529/498/499/847/848/917/918；主数据卡面文本（那一天 ++/+++「2张」）；**表外卡保留旧 +1 抽牌近似**（潮流领袖/展翅高飞/发挥本领：全力值消耗/holdSelectedUpto/target:held 成长未建模；决不停歇：干扰卡计数条件；其余参考无对应行） | `test_sim_produce_hold_parse_real_cards` / `test_play_choice_hold_parse_parity` / `test_unverified_cards_keep_approx_draw` / `test_pool_hold_cards_fields` |
+| **lockStanceTurns 指針固定**：`StanceLock` turn=N（切磋琢磨）→ lock_stance_turns+=N；>0 禁切指針（setStance 守卫）+ 全力进入门不满足（全力值不消耗）；回合末 -1，**fresh 保护**（卡效果 0→正 的当回合末不扣 → 锁下一回合）；再演翻倍（直接效果）；全力解除不受守卫 | [sim/stance.py](../src/gkagent/sim/stance.py)（`stance_change_allowed(locked=…)`/`end_turn(locked=…)`）+ lesson.py/expectimax.py（lock 字段 + fresh 标记 + canonical + 快照往返 + 叶子） | `constants.js` EOT_DECREMENT_FIELDS / FULL_POWER_EFFECTS（`if:lockStanceTurns==0 & fullPowerCharge>=10`）；`BuffManager.setStance`（:262）/ decrementBuffTurns（freshBuffs 位）；`Executor/index.js`（:271-279）；skill_cards.csv 424/425 `lockStanceTurns+=1` ↔ 主数据 StanceLock turn=1 | `test_lock_stance_gain_real_card` / `test_lock_blocks_stance_change_mid_turn` / `test_lock_blocks_full_entry_next_turn_fresh` / `test_lock_expires_after_next_turn` / `test_lock_does_not_block_full_exit` / `test_lock_stance_encore_doubles` / `test_end_turn_locked_blocks_full_entry_keeps_charge` |
+| **hold 区张数条件（B10 遗留 2 件）**：`p_card_search-hold` → zones ["held"]；实现的觉悟/±（pitem_03-3-078）trigger = 魅力刚刚好（p_card-03-act-1_038 ↔ ジャストアピール csv 380）使用后 + countCards[held]>=1 → 温存变更/温存阶段变更 + 全力值+2/+4 | [scripts/build_p_items.py](../scripts/build_p_items.py)（`_ZONE_MAP` hold→held）+ [sim/p_items.py](../src/gkagent/sim/p_items.py)（`PassiveState.held` + `_zone_count_matches`）+ lesson.py/expectimax.py（`_passive_state` held 投影） | BSD-3 p_items.csv 212/213 叶える覚悟（pIdol 74）`at:afterCardUsed { if:usedCardBaseId==380 & countCards[held]>=1 { setStance(preservation/preservation2); fullPowerCharge+=2/4; target:held {…} } limit:1 }`；主数据 trigger_id 结构化 | `test_zone_count_hold_condition_real_item` / `test_lesson_sim_hold_zone_count_item_fires` / `test_build_p_items_hold_zone_and_hotfix_parsed` |
+| **hotfix 1 件（B10 遗留）**：咲季营养餐・改（pitem_02-3-309-0）trigger 后缀 `period810_hotfix` 证实为**非限定标记**（masterTrans ProduceCardSearch 描述表无此目标 + 中文触发句无卡限定 + 参考 DSL 无卡过滤，三源一致）→ 回合内每第 2 张卡：好印象+2 / 好印象强化+25%（limit 1） | [scripts/build_p_items.py](../scripts/build_p_items.py)（`_parse_search_filter` 白名单） | BSD-3 p_items.csv 404 咲季の完全食・改 `at:cardUsed { if:turnCardsUsed%2==1 { goodImpressionTurns+=2; setGoodImpressionTurnsEffectBuff(0.25) }; limit:1 }` | `test_hotfix_item_fires_on_second_card_per_turn` / `test_catalog_trigger_unknown_zero` |
+| **温存 2 段階直给 preservation2**：「温存阶段变更」（value1=2）→ `setStance(preservation2)`（从任何指針直接 2 段階，区别于「温存变更」的 1 段階/同指針升级）；7 段重标注（实现的觉悟+/初星手办/圆润的春色/±/梦想中的星辉/±/强化滚轮桃） | [sim/p_items.py](../src/gkagent/sim/p_items.py)（classify/FLAG_TARGETS/delta.stances）+ lesson.py/expectimax.py（`_apply_direct_stances` preservation2 分支，过固定守卫） | BSD-3 p_items.csv 213 叶える覚悟+ / 167 はつぼしフィギュア / 234-235 まあるい春色 / 315-316 夢見る星 均 `setStance(preservation2)`；主数据 value1=2 | `test_preservation2_direct_stance_real_item` / `test_preservation2_blocked_by_lock` / `test_stance_effects_only_when_text_says_change`（更新） |
+
+**口径与剩余差距（如实记录）**：
+
+- **评测牌组组成变化（与 P1-1/P1-2 不同，如实记录）**：冲刺/积累 的 `ExamCardMove`
+  从 **+1 抽牌近似**改为真实 holdThisCard（温存中保留自身，**不是抽牌**）→ draw 1→0。
+  `eval_expectimax.build_deck("large")` 的「抽牌机制签名槽」改选 决不停歇（表外卡保留
+  近似），冲刺/积累 让出槽位 → **large 牌组组成变化**（旧近似把保留当抽牌是高估，
+  这是保真度修正）；**small 牌组（14 张基础卡）不变**。新 hold 规则在 eval_expectimax
+  牌组零触达（large 无已建模 hold 卡）；`sim_engine_ab` 奖励池仍可采到冲刺/积累。
+  **sim_engine_ab 重标定（P1-3）：改前/改后 64 局逐局对照**——见下方重标定数字。
+- **选牌是玩家选择**：holdSelected 参考引擎由策略选牌（HeuristicStrategy.pickCardsToHold
+  按「全新全力状态预览分」降序）；全新状态下依赖分/折算分恒 0，预览分 ≈ 白值 × 全力倍率
+  × 回合倍率（对所有候选相同）→ 本模型按**白值分降序、稳定排序**（同分按区/位置序，
+  deck 在前）确定性选牌，排序等价。
+- **再演不翻倍 hold**：参考 hold() 按卡索引幂等（doubleCardEffectCards 重复 holdThisCard
+  是 no-op）；holdSelected 重执行属策略选择，保守不翻倍。lockStanceTurns 是直接效果，
+  再演翻倍（与 pride_turns 同口径）。
+- **fresh 保护口径**：lockStanceTurns 按参考 freshBuffs 实现（获得当回合末不扣，锁下一
+  回合）——「指针固定1回合」的卡面语义就是锁下一回合（全力进入门在回合开始检查，若当回合
+  就扣完则固定毫无作用）。**一般 buff 的 fresh 差一回合缺口仍留真机核实**（§3），本字段
+  例外是因为语义确定（切磋琢磨 ↔ DSL 424/425 交叉）。
+- **保留区卡成长 target:held 未建模**（g.scoreTimes/g.score/g.cost）：新的舞台+（g.score+=5）、
+  发挥本领（g.scoreTimes+=1; g.cost-=6）、实现的觉悟（g.scoreTimes+=1; g.cost-=2/-1）等——
+  per-card 成长机制不在本批范围（与 P1-1 全体卡成长 score_growth_all 不同，那是规则触发的
+  全局加算）；这些卡的 hold 本体已建模，成长段保守 no-op。
+- **holdCard P 道具来源未建模**：那一天的塑料伞（pitem_03-3-048，holdCard(466)）/
+  章鱼烧科幻小狗（pitem_03-3-168，holdCard(604) + target:604 成长）/ 彼此许下的约定
+  （pitem_03-3-289，holdCard(638)）——主数据效果文本未结构化（hold 语义嵌在文本里），
+  且伴随成长/条件交互；其中那一天的塑料伞在 gkbench loadout（hold 段当前 no-op）。
+- **爱意彩虹整卡使用条件**（温存的时候可以使用）未建模（本模型卡总是可打出，既有口径）；
+  hold 效果本身无条件（DSL holdSelected[deck],1 在卡动作里）。
+- **nullifySelect 守卫未建模**（参考 holdSelectedByTarget 开头 `if (state[S.nullifySelect])
+  return`；本模型无 nullifySelect 资源，同 ExamAntiDebuff no-op 口径）。
+- 旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批
+  再新旧对比（HANDOVER_NEXT §8.0）；参照臂需按新规则重评。
+
+**重标定数字（P1-3）**：sim_engine_ab 改前（git stash）/改后 **64 局逐位相同（差异=0）**——
+seed 9000/9100 各 16 局 rules/expectimax budget 800ms，逐局非时间字段全等
+（`data/_p13_ab_compare.py`，不提交）。冲刺/积累 在这 64 局的培育奖励选择中未被采到，
+池字段变化零触达（sim_engine_ab 用 14 张基础牌组 + 奖励池动态采牌，与 eval_expectimax
+固定 large 牌组不同口径——large 牌组组成变化不影响本 harness）。expectimax 仍显著强于
+rules（Δ+372.2 / +219.1 评价点，15/0/1 与 11/0/5，C+ 100%，0 blocked / 0 error），
+B3 重标定结论保持。产物 out/_p13_ab_{before,after}_{9000,9100}.json（gitignore）。
+
 ## 6. 最该补的差距（按对真机分数影响排序，留给 T5/T6）
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成**（§5.1：公式 + 主数据 + 屏幕倍率生产接线；
    剩余差距只在 P 道具/附魔等未建模项，倍率本身已对齐）。
@@ -573,17 +633,20 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
    **随机式（H.I.F应援棒）与 panic/search/move 的 RNG 流仍未知**（T6 补采；`exam_risk` 事前检测不变）。
 7. **好印象/元气依赖分是否吃倍率**：参考引擎说明会吃；模拟器真实倍率路径（T5①）已按「吃」实现，
    生产读屏走单标量路径时仍保守（两条路径口径不同，见 §2 表）。逐分实机核对等 P 道具/附魔补齐。
-8. **抽牌上限 5 / ~~handDecrease~~ / 保留牌来源（holdCard/holdThisCard）**：
+8. **抽牌上限 5 / ~~handDecrease~~ / ~~保留牌来源（holdCard/holdThisCard）~~**：
    ~~handDecrease~~ ✅ **P1-2 完成**（§5.5：cardsToDraw=max(3−Σ,0) + 塔 gimmick 12 段来源；
    nullifyDebuff 拦截未建模）；抽牌上限 5 仍 ⚠️（只有抽牌卡溢出时才不同）；
-   保留区来源 P1-3（全力回手钩子 P1-1 已实现，保留区当前恒空）。
+   ~~保留区来源~~ ✅ **P1-3 完成**（§5.6：holdThisCard/holdSelected/moveHeldCardsToHand
+   13 族卡证据表 + 上限 2 + 跨回合保留 + 全力回手 LIFO；hold 区张数条件 + hotfix 清零；
+   剩余 target:held 成长 / holdCard P 道具来源未建模）。
 9. ~~**自尊 pride**~~ ✅ **P1-2 完成**（§5.5：resolveScore f min(好印象,干劲)×0.02 上限+0.5 +
    卡「我、绝不」/ P 道具「一笔入魂」来源，主数据+参考 DSL 交叉）；
    **growth 成长表 / 支度→披露半场翻转**仍缺（小项；のんびり→全力 的全体卡成长
    P1-1 已按规则实现，见 §2 growth 行）。
-10. **指針固定 lockStanceTurns**（来源卡切磋琢磨含 holdSelected，随 P1-3 hold 建模一并补；
-    当前恒 0，全力进入门不受影响）/ **card_play_interval_after 触发时机**（2 件のんびり
-    道具「夜空を従える花」因此仍保守不触发；stance_leisure 目标机制本身就绪）。
+10. ~~**指針固定 lockStanceTurns**~~ ✅ **P1-3 完成**（§5.6：切磋琢磨 StanceLock turn=1，
+     EOT 递减 + fresh 保护锁下一回合 + setStance 守卫 + 全力进入门）；
+     **card_play_interval_after 触发时机**（2 件のんびり道具「夜空を従える花」因此仍保守
+     不触发；stance_leisure 目标机制本身就绪）/ **target:held 保留区卡成长**（P1-3 遗留）。
 
 ## 7. 复现
 
@@ -623,6 +686,13 @@ CI = 按题整体重采样 10000 次 percentile bootstrap）**：
 # P1-2 重标定（评测牌组/gkbench loadout 无来源 → 实测改前/改后 64 局逐位相同）
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9000 --out out\_p12_ab_after_9000.json
 .venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9100 --out out\_p12_ab_after_9100.json
+
+# P1-3 hold 保留区 + lockStanceTurns（纯规则 / 来源 / 双镜 / P 道具 / 解析 / 叶子快照）
+.venv\Scripts\python.exe -m pytest tests\test_p13_hold_zone.py -q
+.venv\Scripts\python.exe scripts\build_p_items.py --check  # 触发未知 3→0；preservation2 7 段；已实现仍 1056
+# P1-3 重标定（冲刺/积累 draw 近似移除 → large 牌组组成变化；改前/改后 64 局逐局对照）
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9000 --out out\_p13_ab_after_9000.json
+.venv\Scripts\python.exe scripts\sim_engine_ab.py --episodes 16 --engines rules,expectimax --budget-ms 800 --seed 9100 --out out\_p13_ab_after_9100.json
 
 # T5③ P 道具数据接入（catalog / loadout 解析 / exam_start / extra_plays / 提交适配器）
 .venv\Scripts\python.exe -m pytest tests\test_p_items.py tests\test_p_items_db.py tests\test_p_items_integration.py -q

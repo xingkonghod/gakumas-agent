@@ -166,12 +166,26 @@ def test_parse_hand_specific_card_count() -> None:
     assert play is None  # target-0_1 = 任意卡
 
 
-def test_hold_and_unknown_token_stay_unresolved() -> None:
-    assert build_p_items.trigger_id_has_unparsed_condition(
-        "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hold-p_card_search-target-1-p_card-03-act-1_038-0_1"
-    ) is True
+def test_hold_zone_parsed_and_unknown_token_stays_unresolved() -> None:
+    """P1-3：hold 保留区已建模 → 张数条件结构化解析（zones=["held"]）；
+    period810_hotfix 证实为非限定标记（masterTrans 描述表无此目标 + 参考 DSL
+    无卡过滤 + 中文触发句无卡限定）→ 解析通过；真正未知词仍保守跳过。"""
+    trigger_id = (
+        "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hold-"
+        "p_card_search-target-1-p_card-03-act-1_038-0_1"
+    )
+    assert build_p_items.trigger_id_has_unparsed_condition(trigger_id) is False
+    play_filter, zone_count, unresolved = build_p_items.parse_card_search(trigger_id)
+    assert unresolved is False
+    assert zone_count == {"zones": ["held"], "min": 1, "negate": False, "filter": None}
+    assert play_filter == {
+        "kind": "card", "card_id": "p_card-03-act-1_038", "upgrade": 0, "count": 1,
+    }
     assert build_p_items.trigger_id_has_unparsed_condition(
         "e_trigger-exam_play_turn_count_interval-2-p_card_search-target-period810_hotfix"
+    ) is False
+    assert build_p_items.trigger_id_has_unparsed_condition(
+        "e_trigger-exam_card_play_after-p_card_search-target-some_unknown_token"
     ) is True
 
 
@@ -185,7 +199,8 @@ def test_produce_domain_search_target_not_unresolved() -> None:
 def test_real_catalog_b10_stats() -> None:
     payload = json.loads((ROOT / "data/knowledge/p_items.json").read_text(encoding="utf-8-sig"))
     stats = payload["stats"]
-    assert stats["items_trigger_unknown"] == 3
+    # P1-3：hold 保留区 2 件 + period810_hotfix 1 件解析 → 触发未知 3→0
+    assert stats["items_trigger_unknown"] == 0
     assert stats["items_condition_unknown"] == 0
     assert stats["items_play_filter"] >= 100
     assert stats["items_zone_count"] >= 20

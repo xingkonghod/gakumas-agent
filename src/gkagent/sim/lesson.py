@@ -201,6 +201,7 @@ from gkagent.sim.enthusiasm import (
     turn_end_enthusiasm,
 )
 from gkagent.sim.exam_multiplier import battle_bonus_score
+from gkagent.sim.hold import HOLD_LIMIT, HOLD_SELECT_ZONES, hold_pick
 from gkagent.sim.p_items import (
     CARD_PLAY,
     EXAM_START,
@@ -425,6 +426,22 @@ class CardSpec:
     # 好印象分享受 resolveScore f 的 min(好印象,干劲)×0.02（上限 +0.5）加成。
     pride_turns: int = 0
     pride_min_motivation: int = 0
+    # ---- P1-3 2026-11-24：hold 保留区（ExamCardMove）+ 指針固定（StanceLock）----
+    # 主数据 ExamCardMove 的 values 恒空，语义按 BSD-3 skill_cards.csv 逐卡证据表
+    # （hold.HOLD_SOURCES）；表外卡保留旧 +1 抽牌近似（交互未建模，不猜）。
+    # hold_this：holdThisCard（保留自身，温存中触发时 when_save=True，参考
+    # if:isPreservation { holdThisCard }，主数据 trigger preservation_up 交叉）；
+    # hold_select_zones：holdSelected 目标区（""=无 / hand / deck / deck_grave）；
+    # hold_select_count：选牌张数（那一天，在这里 +/++/+++ = 2）；
+    # hold_move_to_hand：moveHeldCardsToHand 卡效果版（一点一滴的进步）；
+    # lock_stance_turns：StanceLock turn=N ↔ lockStanceTurns+=N（切磋琢磨），
+    # 回合末 -1（fresh 保护：获得当回合末不扣，锁下一回合，见 _end_turn）。
+    hold_this: int = 0
+    hold_this_when_save: bool = False
+    hold_select_zones: str = ""
+    hold_select_count: int = 1
+    hold_move_to_hand: bool = False
+    lock_stance_turns: int = 0
 
 
 @dataclass(frozen=True)
@@ -591,10 +608,16 @@ class LessonSim:
         # 除外区：レッスン中1回 的卡用掉后本场消失（不进弃牌堆、不会被重新抽到）
         self.excluded: list[CardSpec] = []
         self.hand: list[CardSpec] = []
-        # P1-1（2026-11-24）：保留区（held）。参考引擎 CardManager.holdCard/
-        # holdThisCard 的来源（holdSelected 等）留 P1-3 建模；当前恒空，
-        # 全力回合的 moveHeldCardsToHand 回手钩子已按参考实现（有牌就回手）。
+        # P1-1（2026-11-24）：保留区（held）。P1-3（2026-11-24）来源接通：
+        # holdThisCard/holdSelected/moveHeldCardsToHand 卡效果（hold.HOLD_SOURCES
+        # 逐卡证据表）；上限 2（超限最旧进弃牌堆，参考 enforceHoldLimit）；
+        # 跨回合保留（endTurn 只弃手牌）；全力回合 moveHeldCardsToHand 回手（P1-1）。
         self.held: list[CardSpec] = []
+        # P1-3：指針固定剩余回合（参考 lockStanceTurns：EOT_DECREMENT_FIELDS
+        # 回合末 -1；>0 时禁切指針 + 全力进入门不满足）。fresh 保护：卡效果
+        # 0→正 的当回合末不扣（参考 Executor freshBuffs），锁的是下一回合。
+        self.lock_stance_turns: int = 0
+        self._lock_stance_fresh: bool = False
 
         self.score: int = 0
         self.stamina: int = config.stamina
@@ -676,6 +699,8 @@ class LessonSim:
         self.rng.shuffle(self.deck)
         self.discard.clear()
         self.excluded.clear()
+        # P1-3：保留区也是 tracked 区，重布置时一并清（与 discard/excluded 同口径）
+        self.held.clear()
         self._min_cost = min((card.cost for card in self.deck), default=0)
 
     # ------------------------------------------------------------------ 状态
@@ -892,6 +917,10 @@ class LessonSim:
                 self.vitality += release_genki
                 self.extra_plays += release_plays
                 self.score_growth_all += release_growth
+        # P1-3：保留区结算（holdThisCard/holdSelected/moveHeldCardsToHand）。
+        # 在抽牌/出牌后 P 道具之前——参考 DSL 里 hold 动作先于 drawCard，
+        # holdThisCard 的条件在 processCard 阶段求值（afterCardUsed 触发之前）。
+        held_this = self._apply_hold(card)
         # 本牌结算后追加本回合可出牌次数（本牌本身仍占一次）
         if effect_card.extra_play > 0:
             self.extra_plays += effect_card.extra_play
@@ -908,7 +937,11 @@ class LessonSim:
             cards_played_this_turn=self.plays_this_turn,
             cards_played_total=self.cards_played_total,
         )
-        if card.once:
+        if held_this:
+            # P1-3：holdThisCard 已把本牌放进保留区（参考 useCard 末尾
+            # thisCardHeld 为真时不进弃牌堆/除外区），这里不再落牌。
+            pass
+        elif card.once:
             # レッスン中1回：用掉后除外，本场不再回到牌库/弃牌堆
             self.excluded.append(card)
         else:
@@ -959,6 +992,10 @@ class LessonSim:
             enthusiasm_extension=card.enthusiasm_extension * 2,
             # P1-2：自尊回合数是直接效果（prideTurns+=N），再演同样翻倍
             pride_turns=card.pride_turns * 2,
+            # P1-3：指針固定回合数是直接效果（lockStanceTurns+=N），再演翻倍；
+            # hold 字段不翻倍——参考 hold() 按卡索引幂等（再演重复 holdThisCard
+            # 是 no-op），holdSelected 重执行属策略选择，保守不翻倍。
+            lock_stance_turns=card.lock_stance_turns * 2,
         )
 
     def _card_award(self, card: CardSpec, *, uses: int = 0) -> int:
@@ -1131,7 +1168,10 @@ class LessonSim:
                 status="full_power_point",
                 amount=points,
             )
-        if card.strong_level > 0 and stance_change_allowed(self.stance, "concentration"):
+        locked = self.lock_stance_turns > 0
+        if card.strong_level > 0 and stance_change_allowed(
+            self.stance, "concentration", locked=locked
+        ):
             delta = card_stance_effect("ExamConcentration", [card.strong_level])
             if delta["stance"] is not None:
                 self.stance = replace(
@@ -1140,7 +1180,9 @@ class LessonSim:
                     strong_level=card.strong_level,
                     save_level=0,
                 )
-        if card.preservation > 0 and stance_change_allowed(self.stance, "preservation"):
+        if card.preservation > 0 and stance_change_allowed(
+            self.stance, "preservation", locked=locked
+        ):
             delta = card_stance_effect("ExamPreservation", [card.preservation])
             if delta["stance"] is not None:
                 # 温存段階只升不降：已在 2 段階时再打 1 段階温存牌保持 2 段階
@@ -1150,6 +1192,13 @@ class LessonSim:
                     strong_level=0,
                     save_level=max(self.stance.save_level, int(delta["save_level"])),
                 )
+        # P1-3：指針固定（StanceLock turn=N ↔ DSL lockStanceTurns+=N，切磋琢磨）。
+        # 0→正 打 fresh 标记（参考 Executor freshBuffs：获得当回合末不扣）。
+        if card.lock_stance_turns > 0:
+            before = self.lock_stance_turns
+            self.lock_stance_turns += int(card.lock_stance_turns)
+            if before == 0:
+                self._lock_stance_fresh = True
         if card.leisure_reserve != 0:
             # のんびり预约（ExamOverPreservation）：登记到回合开始结算。
             # 再演（encore）不翻倍预约——它是延迟效果，不是本牌直接效果。
@@ -1359,10 +1408,12 @@ class LessonSim:
             status_counts=self.status_gain_counts,
             uses=self.p_item_uses,
             # B10：四个 tracked 区的卡名（区域张数条件 zone_count 求值用）。
+            # P1-3：保留区（hold 区张数条件，实现的觉悟 countCards[held]>=1）。
             hand=tuple(card.name for card in self.hand),
             deck=tuple(card.name for card in self.deck),
             discard=tuple(card.name for card in self.discard),
             excluded=tuple(card.name for card in self.excluded),
+            held=tuple(card.name for card in self.held),
             zones_known=True,
         )
 
@@ -1589,9 +1640,12 @@ class LessonSim:
         所有直给都过 ``stance_change_allowed`` 守卫（全力期间禁切、のんびり禁温存）。
         """
         changed = False
+        locked = self.lock_stance_turns > 0
         for kind in kinds:
             previous = self.stance
-            if kind == "preservation" and stance_change_allowed(self.stance, "preservation"):
+            if kind == "preservation" and stance_change_allowed(
+                self.stance, "preservation", locked=locked
+            ):
                 level = 2 if str(self.stance.stance) == "save" else 1
                 self.stance = replace(
                     self.stance,
@@ -1601,7 +1655,21 @@ class LessonSim:
                     else level,
                     strong_level=0,
                 )
-            elif kind == "concentration" and stance_change_allowed(self.stance, "concentration"):
+            elif kind == "preservation2" and stance_change_allowed(
+                self.stance, "preservation", locked=locked
+            ):
+                # P1-3：温存 2 段階直给（「温存阶段变更」value1=2 ↔ 参考
+                # setStance(preservation2)：叶える覚悟+/はつぼしフィギュア/
+                # まあるい春色/夢見る星，从任何指針直接到 2 段階）。
+                self.stance = replace(
+                    self.stance,
+                    stance="save",
+                    save_level=2,
+                    strong_level=0,
+                )
+            elif kind == "concentration" and stance_change_allowed(
+                self.stance, "concentration", locked=locked
+            ):
                 level = 2 if "strong" in str(self.stance.stance) else 1
                 self.stance = replace(
                     self.stance,
@@ -1609,7 +1677,9 @@ class LessonSim:
                     strong_level=level,
                     save_level=0,
                 )
-            elif kind == "leisure" and stance_change_allowed(self.stance, "leisure"):
+            elif kind == "leisure" and stance_change_allowed(
+                self.stance, "leisure", locked=locked
+            ):
                 self.stance = replace(
                     self.stance,
                     stance=Stance.LEISURE,
@@ -1704,6 +1774,18 @@ class LessonSim:
         # 在好印象结算之后倒计时；WHOLE_FIELDS 整数资源）。
         if self.pride_turns > 0:
             self.pride_turns -= 1
+        # P1-3：指針固定回合末 -1（参考 EOT_DECREMENT_FIELDS 的 lockStanceTurns）。
+        # **fresh 保护**（参考 Executor/index.js「Protect fresh stats from
+        # decrement」+ BuffManager.decrementBuffTurns 的 freshBuffs 位）：卡效果
+        # 0→正 的当回合末跳过递减——指針固定锁的是**下一回合**（全力进入门在
+        # 回合开始检查 lockStanceTurns==0，若当回合就扣完则固定毫无作用）。
+        # 一般 buff 的 fresh 差一回合缺口仍留真机核实（RULES_REFERENCE §3），
+        # 本字段按参考语义实现是因为「锁下一回合」是卡面「指针固定1回合」的
+        # 确定语义（切磋琢磨 ↔ DSL 424/425 交叉）。
+        if self._lock_stance_fresh:
+            self._lock_stance_fresh = False
+        elif self.lock_stance_turns > 0:
+            self.lock_stance_turns -= 1
         # 持续类 buff 剩余回合 -1；到 0 后同时清掉倍率，永久（-1）保持
         self.buffs.condition_additive_turns = _tick_buff_turns(
             self.buffs.condition_additive_turns
@@ -1773,8 +1855,10 @@ class LessonSim:
             self.extra_turns_granted += int(self.extra_turns_pending)
             self.extra_turns_pending = 0
         # 回合结束结算全力值：攒满 10 点则下一回合进入「全力」
+        # P1-3：指針固定期间全力进入门不满足（参考 FULL_POWER_EFFECTS
+        # if:lockStanceTurns==0 & fullPowerCharge>=10），全力值不消耗。
         previous_stance = self.stance
-        self.stance = end_turn(self.stance)
+        self.stance = end_turn(self.stance, locked=self.lock_stance_turns > 0)
         # B8：回合边界的指針切换（全力进入等）也发 stance_change
         if self.stance != previous_stance:
             self._fire_p_items(STANCE_CHANGE)
@@ -1810,11 +1894,53 @@ class LessonSim:
         """P1-1：全力回合保留牌回手（参考 ``CardManager.moveHeldCardsToHand``）。
 
         保留区全部牌弹出加进手牌（该接口无手牌上限检查，与参考一致）；
-        保留区来源（holdCard/holdThisCard）留 P1-3，当前恒空。
+        **LIFO**（参考 ``pop()`` 从尾部弹，P1-3 对齐；P1-1 时 held 恒空无行为差）。
+        P1-3：卡效果版（一点一滴的进步 ``moveHeldCardsToHand``）也走这里。
         """
         if self.held:
-            self.hand.extend(self.held)
+            self.hand.extend(reversed(self.held))
             self.held.clear()
+
+    def _enforce_hold_limit(self) -> None:
+        """P1-3：保留区上限 2（参考 ``CardManager.enforceHoldLimit``）。
+
+        超限把**最旧**的牌（``shift()``）推进弃牌堆。
+        """
+        while len(self.held) > HOLD_LIMIT:
+            self.discard.append(self.held.pop(0))
+
+    def _apply_hold(self, card: CardSpec) -> bool:
+        """P1-3：结算本牌的保留区效果；返回本牌是否被 holdThisCard 保留。
+
+        参考 ``CardManager``：holdThisCard 把刚打出的牌放进保留区（``useCard``
+        末尾据此跳过弃牌/除外）；holdSelected 从目标区选牌移入保留区；
+        moveHeldCardsToHand 把保留区全部弹回手牌。每次移入后 enforceHoldLimit。
+        选牌是玩家选择——本模型按白值分降序确定性选（``hold.hold_pick``，
+        与参考 HeuristicStrategy 的全力预览分排序等价，见该函数 docstring）。
+        再演不翻倍 hold（参考 hold 按卡索引幂等）。
+        """
+        held_this = False
+        if card.hold_this and (
+            not card.hold_this_when_save or str(self.stance.stance) == Stance.SAVE
+        ):
+            self.held.append(card)
+            self._enforce_hold_limit()
+            held_this = True
+        if card.hold_select_zones:
+            zone_names = HOLD_SELECT_ZONES[card.hold_select_zones]
+            pools = {"hand": self.hand, "deck": self.deck, "discard": self.discard}
+            candidates = [c for zone in zone_names for c in pools[zone]]
+            for picked in hold_pick(candidates, card.hold_select_count):
+                for zone in zone_names:
+                    pool = pools[zone]
+                    if picked in pool:
+                        pool.remove(picked)
+                        break
+                self.held.append(picked)
+            self._enforce_hold_limit()
+        if card.hold_move_to_hand:
+            self._move_held_to_hand()
+        return held_this
 
     def _apply_leisure_reserves(self) -> None:
         """P1-1：回合开始结算のんびり预约（出牌时登记，见 _apply_card_stance）。
@@ -1836,7 +1962,9 @@ class LessonSim:
             )
             if matched:
                 previous = self.stance
-                if stance_change_allowed(self.stance, "leisure"):
+                if stance_change_allowed(
+                    self.stance, "leisure", locked=self.lock_stance_turns > 0
+                ):
                     self.stance = replace(
                         self.stance,
                         stance=Stance.LEISURE,

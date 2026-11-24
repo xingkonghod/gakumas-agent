@@ -464,6 +464,26 @@ expectimax 仍显著强于 rules）；旧 B11 数据/模型旧规则口径全保
 新增 `tests/test_p12_hand_decrease_pride.py` 36 条（既有 no-op 参数表移除已实现类型 −1），
 全量 pytest **1389 passed / 1 skipped（1390 收集 / 91 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.5 /
 WORKPLAN P1-2 / HANDOVER 二·补四十五。
+**2026-11-24 P1-3 完成**（阶段1 第三批，用户确认 A 顺序；纯离线规则，BSD-3 有据）：
+**⑥ hold 保留区建模**（CardManager hold/enforceHoldLimit/holdThisCard/holdSelected/
+moveHeldCardsToHand）——新 `sim/hold.py`（上限 2 + **13 族卡逐卡证据表**，主数据
+ExamCardMove values 恒空 → skill_cards.csv 行号交叉；冲刺/积累 holdThis 温存中、
+潜在能力/互动的基础 holdSelected[hand]、切磋琢磨/觉悟/新的舞台/努力了，哦/那一天，在这里
+（+2张）/对战请多指教！/让群星散落吧 holdSelected[deck|grave]、爱意彩虹 holdSelected[deck]、
+一点一滴的进步 moveHeldCardsToHand；**表外卡保留旧 +1 抽牌近似**不猜）+ 跨回合保留/
+holdThisCard 不进弃牌除外/known_draw・discard_order 同步/回手 **LIFO**；
+**lockStanceTurns 指針固定**（切磋琢磨 StanceLock turn=1，EOT 递减 + **fresh 保护锁下一回合** +
+setStance 守卫 + 全力进入门 lockStanceTurns==0）；**B10 遗留 trigger_unknown 3 件清零**
+（hold 区张数条件：实现的觉悟 countCards[held]>=1 ↔ 叶える覚悟；hotfix：咲季营养餐・改
+period810_hotfix 三源证实非限定标记 ↔ 咲季の完全食・改）+ **温存 2 段階直给 preservation2**
+（7 段）。LessonSim/ExpectState 双镜 + canonical + 叶子对齐；sim_produce MODELED 34→35、
+41 元组；implemented 保持 **1056/1849**（机制本就支持，触发保守不解析→真实触发）。
+**large 评测牌组组成变化**（冲刺/积累 draw 近似移除，保真度修正；small 不变）→
+sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，冲刺/积累 未被这 64 局奖励采到；
+expectimax 仍显著强于 rules Δ+372.2/+219.1）；旧 B11 数据/模型旧规则口径全保留。
+新增 `tests/test_p13_hold_zone.py` 46 条，全量 pytest **1435 passed / 1 skipped
+（1436 收集 / 92 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.6 /
+WORKPLAN P1-3 / HANDOVER 二·补四十六。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
@@ -472,10 +492,12 @@ v6 生产接线完成（engine=net opt-in，T2 第四臂）+ r9-large 完成（l
 F 数据已下；
 下一步 **按多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）：
 阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease + pride~~ ✅ P1-2；
-**下一会话 P1-3：hold 保留区建模**；剩 buff-cost/P 道具语义 + T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
+~~hold 保留区 + lockStanceTurns~~ ✅ P1-3；**下一会话 P1-4：ExamBuffConsumptionAdd buff-cost 卡**
+（证据不足保持 no-op 如实记）；剩 P 道具语义 + T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
 双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
 → 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。
-需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / hold 保留区 / fresh buff /
-附魔 / 真机 P 道具列表）留阶段3 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；
+需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / fresh buff /
+附魔 / 真机 P 道具列表）留阶段3（hold 保留区 ✅ P1-3 离线建模；剩 target:held 成长 /
+holdCard P 道具来源）→ F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；
 B11 学生网只看可观测状态，是未来 public-safe 候选，**r9/r10 large 已超 beam 但 small 仍回退，须 small+large 双过才进 F**）。
 细节见 [HANDOVER.md](HANDOVER.md) 二·补七/二·补八/二·补九/二·补十/二·补十四/二·补十五/二·补十六/二·补十七/二·补十八/二·补十九/二·补二十/二·补二十一/二·补二十二/二·补二十三/二·补二十四/二·补二十五/二·补二十六/二·补二十七/二·补二十八/二·补二十九/二·补三十/二·补三十一/二·补三十二/二·补三十三/二·补三十四/二·补三十五/二·补三十六/二·补三十七/二·补三十九/二·补四十/二·补四十一/二·补四十二/二·补四十三 与 [HANDOVER_NEXT.md](HANDOVER_NEXT.md)。

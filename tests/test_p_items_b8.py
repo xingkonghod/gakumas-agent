@@ -97,18 +97,21 @@ def test_parse_trigger_id_review_interval_sets_status() -> None:
 
 def test_parse_trigger_id_specific_card_is_incomplete() -> None:
     """B10 起指定卡名/区域张数（tracked 区）已结构化解析 → 不再 incomplete；
-    只剩 hold（保留）区未建模与未知词（period810_hotfix）保守跳过。"""
+    P1-3 起 hold（保留）区已建模、period810_hotfix 证实为非限定标记 → 全部解析；
+    只剩真正未知词保守跳过。"""
     for trigger_id in (
         "e_trigger-exam_card_play_after-p_card_search-target-1-p_card-01-act-1_023-0_1",
         "e_trigger-exam_start_turn-card_search_count_up-2-p_card_search-trouble-not_lost",
         "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hand-p_card-00-acc-0_002-p_card_search-target-0_1",
-    ):
-        assert build_p_items.trigger_id_has_unparsed_condition(trigger_id) is False
-    for trigger_id in (
+        # P1-3：hold 区张数条件（实现的觉悟）+ period810_hotfix（咲季营养餐・改）
         "e_trigger-exam_card_play_after-card_search_count_up-1-p_card_search-hold-p_card_search-target-1-p_card-03-act-1_038-0_1",
         "e_trigger-exam_play_turn_count_interval-2-p_card_search-target-period810_hotfix",
     ):
-        assert build_p_items.trigger_id_has_unparsed_condition(trigger_id) is True
+        assert build_p_items.trigger_id_has_unparsed_condition(trigger_id) is False
+    # 真正未知词仍保守跳过（不猜）
+    assert build_p_items.trigger_id_has_unparsed_condition(
+        "e_trigger-exam_card_play_after-p_card_search-target-some_unknown_token"
+    ) is True
 
 
 # ---- 2. 效果语义标注 --------------------------------------------------------
@@ -174,9 +177,10 @@ def test_real_catalog_b8_stats() -> None:
     )
     stats = payload["stats"]
     # B8：条件未知 22→6；B10：p_card_search 限定结构化后条件未知 6→0、
-    # 触发未知 103→3（hold 保留区 2 件 + period810_hotfix 未知词 1 件，保守跳过）。
+    # 触发未知 103→3；P1-3：hold 保留区建模 + period810_hotfix 证实为非限定
+    # 标记 → 触发未知 3→0（B10 遗留清零）。
     assert stats["items_condition_unknown"] == 0
-    assert stats["items_trigger_unknown"] == 3
+    assert stats["items_trigger_unknown"] == 0
     assert stats["items_trigger_id_parsed"] >= 16
     assert stats["effects_depends_on"] > 0
     assert stats["effects_percent_max"] > 0

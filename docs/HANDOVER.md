@@ -2538,6 +2538,73 @@ HANDOVER_NEXT 开场白/§0/§2 期望值（1354→1389）/§4 T5/§8.0/§8；IN
 **提交**：feat `b8fc944`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补四十六、11-24（P1-3 —— 阶段1 第三批：hold 保留区建模 + lockStanceTurns 指針固定，BSD-3 有据）
+
+**任务来源**：HANDOVER_NEXT §8.0 多会话路线图 P1-3（用户确认 A 顺序，不用再问）。
+开工基线 ①–⑤ 全绿（HEAD f444701，② 1389/1、1390 收集 / 91 文件，195.95s）。
+
+**⑥ hold 保留区建模**（BSD-3 gakumas-tools CardManager/index.js hold/enforceHoldLimit/
+holdCard/holdThisCard/holdSelectedByTarget/moveHeldCardsToHand :959-1102 + useCard
+thisCardHeld :639 + TurnManager.endTurn 只弃手牌 + constants.js
+FULL_POWER_EFFECTS/FULL_POWER_CHANGED_EFFECTS）：
+
+- 新 src/gkagent/sim/hold.py：HOLD_LIMIT=2 + **13 族卡逐卡证据表** HOLD_SOURCES +
+  hold_pick 确定性选牌。主数据 ExamCardMove（values 恒空，目标区/张数不编码）→
+  语义按 skill_cards.csv 行号逐卡交叉（card_meta 日文别名核对）：冲刺/积累
+  （holdThisCard 温存中，trigger preservation_up 交叉）、潜在能力/互动的基础
+  （holdSelected[hand],1）、切磋琢磨/觉悟/新的舞台/努力了，哦/那一天，在这里
+  （base 1 张、+/++/+++ 2 张）/对战请多指教！/让群星散落吧（holdSelected[deck|discarded],1）、
+  爱意彩虹（holdSelected[deck],1）、一点一滴的进步（moveHeldCardsToHand）。
+  **表外卡保留旧 +1 抽牌近似**（潮流领袖/展翅高飞/发挥本领/决不停歇：全力值消耗/
+  holdSelectedUpto/target:held 成长/干扰卡计数未建模，不猜）。
+- 机制：上限 2（超限最旧进弃牌堆）/跨回合保留/holdThisCard 本牌不进弃牌除外/
+  holdSelected 移牌同步 known_draw 与 discard_order/moveHeldCardsToHand **LIFO**
+  （P1-1 钩子对齐参考 pop()）/选牌按白值分降序稳定排序（参考 HeuristicStrategy
+  全力预览分排序等价）/再演不翻倍 hold（参考按卡索引幂等）。
+- **lockStanceTurns 指針固定**（EOT_DECREMENT_FIELDS + FULL_POWER_EFFECTS
+  lockStanceTurns==0 门 + setStance :262 守卫 + Executor freshBuffs :271-279）：
+  切磋琢磨 StanceLock turn=1 ↔ DSL 424/425；stance_change_allowed/end_turn 加
+  locked 守卫（纯增量）；回合末 -1 + **fresh 保护**（获得当回合末不扣 → 锁下一回合，
+  卡面「指针固定1回合」确定语义）；全力进入门被锁时全力值不消耗；全力解除不受守卫；
+  再演翻倍。
+- **B10 遗留 trigger_unknown 3 件/6 段清零**：hold 区张数条件（实现的觉悟/±
+  countCards[held]>=1 ↔ 叶える覚悟 pIdol 74 csv 212/213，魅力刚刚好 ↔ ジャストアピール
+  csv 380）+ hotfix（咲季营养餐・改 period810_hotfix **三源证实非限定标记**：
+  masterTrans 描述表无此目标 + 中文触发句无卡限定 + 参考 csv 404 咲季の完全食・改
+  turnCardsUsed%2==1 无卡过滤）。**温存 2 段階直给 preservation2**（「温存阶段变更」
+  value1=2 ↔ setStance(preservation2)，7 段重标注）。
+
+**落地（纯增量）**：sim/hold.py（新）+ stance.py + lesson.py/expectimax.py
+（_apply_hold(_state)/lock+fresh 双镜 + canonical + 快照往返 + 叶子 LIFO +
+_passive_state held）+ p_items.py（PassiveState.held/zone_count held/preservation2）+
+build_p_items.py（hold→held/period810 白名单）+ sim_produce.py（MODELED 34→35
+StanceLock、41 元组、ExamCardMove 证据表分支）+ play_choice.py + leaf_data.py +
+p_items.json 重建（仅 **9 条记录**变化，逐条 diff 校验）。implemented 保持
+**1056/1849**；trigger_unknown **3→0 件**；zone_count 27→29 件。
+
+**评测牌组组成变化（如实记录）**：冲刺/积累 ExamCardMove 从 +1 抽牌近似改为真实
+holdThisCard（保留不是抽牌）→ draw 1→0；eval_expectimax large 牌组抽牌签名槽改选
+决不停歇，冲刺/积累让出槽位（保真度修正；**small 不变**）。**sim_engine_ab 重标定：
+改前（git stash）/改后 64 局逐位相同（差异=0）**——冲刺/积累 在这 64 局培育奖励选择中
+未被采到（sim_engine_ab 用 14 张基础牌组+奖励池动态采牌，与 eval_expectimax 固定
+large 牌组不同口径）；expectimax 仍显著强于 rules（Δ+372.2 / +219.1，15/0/1 与 11/0/5，
+C+ 100%，0 blocked / 0 error）。**旧 B11 数据/模型旧规则口径全保留**（阶段2 重采新批再对比）。
+
+**测试/基线**：tests/test_p13_hold_zone.py **46 条** + 既有断言随规则更新（MODELED 35 /
+41 元组 / trigger_unknown 0 / preservation2 / large 牌组）；ruff 通过；全量 pytest
+**1435/1（1436 收集 / 92 文件，230.80s）**；①③④⑤ 复跑不变。
+
+**剩余（如实记录）**：target:held 保留区卡成长（g.scoreTimes/g.score/g.cost，新的舞台+/
+发挥本领/实现的觉悟）、holdCard P 道具来源（那一天的塑料伞/章鱼烧科幻小狗/彼此许下的约定，
+文本未结构化）、card_play_interval_after 触发（2 件のんびり道具）、ExamBuffConsumptionAdd
+（P1-4）、nullifyDebuff 拦截/countDebuffs、nullifySelect 守卫、一般 buff fresh 差一回合。
+
+文档：RULES_REFERENCE §0/§1/§5.6/§6/§7；WORKPLAN §0/P1-3；HANDOVER_NEXT 开场白/§0/§2
+期望值（1389→1435）/§4 T5/§8.0/§8；INDEX；本文件二·补四十六。
+
+**提交**：feat <HASH>（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

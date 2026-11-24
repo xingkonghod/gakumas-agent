@@ -321,7 +321,7 @@ _SPECIFIC_CARD_IN_SEARCH = re.compile(r"p_card_search[^-]*(?:-[a-z_0-9]+)*?-p_ca
 #     effect_group-visible-exam_*-000=可见效果组 / idol-unique=偶像固有）；
 #   * 主数据 ProduceCard.effectGroupIds（卡→效果组，与限定同一套 id）；
 #   * BSD-3 参考引擎 gakumas-tools：指定卡名触发用 usedCardBaseId（base id，
-#     不限强化）；countCards 区域语义；hold 区我们未建模 → 保守不解析。
+#     不限强化）；countCards 区域语义；P1-3 起 hold 保留区已建模（映射 held）。
 _CARD_ID_RE = re.compile(r"p_card-\d{2}-[a-z]+-\d+_\d+")
 _SEARCH_MARKER = re.compile(
     r"(?:(?P<neg>not-)?card_search_count_up-(?P<n>\d+)-)?p_card_search-"
@@ -331,7 +331,8 @@ _ZONE_TOKENS = {
     "deck_grave", "deck_all", "lost", "not_lost", "hold",
 }
 _PLAY_ZONES = {"playing", "target"}
-#: 区域 → 模拟器 tracked 区（hold 未建模 → 不映射，保守不触发）。
+#: 区域 → 模拟器 tracked 区。P1-3（2026-11-24）：hold 保留区已建模
+#: （LessonSim.held / ExpectState.held），映射到 "held"。
 #: deck_all = 全部 tracked 区（hold/除外以外都在；参考 countCards 无区域限定 = 全场）。
 _ZONE_MAP = {
     "hand": ("hand",),
@@ -341,6 +342,7 @@ _ZONE_MAP = {
     "deck_all": ("deck", "hand", "discard", "excluded"),
     "lost": ("excluded",),
     "not_lost": ("deck", "hand", "discard"),
+    "hold": ("held",),
 }
 _RARITY_TOKENS = {
     "r-sr-ssr-legend": ("R", "SR", "SSR", "LEGEND"),
@@ -424,6 +426,17 @@ def _parse_search_filter(text: str) -> tuple[dict | None, bool]:
             # 训练/回合属性限定由 B8 的 lesson_filter 处理，这里跳过。
             rest = rest[match.end():].lstrip("-")
             continue
+        if rest.startswith("period810_hotfix"):
+            # P1-3（2026-11-24）：内部 hotfix 标记，**不是卡限定**。证据：
+            # ① masterTrans/ProduceCardSearch.json 描述表无此搜索目标（全表
+            #   0 命中，masterTrans 全目录亦 0 命中）；② 唯一带此词的道具
+            #   「咲季营养餐・改」pitem_02-3-309-0 的中文触发句「回合内使用过
+            #   2次技能卡时」无卡限定；③ BSD-3 参考 p_items.csv 404
+            #   「咲季の完全食・改」= at:cardUsed { if:turnCardsUsed%2==1
+            #   { goodImpressionTurns+=2; setGoodImpressionTurnsEffectBuff(0.25) };
+            #   limit:1 }——任意卡、无过滤。三源一致 → 按非限定标记跳过。
+            rest = rest[len("period810_hotfix"):].lstrip("-")
+            continue
         match = re.match(r"\d+(?:_\d+)?", rest)
         if match:
             # 张数 / upgrade_count（无卡 id = 任意卡），结算不需要。
@@ -441,8 +454,8 @@ def parse_card_search(trigger_id: str) -> tuple[dict | None, dict | None, bool]:
     * ``play_filter``：出牌触发（playing/target）的卡限定 →
       ``{kind: any/card/idol_unique/effect_group/cost, ...}``；
     * ``zone_count``：区域张数条件 → ``{zones, min, negate, filter}``
-      （``not-card_search_count_up-N`` = 张数 < N）；
-    * ``unresolved``：还有解析不了的限定（hold 区未建模 / 未知词）→
+      （``not-card_search_count_up-N`` = 张数 < N；P1-3 起含 hold 保留区）；
+    * ``unresolved``：还有解析不了的限定（未知词）→
       调用方保持 ``trigger_known=False`` 保守不触发。
     """
     if not trigger_id or "p_card_search" not in trigger_id:
@@ -476,8 +489,8 @@ def parse_card_search(trigger_id: str) -> tuple[dict | None, dict | None, bool]:
             # （card_play 触发本身就隐含"打出了一张卡"）。
             play_filter = filt if filt else None
             continue
-        if zone == "hold" or zone not in _ZONE_MAP:
-            # 保留区未建模（RULES_REFERENCE §6）：不能当 0 张算，保守不解析。
+        if zone not in _ZONE_MAP:
+            # 认不出的区域词：不能当 0 张算，保守不解析。
             unresolved = True
             continue
         if marker.group("n") is None:
@@ -499,8 +512,8 @@ def parse_card_search(trigger_id: str) -> tuple[dict | None, dict | None, bool]:
 def trigger_id_has_unparsed_condition(trigger_id: str) -> bool:
     """触发 id 里是否还有建模不了的卡限定（B10 起按结构化解析判定）。
 
-    指定卡名 / 效果组 / 偶像固有 / 费用 / 区域张数（tracked 区）都能解析；
-    只剩 **hold（保留）区** 与未知词 → True（保守不触发）。
+    指定卡名 / 效果组 / 偶像固有 / 费用 / 区域张数（tracked 区，P1-3 起含
+    hold 保留区）都能解析；只剩未知词 → True（保守不触发）。
     """
     return parse_card_search(trigger_id)[2]
 

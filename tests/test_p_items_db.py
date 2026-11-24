@@ -188,9 +188,10 @@ def test_real_catalog_includes_yaml_only_new_items() -> None:
     assert stats["items_i18n_text_ja"] == 47
     # B8：新语法 trigger id 从 id 后缀解析（16 件）；B10：p_card_search 限定
     # 结构化（指定卡名/偶像固有/效果组/费用/区域张数）→ 条件未知 6→0、
-    # 触发未知 103→3（hold 保留区 2 件 + period810_hotfix 1 件，都是本地旧行）。
+    # 触发未知 103→3；P1-3：hold 保留区建模 + period810_hotfix 非限定标记
+    # 证实 → 触发未知 3→0（B10 遗留清零）。
     assert stats["items_condition_unknown"] == 0
-    assert stats["items_trigger_unknown"] == 3
+    assert stats["items_trigger_unknown"] == 0
     assert stats["items_trigger_id_parsed"] >= 16
     assert stats["effects_depends_on"] > 0
     assert stats["effects_percent_max"] > 0

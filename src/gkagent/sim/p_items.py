@@ -25,7 +25,7 @@
   ``exam_start_after``（B10：训练开始后，抽完第一手牌之后结算一次）。
 * B10（2026-11-23）触发限定与生成卡：``play_filter``（指定卡名/偶像固有/效果组/
   费用/类别/稀有度，按 ``card_meta`` 静态索引求值）/ ``zone_count``（手牌/牌堆/
-  弃牌/除外四区张数，hold 保留区未建模 → 数据层保守不解析）/ ``create_card``
+  弃牌/除外四区张数；P1-3 起含 hold 保留区）/ ``create_card``
   （``ExamCardCreateId`` 确定式生成卡，``PItemDelta.create_cards`` 交给
   ``LessonSim``/``ExpectState`` 落牌；随机基础卡 RNG 未知 → 保持 no-op）。
 
@@ -206,12 +206,22 @@ DURATION_TARGETS = frozenset(
     }
 )
 #: 纯标记类目标（数值固定 1 / 只看触发时机）。
+#: P1-3：stance_preservation2 = 温存 2 段階直给（「温存阶段变更」value1=2 ↔
+#: 参考 setStance(preservation2)，叶える覚悟+ 等 8 段）。
 FLAG_TARGETS = frozenset(
-    {"extra_turn", "stance_preservation", "stance_concentration", "stance_leisure"}
+    {
+        "extra_turn",
+        "stance_preservation",
+        "stance_preservation2",
+        "stance_concentration",
+        "stance_leisure",
+    }
 )
 #: 新目标的全部集合（供 summarize / implemented 判定）。
 MODIFIER_TARGETS = frozenset(
-    set(TARGET_BY_EFFECT.values()) | set(STANCE_EFFECT_TARGETS.values())
+    set(TARGET_BY_EFFECT.values())
+    | set(STANCE_EFFECT_TARGETS.values())
+    | {"stance_preservation2"}
 )
 
 # ---- 已实现的触发时机 ------------------------------------------------------
@@ -310,7 +320,7 @@ class ZoneCount:
     """区域张数条件：``zones`` 里合计满足 ``filter`` 的卡 ≥ ``minimum``
     （``negate=True`` 时 < minimum，对应 not-card_search_count_up-N）。"""
 
-    zones: tuple[str, ...]  # hand / deck / discard / excluded
+    zones: tuple[str, ...]  # hand / deck / discard / excluded / held（P1-3）
     minimum: int
     negate: bool = False
     filter: CardFilter | None = None  # None = 全部技能卡
@@ -475,12 +485,14 @@ class PassiveState:
     status_counts: Mapping[str, int] = field(default_factory=dict)
     uses: Mapping[str, int] | None = None  # item_id -> 已经触发次数
     # B10：四个 tracked 区的卡名（含强化变体；区域张数条件 zone_count 求值用）。
+    # P1-3：保留区（hold 区张数条件，实现的觉悟 countCards[held]>=1）。
     # zones_known=False（模拟器没给区域信息）→ 依赖区域计数的道具不触发（保守）；
     # True 时空区就是真的空（如开局手牌/弃牌堆）。
     hand: tuple[str, ...] = ()
     deck: tuple[str, ...] = ()
     discard: tuple[str, ...] = ()
     excluded: tuple[str, ...] = ()
+    held: tuple[str, ...] = ()
     zones_known: bool = False
 
     def stack(self, key: str) -> int:
@@ -716,7 +728,12 @@ def classify_effect_target(effect_type: str, text: str = "") -> str:
     if effect_type in STANCE_EFFECT_TARGETS:
         head = (text or "").strip()
         if effect_type == "ExamPreservation":
-            if head.startswith(("温存变更", "温存阶段变更", "温存に変更")):
+            # P1-3：「温存阶段变更」（value1=2）= 温存 2 段階直给（参考
+            # setStance(preservation2)：叶える覚悟+/はつぼしフィギュア/
+            # まあるい春色/夢見る星）；先于「温存变更」判定（前缀不重叠）。
+            if head.startswith("温存阶段变更"):
+                return "stance_preservation2"
+            if head.startswith(("温存变更", "温存に変更")):
                 return "stance_preservation"
             return ""
         if effect_type == "ExamOverPreservation":
@@ -893,6 +910,8 @@ def _zone_count_matches(
         "deck": state.deck,
         "discard": state.discard,
         "excluded": state.excluded,
+        # P1-3：保留区（hold 区张数条件；参考 countCards[held]）
+        "held": state.held,
     }
     names = [name for zone in zone_count.zones for name in zones.get(zone, ())]
     if zone_count.filter is None:
@@ -1146,6 +1165,10 @@ def _apply_modifier_target(spec: PItemSpec, target: str, delta: PItemDelta) -> b
         return True
     if target == "stance_preservation":
         delta.stances.append("preservation")
+        return True
+    if target == "stance_preservation2":
+        # P1-3：温存 2 段階直给（守卫/解除在调用方结算，与 preservation 同口径）
+        delta.stances.append("preservation2")
         return True
     if target == "stance_concentration":
         delta.stances.append("concentration")
