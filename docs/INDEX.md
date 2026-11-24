@@ -531,6 +531,20 @@ WORKPLAN P1-5 / HANDOVER 二·补四十九。
 ep-verify1 三方对账全一致，**ep-t1-g 卡屏局 28 次重复观测被显式 surfaced**。
 新增 61 条测试（38+20+3），全量 pytest **1564 passed / 1 skipped（1565 收集 / 97 文件）**，
 基线 ①③④⑤ 不变。细节见 WORKPLAN P1-6 / LIVE_RUN §2.1 / HANDOVER 二·补五十。
+**2026-11-24 P1-7 完成**（阶段1 第七批，用户选定 P 道具批次；纯离线，BSD-3 + DSL 三重核实）：
+**P 道具后续批次（bounded batch）**——好调增加量增加 ExamParameterBuffAdditive → condition_gain
+（resolveGoodConditionTurns ×(1+Σbuffs)，夜闇の星 313/314；卡 + P 道具双渠道）+ 元气增加无效
+ExamBlockRestriction → nullify_genki_turns / 不安 ExamBlockAddDown → unease_turns（resolveGenki
+return / ×0.67 向上取整，∈ EOT_DECREMENT+DEBUFF_FIELDS；いたずらパペット/初陣の証・美鈴/雨上がりの花）+
+ExamBlockFix 分离 fixed_vitality（resolveFixedGenki 不受闸门）+ **通用延迟生效**（yaml exam_effect_timer-NNNN
+↔ DSL delay:N-1/嵌套 at:turn，EffectManager.decrementDelay；34 段标注，修正おさぼりタオル/美铃/温存变更类
+等已实现道具时序）。**保持 no-op 如实记**：塔 gimmick（参考无字段）/塔 ∞ 段（value=0）/全力・强气效果卡
+打分（per-card g.score 成长）/日文好調の%分/ExamParameterBuffReduce。implemented **1164→1179/1849**（+15）、
+modifier 409→442；**sim_produce 不引用 p_items + genki_gate/condition_gain 无来源恒等 → 评测零影响**，
+sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，expectimax 仍显著强于 rules Δ+372.2/+219.1）；
+旧 B11 数据/模型旧规则口径全保留。新增 `tests/test_p17_genki_condition_delay.py` 48 条，全量 pytest
+**1612 passed / 1 skipped（1613 收集 / 98 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.9 /
+WORKPLAN P1-7 / HANDOVER 二·补五十一。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
@@ -542,8 +556,9 @@ F 数据已下；
 ~~hold 保留区 + lockStanceTurns~~ ✅ P1-3；~~nullifyDebuff 拦截 + ⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；
 ~~P 道具层数减少 + 好调回合 + 好调依赖换算~~ ✅ P1-5（1067→1164/1849）；
 ~~T7②③ 纯函数状态重放/自动复盘页~~ ✅ P1-6（不改规则/不作废 B11 数据）；
-**阶段1 剩 P 道具后续批次**（好调增加量增加/元气增加无效/不安/塔 gimmick/全力・强气效果卡打分/
-日文好調の%分——证据充分需新机制）；**P1-6 完成后先问用户**：继续 P 道具批次，还是直接进
+~~P 道具后续批次（好调增加量增加/元气增加无效/不安/通用延迟生效）~~ ✅ P1-7（1164→1179/1849）；
+**阶段1 剩 P 道具后续批次**（塔 gimmick/全力・强气效果卡打分/日文好調の%分/ExamParameterBuffReduce
+——证据充分需新机制/真机）；**P1-7 完成后先问用户**：继续 P 道具剩段，还是直接进
 阶段2 重采+练学生 r11）→ 阶段2 重采+练学生 r11（small 上采样，
 双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
 → 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。

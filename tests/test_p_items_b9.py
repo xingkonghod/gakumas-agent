@@ -386,7 +386,10 @@ def test_apply_passive_impression_reduce_and_block_fix() -> None:
         spec(effect_type="ExamBlockFix", target_kind="vitality", value=4),
     ]
     delta = apply_passive(specs, PassiveEvent(kind=TURN_START), PassiveState(turn=1))
-    assert delta.stacks == {"impression": -2, "vitality": 4}
+    # P1-7：ExamBlockFix（fixedGenki+=）走独立 fixed_vitality（不受无效/不安拦截），
+    # 不再混进 stacks["vitality"]（genki+= 渠道）。
+    assert delta.stacks == {"impression": -2}
+    assert delta.fixed_vitality == 4
 
 
 # ---------------------------------------------------------------- LessonSim

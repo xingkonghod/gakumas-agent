@@ -75,6 +75,7 @@ from gkagent.sim.lesson import (
     DrinkSpec,
     LessonConfig,
     LessonSim,
+    genki_gate,
     greedy_policy,
     safe_ceil,
 )
@@ -92,6 +93,7 @@ from gkagent.sim.p_items import (
     TURN_START_AFTER,
     PassiveEvent,
     PassiveState,
+    PItemDelta,
     PItemSpec,
     TimedAmounts,
     add_timed,
@@ -291,6 +293,13 @@ class ExpectState:
     # ---- P1-4（2026-11-24）：低下状态无效（nullifyDebuff，与 LessonSim 双镜）----
     # 消耗式计数器（无回合倒计时）；>0 时拦截 setScoreDebuff/setHandDecrease 施加。
     nullify_debuff: int = 0
+    # ---- P1-7（2026-11-24）：元气增加无效 / 不安（resolveGenki 闸门，与 LessonSim 双镜）----
+    # EOT 倒计时整数 debuff（∈ DEBUFF_FIELDS）；nullify>0 genki+= 不增，unease>0 ×0.67。
+    nullify_genki_turns: int = 0
+    unease_turns: int = 0
+    # P1-7：延迟生效 P 道具增量 ((剩余回合, PItemDelta.freeze()), …)；回合末 -1，
+    # 到 0 的下一回合开始结算（参考 EffectManager.decrementDelay + 嵌套 at:turn）。
+    delayed: tuple[tuple[int, tuple], ...] = ()
     # ---- P1-3（2026-11-24）：指針固定（lockStanceTurns，与 LessonSim 双镜）----
     # >0 时禁切指針 + 全力进入门不满足；回合末 -1，fresh 保护（卡效果 0→正
     # 的当回合末不扣，锁下一回合；参考 Executor freshBuffs）。
@@ -463,6 +472,10 @@ class ExpectState:
             self.pride_turns,
             # P1-4：低下状态无效（影响后续 debuff 施加）
             self.nullify_debuff,
+            # P1-7：元气增加无效 / 不安（影响后续元气获得）/ 延迟生效增量
+            self.nullify_genki_turns,
+            self.unease_turns,
+            self.delayed,
             # P1-3：指針固定（影响后续指針切换/全力进入）
             self.lock_stance_turns,
             self.lock_stance_fresh,
@@ -723,6 +736,10 @@ def sim_from_state(
     sim.pride_turns = int(state.pride_turns)
     # P1-4：低下状态无效（rollout 必须带上，否则 debuff 拦截与搜索不一致）
     sim.nullify_debuff = int(state.nullify_debuff)
+    # P1-7：元气增加无效 / 不安 / 延迟生效增量（rollout 必须带上，与搜索一致）
+    sim.nullify_genki_turns = int(state.nullify_genki_turns)
+    sim.unease_turns = int(state.unease_turns)
+    sim._delayed_deltas = [(n, PItemDelta.thaw(d)) for n, d in state.delayed]
     # P1-3：指針固定（rollout 必须带上，否则指針守卫/全力进入与搜索不一致）
     sim.lock_stance_turns = int(state.lock_stance_turns)
     sim._lock_stance_fresh = bool(state.lock_stance_fresh)
@@ -1276,7 +1293,14 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     condition_gain = effect_card.condition
     if condition_gain > 0 and state.condition_additive > 0:
         condition_gain += state.condition_additive
+    # P1-7：好调增加量增加增益倍率（与 LessonSim._apply_card_buffs 同口径）。
+    if condition_gain > 0:
+        condition_gain = safe_ceil(condition_gain * state.gain_multiple("condition_gain"))
     vitality_gain = effect_card.vitality + state.motivation
+    # P1-7：genki+= 渠道过 resolveGenki 闸门（元气增加无效→0 / 不安×0.67）。
+    vitality_gain = genki_gate(
+        vitality_gain, state.nullify_genki_turns, state.unease_turns
+    )
     # B9：P 道具「X 增加量增加 +N%」增益倍率（乘在获得量上、向上取整；与
     # LessonSim._apply_card_buffs 同口径）
     focus_gain = effect_card.focus
@@ -1360,7 +1384,7 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
             status="impression",
             amount=impression_gain,
         )
-    if effect_card.vitality > 0:
+    if effect_card.vitality > 0 and vitality_gain > 0:
         state = fire_p_items(
             state, STATUS_GAIN, status="vitality", amount=vitality_gain
         )
@@ -2053,11 +2077,50 @@ def fire_p_items(
         status_total=status_total,
         stamina_delta=stamina_delta,
     )
-    delta = apply_passive(subset, event, _passive_state(state))
-    if delta.is_zero():
+    pstate = _passive_state(state)
+    # P1-7：延迟段（delay_turns>0）分组登记（条件/次数登记时求值），到点才结算。
+    immediate = tuple(s for s in subset if s.delay_turns <= 0)
+    delayed_groups: dict[int, list[PItemSpec]] = {}
+    for spec in subset:
+        if spec.delay_turns > 0:
+            delayed_groups.setdefault(spec.delay_turns, []).append(spec)
+    delta = apply_passive(immediate, event, pstate)
+    delayed_deltas = [
+        (dt, apply_passive(tuple(group), event, pstate))
+        for dt, group in sorted(delayed_groups.items())
+    ]
+    # B10：次数按道具计（立即 + 延迟同事件只记 1 次，登记时计）。
+    uses = dict(state.p_item_uses)
+    applied_ids = list(delta.applied)
+    for _, d in delayed_deltas:
+        applied_ids.extend(d.applied)
+    for item_id in dict.fromkeys(applied_ids):
+        uses[item_id] = uses.get(item_id, 0) + 1
+    delayed_queue = list(state.delayed)
+    for dt, d in delayed_deltas:
+        if not d.is_zero():
+            delayed_queue.append((dt, d.freeze()))
+    if delta.is_zero() and not delayed_deltas:
         if status_counts != dict(state.status_counts):
             return replace(state, status_counts=tuple(sorted(status_counts.items())))
         return state
+    return _apply_p_delta_state(
+        state, delta,
+        status_counts=status_counts, uses=uses, delayed=tuple(delayed_queue),
+        _depth=_depth,
+    )
+
+
+def _apply_p_delta_state(
+    state: ExpectState,
+    delta: PItemDelta,
+    *,
+    status_counts: dict,
+    uses: dict,
+    delayed: tuple,
+    _depth: int = 0,
+) -> ExpectState:
+    """P1-7：结算一份 P 道具增量（立即/延迟到点共用；次数与延迟队列由调用方备好）。"""
     score = state.score + int(delta.score)
     stamina = state.stamina
     if delta.stamina:
@@ -2091,7 +2154,8 @@ def fire_p_items(
     for key, value in delta.stacks.items():
         value = int(value)
         if key == "vitality":
-            vitality += value
+            # P1-7：ExamBlock（genki+=）渠道过 resolveGenki 闸门（与 LessonSim 同口径）。
+            vitality += genki_gate(value, state.nullify_genki_turns, state.unease_turns)
         elif key == "impression":
             impression += value
         elif key == "focus":
@@ -2102,7 +2166,13 @@ def fire_p_items(
             stance = apply_full_power_point(stance, value)
             full_power_point_total += max(0, value)
         elif key == "parameter_buff":
+            # P1-7：好调增加量增加增益倍率作用于 P 道具 goodConditionTurns+=。
+            if value > 0:
+                value = safe_ceil(value * state.gain_multiple("condition_gain"))
             condition_turns += value
+    # P1-7：固定元气（fixedGenki+=）直接进元气，不受无效/不安拦截。
+    if delta.fixed_vitality:
+        vitality += int(delta.fixed_vitality)
     # P1-5：全力值减少（fullPowerCharge-=N，夹取 ≥0；与 LessonSim._fire_p_items 同口径，
     # 不计累计全力值）。aggressive/focus 负层数在下方 replace 时 max(…,0) 夹取。
     if delta.full_power_point_reduce:
@@ -2135,6 +2205,20 @@ def fire_p_items(
     hand_decreases = state.hand_decreases
     for hd_amount, hd_turns in hand_decrease_entries:
         hand_decreases = add_timed(hand_decreases, hd_amount, hd_turns)
+    # P1-7：元气增加无效 / 不安 回合数（∈ DEBUFF_FIELDS，nullifyDebuff 拦截施加；
+    # 与 LessonSim._apply_p_delta 同口径，整块拦截一次）。
+    nullify_genki_turns = state.nullify_genki_turns
+    unease_turns = state.unease_turns
+    if delta.nullify_genki_turns:
+        if nullify_debuff > 0:
+            nullify_debuff -= 1
+        else:
+            nullify_genki_turns += int(delta.nullify_genki_turns)
+    if delta.unease_turns:
+        if nullify_debuff > 0:
+            nullify_debuff -= 1
+        else:
+            unease_turns += int(delta.unease_turns)
     pride_turns = state.pride_turns + int(delta.pride_turns)
     modifiers = dict(state.modifiers)
     if delta.perfect_condition_turns:
@@ -2267,10 +2351,6 @@ def fire_p_items(
                     discard = discard + (spec,)
                     if discard_order is not None:
                         discard_order = discard_order + (spec,)
-    uses = dict(state.p_item_uses)
-    # B10：次数上限按道具计（同事件多效果段只记 1 次，与 LessonSim 同口径）。
-    for item_id in dict.fromkeys(delta.applied):
-        uses[item_id] = uses.get(item_id, 0) + 1
     new_state = replace(
         state,
         score=score,
@@ -2292,6 +2372,9 @@ def fire_p_items(
         hand_decreases=hand_decreases,
         pride_turns=pride_turns,
         nullify_debuff=nullify_debuff,
+        nullify_genki_turns=nullify_genki_turns,
+        unease_turns=unease_turns,
+        delayed=delayed,
         modifiers=tuple(sorted(modifiers.items())),
         review_multiple=p_review_multiple,
         review_multiple_turns=p_review_multiple_turns,
@@ -2322,7 +2405,27 @@ def start_turn_state(state: ExpectState) -> ExpectState:
     """抽完新手牌后的回合开始结算（P 道具 turn_start → turn_start_after → turn_interval）。"""
     state = fire_p_items(state, TURN_START)
     state = fire_p_items(state, TURN_START_AFTER)
-    return fire_p_items(state, TURN_INTERVAL)
+    state = fire_p_items(state, TURN_INTERVAL)
+    # P1-7：延迟生效 P 道具到点结算（与 LessonSim._draw_hand 同口径，turn 阶段）。
+    return _fire_delayed_state(state)
+
+
+def _fire_delayed_state(state: ExpectState) -> ExpectState:
+    """P1-7：结算延迟到点（剩余回合 ≤0）的增量；次数已在登记时计（不再计）。"""
+    if not state.delayed:
+        return state
+    due = [d for n, d in state.delayed if n <= 0]
+    remaining = tuple((n, d) for n, d in state.delayed if n > 0)
+    state = replace(state, delayed=remaining)
+    for frozen in due:
+        state = _apply_p_delta_state(
+            state, PItemDelta.thaw(frozen),
+            status_counts=dict(state.status_counts),
+            uses=dict(state.p_item_uses),
+            delayed=state.delayed,
+            _depth=0,
+        )
+    return state
 
 
 def end_turn_state(state: ExpectState) -> ExpectState:
@@ -2378,6 +2481,11 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     )
     # P1-2：自尊回合末 -1（参考 EOT_DECREMENT_FIELDS 的 prideTurns）
     pride_turns = state.pride_turns - 1 if state.pride_turns > 0 else 0
+    # P1-7：元气增加无效 / 不安 回合末 -1（与 LessonSim._end_turn 同口径）
+    nullify_genki_turns = (
+        state.nullify_genki_turns - 1 if state.nullify_genki_turns > 0 else 0
+    )
+    unease_turns = state.unease_turns - 1 if state.unease_turns > 0 else 0
     # P1-3：指針固定回合末 -1（fresh 保护：获得当回合末不扣，锁下一回合；
     # 与 LessonSim._end_turn 同口径，见该处注释）。
     if state.lock_stance_fresh:
@@ -2448,6 +2556,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         score_debuffs=score_debuffs,
         hand_decreases=hand_decreases,
         pride_turns=pride_turns,
+        nullify_genki_turns=nullify_genki_turns,
+        unease_turns=unease_turns,
         lock_stance_turns=lock_stance_turns,
         lock_stance_fresh=lock_stance_fresh,
         modifiers=modifiers,
@@ -2500,7 +2610,14 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     if stance_changed:
         next_state = fire_p_items(next_state, STANCE_CHANGE)
     # P 道具：回合结束（好印象/好调结算后、弃手牌前）
-    return fire_p_items(next_state, TURN_END)
+    next_state = fire_p_items(next_state, TURN_END)
+    # P1-7：延迟生效倒计时 -1（参考 EffectManager.decrementDelay，endOfTurn 之后；
+    # 与 LessonSim._end_turn 同口径），到 0 的增量下一回合开始结算。
+    if next_state.delayed:
+        next_state = replace(
+            next_state, delayed=tuple((n - 1, d) for n, d in next_state.delayed)
+        )
+    return next_state
 
 
 def _apply_leisure_reserves_state(state: ExpectState) -> ExpectState:
@@ -3334,6 +3451,12 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         pride_turns=max(int(getattr(sim, "pride_turns", 0)), 0),
         # P1-4：低下状态无效（与 sim_from_state 双镜）
         nullify_debuff=max(int(getattr(sim, "nullify_debuff", 0)), 0),
+        # P1-7：元气增加无效 / 不安 / 延迟生效增量（与 sim_from_state 双镜）
+        nullify_genki_turns=max(int(getattr(sim, "nullify_genki_turns", 0)), 0),
+        unease_turns=max(int(getattr(sim, "unease_turns", 0)), 0),
+        delayed=tuple(
+            (int(n), d.freeze()) for n, d in getattr(sim, "_delayed_deltas", ())
+        ),
         # P1-3：指針固定（与 sim_from_state 双镜）
         lock_stance_turns=max(int(getattr(sim, "lock_stance_turns", 0)), 0),
         lock_stance_fresh=bool(getattr(sim, "_lock_stance_fresh", False)),

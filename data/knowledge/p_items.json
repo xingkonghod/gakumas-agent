@@ -232,7 +232,7 @@
   "effects_depends_on": 76,
   "effects_percent_max": 9,
   "effects_zero_stack": 3,
-  "effects_modifier": 409,
+  "effects_modifier": 442,
   "effects_modifier_targets": {
    "score_buff": 93,
    "cost_increase": 32,
@@ -247,12 +247,15 @@
    "perfect_condition_turns": 20,
    "focus_reduce": 4,
    "score_debuff": 36,
+   "nullify_genki_turns": 15,
    "extra_turn": 12,
+   "condition_gain": 4,
    "impression_gain": 7,
    "review_multiple": 9,
    "aggressive_reduce": 5,
    "pride_turns": 2,
    "impression_reduce": 5,
+   "unease_turns": 14,
    "motivation_gain": 5,
    "enthusiasm_bonus": 9,
    "enthusiasm_multiple": 6,
@@ -264,7 +267,7 @@
    "hand_decrease": 12,
    "review_times": 4
   },
-  "items_with_modifier": 322,
+  "items_with_modifier": 333,
   "items_text_limit": 896
  },
  "items": [
@@ -4252,6 +4255,7 @@
       "count": 1
      },
      "text": "低下状态无效次（训练内1次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "nullify_debuff",
      "label": "低下状态无效"
@@ -11281,6 +11285,7 @@
      },
      "text": "元气增加无效回合（训练内2次）",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     }
    ],
@@ -11334,6 +11339,7 @@
      },
      "text": "元气增加无效回合（训练内2次）",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     }
    ],
@@ -13088,6 +13094,8 @@
      },
      "text": "好调增加量增加+%（回合）（训练内1次）",
      "max_uses": 0,
+     "target": "condition_gain",
+     "duration": 4,
      "label": "好调增加量增加"
     }
    ],
@@ -13122,6 +13130,8 @@
      },
      "text": "好调增加量增加+%（回合）（训练内1次）",
      "max_uses": 0,
+     "target": "condition_gain",
+     "duration": 5,
      "label": "好调增加量增加"
     }
    ],
@@ -14238,6 +14248,8 @@
      },
      "text": "好调增加量增加+%（回合）（培育中2次）",
      "max_uses": 0,
+     "target": "condition_gain",
+     "duration": 3,
      "label": "好调增加量增加"
     }
    ],
@@ -14270,6 +14282,8 @@
      },
      "text": "好调增加量增加+%（回合）（培育中2次）",
      "max_uses": 0,
+     "target": "condition_gain",
+     "duration": 3,
      "label": "好调增加量增加"
     }
    ],
@@ -15902,6 +15916,7 @@
      },
      "text": "元气增加无效回合（训练内6次）",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     }
    ],
@@ -17367,6 +17382,7 @@
      "type": "ExamGimmickParameterDebuff",
      "values": {},
      "text": "不调∞回合（训练内1次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "poor_condition_turns",
      "label": "不调"
@@ -18665,6 +18681,7 @@
      },
      "text": "元气增加无效回合回合后，",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -18673,6 +18690,7 @@
       "value1": 8
      },
      "text": "干劲+（训练内1次）",
+     "delay_turns": 3,
      "max_uses": 0,
      "label": "干劲"
     }
@@ -18706,6 +18724,7 @@
      },
      "text": "元气增加无效回合回合后，",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -18714,6 +18733,7 @@
       "value1": 10
      },
      "text": "干劲+（训练内1次）",
+     "delay_turns": 3,
      "max_uses": 0,
      "label": "干劲"
     }
@@ -19970,6 +19990,7 @@
      },
      "text": "元气增加无效回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -20030,6 +20051,7 @@
      },
      "text": "元气增加无效回合（训练内1次）",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     }
    ],
@@ -22968,7 +22990,9 @@
       "turn": 5
      },
      "text": "不安回合（训练内1次）",
+     "delay_turns": 3,
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     }
    ],
@@ -23017,7 +23041,9 @@
       "turn": 5
      },
      "text": "不安回合（训练内1次）",
+     "delay_turns": 3,
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     }
    ],
@@ -23223,6 +23249,7 @@
       "turn": 4
      },
      "text": "打分上升量增加%（回合）（训练内1次）",
+     "delay_turns": 3,
      "max_uses": 0,
      "target": "score_buff",
      "duration": 4,
@@ -23297,6 +23324,7 @@
       "turn": 5
      },
      "text": "打分上升量增加%（回合）（训练内1次）",
+     "delay_turns": 3,
      "max_uses": 0,
      "target": "score_buff",
      "duration": 5,
@@ -23649,6 +23677,7 @@
       "value1": 2
      },
      "text": "元气+",
+     "delay_turns": 1,
      "max_uses": 0,
      "label": "元气"
     },
@@ -23701,6 +23730,7 @@
       "value1": 2
      },
      "text": "元气+（训练内1次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "label": "元气"
     }
@@ -25437,6 +25467,7 @@
       "value1": 2
      },
      "text": "干劲+・",
+     "delay_turns": 3,
      "max_uses": 0,
      "label": "干劲"
     },
@@ -25447,6 +25478,7 @@
       "value1": 6
      },
      "text": "技能卡使用数追加+回合后，",
+     "delay_turns": 3,
      "max_uses": 0,
      "label": "技能卡使用数追加"
     },
@@ -25456,6 +25488,7 @@
       "value1": 4
      },
      "text": "好印象+（训练内1次）",
+     "delay_turns": 6,
      "max_uses": 0,
      "label": "好印象"
     }
@@ -25500,6 +25533,7 @@
       "value1": 2
      },
      "text": "干劲+・",
+     "delay_turns": 3,
      "max_uses": 0,
      "label": "干劲"
     },
@@ -25510,6 +25544,7 @@
       "value1": 6
      },
      "text": "技能卡使用数追加+回合后，",
+     "delay_turns": 3,
      "max_uses": 0,
      "label": "技能卡使用数追加"
     },
@@ -25519,6 +25554,7 @@
       "value1": 4
      },
      "text": "好印象+・",
+     "delay_turns": 6,
      "max_uses": 0,
      "label": "好印象"
     },
@@ -25528,6 +25564,7 @@
       "count": 1
      },
      "text": "技能卡使用数追加+（训练内1次）",
+     "delay_turns": 6,
      "max_uses": 0,
      "label": "技能卡使用数追加"
     }
@@ -27322,6 +27359,7 @@
       "value1": 5
      },
      "text": "全力值+下个回合，",
+     "delay_turns": 1,
      "max_uses": 0,
      "label": "全力值"
     },
@@ -27332,6 +27370,7 @@
       "turn": 1
      },
      "text": "全力值增加量增加+%（回合）（训练内3次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "full_power_charge",
      "duration": 1,
@@ -27379,6 +27418,7 @@
       "value1": 5
      },
      "text": "全力值+下个回合，",
+     "delay_turns": 1,
      "max_uses": 0,
      "label": "全力值"
     },
@@ -27389,6 +27429,7 @@
       "turn": 1
      },
      "text": "全力值增加量增加+%（回合）（训练内3次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "full_power_charge",
      "duration": 1,
@@ -27546,6 +27587,7 @@
      },
      "text": "元气增加无效回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -27596,6 +27638,7 @@
      },
      "text": "元气增加无效回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -30739,6 +30782,7 @@
       "value1": 2
      },
      "text": "温存阶段变更",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation2",
      "label": "温存"
@@ -30787,6 +30831,7 @@
       "value1": 2
      },
      "text": "温存阶段变更（训练内2次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation2",
      "label": "温存"
@@ -30955,6 +31000,7 @@
      "type": "ExamPreservation",
      "values": {},
      "text": "温存变更",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation",
      "label": "温存"
@@ -31012,6 +31058,7 @@
      "type": "ExamPreservation",
      "values": {},
      "text": "温存变更（训练内1次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation",
      "label": "温存"
@@ -31676,6 +31723,7 @@
       "value1": 2
      },
      "text": "温存阶段变更",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation2",
      "label": "温存"
@@ -31723,6 +31771,7 @@
       "value1": 2
      },
      "text": "温存阶段变更",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation2",
      "label": "温存"
@@ -32779,6 +32828,7 @@
       "turn": 1
      },
      "text": "全力值增加量增加+%（回合）（训练内2次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "full_power_charge",
      "duration": 1,
@@ -32822,6 +32872,7 @@
       "turn": 1
      },
      "text": "全力值增加量增加+%（回合）（训练内3次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "full_power_charge",
      "duration": 1,
@@ -33561,6 +33612,7 @@
      "type": "ExamPreservation",
      "values": {},
      "text": "温存变更（训练内2次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation",
      "label": "温存"
@@ -33605,6 +33657,7 @@
      "type": "ExamPreservation",
      "values": {},
      "text": "温存变更（训练内2次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation",
      "label": "温存"
@@ -33661,6 +33714,7 @@
      "type": "ExamPreservation",
      "values": {},
      "text": "温存变更（训练内5次）",
+     "delay_turns": 1,
      "max_uses": 0,
      "target": "stance_preservation",
      "label": "温存"
@@ -34410,6 +34464,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -34426,6 +34481,7 @@
      "values": {},
      "text": "元气增加无效∞回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -34608,6 +34664,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -35504,6 +35561,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -35520,6 +35578,7 @@
      "values": {},
      "text": "元气增加无效∞回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -35693,6 +35752,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -36300,6 +36360,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -36316,6 +36377,7 @@
      "values": {},
      "text": "元气增加无效∞回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -36489,6 +36551,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -37117,6 +37180,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -37133,6 +37197,7 @@
      "values": {},
      "text": "元气增加无效∞回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -37306,6 +37371,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -38219,6 +38285,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -38235,6 +38302,7 @@
      "values": {},
      "text": "元气增加无效∞回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -38408,6 +38476,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -39332,6 +39401,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -39348,6 +39418,7 @@
      "values": {},
      "text": "元气增加无效∞回合",
      "max_uses": 0,
+     "target": "nullify_genki_turns",
      "label": "元气增加无效"
     },
     {
@@ -39521,6 +39592,7 @@
      "values": {},
      "text": "不安∞回合",
      "max_uses": 0,
+     "target": "unease_turns",
      "label": "不安"
     },
     {
@@ -40042,6 +40114,7 @@
       "value1": 10
      },
      "text": "パラメータ+ターン後、",
+     "delay_turns": 5,
      "max_uses": 0,
      "label": "打分"
     },
@@ -40051,6 +40124,7 @@
       "value1": 10
      },
      "text": "パラメータ+（レッスン内3回）",
+     "delay_turns": 6,
      "max_uses": 0,
      "label": "打分"
     }

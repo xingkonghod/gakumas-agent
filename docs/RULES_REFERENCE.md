@@ -710,7 +710,87 @@ out/_p15_ab_{before,after}_{9000,9100}.json（gitignore）。
   且含「手札の眠気が1枚以上」卡张数条件、无中文描述 → 换算源解析 + 眠気卡条件均待补，留后续。
 - **ExamParameterBuffReduce**（好调减少，3 段）：触发 produce_start_lesson/buff_consume 未支持 → no-op。
 - **好调依赖换算的取整/增益近似**：目标增量 `int(condition_turns × N / 100)` 与既有 depends_on
-  同口径（向下取整）；未叠加好调增加量增加倍率（该 modifier 本批未接线，见上）。
+  同口径（向下取整）；~~未叠加好调增加量增加倍率~~ ✅ **P1-7 已接线 condition_gain**（§5.9）。
+
+旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批再新旧对比
+（HANDOVER_NEXT §8.0）；参照臂需按新规则重评。
+
+### 5.9 P1-7 P 道具后续批次（好调增加量增加 / 元气增加无效 / 不安 / 通用延迟生效，2026-11-24 完成）
+
+目标：P1-5 之后把「证据充分、离线可定」的 no-op 段再往上推（1164/1849 → **1179/1849**，
++15）。本批三块新机制 + 一个**通用延迟生效机制**，语义全部经 BSD-3 参考引擎
+（gakumas-tools）+ 主数据 + 参考 DSL（`p_items.csv`）三重核实；证据充分但需新机制/真机
+的段**保持 no-op 如实记录**（见下「留后续」）。
+
+| 改动 | 文件 | 证据 | 回归 |
+|---|---|---|---|
+| **好调增加量增加 `ExamParameterBuffAdditive` → condition_gain 增益倍率**（4 段）：参考 `resolveGoodConditionTurns` `goodConditionTurns += additionBuffs` 后 `*= (1 + Σ goodConditionTurnsBuffs.amount)`（`setGoodConditionTurnsBuff`），乘在获得量上向上取整；卡渠道（先加 `condition_additive` 再乘）+ P 道具 `parameter_buff` 渠道双镜 | [sim/p_items.py](../src/gkagent/sim/p_items.py)（CONDITION_GAIN_EFFECTS / TARGET_BY_EFFECT / PERCENT_TARGETS / DURATION_TARGETS）+ [sim/lesson.py](../src/gkagent/sim/lesson.py)（`_apply_card_buffs` / `_apply_p_delta`）+ [sim/expectimax.py](../src/gkagent/sim/expectimax.py)（`_apply_card_effects` / `_apply_p_delta_state`） | BSD-3 `resolvers.js` resolveGoodConditionTurns（:253-267）+ `BuffManager.js` setGoodConditionTurnsBuff（:24）；DSL `setGoodConditionTurnsBuff(0.5,4/5)` 夜闇の星 313/314；主数据 percent1=50/turn=4/5（暗夜里的明星±）+ N.I.A棒球帽/手包（紫黄/紫青）percent1=25/turn=3 | `test_classify_new_targets` / `test_effect_value_condition_gain_permil` / `test_lesson_condition_gain_card` / `test_lesson_condition_gain_with_additive` / `test_lesson_p_item_condition_gain` / `test_expect_condition_gain_card` / `test_real_item_star_condition_gain` |
+| **元气增加无效 `ExamBlockRestriction` → nullify_genki_turns**（9 段非塔；6 塔 ∞ 段 no-op）：参考 `resolveGenki` `if (nullifyGenkiTurns) return;`（genki+= 整段不增元气）；∈ EOT_DECREMENT_FIELDS（回合末 -1）+ DEBUFF_FIELDS（nullifyDebuff 拦截施加）；N 在 turn 列 | [sim/p_items.py](../src/gkagent/sim/p_items.py)（NULLIFY_GENKI_EFFECTS / effect_value 读 turn / PItemDelta.nullify_genki_turns）+ [sim/lesson.py](../src/gkagent/sim/lesson.py)（`genki_gate` / `_apply_p_delta` 拦截 / `_end_turn` -1）+ [sim/expectimax.py](../src/gkagent/sim/expectimax.py)（双镜 + canonical + 快照） | BSD-3 `resolvers.js` resolveGenki（:290-303）+ `constants.js` EOT_DECREMENT_FIELDS/DEBUFF_FIELDS（:336/:364）；DSL `nullifyGenkiTurns+=2` いたずらパペット 149/150、初陣の証・美鈴 302/303；主数据 turn=2（恶作剧木偶±/初阵之证・美铃±/强化滚轮赤/强化弹力球赤）/turn=1（初星灯光橙/初星旗帜紫012/013） | `test_effect_value_nullify_unease_read_turn` / `test_genki_gate_nullify` / `test_lesson_nullify_blocks_card_genki` / `test_lesson_p_item_block_nullified` / `test_lesson_nullify_debuff_intercepts_nullify_genki` / `test_lesson_eot_decrement_nullify_unease` / `test_expect_*` / `test_real_item_puppet_nullify_genki` |
+| **不安 `ExamBlockAddDown` → unease_turns**（2 段非塔；12 塔 ∞ 段 no-op）：参考 `resolveGenki` `genki += motivation×motivationMultiplier` 后 `if (uneaseTurns) genki *= 0.67`（WHOLE_FIELDS 向上取整）；∈ EOT_DECREMENT_FIELDS + DEBUFF_FIELDS；N 在 turn 列；**delay:2 延迟生效**（见下通用延迟） | [sim/p_items.py](../src/gkagent/sim/p_items.py)（UNEASE_EFFECTS / PItemDelta.unease_turns）+ [sim/lesson.py](../src/gkagent/sim/lesson.py)（`genki_gate` ×0.67 safe_ceil）+ [sim/expectimax.py](../src/gkagent/sim/expectimax.py)（双镜） | BSD-3 `resolvers.js` resolveGenki（:298-300）+ `constants.js`（:346/:373）；DSL `uneaseTurns+=5; delay:2` 雨上がりの花 253/254；主数据 turn=5（雨后的鲜花±），yaml `e_effect-exam_effect_timer-0003` 包装 | `test_genki_gate_unease_ceil` / `test_lesson_unease_card_genki` / `test_lesson_p_item_block_gated_by_unease` / `test_lesson_delayed_unease_fires_after_3_turns` / `test_expect_delayed_unease_fires_after_3_turns` / `test_real_item_flower_unease_delay` |
+| **固定元气分离 `ExamBlockFix` → fixed_vitality**（12 段）：参考 `resolveFixedGenki` 直接 `genki += N`（**不**吃干劲加成、**不**受 nullifyGenkiTurns/uneaseTurns 影响），与 `ExamBlock`（genki+=，过闸门）区分；独立 `PItemDelta.fixed_vitality` 字段 | [sim/p_items.py](../src/gkagent/sim/p_items.py)（FIXED_VITALITY_EFFECTS / apply_passive 分支 / PItemDelta.fixed_vitality）+ 双镜 `_apply_p_delta` | BSD-3 `resolvers.js` resolveFixedGenki（:87-89）vs resolveGenki；`Executor/index.js` ALWAYS_INTERMEDIATE（fixedGenki）vs INTERMEDIATE_ON_ADD（genki）；DSL fixedGenki+=N（星之小王子/最幸福的源泉等） | `test_apply_passive_block_fix_separate` / `test_lesson_p_item_block_fix_not_gated` / `test_apply_passive_impression_reduce_and_block_fix`（更新） |
+| **通用延迟生效机制**（34 段标注）：主数据 yaml `originProduceExamEffectId` 的 `e_effect-exam_effect_timer-NNNN-MM-e_effect-<inner>` 包装 → `delay_turns=NNNN`；触发回合登记增量（条件/次数当时求值），剩余回合每回合末 -1，到 0 的**下一回合开始**结算（参考嵌套 `at:turn` 在 turn 阶段触发，位于 startOfTurn/afterStartOfTurn 之后） | [scripts/build_p_items.py](../scripts/build_p_items.py)（`_timer_delay` / extract_effects 标注）+ [sim/p_items.py](../src/gkagent/sim/p_items.py)（PItemSpec.delay_turns / PItemDelta.delayed + freeze/thaw）+ [sim/lesson.py](../src/gkagent/sim/lesson.py)（`_fire_p_items` 分组登记 / `_fire_delayed_p_items` / `_end_turn` 倒计时）+ [sim/expectimax.py](../src/gkagent/sim/expectimax.py)（`_fire_delayed_state` / `start_turn_state` / `end_turn_state` / canonical / 快照） | BSD-3 `EffectManager.js` decrementDelay（:438-445）+ triggerEffects delay 检查（:303-307）+ `TurnManager.js` endTurn 调用（:167）；DSL 嵌套 `at:turn { …; delay:N }`（雨上がりの花 delay:2 ↔ timer-0003、おさぼりタオル `at:turn { nullifyDebuff+=1 }` ↔ timer-0001）；主数据 yaml timer 包装 34 段 | `test_delay_annotation_count` / `test_lesson_delayed_uses_counted_at_registration` / `test_lesson_delayed_stance_change` / `test_expect_delayed_stance_change` / `test_real_item_misuzu_nullify_and_delayed_motivation` / `test_real_item_towel_nullify_debuff_delay` / `test_delta_freeze_thaw_roundtrip` |
+
+**数据/回归（P1-7）**：catalog 1849 段不变；implemented **1164→1179（+15）**、no-op 685→670；
+modifier 标注 409→442（condition_gain 4 + nullify_genki_turns 9 + unease_turns 2）；
+delay_turns>0 标注 **34 段**。p_items.json 重建 **49 条记录**变化（逐条 diff 校验：
+15 新目标段 + 34 延迟标注段，部分重叠；塔 ∞ 段 target 标注但 value=0 仍 no-op）。
+新增 `tests/test_p17_genki_condition_delay.py` **48 条**；既有断言随规则更新
+（test_p13/test_p14/test_p15 implemented 1164→1179、test_p15 两个 deferred-noop 改断言已实现、
+test_p_items_b9 ExamBlockFix 改断言 fixed_vitality）；ruff 通过。
+
+**口径与剩余差距（如实记录）**：
+
+- **元气闸门只作用 genki+= 渠道**：`genki_gate`（nullify→0 / unease×0.67 向上取整）作用于
+  卡 vitality 获得（含干劲加成）与 P 道具 `ExamBlock` 增量；`ExamBlockFix`（fixedGenki）/
+  温存・のんびり解除固定元気（resolveFixedGenki）不受影响。**P 道具元气获得不吃干劲加成**
+  是既有近似（卡渠道才加干劲），本批保持；motivationMultiplier（DSL `motivationMultiplier=2.2`
+  等临时倍率）未建模（既有缺口）。
+- **nullifyDebuff 拦截标量 debuff 的粒度近似**：nullify_genki_turns/unease_turns ∈ DEBUFF_FIELDS，
+  参考逐 += 动作消耗 1 次；本模型 delta 批量聚合，整块拦截一次（同 P1-4 标量近似，
+  RULES_REFERENCE §5.7）。拦截顺序 score_debuffs → hand_decreases → nullify_genki → unease
+  （固定顺序近似参考逐动作顺序；评测无来源零触达）。
+- **fresh 保护差一回合**：nullify_genki_turns/unease_turns 回合末 -1 按一般标量口径
+  （pride/poor_condition 同），**未**做卡效果获得当回合末不扣的 fresh 保护（参考 freshBuffs）；
+  一般 buff fresh 缺口仍留真机核实（§3）。turn_start 获得的段（参考 unfreshPhase=true →
+  fresh=false）与本口径一致；card_play/stance_change 获得的段差一回合。
+- **延迟段条件在登记时求值**：参考内层 `at:turn` 在到点触发时求条件，但实际 34 段的内层
+  多为无条件（条件在外层，登记时已把关）；本模型登记时冻结增量（含条件求值），到点无条件
+  结算。次数在**登记时**计（参考外层 limit 触发即消耗），到点不再计。
+- **延迟机制修正已实现道具时序**（保真度修正，评测零触达）：おさぼりタオル nullifyDebuff
+  改为下回合（P1-4 原立即）/ 美铃干劲 3 回合后 / 超越太阳的歌声 score_buff 3 回合后 /
+  奇迹耳机元气下回合 / 温存变更类（圆润的春色/命运的相遇/梦想中的星辉/编织夏日的影子/
+  研讨会卫衣）下回合 / 初星旗帜紫全力值・增益下回合 / 彼此许下的约定全力值增益下回合 /
+  初星灯光紫不調下回合 / 初星摆件银打分 5/6 回合后。**gkbench 94 唯一 loadout id 无一件
+  timer 道具**（challenge/塔/初星系列不在 hif loadout）→ local_bench 零触达。
+- **N.I.A/hajime 限定道具 stage 限制未建模**（既有限制，非本批新增）：for_nia_master /
+  for_hajime_legend 后缀的 stage 限定按现有约定当普通 exam_start 触发（全 catalog 67 件
+  已实现道具同此口径）；challenge 道具不在任何评测 loadout，零分影响。
+
+**重标定（P1-7）**：`sim_produce.py`（培育模拟）**完全不引用 p_items**（grep 0 命中）→
+sim_engine_ab 评测路径零 P 道具结算；`genki_gate` 在 nullify/unease=0 时恒等、condition_gain
+无 modifier 时恒等 → 非 P 道具路径行为不变。**改前（git stash）/改后 64 局逐位相同
+（差异=0）**——seed 9000/9100 各 16 局 rules/expectimax budget 800ms，逐局非时间字段全等
+（`data/_p17_ab_compare.py`，不提交）；expectimax 仍显著强于 rules（B3 结论保持）。产物
+out/_p17_ab_{before,after}_{9000,9100}.json（gitignore）。
+
+**留后续（证据充分但需新机制/真机，保持 no-op 如实记录，不猜）**：
+
+- **塔 gimmick**（低谷 ExamGimmickSlump 11 段 / 紧张 ExamGimmickLessonDebuff 6 / 弱气
+  ExamGimmickSleepy 6 / 体力回复无效 ExamStaminaRecoverRestriction 6）：参考引擎**无对应
+  独立字段**（constants.js ALL_FIELDS 无 slump/tension/sleepy/staminaRecover；全部 CSV
+  零用法），语义需真机核实；gkbench loadout 无 tower → 评测零触达，留后续。
+  （ExamGimmickSlump 的 5 段非塔 challenge 弹力球「低谷2回合」同因参考无字段保持 no-op。）
+- **塔 ∞ 段**（ExamBlockRestriction 6 / ExamBlockAddDown 12，stage_023/026）：values 恒空
+  （无 turn）→ value=0 → 保守 no-op（target 已标注，机制就绪，∞ 回合数语义留后续）。
+- **全力・强气效果卡打分**（ExamFullPower 31 / ExamConcentration 33 中的「打分值增加+N」段）：
+  参考 DSL `target:effect(fullPowerCharge) & active { g.score+=11 }`（まあるい春色 234/235）
+  = **per-card g.score 成长**（按效果组过滤），非 setFullPowerEffectBuff（那是「全力强化+%」
+  指針倍率，另一效果类型）；主数据 values 恒空需逐卡证据表 + per-card 成长机制（P1-3
+  target:held 成长同留后续），本批不做。
+- **日文好調の%分**（天生的才能 pitem_01-3-346-0/1）：DSL `score+=goodConditionTurns*0.5`
+  + `countCards[hand & baseId(23)]>=1`（眠気卡张数条件，baseId→卡名映射待补）、无中文 → 留后续。
+- **ExamParameterBuffReduce**（好调减少 3 段）：触发 produce_start_lesson / buff_consume
+  未支持（buff_consume 依赖强化状态花费卡机制，P1-4 ⑦ 已记卡模型不承载 buff 花费）→ no-op。
 
 旧 B11 数据/模型是**旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批再新旧对比
 （HANDOVER_NEXT §8.0）；参照臂需按新规则重评。

@@ -110,6 +110,11 @@ CONCENTRATION_GAIN_EFFECTS = frozenset({"ExamLessonBuffAdditive"})  # 集中增�
 IMPRESSION_GAIN_EFFECTS = frozenset({"ExamReviewAdditive"})  # 好印象增加量增加
 MOTIVATION_GAIN_EFFECTS = frozenset({"ExamAggressiveAdditive"})  # 干劲增加量增加
 FULL_POWER_CHARGE_EFFECTS = frozenset({"ExamFullPowerPointAdditive"})  # 全力值增加量增加
+# P1-7（2026-11-24）：好调增加量增加（ExamParameterBuffAdditive）。参考
+# ``resolvers.js::resolveGoodConditionTurns``：goodConditionTurns *= (1 + Σ
+# goodConditionTurnsBuffs.amount)（``setGoodConditionTurnsBuff``，DSL 夜闇の星
+# 313/314 setGoodConditionTurnsBuff(0.5,4/5)）。与 concentration_gain 等同渠道。
+CONDITION_GAIN_EFFECTS = frozenset({"ExamParameterBuffAdditive"})  # 好调增加量增加
 PERFECT_CONDITION_EFFECTS = frozenset({"ExamParameterBuffMultiplePerTurn"})  # 绝好调
 POOR_CONDITION_EFFECTS = frozenset({"ExamGimmickParameterDebuff"})  # 不调
 EXTRA_TURN_EFFECTS = frozenset({"ExamExtraTurn"})  # 回合追加
@@ -155,6 +160,23 @@ ANTI_DEBUFF_EFFECTS = frozenset({"ExamAntiDebuff"})  # 低下状态无效次数
 AGGRESSIVE_REDUCE_EFFECTS = frozenset({"ExamAggressiveReduce"})  # 干劲减少
 FOCUS_REDUCE_EFFECTS = frozenset({"ExamLessonBuffReduce"})  # 集中减少
 FULL_POWER_POINT_REDUCE_EFFECTS = frozenset({"ExamFullPowerPointReduce"})  # 全力值减少
+# P1-7（2026-11-24）：元气增加无效 / 不安（resolveGenki 的两个 debuff 闸门）。
+# 参考 ``resolvers.js::resolveGenki``：``if (nullifyGenkiTurns) return;``（整段
+# genki+= 不增元气）→ ``genki += motivation×motivationMultiplier`` →
+# ``if (uneaseTurns) genki *= 0.67``。两者 ∈ EOT_DECREMENT_FIELDS（回合末 -1）
+# 且 ∈ DEBUFF_FIELDS（nullifyDebuff 拦截其施加）。**只作用于 genki+= 渠道**；
+# fixedGenki（resolveFixedGenki）不受影响（见 FIXED_VITALITY_EFFECTS）。
+#   * ExamBlockRestriction 元气增加无效N回合 ↔ DSL nullifyGenkiTurns+=2
+#     （いたずらパペット 149/150、初陣の証・美鈴 302/303）；N 在 turn 列。
+#   * ExamBlockAddDown 不安N回合 ↔ DSL uneaseTurns+=5（雨上がりの花 253/254，
+#     delay:2 延迟生效，主数据 timer-0003 包装）；N 在 turn 列。
+# 塔 gimmick 的 ∞ 段 values 恒空（无 turn）→ value=0 → 保守 no-op（如实记录）。
+NULLIFY_GENKI_EFFECTS = frozenset({"ExamBlockRestriction"})  # 元气增加无效回合
+UNEASE_EFFECTS = frozenset({"ExamBlockAddDown"})  # 不安回合
+# P1-7：固定元气（ExamBlockFix ↔ DSL fixedGenki+=N，resolveFixedGenki 直接进元气，
+# 不吃干劲加成、不受 nullifyGenkiTurns/uneaseTurns 影响）。与 ExamBlock（genki+=）
+# 区分：结算走独立 PItemDelta.fixed_vitality 字段，拦截只作用于 genki+= 渠道。
+FIXED_VITALITY_EFFECTS = frozenset({"ExamBlockFix"})  # 固定元气
 STANCE_EFFECT_TARGETS = {
     "ExamPreservation": "stance_preservation",
     "ExamConcentration": "stance_concentration",
@@ -175,6 +197,10 @@ TARGET_BY_EFFECT: dict[str, str] = {
     **{effect: "impression_gain" for effect in IMPRESSION_GAIN_EFFECTS},
     **{effect: "motivation_gain" for effect in MOTIVATION_GAIN_EFFECTS},
     **{effect: "full_power_charge" for effect in FULL_POWER_CHARGE_EFFECTS},
+    # P1-7（2026-11-24）：好调增加量增加 / 元气增加无效 / 不安
+    **{effect: "condition_gain" for effect in CONDITION_GAIN_EFFECTS},
+    **{effect: "nullify_genki_turns" for effect in NULLIFY_GENKI_EFFECTS},
+    **{effect: "unease_turns" for effect in UNEASE_EFFECTS},
     **{effect: "perfect_condition_turns" for effect in PERFECT_CONDITION_EFFECTS},
     **{effect: "poor_condition_turns" for effect in POOR_CONDITION_EFFECTS},
     **{effect: "extra_turn" for effect in EXTRA_TURN_EFFECTS},
@@ -207,6 +233,8 @@ PERCENT_TARGETS = frozenset(
         "impression_gain",
         "motivation_gain",
         "full_power_charge",
+        # P1-7：好调增加量增加（percent1 → 千分比增益倍率）
+        "condition_gain",
     }
 )
 #: 持续回合数取自 ``values.turn`` 的目标（0/缺 = 永久，与参考引擎 turns=None 同义）。
@@ -229,6 +257,8 @@ DURATION_TARGETS = frozenset(
         "poor_condition_turns",
         # P1-2：手牌减少的持续回合（主数据 gimmick 无 turn 列 = ∞ 永久）
         "hand_decrease",
+        # P1-7：好调增加量增加的持续回合（夜闇の星 turn=4/5）
+        "condition_gain",
     }
 )
 #: 纯标记类目标（数值固定 1 / 只看触发时机）。
@@ -416,6 +446,10 @@ class PItemSpec:
     zone_count: ZoneCount | None = None
     create_card: CreateCard | None = None  # 确定卡生成（ExamCardCreateId）
     create_random: str = ""  # 随机生成种类（basic_to_deck_count）：RNG 未知，不实现
+    # P1-7（2026-11-24）：延迟生效回合数（主数据 yaml ``e_effect-exam_effect_timer-
+    # NNNN-…`` 包装 ↔ 参考 DSL ``delay:N-1`` / 嵌套 ``at:turn``）。0 = 立即生效。
+    # >0 时本段增量在触发回合之后第 N 个回合开始才结算（EffectManager.decrementDelay）。
+    delay_turns: int = 0
 
     @property
     def target(self) -> str:
@@ -563,6 +597,15 @@ class PItemDelta:
     # P1-5（2026-11-24）：全力值减少（fullPowerCharge-=N，夹取 ≥0）。独立字段因为
     # apply_full_power_point 只表达「增加」（负 delta 按 0）；参考 decreaseFullPowerCharge。
     full_power_point_reduce: int = 0
+    # P1-7（2026-11-24）：元气增加无效 / 不安 回合数（nullifyGenkiTurns / uneaseTurns，
+    # EOT 倒计时整数 debuff；∈ DEBUFF_FIELDS，nullifyDebuff 拦截其施加）。
+    nullify_genki_turns: int = 0
+    unease_turns: int = 0
+    # P1-7：固定元气（fixedGenki+=N，直接进元气，不吃干劲/不受无效・不安拦截）。
+    fixed_vitality: int = 0
+    # P1-7：延迟生效增量 ((延迟回合数, 子增量), …)。触发回合登记、第 N 回合开始结算；
+    # 子增量自身不再含 delayed（延迟段一次登记）。次数在登记时已计（见调用方）。
+    delayed: list[tuple[int, PItemDelta]] = field(default_factory=list)
     # 其它持久倍率：key -> (千分比/数值, 剩余回合)。key 见 MODIFIER_TARGETS。
     modifiers: list[tuple[str, int, int]] = field(default_factory=list)
     # 固定/百分比费用修正（永久，整场累计）；half/double 是「接下来 N 回合」计数器
@@ -597,6 +640,10 @@ class PItemDelta:
             or self.pride_turns
             or self.nullify_debuff
             or self.full_power_point_reduce
+            or self.nullify_genki_turns
+            or self.unease_turns
+            or self.fixed_vitality
+            or self.delayed
             or self.modifiers
             or self.cost_reduction
             or self.cost_increase
@@ -624,6 +671,9 @@ class PItemDelta:
             "pride_turns": self.pride_turns,
             "nullify_debuff": self.nullify_debuff,
             "full_power_point_reduce": self.full_power_point_reduce,
+            "nullify_genki_turns": self.nullify_genki_turns,
+            "unease_turns": self.unease_turns,
+            "fixed_vitality": self.fixed_vitality,
             "modifiers": list(self.modifiers),
             "create_cards": list(self.create_cards),
         }
@@ -643,6 +693,10 @@ class PItemDelta:
         self.pride_turns += other.pride_turns
         self.nullify_debuff += other.nullify_debuff
         self.full_power_point_reduce += other.full_power_point_reduce
+        self.nullify_genki_turns += other.nullify_genki_turns
+        self.unease_turns += other.unease_turns
+        self.fixed_vitality += other.fixed_vitality
+        self.delayed.extend(other.delayed)
         self.modifiers.extend(other.modifiers)
         self.cost_reduction += other.cost_reduction
         self.cost_increase += other.cost_increase
@@ -670,6 +724,10 @@ class PItemDelta:
             pride_turns=self.pride_turns,
             nullify_debuff=self.nullify_debuff,
             full_power_point_reduce=self.full_power_point_reduce,
+            nullify_genki_turns=self.nullify_genki_turns,
+            unease_turns=self.unease_turns,
+            fixed_vitality=self.fixed_vitality,
+            delayed=list(self.delayed),
             modifiers=list(self.modifiers),
             cost_reduction=self.cost_reduction,
             cost_increase=self.cost_increase,
@@ -683,6 +741,56 @@ class PItemDelta:
         )
         merged += other
         return merged
+
+    # P1-7：不可变冻结表示（ExpectState.delayed 要可哈希进 canonical）。
+    def freeze(self) -> tuple:
+        return (
+            self.score, self.stamina, self.stamina_consumed, self.extra_plays,
+            tuple(sorted(self.stacks.items())),
+            tuple(self.zero_stacks),
+            tuple(self.applied),
+            tuple(tuple(e) for e in self.score_buffs),
+            tuple(tuple(e) for e in self.score_debuffs),
+            tuple(tuple(e) for e in self.hand_decreases),
+            self.pride_turns, self.nullify_debuff, self.full_power_point_reduce,
+            self.nullify_genki_turns, self.unease_turns, self.fixed_vitality,
+            tuple(tuple(m) for m in self.modifiers),
+            self.cost_reduction, self.cost_increase,
+            self.half_cost_turns, self.double_cost_turns,
+            self.extra_turns, tuple(self.stances),
+            self.perfect_condition_turns, self.poor_condition_turns,
+            tuple(self.create_cards),
+            tuple((n, sub.freeze()) for n, sub in self.delayed),
+        )
+
+    @classmethod
+    def thaw(cls, data: tuple) -> PItemDelta:
+        (score, stamina, stamina_consumed, extra_plays, stacks, zero_stacks, applied,
+         score_buffs, score_debuffs, hand_decreases, pride_turns, nullify_debuff,
+         full_power_point_reduce, nullify_genki_turns, unease_turns, fixed_vitality,
+         modifiers, cost_reduction, cost_increase, half_cost_turns, double_cost_turns,
+         extra_turns, stances, perfect_condition_turns, poor_condition_turns,
+         create_cards, delayed) = data
+        return cls(
+            score=score, stamina=stamina, stamina_consumed=stamina_consumed,
+            extra_plays=extra_plays, stacks=dict(stacks), zero_stacks=list(zero_stacks),
+            applied=list(applied),
+            score_buffs=[tuple(e) for e in score_buffs],
+            score_debuffs=[tuple(e) for e in score_debuffs],
+            hand_decreases=[tuple(e) for e in hand_decreases],
+            pride_turns=pride_turns, nullify_debuff=nullify_debuff,
+            full_power_point_reduce=full_power_point_reduce,
+            nullify_genki_turns=nullify_genki_turns, unease_turns=unease_turns,
+            fixed_vitality=fixed_vitality,
+            modifiers=[tuple(m) for m in modifiers],
+            cost_reduction=cost_reduction, cost_increase=cost_increase,
+            half_cost_turns=half_cost_turns, double_cost_turns=double_cost_turns,
+            extra_turns=extra_turns, stances=list(stances),
+            perfect_condition_turns=perfect_condition_turns,
+            poor_condition_turns=poor_condition_turns,
+            create_cards=list(create_cards),
+            delayed=[(n, cls.thaw(sub)) for n, sub in delayed],
+        )
 
 
 # ---- P1-4（2026-11-24）：nullifyDebuff 拦截（参考 Executor.executeAssignment/
@@ -850,6 +958,10 @@ def effect_value(effect: Mapping, target: str | None = None) -> int:
         "poor_condition_turns",
         # P1-2：自尊的数值就是回合数（values.turn；参考 prideTurns+=N）
         "pride_turns",
+        # P1-7：元气增加无效 / 不安的数值就是回合数（values.turn；参考
+        # nullifyGenkiTurns+=N / uneaseTurns+=N）。塔 gimmick ∞ 段无 turn → 0。
+        "nullify_genki_turns",
+        "unease_turns",
     ):
         return int(values.get("turn") or 0)
     if effect.get("type") == "ExamPlayableValueAdd":
@@ -1164,6 +1276,9 @@ def apply_passive(
                 delta.score += spec.value
             elif target == "extra_plays":
                 delta.extra_plays += spec.value
+            elif target == "vitality" and spec.effect_type in FIXED_VITALITY_EFFECTS:
+                # P1-7：固定元气（fixedGenki+=）走独立字段，不受无效/不安拦截。
+                delta.fixed_vitality += spec.value
             else:
                 delta.add_stack(target, spec.value)
             applied = True
@@ -1201,6 +1316,18 @@ def _apply_modifier_target(spec: PItemSpec, target: str, delta: PItemDelta) -> b
         if spec.value <= 0:
             return False
         delta.nullify_debuff += spec.value
+        return True
+    # P1-7（2026-11-24）：元气增加无效 / 不安 回合数（nullifyGenkiTurns / uneaseTurns，
+    # EOT 倒计时整数 debuff；value=回合数，塔 gimmick ∞ 段 value=0 → 不触发）。
+    if target == "nullify_genki_turns":
+        if spec.value <= 0:
+            return False
+        delta.nullify_genki_turns += spec.value
+        return True
+    if target == "unease_turns":
+        if spec.value <= 0:
+            return False
+        delta.unease_turns += spec.value
         return True
     if target in PERCENT_TARGETS:  # review_multiple / enthusiasm_multiple / 增益倍率…
         if spec.value <= 0:
@@ -1412,6 +1539,8 @@ def record_to_specs(record: Mapping) -> list[PItemSpec]:
                 zero_stack=effect.get("zero_stack", ""),
                 create_card=_create_card_from_dict(effect.get("create")),
                 create_random=str((effect.get("create_random") or {}).get("kind") or ""),
+                # P1-7：延迟生效回合数（yaml timer 包装，数据层 annotate_delay 写入）。
+                delay_turns=int(effect.get("delay_turns") or 0),
                 **common,
             )
         )

@@ -414,28 +414,33 @@ def test_catalog_condition_turns_specs() -> None:
 
 
 def test_p_items_implemented_count() -> None:
-    """implemented 1067→1164/1849（+97）。"""
+    """implemented 1067→1164（P1-5 +97）→1179（P1-7 +15）。"""
     summary = summarize(load_p_items())
-    assert summary["implemented"] == 1164
-    assert summary["noop"] == 685
+    assert summary["implemented"] == 1179
+    assert summary["noop"] == 670
     assert summary["depends_on_specs"] == 76
 
 
 def test_deferred_good_condition_gain_noop() -> None:
-    """好调增加量增加（ExamParameterBuffAdditive，setGoodConditionTurnsBuff）留后续 → no-op。"""
-    assert classify_effect_target("ExamParameterBuffAdditive") == ""
+    """好调增加量增加（ExamParameterBuffAdditive）P1-5 留后续 → P1-7 已实现 condition_gain。"""
+    assert classify_effect_target("ExamParameterBuffAdditive") == "condition_gain"
     specs = [s for s in load_p_items() if s.effect_type == "ExamParameterBuffAdditive"]
     assert len(specs) == 4
-    assert all(not s.implemented for s in specs)
+    assert all(s.implemented for s in specs)
 
 
 def test_deferred_genki_unease_debuff_noop() -> None:
-    """元气增加无效（nullifyGenkiTurns）/不安（uneaseTurns）留后续 → no-op。"""
-    assert classify_effect_target("ExamBlockRestriction") == ""
-    assert classify_effect_target("ExamBlockAddDown") == ""
+    """元气增加无效 / 不安 P1-5 留后续 → P1-7 已实现（塔 ∞ 段 value=0 仍 no-op）。"""
+    assert classify_effect_target("ExamBlockRestriction") == "nullify_genki_turns"
+    assert classify_effect_target("ExamBlockAddDown") == "unease_turns"
     specs = load_p_items()
-    assert all(not s.implemented for s in specs if s.effect_type == "ExamBlockRestriction")
-    assert all(not s.implemented for s in specs if s.effect_type == "ExamBlockAddDown")
+    restriction = [s for s in specs if s.effect_type == "ExamBlockRestriction"]
+    add_down = [s for s in specs if s.effect_type == "ExamBlockAddDown"]
+    # 非塔段（turn>0）已实现；塔 gimmick ∞ 段（values 恒空 → value=0）保守 no-op。
+    assert sum(1 for s in restriction if s.implemented) == 9
+    assert sum(1 for s in add_down if s.implemented) == 2
+    assert all(not s.implemented for s in restriction if s.value == 0)
+    assert all(not s.implemented for s in add_down if s.value == 0)
 
 
 def test_deferred_parameter_buff_reduce_unsupported_trigger() -> None:

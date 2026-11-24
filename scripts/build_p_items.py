@@ -198,6 +198,19 @@ VALUE_KEY = {
 # 扁平摘要里 value 的取值优先级（第一个非 0 的）
 VALUE_PRIORITY = ("value1", "percent1", "count", "value2", "turn")
 
+# P1-7（2026-11-24）：延迟生效包装。主数据 yaml 的 originProduceExamEffectId
+# ``e_effect-exam_effect_timer-NNNN-MM-e_effect-<inner>`` 表示 inner 效果在触发回合
+# 之后第 NNNN 个回合开始才生效（↔ 参考 DSL 嵌套 ``at:turn`` / ``delay:NNNN-1``，
+# EffectManager.decrementDelay 每回合末 -1）。例：雨上がりの花 timer-0003 ↔
+# p_items.csv 253/254 ``at:turn { uneaseTurns+=5; delay:2 }``（3 回合后）。
+_TIMER_DELAY_RE = re.compile(r"^e_effect-exam_effect_timer-(\d+)-\d+-e_effect-")
+
+
+def _timer_delay(yaml_desc: Mapping) -> int:
+    oid = (yaml_desc.get("originProduceExamEffectId") or "").strip('"')
+    match = _TIMER_DELAY_RE.match(oid)
+    return int(match.group(1)) if match else 0
+
 
 def clean(text: str) -> str:
     """去富文本标签 / 折叠空白 / 去 YAML 引号残留。"""
@@ -685,6 +698,9 @@ def extract_effects(
             if etype.endswith("_Unknown"):
                 continue
             current = {"type": etype, "values": {}, "text": ""}
+            delay = _timer_delay(yaml_desc)
+            if delay:
+                current["delay_turns"] = delay
             effects.append(current)
             current["text"] += clean(desc.get("text", ""))
             continue
@@ -717,6 +733,9 @@ def _extract_effects_yaml(yaml_descs: list[dict], zh_text: str) -> list[dict]:
         etype = (desc.get("examEffectType") or "").strip('"')
         if etype and not etype.endswith("_Unknown"):
             current = {"type": etype, "values": {}, "text": ""}
+            delay = _timer_delay(desc)
+            if delay:
+                current["delay_turns"] = delay
             effects.append(current)
             current["text"] += clean(desc.get("text", ""))
             continue

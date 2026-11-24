@@ -216,6 +216,7 @@ from gkagent.sim.p_items import (
     TURN_START_AFTER,
     PassiveEvent,
     PassiveState,
+    PItemDelta,
     PItemSpec,
     add_timed,
     apply_passive,
@@ -284,6 +285,22 @@ def safe_ceil(value: float) -> int:
     if abs(value - rounded) < 1e-9:
         return int(rounded)
     return math.ceil(value)
+
+
+def genki_gate(gain: int, nullify_genki_turns: int, unease_turns: int) -> int:
+    """P1-7（2026-11-24）：resolveGenki 的 genki+= 渠道闸门（纯函数，双镜共用）。
+
+    参考 ``resolvers.js::resolveGenki``：``if (nullifyGenkiTurns) return;``（整段
+    不增元气）→ ``genki += motivation×motivationMultiplier`` → ``if (uneaseTurns)
+    genki *= 0.67``（随后 WHOLE_FIELDS 向上取整）。``gain`` 是已含干劲加成的获得量
+    （卡渠道 = vitality+motivation）；nullify>0 → 0，unease>0 → ×0.67 向上取整。
+    **fixedGenki（resolveFixedGenki）不走本函数**（不受无效/不安影响）。
+    """
+    if gain <= 0 or nullify_genki_turns > 0:
+        return 0
+    if unease_turns > 0:
+        return safe_ceil(gain * 0.67)
+    return gain
 
 
 # greedy_policy 给指針牌（温存/全力值，通常 score=0）的固定效率，避免永远选不到
@@ -591,6 +608,16 @@ class LessonSim:
         # debuff 施加（setScoreDebuff/setHandDecrease 等）并 -1。来源 ExamAntiDebuff
         # values.count（P 道具侧；卡侧 4 SSR 族 values 恒空延迟，见 RULES_REFERENCE §5.7）。
         self.nullify_debuff: int = 0
+        # ---- P1-7（2026-11-24）：元气增加无效 / 不安（resolveGenki 两个 debuff 闸门）----
+        # 参考 EOT_DECREMENT_FIELDS（回合末 -1）+ DEBUFF_FIELDS（nullifyDebuff 拦截施加）。
+        # nullify_genki_turns>0：genki+= 渠道整段不增元气（resolveGenki return）；
+        # unease_turns>0：genki+= 渠道获得量 ×0.67（向上取整）。fixedGenki 不受影响。
+        self.nullify_genki_turns: int = 0
+        self.unease_turns: int = 0
+        # P1-7：延迟生效 P 道具增量 [(剩余回合, PItemDelta), …]。触发回合登记
+        # （次数当时计），剩余回合每回合末 -1（参考 EffectManager.decrementDelay），
+        # 到 0 的下一回合开始结算（参考嵌套 at:turn / delay:N 在 turn 阶段触发）。
+        self._delayed_deltas: list[tuple[int, PItemDelta]] = []
         # 其它持久倍率：key -> ((数值, 剩余回合), …)
         # （review_times / concentration_effect / concentration_gain / impression_gain /
         #   motivation_gain / full_power_charge）
@@ -1287,6 +1314,11 @@ class LessonSim:
         condition_gain = card.condition
         if condition_gain > 0 and self.buffs.condition_additive > 0:
             condition_gain += self.buffs.condition_additive
+        # P1-7：好调增加量增加（ExamParameterBuffAdditive / setGoodConditionTurnsBuff）
+        # 增益倍率，乘在获得量上向上取整（参考 resolveGoodConditionTurns：先加算
+        # condition_additive 再 ×(1+Σ goodConditionTurnsBuffs)）。
+        if condition_gain > 0:
+            condition_gain = safe_ceil(condition_gain * self._gain_multiple("condition_gain"))
         self.buffs.condition_turns += condition_gain
         # B9：P 道具「X 增加量增加 +N%」增益倍率（参考引擎 setConcentrationBuff /
         # setGoodImpressionTurnsBuff / setMotivationBuff，乘在获得量上、向上取整）。
@@ -1303,7 +1335,11 @@ class LessonSim:
         self.buffs.impression += impression_gain
         vitality_gain = card.vitality + self.motivation
         if card.vitality > 0:
-            # 干劲提升元气获得量；元气优先用于抵牌费（真机语义）
+            # 干劲提升元气获得量；元气优先用于抵牌费（真机语义）。
+            # P1-7：genki+= 渠道过 resolveGenki 闸门（元气增加无效→0 / 不安×0.67）。
+            vitality_gain = genki_gate(
+                vitality_gain, self.nullify_genki_turns, self.unease_turns
+            )
             self.vitality += vitality_gain
         self.motivation += motivation_gain
         if condition_gain > 0:
@@ -1316,7 +1352,7 @@ class LessonSim:
             self._fire_p_items(
                 STATUS_GAIN, status="impression", amount=impression_gain
             )
-        if card.vitality > 0:
+        if card.vitality > 0 and vitality_gain > 0:
             self._fire_p_items(STATUS_GAIN, status="vitality", amount=vitality_gain)
         if motivation_gain > 0:
             self._fire_p_items(
@@ -1496,9 +1532,34 @@ class LessonSim:
             status_total=status_total,
             stamina_delta=stamina_delta,
         )
-        delta = apply_passive(subset, event, self._passive_state())
-        if delta.is_zero():
-            return
+        state = self._passive_state()
+        # P1-7：延迟段（delay_turns>0）按延迟回合数分组登记——条件/次数在登记时
+        # 求值（参考外层效果触发即注册内层 at:turn/delay:N），增量到点才结算。
+        immediate = tuple(s for s in subset if s.delay_turns <= 0)
+        delayed_groups: dict[int, list[PItemSpec]] = {}
+        for spec in subset:
+            if spec.delay_turns > 0:
+                delayed_groups.setdefault(spec.delay_turns, []).append(spec)
+        delta = apply_passive(immediate, event, state)
+        delayed_deltas = [
+            (dt, apply_passive(tuple(group), event, state))
+            for dt, group in sorted(delayed_groups.items())
+        ]
+        # B10：次数上限按**道具**计（参考 limit:N = 每事件触发一次）；立即 + 延迟
+        # 同事件触发只记 1 次（登记时计，延迟到点结算不再计）。
+        applied_ids = list(delta.applied)
+        for _, d in delayed_deltas:
+            applied_ids.extend(d.applied)
+        for item_id in dict.fromkeys(applied_ids):
+            self.p_item_uses[item_id] = self.p_item_uses.get(item_id, 0) + 1
+        for dt, d in delayed_deltas:
+            if not d.is_zero():
+                self._delayed_deltas.append((dt, d))
+        if not delta.is_zero():
+            self._apply_p_delta(delta, _depth=_depth)
+
+    def _apply_p_delta(self, delta: PItemDelta, _depth: int = 0) -> None:
+        """P1-7：结算一份 P 道具增量（立即触发或延迟到点共用；次数已在登记时计）。"""
         self.score += int(delta.score)
         if delta.stamina_consumed:
             self.consumed_stamina_total += int(delta.stamina_consumed)
@@ -1519,7 +1580,11 @@ class LessonSim:
                 self.buffs.condition_turns = 0
         for key, value in delta.stacks.items():
             if key == "vitality":
-                self.vitality += int(value)
+                # P1-7：ExamBlock（genki+=）渠道过 resolveGenki 闸门（无效→0/不安×0.67）。
+                # P 道具元气获得不吃干劲加成是既有近似（卡渠道才加干劲），如实记录。
+                self.vitality += genki_gate(
+                    int(value), self.nullify_genki_turns, self.unease_turns
+                )
             elif key == "impression":
                 self.buffs.impression += int(value)
             elif key == "focus":
@@ -1530,8 +1595,16 @@ class LessonSim:
                 self.stance = apply_full_power_point(self.stance, int(value))
                 self.full_power_point_total += max(0, int(value))
             elif key == "parameter_buff":
-                # P 道具的「好调」按回合数近似；模拟器没有独立参数 buff 资源
-                self.buffs.condition_turns += int(value)
+                # P 道具的「好调」按回合数近似；模拟器没有独立参数 buff 资源。
+                # P1-7：好调增加量增加增益倍率同样作用于 P 道具 goodConditionTurns+=
+                # （参考 resolveGoodConditionTurns 对所有 += 渠道生效）。
+                gain = int(value)
+                if gain > 0:
+                    gain = safe_ceil(gain * self._gain_multiple("condition_gain"))
+                self.buffs.condition_turns += gain
+        # P1-7：固定元气（ExamBlockFix / fixedGenki+=）直接进元气，不受无效/不安拦截。
+        if delta.fixed_vitality:
+            self.vitality += int(delta.fixed_vitality)
         # P1-5：全力值减少（fullPowerCharge-=N，夹取 ≥0；不计累计全力值，参考
         # decreaseFullPowerCharge 不动 cumulativeFullPowerCharge）。
         if delta.full_power_point_reduce:
@@ -1572,6 +1645,19 @@ class LessonSim:
         if hand_decrease_entries:
             for hd_amount, hd_turns in hand_decrease_entries:
                 self.hand_decreases = add_timed(self.hand_decreases, hd_amount, hd_turns)
+        # P1-7：元气增加无效 / 不安 回合数（nullifyGenkiTurns / uneaseTurns ∈
+        # DEBUFF_FIELDS，nullifyDebuff 拦截其施加；参考 executeAssignment 每条 +=
+        # 动作消耗 1 次。delta 批量聚合丢失逐动作粒度，整块拦截一次，同 P1-4 标量近似）。
+        if delta.nullify_genki_turns:
+            if self.nullify_debuff > 0:
+                self.nullify_debuff -= 1
+            else:
+                self.nullify_genki_turns += int(delta.nullify_genki_turns)
+        if delta.unease_turns:
+            if self.nullify_debuff > 0:
+                self.nullify_debuff -= 1
+            else:
+                self.unease_turns += int(delta.unease_turns)
         if delta.pride_turns:
             self.pride_turns += int(delta.pride_turns)
         for key, mod_value, mod_turns in delta.modifiers:
@@ -1628,10 +1714,6 @@ class LessonSim:
         stance = self._apply_direct_stances(delta.stances)
         if stance and _depth < 3:
             self._fire_p_items(STANCE_CHANGE, _depth=_depth + 1)
-        # B10：次数上限按**道具**计（参考 limit:N = 每事件触发一次）；同一道具
-        # 多个效果段同事件触发只记 1 次（旧口径按段累计会让多段道具提前用完）。
-        for item_id in dict.fromkeys(delta.applied):
-            self.p_item_uses[item_id] = self.p_item_uses.get(item_id, 0) + 1
 
     def _create_p_item_cards(self, creates: list) -> None:
         """B10：结算 P 道具生成卡（``ExamCardCreateId`` 确定式）。
@@ -1805,6 +1887,13 @@ class LessonSim:
         # 在好印象结算之后倒计时；WHOLE_FIELDS 整数资源）。
         if self.pride_turns > 0:
             self.pride_turns -= 1
+        # P1-7：元气增加无效 / 不安 回合末 -1（参考 EOT_DECREMENT_FIELDS 的
+        # nullifyGenkiTurns / uneaseTurns）。fresh 保护差一回合缺口同一般标量
+        # （pride/poor_condition 口径，留真机核实，RULES_REFERENCE §3）。
+        if self.nullify_genki_turns > 0:
+            self.nullify_genki_turns -= 1
+        if self.unease_turns > 0:
+            self.unease_turns -= 1
         # P1-3：指針固定回合末 -1（参考 EOT_DECREMENT_FIELDS 的 lockStanceTurns）。
         # **fresh 保护**（参考 Executor/index.js「Protect fresh stats from
         # decrement」+ BuffManager.decrementBuffTurns 的 freshBuffs 位）：卡效果
@@ -1862,6 +1951,10 @@ class LessonSim:
         self.turn_parameter_buff = 0
         # P 道具：回合结束（好印象/好调结算后、弃手牌前）
         self._fire_p_items(TURN_END)
+        # P1-7：延迟生效倒计时 -1（参考 EffectManager.decrementDelay，在 endOfTurn
+        # 效果/buff 倒计时之后）；到 0 的增量在下一回合开始结算（_draw_hand）。
+        if self._delayed_deltas:
+            self._delayed_deltas = [(n - 1, d) for n, d in self._delayed_deltas]
         self.trace.append(
             {
                 "turn": self.total_turns - self.turns_left + 1,
@@ -2029,6 +2122,18 @@ class LessonSim:
         # B8：回合开始后 / 每 N 回合（新语法触发 id 的两种时机，同一位置发射）
         self._fire_p_items(TURN_START_AFTER)
         self._fire_p_items(TURN_INTERVAL)
+        # P1-7：延迟生效 P 道具到点结算（参考嵌套 at:turn / delay:N 在回合开始的
+        # turn 阶段触发，位于 startOfTurn/afterStartOfTurn 之后）。
+        self._fire_delayed_p_items()
+
+    def _fire_delayed_p_items(self) -> None:
+        """P1-7：结算延迟到点（剩余回合 ≤0）的 P 道具增量；次数已在登记时计。"""
+        if not self._delayed_deltas:
+            return
+        due = [d for n, d in self._delayed_deltas if n <= 0]
+        self._delayed_deltas = [(n, d) for n, d in self._delayed_deltas if n > 0]
+        for d in due:
+            self._apply_p_delta(d, _depth=0)
 
     def _draw(self, count: int) -> None:
         for _ in range(count):
