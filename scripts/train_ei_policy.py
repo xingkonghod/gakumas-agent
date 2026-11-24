@@ -34,6 +34,18 @@
   按拼接顺序；``selfplay_adv_std=None`` 表示无单一全局除数）；multi_file 逐文件
   补 ``norm_std``（实际除数，max(std,1e-6)）。
 
+small 上采样（r11 纯增量）：``--upsample-small N``（默认 1=关，上述行为逐位不变）：
+
+* R9_ANALYSIS §6 候选②：把 **small 自对弈行重复 N 份**，提升 small 优化能量份额
+  （与 ``--norm-by-scenario`` 叠加 →~66%），给 small 更多预算在漂移后的特征位置
+  重新学准精细行为（r10 残留 small 回退的对症变量）；
+* 在**教师占比下采样之后**调用：teacher-frac 作用于基础（未上采样）池，上采样再
+  提升 small 能量——故上采样后教师**行数**占比会低于 target（能量份额才是优化代理）；
+* 重复行保持原 seed/group（同决策组、同 seed 侧，**不泄漏**）；只动 small，large/demos
+  不变；scenario 取 ``scenario_col``（多文件）或 ``meta.args.scenario``（单文件）；
+* mix 记 ``upsample_small``（factor / base_small_rows / post_small_rows / post_large_rows
+  / base_selfplay_rows / post_selfplay_rows）；默认路径不新增键。
+
 切分：按 **seed 分组** 9:1（同局样本不跨 train/val，与 B2 训练同纪律）。
 指标：train/val MSE + val 按决策分组的排序命中率（argmax 预测 == argmax 标签）。
 
@@ -59,6 +71,12 @@
         --demos out\\ei_r4_demos.npz out\\ei_r9_demos.npz \
         --teacher-frac 0.15 --round 10 --epochs 1200 --hidden 192 96 \
         --norm-by-scenario --out out\\ei_r10_v10_mix.json
+    # r11（新规则重采 + small 上采样）：新采数据 + --norm-by-scenario + --upsample-small 2
+    .venv\\Scripts\\python.exe scripts\\train_ei_policy.py \
+        --selfplay out\\ei_r11_selfplay_small.npz out\\ei_r11_selfplay_large.npz \
+        --demos out\\ei_r11_demos.npz \
+        --teacher-frac 0.15 --round 11 --epochs 1200 --hidden 192 96 \
+        --norm-by-scenario --upsample-small 2 --out out\\ei_r11_v11_mix.json
 """
 
 from __future__ import annotations
@@ -125,6 +143,7 @@ def _load_many(paths: list[Path], *, norm_by_scenario: bool = False) -> dict:
     ys: list[np.ndarray] = []
     seeds: list[np.ndarray] = []
     groups: list[np.ndarray] = []
+    scenario_cols: list[np.ndarray] = []
     files: list[dict] = []
     scenario_std: dict[str, list[float]] = {}
     base = 0
@@ -133,6 +152,12 @@ def _load_many(paths: list[Path], *, norm_by_scenario: bool = False) -> dict:
     for part in loaded:
         xs.append(part["X"])
         info = _file_info(part)
+        scenario_cols.append(
+            np.full(
+                part["X"].shape[0],
+                info["scenario"] if info["scenario"] is not None else "unknown",
+            )
+        )
         if norm_by_scenario:
             std = float(part["y"].std())
             divisor = max(std, 1e-6)
@@ -162,6 +187,7 @@ def _load_many(paths: list[Path], *, norm_by_scenario: bool = False) -> dict:
         "y": np.concatenate(ys),
         "seed": np.concatenate(seeds),
         "group": np.concatenate(groups),
+        "scenario_col": np.concatenate(scenario_cols),
         "meta": {"kind": "concat", "n_files": len(loaded)},
         "path": ", ".join(part["path"] for part in loaded),
         "files": files,
@@ -177,13 +203,42 @@ def _subsample(data: dict, keep: int, rng: np.random.Generator) -> dict:
     if keep >= n:
         return data
     indices = np.sort(rng.choice(n, size=keep, replace=False))
-    return {
+    out = {
         **data,
         "X": data["X"][indices],
         "y": data["y"][indices],
         "seed": data["seed"][indices],
         "group": data["group"][indices],
     }
+    if "scenario_col" in data:
+        out["scenario_col"] = data["scenario_col"][indices]
+    return out
+
+
+def _upsample_small(data: dict, factor: int, scenario_col: np.ndarray) -> dict:
+    """small 上采样（R9_ANALYSIS §6 候选②）：把 small 自对弈行重复 factor 份。
+
+    纯增量：factor<=1 原样返回（逐位不变）。重复行保持原 seed/group（同决策组、
+    同 seed 侧，不泄漏）；只增加 small 的优化能量份额，不改 large/demos。
+    在教师占比下采样**之后**调用——teacher-frac 作用于基础（未上采样）池，
+    上采样再提升 small 能量（r11 = r10 配方 + small 上采样）。"""
+    if factor <= 1:
+        return data
+    small_idx = np.where(scenario_col == "small")[0]
+    if small_idx.size == 0:
+        return data
+    n = data["X"].shape[0]
+    extra = np.tile(small_idx, factor - 1)
+    new_idx = np.concatenate([np.arange(n), extra])
+    out = {
+        **data,
+        "X": data["X"][new_idx],
+        "y": data["y"][new_idx],
+        "seed": data["seed"][new_idx],
+        "group": data["group"][new_idx],
+        "scenario_col": scenario_col[new_idx],
+    }
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -203,6 +258,12 @@ def main(argv: list[str] | None = None) -> int:
         help="多文件自对弈各文件按自身 std 归一化（r10；默认关=拼接后全局 std，逐位不变；"
              "单文件路径不受影响；scenario 取 npz meta.args.scenario）",
     )
+    parser.add_argument(
+        "--upsample-small", type=int, default=1,
+        help="small 自对弈行上采样倍数（R9_ANALYSIS §6 候选②，r11；默认 1=关，逐位不变）。"
+             "在教师占比下采样之后把 small 行重复 N 份，提升 small 优化能量份额（→~66%%）；"
+             "保持原 seed/group（不泄漏）；与 --norm-by-scenario 叠加。",
+    )
     parser.add_argument("--round", type=int, default=1, help="专家迭代轮次（写进模型 meta.task）")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--hidden", type=int, nargs=2, default=(96, 48))
@@ -216,6 +277,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("至少给一个 --selfplay / --demos")
     if not 0.0 <= args.teacher_frac <= 1.0:
         parser.error("--teacher-frac 必须在 [0,1]")
+    if args.upsample_small < 1:
+        parser.error("--upsample-small 必须 >= 1（1=关）")
 
     started = time.perf_counter()
     rng = np.random.default_rng(args.seed)
@@ -235,6 +298,32 @@ def main(argv: list[str] | None = None) -> int:
             demos = _subsample(demos, max_d, rng)
         elif n_s > max_s:
             selfplay = _subsample(selfplay, max_s, rng)
+
+    # ---- small 上采样（r11，R9_ANALYSIS §6 候选②；默认 1=关，逐位不变）----
+    # 在教师占比下采样之后：teacher-frac 作用于基础池，上采样再提升 small 能量份额。
+    upsample_info: dict | None = None
+    if selfplay is not None and args.upsample_small > 1:
+        sc_col = selfplay.get("scenario_col")
+        if sc_col is None:
+            sc = (selfplay["meta"].get("args") or {}).get("scenario") or "unknown"
+            sc_col = np.full(selfplay["X"].shape[0], sc)
+        base_rows = int(selfplay["X"].shape[0])
+        base_small = int((sc_col == "small").sum())
+        selfplay = _upsample_small(selfplay, args.upsample_small, sc_col)
+        sc_after = selfplay.get("scenario_col", sc_col)
+        upsample_info = {
+            "factor": args.upsample_small,
+            "base_selfplay_rows": base_rows,
+            "base_small_rows": base_small,
+            "post_selfplay_rows": int(selfplay["X"].shape[0]),
+            "post_small_rows": int((sc_after == "small").sum()),
+            "post_large_rows": int((sc_after == "large").sum()),
+        }
+        print(
+            f"upsample-small ×{args.upsample_small}: small {base_small}→"
+            f"{upsample_info['post_small_rows']} 行（自对弈 {base_rows}→"
+            f"{upsample_info['post_selfplay_rows']}）"
+        )
 
     parts: list[dict] = []
     kind_cols: list[np.ndarray] = []
@@ -313,6 +402,9 @@ def main(argv: list[str] | None = None) -> int:
     if selfplay is not None and selfplay.get("norm_by_scenario"):
         metrics["mix"]["norm_by_scenario"] = True
         metrics["mix"]["scenario_std"] = selfplay["scenario_std"]
+    # r11：small 上采样时 mix 补上采样明细（默认路径不新增键，逐位不变）
+    if upsample_info is not None:
+        metrics["mix"]["upsample_small"] = upsample_info
     sources: list[str] = []
     if args.selfplay:
         sources.extend(str(path) for path in args.selfplay)

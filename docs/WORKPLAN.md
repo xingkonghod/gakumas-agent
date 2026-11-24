@@ -559,7 +559,7 @@
   （1156 收集 / 79 文件）**；基线 ①③④⑤ 全部不变。
 - 细节见 [EXPECTIMAX「B2 重训（B2-R）」](EXPECTIMAX.md) / HANDOVER 二·补三十四/三十五。
 
-### B11. 渐退式专家迭代（学 policy/advantage，评测门渐退）🟡 第 1–2 轮 + r3–r8 续 + v6 接线 + r9-large + r10 完成（2026-11-23，**v6 过门并接线；r9/r10 large 超 beam 但 small 回退 → 不入库**；下一候选先问用户）
+### B11. 渐退式专家迭代（学 policy/advantage，评测门渐退）🟡 第 1–2 轮 + r3–r8 续 + v6 接线 + r9-large + r10 + **r11 双过入库**（2026-11-24，**v6 过门并接线；r9/r10 large 超 beam 但 small 回退 → 不入库；r11 新规则重采 + small 上采样 → small+large 双过入库**）
 - **目标**：B2-R 关闭学习叶子（状态价值）路线后换目标量——学「该打哪张牌 / 这张比
   平均好多少」（policy/advantage），标签来自学生自己的对局（on-policy，绕开价值-策略
   失配）；摸索 70%+老师 30%，教师占比逐轮渐退（30→15→0），**学生过配对评测门
@@ -628,14 +628,30 @@
   → **复合门未过 → 不入库**，生产 ei_policy_v6.json 保持 r6 权重；r10 留 out/。
   **结论：归一化口径修复有效但不充分**（输入侧场景漂移仍在，R9_ANALYSIS §8 预测证实）。
   **下一候选（先问用户）**：r11 叠加 small 上采样（能量 →~66%）/ 其他候选见 HANDOVER_NEXT §8。
+- **r11（2026-11-24，阶段2 用户选定；新规则重采 + small 上采样，单变量=上采样 + 新数据）**：
+  `train_ei_policy --upsample-small N` 纯增量（默认 1=逐位不变：r9/r10 24 条回归全过；small 行重复 N 份
+  提升能量份额，教师占比下采样之后调用，重复行保持 seed/group 不泄漏，mix 记 upsample_small）+ 13 条回归测试。
+  **P2-0 新规则重采**（v6 argmax，新 seed 块）：small 10000 局 145565（1100000+，std 12.172）+ large 5000 局
+  128103（1200000+，std 24.301）+ v1 示范 3600 局 51985（1300000+，0 教师-SKIP）；训练 467527 行
+  （small ×2=291130 / large 128103 / demos 48294，教师行占比 0.103），192×96/1200ep 全同 r10；
+  能量份额 small **65.6%** / large 28.9% / demos 5.5%（§6 候选② 预测 ~66% 吻合）；val 排序 0.822。
+  **前置重标定 + 参照臂新规则重评**：sim_engine_ab 与 P1-8 逐位一致（Δ+372.2/+219.1）；small 规则零分移
+  （v6 98.640/v1 98.062 不变）、large 分移 ±2（v6 285.8→287.818、beam 301.3→301.612），门基线重定。
+  **large500 r11 313.92 vs v6 287.82：+26.10 CI[+23.06,+29.14] PASS，vs beam +12.31 仍超**（新鲜块 6000
+  +20.81）；**small500 r11 98.648 vs v6 98.640：+0.008 CI[−0.253,+0.269] 不回退（上界≥0）✅**；
+  **vs v1 +0.586 CI[+0.245,+0.927] 原门保持 ✅** → **复合门首次双过 → 入库**：ei_policy_v6.json 替换 r11
+  权重（1004369 字节，参照臂逐位校验 6/6，旧 r6 权重保留 out/）。**P2-1b 新旧对比**：large headline
+  r11 vs 旧 v6 +28.08 = 学生改进 +26.10（93%）+ 规则分移 +1.98（7%）；small 规则零分移；r11 small 显著优于
+  r9（+0.426，修复 r9 回退）、large 与 r9/r10 中性（增益保持）。**F public-safe 入场券拿到**（首个双过学生）。
 - **测试/基线**：`tests/test_ei_policy.py` **28 条** + `tests/test_ei_policy_r2.py` **15 条**
-  + `tests/test_ei_explore.py` **7 条** + `tests/test_ei_wiring.py` **21 条**
-  + `tests/test_ei_multifile.py` **12 条** + `tests/test_ei_norm_scenario.py` **12 条**；
-  全量 pytest **1318 passed / 1 skipped（1319 收集 / 89 文件）**；基线 ①③④⑤ 全部不变。
+  + `tests/test_ei_explore.py` **7 条** + `tests/test_ei_wiring.py` **21 条**（入库断言随 r11 更新）
+  + `tests/test_ei_multifile.py` **12 条** + `tests/test_ei_norm_scenario.py` **12 条**
+  + `tests/test_ei_upsample_small.py` **13 条**；
+  全量 pytest **1657 passed / 1 skipped（1658 收集 / 100 文件）**；基线 ①③④⑤ 全部不变。
   环境备注：首跑曾遇 drink_search 延迟守卫受游戏负载（TslGame）抖动失败，负载回落后
   复跑全绿，未改门槛（详见 EXPECTIMAX B11 第 2 轮「测试/基线」）。
-- 细节见 [EXPECTIMAX「B11 渐退式专家迭代（第 1/2 轮 + r3–r8 续 + r9-large + r10）」](EXPECTIMAX.md) /
-  HANDOVER 二·补三十七/三十九/四十/四十一/四十二/四十三。
+- 细节见 [EXPECTIMAX「B11 渐退式专家迭代（第 1/2 轮 + r3–r8 续 + r9-large + r10 + r11）」](EXPECTIMAX.md) /
+  HANDOVER 二·补三十七/三十九/四十/四十一/四十二/四十三/五十三。
 
 ---
 
@@ -1044,6 +1060,38 @@ budget 800ms，逐局非时间字段全等（data/_p18_ab_compare.py，不提交
 
 ---
 
+### P2. 阶段2：重采 + 练学生 r11 + 新旧对比（small+large 双过入库）✅ 2026-11-24 完成
+
+> 用户 2026-11-24 选定阶段2（A 顺序，不用再问）。🔒 旧数据/模型全保留不覆盖不删（用户指定）。
+> 详见 [HANDOVER_NEXT §8.0 阶段2](HANDOVER_NEXT.md) / [EXPECTIMAX「B11 r11」](EXPECTIMAX.md) /
+> [R9_ANALYSIS §10](R9_ANALYSIS.md) / HANDOVER 二·补五十三。
+
+- **前置（重标定 + 参照臂新规则重评，门基线重定）**：阶段1（P1-1…P1-8）改规则 → 旧 B11 数据/模型旧规则口径。
+  `sim_engine_ab` 重标定 seed 9000/9100 与 P1-8 **逐位一致（0/32）**，expectimax−rules Δ+372.2/+219.1；
+  参照臂 v6/v1/beam/r9/r10 按新规则重评（500 局）：**small 规则零分移**（v6 98.640/v1 98.062/beam 96.488 不变）、
+  **large 分移 ±2**（v6 285.8→287.818、r9 315.4→313.446、r10 314.9→313.612、beam 301.3→301.612）。
+  新门基线：large v6 287.818/beam 301.612；small v6 98.640/v1 98.062（旧 98.6/98.1/305.3 不可直接比）。
+- **P2-0 重采**（v6 argmax，新 seed 块新文件，与评测段及旧块错开）：`ei_r11_selfplay_small.npz`
+  small 10000 局 145565（1100000+，std 12.172）+ `ei_r11_selfplay_large.npz` large 5000 局 128103
+  （1200000+，std 24.301）+ `ei_r11_demos.npz` v1 示范 3600 局 51985（1300000+，0 教师-SKIP）。
+- **P2-1 练 r11**（`--upsample-small 2` 纯增量 + `--norm-by-scenario`，13 条回归测试默认逐位不变）：
+  467527 行（small ×2=291130 / large 128103 / demos 48294），能量份额 small **65.6%**（§6 候选② ~66% 吻合）；
+  192×96/1200ep，val 排序 0.822。**500 局双门**：large r11 313.92 vs v6 287.82 **+26.10 CI[+23.06,+29.14] PASS**
+  （vs beam +12.31，新鲜块 6000 +20.81）；small r11 98.648 vs v6 98.640 **+0.008 CI[−0.253,+0.269] 不回退 ✅**；
+  vs v1 **+0.586 CI[+0.245,+0.927] 原门保持 ✅** → **复合门首次双过 → 入库**：`data/_r11_promote.py`
+  程序化门校验（参照臂逐位 6/6）→ `ei_policy_v6.json` 替换 r11 权重（1004369 字节，meta.production 溯源
+  revision r11-new-rules-upsample-small；旧 r6 权重保留 out/ei_r6_v6_mix.json）。
+- **P2-1b 新旧对比**（`data/_r11_compare.py`，同 seed 配对分解）：small 规则零分移；large 规则分移 ±2；
+  large headline r11 vs 旧 v6 **+28.08 = 学生改进 +26.10（93%）+ 规则分移 +1.98（7%）**；r11 small 显著优于
+  r9（+0.426 CI[+0.159,+0.693]，修复 r9 回退）、large 与 r9/r10 中性（增益保持）。**学生改进真实、规则分移很小**。
+- **DoD**：代码（--upsample-small）+ 单测（13 条 + wiring 更新）+ 重标定/重评数字 + 文档更新；
+  旧 B11 数据/模型全保留；不改 SKIP 红线、禁静默回退 rules；全量 pytest **1657/1（1658 收集 / 100 文件）**，
+  基线 ①③④⑤ 不变。**F public-safe 入场券拿到**（首个 small+large 双过学生）。
+- **下一步（先问用户）**：r11 双过入库 → 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）；或如需 small 显著超 v6
+  可 r12 续（教师←v6 / 降档 / 两段式微调，非必需）。
+
+---
+
 ## 阶段 C：可靠性（离线）
 
 ### C0.（可选，2026-11-22 新增）采集/更新可靠性经验吸收 ✅ 2026-11-22 完成
@@ -1382,6 +1430,17 @@ p_card-00-acc-0_002）；本批只补日文换算源标注 CONVERSION_SOURCES_JA
 触发未支持）；implemented 1179→1181/1849（+2）、依赖换算 76→78（好调换算 11→13）；**评测零 P 道具
 结算 + sim/ 零改动**；32 条新单测，pytest 1644/1（1645 收集 / 99 文件）；sim_engine_ab 重标定
 改前/改后 64 局逐位相同（差异=0）；见 RULES_REFERENCE §5.10 / HANDOVER 二·补五十二。
+**阶段2 r11（P2-0/P2-1/P2-1b：新规则重采 + small 上采样）也已完成（2026-11-24，small+large 双过入库，
+首个双过学生）**：前置 sim_engine_ab 重标定与 P1-8 逐位一致（0/32，Δ+372.2/+219.1）+ 参照臂 v6/v1/beam/r9/r10
+新规则重评（small 规则零分移 v6 98.640/v1 98.062；large 分移 ±2 v6 287.818/beam 301.612，门基线重定）；
+P2-0 v6 argmax 新 seed 块重采 small 145565（1100000+）/large 128103（1200000+）/v1 示范 51985（1300000+）；
+P2-1 `--upsample-small 2` 纯增量（13 条回归默认逐位不变）+ `--norm-by-scenario` → 467527 行（small 能量 65.6%）；
+**500 局双门首次双过**：large r11 313.92 vs v6 287.82 +26.10 CI[+23.06,+29.14] PASS（vs beam +12.31）/
+small r11 98.648 vs v6 98.640 +0.008 CI[−0.253,+0.269] 不回退 / vs v1 +0.586 CI[+0.245,+0.927] 保持 →
+入库 ei_policy_v6.json=r11（参照臂逐位 6/6，旧 r6 保留 out/）；P2-1b 新旧对比 large headline r11 vs 旧 v6
++28.08 = 学生改进 +26.10（93%）+ 规则分移 +1.98（7%），small 规则零分移，r11 small 显著优于 r9（+0.426 修复回退）；
+**F public-safe 入场券拿到**；13 条新单测 + wiring 更新，pytest 1657/1（1658 收集 / 100 文件）；
+见 EXPECTIMAX B11 r11 / R9_ANALYSIS §10 / WORKPLAN P2 / HANDOVER 二·补五十三。
 **下一会话起按多会话路线图推进（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）**：
 阶段1 离线补未知（~~全力回合额外次数/保留牌/のんびり + r10 行为探针~~ ✅ P1-1；
 ~~handDecrease 抽牌修正 + pride 自尊~~ ✅ P1-2；~~hold 保留区 + lockStanceTurns~~ ✅ P1-3；
@@ -1390,14 +1449,12 @@ p_card-00-acc-0_002）；本批只补日文换算源标注 CONVERSION_SOURCES_JA
 ~~P 道具后续批次（好调增加量增加/元气增加无效/不安/通用延迟生效）~~ ✅ P1-7；
 ~~P 道具剩段 bounded batch（日文好調の%分 / 天生的才能）~~ ✅ P1-8；
 **阶段1 剩 P 道具后续批次**（塔 gimmick/全力・强气效果卡打分/ExamParameterBuffReduce
-——证据充分需新机制/真机，no-op 如实记；日文好調の%分 ✅ P1-8）；**P1-8 完成后先问用户**：
-继续阶段1 P 道具剩段（per-card 成长等新机制），还是直接进阶段2 重采+练学生 r11）→
-阶段2 重采+练学生 r11（small 上采样，
-small+large 双过入库）+ **新旧对比（旧学生/老师数据模型全保留不覆盖，新批练出来再比）** →
-阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收）→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。
+——证据充分需新机制/真机，no-op 如实记，留阶段3）；~~阶段2 重采+练学生 r11（small 上采样，
+small+large 双过入库）+ 新旧对比（旧学生/老师数据模型全保留不覆盖）~~ ✅ P2-0/P2-1/P2-1b；
+**r11 双过入库后先问用户**：阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收），或如需 small
+显著超 v6 可 r12 续（教师←v6/降档/两段式微调，非必需））→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。
 **每会话 1–3 任务（小任务合并），开新对话做；旧路线图未完成项已全并入 §8.0**。
 需真机数据的建模缺口（考试 RNG 流/fresh buff/附魔/真机 P 道具列表）留阶段3。
 → F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；B11 学生网只看
-可观测状态，是未来 public-safe 候选，**r9/r10 large 已超 beam 但 small 仍回退，须 small+large
-双过才进 F**）。
+可观测状态，是未来 public-safe 候选，**r11 已 small+large 双过 → F 入场券拿到，仍须真机 T2 验证**）。
 ```
