@@ -1412,7 +1412,7 @@ fixed_vitality）；ruff 通过；全量 pytest **1612/1（1613 收集 / 98 文�
 （① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155）。重标定产物
 out/_p17_ab_{before,after}_{9000,9100}.json（gitignore）；一次性脚本 data/_p17_*.py 不提交。
 文档：RULES_REFERENCE §5.8 注记/§5.9；WORKPLAN §0/P1-7/路线图；HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；HANDOVER 二·补五十一。
-提交 feat <哈希>（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
+提交 feat 6952c5e（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
 **下一会话（先问用户）**：阶段1 剩 **P 道具后续批次**（塔 gimmick/全力・强气效果卡打分/日文好調の%分/
 ExamParameterBuffReduce——证据充分但需新机制/真机，no-op 如实记），**或直接进阶段2 重采+练学生 r11**
 （small 上采样 + --norm-by-scenario，新 seed 块新文件，参照臂按新规则重评，small+large 双过入库 + 新旧对比；

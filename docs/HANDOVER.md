@@ -2918,7 +2918,7 @@ condition_gain 无 modifier 恒等。**sim_engine_ab 改前（git stash）/改�
 1164→1179、test_p15 两个 deferred-noop 改断言已实现、test_p_items_b9 ExamBlockFix 改 fixed_vitality）；
 ruff 通过；全量 pytest **1612/1（1613 收集 / 98 文件，218.08s）**；基线 ①③④⑤ 不变。
 文档：RULES_REFERENCE §5.8 注记/§5.9；WORKPLAN §0/P1-7/路线图；HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；本文件二·补五十一。
-**提交**：feat <哈希>（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录；
+**提交**：feat 6952c5e（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录；
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -3141,6 +3141,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-24 P1-7 哈希记录：feat 6952c5e + docs(handover) 本节；阶段1 第七批 P 道具后续批次 bounded batch——好调增加量增加 ExamParameterBuffAdditive→condition_gain（resolveGoodConditionTurns ×(1+Σ goodConditionTurnsBuffs)，夜闇の星313/314；卡+P道具双渠道）+ 元气增加无效 ExamBlockRestriction→nullify_genki_turns / 不安 ExamBlockAddDown→unease_turns（resolveGenki return / ×0.67向上取整，∈EOT_DECREMENT+DEBUFF_FIELDS；いたずらパペット149/150、初陣の証・美鈴302/303、雨上がりの花253/254）+ ExamBlockFix分离fixed_vitality（resolveFixedGenki不受闸门）+ 通用延迟生效（yaml e_effect-exam_effect_timer-NNNN↔DSL嵌套at:turn/delay:N-1，EffectManager.decrementDelay；34段标注，登记时计次/到点结算，修正おさぼりタオルnullifyDebuff下回合/美铃干劲3回合后/温存变更类下回合等已实现道具时序），BSD-3+主数据+DSL三重核实；implemented 1164→1179/1849(+15)、modifier 409→442、p_items.json 49记录变化；sim_produce不引用p_items+genki_gate/condition_gain无来源恒等→评测零影响、sim_engine_ab改前/改后64局差异=0（Δ+372.2/+219.1保持）；gkbench 94唯一loadout id无timer/新目标道具→local_bench零触达；48条新单测、pytest 1612/1(1613收集/98文件)、基线①③④⑤不变；保持no-op如实记 塔gimmick(参考无字段)/塔∞段(value=0)/全力强气效果卡打分(per-card g.score成长)/日文好調の%分/ExamParameterBuffReduce；旧B11数据模型全保留；RULES_REFERENCE §5.9/WORKPLAN P1-7/HANDOVER_NEXT §0+§2+§8.0+§8/INDEX/二·补五十一；下一任务先问用户：阶段1 P道具剩段 vs 阶段2 重采+练学生r11）
+6952c5e feat(sim): P1-7 P道具后续批次——好调增加量增加condition_gain/元气增加无效nullify_genki/不安unease/通用延迟生效（BSD-3+DSL三重核实；ExamBlockFix分离fixed_vitality；yaml timer包装34段；implemented 1164→1179/1849；48条单测、pytest 1612/1；sim_engine_ab改前/改后64局差异=0；塔gimmick/全力强气效果卡打分/日文好調の%分/ExamParameterBuffReduce保持no-op如实记）
 （2026-11-24 P1-6 哈希记录：feat 5ea7c0e + docs(handover) 本节；阶段1 第六批 T7②③ 离线可靠性工程——⑨ 纯函数状态重放 data/run_replay.py（apply_event无副作用/深不可变RunState/同观测序列两遍重放指纹逐位相等/compare_replays逐步比对首个分歧步/legacy_events旧格式确定式重建/consistency_check三方对账）+ RunRecorder增量events观测日志（旧文件续跑先重建）+ scripts/replay_run.py --verify/--compare；⑩ 自动复盘页 report/review_page.py 自包含HTML（逐回合/考试/结算/重放一致性/C1逐步轨迹/行内标注导出导入）+ report/annotations.py 标注转回归（verdict=bad带expected→整态/分类结论冻结进tests/fixtures/review_regressions.json）+ scripts/review_page.py/annotations_to_regression.py；auto_produce局末自动生成[review]；样例docs/review_sample.html（ep-rule1真实记录+合成演示轨迹显著标注）；不改考试规则、sim/零引用新模块→评测零影响无需重标定、旧B11数据模型全保留；61条新单测(38+20+3)、pytest 1564/1(1565收集/97文件)、基线①③④⑤不变；ep-t1-g卡屏局28次重复观测被显式surfaced；WORKPLAN P1-6/LIVE_RUN §2.1/HANDOVER_NEXT §4 T7+§8.0+§8/INDEX/二·补五十；下一任务先问用户：阶段1 P道具后续批次 vs 阶段2 重采+练学生r11）
 5ea7c0e feat(reliability): P1-6 T7②③ 纯函数状态重放+自动复盘页+标注转回归闭环（run_replay纯函数/RunRecorder events日志/replay_run --verify/--compare；review_page自包含HTML+annotations转回归夹具；auto_produce局末[review]；样例页+61条单测、pytest 1564/1；不改规则、评测零影响）
 （2026-11-24 P1-5 哈希记录：feat 4a55cc8 + docs(handover) 本节；阶段1 第五批 P 道具剩余效果语义补全 bounded batch——层数减少类 干劲/集中/全力值-=N夹取>=0 + 体力减少 ExamStaminaDamage + 好调N回合 ExamParameterBuff turn列 + 好调依赖换算 好调的N%数值变为打分/集中，BSD-3+主数据+DSL三重核实；implemented 1067→1164/1849(+97)、依赖换算65→76、p_items.json仅24记录变化；sim_produce不引用p_items→评测零P道具结算、sim_engine_ab改前/改后64局差异=0；38条新单测、pytest 1503/1(1504收集/94文件)、基线①③④⑤不变；留后续 好调增加量增加/元气增加无效/不安/塔gimmick/全力强气效果卡打分/日文好調の%分；旧B11数据模型全保留；RULES_REFERENCE §5.8/WORKPLAN P1-5/HANDOVER_NEXT §8.0+§8/INDEX/二·补四十九；下一会话 P1-6 T7②③ 纯函数状态重放/自动复盘页）
