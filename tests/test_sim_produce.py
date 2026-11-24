@@ -654,7 +654,8 @@ def test_parameter_buff_condition_only_helps_later_cards() -> None:
 def test_new_effect_types_are_modeled() -> None:
     """2026-11-16 新卡池 16 种效果全部进 MODELED_EFFECTS（13 → 29）；
     T5② 2026-11-22 再加熱意追加/増加 → 31；P1-1 2026-11-24 のんびり预约
-    ExamOverPreservation → 33，旧集合不变。"""
+    ExamOverPreservation → 33；P1-2 2026-11-24 自尊
+    ExamLessonValueMultipleDependReviewOrAggressive → 34，旧集合不变。"""
     import sys
     from pathlib import Path
 
@@ -680,9 +681,11 @@ def test_new_effect_types_are_modeled() -> None:
         "ExamCardPlayAggressive",
     }
     assert new_types <= sp.MODELED_EFFECTS
-    assert len(sp.MODELED_EFFECTS) == 33
+    assert len(sp.MODELED_EFFECTS) == 34
     # P1-1 2026-11-24 のんびり预约（ExamOverPreservation）接入
     assert "ExamOverPreservation" in sp.MODELED_EFFECTS
+    # P1-2 2026-11-24 自尊（ExamLessonValueMultipleDependReviewOrAggressive）接入
+    assert "ExamLessonValueMultipleDependReviewOrAggressive" in sp.MODELED_EFFECTS
     # T5② 2026-11-22 熱意：追加/増加/本牌適用倍数 三种效果接入（熱意延長 2026-11-16 已在）
     enthusiasm_types = {
         "ExamEnthusiasticAdditive",

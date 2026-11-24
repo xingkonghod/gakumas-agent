@@ -2,14 +2,14 @@
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
-> 新会话第一句话（紧凑版，2026-11-24 P1-1 完成后更新；完整版见 WORKPLAN「新会话开场白」）：
+> 新会话第一句话（紧凑版，2026-11-24 P1-2 完成后更新；完整版见 WORKPLAN「新会话开场白」）：
 > 「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → docs/WORKPLAN.md →
-> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1354/1，1355 收集 / 90 文件；①③④⑤ 同 B10 口径），不绿先修。
+> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1389/1，1390 收集 / 91 文件；①③④⑤ 同 B10 口径），不绿先修。
 > Hindsight 本地记忆已启用（先 hindsight_sync_status / search_pages 确认）。
 > **按 §8.0 多会话路线图做**（用户确认 A 顺序：阶段1 离线补未知 → 阶段2 重采+练学生+新旧对比 →
 > 阶段3 真机 → 阶段4 gkbench → 阶段5 收尾；每会话 1–3 任务，旧学生/老师数据模型全保留不覆盖）。
-> 下一会话从 **P1-2** 起（handDecrease 抽牌修正 + pride 自尊）；P1-1 ✅（r10 探针 + 全力回合 + のんびり）；
-> 旧路线图未完成项已全并入 §8.0。规则见 §4 硬约束。」
+> 下一会话从 **P1-3** 起（hold 保留区建模）；P1-1 ✅（r10 探针 + 全力回合 + のんびり）、
+> P1-2 ✅（handDecrease + pride）；旧路线图未完成项已全并入 §8.0。规则见 §4 硬约束。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
 > 本文档是 T1–T8 的"下一件事"真源，WORKPLAN 是总序列真源。
@@ -285,12 +285,38 @@
              旧 B11 数据/模型旧规则口径全保留。36 条新单测；
              pytest **1354/1（1355 收集 / 90 文件）**；基线 ①③④⑤ 不变。
              见 RULES_REFERENCE §5.4 / R9_ANALYSIS §9 / WORKPLAN P1-1 / HANDOVER 二·补四十四。
+             ㉔ **P1-2 阶段1 第二批：handDecrease 抽牌修正 + pride 自尊** ✅ 2026-11-24 完成
+              （用户确认 A 顺序；纯离线规则，BSD-3 有据）：
+              **④ handDecrease**：cardsToDraw=max(3−Σ,0)（TurnManager.startTurn +
+              BuffManager.setHandDecrease/getHandDecrease；timed 列表合算/倒计时/∞永久；
+              只减回合开始抽牌、卡效果抽牌不受影响，wiki buffs.json 口径）；来源=塔 gimmick
+              ExamGimmickStartTurnCardDrawDown 12 段（exam_start，手牌减少1∞回合）；
+              nullifyDebuff 拦截未建模如实记（ExamAntiDebuff 本就 no-op）。
+              **⑤ pride**：resolveScore f min(好印象,干劲)×0.02 上限+0.5（千分比 min×20/500，
+              与 score_buffs 累加后一次乘；prideTurns 回合末 -1；score>0 门）；**来源离线可确定**
+              （主数据+参考 DSL 交叉，pIdol 117/118=雨夜燕）：卡「我、绝不」p_card-02-ido-3_140
+              turn=5 ↔ skill_cards.csv 632/633 prideTurns+=5，条件门出牌前干劲>=9
+              （trigger …aggressive_up-9 结构化解析，未知 trigger 保守不给）+ P 道具「一笔入魂」
+              pitem_02-2-117-0/1 turn=2/3 + 干劲+4/5 ↔ p_items.csv 354/355
+              at:motivationIncreased{if:isDirectEffect & goodImpressionTurns>=6; limit:1}。
+              **落地（纯增量）**：lesson.py/expectimax.py（hand_decreases/pride_turns 双镜 +
+              canonical + 快照往返 + 叶子对齐 + beam 下一手 turn_draw_count）+
+              p_items.py（hand_decrease/pride_turns target + PItemDelta）+
+              CardSpec.pride_turns/pride_min_motivation（sim_produce MODELED 33→34、35 元组；
+              play_choice + pride_min_motivation_from_trigger）+ p_items.json 重标注
+              （modifier 371→385，implemented **1042→1056/1849**，仅 14 条记录标注变化）。
+              **评测牌组/gkbench loadout 组成不变**（自尊卡 score 0/SSR 不进池；688 loadout /
+              94 唯一 id 无 117/tower）→ sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，
+              expectimax 仍显著强于 rules Δ+372.2/+219.1）；旧 B11 数据/模型旧规则口径全保留。
+              36 条新单测（+既有断言随规则更新：MODELED 34 / no-op 参数表）；
+              pytest **1389/1（1390 收集 / 91 文件）**；基线 ①③④⑤ 不变。
+              见 RULES_REFERENCE §5.5 / WORKPLAN P1-2 / HANDOVER 二·补四十五。
  当前最高优先：**按 §8.0 多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序：先补离线规则→重采→
 练学生→真机→网站；每会话 1–3 任务；旧学生/老师数据模型全保留，新批练出来再新旧对比；
 旧路线图未完成项已全并入 §8.0）。r10 后 small 仍显著回退（−0.256 CI 上界 −0.012）→ 复合门未过、不入库；
 **P1-1 探针判定残留回退已非 v1 贪即时分（通道 2 漂移噪声）→ r11 small 上采样仍是对症变量**。
-→ **下一会话从 P1-2 起**（handDecrease 抽牌修正 + pride 自尊）；
-阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；剩 handDecrease/pride/hold/buff-cost/P 道具语义 + T7②③）→
+→ **下一会话从 P1-3 起**（hold 保留区建模）；
+阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease/pride~~ ✅ P1-2；剩 hold/buff-cost/P 道具语义 + T7②③）→
 阶段2 重采+练学生 r11（small 上采样，双过入库）+新旧对比 →
 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收）→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。
 T5 剩余里需真机数据的（RNG 流/fresh buff/附魔/真机 P 道具列表）留阶段3。
@@ -369,7 +395,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 1354 passed, 1 skipped（1355 条收集 / 90 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + B11 r9 多文件混合 12 条 + B11 r10 按场景归一化 12 条 + P1-1 全力回合/のんびり指針 36 条 + 实机回放黄金值 2 条）
+# ② 全量测试：应为 1389 passed, 1 skipped（1390 条收集 / 91 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + B11 r9 多文件混合 12 条 + B11 r10 按场景归一化 12 条 + P1-1 全力回合/のんびり指針 36 条 + P1-2 handDecrease/pride 36 条 + 实机回放黄金值 2 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -384,7 +410,19 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-24 00:3x，P1-1 后复跑）**：①②③④⑤ 全绿、退出码 0
+**最近一次复核（2026-11-24 08:1x，P1-2 后复跑）**：①②③④⑤ 全绿、退出码 0
+（① 4/4+3/3、② **1389/1（1390 收集 / 91 文件，+36 P1-2 handDecrease/pride 单测）**、
+③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
+② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
+当前不是行动页），属预期。**规则口径变化（P1-2）**：handDecrease 抽牌修正
+（cardsToDraw=max(3−Σ,0)）+ pride 自尊（resolveScore f min(好印象,干劲)×0.02 上限+0.5）
+已建模 → 旧 B11 数据/模型是旧规则口径（全保留不覆盖，阶段2 重采新批再对比）；
+评测牌组/gkbench loadout 组成不变（自尊卡 score 0/SSR 不进池；94 唯一 loadout id 无
+117/tower），sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，seed 9000/9100
+各 16 局；expectimax 仍显著强于 rules Δ+372.2/+219.1）。P1-2 见 RULES_REFERENCE §5.5 /
+WORKPLAN P1-2 / HANDOVER 二·补四十五。
+
+**上一次复核（2026-11-24 00:3x，P1-1 后复跑）**：①②③④⑤ 全绿、退出码 0
 （① 4/4+3/3、② **1354/1（1355 收集 / 90 文件，+36 P1-1 全力回合/のんびり单测）**、
 ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
 ② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
@@ -780,7 +818,18 @@ stance_leisure 直给）+ r10 行为探针**（残留 small 回退已非 v1 贪�
 BSD-3 参考引擎 + contest-fidelity 真机回放证据；LessonSim/ExpectState 双镜 + 叶子对齐；
 评测牌组组成不变 → sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0）**；36 条新单测，
 pytest **1354/1（1355 收集 / 90 文件）**。仍缺：held 来源（P1-3）、lockStanceTurns（随 P1-3）、
-card_play_interval_after 触发（2 件のんびり道具保守不触发）、handDecrease/pride（P1-2）。
+card_play_interval_after 触发（2 件のんびり道具保守不触发）、~~handDecrease/pride（P1-2）~~ ✅ P1-2。
+
+**已完成（P1-2，2026-11-24，见 WORKPLAN P1-2 / HANDOVER 二·补四十五 / RULES_REFERENCE §5.5）**：
+阶段1 第二批——**④ handDecrease 抽牌修正**（cardsToDraw=max(3−Σ,0)，timed 列表合算/倒计时/
+∞永久，只减回合开始抽牌；来源塔 gimmick ExamGimmickStartTurnCardDrawDown 12 段；nullifyDebuff
+拦截未建模如实记）+ **⑤ pride 自尊**（resolveScore f min(好印象,干劲)×0.02 上限+0.5，prideTurns
+回合末 -1；来源离线可确定：卡「我、绝不」turn=5 门槛干劲>=9 + P 道具「一笔入魂」turn=2/3
+status_gain&好印象>=6&limit1，主数据↔参考 DSL 交叉）。BSD-3 参考引擎证据；LessonSim/ExpectState
+双镜 + canonical + 叶子对齐；sim_produce MODELED 33→34、p_items.json implemented 1042→1056/1849
+（modifier 371→385）；评测牌组/gkbench loadout 组成不变 → sim_engine_ab 重标定**改前/改后
+64 局逐位相同（差异=0）**；36 条新单测，pytest **1389/1（1390 收集 / 91 文件）**。
+仍缺：held 来源/lockStanceTurns（P1-3）、ExamBuffConsumptionAdd（P1-4）、nullifyDebuff 拦截。
 
 **剩余（按对真机分数影响排序，每条都要补单测 + 文档核验表状态）**：
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成（B4）**：客户端公式（分数表分段折线 +
@@ -1058,7 +1107,7 @@ card_play_interval_after 触发（2 件のんびり道具保守不触发）、ha
 
 **阶段 1 · 离线补未知（练学生前；改模拟器规则的项参考引擎 gakumas-tools BSD-3 有据才做，不猜）**
 - **P1-1** ✅ **2026-11-24 完成**：① r10 决策行为探针（R9_ANALYSIS §9：残留回退已非 v1 贪即时分，通道 2 漂移噪声）② 全力回合 +1 出牌/保留牌回手（FULL_POWER_EFFECTS/FULL_POWER_CHANGED_EFFECTS + setStance 守卫；held 来源留 P1-3）③ のんびり指針（×0/解除收益/预约来源/stance_leisure 直给）；36 条单测，pytest 1354/1（1355 收集 / 90 文件）；RULES_REFERENCE §5.4；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0，牌组无来源）
-- **P1-2**：④ handDecrease 抽牌修正（`TurnManager.startTurn cardsToDraw=max(3−handDecrease,0)`）⑤ pride 自尊（`resolveScore` f：min(好印象,やる気)×0.02 上限+0.5；**prideTurns 来源能离线确定才做，否则记缺口留阶段3**）
+- **P1-2** ✅ **2026-11-24 完成**：④ handDecrease 抽牌修正（cardsToDraw=max(3−Σ,0)，timed 列表；塔 gimmick 12 段来源；nullifyDebuff 拦截未建模如实记）⑤ pride 自尊（resolveScore f min(好印象,干劲)×0.02 上限+0.5；**来源离线已确定**：卡「我、绝不」turn=5 门槛干劲>=9 + P 道具「一笔入魂」turn=2/3，主数据↔参考 DSL 交叉）；36 条单测，pytest 1389/1（1390 收集 / 91 文件）；RULES_REFERENCE §5.5；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0，牌组/loadout 无来源）；implemented 1042→1056/1849
 - **P1-3**：⑥ hold 保留区建模（zone + 2 件张数条件 + hotfix 1；`LessonSim`/`ExpectState` 双镜）
 - **P1-4**：⑦ `ExamBuffConsumptionAdd` buff-cost 卡（`resolveCost` 参考；证据不足保持 no-op 如实记，不猜）
 - **P1-5**：⑧ P 道具剩余效果语义补全（离线可做段，1042/1849 往上推；bounded batch，别一口吃成胖子）
@@ -1091,7 +1140,69 @@ card_play_interval_after 触发（2 件のんびり道具保守不触发）、ha
 
 **纪律**：SKIP 只在真没体力；禁静默回退 rules；每会话 1–3 任务；旧学生/老师数据模型保留不覆盖；`data/_probe*`、`bench_local/REPORT.md`、`card_library.json` 不提交；每任务 feat + docs(handover) 哈希提交；**每会话结束发用户下一会话开场白（§8 步骤 6）**。
 
-**最近交接记录（2026-11-24，P1-1 —— 阶段1 首批：r10 行为探针 + 全力回合 + のんびり指針，BSD-3 有据）**：
+**最近交接记录（2026-11-24，P1-2 —— 阶段1 第二批：handDecrease 抽牌修正 + pride 自尊，BSD-3 有据）**：
+用户已确认 A 顺序（不用再问）。开工基线 ①–⑤ 全绿（HEAD 9e76323，② 1354/1、
+1355 收集 / 90 文件，183.15s）；Hindsight 记忆确认（synced=false 后台深化中属正常；
+P1-1 initiative 页 + 规则核验表已读）。
+**④ handDecrease 抽牌修正**（BSD-3 `TurnManager.startTurn` :98-104 `cardsToDraw =
+Math.max(3 - getHandDecrease, 0)` + `BuffManager.setHandDecrease(amount, turns?)/
+getHandDecrease/decrementBuffTurns`（handDecreases ∈ BUFF_LIST_FIELDS，按 turns 分组
+加算、回合末倒计时、turns=None 永久）+ 参考单测 BuffManager.test.mjs + wiki
+`data/knowledge/buffs.json`「手札減少」（合算、≥3 抽 0、**只影响回合开始抽牌、不影响
+效果抽牌**））：`LessonSim.hand_decreases` / `ExpectState.hand_decreases`（timed 列表，
+-1 永久）+ `_draw_hand` / `turn_draw_count` / beam 下一手 / `sim_from_state` 补手牌
+同口径 `max(hand_size−Σ,0)`；卡效果抽牌（ExamCardDraw）不受影响。来源=主数据
+`ExamGimmickStartTurnCardDrawDown`（塔阶段 gimmick「手牌减少1（∞回合）」，exam_start，
+12 段 / 6 件初星灯光紫 stage_023/026）；参考 DSL 无 setHandDecrease 用法（参考引擎标注
+UNVERIFIED）——机制按参考引擎实现、来源/数值按主数据+wiki，不猜。**nullifyDebuff 拦截
+未建模**（参考 nullifyDebuff blocks setHandDecrease；本模型 ExamAntiDebuff 本就 no-op，
+留 P1-4 相关）；countDebuffs（低下状態の数）同未建模。
+**⑤ pride 自尊**（BSD-3 `resolvers.js::resolveScore` f :178-184 `if (prideTurns)
+scoreBuff += Math.min(Math.min(goodImpressionTurns, motivation) * 0.02, 0.5)` +
+`constants.js` EOT_DECREMENT_FIELDS :331 / WHOLE_FIELDS :415）：`LessonSim.pride_turns` /
+`ExpectState.pride_turns`；出牌分与回合末好印象在 f 段加算 `min(min(好印象,干劲)×20, 500)`
+千分比（与 score_buffs 累加后一次乘，在メタモルフォーゼ披露之后、支度/不调之前，同 B9
+口径）；prideTurns 回合末 -1（好印象结算之后）；score>0 门（纯 buff 牌不吃）。
+**来源离线可确定**（主数据+参考 DSL 交叉，pIdol 117「初志貫徹」/118「理論武装して」=
+雨夜燕 idolId 13）：卡「我、绝不」（p_card-02-ido-3_140，SSR/理性/偶像固有，4 强化变体）
+`ExamLessonValueMultipleDependReviewOrAggressive` turn=5 ↔ skill_cards.csv 632/633
+`if:motivation>=9, prideTurns+=5; cardUsesRemaining+=1; goodImpressionTurns+=8/9; drawCard`；
+条件门=出牌前干劲>=9（主数据 trigger `e_trigger-none-card_play_aggressive_up-9` 结构化
+解析 `pride_min_motivation_from_trigger`；未知 trigger 保守不给；本牌自己的干劲加成不算
+进门槛；再演翻倍）+ P 道具「一笔入魂/+」（pitem_02-2-117-0/1，SR）turn=2/3 + 干劲+4/5 ↔
+p_items.csv 354/355 `at:motivationIncreased { if:isDirectEffect & goodImpressionTurns>=6
+{ prideTurns+=2/3; motivation+=4/5 }; limit:1 }`（status_gain aggressive & 好印象>=6 &
+limit1 按道具计；isDirectEffect=本模型 STATUS_GAIN 只从卡直接效果发射，P 道具给的干劲不触发）。
+**落地（纯增量）**：lesson.py/expectimax.py（hand_decreases/pride_turns 双镜 + canonical +
+state_from_sim/sim_from_state + 叶子快照对齐 + beam turn_draw_count）+ p_items.py
+（HAND_DECREASE_EFFECTS/PRIDE_EFFECTS → hand_decrease/pride_turns target +
+PItemDelta.hand_decreases/pride_turns + _apply_modifier_target）+
+CardSpec.pride_turns/pride_min_motivation（sim_produce MODELED_EFFECTS 33→34、
+CardRow 33→35 元组；play_choice._effect_fields + pride_min_motivation_from_trigger）+
+build_p_items.py 重标注重建 p_items.json（**无需改代码**，分类纯函数驱动；modifier
+371→385 段，implemented **1042→1056/1849**；逐条 diff 校验仅 14 条记录标注变化：
+2 pride + 12 hand_decrease）。既有断言随规则更新（test_sim_produce MODELED 34、
+test_p_items no-op 参数表移除已实现类型）。
+**评测牌组/gkbench loadout 组成不变 / 重标定**：自尊卡 score=0 且 SSR 本就不进 build_pool；
+gkbench 688 loadout / 94 唯一道具 id 无「一笔入魂」（117）也无塔 gimmick（tower）→
+**sim_engine_ab 重标定：改前/改后 64 局逐位相同（差异=0）**——seed 9000/9100 各 16 局
+rules/expectimax budget 800ms，逐局非时间字段全等（`data/_p12_ab_compare.py`，不提交）；
+expectimax 仍显著强于 rules（Δ+372.2 / +219.1 评价点，15/0/1 与 11/0/5，C+ 100%，
+0 blocked / 0 error），B3 结论保持。**旧 B11 数据/模型是旧规则口径**（用户指定全保留
+不覆盖）：阶段2 重采新 seed 块练新批再新旧对比；参照臂需按新规则重评。
+**测试/基线**：tests/test_p12_hand_decrease_pride.py **36 条**（抽牌修正/自尊公式/来源/
+双镜/解析/叶子）；ruff 通过；全量 pytest **1389/1（1390 收集 / 91 文件）**；①③④⑤ 复跑不变。
+重标定产物 out/_p12_ab_{before,after}_{9000,9100}.json（gitignore）；一次性脚本
+data/_p12_ab_compare.py / _p12_idol_map.json 不提交。
+文档：RULES_REFERENCE §0/§1/§2/§5.5/§6/§7；WORKPLAN §0/P1-2/开场白；
+HANDOVER_NEXT §0/§2/§4 T5/§8.0/§8/开场白；INDEX；HANDOVER 二·补四十五。
+提交 `feat <hash>`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
+**下一会话（P1-3，用户已确认 A 顺序，不用再问）**：⑥ hold 保留区建模（zone +
+2 件张数条件 + hotfix 1；LessonSim/ExpectState 双镜；holdCard/holdThisCard/holdSelected
+来源 + lockStanceTurns 随同；P1-1 回手钩子已就绪）。每项 DoD：参考证据+代码+单测+
+RULES_REFERENCE 更新+sim_engine_ab 重标定；旧数据模型全保留；完成后按 §8 交接+发 P1-4 开场白。
+
+**上一轮交接记录（2026-11-24，P1-1 —— 阶段1 首批：r10 行为探针 + 全力回合 + のんびり指針，BSD-3 有据）**：
 用户已确认 A 顺序首批（不用再问）。开工基线 ①–⑤ 全绿（HEAD 63bbb1f，② 1318/1、
 1319 收集 / 89 文件，216.82s）；Hindsight 记忆确认（synced=false 后台深化中属正常；
 r10 过时记忆页已 ingest Correction 纠正为「复合门未过不入库」）。

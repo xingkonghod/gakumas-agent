@@ -446,6 +446,24 @@ vs 全局 18.7065）；能量份额 small 20.9%→49.0% / large 70.9%→42.7%（
 新增 `tests/test_p1_stance_rules.py` 36 条，全量 pytest **1354 passed / 1 skipped
 （1355 收集 / 90 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.4 / R9_ANALYSIS §9 /
 WORKPLAN P1-1 / HANDOVER 二·补四十四。
+**2026-11-24 P1-2 完成**（阶段1 第二批，用户确认 A 顺序；纯离线规则，BSD-3 有据）：
+**④ handDecrease 抽牌修正**——`cardsToDraw=max(3−Σ handDecrease,0)`（参考
+`TurnManager.startTurn` + `BuffManager.setHandDecrease/getHandDecrease`；timed 列表
+合算/回合末倒计时/∞永久；**只减回合开始抽牌、卡效果抽牌不受影响**，wiki buffs.json 口径）；
+来源=主数据 `ExamGimmickStartTurnCardDrawDown`（塔 gimmick「手牌减少1∞回合」12 段，
+exam_start）；nullifyDebuff 拦截未建模如实记。**⑤ pride 自尊**——`resolveScore` f
+`min(好印象,干劲)×0.02` 上限+0.5（千分比 min×20/500，与 score_buffs 累加后一次乘；
+prideTurns 回合末 -1；score>0 门）；**来源离线可确定**（主数据+参考 DSL 交叉，
+pIdol 117/118=雨夜燕）：卡「我、绝不」turn=5、条件门出牌前干劲>=9（trigger 结构化解析，
+未知保守不给）+ P 道具「一笔入魂」turn=2/3 + 干劲+4/5（status_gain aggressive &
+好印象>=6 & limit1）。LessonSim/ExpectState 双镜 + canonical + 叶子对齐；
+sim_produce MODELED 33→34、p_items.json implemented **1042→1056/1849**（modifier 371→385，
+仅 14 条记录标注变化）；**评测牌组/gkbench loadout 组成不变**（自尊卡 score 0/SSR 不进池；
+94 唯一 loadout id 无 117/tower）→ sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，
+expectimax 仍显著强于 rules）；旧 B11 数据/模型旧规则口径全保留（阶段2 重采新批再对比）。
+新增 `tests/test_p12_hand_decrease_pride.py` 36 条（既有 no-op 参数表移除已实现类型 −1），
+全量 pytest **1389 passed / 1 skipped（1390 收集 / 91 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.5 /
+WORKPLAN P1-2 / HANDOVER 二·补四十五。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
@@ -453,8 +471,8 @@ v6 生产接线完成（engine=net opt-in，T2 第四臂）+ r9-large 完成（l
 复合门未过不入库）+ r10 完成（按场景归一化，small 收窄 39% 仍显著、large 保持 → 仍未入库）**、
 F 数据已下；
 下一步 **按多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）：
-阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；**下一会话 P1-2：handDecrease + pride**；
-剩 hold/buff-cost/P 道具语义 + T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
+阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease + pride~~ ✅ P1-2；
+**下一会话 P1-3：hold 保留区建模**；剩 buff-cost/P 道具语义 + T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
 双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
 → 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。
 需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / hold 保留区 / fresh buff /

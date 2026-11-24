@@ -2467,6 +2467,77 @@ P 道具 4 / 双镜 8 / 解析 4 / 叶子 1）；ruff 通过；全量 pytest **1
 **提交**：feat `f430451`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
 见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补四十五、11-24（P1-2 —— 阶段1 第二批：handDecrease 抽牌修正 + pride 自尊，BSD-3 有据）
+
+**来源**：HANDOVER_NEXT §8.0 多会话路线图 P1-2（用户确认 A 顺序，不用再问）。开工基线
+①–⑤ 全绿（HEAD 9e76323，② 1354/1、1355 收集 / 90 文件，183.15s）。
+
+**④ handDecrease 抽牌修正**（BSD-3 `TurnManager.startTurn` :98-104
+`cardsToDraw = Math.max(3 - getHandDecrease, 0)` + `BuffManager.setHandDecrease(amount, turns?)/
+getHandDecrease/decrementBuffTurns`（handDecreases ∈ BUFF_LIST_FIELDS / DEBUFF_LIST_FIELDS，
+按 turns 分组加算、回合末倒计时、turns=None 永久）+ 参考单测 `BuffManager.test.mjs`
+「setHandDecrease draws fewer cards」+ wiki `data/knowledge/buffs.json`「手札減少」
+（合算、≥3 抽 0、**只影响回合开始抽牌、不影响效果抽牌**））：
+`LessonSim.hand_decreases` / `ExpectState.hand_decreases`（timed 列表，-1 永久）+
+`_draw_hand` / `ExpectState.turn_draw_count` / beam 下一手 / `sim_from_state` 补手牌
+同口径 `max(hand_size−Σ,0)`；卡效果抽牌（ExamCardDraw）不受影响。来源=主数据
+`ExamGimmickStartTurnCardDrawDown`（塔阶段 gimmick「手牌减少1（∞回合）」，exam_start，
+12 段 / 6 件初星灯光紫 stage_023/026）。参考 DSL 无 setHandDecrease 用法（参考引擎标注
+UNVERIFIED）——机制按参考引擎、来源/数值按主数据+wiki，不猜。**nullifyDebuff 拦截未建模**
+（参考「nullifyDebuff blocks setHandDecrease」；本模型 ExamAntiDebuff 本就 no-op，留 P1-4
+相关）；countDebuffs（低下状態の数，含 handDecreases 条目）同未建模。
+
+**⑤ pride 自尊**（BSD-3 `resolvers.js::resolveScore` f :178-184
+`if (prideTurns) scoreBuff += Math.min(Math.min(goodImpressionTurns, motivation)*0.02, 0.5)` +
+`constants.js` EOT_DECREMENT_FIELDS :331 / WHOLE_FIELDS :415）：`LessonSim.pride_turns` /
+`ExpectState.pride_turns`；出牌分与回合末好印象在 f 段加算 `min(min(好印象,干劲)×20, 500)`
+千分比（与 score_buffs 累加后一次乘，在メタモルフォーゼ披露之后、支度/不调之前，同 B9
+口径）；prideTurns 回合末 -1（好印象结算之后）；score>0 门（纯 buff 牌不吃）。
+**来源离线可确定**（主数据+参考 DSL 交叉；pIdol 117「初志貫徹」/118「理論武装して」=
+雨夜燕 idolId 13，idols.csv/p_idols.csv 核对）：
+- 卡「我、绝不」（p_card-02-ido-3_140，SSR/理性/偶像固有，4 强化变体）
+  `ExamLessonValueMultipleDependReviewOrAggressive` turn=5 ↔ `skill_cards.csv` 632/633
+  `if:motivation>=9, prideTurns+=5; cardUsesRemaining+=1; goodImpressionTurns+=8/9; drawCard`；
+  条件门=**出牌前**干劲>=9（主数据 trigger `e_trigger-none-card_play_aggressive_up-9`
+  结构化解析 `play_choice.pride_min_motivation_from_trigger`；空 trigger=无门槛；未知
+  trigger 保守不给；本牌自己的干劲加成不算进门槛；再演 encore 翻倍）。
+- P 道具「一笔入魂/+」（pitem_02-2-117-0/1，SR）turn=2/3 + 干劲+4/5 ↔ `p_items.csv` 354/355
+  `at:motivationIncreased { if:isDirectEffect & goodImpressionTurns>=6 { prideTurns+=2/3;
+  motivation+=4/5 }; limit:1 }`（status_gain aggressive & 好印象>=6 & limit1 按道具计；
+  isDirectEffect=本模型 STATUS_GAIN 只从卡直接效果发射，P 道具给的干劲不触发）。
+
+**落地（纯增量）**：`lesson.py`/`expectimax.py`（hand_decreases/pride_turns 双镜 +
+canonical + state_from_sim/sim_from_state + 叶子快照对齐 + beam turn_draw_count）+
+`p_items.py`（HAND_DECREASE_EFFECTS/PRIDE_EFFECTS → hand_decrease/pride_turns target +
+DURATION_TARGETS + effect_value（pride 读 turn 列）+ PItemDelta.hand_decreases/pride_turns +
+_apply_modifier_target）+ `CardSpec.pride_turns/pride_min_motivation`（sim_produce
+MODELED_EFFECTS 33→34、CardRow 33→35 元组、_effect_fields 读 turn 列+trigger 门槛；
+play_choice._effect_fields 同口径）+ `build_p_items.py` 重标注重建 p_items.json
+（**无需改代码**，分类纯函数驱动；modifier 371→385 段，implemented **1042→1056/1849**；
+逐条 diff 校验仅 14 条记录标注变化：2 pride + 12 hand_decrease）。既有断言随规则更新
+（test_sim_produce MODELED 34、test_p_items no-op 参数表移除已实现类型 −1）。
+
+**评测牌组/gkbench loadout 组成不变 / 重标定**：自尊卡 score=0 且 SSR 本就不进 build_pool；
+gkbench 688 loadout / 94 唯一道具 id 无「一笔入魂」（117）也无塔 gimmick（tower）→
+**sim_engine_ab 重标定：改前/改后 64 局逐位相同（差异=0）**——seed 9000/9100 各 16 局
+rules/expectimax（budget 800ms），逐局非时间字段全等（`data/_p12_ab_compare.py`，不提交）；
+expectimax 仍显著强于 rules（Δ**+372.2**（15/0/1）/ **+219.1**（11/0/5），C+ 100%，
+0 blocked / 0 error），B3 结论保持。产物 out/_p12_ab_{before,after}_{9000,9100}.json。
+**旧 B11 数据/模型是旧规则口径**（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批再
+新旧对比；参照臂需按新规则重评。
+
+**测试/基线**：`tests/test_p12_hand_decrease_pride.py` **36 条**（抽牌修正 6 / 自尊计分 6 /
+来源 7 / 双镜 6 / 解析数据 6 / 纯函数 5）；ruff 通过；全量 pytest **1389 passed / 1 skipped
+（1390 收集 / 91 文件）**；基线 ① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、
+⑤ 366/384 逐张 1125/1155 复跑不变。一次性脚本 data/_p12_ab_compare.py /
+_p12_idol_map.json 不提交。
+
+**文档**：RULES_REFERENCE §0/§1/§2/§5.5/§6/§7；WORKPLAN §0/P1-2/开场白；
+HANDOVER_NEXT 开场白/§0/§2 期望值（1354→1389）/§4 T5/§8.0/§8；INDEX；本文件二·补四十五。
+
+**提交**：feat `<待补>`（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

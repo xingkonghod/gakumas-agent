@@ -279,6 +279,13 @@ class ExpectState:
     # 分数上升量倍率：((千分比, 剩余回合), …)，-1 = 永久；参考引擎 resolveScore f/g。
     score_buffs: tuple[tuple[int, int], ...] = ()
     score_debuffs: tuple[tuple[int, int], ...] = ()
+    # ---- P1-2（2026-11-24）：handDecrease 抽牌修正 / pride 自尊（与 LessonSim 双镜）----
+    # 手牌减少：((减少量, 剩余回合), …)，-1 = 永久；回合开始抽牌
+    # max(hand_size − Σ, 0)（参考 TurnManager.startTurn cardsToDraw）。
+    hand_decreases: tuple[tuple[int, int], ...] = ()
+    # 自尊剩余回合（prideTurns：回合末 -1；>0 时 resolveScore f 加算
+    # min(min(好印象,干劲)×20, 500) 千分比）。
+    pride_turns: int = 0
     # 其它持久倍率：((key, ((数值, 剩余回合), …)), …)，key 见 MODIFIER_TARGETS。
     # 用 tuple 存（canonical 要可哈希）；读取见 mod_total / gain_multiple。
     modifiers: tuple[tuple[str, TimedAmounts], ...] = ()
@@ -320,6 +327,12 @@ class ExpectState:
     @property
     def plays_left(self) -> int:
         return max(self.play_limit + self.extra_plays - self.plays_used, 0)
+
+    @property
+    def turn_draw_count(self) -> int:
+        """P1-2：下一回合开始抽牌数 = max(hand_size − Σ handDecrease, 0)
+        （参考 TurnManager.startTurn cardsToDraw；卡效果抽牌不受影响）。"""
+        return max(self.hand_size - total_timed(self.hand_decreases), 0)
 
     @property
     def current_turn(self) -> int:
@@ -435,6 +448,9 @@ class ExpectState:
             # B9：P 道具持久倍率 / modifier（全部影响后续价值/合法性）
             self.score_buffs,
             self.score_debuffs,
+            # P1-2：手牌减少（影响后续抽牌）/ 自尊（影响后续算分）
+            self.hand_decreases,
+            self.pride_turns,
             self.modifiers,
             self.cost_reduction,
             self.cost_increase,
@@ -663,7 +679,8 @@ def sim_from_state(
     sim.leisure_reserves = [(int(count), bool(when_save)) for count, when_save in state.leisure_reserves]
     sim.score_growth_all = int(state.score_growth_all)
     if not sim.hand and int(state.turns_left) > 0:
-        sim._draw(config.hand_size)
+        # P1-2：补手牌也按 cardsToDraw 口径扣掉 handDecrease
+        sim._draw(max(config.hand_size - total_timed(state.hand_decreases), 0))
     sim.score = int(state.score)
     sim.stamina = int(state.stamina)
     sim.stamina_max = max(int(state.stamina_max), int(state.stamina), 1)
@@ -686,6 +703,9 @@ def sim_from_state(
     # B9：持久倍率 / modifier（rollout 必须带上，否则叶子估值少算 buff）
     sim.score_buffs = tuple(state.score_buffs)
     sim.score_debuffs = tuple(state.score_debuffs)
+    # P1-2：手牌减少 / 自尊（rollout 必须带上，否则抽牌数/算分与搜索不一致）
+    sim.hand_decreases = tuple(state.hand_decreases)
+    sim.pride_turns = int(state.pride_turns)
     sim.modifiers = {key: tuple(entries) for key, entries in state.modifiers}
     sim.cost_reduction = int(state.cost_reduction)
     sim.cost_increase = int(state.cost_increase)
@@ -1031,6 +1051,8 @@ def _encore_card(card: CardSpec) -> CardSpec:
         # 熱意追加是加算层数、熱意延長是回合数：再演执行两次 → 数值翻倍
         enthusiasm_bonus=card.enthusiasm_bonus * 2,
         enthusiasm_extension=card.enthusiasm_extension * 2,
+        # P1-2：自尊回合数是直接效果（prideTurns+=N），再演同样翻倍
+        pride_turns=card.pride_turns * 2,
     )
 
 
@@ -1077,6 +1099,9 @@ def _card_award(
             raw *= 1.25
         # B9：P 道具持久分数倍率（参考引擎 resolveScore f/g；与 LessonSim 同口径）
         score_buff = total_timed(state.score_buffs)
+        # P1-2：自尊 pride（resolveScore f，与 LessonSim._card_award 同口径）
+        if state.pride_turns > 0:
+            score_buff += min(min(state.impression, state.motivation) * 20, 500)
         if score_buff:
             raw *= 1.0 + score_buff / 1000.0
         score_debuff = total_timed(state.score_debuffs)
@@ -1213,6 +1238,10 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
             enthusiasm_extension_turns=state.enthusiasm_extension_turns
             + effect_card.enthusiasm_extension,
         )
+    # P1-2：自尊（与 LessonSim._apply_card_buffs 同口径）——出牌前干劲达到
+    # 门槛才给 prideTurns（参考 if:motivation>=9；本牌干劲加成在之后才生效）。
+    if effect_card.pride_turns > 0 and state.motivation >= effect_card.pride_min_motivation:
+        state = replace(state, pride_turns=state.pride_turns + effect_card.pride_turns)
     condition_gain = effect_card.condition
     if condition_gain > 0 and state.condition_additive > 0:
         condition_gain += state.condition_additive
@@ -1949,6 +1978,11 @@ def fire_p_items(
     score_debuffs = state.score_debuffs
     for buff_amount, buff_turns in delta.score_debuffs:
         score_debuffs = add_timed(score_debuffs, buff_amount, buff_turns)
+    # P1-2：手牌减少（setHandDecrease 同口径）/ 自尊回合数（prideTurns+=N）
+    hand_decreases = state.hand_decreases
+    for hd_amount, hd_turns in delta.hand_decreases:
+        hand_decreases = add_timed(hand_decreases, hd_amount, hd_turns)
+    pride_turns = state.pride_turns + int(delta.pride_turns)
     modifiers = dict(state.modifiers)
     if delta.perfect_condition_turns:
         perfect_condition_turns += int(delta.perfect_condition_turns)
@@ -2084,6 +2118,8 @@ def fire_p_items(
         status_counts=tuple(sorted(status_counts.items())),
         score_buffs=score_buffs,
         score_debuffs=score_debuffs,
+        hand_decreases=hand_decreases,
+        pride_turns=pride_turns,
         modifiers=tuple(sorted(modifiers.items())),
         review_multiple=p_review_multiple,
         review_multiple_turns=p_review_multiple_turns,
@@ -2141,6 +2177,9 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         # 分数倍率（参考引擎 resolveScore f/g）也作用在回合末好印象上。
         review_times = max(0, state.mod_total("review_times"))
         score_buff = total_timed(state.score_buffs)
+        # P1-2：回合末好印象也吃自尊加成（与 LessonSim._end_turn 同口径）
+        if state.pride_turns > 0:
+            score_buff += min(min(impression, state.motivation) * 20, 500)
         score_debuff = total_timed(state.score_debuffs)
         for _ in range(1 + review_times):
             value = float(impression)
@@ -2165,6 +2204,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     poor_condition_turns = (
         state.poor_condition_turns - 1 if state.poor_condition_turns > 0 else 0
     )
+    # P1-2：自尊回合末 -1（参考 EOT_DECREMENT_FIELDS 的 prideTurns）
+    pride_turns = state.pride_turns - 1 if state.pride_turns > 0 else 0
     condition_additive_turns = _tick_turns(state.condition_additive_turns)
     condition_additive = state.condition_additive if condition_additive_turns != 0 else 0
     review_multiple_turns = _tick_turns(state.review_multiple_turns)
@@ -2181,6 +2222,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     # B9：P 道具持久倍率倒计时（turns>0 的 -1、到 0 移除、-1 永久）
     score_buffs = tick_timed(state.score_buffs)
     score_debuffs = tick_timed(state.score_debuffs)
+    # P1-2：手牌减少倒计时（与 LessonSim._end_turn 同口径）
+    hand_decreases = tick_timed(state.hand_decreases)
     modifiers = tuple(sorted(timed_dict_tick(dict(state.modifiers)).items()))
     half_cost_turns = state.half_cost_turns - 1 if state.half_cost_turns > 0 else 0
     double_cost_turns = (
@@ -2221,6 +2264,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         enthusiasm_multiple_turns=enthusiasm_multiple_turns,
         score_buffs=score_buffs,
         score_debuffs=score_debuffs,
+        hand_decreases=hand_decreases,
+        pride_turns=pride_turns,
         modifiers=modifiers,
         half_cost_turns=half_cost_turns,
         double_cost_turns=double_cost_turns,
@@ -2927,7 +2972,8 @@ def search_beam(
                     break
                 start = sample_draws(
                     node.plan.end_state,
-                    node.plan.end_state.hand_size,
+                    # P1-2：回合开始抽牌数扣掉 handDecrease（参考 cardsToDraw）
+                    node.plan.end_state.turn_draw_count,
                     rng,
                     reshuffle=reshuffle,
                 )
@@ -3097,6 +3143,9 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         # B9：持久倍率 / modifier（与 sim_from_state 双镜）
         score_buffs=tuple(getattr(sim, "score_buffs", ())),
         score_debuffs=tuple(getattr(sim, "score_debuffs", ())),
+        # P1-2：手牌减少 / 自尊（与 sim_from_state 双镜）
+        hand_decreases=tuple(getattr(sim, "hand_decreases", ())),
+        pride_turns=max(int(getattr(sim, "pride_turns", 0)), 0),
         modifiers=tuple(
             sorted(
                 (str(key), tuple(tuple(entry) for entry in entries))

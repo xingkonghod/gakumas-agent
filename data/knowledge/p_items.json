@@ -232,7 +232,7 @@
   "effects_depends_on": 65,
   "effects_percent_max": 9,
   "effects_zero_stack": 3,
-  "effects_modifier": 371,
+  "effects_modifier": 385,
   "effects_modifier_targets": {
    "score_buff": 93,
    "cost_increase": 32,
@@ -248,6 +248,7 @@
    "extra_turn": 12,
    "impression_gain": 7,
    "review_multiple": 9,
+   "pride_turns": 2,
    "impression_reduce": 5,
    "motivation_gain": 5,
    "enthusiasm_bonus": 9,
@@ -255,9 +256,10 @@
    "full_power_charge": 8,
    "stance_leisure": 2,
    "stance_concentration": 2,
+   "hand_decrease": 12,
    "review_times": 4
   },
-  "items_with_modifier": 298,
+  "items_with_modifier": 300,
   "items_text_limit": 896
  },
  "items": [
@@ -20246,6 +20248,7 @@
      },
      "text": "自尊（回合）",
      "max_uses": 0,
+     "target": "pride_turns",
      "label": "自尊"
     },
     {
@@ -20288,6 +20291,7 @@
      },
      "text": "自尊（回合）",
      "max_uses": 0,
+     "target": "pride_turns",
      "label": "自尊"
     },
     {
@@ -34386,6 +34390,7 @@
      },
      "text": "手牌减少（∞回合）主动技能卡不可使用",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -34567,6 +34572,7 @@
      },
      "text": "手牌减少（∞回合）（训练内1次）",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -35476,6 +35482,7 @@
      },
      "text": "手牌减少（∞回合）主动技能卡不可使用",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -35648,6 +35655,7 @@
      },
      "text": "手牌减少（∞回合）（训练内1次）",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -36269,6 +36277,7 @@
      },
      "text": "手牌减少（∞回合）主动技能卡不可使用",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -36441,6 +36450,7 @@
      },
      "text": "手牌减少（∞回合）（训练内1次）",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -37083,6 +37093,7 @@
      },
      "text": "手牌减少（∞回合）主动技能卡不可使用",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -37255,6 +37266,7 @@
      },
      "text": "手牌减少（∞回合）（训练内1次）",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -38181,6 +38193,7 @@
      },
      "text": "手牌减少（∞回合）主动技能卡不可使用",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -38353,6 +38366,7 @@
      },
      "text": "手牌减少（∞回合）（训练内1次）",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -39290,6 +39304,7 @@
      },
      "text": "手牌减少（∞回合）主动技能卡不可使用",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],
@@ -39462,6 +39477,7 @@
      },
      "text": "手牌减少（∞回合）（训练内1次）",
      "max_uses": 0,
+     "target": "hand_decrease",
      "label": "手牌减少"
     }
    ],

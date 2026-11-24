@@ -417,6 +417,14 @@ class CardSpec:
     # 证据：stance.LEISURE_RESERVE_SOURCES（BSD-3 skill_cards.csv 逐卡交叉）。
     leisure_reserve: int = 0
     leisure_reserve_when_save: bool = True
+    # ---- P1-2 2026-11-24：自尊 pride（ExamLessonValueMultipleDependReviewOrAggressive）----
+    # 打出后 prideTurns += N（参考 skill_cards.csv 632/633「私は、決して」prideTurns+=5；
+    # 主数据卡表 turn 列）。pride_min_motivation 是触发门槛（参考 conditions
+    # if:motivation>=9，主数据 trigger e_trigger-none-card_play_aggressive_up-9）：
+    # 出牌前干劲 >= 门槛才给自尊；0 = 无门槛。 prideTurns > 0 期间出牌分/回合末
+    # 好印象分享受 resolveScore f 的 min(好印象,干劲)×0.02（上限 +0.5）加成。
+    pride_turns: int = 0
+    pride_min_motivation: int = 0
 
 
 @dataclass(frozen=True)
@@ -550,6 +558,15 @@ class LessonSim:
         self.score_buffs: tuple[tuple[int, int], ...] = ()
         # 分数上升量减少（resolveScore g：score *= max(1−Σ, 0)）
         self.score_debuffs: tuple[tuple[int, int], ...] = ()
+        # ---- P1-2（2026-11-24）：handDecrease 抽牌修正 / pride 自尊 ------------
+        # 手牌减少：((减少量, 剩余回合), …)，-1 = 永久（参考 BuffManager.handDecreases
+        # 列表：setHandDecrease(amount, turns?) 按 turns 分组加算、回合末倒计时）。
+        # 回合开始抽牌 max(hand_size − Σ, 0)（TurnManager.startTurn cardsToDraw）；
+        # 只影响回合开始抽牌，不影响卡效果抽牌（wiki buffs.json 口径）。
+        self.hand_decreases: tuple[tuple[int, int], ...] = ()
+        # 自尊剩余回合（参考 prideTurns：EOT_DECREMENT_FIELDS 回合末 -1；
+        # >0 时 resolveScore f 加算 min(min(好印象,干劲)×20, 500) 千分比）。
+        self.pride_turns: int = 0
         # 其它持久倍率：key -> ((数值, 剩余回合), …)
         # （review_times / concentration_effect / concentration_gain / impression_gain /
         #   motivation_gain / full_power_charge）
@@ -940,6 +957,8 @@ class LessonSim:
             # 熱意追加是加算层数、熱意延長是回合数：再演执行两次 → 数值翻倍
             enthusiasm_bonus=card.enthusiasm_bonus * 2,
             enthusiasm_extension=card.enthusiasm_extension * 2,
+            # P1-2：自尊回合数是直接效果（prideTurns+=N），再演同样翻倍
+            pride_turns=card.pride_turns * 2,
         )
 
     def _card_award(self, card: CardSpec, *, uses: int = 0) -> int:
@@ -1018,6 +1037,10 @@ class LessonSim:
                 raw *= 1.25
             # B9：P 道具持久分数倍率（参考引擎 resolveScore f/g）
             score_buff = total_timed(self.score_buffs)
+            # P1-2：自尊 pride（resolveScore f）——prideTurns>0 时加算
+            # min(min(好印象,干劲)×0.02, 0.5)，千分比即 min(min×20, 500)。
+            if self.pride_turns > 0:
+                score_buff += min(min(self.buffs.impression, self.motivation) * 20, 500)
             if score_buff:
                 raw *= 1.0 + score_buff / 1000.0
             score_debuff = total_timed(self.score_debuffs)
@@ -1199,6 +1222,11 @@ class LessonSim:
             )
         if card.enthusiasm_extension > 0:
             self.enthusiasm_extension_turns += card.enthusiasm_extension
+        # P1-2：自尊（ExamLessonValueMultipleDependReviewOrAggressive）——
+        # 出牌前干劲达到门槛才给 prideTurns（参考 if:motivation>=9 条件门；
+        # 本牌自己的干劲加成在之后才生效，门槛用出牌前的层数）。
+        if card.pride_turns > 0 and self.motivation >= card.pride_min_motivation:
+            self.pride_turns += card.pride_turns
 
         condition_gain = card.condition
         if condition_gain > 0 and self.buffs.condition_additive > 0:
@@ -1458,6 +1486,12 @@ class LessonSim:
                 self.score_debuffs = add_timed(
                     self.score_debuffs, buff_amount, buff_turns
                 )
+        # P1-2：手牌减少（setHandDecrease 同口径 timed 列表）/ 自尊回合数
+        if delta.hand_decreases:
+            for hd_amount, hd_turns in delta.hand_decreases:
+                self.hand_decreases = add_timed(self.hand_decreases, hd_amount, hd_turns)
+        if delta.pride_turns:
+            self.pride_turns += int(delta.pride_turns)
         for key, mod_value, mod_turns in delta.modifiers:
             if key == "review_multiple":
                 # 好印象强化：与卡效果共用 Buffs.review_multiple 渠道（千分比）
@@ -1628,6 +1662,10 @@ class LessonSim:
             # GOOD_IMPRESSION_EFFECTS 的 goodImpressionTurnsTimesBuffs）。
             review_times = max(0, self._mod_total("review_times"))
             score_buff = total_timed(self.score_buffs)
+            # P1-2：回合末好印象也走 resolveScore f，自尊加成同样生效
+            # （用结算时的好印象/干劲层数，与出牌分同口径）。
+            if self.pride_turns > 0:
+                score_buff += min(min(self.buffs.impression, self.motivation) * 20, 500)
             score_debuff = total_timed(self.score_debuffs)
             turn_bonus = self._turn_bonus_permil()
             for _ in range(1 + review_times):
@@ -1662,6 +1700,10 @@ class LessonSim:
             self.buffs.perfect_condition_turns -= 1
         if self.buffs.poor_condition_turns > 0:
             self.buffs.poor_condition_turns -= 1
+        # P1-2：自尊回合末 -1（参考 EOT_DECREMENT_FIELDS 的 prideTurns，
+        # 在好印象结算之后倒计时；WHOLE_FIELDS 整数资源）。
+        if self.pride_turns > 0:
+            self.pride_turns -= 1
         # 持续类 buff 剩余回合 -1；到 0 后同时清掉倍率，永久（-1）保持
         self.buffs.condition_additive_turns = _tick_buff_turns(
             self.buffs.condition_additive_turns
@@ -1691,6 +1733,9 @@ class LessonSim:
         # turns>0 的 -1、到 0 移除、-1 永久保持）。
         self.score_buffs = tick_timed(self.score_buffs)
         self.score_debuffs = tick_timed(self.score_debuffs)
+        # P1-2：手牌减少倒计时（参考 decrementBuffTurns 对 handDecreases 列表：
+        # turns>0 的 -1、到 0 移除、永久保持）。
+        self.hand_decreases = tick_timed(self.hand_decreases)
         self.modifiers = timed_dict_tick(self.modifiers)
         if self.half_cost_turns > 0:
             self.half_cost_turns -= 1
@@ -1817,7 +1862,9 @@ class LessonSim:
             self.extra_plays = 0
         self.drinks_used_this_turn = 0
         self.hand.clear()
-        self._draw(self.config.hand_size)
+        # P1-2：回合开始抽牌 = max(hand_size − Σ handDecrease, 0)（参考
+        # TurnManager.startTurn cardsToDraw；只减回合开始抽牌，卡效果抽牌不受影响）。
+        self._draw(max(self.config.hand_size - total_timed(self.hand_decreases), 0))
         # P 道具：回合开始（抽完手牌后、出牌前）
         self._fire_p_items(TURN_START)
         # B8：回合开始后 / 每 N 回合（新语法触发 id 的两种时机，同一位置发射）

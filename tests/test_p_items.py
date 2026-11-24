@@ -274,8 +274,9 @@ def test_condition_false_blocks_trigger() -> None:
 @pytest.mark.parametrize(
     "effect_type",
     [
-        # B9 起 ExamLessonValueMultiple 已实现（持久分数倍率）；这里留真正没建模的：
-        "ExamLessonValueMultipleDependReviewOrAggressive",  # 自尊（依赖换算顺序未建模）
+        # B9 起 ExamLessonValueMultiple 已实现（持久分数倍率）；P1-2 起
+        # ExamLessonValueMultipleDependReviewOrAggressive 已实现（自尊 pride_turns，
+        # 见 tests/test_p12_hand_decrease_pride.py）；这里留真正没建模的：
         "ExamConcentration",  # 指針直给必须先有「强气变更」文本，否则保守 no-op（B9）
         "ExamPreservation",  # 同上（「温存变更」文本才触发）
         "ExamCardCreateId",  # 生成卡：未标注 create（随机/卡名未知）仍 no-op；确定式见 B10

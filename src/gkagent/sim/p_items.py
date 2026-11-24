@@ -115,6 +115,26 @@ COST_INCREASE_EFFECTS = frozenset({"ExamStaminaConsumptionAddFix"})  # 消耗体
 HALF_COST_EFFECTS = frozenset({"ExamStaminaConsumptionDown"})  # 消耗体力减少（回合）
 DOUBLE_COST_EFFECTS = frozenset({"ExamStaminaConsumptionAdd"})  # 消耗体力增加（回合）
 IMPRESSION_REDUCE_EFFECTS = frozenset({"ExamReviewReduce"})  # 好印象减少
+# ---- P1-2（2026-11-24）：handDecrease 抽牌修正 / pride 自尊 ------------------
+# 语义来源：gakumas-tools 参考引擎（BSD-3）
+#   * ``engine/TurnManager.js::startTurn``：``cardsToDraw = max(3 − getHandDecrease, 0)``；
+#   * ``engine/BuffManager.js``：``setHandDecrease(amount, turns?)`` 进 ``handDecreases``
+#     列表（按 turns 分组、amount 加算、turns=None 永久），回合末倒计时；
+#     ``getHandDecrease`` = Σ amount。wiki ``buffs.json``「手札減少」：只影响回合开始
+#     抽牌、不影响效果抽牌，合算 ≥3 时抽 0 张；
+#   * ``Executor/resolvers.js::resolveScore`` f：``prideTurns > 0`` 时
+#     ``scoreBuff += min(min(goodImpressionTurns, motivation) × 0.02, 0.5)``；
+#   * ``constants.js``：``prideTurns`` ∈ EOT_DECREMENT_FIELDS（回合末 -1）/
+#     WHOLE_FIELDS（整数资源）。
+# 来源（主数据 + 参考 DSL 交叉验证，见 RULES_REFERENCE §5.5）：
+#   * ``ExamGimmickStartTurnCardDrawDown`` = 塔阶段 gimmick「手牌减少1（∞回合）」
+#     （exam_start，12 段）；参考 DSL 无对应用法（setHandDecrease 标注 UNVERIFIED，
+#     机制按参考引擎实现、来源按主数据 + wiki 口径）；
+#   * ``ExamLessonValueMultipleDependReviewOrAggressive`` = 自尊（pride）回合数：
+#     卡「我、绝不」turn=5（skill_cards.csv 632/633 prideTurns+=5）/ P 道具「一笔入魂」
+#     turn=2/3（p_items.csv 354/355 prideTurns+=2/3；pIdol 117/118 = 雨夜燕）。
+HAND_DECREASE_EFFECTS = frozenset({"ExamGimmickStartTurnCardDrawDown"})  # 手牌减少
+PRIDE_EFFECTS = frozenset({"ExamLessonValueMultipleDependReviewOrAggressive"})  # 自尊回合
 STANCE_EFFECT_TARGETS = {
     "ExamPreservation": "stance_preservation",
     "ExamConcentration": "stance_concentration",
@@ -143,6 +163,9 @@ TARGET_BY_EFFECT: dict[str, str] = {
     **{effect: "half_cost_turns" for effect in HALF_COST_EFFECTS},
     **{effect: "double_cost_turns" for effect in DOUBLE_COST_EFFECTS},
     **{effect: "impression_reduce" for effect in IMPRESSION_REDUCE_EFFECTS},
+    # P1-2（2026-11-24）：抽牌修正 / 自尊
+    **{effect: "hand_decrease" for effect in HAND_DECREASE_EFFECTS},
+    **{effect: "pride_turns" for effect in PRIDE_EFFECTS},
 }
 
 #: 百分比类目标：effect.values.percent1 是「人类百分比」（50 = +50%），
@@ -178,6 +201,8 @@ DURATION_TARGETS = frozenset(
         "double_cost_turns",
         "perfect_condition_turns",
         "poor_condition_turns",
+        # P1-2：手牌减少的持续回合（主数据 gimmick 无 turn 列 = ∞ 永久）
+        "hand_decrease",
     }
 )
 #: 纯标记类目标（数值固定 1 / 只看触发时机）。
@@ -481,6 +506,11 @@ class PItemDelta:
     # (千分比, 剩余回合)，remaining=-1 = 永久。
     score_buffs: list[tuple[int, int]] = field(default_factory=list)
     score_debuffs: list[tuple[int, int]] = field(default_factory=list)
+    # P1-2（2026-11-24）：手牌减少（参考 handDecreases 列表：(减少量, 剩余回合)，
+    # -1 = 永久；回合开始抽牌 max(hand_size − Σ, 0)）；自尊回合数（prideTurns+=N，
+    # EOT 倒计时整数资源，不是 timed 列表）。
+    hand_decreases: list[tuple[int, int]] = field(default_factory=list)
+    pride_turns: int = 0
     # 其它持久倍率：key -> (千分比/数值, 剩余回合)。key 见 MODIFIER_TARGETS。
     modifiers: list[tuple[str, int, int]] = field(default_factory=list)
     # 固定/百分比费用修正（永久，整场累计）；half/double 是「接下来 N 回合」计数器
@@ -511,6 +541,8 @@ class PItemDelta:
             or self.zero_stacks
             or self.score_buffs
             or self.score_debuffs
+            or self.hand_decreases
+            or self.pride_turns
             or self.modifiers
             or self.cost_reduction
             or self.cost_increase
@@ -534,6 +566,8 @@ class PItemDelta:
             "zero_stacks": list(self.zero_stacks),
             "score_buffs": list(self.score_buffs),
             "score_debuffs": list(self.score_debuffs),
+            "hand_decreases": list(self.hand_decreases),
+            "pride_turns": self.pride_turns,
             "modifiers": list(self.modifiers),
             "create_cards": list(self.create_cards),
         }
@@ -549,6 +583,8 @@ class PItemDelta:
         self.applied.extend(other.applied)
         self.score_buffs.extend(other.score_buffs)
         self.score_debuffs.extend(other.score_debuffs)
+        self.hand_decreases.extend(other.hand_decreases)
+        self.pride_turns += other.pride_turns
         self.modifiers.extend(other.modifiers)
         self.cost_reduction += other.cost_reduction
         self.cost_increase += other.cost_increase
@@ -572,6 +608,8 @@ class PItemDelta:
             applied=list(self.applied),
             score_buffs=list(self.score_buffs),
             score_debuffs=list(self.score_debuffs),
+            hand_decreases=list(self.hand_decreases),
+            pride_turns=self.pride_turns,
             modifiers=list(self.modifiers),
             cost_reduction=self.cost_reduction,
             cost_increase=self.cost_increase,
@@ -721,6 +759,8 @@ def effect_value(effect: Mapping, target: str | None = None) -> int:
         "double_cost_turns",
         "perfect_condition_turns",
         "poor_condition_turns",
+        # P1-2：自尊的数值就是回合数（values.turn；参考 prideTurns+=N）
+        "pride_turns",
     ):
         return int(values.get("turn") or 0)
     if effect.get("type") == "ExamPlayableValueAdd":
@@ -1044,6 +1084,18 @@ def _apply_modifier_target(spec: PItemSpec, target: str, delta: PItemDelta) -> b
             delta.score_buffs.append(entry)
         else:
             delta.score_debuffs.append(entry)
+        return True
+    # P1-2（2026-11-24）：手牌减少（timed 列表，参考 setHandDecrease）/
+    # 自尊回合数（prideTurns+=N，EOT 倒计时整数资源）。
+    if target == "hand_decrease":
+        if spec.value <= 0:
+            return False
+        delta.hand_decreases.append((spec.value, normalize_turns(turns)))
+        return True
+    if target == "pride_turns":
+        if spec.value <= 0:
+            return False
+        delta.pride_turns += spec.value
         return True
     if target in PERCENT_TARGETS:  # review_multiple / enthusiasm_multiple / 增益倍率…
         if spec.value <= 0:

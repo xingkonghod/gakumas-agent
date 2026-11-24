@@ -22,6 +22,9 @@ from typing import NamedTuple
 ROOT = Path(r"D:\Games\gakumas-agent")
 sys.path.insert(0, str(ROOT / "src"))
 
+from gkagent.sim.play_choice import (
+    pride_min_motivation_from_trigger,  # P1-2 自尊条件门（主数据 trigger 解析）
+)
 from gkagent.sim.stance import leisure_reserve_for  # P1-1 のんびり预约证据表
 
 CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
@@ -32,6 +35,7 @@ CARD_TABLE = ROOT / "data" / "knowledge" / "card_table.json"
 # 与训练无关；出牌干劲→motivation）。近似口径与误差方向见 sim/lesson.py 模块 docstring。
 # 2026-11-22 T5②：熱意追加/増加/適用倍数 三种接入 → 32 种。
 # 2026-11-24 P1-1：のんびり预约 ExamOverPreservation 接入 → 33 种。
+# 2026-11-24 P1-2：自尊 ExamLessonValueMultipleDependReviewOrAggressive 接入 → 34 种。
 MODELED_EFFECTS = {
     "ExamLesson",
     "ExamBlock",
@@ -69,6 +73,8 @@ MODELED_EFFECTS = {
     "ExamMultipleEnthusiasticLesson",
     # ---- P1-1 2026-11-24 のんびり预约（ExamOverPreservation）----
     "ExamOverPreservation",
+    # ---- P1-2 2026-11-24 自尊（pride，「我、绝不」p_card-02-ido-3_140）----
+    "ExamLessonValueMultipleDependReviewOrAggressive",
 }
 # 卡表里的效果名和卡面语义容易对反，以下以游戏 master 的卡面文本（卡名 + 效果）为准：
 #   准备运动「打分+6 / 集中+2」     -> ExamLessonBuff [2]       = 集中
@@ -136,6 +142,9 @@ class CardRow(NamedTuple):
     # ---- P1-1 2026-11-24 のんびり预约（ExamOverPreservation）----
     leisure_reserve: int = 0          # 剩余触发次数（-1 永久，0 无）
     leisure_reserve_when_save: bool = True  # True 温存中触发 / False 非温存触发
+    # ---- P1-2 2026-11-24 自尊（ExamLessonValueMultipleDependReviewOrAggressive）----
+    pride_turns: int = 0              # 自尊回合数（prideTurns+=N，turn 列）
+    pride_min_motivation: int = 0     # 触发门槛：出牌前干劲 >= N（0 = 无门槛）
 
 
 def _buff_turns(effect: dict) -> int:
@@ -154,7 +163,7 @@ def _merge_turns(current: int, new: int) -> int:
 def _effect_fields(row: dict) -> tuple[int, ...]:
     """从卡表一行的 ``effects`` 提取可喂给 ``CardSpec`` 的字段。
 
-    返回 33 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
+    返回 35 元组（前 14 位是 2026-11-15 的旧口径，索引保持不变）：
 
     =====  ============================================================
     索引   字段
@@ -192,6 +201,8 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     30     ``enthusiasm_multiplier``（ExamMultipleEnthusiasticLesson 本牌熱意適用倍数‰）
     31     ``leisure_reserve``（P1-1 ExamOverPreservation のんびり预约次数，-1 永久）
     32     ``leisure_reserve_when_save``（True 温存中触发 / False 非温存触发）
+    33     ``pride_turns``（P1-2 ExamLessonValueMultipleDependReviewOrAggressive 自尊回合数）
+    34     ``pride_min_motivation``（自尊触发门槛：出牌前干劲 >= N，0 = 无门槛）
     =====  ============================================================
 
     字段语义以游戏 master 卡面文本为准，effect 名容易误读：
@@ -251,6 +262,8 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
     enthusiasm_multiplier = 1000
     leisure_reserve = 0
     leisure_reserve_when_save = True
+    pride_turns = 0
+    pride_min_motivation = 0
     approx_draw = 0
 
     def absorb(effects: list[dict]) -> None:
@@ -265,6 +278,7 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         nonlocal enthusiasm_multiple, enthusiasm_multiple_turns
         nonlocal enthusiasm_extension, enthusiasm_multiplier
         nonlocal leisure_reserve, leisure_reserve_when_save
+        nonlocal pride_turns, pride_min_motivation
         for effect in effects or []:
             kind = effect.get("type")
             values = [v for v in effect.get("values") or [] if v]
@@ -286,6 +300,18 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
                 if reserve != 0:
                     leisure_reserve = reserve
                     leisure_reserve_when_save = when_save
+                continue
+            if kind == "ExamLessonValueMultipleDependReviewOrAggressive":
+                # P1-2：自尊（values 恒空，turn 列 = prideTurns 回合数；参考
+                # skill_cards.csv 632/633「私は、決して」prideTurns+=5）。条件门
+                # 解析主数据 trigger card_play_aggressive_up-N（参考 if:motivation>=N）；
+                # 未知 trigger 保守不给自尊。
+                turns = int(effect.get("turn") or 0)
+                if turns > 0:
+                    gate = pride_min_motivation_from_trigger(str(row.get("trigger") or ""))
+                    if gate is not None:
+                        pride_turns = max(pride_turns, turns)
+                        pride_min_motivation = max(pride_min_motivation, gate)
                 continue
             if kind in ("ExamForcePlayCardSearch", "ExamCardCreateId", "ExamCardMove"):
                 # 检索/生成/移回手牌 → 至少 +1 抽牌（低估，见 docstring）；
@@ -438,6 +464,8 @@ def _effect_fields(row: dict) -> tuple[int, ...]:
         enthusiasm_multiplier,
         leisure_reserve,
         leisure_reserve_when_save,
+        pride_turns,
+        pride_min_motivation,
     )
 
 
@@ -485,7 +513,7 @@ def build_deck(*, rich: bool = False) -> list[CardRow] | list[LegacyCardRow]:
 
 
 def _rich_row(name: str, cost: int, fields: tuple[int, ...]) -> CardRow:
-    """把 ``_effect_fields`` 的 31 元组按顺序转成 rich ``CardRow``。"""
+    """把 ``_effect_fields`` 的 35 元组按顺序转成 rich ``CardRow``。"""
     return CardRow(name, cost, *fields)
 
 
@@ -580,6 +608,8 @@ def _spec_from_row(row: CardRow | LegacyCardRow):
             enthusiasm_multiplier=row.enthusiasm_multiplier,
             leisure_reserve=row.leisure_reserve,
             leisure_reserve_when_save=row.leisure_reserve_when_save,
+            pride_turns=row.pride_turns,
+            pride_min_motivation=row.pride_min_motivation,
         )
     name, cost, score, condition, focus = row
     return CardSpec(name=name, cost=cost, score=score, condition=condition, focus=focus)

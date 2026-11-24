@@ -27,6 +27,7 @@ anytime：总预算 ``time_budget_ms`` 用完就返回当前最优；第一轮�
 
 from __future__ import annotations
 
+import re
 import statistics
 import time
 from collections.abc import Callable, Iterable
@@ -120,6 +121,26 @@ def _effect_turns(effect: dict) -> int:
     return -1 if turn < 0 else max(1, turn)
 
 
+# P1-2（2026-11-24）：自尊卡的条件门（主数据 trigger → 最低干劲）。
+_RE_PRIDE_TRIGGER = re.compile(r"card_play_aggressive_up-(\d+)")
+
+
+def pride_min_motivation_from_trigger(trigger: str) -> int | None:
+    """自尊（pride）卡触发门槛：``e_trigger-none-card_play_aggressive_up-N`` → N。
+
+    参考 DSL ``conditions`` 列 ``if:motivation>=N``（BSD-3 skill_cards.csv
+    632/633「私は、決して」= 主数据「我、绝不」p_card-02-ido-3_140，N=9 交叉验证）。
+    空 trigger → 0（无门槛）；其它认不出的 trigger → None（调用方保守不给自尊）。
+    """
+    text = (trigger or "").strip()
+    if not text:
+        return 0
+    match = _RE_PRIDE_TRIGGER.search(text)
+    if match:
+        return int(match.group(1))
+    return None
+
+
 def _merge_effect_turns(current: int, new: int) -> int:
     """合并同类型持续效果的回合：任一永久则永久，否则取更长。"""
     if current < 0 or new < 0:
@@ -152,6 +173,9 @@ def _effect_fields(row: dict) -> dict[str, int]:
         # P1-1（2026-11-24）：のんびり预约（ExamOverPreservation）
         "leisure_reserve": 0,
         "leisure_reserve_when_save": True,
+        # P1-2（2026-11-24）：自尊 pride（ExamLessonValueMultipleDependReviewOrAggressive）
+        "pride_turns": 0,
+        "pride_min_motivation": 0,
     }
     mapping = {
         "ExamLessonBuff": "condition",
@@ -186,6 +210,20 @@ def _effect_fields(row: dict) -> dict[str, int]:
             if reserve != 0:
                 fields["leisure_reserve"] = reserve
                 fields["leisure_reserve_when_save"] = when_save
+            continue
+        if kind == "ExamLessonValueMultipleDependReviewOrAggressive":
+            # P1-2：自尊回合数（values 恒空，turn 列 = N；参考 skill_cards.csv
+            # 632/633 prideTurns+=5）。条件门解析主数据 trigger 的
+            # card_play_aggressive_up-N（参考 if:motivation>=N）；未知 trigger
+            # 保守不给自尊（不猜条件）。
+            turns = int(effect.get("turn") or 0)
+            if turns > 0:
+                gate = pride_min_motivation_from_trigger(str(row.get("trigger") or ""))
+                if gate is not None:
+                    fields["pride_turns"] = max(fields["pride_turns"], turns)
+                    fields["pride_min_motivation"] = max(
+                        fields["pride_min_motivation"], gate
+                    )
             continue
         if not values:
             continue
