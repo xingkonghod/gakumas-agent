@@ -230,3 +230,34 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
 - **F1**：用同题同种子把我们的 `LessonSim` 判官和官方分对齐（口径校准，先分清裁判差异）；
 - **F2**：public-safe 适配器（不看 seed）→ 托管提交 → 按 ranked 榜口径（vs best-known 几何平均）对比；
 - **离线研究**：公开 route/步骤可当 UINet/UIHorizon/官方 AI 的行为参照（教师数据方向，注意不用于 ranked）。
+
+## 8. 2026-11-25 F2 投稿启动（用户选定先投排行试水）
+
+- **live 榜单快照 + 新竞争者情报**见 [COMPARE.md §2.2](COMPARE.md)（2026-11-25）：纯画面 public-safe 天花板
+  UINet 2.1 = 578,722（0.4551 vs best-known，rules 59）；新进步 jayalbertzhao PPO 微调 575,585（rules 67）、
+  kirinigh UINet 2.1 vs oracle 0.685（rules 65 sense 子集 n=3，即用户说的「68.5%」，口径不同不可直接比）。
+- **投哪个**：我们最强 public-safe = **B11 学生网 r13**（`data/knowledge/ei_policy_v6.json`，离线 large 316.8 > beam 301.6）。
+  beam+全知更强但用种子 → 不能上 ranked（privileged/sees_seed）。
+- **托管可行性**：`needs_gkms=False` 纯画面算法，`python -m gkbench eval` 只需 gkbench 包 + 令牌（引擎在服务器跑，
+  算法只读 ctx.obs 交动作），**Windows 本机可跑**，不需本地 GKMS 引擎。令牌已在 `~/.config/gkbench/token`。
+- **F2 适配器硬约束**：投稿 algo.py 在 gkbench 环境（Python 3.12 + numpy/onnxruntime/pyyaml/GKMS）跑，
+  **不能 import gkagent**——须自包含打包 MLP 前向 + 137 维特征提取（leaf_mlp.features 104 + action_features 33）+
+  UIObs→ExpectState 映射 + 卡表。status 种类码见 `data/GKMSUINet/gkms_uinet/data/uiobs.v1.schema.json`
+  （lesson_buff/review/aggressive/full_power_point/enthusiastic/parameter_buff…）。**集中 focus 的 UIObs 来源待查清**。
+- **状态**：✅ **适配器完成 + 两次 240 局托管试跑**（子智能体 f2-adapter，2026-11-25）。投稿目录
+  `data/bench_repo/submissions/gkagent-ei-r13/`（algo.py 自包含 numpy+标准库 / card_profiles.json 生产代码预计算 /
+  ei_policy_v6.json r13 权重 / submission.json label=gkagent-ei-r13 author=xingkonghod / test_adapter.py 249 项检查全过 /
+  README.md / RESULTS.md）。**增强版（补考试成长 g+定制 c 透明子集≈97%）240 局均分 86,988，0 错误/0 超时**
+  （基础版 81,523）；≈greedy（87,571）、约 UINet 18%。运行编号 template-hif-gkagent-ei-r13-cgaug-xingkonghod-d20fda5881ec。
+- **根因（为什么 sim 训练的网到官方引擎只到 greedy）**：**不是映射错**（与生产逐位对拍误差 0、7642 步真实回放 0 违规、
+  249 检查全过）；**主因=训练/考试分布鸿沟**——考试分 0–927k vs 训练 0–450、属性倍率 20–48×，score 维 OOD |z|=398、
+  vitality 43.8、card_block_scale 94（训练池限 score≤60 排 SSR）；104 维中 75 维在 2σ 内，OOD 恰是分数/buff 量级维。
+  次因=sim 不建模饮料/P道具效果/回忆/支援卡/gimmick（rules 67 含这些）；aggressive/parameter_buff 题最弱、review 题最好。
+  **战略结论：自有 sim 训练的策略迁到官方 GKMS 引擎大幅缩水；要在 gkbench 竞争需直接在官方引擎尺度训练（UINet/PPO 路线）**。
+- **全量投稿命令**（cd data/bench_repo）：核心 960（120×8，排行默认口径，≈9 分钟）
+  `..\..\.venv\Scripts\python.exe -m gkbench eval --set hif --algo submissions/gkagent-ei-r13/algo.py:EiR13Algo`；
+  全部 505×32=16,160 局加 `--full`（≈2.5h，不改默认排名需 scope=all）；505×2 加 `--full --seeds 2`（≈10 分钟）。
+  中断 `--resume <编号>`。环境：.venv 装了 httpx+zstandard（gkbench 客户端依赖）；`gkbench submissions check`
+  Windows 跑不了（fcntl 仅 Unix），用等价脚本手工校验过；eval/hosted 不受影响。
+- **口径警示**：我们 sim 标定 rules 55，官方榜 rules 59/65/67；学生网在自有 sim 训练，迁到官方引擎分数可能缩水
+  （用户已预期「分不高」）。F1 判官对齐尚未做。

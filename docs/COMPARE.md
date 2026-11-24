@@ -45,6 +45,27 @@ B3 补的是"模拟器回合规则与真机对齐"（每回合基础 1 张 + 跳
 | **auto-gakumas** | **每战在线训练** Maskable PPO（纯 NumPy 2000 eps ~60s，gamma=1.0）+ 每步 **64 次 SO-ISMCTS**（determinized PUCT，value_weight=0.35）；AST 执行 gakumas-data DSL；信息集安全特征（无 seed） | 离线 W9 真卡组 eval30 均值 **477,670**（bestVal 466,850）；PBRS 塑形负结果 **−26,884**（纯分最佳，与我们 B2 负结果同向）；真机数字见 §2.1（**口径不同，不可与 gkbench/我们离线分直接比**） |
 | **gkbench 基准分母** | oracle（多起点 best-known） | 均值 **1,452,088**（n=960） |
 
+**2026-11-25 live 榜单快照（`/api/leaderboard?set=hif&kind=template`，全量 960 局可比行）**：
+best-known 1,452,088（分母）/ UIHorizon v2.1-Kummer **631,129（0.5113）** / v2.0-Freiheit 636,109（0.5017）/
+**UINet Ver2.1-Kummer 578,722（0.4551，纯画面 public-safe 天花板）** / UIHorizon v2.2-Gratwanderung 571,828（0.4604）/
+uinet Ver1.1 469,890（0.3740）/ official-ai 232,710（0.2131）/ hiro-rules 95,341 / greedy 87,571 / random 26,436。
+⚠️ UIHorizon 系虽高但**从画面反推种子**（sees_seed=true，属「看牌序」类），与纯画面算法不同赛道。
+
+**这几天的新进步（2026-11-25，用户关注「新未知算法」）**：
+- **jayalbertzhao 的 PPO 强化学习**（最值得关注）：`uinet-ppo-r1-it19` **575,585**（n=120，rules **67**）、
+  r2-it10 567,163、hif-uinet-s1 569,242（rules 65）——在 UINet 上做 RL 微调，已逼近 UINet 2.1（578k），用更新引擎。
+- **kirinigh**：`UINet-2.1-fixed-model-TASK-280-Sense-v65` **vs oracle 0.6853**（n=3，rules 65，sense 子集）——
+  用户说的「uinet 到上限 68.5%」即此（**口径：vs oracle + rules 65 + sense 子集 + n=3**，与全量 vs best-known 0.455 不同，不可直接比）。
+- **shinosawabot 的 Maa 集成**：Maa-UINet-2.1-native-uiobs-v2 280,642（n=8）、maa-public-effects-v1 51,099（n=24）。
+- **nvidiaowner 的 hiro-local** 规则（191,269 n=2）、**yzhouwang 的 GHL 启发式**（ghl-sense-buff-value 147,510 n=224）、
+  **yuzeis 的 UIHorizon v2.2b**（411,014 n=95）。
+- **引擎规则版本分裂**：老榜 rules 59，新提交 rules 65/67（我们 F0 标定 rules 55）——**口径差需要注意**。
+
+**我们的动作（2026-11-25）**：用户选定**先投算法排行试水**（阶段4 F2 提前，纯离线/托管不碰真机）。
+投「我们最强 public-safe」= **B11 学生网 r13**（离线 large 316.8 > beam 301.6；beam+全知更强但用种子不能上 ranked）。
+托管评测 `needs_gkms=False` 纯画面算法只需 gkbench 包+令牌（引擎在服务器），Windows 可跑。
+**F2 适配器**（UIObs→ExpectState→137 维特征→net→动作，自包含打包不 import gkagent）构建中。
+
 ### 2.3 信息 / 全知链路
 
 | 谁 | 现状 |
