@@ -1,8 +1,12 @@
 """日文 OCR 模型真图回归（A1：OCR 换日文模型）。
 
 模型由 ``scripts/download_ocr_models.py`` 下载到 ``data/models/ocr_jp/``（gitignore），
-配置模板 ``configs/ocr_jp.example.yaml``；截图 ``data/auto/step_025.png`` 是
-2026-11-22 真机 ep-t3 的日文剧情/外出选项帧（中文模型只能读出 飲物持/？/、。 碎片）。
+配置模板 ``configs/ocr_jp.example.yaml``；截图用**稳定归档 fixture**
+``tests/fixtures/event_ep_t3_4_drink_choice.png``（2026-11-22 真机 ep-t3-4 的日文外出
+饮料选项帧，中文模型只能读出 飲物持/？/、。 碎片）。
+
+2026-11-24 修复：原用 ``data/auto/step_025.png`` 是**真机跑局轮转覆写**的活帧，跑局后
+被别的屏覆盖 → 4 条测试假红（与 step_047 已知 skip 同类）。改指归档 fixture 后不再受跑局影响。
 
 模型或截图缺失时整套 skip（干净 checkout / CI 不会因为没下模型而红）。
 """
@@ -16,7 +20,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "configs" / "ocr_jp.example.yaml"
 MODEL_DIR = ROOT / "data" / "models" / "ocr_jp"
-FRAME = ROOT / "data" / "auto" / "step_025.png"
+FRAME = ROOT / "tests" / "fixtures" / "event_ep_t3_4_drink_choice.png"
 
 pytestmark = [
     pytest.mark.skipif(not CONFIG.is_file(), reason="缺少 configs/ocr_jp.example.yaml"),
@@ -24,7 +28,7 @@ pytestmark = [
         not all((MODEL_DIR / name).is_file() for name in ("det.onnx", "rec.onnx", "keys.txt")),
         reason="缺少日文 OCR 模型（先跑 scripts/download_ocr_models.py）",
     ),
-    pytest.mark.skipif(not FRAME.is_file(), reason="缺少实拍帧 data/auto/step_025.png"),
+    pytest.mark.skipif(not FRAME.is_file(), reason="缺少归档帧 event_ep_t3_4_drink_choice.png"),
 ]
 
 

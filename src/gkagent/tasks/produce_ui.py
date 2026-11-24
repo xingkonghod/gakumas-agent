@@ -1542,6 +1542,44 @@ class ProduceDriver:
     def _click_line(self, agent, line: OcrLine) -> None:
         self._click(agent, self.center(line))
 
+    @staticmethod
+    def _bubble_fill_kind(image, line: OcrLine) -> str:
+        """剧情选项气泡填充色分类（F#45，不依赖 OCR 语言）。
+
+        在气泡行内横向取 5 个采样点、取最亮者（避开深色文字笔画）：
+        - white：近纯白（min>=238 且色差<=10）——v3.6.1 选中后顶部的效果描述气泡；
+        - gray：未选中选项（180<=min<=232 且色差<=16，实测 228/227/227；深色背景不算）；
+        - vivid：鲜色选中项（min>=60 且色差>=30，橙 255/156/73、粉 230/60/130 等）；
+        - other：背景/不确定。
+        旧版（11-22）未选中选项也是白色，故 white alone 不构成剔除理由；
+        选中态判定 = 存在 vivid 项（其余灰/白），点其右侧 >> 箭头确认（见 4.45 分支）。
+        """
+        if image is None:
+            return "other"
+        h, w = image.shape[:2]
+        x0, _y0, bw, _bh = line.box
+        _cx, cy = ProduceDriver.center(line)
+        cy = max(0, min(h - 1, int(cy)))
+        best = None
+        for fx in (0.15, 0.3, 0.5, 0.7, 0.85):
+            sx = max(0, min(w - 1, int(x0 + bw * fx)))
+            px = image[cy, sx]
+            # 生产截帧是 BGR（与 _checkbox_checked 同口径）
+            b, g, r = int(px[0]), int(px[1]), int(px[2])
+            if best is None or min(r, g, b) > min(best):
+                best = (r, g, b)
+        if best is None:
+            return "other"
+        r, g, b = best
+        mn, mx = min(r, g, b), max(r, g, b)
+        if mn >= 238 and mx - mn <= 10:
+            return "white"
+        if 180 <= mn <= 232 and mx - mn <= 16:
+            return "gray"
+        if mn >= 60 and mx - mn >= 30:
+            return "vivid"
+        return "other"
+
     # ------------------------------------------------- 结算/收尾画面（F#15）
     @staticmethod
     def _frame_signature(text: str) -> str:
@@ -2014,6 +2052,22 @@ class ProduceDriver:
             self._click_line(agent, end) if end else self._click(agent, (640, 1165))
             return TickResult("shop", "exit")
 
+        # 4.46) 技能卡强化屏（F#46，v3.6.1 真机 ep-t31-b）：旧逻辑无此分支 → 落 story/tap
+        # 点中央空转 100+ 步。交互链（实证）：①「未选择技能卡」+ 卡片网格 → 点网格第一张卡
+        # 选中；② 选中后出现「强化确认」（只是预览）+ 底部大「强化」按钮变亮 → 点底部「强化」
+        # 执行；③ 强化后弹「技能卡强化后详情」→「关闭」（分支 8 已处理）→ 卡牌展示对白
+        # 「X已强化。」（story/tap 推进）。这里处理 ①②，③ 走既有分支。
+        if "技能卡强化后详情" in text:
+            line = self.find(lines, "关闭")
+            self._click_line(agent, line) if line else self._click(agent, (360, 1160))
+            return TickResult("enhance", "close-detail")
+        if "强化确认" in text:
+            self._click(agent, (360, 1160))  # 底部大「强化」按钮（执行，非预览）
+            return TickResult("enhance", "go")
+        if "未选择技能卡" in text and "强化" in text:
+            self._click(agent, (140, 755))  # 卡片网格第一张（选中）
+            return TickResult("enhance", "pick-card")
+
         # 4.45) 剧情「选项气泡」：快进/SKIP 仍在，屏幕中部有 2–3 行选项，且**底部有对白长句**
         # ——这是培育开场的剧情二选一（真机 ep-t3-1：飲み物を持ってきました / 慣れてきましたか?），
         # 不是外出事件（事件屏选项带 P/体力费用标签，且没有底部对白）。旧逻辑先点快进 →
@@ -2040,8 +2094,49 @@ class ProduceDriver:
                 and "SKIP" not in line.text
             ]
             if bottom_dialogue and not cost_hint and len(choices) >= 2:
-                target = min(choices, key=lambda line: self.center(line)[1])
-                self._click_line(agent, target)
+                # v3.6.1 真机 ep-t31-a（F#45）：选中选项后顶部会多出一层**白色效果描述**
+                # 气泡（如「选择并获得特定的P饮料」），它不是选项，点它画面不动 → 同屏 10 次停机。
+                # 选项气泡填充为橙（选中，OCR 带 ">" 箭头）/灰蓝/白（旧版未选中）；描述气泡近纯白。
+                # 规则：① 有 ">" 箭头的选项（已选中、可确认）优先点；② 否则顶部近纯白且下方有
+                # 橙/深灰选项 → 剔除描述层；③ 其余点最上选项。按 h>=60 的气泡带行去重（同一气泡
+                # 的整行框与内部文字行只算一个），避免点到描述层的内部文字行。
+                bands = [c for c in choices if c.box[3] >= 60]
+                pool = bands if len(bands) >= 2 else choices
+                ordered = sorted(pool, key=lambda line: self.center(line)[1])
+                target = ordered[0]
+                confirm = False
+                arrowed = [
+                    c for c in ordered if c.text.rstrip().endswith(">") or ">>" in c.text
+                ]
+                if arrowed:
+                    target = arrowed[0]
+                    confirm = True
+                elif image is not None and len(ordered) >= 2:
+                    kinds = [self._bubble_fill_kind(image, c) for c in ordered]
+                    vivid = [i for i, k in enumerate(kinds) if k == "vivid"]
+                    if vivid:
+                        # 鲜色（橙/粉）选中项 + 其余灰/白 → 选中态，点选中项箭头确认。
+                        # 选中项箭头未必被 OCR 读出（F#46 授课/重点练习屏），靠填充色判定。
+                        target = ordered[vivid[0]]
+                        confirm = True
+                    elif kinds[0] == "white" and any(
+                        k in ("vivid", "gray") for k in kinds[1:]
+                    ):
+                        # 顶部白色效果描述层 + 下方选项 → 剔除描述层，点第一个选项确认。
+                        target = ordered[1]
+                        confirm = True
+                if confirm:
+                    # F#46 实证：>> 箭头在气泡右侧、与文字同高；点中心只是重选（原地循环）。
+                    # 带框（h>=60）中心偏下，用气泡内文字行（h<60）的中心 y 对齐箭头高度。
+                    x0, y0, bw, bh = target.box
+                    inner = [
+                        c for c in choices
+                        if c.box[3] < 60 and y0 <= self.center(c)[1] <= y0 + bh
+                    ]
+                    cy = self.center(inner[0])[1] if inner else y0 + 25
+                    self._click(agent, (min(665, x0 + bw - 35), cy))
+                else:
+                    self._click_line(agent, target)
                 return TickResult("story", "choice")
 
         # 4.4) 外出/事件选择：点最下面那个选项（默认高亮、通常是免费项），再点一次确认
@@ -2254,12 +2349,26 @@ class ProduceDriver:
 
         # 4.56) P饮料获得/技能发动说明弹窗：点中央推进（带「领取」的是奖励选择弹窗，走 4.6）
         # 注意：外出事件的效果说明里也有「获得随机P饮料」，带「快进」的是事件屏，交给 4.4
+        # F#47：「P饮料详情」是带「关闭」的模态弹窗（点中央空白会 tap-lost），有「关闭」先点它。
         if (
             "P饮料" in text
             and ("获得" in text or "饮料" in text)
             and "领取" not in text
             and "快进" not in text
         ):
+            close = self.find(lines, "关闭")
+            if close is not None:
+                self._click_line(agent, close)
+                return TickResult("toast", "close-detail")
+            # F#47：饮料「使用/丢弃」确认态底部是 取消/使用（无「关闭」）；点取消收起弹窗。
+            cancel = self.find(lines, "取消")
+            if cancel is not None:
+                self._click_line(agent, cancel)
+                return TickResult("toast", "cancel-drink")
+            use = self.find(lines, "使用")
+            if use is not None:
+                self._click_line(agent, use)
+                return TickResult("toast", "use-drink")
             self._click(agent, (360, 1000))
             return TickResult("toast", "advance")
 

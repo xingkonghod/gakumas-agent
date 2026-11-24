@@ -310,3 +310,20 @@ python scripts/extract_exams.py
   + 飘字正则把 P 费标签「-100/-50」当 +N → 点中央空转；修法见 [HANDOVER 二·补十六](HANDOVER.md) /
   [FAILURES #43](FAILURES.md)，真机帧回放 7 条（`tests/test_produce_ui_f43.py`）。
 - 剩余：**真机复验** #42/#43 要等 T1 整局（阶段 E）；本局仍未进入考试，exam-plan 4 候选未使用。
+
+---
+
+## 2026-11-24 阶段3 真机首跑（v3.6.1 更新后，ep-t31-a..j 分段）——期中第 1 / 900
+
+| 项 | 值 |
+|---|---|
+| 偶像 | 氷渡香名江（感性，[メタモルフォーゼ]） |
+| 引擎 | expectimax（--ignore-user --max-minutes 30） |
+| 期中 | **第 1 名 / 900 Pt**（2nd 春野栞 488 / 3rd 蓮田奈々 346 / 4th 188 / 5th 165） |
+| 期末 | 跑到期末 intro（三维 465/488/611=1564，倍率 659%/548%/921%），窗口最小化中断，未结算 |
+| T3 | 实时管道✓（期末 locked_turn=1/config_turns=12/verified=7）；卡表过期→手牌 mismatch，待刷新 |
+| 卡点 | F#45–47 已修（开场描述层/强化屏/授课箭头/P饮料弹窗）；**drink-keep 屏 tap-lost 待修** |
+| 更新 | v3.6.0→3.6.1 适配（同步 334 文件 + gakumas.exe._ DRM 配对修复） |
+
+> 整局 ≥C+ 验收待续（下一会话修 drink-keep + 卡表刷新后重跑）。分段日志 data/auto/auto_log_ep-t31-*.log，
+> 复盘页 out/review/ep-t31-*.html。采集 traffic 含 v3.6.1 期中+期末两场（新 master 数据待提取）。
