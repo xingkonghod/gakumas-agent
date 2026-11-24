@@ -2807,7 +2807,7 @@ ruff 通过；全量 pytest **1503/1（1504 收集 / 94 文件，223.75s）**；
 
 **文档**：RULES_REFERENCE §0/§1/§5.8/§6/§7；WORKPLAN §0/P1-5/路线图；HANDOVER_NEXT
 开场白/§0/§2 期望值（1465→1503）/§4 T5/§8.0/§8；INDEX；本文件二·补四十九。
-**提交**：feat <待填>（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录；
+**提交**：feat 4a55cc8（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录；
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）
@@ -3030,6 +3030,8 @@ rules / expectimax(ensemble) / uinet
 ## 七、最近提交记录
 
 ```
+（2026-11-24 P1-5 哈希记录：feat 4a55cc8 + docs(handover) 本节；阶段1 第五批 P 道具剩余效果语义补全 bounded batch——层数减少类 干劲/集中/全力值-=N夹取>=0 + 体力减少 ExamStaminaDamage + 好调N回合 ExamParameterBuff turn列 + 好调依赖换算 好调的N%数值变为打分/集中，BSD-3+主数据+DSL三重核实；implemented 1067→1164/1849(+97)、依赖换算65→76、p_items.json仅24记录变化；sim_produce不引用p_items→评测零P道具结算、sim_engine_ab改前/改后64局差异=0；38条新单测、pytest 1503/1(1504收集/94文件)、基线①③④⑤不变；留后续 好调增加量增加/元气增加无效/不安/塔gimmick/全力强气效果卡打分/日文好調の%分；旧B11数据模型全保留；RULES_REFERENCE §5.8/WORKPLAN P1-5/HANDOVER_NEXT §8.0+§8/INDEX/二·补四十九；下一会话 P1-6 T7②③ 纯函数状态重放/自动复盘页）
+4a55cc8 feat(rules): P1-5 P道具剩余效果语义补全(bounded batch)——层数减少+好调回合+好调依赖换算（BSD-3+DSL三重核实；implemented 1067→1164/1849；sim_engine_ab改前/改后64局差异=0；38条单测、pytest 1503/1；RULES_REFERENCE §5.8）
 （2026-11-24 Hindsight 停用哈希记录：docs(handover) 2699e79；排查实锤=Hindsight daemon 用普通 DASHSCOPE_API_KEY+标准 dashscope 按量端点跑 qwen-plus/text-embedding-v4，不在千问 Token Plan 订阅（sk-sp-/token-plan 端点）覆盖内→两天约¥10 余额；用户删普通 key 止血后指定直接停用：禁用 bundle @vectorize-io/hindsight-coding-agents + 杀 daemon 进程树 PID36048 + pg_ctl 停内嵌PG，9077/5432 释放；主 agent 订阅不受影响、hindsight_* 工具下线、上下文靠 docs 交接；二·补四十八 + 二·补三十八前置注记 + HANDOVER_NEXT 开场白/§2/§8；恢复选项留待用户决定）
 2699e79 docs(handover): Hindsight 记忆停用——后台 qwen-plus/text-embedding-v4 走普通按量 key 烧阿里云余额（两天约¥10，不在千问 Token Plan 订阅覆盖内）排查实锤 + 用户指定直接停用（禁用 bundle + 杀 daemon + pg_ctl 停内嵌PG）；二·补四十八停用记录 + 二·补三十八前置注记 + HANDOVER_NEXT 开场白/§2 环境前提/§8 步骤6/§8 环境变更记录
 （2026-11-24 P1-4 哈希记录：feat 1b58a0f；下一会话 P1-5（P 道具剩余效果语义补全，离线可做段 bounded batch，1067/1849 往上推），用户已确认 A 顺序，见 HANDOVER_NEXT §8.0）

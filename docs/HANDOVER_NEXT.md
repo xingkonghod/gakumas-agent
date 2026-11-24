@@ -1344,7 +1344,7 @@ ruff 通过；全量 pytest **1503/1（1504 收集 / 94 文件，223.75s）**；
 out/_p15_ab_{before,after}_{9000,9100}.json（gitignore）；一次性脚本 data/_p15_*.py 不提交。
 文档：RULES_REFERENCE §0/§1/§5.8/§6/§7；WORKPLAN §0/P1-5/路线图；
 HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；HANDOVER 二·补四十九。
-提交 feat <待填>（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
+提交 feat 4a55cc8（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
 **下一会话（P1-6，用户已确认 A 顺序，不用再问）**：T7②③ 纯函数状态重放（run_record 雏形 →
 同观测序列→同状态→逐步比对）+ 自动复盘页（每局逐回合页 + 人工标注转回归；C1 已有
 step_trace.jsonl + replay_steps.py，差页面/标注闭环）。**离线可靠性工程，不改考试规则、
