@@ -671,13 +671,13 @@ def test_build_p_items_hold_zone_and_hotfix_parsed() -> None:
 
 
 def test_catalog_trigger_unknown_zero() -> None:
-    """B10 遗留 trigger_unknown 3 件/6 段 → P1-3 清零；P1-4 implemented 1056→1067。"""
+    """B10 遗留 trigger_unknown 3 件/6 段 → P1-3 清零；P1-5 implemented 1067→1164。"""
     from gkagent.data.p_items_db import catalog_coverage, get_catalog
 
     cov = catalog_coverage(get_catalog())
     assert cov["trigger_unknown"] == 0
     assert cov["condition_unknown"] == 0
-    assert cov["implemented"] == 1067
+    assert cov["implemented"] == 1164
     assert cov["specs"] == 1849
 
 

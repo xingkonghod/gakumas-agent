@@ -2,15 +2,16 @@
 
 > **这份文档是行动型交接**：`HANDOVER.md` 讲"发生过什么"，本文讲**接下来还缺什么、按什么顺序做、怎么验收**。
 > **总顺序以 [WORKPLAN.md](WORKPLAN.md) 为准**（离线 A→B→C→D 全部做完 → 真机 E：T3→T1→T2 → gkbench F）。
-> 新会话第一句话（紧凑版，2026-11-24 P1-4 完成后更新；完整版见 WORKPLAN「新会话开场白」）：
+> 新会话第一句话（紧凑版，2026-11-24 P1-5 完成后更新；完整版见 WORKPLAN「新会话开场白」）：
 > 「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → docs/WORKPLAN.md →
-> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1465/1（1466 收集 / 93 文件）；①③④⑤ 同 B10 口径），不绿先修。
+> docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1503/1（1504 收集 / 94 文件）；①③④⑤ 同 B10 口径），不绿先修。
 > Hindsight 记忆已停用（2026-11-24，因后台 qwen-plus/text-embedding-v4 走普通按量 key 烧阿里云余额；不用 hindsight_* 工具，跨会话上下文靠 docs 交接）。
 > **按 §8.0 多会话路线图做**（用户确认 A 顺序：阶段1 离线补未知 → 阶段2 重采+练学生+新旧对比 →
 > 阶段3 真机 → 阶段4 gkbench → 阶段5 收尾；每会话 1–3 任务，旧学生/老师数据模型全保留不覆盖）。
-> 下一会话从 **P1-5** 起（P 道具剩余效果语义补全，离线可做段 bounded batch，1067/1849 往上推）；
+> 下一会话从 **P1-6** 起（T7②③ 纯函数状态重放/自动复盘页，离线可靠性工程，不改考试规则、不作废 B11 数据）；
 > P1-1 ✅（r10 探针 + 全力回合 + のんびり）、P1-2 ✅（handDecrease + pride）、
-> P1-3 ✅（hold 保留区 + lockStanceTurns）、P1-4 ✅（nullifyDebuff 拦截 + ⑦ buff-cost/countDebuffs 评估 no-op）；
+> P1-3 ✅（hold 保留区 + lockStanceTurns）、P1-4 ✅（nullifyDebuff 拦截 + ⑦ buff-cost/countDebuffs 评估 no-op）、
+> P1-5 ✅（P 道具层数减少 + 好调回合 + 好调依赖换算，1067→1164/1849）；
 > 旧路线图未完成项已全并入 §8.0。规则见 §4 硬约束。」
 >
 > 维护方式：完成一个任务 → 把对应状态改成 ✅（A 阶段在 WORKPLAN、T1–T8 在本文 §4）并在 §8 记一条；
@@ -365,8 +366,8 @@
 练学生→真机→网站；每会话 1–3 任务；旧学生/老师数据模型全保留，新批练出来再新旧对比；
 旧路线图未完成项已全并入 §8.0）。r10 后 small 仍显著回退（−0.256 CI 上界 −0.012）→ 复合门未过、不入库；
 **P1-1 探针判定残留回退已非 v1 贪即时分（通道 2 漂移噪声）→ r11 small 上采样仍是对症变量**。
-→ **下一会话从 P1-5 起**（P 道具剩余效果语义补全，离线可做段 bounded batch，1067/1849 往上推）；
-阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease/pride~~ ✅ P1-2；~~hold/lockStanceTurns~~ ✅ P1-3；~~nullifyDebuff/⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；剩 P 道具语义 + T7②③）→
+→ **下一会话从 P1-6 起**（T7②③ 纯函数状态重放/自动复盘页，离线可靠性工程，不改考试规则、不作废 B11 数据）；
+阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease/pride~~ ✅ P1-2；~~hold/lockStanceTurns~~ ✅ P1-3；~~nullifyDebuff/⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；~~P 道具层数减少/好调回合/好调依赖换算~~ ✅ P1-5；剩 P 道具后续批次 + T7②③）→
 阶段2 重采+练学生 r11（small 上采样，双过入库）+新旧对比 →
 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0 + C1 真机验收）→ 阶段4 gkbench F1/F2 → 阶段5 收尾 G。
 T5 剩余里需真机数据的（RNG 流/fresh buff/附魔/真机 P 道具列表）留阶段3。
@@ -445,7 +446,7 @@ cd D:\Games\gakumas-agent
 # ① 洗牌重放：应为 4/4 场（期中 18/18、期末 26/26、PRO 期中 15/15、PRO 期末 27/27）+ 3/3 重洗样本
 .venv\Scripts\python.exe scripts\verify_shuffle.py
 
-# ② 全量测试：应为 1465 passed, 1 skipped（1466 条收集 / 93 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + B11 r9 多文件混合 12 条 + B11 r10 按场景归一化 12 条 + P1-1 全力回合/のんびり指針 36 条 + P1-2 handDecrease/pride 36 条 + P1-3 hold 保留区/lockStanceTurns 46 条 + P1-4 nullifyDebuff 拦截/⑦评估 30 条 + 实机回放黄金值 2 条）
+# ② 全量测试：应为 1503 passed, 1 skipped（1504 条收集 / 94 个测试文件；含 A1 日文 OCR 21 条 + A2 F#42 8 条 + A3 F#43 7 条 + A4 帧回放 9 条 + A5 离线预演 8 条 + B1 beam/frontier 6 条 + B2 学习叶子 12 条（B2-R +1 温存解除边界快照回归）+ B3 回合规则 9 条 + B4 T5① 审查倍率 21 条 + B5 T5② 熱意/温存解除 16 条 + B6 T5③ P 道具 29 条 + B7 T9 P 道具 3 条 + B8 T5④ 条件/效果语义 19 条 + B9 T5④ 持久倍率/modifier 49 条 + B10 T5 剩余①② 生成卡/卡名映射 38 条 + C1 执行层可靠性 68 条（tapguard 28 + privilege 18 + trace 12 + wiring 10）+ B11 渐退式专家迭代 28 条 + B11 第 2 轮 15 条 + B11 ε-greedy 探索 7 条 + B11 v6 生产接线 21 条 + B11 r9 多文件混合 12 条 + B11 r10 按场景归一化 12 条 + P1-1 全力回合/のんびり指針 36 条 + P1-2 handDecrease/pride 36 条 + P1-3 hold 保留区/lockStanceTurns 46 条 + P1-4 nullifyDebuff 拦截/⑦评估 30 条 + P1-5 层数减少/好调回合/好调依赖换算 38 条 + 实机回放黄金值 2 条）
 #    注意：pytest 9 下命令行再传 -q 会「双静默」——只剩点号、不打印 "N passed" 汇总行；想看到数字就去掉 -q。
 .venv\Scripts\python.exe -m pytest tests/ -q --basetemp=data/pytest-tmp-<日期>
 
@@ -460,7 +461,21 @@ cd D:\Games\gakumas-agent
 .venv\Scripts\python.exe scripts\verify_gkbench_shuffle.py
 ```
 
-**最近一次复核（2026-11-24 09:2x，P1-4 后复跑）**：①②③④⑤ 全绿、退出码 0
+**最近一次复核（2026-11-24 10:3x，P1-5 后复跑）**：①②③④⑤ 全绿、退出码 0
+（① 4/4+3/3、② **1503/1（1504 收集 / 94 文件，223.75s，+38 P1-5 层数减少/好调单测）**、
+③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
+② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
+当前不是行动页），属预期。**规则口径变化（P1-5）**：P 道具层数减少类（干劲/集中/全力值
+-= N 夹取 ≥0 + 体力减少）+ 好调回合（ExamParameterBuff turn 列 → condition_turns）+
+好调依赖换算（好调的N%数值变为打分/集中）已建模 → 旧 B11 数据/模型是旧规则口径（全保留
+不覆盖，阶段2 重采新批再对比）；**sim_produce 不引用 p_items → 评测零 P 道具结算**，
+sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，seed 9000/9100 各 16 局；
+expectimax 仍显著强于 rules Δ+372.2/+219.1）。implemented 1067→1164/1849（+97）、
+依赖换算 65→76。留后续（证据充分需新机制，no-op 如实记）：好调增加量增加/元气增加无效/
+不安/塔 gimmick/全力・强气效果卡打分/日文好調の%分。
+P1-5 见 RULES_REFERENCE §5.8 / WORKPLAN P1-5 / HANDOVER 二·补四十九。
+
+**上一次复核（2026-11-24 09:2x，P1-4 后复跑）**：①②③④⑤ 全绿、退出码 0
 （① 4/4+3/3、② **1465/1（1466 收集 / 93 文件，+30 P1-4 nullifyDebuff 单测）**、
 ③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155=97.4%）。
 ② 唯一 skip = `tests/test_produce_ui.py:1181`（`data/auto/step_047.png` 被真机跑局覆写、
@@ -941,7 +956,22 @@ loadout 如实记；卡模型不承载 buff 花费，88 张参考 buff-cost 卡 
 implemented **1056→1067/1849**（+11，modifier 385→396，p_items.json 仅 11 条记录变化）；
 评测零落点 → sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0）；30 条新单测，
 pytest **1465/1（1466 收集 / 93 文件）**。仍缺：卡侧 nullifyDebuff 来源、标量 DEBUFF_FIELDS
-拦截、⑦ buff-cost 卡模型扩展（需先承载 buff 花费）、P 道具剩余效果语义（P1-5）。
+拦截、⑦ buff-cost 卡模型扩展（需先承载 buff 花费）、~~P 道具剩余效果语义（P1-5）~~ ✅ P1-5 首批。
+
+**已完成（P1-5，2026-11-24，见 WORKPLAN P1-5 / HANDOVER 二·补四十九 / RULES_REFERENCE §5.8）**：
+阶段1 第五批——**P 道具剩余效果语义补全（bounded batch）**：层数减少类（干劲/集中/全力值 -= N
+夹取 ≥0，DSL motivation-=1/concentration-=1/fullPowerCharge-=2；全力值独立
+PItemDelta.full_power_point_reduce 不计累计）+ 体力减少（ExamStaminaDamage 并入 STAMINA_LOSS，
+cost-=1 genki==0 穿透）+ 好调N回合（ExamParameterBuff turn 列 → condition_turns，DSL
+goodConditionTurns+=N）+ 好调依赖换算（好调的N%数值变为打分/集中，CONVERSION_SOURCES 加
+好调:parameter_buff，DSL score+=goodConditionTurns*0.3）。BSD-3 + 主数据 + DSL 三重核实。
+implemented **1067→1164/1849**（+97）、依赖换算 65→76（p_items.json 仅 24 条记录变化）；
+**sim_produce 不引用 p_items → 评测零 P 道具结算** → sim_engine_ab 重标定改前/改后 64 局逐位
+相同（差异=0）；38 条新单测，pytest **1503/1（1504 收集 / 94 文件）**。**留后续**（证据充分需
+新机制，no-op 如实记）：好调增加量增加（setGoodConditionTurnsBuff）/元气增加无效
+（nullifyGenkiTurns）/不安（uneaseTurns，delay）/塔 gimmick（低谷/紧张/弱气/体力回复无效）/
+全力・强气效果卡打分（setFullPowerEffectBuff/setStrengthEffectBuff）/日文好調の%分（眠気卡条件）/
+ExamParameterBuffReduce（触发未支持）。
 
 **剩余（按对真机分数影响排序，每条都要补单测 + 文档核验表状态）**：
 1. ~~**审查倍率分段 + 联动惩罚**~~ ✅ **2026-11-22 完成（B4）**：客户端公式（分数表分段折线 +
@@ -1223,7 +1253,7 @@ pytest **1465/1（1466 收集 / 93 文件）**。仍缺：卡侧 nullifyDebuff �
 - **P1-2** ✅ **2026-11-24 完成**：④ handDecrease 抽牌修正（cardsToDraw=max(3−Σ,0)，timed 列表；塔 gimmick 12 段来源；nullifyDebuff 拦截未建模如实记）⑤ pride 自尊（resolveScore f min(好印象,干劲)×0.02 上限+0.5；**来源离线已确定**：卡「我、绝不」turn=5 门槛干劲>=9 + P 道具「一笔入魂」turn=2/3，主数据↔参考 DSL 交叉）；36 条单测，pytest 1389/1（1390 收集 / 91 文件）；RULES_REFERENCE §5.5；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0，牌组/loadout 无来源）；implemented 1042→1056/1849
 - **P1-3** ✅ **2026-11-24 完成**：⑥ hold 保留区建模（上限 2/跨回合保留/holdThisCard/holdSelected/moveHeldCardsToHand LIFO，13 族卡证据表；lockStanceTurns 切磋琢磨 EOT+fresh 锁下一回合+守卫+全力进入门；B10 遗留 trigger_unknown 3 件清零：hold 区张数条件 实现的觉悟 + hotfix 咲季营养餐・改；preservation2 直给 7 段）；46 条单测；RULES_REFERENCE §5.6；implemented 保持 1056/1849；large 评测牌组组成变化（冲刺/积累 draw 近似移除，保真度修正；small 不变）→ sim_engine_ab 改前/改后逐局对照（见 §8）
 - **P1-4** ✅ **2026-11-24 完成**：⑦ `ExamBuffConsumptionAdd` buff-cost 卡评估**保持 no-op**（参考 doubleBuffCostTurns 语义/主数据 4 段/gkbench 22 loadout 如实记；卡模型不承载 buff 花费，88 张参考 buff-cost 卡 card_table cost=0、CardSpec 无 buff_cost 字段，无落点不猜）+ **nullifyDebuff 拦截落地**（P1-2 遗留；消耗式计数器拦截 setScoreDebuff/setHandDecrease，P 道具侧 ExamAntiDebuff count 11 段；卡侧 4 SSR 族/标量 DEBUFF_FIELDS 拦截延迟）+ **countDebuffs 无落点**（低下状態の数参考+主数据零使用）；30 条单测，pytest 1465/1（1466 收集 / 93 文件）；RULES_REFERENCE §5.7；implemented 1056→1067/1849；sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0，评测零落点）
-- **P1-5**：⑧ P 道具剩余效果语义补全（离线可做段，1042/1849 往上推；bounded batch，别一口吃成胖子）
+- **P1-5** ✅ **2026-11-24 完成**：⑧ P 道具剩余效果语义补全（bounded batch：层数减少类 干劲/集中/全力值 -= N 夹取 ≥0 + 体力减少 ExamStaminaDamage + 好调N回合 ExamParameterBuff turn 列 → condition_turns + 好调依赖换算 好调的N%数值变为打分/集中；BSD-3 + DSL 三重核实）；38 条单测，pytest 1503/1（1504 收集 / 94 文件）；RULES_REFERENCE §5.8；implemented 1067→1164/1849（+97）、依赖换算 65→76；**sim_produce 不引用 p_items → 评测零 P 道具结算**，sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0）；**留后续**（证据充分需新机制，no-op 如实记）：好调增加量增加/元气增加无效/不安/塔 gimmick/全力・强气效果卡打分/日文好調の%分/ExamParameterBuffReduce
 - **P1-6（T7②③，离线可靠性工程，不改考试规则、不作废 B11 数据）**：⑨ 纯函数状态重放（`run_record` 雏形 → 同观测序列→同状态→逐步比对）⑩ 自动复盘页（每局逐回合页 + 人工标注转回归；C1 已有 `step_trace.jsonl`+`replay_steps.py`，差页面/标注闭环）
 - 每项 DoD：参考引擎证据（规则项）+ 代码 + 单测 + [RULES_REFERENCE](RULES_REFERENCE.md) 核验表更新（规则项）+ `sim_engine_ab` 重标定（规则项，如 B3 例）。
 - **留阶段 3（离线做不了，需真机数据）**：考试 RNG 流（随机生成卡 H.I.F应援棒 / panic / search / move）、fresh buff 差一回合衰减（真机逐回合截图）、附魔/主道具回忆、真机培育侧 P 道具列表（T6/D1）。
@@ -1263,7 +1293,64 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
-**最近交接记录（2026-11-24，P1-4 —— 阶段1 第四批：nullifyDebuff 低下状态无效拦截 + ⑦ ExamBuffConsumptionAdd / countDebuffs 评估，BSD-3 有据）**：
+**最近交接记录（2026-11-24，P1-5 —— 阶段1 第五批：P 道具剩余效果语义补全 bounded batch：层数减少 + 好调回合 + 好调依赖换算，BSD-3 + DSL 三重核实）**：
+用户已确认 A 顺序（不用再问）。开工基线 ①–⑤ 全绿（HEAD edb65a6，② 1465/1、
+1466 收集 / 93 文件，222.83s）；Hindsight 记忆已停用（不用 hindsight_* 工具，跨会话靠 docs）。
+**本批挑「证据充分、离线可定、映射既有机制」的低风险段**（bounded batch，不贪多），语义全部经
+BSD-3 参考引擎 gakumas-tools + 主数据 + 参考 DSL `p_items.csv` 三重核实：
+**① 层数减少类**（资源 -= N，参考 `Executor.executeAssignment` op "-=" + `NON_NEGATIVE_FIELDS`
+夹取 ≥0；资源不是 DEBUFF_FIELDS，nullifyDebuff 不拦截）：`ExamAggressiveReduce` 干劲减少
+（DSL motivation-=1 スタイリッシュモード 139/140、初恋の証・麻央 152/153）/ `ExamLessonBuffReduce`
+集中减少（concentration-=1 イケてるセーター 179、「Pっち」242/243）/ `ExamFullPowerPointReduce`
+全力值减少（fullPowerCharge-=2 ユートピアへの誘い 399/400；引擎 decreaseFullPowerCharge
+Math.max(0,…) 同口径）。**全力值减少走独立 `PItemDelta.full_power_point_reduce`**
+（apply_full_power_point 只表达增加、负 delta 按 0），双镜 max(0, fp−N)、**不计累计全力值**；
+aggressive/focus 负层数走既有夹取。**② 体力减少 `ExamStaminaDamage`** 并入 STAMINA_LOSS_EFFECTS
+（DSL 私の「初」の楽譜 27/28 `cost-=1`，genki==0 时 resolveCost 穿透 stamina−1/consumedStamina+1；
+主数据条件「元气为0的时候」）。**③ 好调N回合 `ExamParameterBuff`**：N 在 **turn 列**
+（effect_value 读 turn，value1 优先）→ condition_turns += N（既有 parameter_buff 渠道、回合末 -1；
+DSL goodConditionTurns+=N Dearリトルプリンス 31/32、共に戦うタオル 43/44 等 33 件）。
+**④ 好调依赖换算**（「好调的N%数值变为打分上升/集中」）：好调 = condition_turns 整数（B8 曾以
+「剩余回合数非可换算量」排除，现已建模）→ `CONVERSION_SOURCES` 加 `好调:parameter_buff`；
+源段只作系数（**不消耗好调回合**），目标增量 int(condition_turns×N/100)（DSL
+score+=goodConditionTurns*0.3 初陣の証・佑芽 304/305 / concentration+=goodConditionTurns*0.4
+アニメイト装備 162/163）。
+**落地（纯增量）**：p_items.py（AGGRESSIVE_REDUCE/FOCUS_REDUCE/FULL_POWER_POINT_REDUCE_EFFECTS /
+TARGET_BY_EFFECT / effect_value 读 ExamParameterBuff turn / PItemDelta.full_power_point_reduce +
+is_zero/as_dict/__iadd__/__add__ / _apply_modifier_target 负层数 / ExamStaminaDamage 并入
+STAMINA_LOSS）+ lesson.py/expectimax.py（全力值减少 max(0,fp−N) 双镜，默认 0=旧行为）+
+build_p_items.py（CONVERSION_SOURCES 好调）+ p_items.json 重标注重建（分类纯函数驱动；逐条 diff
+校验仅 **24 条记录**变化：11 ExamParameterBuff 源段 role=conversion_source + 7 ExamLesson/
+4 ExamLessonBuff 目标 depends_on=parameter_buff + 5 ExamAggressiveReduce/4 ExamLessonBuffReduce/
+4 ExamFullPowerPointReduce target 标注；ExamStaminaDamage 代码驱动无数据变化）。
+implemented **1067→1164/1849**（+97），依赖换算 65→**76 段**。
+**留后续（证据充分但需新机制/真机，保持 no-op 如实记录，不猜）**：好调增加量增加
+（ExamParameterBuffAdditive 4 段，setGoodConditionTurnsBuff 增益倍率接线）/ 元气增加无效
+（ExamBlockRestriction 15 段，nullifyGenkiTurns，resolveGenki return）/ 不安（ExamBlockAddDown
+14 段，uneaseTurns，resolveGenki ×0.67，delay:2 延迟生效）/ 塔 gimmick（低谷/紧张/弱气/体力回复
+无效，参考无独立字段、gkbench 无 tower）/ 全力・强气效果卡打分（ExamFullPower 31/ExamConcentration
+25 no_target，setFullPowerEffectBuff/setStrengthEffectBuff 卡级 modifier）/ 日文好調の%分
+（天生的才能 2 段，眠気卡张数条件、无中文）/ ExamParameterBuffReduce（produce/buff_consume 触发未支持）。
+**评测零 P 道具结算 / 重标定**：`sim_produce.py`（培育模拟）**完全不引用 p_items**（grep 0 命中）
+→ sim_engine_ab 评测路径无 P 道具。**sim_engine_ab 重标定：改前（git stash）/改后 64 局逐位相同
+（差异=0）**——seed 9000/9100 各 16 局 rules/expectimax budget 800ms，逐局非时间字段全等
+（data/_p15_ab_compare.py，不提交）；expectimax 仍显著强于 rules（Δ+372.2 / +219.1 评价点，
+15/1/0 与 11/5/0，C+ 100%，0 blocked / 0 error），B3 结论保持。**旧 B11 数据/模型是旧规则口径**
+（用户指定全保留不覆盖）：阶段2 重采新 seed 块练新批再新旧对比；参照臂需按新规则重评。
+**测试/基线**：tests/test_p15_reduce_condition.py **38 条**（分类/数值/apply_passive/PItemDelta/
+LessonSim/双镜/数据层 no-op 记录）+ 既有断言随规则更新（test_p13/test_p14 implemented 1067→1164）；
+ruff 通过；全量 pytest **1503/1（1504 收集 / 94 文件，223.75s）**；①③④⑤ 复跑不变（① 4/4+3/3、
+③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155）。重标定产物
+out/_p15_ab_{before,after}_{9000,9100}.json（gitignore）；一次性脚本 data/_p15_*.py 不提交。
+文档：RULES_REFERENCE §0/§1/§5.8/§6/§7；WORKPLAN §0/P1-5/路线图；
+HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；HANDOVER 二·补四十九。
+提交 feat <待填>（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录。
+**下一会话（P1-6，用户已确认 A 顺序，不用再问）**：T7②③ 纯函数状态重放（run_record 雏形 →
+同观测序列→同状态→逐步比对）+ 自动复盘页（每局逐回合页 + 人工标注转回归；C1 已有
+step_trace.jsonl + replay_steps.py，差页面/标注闭环）。**离线可靠性工程，不改考试规则、
+不作废 B11 数据**。每项 DoD：代码+单测+文档；完成后按 §8 交接+发 P1-6 后续开场白。
+
+**上一轮交接记录（2026-11-24，P1-4 —— 阶段1 第四批：nullifyDebuff 低下状态无效拦截 + ⑦ ExamBuffConsumptionAdd / countDebuffs 评估，BSD-3 有据）**：
 用户已确认 A 顺序（不用再问）。开工基线 ①–⑤ 全绿（HEAD 2dca848，② 1435/1、
 1436 收集 / 92 文件，233.88s）；Hindsight 记忆确认（synced=false 后台深化中属正常；
 P1-2/P1-3 initiative 页已读；P1-4 initiative 页已建 kp-996e7f240ae64fdb9ae917bb9eecd0c0）。

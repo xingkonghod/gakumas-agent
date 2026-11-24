@@ -162,16 +162,16 @@
   },
   "effect_type_kinds": 58,
   "primary_effect_type": {
-   "ExamLesson": 90,
+   "ExamLesson": 94,
    "ExamLessonValueMultiple": 76,
    "ExamPlayableValueAdd": 22,
    "unknown": 213,
-   "ExamLessonBuff": 76,
+   "ExamLessonBuff": 80,
    "ExamReview": 83,
    "ExamCardPlayAggressive": 78,
    "ExamBlock": 93,
    "ExamStaminaDamage": 2,
-   "ExamParameterBuff": 86,
+   "ExamParameterBuff": 78,
    "ExamStaminaRecoverFix": 33,
    "ExamConcentration": 18,
    "ExamFullPower": 18,
@@ -229,10 +229,10 @@
   "effects_create_card": 11,
   "effects_create_random": 6,
   "items_trigger_id_parsed": 22,
-  "effects_depends_on": 65,
+  "effects_depends_on": 76,
   "effects_percent_max": 9,
   "effects_zero_stack": 3,
-  "effects_modifier": 396,
+  "effects_modifier": 409,
   "effects_modifier_targets": {
    "score_buff": 93,
    "cost_increase": 32,
@@ -245,15 +245,18 @@
    "concentration_gain": 10,
    "concentration_effect": 6,
    "perfect_condition_turns": 20,
+   "focus_reduce": 4,
    "score_debuff": 36,
    "extra_turn": 12,
    "impression_gain": 7,
    "review_multiple": 9,
+   "aggressive_reduce": 5,
    "pride_turns": 2,
    "impression_reduce": 5,
    "motivation_gain": 5,
    "enthusiasm_bonus": 9,
    "enthusiasm_multiple": 6,
+   "full_power_point_reduce": 4,
    "full_power_charge": 8,
    "stance_preservation2": 7,
    "stance_leisure": 2,
@@ -261,7 +264,7 @@
    "hand_decrease": 12,
    "review_times": 4
   },
-  "items_with_modifier": 311,
+  "items_with_modifier": 322,
   "items_text_limit": 896
  },
  "items": [
@@ -7986,18 +7989,20 @@
     },
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 180
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 180
+     },
      "text": "打分上升（训练内2次）",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     }
    ],
@@ -8341,18 +8346,20 @@
     },
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 230
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 230
+     },
      "text": "打分上升（训练内3次）",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     }
    ],
@@ -8388,18 +8395,20 @@
     },
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 230
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 230
+     },
      "text": "打分上升（训练内3次）",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     }
    ],
@@ -9143,27 +9152,29 @@
     "remaining_turns": 2
    },
    "condition": "",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLesson",
+   "effect_label": "打分",
+   "effect_text": "打分上升",
    "value": 30,
    "value_unit": "percent1",
    "max_uses": 2,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 30
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 30
+     },
      "text": "打分上升",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     },
     {
@@ -9192,27 +9203,29 @@
     "remaining_turns": 2
    },
    "condition": "",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLesson",
+   "effect_label": "打分",
+   "effect_text": "打分上升（训练内2次）",
    "value": 30,
    "value_unit": "percent1",
    "max_uses": 2,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 30
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 30
+     },
      "text": "打分上升（训练内2次）",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     }
    ],
@@ -9783,6 +9796,7 @@
      },
      "text": "集中减少（训练内1次）",
      "max_uses": 0,
+     "target": "focus_reduce",
      "label": "集中减少"
     }
    ],
@@ -11413,27 +11427,29 @@
     "remaining_turns": 2
    },
    "condition": "",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLesson",
+   "effect_label": "打分",
+   "effect_text": "打分上升",
    "value": 70,
    "value_unit": "percent1",
    "max_uses": 2,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 70
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 70
+     },
      "text": "打分上升",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     },
     {
@@ -11462,27 +11478,29 @@
     "remaining_turns": 2
    },
    "condition": "",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLesson",
+   "effect_label": "打分",
+   "effect_text": "打分上升（训练内2次）",
    "value": 70,
    "value_unit": "percent1",
    "max_uses": 2,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 70
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLesson",
-     "values": {},
+     "values": {
+      "percent1": 70
+     },
      "text": "打分上升（训练内2次）",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "打分"
     }
    ],
@@ -11502,27 +11520,29 @@
     "every": 2
    },
    "condition": "好调状态的时候",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中增加",
    "value": 40,
    "value_unit": "percent1",
    "max_uses": 2,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 40
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLessonBuff",
-     "values": {},
+     "values": {
+      "percent1": 40
+     },
      "text": "集中增加",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "集中"
     },
     {
@@ -11551,27 +11571,29 @@
     "every": 2
    },
    "condition": "好调状态的时候",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中增加",
    "value": 50,
    "value_unit": "percent1",
    "max_uses": 2,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 50
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLessonBuff",
-     "values": {},
+     "values": {
+      "percent1": 50
+     },
      "text": "集中增加",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "集中"
     },
     {
@@ -12328,6 +12350,7 @@
      },
      "text": "集中减少抽取技能卡",
      "max_uses": 0,
+     "target": "focus_reduce",
      "label": "集中减少"
     }
    ],
@@ -12479,6 +12502,7 @@
      },
      "text": "集中减少",
      "max_uses": 0,
+     "target": "focus_reduce",
      "label": "集中减少"
     }
    ],
@@ -12522,6 +12546,7 @@
      },
      "text": "集中减少",
      "max_uses": 0,
+     "target": "focus_reduce",
      "label": "集中减少"
     }
    ],
@@ -13296,27 +13321,29 @@
     "remaining_turns": 3
    },
    "condition": "",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中增加",
    "value": 20,
    "value_unit": "percent1",
    "max_uses": 3,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 20
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLessonBuff",
-     "values": {},
+     "values": {
+      "percent1": 20
+     },
      "text": "集中增加",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "集中"
     },
     {
@@ -13345,27 +13372,29 @@
     "remaining_turns": 3
    },
    "condition": "",
-   "effect_type": "ExamParameterBuff",
-   "effect_label": "好调",
-   "effect_text": "好调的%数值变为",
+   "effect_type": "ExamLessonBuff",
+   "effect_label": "集中",
+   "effect_text": "集中增加",
    "value": 30,
    "value_unit": "percent1",
    "max_uses": 3,
    "effects": [
     {
      "type": "ExamParameterBuff",
-     "values": {
-      "percent1": 30
-     },
+     "values": {},
      "text": "好调的%数值变为",
      "max_uses": 0,
+     "role": "conversion_source",
      "label": "好调"
     },
     {
      "type": "ExamLessonBuff",
-     "values": {},
+     "values": {
+      "percent1": 30
+     },
      "text": "集中增加",
      "max_uses": 0,
+     "depends_on": "parameter_buff",
      "label": "集中"
     },
     {
@@ -18396,6 +18425,7 @@
      },
      "text": "干劲减少（训练内1次）",
      "max_uses": 0,
+     "target": "aggressive_reduce",
      "label": "干劲减少"
     }
    ],
@@ -18436,6 +18466,7 @@
      },
      "text": "干劲减少（训练内2次）",
      "max_uses": 0,
+     "target": "aggressive_reduce",
      "label": "干劲减少"
     }
    ],
@@ -21112,6 +21143,7 @@
      },
      "text": "干劲减少（训练内3次）",
      "max_uses": 0,
+     "target": "aggressive_reduce",
      "label": "干劲减少"
     }
    ],
@@ -21152,6 +21184,7 @@
      },
      "text": "干劲减少（训练内4次）",
      "max_uses": 0,
+     "target": "aggressive_reduce",
      "label": "干劲减少"
     }
    ],
@@ -22299,6 +22332,7 @@
      },
      "text": "干劲减少抽取技能卡",
      "max_uses": 0,
+     "target": "aggressive_reduce",
      "label": "干劲减少"
     }
    ],
@@ -27279,6 +27313,7 @@
      },
      "text": "全力值减少下个回合，",
      "max_uses": 0,
+     "target": "full_power_point_reduce",
      "label": "全力值减少"
     },
     {
@@ -27335,6 +27370,7 @@
      },
      "text": "全力值减少下个回合，",
      "max_uses": 0,
+     "target": "full_power_point_reduce",
      "label": "全力值减少"
     },
     {
@@ -32871,6 +32907,7 @@
      },
      "text": "全力值减少下个回合，抽取技能卡",
      "max_uses": 0,
+     "target": "full_power_point_reduce",
      "label": "全力值减少"
     }
    ],
@@ -32911,6 +32948,7 @@
      },
      "text": "全力值减少下个回合，抽取技能卡",
      "max_uses": 0,
+     "target": "full_power_point_reduce",
      "label": "全力值减少"
     }
    ],

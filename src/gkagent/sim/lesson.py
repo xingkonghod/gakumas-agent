@@ -1532,6 +1532,15 @@ class LessonSim:
             elif key == "parameter_buff":
                 # P 道具的「好调」按回合数近似；模拟器没有独立参数 buff 资源
                 self.buffs.condition_turns += int(value)
+        # P1-5：全力值减少（fullPowerCharge-=N，夹取 ≥0；不计累计全力值，参考
+        # decreaseFullPowerCharge 不动 cumulativeFullPowerCharge）。
+        if delta.full_power_point_reduce:
+            self.stance = replace(
+                self.stance,
+                full_power_point=max(
+                    0, self.stance.full_power_point - int(delta.full_power_point_reduce)
+                ),
+            )
         if delta.extra_plays:
             # ExamPlayableValueAdd：本回合额外可出牌次数（与卡效果同口径）
             self.extra_plays += int(delta.extra_plays)

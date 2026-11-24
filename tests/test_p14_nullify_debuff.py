@@ -381,10 +381,10 @@ def test_count_debuffs_no_landing_point() -> None:
 
 
 def test_p_items_implemented_count() -> None:
-    """implemented 1056→1067/1849（+11 ExamAntiDebuff）。"""
+    """implemented 1056→1067（P1-4 +11 ExamAntiDebuff）→1164（P1-5 +97）。"""
     summary = summarize(load_p_items())
-    assert summary["implemented"] == 1067
-    assert summary["noop"] == 782
+    assert summary["implemented"] == 1164
+    assert summary["noop"] == 685
 
 
 def test_nullify_card_side_deferred() -> None:

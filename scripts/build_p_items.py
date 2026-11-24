@@ -750,7 +750,12 @@ CONVERSION_SOURCES = {
     "累计全力值": "full_power_point_total",
     "全力值": "full_power_point",
     "消耗过的体力": "consumed_stamina_total",
-    # 好调在模拟器里是「剩余回合数」而非可换算的量 → 本轮不建模（保持 no-op，不猜）
+    # P1-5（2026-11-24）：好调 = condition_turns（整数回合数，模拟器已建模）。
+    # 参考 DSL score+=goodConditionTurns*0.3（初陣の証・佑芽）/ concentration+=
+    # goodConditionTurns*0.4（アニメイト装備）——「好调的N%数值变为打分上升/集中」
+    # 源段只作系数（不消耗好调回合），目标增量 = int(condition_turns × N / 100)。
+    # 日文变体「好調の%分」（天生的才能，含眠気卡张数条件、无中文描述）留后续。
+    "好调": "parameter_buff",
 }
 CONVERSION_TARGET_TYPES = frozenset(
     {"ExamLesson", "ExamReview", "ExamBlock", "ExamLessonBuff", "ExamCardPlayAggressive", "ExamParameterBuff"}

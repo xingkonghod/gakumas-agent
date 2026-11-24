@@ -2103,6 +2103,15 @@ def fire_p_items(
             full_power_point_total += max(0, value)
         elif key == "parameter_buff":
             condition_turns += value
+    # P1-5：全力值减少（fullPowerCharge-=N，夹取 ≥0；与 LessonSim._fire_p_items 同口径，
+    # 不计累计全力值）。aggressive/focus 负层数在下方 replace 时 max(…,0) 夹取。
+    if delta.full_power_point_reduce:
+        stance = replace(
+            stance,
+            full_power_point=max(
+                0, stance.full_power_point - int(delta.full_power_point_reduce)
+            ),
+        )
     # ---- B9：持久倍率 / modifier 增量（与 LessonSim._fire_p_items 同口径）----
     score_buffs = state.score_buffs
     for buff_amount, buff_turns in delta.score_buffs:

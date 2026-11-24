@@ -2733,6 +2733,83 @@ hindsight-embed-coding-agent/data` + `~/.hindsight/`），未删，将来要恢�
 **提交**：docs(handover) 2699e79（停用记录，纯文档；插件禁用/进程停止在 ~/.dsh 与系统进程，不入仓库）
 + 哈希记录（本节）；见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补四十九、11-24（P1-5 —— 阶段1 第五批：P 道具剩余效果语义补全 bounded batch：层数减少 + 好调回合 + 好调依赖换算，BSD-3 + DSL 三重核实）
+
+**任务**：HANDOVER_NEXT §8.0 路线图 P1-5（用户确认 A 顺序）。把「证据充分、离线可定、映射
+既有机制」的 P 道具 no-op 段往上推（bounded batch，不贪多）。开工基线 ①–⑤ 全绿（HEAD
+edb65a6，② 1465/1、1466 收集 / 93 文件）。Hindsight 已停用（不用记忆工具，靠 docs 交接）。
+
+**本批四块**（语义全部经 BSD-3 参考引擎 gakumas-tools + 主数据 + 参考 DSL `p_items.csv` 三重核实）：
+
+1. **层数减少类**（资源 -= N，夹取 ≥0；参考 `Executor.executeAssignment` op "-="（:457，非
+   ALWAYS_INTERMEDIATE/INTERMEDIATE_ON_ADD，直接 `intermediate = state[lhs] − rhs`）+
+   `NON_NEGATIVE_FIELDS`（:336-338）；这些是**资源不是 DEBUFF_FIELDS**，nullifyDebuff 不拦截）：
+   - `ExamAggressiveReduce` 干劲减少 ↔ DSL `motivation-=1`（スタイリッシュモード 139/140、
+     初恋の証・麻央 152/153）→ `delta.add_stack("aggressive", -N)`，双镜既有夹取。
+   - `ExamLessonBuffReduce` 集中减少 ↔ DSL `concentration-=1`（イケてるセーター 179、
+     「Pっち」242/243）→ `delta.add_stack("focus", -N)`。
+   - `ExamFullPowerPointReduce` 全力值减少 ↔ DSL `fullPowerCharge-=2`（ユートピアへの誘い
+     399/400；引擎 `decreaseFullPowerCharge` Math.max(0,…) BuffManager :86 同口径）→
+     **独立 `PItemDelta.full_power_point_reduce`**（`apply_full_power_point` 只表达增加、负 delta
+     按 0，stance.py :223），双镜 `max(0, fp−N)`、**不计累计全力值**（参考不动 cumulativeFullPowerCharge）。
+2. **体力减少 `ExamStaminaDamage`**：并入 `STAMINA_LOSS_EFFECTS`（target=stamina，固定扣体力 +
+   计累计消耗）。DSL 私の「初」の楽譜 27/28 `at:startOfTurn { if:genki==0 { cost-=1; concentration+=3 } }`
+   —— `resolveCost`（:79-84）genki==0 时 cost−1 穿透到 stamina−1/consumedStamina+1；主数据条件
+   「元气为0的时候」（pitem_00-2-010-0/1）。
+3. **好调N回合 `ExamParameterBuff`「好调N回合」**：N 在 **turn 列**（不是 value1）→ `effect_value`
+   读 turn（value1 优先；依赖换算源段 values 已清空 → 0）→ `condition_turns += N`（既有
+   parameter_buff 层数渠道，回合末 -1）。DSL `goodConditionTurns+=N`（Dearリトルプリンス 31/32、
+   共に戦うタオル 43/44 等 33 件）；`constants.js` goodConditionTurns ∈ EOT_DECREMENT_FIELDS。
+4. **好调依赖换算**（「好调的N%数值变为打分上升/集中」）：好调 = `condition_turns` 整数（B8 曾以
+   「好调是剩余回合数非可换算量」排除，现模拟器已建模整数回合）→ `CONVERSION_SOURCES` 加
+   `好调:parameter_buff`；源段只作系数（**不消耗好调回合**），目标增量 `int(condition_turns×N/100)`
+   （既有 depends_on 路径）。DSL `score+=goodConditionTurns*0.3`（初陣の証・佑芽 304/305）/
+   `score+=goodConditionTurns*0.7`（めりくりライオン 177/178）/ `concentration+=goodConditionTurns*0.4`
+   （アニメイト装備 162/163）。
+
+**落地（纯增量）**：p_items.py（AGGRESSIVE_REDUCE/FOCUS_REDUCE/FULL_POWER_POINT_REDUCE_EFFECTS /
+TARGET_BY_EFFECT / effect_value 读 ExamParameterBuff turn / PItemDelta.full_power_point_reduce +
+is_zero/as_dict/__iadd__/__add__ / _apply_modifier_target 负层数 / ExamStaminaDamage 并入
+STAMINA_LOSS）+ lesson.py/expectimax.py（全力值减少 max(0,fp−N) 双镜，默认 0=旧行为）+
+build_p_items.py（CONVERSION_SOURCES 好调）+ p_items.json 重标注重建（分类纯函数驱动；逐条 diff
+校验仅 **24 条记录**变化：11 ExamParameterBuff 源段 role=conversion_source + 7 ExamLesson/
+4 ExamLessonBuff 目标 depends_on=parameter_buff + 5 ExamAggressiveReduce/4 ExamLessonBuffReduce/
+4 ExamFullPowerPointReduce target 标注；ExamStaminaDamage 代码驱动无数据变化）。
+implemented **1067→1164/1849**（+97），依赖换算 65→**76 段**。
+
+**留后续（证据充分但需新机制/真机，保持 no-op 如实记录，不猜）**：
+- 好调增加量增加 `ExamParameterBuffAdditive`（4 段，DSL `setGoodConditionTurnsBuff(0.5,4)`
+  夜闇の星 313/314）：需把 condition_gain 增益倍率接进 condition_turns 获得路径（卡 + P 道具双镜）。
+- 元气增加无效 `ExamBlockRestriction`（15 段，DSL `nullifyGenkiTurns+=2` いたずらパペット
+  149/150、初陣の証・美鈴 302/303）：resolveGenki nullifyGenkiTurns>0 return，EOT 递减、∈DEBUFF_FIELDS。
+- 不安 `ExamBlockAddDown`（14 段，DSL `uneaseTurns+=5; delay:2` 雨上がりの花 253/254）：
+  resolveGenki ×0.67，EOT 递减；delay:2 延迟生效需新机制。
+- 塔 gimmick（低谷 ExamGimmickSlump / 紧张 ExamGimmickLessonDebuff / 弱气 ExamGimmickSleepy /
+  体力回复无效 ExamStaminaRecoverRestriction）：参考引擎无对应独立字段，gkbench 无 tower → 评测零触达。
+- 全力・强气效果卡打分（ExamFullPower 31 / ExamConcentration 25 no_target，「全力效果的技能卡的
+  打分值增加+N」）：参考 setFullPowerEffectBuff/setStrengthEffectBuff（resolveScore 指針倍率）+
+  卡效果组过滤，需卡级 modifier。
+- 日文好調の%分（天生的才能 pitem_01-3-346-0/1，2 段）：源段「好調の%分」变体 + 眠気卡张数条件、无中文。
+- ExamParameterBuffReduce（好调减少，3 段）：produce_start_lesson/buff_consume 触发未支持。
+
+**评测零 P 道具结算 / 重标定**：`sim_produce.py`（培育模拟）**完全不引用 p_items**（grep 0 命中）
+→ sim_engine_ab 评测路径无 P 道具。**改前（git stash）/改后 64 局逐位相同（差异=0）**——seed
+9000/9100 各 16 局 rules/expectimax budget 800ms，逐局非时间字段全等（data/_p15_ab_compare.py，
+不提交）；expectimax 仍显著强于 rules（Δ**+372.2 / +219.1** 评价点，15/1/0 与 11/5/0，C+ 100%，
+0 blocked / 0 error），B3 结论保持。**旧 B11 数据/模型是旧规则口径**（用户指定全保留不覆盖）：
+阶段2 重采新 seed 块练新批再新旧对比；参照臂需按新规则重评。
+
+**验证**：`tests/test_p15_reduce_condition.py` **38 条**（分类/数值/apply_passive/PItemDelta/
+LessonSim/双镜/数据层 no-op 记录）+ 既有断言随规则更新（test_p13/test_p14 implemented 1067→1164）；
+ruff 通过；全量 pytest **1503/1（1504 收集 / 94 文件，223.75s）**；基线 ①③④⑤ 复跑不变
+（① 4/4+3/3、③ 86/86+24/24、④ 36/36+3/3+29/29+beam 28、⑤ 366/384 逐张 1125/1155）。
+重标定产物 out/_p15_ab_{before,after}_{9000,9100}.json（gitignore）；一次性脚本 data/_p15_*.py 不提交。
+
+**文档**：RULES_REFERENCE §0/§1/§5.8/§6/§7；WORKPLAN §0/P1-5/路线图；HANDOVER_NEXT
+开场白/§0/§2 期望值（1465→1503）/§4 T5/§8.0/§8；INDEX；本文件二·补四十九。
+**提交**：feat <待填>（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录；
+见 [七、最近提交记录](#七最近提交记录)。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

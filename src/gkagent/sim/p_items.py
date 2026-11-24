@@ -72,7 +72,10 @@ EXAM_START_AFTER = "exam_start_after"
 # 当回合额外可出牌次数（ExamPlayableValueAdd，与卡效果同口径）
 SCORE_EFFECTS = frozenset({"ExamLesson"})
 STAMINA_GAIN_EFFECTS = frozenset({"ExamStaminaRecoverFix"})
-STAMINA_LOSS_EFFECTS = frozenset({"ExamStaminaReduceFix"})  # B8：固定体力消耗（含最大体力%）
+# B8：固定体力消耗（含最大体力%）。P1-5：ExamStaminaDamage「体力减少」同口径——
+# 参考 DSL 私の「初」の楽譜 ``cost-=1``（genki==0 时 resolveCost 穿透到 stamina-=1、
+# consumedStamina+=1），主数据条件「元气为0的时候」，固定扣体力并计累计消耗。
+STAMINA_LOSS_EFFECTS = frozenset({"ExamStaminaReduceFix", "ExamStaminaDamage"})
 STAMINA_EFFECTS = STAMINA_GAIN_EFFECTS | STAMINA_LOSS_EFFECTS
 EXTRA_PLAY_EFFECTS = frozenset({"ExamPlayableValueAdd"})
 STACK_EFFECTS = {
@@ -142,6 +145,16 @@ PRIDE_EFFECTS = frozenset({"ExamLessonValueMultipleDependReviewOrAggressive"})  
 # 主数据 ExamAntiDebuff values.count = 无效次数（P 道具侧有值；卡侧 4 SSR 族 values 恒空，
 # 需逐卡证据表、不在 build_pool，见 RULES_REFERENCE §5.7，延迟）。
 ANTI_DEBUFF_EFFECTS = frozenset({"ExamAntiDebuff"})  # 低下状态无效次数
+# P1-5（2026-11-24）：层数减少类（资源 -= N，参考 executeAssignment op "-=" +
+# NON_NEGATIVE_FIELDS 夹取 ≥0；这些是资源不是 DEBUFF_FIELDS，nullifyDebuff 不拦截）。
+#   * ExamAggressiveReduce  干劲减少  ↔ DSL motivation-=1（スタイリッシュモード/初恋の証・麻央）
+#   * ExamLessonBuffReduce  集中减少  ↔ DSL concentration-=1（イケてるセーター/「Pっち」）
+#   * ExamFullPowerPointReduce 全力值减少 ↔ DSL fullPowerCharge-=2（ユートピアへの誘い；
+#     引擎另有 decreaseFullPowerCharge 特殊动作 Math.max(0,…) 同口径）。apply_full_power_point
+#     只表达「增加」（负 delta 按 0），故走独立 PItemDelta.full_power_point_reduce 字段。
+AGGRESSIVE_REDUCE_EFFECTS = frozenset({"ExamAggressiveReduce"})  # 干劲减少
+FOCUS_REDUCE_EFFECTS = frozenset({"ExamLessonBuffReduce"})  # 集中减少
+FULL_POWER_POINT_REDUCE_EFFECTS = frozenset({"ExamFullPowerPointReduce"})  # 全力值减少
 STANCE_EFFECT_TARGETS = {
     "ExamPreservation": "stance_preservation",
     "ExamConcentration": "stance_concentration",
@@ -175,6 +188,10 @@ TARGET_BY_EFFECT: dict[str, str] = {
     **{effect: "pride_turns" for effect in PRIDE_EFFECTS},
     # P1-4（2026-11-24）：低下状态无效次数（nullifyDebuff 计数器）
     **{effect: "nullify_debuff" for effect in ANTI_DEBUFF_EFFECTS},
+    # P1-5（2026-11-24）：层数减少类（资源 -= N，夹取 ≥0）
+    **{effect: "aggressive_reduce" for effect in AGGRESSIVE_REDUCE_EFFECTS},
+    **{effect: "focus_reduce" for effect in FOCUS_REDUCE_EFFECTS},
+    **{effect: "full_power_point_reduce" for effect in FULL_POWER_POINT_REDUCE_EFFECTS},
 }
 
 #: 百分比类目标：effect.values.percent1 是「人类百分比」（50 = +50%），
@@ -442,7 +459,16 @@ class PItemSpec:
             return self.value > 0
         if target in FLAG_TARGETS:
             return True
-        if target in ("review_times", "cost_reduction", "cost_increase", "impression_reduce"):
+        if target in (
+            "review_times",
+            "cost_reduction",
+            "cost_increase",
+            "impression_reduce",
+            # P1-5：层数减少类（固定减少量 value1>0）
+            "aggressive_reduce",
+            "focus_reduce",
+            "full_power_point_reduce",
+        ):
             return self.value > 0
         if target in (
             "half_cost_turns",
@@ -534,6 +560,9 @@ class PItemDelta:
     pride_turns: int = 0
     # P1-4（2026-11-24）：低下状态无效次数（nullifyDebuff+=N，消耗式计数器，无回合倒计时）
     nullify_debuff: int = 0
+    # P1-5（2026-11-24）：全力值减少（fullPowerCharge-=N，夹取 ≥0）。独立字段因为
+    # apply_full_power_point 只表达「增加」（负 delta 按 0）；参考 decreaseFullPowerCharge。
+    full_power_point_reduce: int = 0
     # 其它持久倍率：key -> (千分比/数值, 剩余回合)。key 见 MODIFIER_TARGETS。
     modifiers: list[tuple[str, int, int]] = field(default_factory=list)
     # 固定/百分比费用修正（永久，整场累计）；half/double 是「接下来 N 回合」计数器
@@ -567,6 +596,7 @@ class PItemDelta:
             or self.hand_decreases
             or self.pride_turns
             or self.nullify_debuff
+            or self.full_power_point_reduce
             or self.modifiers
             or self.cost_reduction
             or self.cost_increase
@@ -593,6 +623,7 @@ class PItemDelta:
             "hand_decreases": list(self.hand_decreases),
             "pride_turns": self.pride_turns,
             "nullify_debuff": self.nullify_debuff,
+            "full_power_point_reduce": self.full_power_point_reduce,
             "modifiers": list(self.modifiers),
             "create_cards": list(self.create_cards),
         }
@@ -611,6 +642,7 @@ class PItemDelta:
         self.hand_decreases.extend(other.hand_decreases)
         self.pride_turns += other.pride_turns
         self.nullify_debuff += other.nullify_debuff
+        self.full_power_point_reduce += other.full_power_point_reduce
         self.modifiers.extend(other.modifiers)
         self.cost_reduction += other.cost_reduction
         self.cost_increase += other.cost_increase
@@ -637,6 +669,7 @@ class PItemDelta:
             hand_decreases=list(self.hand_decreases),
             pride_turns=self.pride_turns,
             nullify_debuff=self.nullify_debuff,
+            full_power_point_reduce=self.full_power_point_reduce,
             modifiers=list(self.modifiers),
             cost_reduction=self.cost_reduction,
             cost_increase=self.cost_increase,
@@ -824,6 +857,11 @@ def effect_value(effect: Mapping, target: str | None = None) -> int:
     # P1-4：低下状态无效次数（ExamAntiDebuff values.count；参考 nullifyDebuff+=N）
     if kind == "nullify_debuff":
         return int(values.get("count") or values.get("value1") or 0)
+    # P1-5：好调回合（ExamParameterBuff「好调N回合」）——N 在 turn 列（参考
+    # goodConditionTurns+=N，DSL Dearリトルプリンス/共に戦うタオル）。value1 优先
+    # （直接加层数的旧口径）；依赖换算源段（好调的%数值变为）values 已清空 → 0。
+    if effect.get("type") == "ExamParameterBuff":
+        return int(values.get("value1") or values.get("turn") or 0)
     return int(values.get("value1") or 0)
 
 
@@ -1230,6 +1268,27 @@ def _apply_modifier_target(spec: PItemSpec, target: str, delta: PItemDelta) -> b
         if spec.value <= 0:
             return False
         delta.add_stack("impression", -spec.value)
+        return True
+    # P1-5（2026-11-24）：层数减少类（资源 -= N，参考 executeAssignment op "-=" +
+    # NON_NEGATIVE_FIELDS 夹取 ≥0；资源不是 DEBUFF_FIELDS，nullifyDebuff 不拦截）。
+    if target == "aggressive_reduce":
+        # 干劲减少（DSL motivation-=1）：负层数，双镜结算时夹到 ≥0
+        if spec.value <= 0:
+            return False
+        delta.add_stack("aggressive", -spec.value)
+        return True
+    if target == "focus_reduce":
+        # 集中减少（DSL concentration-=1）：负层数，双镜结算时夹到 ≥0
+        if spec.value <= 0:
+            return False
+        delta.add_stack("focus", -spec.value)
+        return True
+    if target == "full_power_point_reduce":
+        # 全力值减少（DSL fullPowerCharge-=2 / decreaseFullPowerCharge）：独立字段，
+        # 双镜 max(0, full_power_point − N)（apply_full_power_point 负 delta 按 0）。
+        if spec.value <= 0:
+            return False
+        delta.full_power_point_reduce += spec.value
         return True
     return False
 

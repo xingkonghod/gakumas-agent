@@ -502,6 +502,20 @@ rules Δ+372.2/+219.1）；旧 B11 数据/模型旧规则口径全保留。新�
 30 条（+test_p13 implemented 断言更新），全量 pytest **1465 passed / 1 skipped
 （1466 收集 / 93 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.7 /
 WORKPLAN P1-4 / HANDOVER 二·补四十七。
+**2026-11-24 P1-5 完成**（阶段1 第五批，用户确认 A 顺序；纯离线，BSD-3 + DSL 三重核实）：
+**P 道具剩余效果语义补全（bounded batch）**——层数减少类（干劲/集中/全力值 -= N 夹取 ≥0，
+DSL motivation-=1/concentration-=1/fullPowerCharge-=2；全力值独立 PItemDelta.full_power_point_reduce
+不计累计）+ 体力减少（ExamStaminaDamage 并入 STAMINA_LOSS，cost-=1 genki==0 穿透）+
+好调N回合（ExamParameterBuff turn 列 → condition_turns，DSL goodConditionTurns+=N）+
+好调依赖换算（好调的N%数值变为打分/集中，CONVERSION_SOURCES 加 好调:parameter_buff，DSL
+score+=goodConditionTurns*0.3）。**留后续**（证据充分需新机制，no-op 如实记）：好调增加量增加/
+元气增加无效/不安/塔 gimmick/全力・强气效果卡打分/日文好調の%分。implemented **1067→1164/1849**
+（+97）、依赖换算 65→76（p_items.json 仅 24 条记录变化）；**sim_produce 不引用 p_items →
+评测零 P 道具结算** → sim_engine_ab 重标定**改前/改后 64 局逐位相同（差异=0**，expectimax 仍
+显著强于 rules Δ+372.2/+219.1）；旧 B11 数据/模型旧规则口径全保留。新增
+`tests/test_p15_reduce_condition.py` 38 条，全量 pytest **1503 passed / 1 skipped
+（1504 收集 / 94 文件）**，基线 ①③④⑤ 不变。细节见 RULES_REFERENCE §5.8 /
+WORKPLAN P1-5 / HANDOVER 二·补四十九。
 阶段 A 全部完成、B1/B2/B3/B4/B5/B6/B7/B8/B9/B10/C0/F0 完成、**B2-R 重训完成（负结果）+
 高预算验证完成（仍 FAIL → 学习叶子路线关闭）**、**C1 执行层可靠性完成（代码+单测）**、
 **B11 渐退式专家迭代第 1–2 轮 + r3–r8 续完成（r1 PASS / r2 平台期 / **v6 过门显著强于 v1**）+
@@ -511,7 +525,8 @@ F 数据已下；
 下一步 **按多会话路线图推进**（用户 2026-11-23 晚确认 A 顺序，详见 HANDOVER_NEXT §8.0）：
 阶段1 离线补未知（~~全力/のんびり/r10 探针~~ ✅ P1-1；~~handDecrease + pride~~ ✅ P1-2；
 ~~hold 保留区 + lockStanceTurns~~ ✅ P1-3；~~nullifyDebuff 拦截 + ⑦ buff-cost/countDebuffs 评估~~ ✅ P1-4；
-**下一会话 P1-5：P 道具剩余效果语义补全**（离线可做段 bounded batch，1067/1849 往上推）；剩 T7②③）→ 阶段2 重采+练学生 r11（small 上采样，
+~~P 道具层数减少 + 好调回合 + 好调依赖换算~~ ✅ P1-5（1067→1164/1849）；
+**下一会话 P1-6：T7②③ 纯函数状态重放/自动复盘页**（离线可靠性工程，不改考试规则、不作废 B11 数据）；P 道具剩余 no-op 段留后续批次）→ 阶段2 重采+练学生 r11（small 上采样，
 双过入库）+ 新旧对比（**旧学生/老师数据模型全保留不覆盖**）→ 阶段3 真机 T3→T1→T2（+T6/D1 补采 + E0）
 → 阶段4 gkbench F1/F2 → 阶段5 收尾 G。**每会话 1–3 任务，开新对话做；旧路线图未完成项已全并入 §8.0**。
 需真机数据的缺口（考试 RNG 流 / `ExamBuffConsumptionAdd` 保持 no-op / fresh buff /
