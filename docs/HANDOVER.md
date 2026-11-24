@@ -1999,6 +1999,10 @@ INDEX；本文件二·补三十七。
 
 ### 二·补三十八、11-23（环境：Hindsight 本地记忆 daemon 启用——新会话有项目记忆了）
 
+> **⚠️ 2026-11-24 已停用**：本节记录的 daemon 因 qwen-plus/text-embedding-v4 走普通按量 key
+> 烧阿里云余额（两天约 ¥10），用户指定停用——插件 bundle 已禁用、daemon/内嵌 PG 已停。
+> 下文为历史启用配置（保留备查），**当前状态以二·补四十八为准**：不用 hindsight_* 工具。
+
 **背景**：插件 `@vectorize-io/hindsight-coding-agents` 早已接进 DSH，但从未配置——默认指向
 Hindsight Cloud 而无 token，每次记忆调用 401（plugin.log 里 11-22 起全是 reflect failed）。
 用户指定「开一下 hindsight」，选定**本地 daemon + 百炼 qwen**（数据全留本机，与本项目
@@ -2680,6 +2684,53 @@ P 道具剩余效果语义（P1-5）、一般 buff fresh 差一回合。
 开场白/§0/§2 期望值（1435→1465）/§4 T5/§8.0/§8；INDEX；本文件二·补四十七。
 
 **提交**：feat 1b58a0f（规则代码+测试+数据标注+文档）+ docs(handover) 哈希记录（本节）；
+见 [七、最近提交记录](#七最近提交记录)。
+
+### 二·补四十八、11-24（环境：Hindsight 记忆停用——后台按量 key 烧余额，用户指定直接停）
+
+**起因**：用户发现阿里云余额莫名少了约 ¥10（「气死了，是谁干的，不是都弄订阅了吗」），
+删光普通 key 止血后要求排查。
+
+**排查结论（实锤）**：烧余额的是 **Hindsight 记忆 daemon**，不是主 agent、不是当次会话 MCP。
+这台机器三套配置并存（`~/.dsh/.credentials.yaml` + `~/.dsh/profiles/web/cordis.patch.yml` +
+`~/.hindsight/profiles/coding-agent.env`）：
+
+| 组件 | key | 端点 | 模型 | 计费 |
+|---|---|---|---|---|
+| 主 coding agent | `BAILIAN_API_KEY` = **sk-sp-（订阅）** | token-plan.maas.qianwenaiapi.com | qwen4-max-preview | 订阅，不烧余额 |
+| **Hindsight daemon** | `DASHSCOPE_API_KEY` = **sk-（普通按量）** | dashscope.aliyuncs.com/compatible-mode | **qwen-plus + text-embedding-v4** | **全烧余额** |
+| 7 个 qwen MCP 工具 | `DASHSCOPE_API_KEY`（普通） | maas MCP 商店 | 搜索/图/语音等 | 超免费额度才烧 |
+
+**根因**：千问 Token Plan Pro 订阅（sk-sp-）只覆盖 `token-plan` 端点的 15 个对话模型；
+Hindsight 配的是**标准 dashscope 按量端点 + qwen-plus + text-embedding-v4**，两者都不在订阅
+名单 → 每笔扣余额。订阅 key（sk-sp-）**不能**用于 MCP/标准端点（会 401），所以 Hindsight
+当初只能配普通 key（二·补三十八已记「按量付费会持续小额费用」，但两天重会话远超「小额」）。
+daemon 日志（`~/.hindsight/profiles/coding-agent.log`）：11-23 约 1952 / 11-24 约 1570 条
+retain/extract/consolidation/mental-model 操作，qwen-plus 出现 394 次 + 超限重试；后台深化
+300 commit 全量 diff、吞 8 个长 coding 会话、维护 12 页、定时刷新 mental model。删 key 后
+daemon 刷 `401 Incorrect API key`（41 次）、refresh_mental_model 失败。
+
+**处置（用户指定「直接停用」）**：
+1. `plugin_manager set_bundle @vectorize-io/hindsight-coding-agents enabled=false`（applied，
+   禁插件防自启；hindsight_* 工具随之下线）。
+2. 杀 daemon 进程树：`taskkill /F /T /PID 36048`（uvx hindsight-api@1.2.3 → uv → hindsight-api.exe
+   → python，实际监听 9077 的是 PID 10180）。
+3. 停内嵌 PostgreSQL：`pg_ctl stop -D ~/.pg0/instances/hindsight-embed-coding-agent/data -m fast`
+   （server stopped）。
+4. 验证：9077/5432 均释放，无残留 hindsight-api/embed 进程。
+
+**影响**：主 agent（订阅）不受影响；qwen MCP 工具也用普通 key 一并失效（本就没在用）；
+跨会话记忆/pages 不再可用，**上下文全靠 docs 交接**。记忆库数据仍在磁盘（`~/.pg0/instances/
+hindsight-embed-coding-agent/data` + `~/.hindsight/`），未删，将来要恢复可重启。
+
+**恢复选项（留待用户决定，不擅自做）**：① 零余额方案——Hindsight LLM 改指订阅端点 + 订阅覆盖的
+便宜模型（如 qwen3.8-flash）、embeddings 改本地 onnx（注意维度兼容，原 text-embedding-v4 是
+1024 维）；② 恢复普通 key + 阿里云设消费上限/告警（MCP 也需要它）；③ 彻底卸载插件。
+
+**文档同步**：HANDOVER_NEXT 开场白行 / §2 环境前提 / §8 步骤 6 / §8 环境变更记录；
+本文件二·补三十八加停用前置注记 + 本节。开场白（P1-5）已把 Hindsight 步改成「停用」。
+
+**提交**：docs(handover)（本节，纯文档；插件禁用/进程停止在 ~/.dsh 与系统进程，不入仓库）；
 见 [七、最近提交记录](#七最近提交记录)。
 
 ## 三、社区情报（他们做到哪了）

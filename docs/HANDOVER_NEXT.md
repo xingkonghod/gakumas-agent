@@ -5,7 +5,7 @@
 > 新会话第一句话（紧凑版，2026-11-24 P1-4 完成后更新；完整版见 WORKPLAN「新会话开场白」）：
 > 「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → docs/WORKPLAN.md →
 > docs/HANDOVER_NEXT.md §2 跑基线（期望 ② 1465/1（1466 收集 / 93 文件）；①③④⑤ 同 B10 口径），不绿先修。
-> Hindsight 本地记忆已启用（先 hindsight_sync_status / search_pages 确认）。
+> Hindsight 记忆已停用（2026-11-24，因后台 qwen-plus/text-embedding-v4 走普通按量 key 烧阿里云余额；不用 hindsight_* 工具，跨会话上下文靠 docs 交接）。
 > **按 §8.0 多会话路线图做**（用户确认 A 顺序：阶段1 离线补未知 → 阶段2 重采+练学生+新旧对比 →
 > 阶段3 真机 → 阶段4 gkbench → 阶段5 收尾；每会话 1–3 任务，旧学生/老师数据模型全保留不覆盖）。
 > 下一会话从 **P1-5** 起（P 道具剩余效果语义补全，离线可做段 bounded batch，1067/1849 往上推）；
@@ -595,12 +595,16 @@ C0/T9 见 HANDOVER 二·补三十 /
   配置/模型在 `data/models/ocr_jp/` + `configs/ocr_jp.yaml`（均 gitignore）。
 - Windows + DMM 客户端；VPN 日本节点（TUN 或 7897 任一）；游戏窗口客户区 **540x960**（代码自动缩放，别改成 720x1280，会截崩，见 F#10）。
 - `out/exam_setup.json` 已 gitignore，**每次采集后要重建**。
-- **Hindsight 本地记忆已启用（2026-11-23）**：daemon 模式（127.0.0.1:9077，内嵌 PostgreSQL），
-  LLM=百炼 qwen-plus / embeddings=text-embedding-v4；本仓库 bank = `coding-agent::gakumas-agent`
-  （`~/.hindsight/coding-agent.json` 显式映射）。**新会话工作目录要开在 `D:\Games\gakumas-agent`**
-  才进对 bank；记忆工具可用时先 `hindsight_search_pages` 再动手。daemon 挂了/重启电脑后
-  新会话会自动拉起（用户环境变量已配 LLM + uv 清华镜像）。验证：`hindsight_sync_status`
-  （synced=true）或 `Invoke-WebRequest http://127.0.0.1:9077/health`；细节见 HANDOVER 二·补三十八。
+- **Hindsight 本地记忆已停用（2026-11-24）**：原 daemon 模式（127.0.0.1:9077，内嵌 PostgreSQL，
+  LLM=百炼 qwen-plus / embeddings=text-embedding-v4，bank `coding-agent::gakumas-agent`）。
+  **停用原因**：qwen-plus / text-embedding-v4 走**标准 dashscope 按量端点 + 普通 DASHSCOPE_API_KEY**，
+  不在千问 Token Plan 订阅（sk-sp-，token-plan 端点）覆盖范围 → 后台深化 300 commit diff +
+  吞长会话 + 维护 12 页 + 定时刷新 mental model，两天几千次调用烧掉约 ¥10 余额（用户发现后
+  删普通 key 止血，daemon 401 空转）。**处置**：禁用插件 bundle `@vectorize-io/hindsight-coding-agents`
+  （plugin_manager set_bundle enabled=false）+ 杀 daemon 进程树 + pg_ctl 停内嵌 PG（9077/5432 已释放）。
+  **新会话不要用 hindsight_* 工具**（已下线），跨会话上下文全靠 docs 交接；主 agent 走订阅不受影响。
+  历史启用配置/坑见 HANDOVER 二·补三十八，停用记录见二·补四十八。要恢复记忆需另配订阅覆盖的
+  LLM + 本地 embeddings（零余额方案）或恢复普通 key 设消费上限，先问用户。
 - 基线不绿就先修基线，不要在新功能上叠 bug。
 
 ---
@@ -1205,7 +1209,7 @@ pytest **1465/1（1466 收集 / 93 文件）**。仍缺：卡侧 nullifyDebuff �
    - 提交代码 + 文档 + 测试，再补一条哈希提交；
    - 在 [HANDOVER.md](HANDOVER.md) 的提交记录里加一行。
 5. **写不清=没完成**：DoD 必须能用命令/数字验证；"感觉能跑"不算。
-6. **发用户下一会话开场白**（用户 2026-11-23 晚指定，每次必做）：准备开新对话时，给用户一份**可直接粘贴**的开场白——含工作目录 / HEAD（git log -1）/ 读文档顺序 / §2 基线期望数字 / Hindsight 确认 / **下一会话具体任务（按 §8.0 队列）** / §4 硬约束 / 完成后交接+再发开场白。让用户开新对话直接粘贴即可接续。
+6. **发用户下一会话开场白**（用户 2026-11-23 晚指定，每次必做）：准备开新对话时，给用户一份**可直接粘贴**的开场白——含工作目录 / HEAD（git log -1）/ 读文档顺序 / §2 基线期望数字 / Hindsight 状态（**已停用**，注明不用记忆工具）/ **下一会话具体任务（按 §8.0 队列）** / §4 硬约束 / 完成后交接+再发开场白。让用户开新对话直接粘贴即可接续。
 
 ### 8.0 多会话路线图（2026-11-23 晚用户确认）
 
@@ -1248,6 +1252,16 @@ pytest **1465/1（1466 收集 / 93 文件）**。仍缺：卡侧 nullifyDebuff �
 **旧路线图未完成项 → 本路线图映射（无遗漏）**：T5 剩余建模→阶段1（离线）+阶段3（需真机数据）；T7②③→阶段1 P1-6；T8→持续；T1/T2/T3/C1 真机验收→阶段3；T6/D1→阶段3；T9-E0→阶段3；B11 练学生（含继续降档候选）→阶段2；F1/F2→阶段4；G 收尾→阶段5。（A1–A5/B1–B10/B2-R/C0/C1 代码/F0 已完成，不重做。）
 
 **纪律**：SKIP 只在真没体力；禁静默回退 rules；每会话 1–3 任务；旧学生/老师数据模型保留不覆盖；`data/_probe*`、`bench_local/REPORT.md`、`card_library.json` 不提交；每任务 feat + docs(handover) 哈希提交；**每会话结束发用户下一会话开场白（§8 步骤 6）**。
+
+**环境变更（2026-11-24，Hindsight 记忆停用）**：用户发现阿里云余额莫名少了约 ¥10，排查确认是
+Hindsight daemon 后台烧的——它用**普通 DASHSCOPE_API_KEY + 标准 dashscope 按量端点**跑
+qwen-plus + text-embedding-v4，**不在千问 Token Plan 订阅覆盖内**（订阅 sk-sp- 只覆盖 token-plan
+端点的 15 个对话模型，主 agent qwen4-max-preview 在内）；两天几千次 retain/extract/consolidation/
+mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 页）扣余额。用户删普通 key 止血
+（daemon 转 401 空转），随后指定**直接停用**：plugin_manager 禁用 bundle
+`@vectorize-io/hindsight-coding-agents` + 杀 daemon 进程树（uvx hindsight-api PID 36048 树）+
+pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
+工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
 **最近交接记录（2026-11-24，P1-4 —— 阶段1 第四批：nullifyDebuff 低下状态无效拦截 + ⑦ ExamBuffConsumptionAdd / countDebuffs 评估，BSD-3 有据）**：
 用户已确认 A 顺序（不用再问）。开工基线 ①–⑤ 全绿（HEAD 2dca848，② 1435/1、
