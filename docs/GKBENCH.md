@@ -345,10 +345,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   - **forced_play 顺序律**（sl3b 池化 n=32 fp0 +28,493 CI>0 / fp0st +45,062 CI>0 同向）：fp0 对 fp1 零负例，
     ADDTACFE fp1 触发硬规矩封顶 3.55M → fp0 6.21M。**先关硬规矩再加预算**（强搜索提蓄体力 end 被硬规矩糟蹋=崩局源）。
 - **托管 hif：评测 db12324b5d57**（run template-hif-gkagent-ex-seed-v2-xingkonghod-db12324b5d57，--seeds 2 --parallel 3 --budget 10）：
-  **237/240 均分 1,265,357**（3 局服务器 10060 网络抖动待补，数字已稳）；max **14,181,357** / min 3,608 / p25 293,841 / med 592,558。
-  **vs ex-seed 967,348 ≈ +31%；vs best-known 全量 1,452,088 ≈ 87%**（66%→87%）。算法侧 0 非法 / bad_routes=0 / over_steps=0。
-  中途同局配对（99 局）：v2 vs ex-seed **+72,741 CI[+35.8k,+115.2k] 下界>0，68 胜 21 负**；v2 vs seedlock **+199,011，90 胜 9 负**；
-  **崩局 v2=0 vs seedlock=18**——下限机制（worlds+tail+fp0）修掉 seedlock 崩局源。
+  **240/240 完赛，均分 1,267,591，errors=0，新榜首**；max **14,181,357** / min 3,608 / p10 29,996 / p25 293,841 / med 592,558。
+  **vs ex-seed 967,348 同 240 局配对 +300,243（+31.0%）CI[+200,648,+409,909]，171 胜 50 负 19 平**；
+  vs seedlock 944,850 **+322,742 CI[+214,340,+437,299]，208 胜 31 负 1 平**；**= best-known 全量 1,452,088 的 87.3%**（66.6%→87.3%）。
+  锁定率 227/240=94.6%（9 局 no-seed-reproduces + 3 短局 + 1 候选未筛完，失锁 worlds 兜底），over_steps=43（ex-seed 同局 172），bad_routes=0。
+  **崩局（<50% 配对 max）v2=0 vs ex-seed 13 / seedlock 45**——下限≥ex-seed、上限≥seedlock 达成（max 14.18M > seedlock 纪录 11.34M）。
+  最大赢 AXME8QK2#1 +5.89M / 5KZSXANK#0 +5.73M（夺回 −23.7M 落后怪物题）；仍输 seedlock 4 怪物局（WDKWQYW5#0 −3.53M 等，锁定/起点方差，如实）。
   过程：首批 149 局后服务器网络抖动（10060×16 + disconnect×2 + timeout×1，19 局出错），客户端连错 10 局自停，
   恢复后 --resume + --only core120 补 91 局。
 - **best-known 分母口径纠正**：全量上限 **1,452,088**（120 题×8，n=960，run 20261115-223849）。
