@@ -1485,9 +1485,11 @@ RoutePool cracking 怪物题 2.14× 单次上界。设计依据=用户观察"ex-
 （Workbench Web UI/OCR 稳定器/anti-SKIP/finisher 门控），印证"社区主轴让普通玩家玩到、不冲 seed 榜"。
 **战略定位（用户确认）**：seed 赛道私有全知 bot 独占（社区产品约束运行时不能 seed），主线自己练 seed 前沿+真机闭环，
 无 seed 顺便跟进。**超越 gkms 路线（用户定调：不必成为他、超越他，他自己也在改）**：不追实现（移动靶），黑盒摸原理+clean-room 朝 seed+深搜+MITM 特化。
-**v3 ✅离线门过**（f2-exv3，bench_repo b63e53f）：v3vote（starts4+lock_trans2M+scan_wait_mode=done 去墙钟+vote_sec_cap2.0 锁定前深搜）
->v2 低 oracle 12 题 **+83,450 CI[+440,+174,748] 零负例**；两机制实证（starts4 攻锁定题方差 P8ZJTXNA+251k/3G6FFZZT+424k，vote2 攻晚锁题 QV6QCSN9+324k）。
-**托管 240 + 多种子门留下会话**（22:00 收工不熬夜）。
+**v3 ✅离线门过**（f2-exv3，bench_repo **951d374**）：v3vote（starts4+lock_trans2M+scan_wait_mode=done 去墙钟+vote_sec_cap2.0 锁定前深搜）
+>v2 低 oracle 12 题 **+83,450 CI[+440,+174,748] 零负例**；gate2 core 层（P8ZJTXNA/3G6FFZZT×2 种子）**+240,168 CI[+71k,+380k]>0** 稳健。
+**⚠ vote2 失锁下行风险**：WDKWQYW5 生成种子失锁时 v3vote −824k 崩局（失锁 worlds 是错误假设，深搜收敛更差共识；浅搜 v2 反而好）——
+**starts4(vote0.8) 失锁中性安全**。**托管务必 A/B vote_sec_cap 0.8（安全）vs 2.0（晚锁上行+失锁下行），保守可 0.8**。
+**托管 240 + 多种子门 + vote2 A/B 留下会话**（22:00 收工不熬夜，v3 墙钟~2.3×v2 ~130min）。
 **engine-gap ✅**（out/_engine_gap_report.md，GKBENCH §12）：**M1 考试 RNG 消费图=超越钥匙**（255/505 题失锁根因，clean-room 3–5d 恢复全知，探针数据集就绪）；
 失分归因 sim 动力学失真~90%/OOD 仅 3.5%；黑盒 31 局 RNG 全解析（确定式生成=1 次 range 首次调用/panic/重洗公式）。
 **hajime**：v2 97,219（n=85）< seedlock 110,613/ex-seed 106,418 **回退**（初集无属性过滤失锁率高+fp0 短考试反效），初集另调留下会话。
@@ -1496,7 +1498,7 @@ RoutePool cracking 怪物题 2.14× 单次上界。设计依据=用户观察"ex-
 全量 505（--full）；ex无seed PIMC 超时优化；真失锁 deck-modify 重扫。
 **新会话开场白**：「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → GKBENCH.md §11-12（v2 1.27M 榜首/v3 离线门/引擎差距）
 → HANDOVER_NEXT 顶部。Hindsight 停用。战果：v2 托管 hif 1,267,591 榜首（best-known 1.45M 的 87.3%，+31% ex-seed，崩局 0）；
-v3 离线门过（v3vote starts4+vote2 去墙钟，低 12 题 +83k CI>0 零负例，b63e53f，托管留下会话）；engine-gap 报告（M1 考试 RNG=超越钥匙 3–5d）。
+v3 离线门过（v3vote starts4+vote2 去墙钟，低 12 题 +83k CI>0 零负例，951d374；⚠vote2 失锁下行 −824k，托管 A/B vote0.8 安全 vs 2.0，托管留下会话）；engine-gap 报告（M1 考试 RNG=超越钥匙 3–5d）。
 继续：① v3 托管 240+多种子门（--budget 10 --parallel 3，盘符相对路径）② M1 RNG 消费图 clean-room（恢复 255 题全知，BSD-3+引擎 oracle 自写不拷 AGPL）
 ③ hajime 初集调（失锁修复+短考试 forced_play=1）④ pilot 重启训练（npz 就绪）+托管门 ≥150k ⑤ 全量 505 --full ⑥ ex无seed PIMC 超时优化。
 引擎 data/_f2sl_tools/kernel/gkmscore.dll 别重编，AGPL 外部用不拷入 src；不碰 D:\Games\Gakumas，C:\GakumasLocal 只读；令牌 ~/.config/gkbench/token；

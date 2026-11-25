@@ -365,6 +365,10 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   这些题离线 v2 赢 base（dev 种子），托管保密种子反输 seedlock = **高方差题搜索盆地方差**（非机制回归）。
   杠杆按收益：① 怪物题更多起点（starts 2→4 / 自适应）+ lock_trans 1M→2M 多探索盆地；② 5KZSXANK deck-modify 失锁重扫；
   ③ 扫描等待窗去墙钟化（sl3b 悬崖）；④ 更多起点普适压 ex-seed 50 负局（≤651k 起点方差）。v3 目标均值 1.3M+（90%+）。
+- **v3 离线门已过（f2-exv3，bench_repo 951d374，托管留下会话）**：v3vote（starts4+lock2M+scan_wait done+vote_sec_cap2.0）低 oracle 12 题
+  **Δ+83,450 CI[+440,+174,748] 零负例**；gate2 core 层×2 种子 +240,168 CI[+71k,+380k]>0 稳健。
+  **⚠ vote2 失锁下行风险**：WDKWQYW5 生成种子失锁 −824k 崩局（失锁 worlds 错误假设，深搜收敛更差共识）；**starts4(vote0.8) 失锁中性安全**。
+  **托管 A/B vote_sec_cap 0.8（安全）vs 2.0（晚锁上行+失锁下行），保守可 0.8**。deck-modify 失锁重扫未实现记局限。
 - **战略定位（用户确认）**：seed 赛道我们私有全知 bot 独占（社区因产品约束运行时不能用 seed，只做无 seed 产品）；
   主线自己练 seed 前沿 + 真机闭环，无 seed 顺便跟进（gkmsps pilot）。best-known 是可超越下界，推前沿即价值。
 - **复现**：`cd data\bench_repo; ..\..\.venv\Scripts\python.exe -m gkbench eval --set hif --algo \Games\gakumas-agent\data\bench_repo\submissions\gkagent-ex-seed-v2\algo.py:ExSeedV2Algo --seeds 2 --parallel 3 --budget 10`
