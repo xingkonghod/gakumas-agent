@@ -311,6 +311,6 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   | ② gkagent-seedlock（seed-lock+GNRPA） | **944,850** (n=240,over=27) | **110,613** (n=96) | sees=seed | **榜第3，1.50×UIHorizon 631k** |
   | ③ gkagent-expectimax（GKMS PIMC） | **549,108** (n=239,over=490) | 跑中 | sees=screen | **public-safe 逼近 UINet 578k**；超时多（6世界×GNRPA 超 step5s，待优化） |
   | ① gkagent-ei-r13-norm-rescalebuffs | 103,575 (n=239) | 5,483 | sees=screen | 网归一化最优（rescale 98,926 / clip3 96,853 / 基线 86,988） |
-  | ④ gkagent-ex-seed（自锁+全知GNRPA） | 待跑 | 400(smoke) | sees=seed | f2-ex2 跑中 |
+  | ④ gkagent-ex-seed（自锁+全知GNRPA+core_tail） | **954,652** (n=232,over=168) | 跑中 | sees=seed | **反超 seedlock 新榜首**；core_tail 精确尾搜索证最优 |
   **验证用户判断**：ex 接 GKMS 引擎=549k（public-safe）vs 我们 sim ex≈greedy（hajime 7,059）——官方引擎消除动力学损耗。
   网归一化机制（f2-norm）：rescale 只除状态量级维保卡分排序→正确；clip 压平动作特征漏打大牌→不稳。剩余网 vs UINet 差距=sim↔GKMS 动力学+不喝饮料，属后续官方尺度重训。
