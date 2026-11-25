@@ -261,3 +261,46 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   Windows 跑不了（fcntl 仅 Unix），用等价脚本手工校验过；eval/hosted 不受影响。
 - **口径警示**：我们 sim 标定 rules 55，官方榜 rules 59/65/67；学生网在自有 sim 训练，迁到官方引擎分数可能缩水
   （用户已预期「分不高」）。F1 判官对齐尚未做。
+
+## 9. 2026-11-25 转折：GKMSMainWheel 开源 + 竞争路线升级
+
+- **归一化实验（f2-norm）**：r13 网输入尺度 OOD 是低分主因之一。裁剪标准化输入 **clip±3 → hif 96,853（+11.3%）**、
+  **rescale（分数除平均倍率）→ 98,630（+13.4%）**，均超 greedy 87,571。证明网策略本身有效、低分主要是 OOD。
+  但 98k 仍远低于竞争者 500k+（UINet 578k/UIHorizon 631k）——public-safe 网天花板低（缺饮料/P道具/回忆 + 训练尺度）。
+- **expectimax（我们 sim 搜索，f2-expectimax）**：hajime 48 局均分 7,059 ≈ greedy 7,071（sim 动力学损耗）。
+  适配器在 `data/bench_repo/submissions/gkagent-expectimax/`（algo.py 177KB 自包含搜索核心，子智能体调试搜索对拍时失败，半成品）。
+- **🔑 GKMSMainWheel 开源**（用户提供，https://github.com/yuzeis/GKMSMainWheel，Ver1.0 Morgendämmerung，**AGPL-3.0**，
+  已克隆 `data/GKMSMainWheel`）：**GakumasCLI**（考试引擎+C++原生核心 api.cpp/core_search.h GNRPA/core_tail.h 精确尾搜索/
+  core_session.h，真实规则模拟 H.I.F/N.I.A/初）+ **GKMSPS**（培育模拟器，選抜→本戦，种子码+回放可复现）+
+  **GKMSUINet**（画面网+完整训练 BC/PPO/信息集MCTS+专家迭代，导出 ONNX）。master 由 gakumasu-diff 生成
+  （`GakumasCLI/gkms.py master-bootstrap build --mirror`）；Windows 原生核心需 MSVC vcvars64（或者 mingw gcc）。
+- **竞争路线升级（用户选定 seed-lock 王牌）**：**我们的 seed-lock（洗牌模型 F0 95.3%）+ GakumasCLI GNRPA 精确搜索**——
+  seed_scan.c（UIHorizon 提交里的独立 C 扫描器，xorshift32(13,17,5)+k+Fisher-Yates，与我们模型一致，gcc 编译不需引擎）
+  反推种子 → 引擎重建对局（真实动力学）→ GNRPA 全知搜索 → sees_seed 投稿对标 UIHorizon 631k，**无迁移损耗**。
+  子智能体 f2-seedlock 构建中（seed_scan 验证 → 编引擎 → GNRPA → 适配器）。
+- **根本解也解锁**：GKMSPS + GKMSUINet 训练流程 → 可在官方引擎尺度训练我们自己的网，消除 public-safe 迁移鸿沟。
+- **许可证纪律**：GKMSMainWheel AGPL-3.0——作外部引擎/独立进程用，投稿 algo.py 可 import（gkbench 生态 AGPL），
+  **不拷进我们生产 src/gkagent**（避免 AGPL 污染，同 data/hiro 纪律）。
+- **GKMSNet 情报（T8，用户 QQ 提供）**：GKMSNET-emulator-core.zip = GKMSProject 的**安卓采集链**（nyarot，Frida/Xposed，
+  HEAD f670b4e1），**Windows 引擎/Audition 模拟器已移除**——是采集技术参考 + GKMSProject 线索，非引擎。README 存 `data/_gkmsnet/`。
+
+## 10. 2026-11-25 引擎跑通 + seed-lock+GNRPA 突破（自主循环推进，用户上课到 16:30）
+
+- **目标**：goal-9f3755fa（训练→投稿→跑分→改进循环，上限 40 轮）。
+- **引擎编通跑通**：gkmscore.dll（949KB，**rules=69**）Windows 编译成功（f2-seedlock，mingw gcc/w64devkit）。
+  冒烟（data/_f2sl_engine_smoke.py）：引擎手牌**精确复现官方 check.hand**；我们洗牌模型牌序与引擎一致（偏移手牌后逐位）；
+  GNRPA 搜索可跑。master 由 gakumasu-diff 生成（GakumasCLI/ro/master/tables，1817 卡）。
+- **托管机制修正（f2-ex2 发现）**：类属性 `sees_seed=True` 被 client.py 拒绝托管。UIHorizon 先例 =
+  类 `sees_seed=False` + `needs_gkms=True` + `about.sees="seed"`（网站标看牌序），种子从公开 obs 自反推 → 照常托管。
+- **expectimax 对拍保真（f2-ex2）**：节点数差异是 anytime 墙钟 deadline 非确定（非搜索 bug）；显式 time_budget_ms=None
+  关 deadline 后提取版 vs 生产逐位一致（20001/20001）。sim 搜索提取保真。
+- **🔑 seed-lock+GNRPA 突破（f2-sl2）**：投稿 `data/bench_repo/submissions/gkagent-seedlock/`（Draws 抽牌跟踪 +
+  seed_scan 并行扫描 + FastCut 引擎快筛 + RoutePool GNRPA 路线池；vendor gkmscore.dll+seed_scan）。
+  **离线 F0 验收 3/3：种子全找回、动作全合法、bad_routes=0；均分 465k vs 引擎贪心 70.6k（6.6×）**；
+  大题 AS-2AXJNW8X 单局 1,374,348（路线池累积超单次 2M-transition 上界 1,272,752）；锁定 turn 3–5。
+  回放正规口径 session.step(action, observe=False)（SCORE_MATCH）。调优 scan_min=6 / hi=2^31（gkbench 种子全 <2^31）/ prior=0。
+  **风险**：服务器裁判 rules≈67 vs 本机 DLL rules=69，锁定核对含分/体力可能 lock failed→退贪心；
+  若锁定率低改只核对抽牌（洗牌与 rules 无关）。hif 240 局托管跑中。
+- **参考分**：pimc-vote-16w-2s 223k（5×32）/ UIHorizon v2.2b 411k（12×8）/ best-known ~1.45M（分母）。
+- **四版进度**：①r13 网无seed **最优 rescale+buffs hif 103,959（+19.3% 显著 t=3.02）**（f2-norm 完成；rescale 仅score 98,943 也显著；clip 不显著+不稳——压平动作特征漏打大牌；hajime 考试 rescale 18,161 +50.3%；投稿 gkagent-ei-r13-norm，185 检查全过）②seed-lock+GNRPA 离线 465k（f2-sl2 托管中）③ex无seed PIMC（f2-ex2）④ex有seed（f2-ex2）。
+- **网归一化机制（f2-norm）**：rescale 只除状态量级维（score/vitality/buff，按 exam.permil 平均倍率）、**保留卡分排序**→正确恢复；clip 压平所有维（含有信息的动作特征 card_block_scale z≈94）→漏打大牌偶发0分。OOD score mean|z| 1053→39.2。剩余 vs UINet 470k+ 差距=sim↔GKMS 动力学（饮料/P道具/回忆/支援卡/gimmick）+不喝饮料+clear/perfect=0，属后续（官方尺度重训）。
