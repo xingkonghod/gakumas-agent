@@ -1473,7 +1473,25 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
-**最近交接记录（2026-11-25，ep-t31 C+ 调查 + F#48 日文别名修复 + F#49 drink-keep + PRO 难度 opt-in；纯离线，真机 T1/T2 留下会话）**：
+**最近交接记录（2026-11-25 下午，gkbench 竞争突破——GKMSMainWheel 开源 + seed-lock+GNRPA 登顶；goal 自主循环推进中）**：
+用户上课到 16:30，设 goal-9f3755fa 自主循环（训练→投稿→跑分→改进，上限 40 轮）。**转折：GKMSMainWheel 开源**
+（github.com/yuzeis/GKMSMainWheel，AGPL，克隆 data/GKMSMainWheel）= GakumasCLI 考试引擎+C++原生核心 / GKMSPS 培育模拟器 /
+GKMSUINet 训练流程。**引擎已编通** gkmscore.dll（data/_f2sl_tools/kernel/，rules=69，mingw gcc/w64devkit），冒烟手牌精确复现官方。
+**四版投稿官方榜成绩（hif template）**：② **gkagent-seedlock（seed-lock+GNRPA路线池）944,850（n=240，榜第3，1.50×UIHorizon 631k，锁定率97.8%）**；
+hajime 110,613（n=96）；③ gkagent-expectimax（GKMS PIMC 无seed）~509k（n=168，over=358 超时多，public-safe 逼近 UINet 578k）；
+① gkagent-ei-r13-norm-rescalebuffs（网无seed 归一化）103,575；④ gkagent-ex-seed（自锁+全知）跑中。
+**关键机制**：托管 sees_seed 类属性被拒→用类 sees_seed=False+about.sees="seed"（UIHorizon 先例）；engine.setup() chdir+盘符冒号截断
+→algo 用盘符相对路径 `\Games\...`；prior 旧规则权重有害→关；网归一化 rescale（除状态量级维保卡分排序）有效，clip 不稳。
+**投稿目录** data/bench_repo/submissions/{gkagent-seedlock,gkagent-expectimax,gkagent-ex-seed,gkagent-ei-r13-norm}（bench_repo 独立 git，已提交）。
+主仓 docs 提交至 16406f2 后续。探针 data/_f2sl*/_f2ex2*/_f2norm* 不提交。**子智能体 f2-ex2 仍在跑 ex 两版链**（A hif→A hajime→B hif→B hajime）。
+**下一步**：① 等 f2-ex2 ④ ex有seed 完整分数；② ex无seed PIMC 超时优化（减世界/增预算）；③ **GKMSPS 官方尺度重训学生网**（消除迁移鸿沟，网当前 104k vs UINet 578k）；
+④ seed-lock 补饮料/P道具建模提分；⑤ 全量 505 题跑分（--full）。纪律：引擎 AGPL 作外部用不拷进 src；不碰 D:\Games\Gakumas。
+**新会话开场白**：「工作目录 D:\Games\gakumas-agent。读 docs/INDEX.md → GKBENCH.md §9-10（gkbench 竞争全貌）。
+goal-9f3755fa 自主循环推进 gkbench：引擎 GKMSMainWheel 已编通（data/_f2sl_tools/kernel/gkmscore.dll），seed-lock+GNRPA 投稿 hif 944k 登顶。
+四版对比见 GKBENCH §10。继续：ex有seed 跑分（f2-ex2）/ GKMSPS 官方尺度重训网 / seed-lock 补饮料提分 / 全量505。
+子智能体失败就接手，引擎别重编。令牌 ~/.config/gkbench/token。基线 pytest 1681/1。不碰 D:\Games\Gakumas，引擎 AGPL 作外部用。」
+
+**上一轮交接记录（2026-11-25，ep-t31 C+ 调查 + F#48 日文别名修复 + F#49 drink-keep + PRO 难度 opt-in；纯离线，真机 T1/T2 留下会话）**：
 用户选定「先调查 C+ 疑问 → 再主线（修日文别名 → 重验 T3 → drink-keep）+ 加 PRO 难度选项」，本会话不跑真机。
 开工基线 ①–⑤ 全绿（HEAD c75f5a8，② 1671/1、1672 收集 / 102 文件）；Hindsight 已停用。
 **调查结论（详见 RUNS.md「2026-11-25 ep-t31 C+ 疑问调查」）**：① 最终评价点 **5493=C+**（公式逐位命中；
