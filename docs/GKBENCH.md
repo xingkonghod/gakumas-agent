@@ -305,12 +305,13 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   远超 uinet 24,991 / greedy 7,071；1 局服务器错误，resume e7a49cbc91d1 补局）。
   托管路径坑：engine.setup() chdir 破坏相对 algo 路径 + 盘符冒号被 spec.partition 截断 → 用盘符相对路径 `\Games\...`。
 - **参考分**：pimc-vote-16w-2s 223k（5×32）/ UIHorizon v2.2b 411k（12×8）/ best-known ~1.45M（分母）。
-- **四版官方榜成绩（2026-11-25 15:05 API 拉取）**：
-  | 版本 | hif 均分 | hajime | 信息 | 备注 |
+- **四版官方榜成绩（2026-11-25 18:00 全齐，hif + hajime）**：
+  | 版本 | hif 均分 | hajime 均分 | 信息 | 备注 |
   |---|---:|---:|---|---|
-  | ② gkagent-seedlock（seed-lock+GNRPA） | **944,850** (n=240,over=27) | **110,613** (n=96) | sees=seed | **榜第3，1.50×UIHorizon 631k** |
-  | ③ gkagent-expectimax（GKMS PIMC） | **549,108** (n=239,over=490) | 跑中 | sees=screen | **public-safe 逼近 UINet 578k**；超时多（6世界×GNRPA 超 step5s，待优化） |
-  | ① gkagent-ei-r13-norm-rescalebuffs | 103,575 (n=239) | 5,483 | sees=screen | 网归一化最优（rescale 98,926 / clip3 96,853 / 基线 86,988） |
-  | ④ gkagent-ex-seed（自锁+全知GNRPA+core_tail） | **967,348** (n=240,over=168) | 跑中 | sees=seed | **榜首**；锁定率94.7%（中位T2，锁后失锁0，13局退worlds）；core_tail 精确尾 |
-  **验证用户判断**：ex 接 GKMS 引擎=549k（public-safe）vs 我们 sim ex≈greedy（hajime 7,059）——官方引擎消除动力学损耗。
-  网归一化机制（f2-norm）：rescale 只除状态量级维保卡分排序→正确；clip 压平动作特征漏打大牌→不稳。剩余网 vs UINet 差距=sim↔GKMS 动力学+不喝饮料，属后续官方尺度重训。
+  | ④ gkagent-ex-seed（自锁+GNRPA+core_tail） | **967,348** (n=240) | 106,418 (n=96) | sees=seed | **hif 榜首**，锁定94.7% |
+  | ② gkagent-seedlock（seed_scan+RoutePool） | 944,850 (n=240) | **110,613** (n=96) | sees=seed | hajime 榜首，锁定97.8% |
+  | ③ gkagent-expectimax（GKMS PIMC） | 531,280 (n=240,over=492) | 32,377 (n=95) | sees=screen | **public-safe**，hajime 超 UINet 24,991 |
+  | ① gkagent-ei-r13-norm-rescalebuffs（网） | 103,575 (n=239) | 5,483 (n=96) | sees=screen | 反应式网上限 |
+  有seed 搜索 ~950–967k = **1.5× UIHorizon 631k**，距 best-known 1.45M ~66%。public-safe ex 接官方引擎 hif 531k/hajime 32k（远超 sim ex≈greedy）。
+  **验证用户判断**：ex 接 GKMS 引擎消除动力学损耗（sim ex hajime 仅 7,059→GKMS PIMC 32,377）。
+  网归一化 rescale 有效（+19%显著）；剩余网 vs UINet 差距=反应式无前瞻+sim训练失真，属后续官方尺度重训/搜索蒸馏。
