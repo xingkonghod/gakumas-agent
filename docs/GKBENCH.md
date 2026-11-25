@@ -309,7 +309,7 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   | 版本 | hif 均分 | hajime | 信息 | 备注 |
   |---|---:|---:|---|---|
   | ② gkagent-seedlock（seed-lock+GNRPA） | **944,850** (n=240,over=27) | **110,613** (n=96) | sees=seed | **榜第3，1.50×UIHorizon 631k** |
-  | ③ gkagent-expectimax（GKMS PIMC） | **549,802** (n=133,over=293) | 跑中 | sees=screen | public-safe 逼近 UINet 578k；超时多（6世界×GNRPA 超 step5s） |
+  | ③ gkagent-expectimax（GKMS PIMC） | **549,108** (n=239,over=490) | 跑中 | sees=screen | **public-safe 逼近 UINet 578k**；超时多（6世界×GNRPA 超 step5s，待优化） |
   | ① gkagent-ei-r13-norm-rescalebuffs | 103,575 (n=239) | 5,483 | sees=screen | 网归一化最优（rescale 98,926 / clip3 96,853 / 基线 86,988） |
   | ④ gkagent-ex-seed（自锁+全知GNRPA） | 待跑 | 400(smoke) | sees=seed | f2-ex2 跑中 |
   **验证用户判断**：ex 接 GKMS 引擎=549k（public-safe）vs 我们 sim ex≈greedy（hajime 7,059）——官方引擎消除动力学损耗。
