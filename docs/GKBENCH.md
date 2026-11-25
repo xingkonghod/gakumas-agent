@@ -315,3 +315,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   有seed 搜索 ~950–967k = **1.5× UIHorizon 631k**，距 best-known 1.45M ~66%。public-safe ex 接官方引擎 hif 531k/hajime 32k（远超 sim ex≈greedy）。
   **验证用户判断**：ex 接 GKMS 引擎消除动力学损耗（sim ex hajime 仅 7,059→GKMS PIMC 32,377）。
   网归一化 rescale 有效（+19%显著）；剩余网 vs UINet 差距=反应式无前瞻+sim训练失真，属后续官方尺度重训/搜索蒸馏。
+- **f2-ex2 最终报告（2026-11-25 18:00 完成，240+96+240+96 局 0 算法错误）**：B ex有seed 对 A ex无seed 同题配对
+  **+76%（+436,068，B 胜 204/240=85%）**；hajime B 均值 3.3×A 但仅胜 31%（课程题 B 锁定晚反亏，考试题大胜）。
+  best-known hif 上限 f2-ex2 读到 **2,134,509**（分母只升不降，早先快照 1.45M）→ 我们 967k ≈ 上限 45%。
+  B 锁定率 hif 94.7%（中位T2，扫描中位3.24s，锁后失锁0）/ hajime 74.5%（课程无属性过滤，中位T4）；
+  13+26 局「无种子复现画面」退 worlds 兜底（个别题 rules 漂移/牌堆早变）。
+  **关键修复**：prior 关（rules69 旧 prior 更差）；路线单调改进（严格更优才换，防 GNRPA 换差线）；
+  tail 时钟校准（mingw steady_clock≈Unix 纪元）；回放须 session.step()；anytime 墙钟 deadline 致对拍节点数非确定（显式关）。
+  **局限（如实）**：B 锁定前丢早期最优（对 best-known 的主要缺口）；硬规矩「有可出牌绝不 end」个别局少分；hajime 课程题 B 略逊 seedlock 4%。
+  **下一步（用户选定，新会话做）**：在 ex-seed 967k 基础上融 seedlock RoutePool 路线池 + 多起点 + 预算 step10，冲 best-known 上限。
