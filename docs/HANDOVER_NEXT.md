@@ -1488,7 +1488,9 @@ hajime 110,613（n=96）；③ gkagent-expectimax（GKMS PIMC 无seed）~509k（
 ④ seed-lock 补饮料/P道具建模提分；⑤ 全量 505 题跑分（--full）。纪律：引擎 AGPL 作外部用不拷进 src；不碰 D:\Games\Gakumas。
 **新会话开场白**：「工作目录 D:\Games\gakumas-agent。读 docs/INDEX.md → GKBENCH.md §9-10（gkbench 竞争全貌）。
 goal-9f3755fa 自主循环推进 gkbench：引擎 GKMSMainWheel 已编通（data/_f2sl_tools/kernel/gkmscore.dll），seed-lock+GNRPA 投稿 hif 944k 登顶。
-四版对比见 GKBENCH §10。继续：ex有seed 跑分（f2-ex2）/ GKMSPS 官方尺度重训网 / seed-lock 补饮料提分 / 全量505。
+四版对比见 GKBENCH §10。继续：ex有seed 跑分（f2-ex2）/ 推 seed-lock 更高（用户选定，f2-sl3 失败需重派）/ GKMSPS 官方尺度重训网 / 全量505。
+**另：用户要更新 QQ 群情报**——按 docs/QQ_EXPORT_PLAN.md 导出「初星学园情报处理部」群最近讨论（工具已克隆 data/_qq_export/nt_msg_db_util，
+需密钥提取+Python3.14+sqlcipher；最快备选=用户 QQ UI 导出 txt）→ 更新 QQ_GROUP_NOTES.md。
 子智能体失败就接手，引擎别重编。令牌 ~/.config/gkbench/token。基线 pytest 1681/1。不碰 D:\Games\Gakumas，引擎 AGPL 作外部用。」
 
 **上一轮交接记录（2026-11-25，ep-t31 C+ 调查 + F#48 日文别名修复 + F#49 drink-keep + PRO 难度 opt-in；纯离线，真机 T1/T2 留下会话）**：
