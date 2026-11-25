@@ -301,8 +301,9 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   对 UIHorizon 631k = 1.50×**（超 v2.0 636k / v2.2b 572k）。about.sees="seed" 生效（榜标看牌序）。
   **锁定率 97.8%**（133/136，3 局牌堆被效果改动退贪心），锁定中位 turn 3–4；服务器 rules67 vs 本机 DLL69 未见漂移。
   离线 F0 3/3 均分 465k（6.6×greedy），大题单局 1.37M（路线池累积）。回放正规口径 session.step(action, observe=False)。
-  调优 scan_min=6 / hi=2^31 / prior=0（prior 旧规则权重有害）。**hajime 76/96 时服务器失联（WinError 10060 服务端故障），
-  评测号 c2ab9d1bc492，等恢复重跑 96 局**（课程局锁定已改进：无属性池 3 张起扫+步内多等+≤8 候选整屏核对）。
+  调优 scan_min=6 / hi=2^31 / prior=0（prior 旧规则权重有害）。**hajime 95/96 均分 108,689**（初 best-known 上限 143k 的 ~76%，
+  远超 uinet 24,991 / greedy 7,071；1 局服务器错误，resume e7a49cbc91d1 补局）。
+  托管路径坑：engine.setup() chdir 破坏相对 algo 路径 + 盘符冒号被 spec.partition 截断 → 用盘符相对路径 `\Games\...`。
 - **参考分**：pimc-vote-16w-2s 223k（5×32）/ UIHorizon v2.2b 411k（12×8）/ best-known ~1.45M（分母）。
 - **四版进度**：①r13 网无seed **最优 rescale+buffs hif 103,959（+19.3% 显著 t=3.02）**（f2-norm 完成；rescale 仅score 98,943 也显著；clip 不显著+不稳——压平动作特征漏打大牌；hajime 考试 rescale 18,161 +50.3%；投稿 gkagent-ei-r13-norm，185 检查全过）②seed-lock+GNRPA 离线 465k（f2-sl2 托管中）③ex无seed PIMC（f2-ex2）④ex有seed（f2-ex2）。
 - **网归一化机制（f2-norm）**：rescale 只除状态量级维（score/vitality/buff，按 exam.permil 平均倍率）、**保留卡分排序**→正确恢复；clip 压平所有维（含有信息的动作特征 card_block_scale z≈94）→漏打大牌偶发0分。OOD score mean|z| 1053→39.2。剩余 vs UINet 470k+ 差距=sim↔GKMS 动力学（饮料/P道具/回忆/支援卡/gimmick）+不喝饮料+clear/perfect=0，属后续（官方尺度重训）。
