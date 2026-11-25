@@ -360,6 +360,11 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   CPU 竞争下翻锁定回合（sl3b「锁定等待悬崖」，配对+bootstrap 对策，去墙钟化候选）；③ GNRPA 起点方差单题可负（2AXJNW8X −129k）；
   ④ **AS-5KZSXANK 失锁**（"no seed reproduces the screen"，牌堆被效果改动后抽牌模型失效，ex-seed/seedlock 同款机制局限，
   worlds 兜底打完——后续可攻：deck-modify 后重扫/扩展抽牌模型）。
+- **v3 方向（lead 剩余缺口分析，data/_v3_loss_analysis.md）**：v2 输 seedlock 的 4 局**全是怪物题**
+  （WDKWQYW5#0 −3.53M / WNK6ARRZ#0 −2.74M / 3ZT8ZKB6#1 −1.83M / 5KZSXANK#0 −1.42M，合计 −9.5M）——
+  这些题离线 v2 赢 base（dev 种子），托管保密种子反输 seedlock = **高方差题搜索盆地方差**（非机制回归）。
+  杠杆按收益：① 怪物题更多起点（starts 2→4 / 自适应）+ lock_trans 1M→2M 多探索盆地；② 5KZSXANK deck-modify 失锁重扫；
+  ③ 扫描等待窗去墙钟化（sl3b 悬崖）；④ 更多起点普适压 ex-seed 50 负局（≤651k 起点方差）。v3 目标均值 1.3M+（90%+）。
 - **战略定位（用户确认）**：seed 赛道我们私有全知 bot 独占（社区因产品约束运行时不能用 seed，只做无 seed 产品）；
   主线自己练 seed 前沿 + 真机闭环，无 seed 顺便跟进（gkmsps pilot）。best-known 是可超越下界，推前沿即价值。
 - **复现**：`cd data\bench_repo; ..\..\.venv\Scripts\python.exe -m gkbench eval --set hif --algo \Games\gakumas-agent\data\bench_repo\submissions\gkagent-ex-seed-v2\algo.py:ExSeedV2Algo --seeds 2 --parallel 3 --budget 10`
