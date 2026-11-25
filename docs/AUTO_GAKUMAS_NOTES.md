@@ -139,3 +139,36 @@ Invoke-RestMethod https://api.github.com/repos/tactfullotto/auto-gakumas/content
 demo_README.md / manifest.json / produce_library.json。关键源码文件（未下载，仅树清单）：
 `demo/sim/battle_simulator.py`（102 KB）/ `live_battle_planner.py`（44 KB）/ `rl_env.py`（24 KB）/
 `maskable_ppo.py`（22 KB）/ `ismcts.py`（16 KB）。
+
+## 8. 2026-11-25 更新（作者入群 + 产品化转向，lead 核实）
+
+**身份链确认（群内）**：QQ **◇◇◇•（2073086895，11-25 新入群）= B站 nvtv（mid 6807581）= GitHub tactfullotto**。
+17:35 其问"是谁要来讨论 MCTS 的"→ matto 认出视频作者 → 17:47 确认 → matto **17:54 邀其上传 gkbench"赛马"**
+（"你的基底算法用的哪一块，有兴趣用 cli 上传和已有算法赛一下"）→ 其答"ppo+mcts，引擎见我的仓库，都是公开的"；
+muskot"过下研究一下"、Ert'Aria"严肃研究中"。**§5 预言"理论上可交榜单、关注是否提交"→ 现已获 matto 明确邀请，
+public-safe PPO+SO-ISMCTS 新算法即将上榜**（无 seed 阵营竞争加剧）。
+
+**B站视频**：① BV1UNyXzREEf《学园偶像大师智能打牌控制台》（11-23 22:56，109s，简介指向仓库）；
+② BV1xby6zDEW7《最新科研：[ガラクタロード] 姫崎莉波 一战》（**11-25 16:00 新发**，"实战效果"）——
+从 11-23 的秦谷美鈴扩到**姫崎莉波**，多偶像泛化。
+
+**新推送（11-23 基线 c29da9a 之后 4 次，sparse clone 核实 data/_auto_gakumas_latest，gitignore 不提交）**：
+| commit | 日期 | 内容 |
+|---|---|---|
+| bcc069d | 11-23 | **H.I.F Workbench Web UI** + ProducePreferences + loadout 模式（auto/manual/hybrid） |
+| 525fe4b | 11-24 | W1 奖励修复、**5 张手牌上限强制**、**anti-SKIP 剪枝** + Trouble 牌除外兜底、三语 README |
+| 9669e67 | 11-25 | **P点"三明治法"OCR**（白描边数字抗 HUD 遮挡）、手牌动画稳定器、P-idol 数值 fallback、商店状态机、finisher 连击门控、workbench 卡过滤 |
+| b738b7f | 11-25 | OCR 稳定器、商店状态机、finisher 门控、workbench 改进、测试扩充（298 passed/2 skipped） |
+
+**核心算法/成绩未变**（zero-LLM、纯视觉 MuMu ADB、无 MITM/seed、每战在线 2000eps NumPy PPO + 64 次 SO-ISMCTS、
+68 维信息集安全特征、HeadlessBattleSimulator 执行 gakumas-tools BSD-3 AST）；live7 2回戦 +1,594,997、eval30 477,670、
+PBRS 负结果 −26,884 均同 §4。**新工作全在执行层可靠性 + 产品化**：
+- **Web Workbench**（localhost:5000，三职业配置器 + 回忆编辑器 + 多维卡偏好过滤 + 实时 ADB 预览 + SSE 进度，
+  免命令行）——**面向普通玩家的产品化**，印证用户判断"他们主轴是让普通玩家玩到，不是冲 seed 榜"。
+- **finisher 连击门控**：#162/#163→#813/#814 仅在 goodConditionTurns≥13（或 OCR 遮挡+末 2 回合）触发。
+- **手牌动画稳定**：读牌前等帧差均值<6.0（≤3 探测×0.85s），防抽牌动画误识。
+- **anti-SKIP**＝我们硬规矩（有牌绝不 SKIP），双方独立收敛到同一规则。
+
+**新增可吸收（clean-room，只语义不拷码）**：① P点三明治 OCR 抗遮挡（对照我们 PUBじ 色块→倍率多位坑）；
+② 手牌动画帧差稳定等待（进 C1 tapguard/读牌守卫）；③ finisher 好調≥13 门控（培育/考试末段连击先验，A/B 验证）；
+④ 商店访问状态机 + 花光 P 点（培育侧策略）。**许可证不变**：README"仅供个人研究使用"、无 OSS license → 禁拷码入库。
