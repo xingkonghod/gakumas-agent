@@ -305,5 +305,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   远超 uinet 24,991 / greedy 7,071；1 局服务器错误，resume e7a49cbc91d1 补局）。
   托管路径坑：engine.setup() chdir 破坏相对 algo 路径 + 盘符冒号被 spec.partition 截断 → 用盘符相对路径 `\Games\...`。
 - **参考分**：pimc-vote-16w-2s 223k（5×32）/ UIHorizon v2.2b 411k（12×8）/ best-known ~1.45M（分母）。
-- **四版进度**：①r13 网无seed **最优 rescale+buffs hif 103,959（+19.3% 显著 t=3.02）**（f2-norm 完成；rescale 仅score 98,943 也显著；clip 不显著+不稳——压平动作特征漏打大牌；hajime 考试 rescale 18,161 +50.3%；投稿 gkagent-ei-r13-norm，185 检查全过）②seed-lock+GNRPA 离线 465k（f2-sl2 托管中）③ex无seed PIMC（f2-ex2）④ex有seed（f2-ex2）。
-- **网归一化机制（f2-norm）**：rescale 只除状态量级维（score/vitality/buff，按 exam.permil 平均倍率）、**保留卡分排序**→正确恢复；clip 压平所有维（含有信息的动作特征 card_block_scale z≈94）→漏打大牌偶发0分。OOD score mean|z| 1053→39.2。剩余 vs UINet 470k+ 差距=sim↔GKMS 动力学（饮料/P道具/回忆/支援卡/gimmick）+不喝饮料+clear/perfect=0，属后续（官方尺度重训）。
+- **四版官方榜成绩（2026-11-25 15:05 API 拉取）**：
+  | 版本 | hif 均分 | hajime | 信息 | 备注 |
+  |---|---:|---:|---|---|
+  | ② gkagent-seedlock（seed-lock+GNRPA） | **944,850** (n=240,over=27) | **110,613** (n=96) | sees=seed | **榜第3，1.50×UIHorizon 631k** |
+  | ③ gkagent-expectimax（GKMS PIMC） | **549,802** (n=133,over=293) | 跑中 | sees=screen | public-safe 逼近 UINet 578k；超时多（6世界×GNRPA 超 step5s） |
+  | ① gkagent-ei-r13-norm-rescalebuffs | 103,575 (n=239) | 5,483 | sees=screen | 网归一化最优（rescale 98,926 / clip3 96,853 / 基线 86,988） |
+  | ④ gkagent-ex-seed（自锁+全知GNRPA） | 待跑 | 400(smoke) | sees=seed | f2-ex2 跑中 |
+  **验证用户判断**：ex 接 GKMS 引擎=549k（public-safe）vs 我们 sim ex≈greedy（hajime 7,059）——官方引擎消除动力学损耗。
+  网归一化机制（f2-norm）：rescale 只除状态量级维保卡分排序→正确；clip 压平动作特征漏打大牌→不稳。剩余网 vs UINet 差距=sim↔GKMS 动力学+不喝饮料，属后续官方尺度重训。
