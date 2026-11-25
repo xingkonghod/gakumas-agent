@@ -82,7 +82,7 @@ uinet Ver1.1 469,890（0.3740）/ official-ai 232,710（0.2131）/ hiro-rules 95
 |---|---|---|
 | 机件覆盖 | B3 回合规则对齐真机；B4 审查倍率客户端公式；B5 熱意+温存解除；B7 P 道具 catalog 1115 件/gkbench 未知 id 清零；B8 条件/效果语义第一批；**B9 持久倍率/modifier（20 类 target/369 段）**；**B10 生成卡确定式 + 指定卡名/手牌张数映射**（card_meta idol_unique 参考交叉 340/342 零误报、play_filter 234 件/zone_count 27 件、触发未知 **103→3 件**、数据层 **1042/1849 段**、greedy A/B **+797.5（+20.76%，CI[+399.0,+1250.1]）**）；仍缺**回忆/附魔**、随机生成卡 RNG、hold 保留区、fresh buff（T5 剩余） | 官方 AI / 群论文最全（但私有/原生）；**auto-gakumas**：AST 执行 DSL 四区守恒 + 费用修正 + P 道具触发 + **回忆 Stage 级限 1**（我们缺的它有）；但无审查倍率分段/熱意独立资源的公开证据 |
 | 工程可靠性 | **1154 条测试全绿（1154 passed / 1 skipped，1155 收集 / 79 文件）**、离线评测可复现；真机可靠性（C1：防卡/互验/自动复盘）未做 | hiro：120 模块 / 600+ 测试 / 互验 + 自动复盘页（比我们强）；auto-gakumas：298 测试 + Watchdog/防卡死/完走停机（H.I.F 实机多次完走） |
-| 公开榜单 | **无提交**（ranked 禁 seed；全知路线不适用于榜单） | UIHorizon / UINet / 官方 AI 有公开排名 |
+| 公开榜单 | **2026-11-25 已投稿上榜**：seed-lock+GNRPA（gkagent-seedlock）**hif 均分 944,850，模板榜第 3（仅次 best-known 上限），1.50× UIHorizon 631k**，锁定率 97.8%（sees_seed 看牌序类）；r13 网无seed 归一化 104k（public-safe）；ex 两版跑分中 | UIHorizon / UINet / 官方 AI 有公开排名 |
 
 ---
 

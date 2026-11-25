@@ -294,13 +294,15 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   类 `sees_seed=False` + `needs_gkms=True` + `about.sees="seed"`（网站标看牌序），种子从公开 obs 自反推 → 照常托管。
 - **expectimax 对拍保真（f2-ex2）**：节点数差异是 anytime 墙钟 deadline 非确定（非搜索 bug）；显式 time_budget_ms=None
   关 deadline 后提取版 vs 生产逐位一致（20001/20001）。sim 搜索提取保真。
-- **🔑 seed-lock+GNRPA 突破（f2-sl2）**：投稿 `data/bench_repo/submissions/gkagent-seedlock/`（Draws 抽牌跟踪 +
+- **🏆 seed-lock+GNRPA 登顶（f2-sl2）**：投稿 `data/bench_repo/submissions/gkagent-seedlock/`（Draws 抽牌跟踪 +
   seed_scan 并行扫描 + FastCut 引擎快筛 + RoutePool GNRPA 路线池；vendor gkmscore.dll+seed_scan）。
-  **离线 F0 验收 3/3：种子全找回、动作全合法、bad_routes=0；均分 465k vs 引擎贪心 70.6k（6.6×）**；
-  大题 AS-2AXJNW8X 单局 1,374,348（路线池累积超单次 2M-transition 上界 1,272,752）；锁定 turn 3–5。
-  回放正规口径 session.step(action, observe=False)（SCORE_MATCH）。调优 scan_min=6 / hi=2^31（gkbench 种子全 <2^31）/ prior=0。
-  **风险**：服务器裁判 rules≈67 vs 本机 DLL rules=69，锁定核对含分/体力可能 lock failed→退贪心；
-  若锁定率低改只核对抽牌（洗牌与 rules 无关）。hif 240 局托管跑中。
+  **hif 托管完成 240/240（120 核心题×2 保密种子），均分 944,850，errors=0/unfinished=0**
+  （运行 template-hif-gkagent-seedlock-xingkonghod-c060df94acad）。**hif 模板榜第 3（仅次于 best-known 理论上限 1.45M），
+  对 UIHorizon 631k = 1.50×**（超 v2.0 636k / v2.2b 572k）。about.sees="seed" 生效（榜标看牌序）。
+  **锁定率 97.8%**（133/136，3 局牌堆被效果改动退贪心），锁定中位 turn 3–4；服务器 rules67 vs 本机 DLL69 未见漂移。
+  离线 F0 3/3 均分 465k（6.6×greedy），大题单局 1.37M（路线池累积）。回放正规口径 session.step(action, observe=False)。
+  调优 scan_min=6 / hi=2^31 / prior=0（prior 旧规则权重有害）。**hajime 76/96 时服务器失联（WinError 10060 服务端故障），
+  评测号 c2ab9d1bc492，等恢复重跑 96 局**（课程局锁定已改进：无属性池 3 张起扫+步内多等+≤8 候选整屏核对）。
 - **参考分**：pimc-vote-16w-2s 223k（5×32）/ UIHorizon v2.2b 411k（12×8）/ best-known ~1.45M（分母）。
 - **四版进度**：①r13 网无seed **最优 rescale+buffs hif 103,959（+19.3% 显著 t=3.02）**（f2-norm 完成；rescale 仅score 98,943 也显著；clip 不显著+不稳——压平动作特征漏打大牌；hajime 考试 rescale 18,161 +50.3%；投稿 gkagent-ei-r13-norm，185 检查全过）②seed-lock+GNRPA 离线 465k（f2-sl2 托管中）③ex无seed PIMC（f2-ex2）④ex有seed（f2-ex2）。
 - **网归一化机制（f2-norm）**：rescale 只除状态量级维（score/vitality/buff，按 exam.permil 平均倍率）、**保留卡分排序**→正确恢复；clip 压平所有维（含有信息的动作特征 card_block_scale z≈94）→漏打大牌偶发0分。OOD score mean|z| 1053→39.2。剩余 vs UINet 470k+ 差距=sim↔GKMS 动力学（饮料/P道具/回忆/支援卡/gimmick）+不喝饮料+clear/perfect=0，属后续（官方尺度重训）。
