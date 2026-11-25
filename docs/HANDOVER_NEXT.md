@@ -1484,14 +1484,23 @@ RoutePool cracking 怪物题 2.14× 单次上界。设计依据=用户观察"ex-
 （B站 nvtv/QQ ◇◇◇•）入群**，matto 邀其 PPO+SO-ISMCTS 上 gkbench（无 seed 阵营竞争加剧）；其新推送全产品化
 （Workbench Web UI/OCR 稳定器/anti-SKIP/finisher 门控），印证"社区主轴让普通玩家玩到、不冲 seed 榜"。
 **战略定位（用户确认）**：seed 赛道私有全知 bot 独占（社区产品约束运行时不能 seed），主线自己练 seed 前沿+真机闭环，
-无 seed 顺便跟进。**并行**：gkmsps pilot 无 seed 重训（驱动内存自适应，gen 1000 局跑中→训练/门，过门继续不过门停）。
-**遗留**：v2 hajime 集评测 + 仍输 seedlock 的 4 怪物局锁定/起点方差分析；ex无seed PIMC 超时优化；
-全量 505（v2 稳定后 --full）；AS-5KZSXANK 失锁机制（deck-modify 重扫）；锁定等待悬崖去墙钟化。
-**新会话开场白**：「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → GKBENCH.md §11（v2 融合 1.27M）
-→ HANDOVER_NEXT 顶部。Hindsight 停用。战果：gkagent-ex-seed-v2 托管 1.27M（best-known 1.45M 的 87%，ex-seed 967k→+31%，
-RoutePool+多起点+fp0+step10，崩局 0）。继续：① v2 补 3 局+全量 505（--full）② 推更高（去墙钟化/deck-modify 重扫/更多起点，冲 1.45M）
-③ gkmsps 无 seed pilot 收尾（gen→训练→托管门 ≥150k）④ ex无seed PIMC 超时优化。引擎 data/_f2sl_tools/kernel/gkmscore.dll 别重编，
-AGPL 外部用不拷入 src；不碰 D:\Games\Gakumas；令牌 ~/.config/gkbench/token；基线 pytest 1681/1；探针不提交；结束发开场白。」
+无 seed 顺便跟进。**超越 gkms 路线（用户定调：不必成为他、超越他，他自己也在改）**：不追实现（移动靶），黑盒摸原理+clean-room 朝 seed+深搜+MITM 特化。
+**v3 ✅离线门过**（f2-exv3，bench_repo b63e53f）：v3vote（starts4+lock_trans2M+scan_wait_mode=done 去墙钟+vote_sec_cap2.0 锁定前深搜）
+>v2 低 oracle 12 题 **+83,450 CI[+440,+174,748] 零负例**；两机制实证（starts4 攻锁定题方差 P8ZJTXNA+251k/3G6FFZZT+424k，vote2 攻晚锁题 QV6QCSN9+324k）。
+**托管 240 + 多种子门留下会话**（22:00 收工不熬夜）。
+**engine-gap ✅**（out/_engine_gap_report.md，GKBENCH §12）：**M1 考试 RNG 消费图=超越钥匙**（255/505 题失锁根因，clean-room 3–5d 恢复全知，探针数据集就绪）；
+失分归因 sim 动力学失真~90%/OOD 仅 3.5%；黑盒 31 局 RNG 全解析（确定式生成=1 次 range 首次调用/panic/重洗公式）。
+**hajime**：v2 97,219（n=85）< seedlock 110,613/ex-seed 106,418 **回退**（初集无属性过滤失锁率高+fp0 短考试反效），初集另调留下会话。
+**pilot ⚠️卡住**：npz 就绪（out/gkmsps_pilot_selfplay.npz 100MB/90k 行），训练进程退出无 r14 产出（疑 OOM/job 回收），**下次重启 train_ei_policy+门**。
+**遗留**：v3 托管 240+多种子门；M1 RNG clean-room（3–5d，超越钥匙）；hajime 初集调（失锁+forced_play）；pilot 重启训练+门；
+全量 505（--full）；ex无seed PIMC 超时优化；真失锁 deck-modify 重扫。
+**新会话开场白**：「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → GKBENCH.md §11-12（v2 1.27M 榜首/v3 离线门/引擎差距）
+→ HANDOVER_NEXT 顶部。Hindsight 停用。战果：v2 托管 hif 1,267,591 榜首（best-known 1.45M 的 87.3%，+31% ex-seed，崩局 0）；
+v3 离线门过（v3vote starts4+vote2 去墙钟，低 12 题 +83k CI>0 零负例，b63e53f，托管留下会话）；engine-gap 报告（M1 考试 RNG=超越钥匙 3–5d）。
+继续：① v3 托管 240+多种子门（--budget 10 --parallel 3，盘符相对路径）② M1 RNG 消费图 clean-room（恢复 255 题全知，BSD-3+引擎 oracle 自写不拷 AGPL）
+③ hajime 初集调（失锁修复+短考试 forced_play=1）④ pilot 重启训练（npz 就绪）+托管门 ≥150k ⑤ 全量 505 --full ⑥ ex无seed PIMC 超时优化。
+引擎 data/_f2sl_tools/kernel/gkmscore.dll 别重编，AGPL 外部用不拷入 src；不碰 D:\Games\Gakumas，C:\GakumasLocal 只读；令牌 ~/.config/gkbench/token；
+基线 pytest 1681/1；探针不提交；旧模型/原版投稿保留；结束发开场白。战略：主线 seed 前沿+真机闭环，无 seed 顺便，超越 gkms 不复制。」
 
 **上一轮交接记录（2026-11-25 下午，gkbench 竞争突破——GKMSMainWheel 开源 + seed-lock+GNRPA 登顶；goal 自主循环推进中）**：
 用户上课到 16:30，设 goal-9f3755fa 自主循环（训练→投稿→跑分→改进，上限 40 轮）。**转折：GKMSMainWheel 开源**

@@ -369,3 +369,25 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   主线自己练 seed 前沿 + 真机闭环，无 seed 顺便跟进（gkmsps pilot）。best-known 是可超越下界，推前沿即价值。
 - **复现**：`cd data\bench_repo; ..\..\.venv\Scripts\python.exe -m gkbench eval --set hif --algo \Games\gakumas-agent\data\bench_repo\submissions\gkagent-ex-seed-v2\algo.py:ExSeedV2Algo --seeds 2 --parallel 3 --budget 10`
   （--algo 盘符相对路径；eval CLI 不读 submission.json step_seconds，**--budget 10 显式**；中断 --resume db12324b5d57）。
+
+## 12. 2026-11-25 晚 hajime 回退 + 引擎差距/失分归因/自有引擎路线（f2-engine-gap）
+
+- **v2 hajime 回退**：评测 e5e96836f66e，**85/96 均分 97,219**（11 局网络错），max 5.28M / min 14。
+  vs seedlock hajime 110,613（榜首）/ ex-seed 106,418 → **v2 初集回退**。根因：初集无属性池过滤→seed_scan 候选爆炸
+  （52,205 候选）失锁率高（min 14=失锁兜底崩局）；**fp0 在短考试可能反效**（hif 长局蓄体力 end 优，初集短局提前 end 浪费回合，
+  seedlock forced_play 有牌必出反而对）。**v2 是 hif 特化版，初集需另调**（失锁修复 + 短考试 forced_play=1，留下会话）。
+- **引擎差距（out/_engine_gap_report.md，M1–M10 逐模块）**：已对齐别重做（分数结算+safeCeil/回合 B3/审查倍率/熱意/hold/pride/
+  handDecrease/nullifyDebuff/洗牌 F0 95.3% 探针 6/6 再确认）。覆盖率：卡效果宽松 97%/严格 74.6%；P 道具 1181/1849（63.9%）、
+  hif ≥103/153（67.3%）；饮料仅 4 种；回忆❌；支援卡考试强化值❌。**最大杠杆 M1 考试 RNG 消费图**：255/505 hif 题含机制卡→
+  exam_risk 停用全知（失锁题 5KZSXANK 根因）。补 M1–M8 sim 保真≈22–33 人日；**M1 仅 3–5d（探针数据集已就绪）**。
+- **失分量化归因（hif 104k→578k ≈475k 缺口）**：OOD 尺度 +16,971（+19.5%）已修占~3.5%；**无前瞻×sim 动力学失真=主因~90%**
+  （无训练 GKMS PIMC 接真引擎即 531k=4.1× 反应网；hajime sim ex 7,059→GKMS PIMC 32,377=4.6×；B2 学习叶负结果佐证失真深到叶子排序）；
+  官方尺度训练+饮料 +47k（~10%）；seed 全知+深搜 +436k；RoutePool+多起点 +300k→v2 1.27M=87%。机制弱点 aggressive 57.5k/parameter_buff 43.3k
+  最弱（正是 no-op buff 机制）。
+- **黑盒探针发现（31 局 RNG 全解析，data/_engine_probe_*）**：RNG 原语与我们一致；**确定式生成入牌堆随机位=恰 1 次 range(0,牌堆长) 首次调用**
+  （12+ 插入位置预测命中含空堆 width0）；重洗=(弃手牌后 grave)−1；panic=每手牌 1 次 range+费用覆盖 1 回合；
+  **type59/38/156/22 0 RNG（exam_risk 误报可放宽）**。no-op effect 实测：slump 9→0、param_debuff 9→7（×667‰ceil）、
+  成长 add_grow_effect 0→11（分 8→30）、PBR enchant 回合开始好调 3→1、draw_down 3→2（吻合 P1-2）。
+- **自有引擎路线（用户定调：不必成为 gkms、超越它，它自己也在改）**：不追 gkms 实现（移动靶），朝 **seed-lock+深搜+MITM 真机**特化。
+  **M1 RNG 图 clean-room 化恢复 255 题全知（seed 王牌主缺口，3–5d）→ v3 多起点压怪物方差冲 1.3M+**；public-safe 用官方尺度训练/GNRPA 蒸馏跟进；
+  sim 保真服务训练分布对齐而非直接上榜。clean-room=BSD-3 参考+引擎当 oracle 自写（**不拷 AGPL 源码进 src**），算法（GNRPA Cazenave 2024）可自写。
