@@ -327,3 +327,38 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   tail 时钟校准（mingw steady_clock≈Unix 纪元）；回放须 session.step()；anytime 墙钟 deadline 致对拍节点数非确定（显式关）。
   **局限（如实）**：B 锁定前丢早期最优（对 best-known 的主要缺口）；硬规矩「有可出牌绝不 end」个别局少分；hajime 课程题 B 略逊 seedlock 4%。
   **下一步（用户选定，新会话做）**：在 ex-seed 967k 基础上融 seedlock RoutePool 路线池 + 多起点 + 预算 step10，冲 best-known 上限。
+
+## 11. 2026-11-25 晚 ex-seed-v2 融合版（下限+上限双修，托管 1.27M / best-known 87%）
+
+- **设计依据（用户观察）**：ex-seed 最高分 9.91M < seedlock 11.34M，但最低分 3,608 > 2,844、p10/p25/中位全面更高、
+  崩局（<50% 配对 max）7 vs 27。机制：ex-seed 锁定前 worlds 投票 + core_tail 精确尾 → **下限高**；
+  seedlock RoutePool 跨步累积（~16M transitions）→ **上限高**但锁定前纯贪心 + forced_play 丢路线 → 崩局多。
+  **v2 = ex-seed 下限 + seedlock 上限**（f2-exv2 子智能体实现）。
+- **架构**：ex-seed 自锁 + worlds 投票 + core_tail（全保留）+ seedlock **RoutePool 每步回放核分跨步累积** + FastCut 快筛
+  + **多起点 GNRPA**（starts=2×500k trans/步，锁定步 1M）+ `step_seconds=10` + `prior=0` + **`forced_play=0` 缺省**。
+  类 sees_seed=False + needs_gkms=True + about.sees="seed"。目录 `submissions/gkagent-ex-seed-v2/`（原版 ex-seed/seedlock 零改动）。
+- **离线门（F0 真裁判，同 seed 背靠背 + bootstrap 10000，探针 data/_f2exv2_pair.py）**：
+  - core 8：base 1,028,862 → v2fp0 **1,706,452（+677,590，+65.9%）**，崩局 2→0，over 2→0。
+  - monster 5（ex-seed 托管最大落后 −23.7M 名单）：base 4,901,516 → v2fp0 **5,586,968（+685,453，CI[+58k,+1.28M] 下界>0，4 胜 1 负）**。
+    **WNK6ARRZ 4.51M = 2.14× 单次 2M 上界**、AXME8QK2 8.23M>上界 7.07M、ADDTACFE 6.21M=2×上界——RoutePool 累积 cracking 实锤。
+  - 合并 13 题：base 2.518M → v2fp0 **3.199M（+27.0%）**（偏大题子集，不外推全量）。
+  - **forced_play 顺序律**（sl3b 池化 n=32 fp0 +28,493 CI>0 / fp0st +45,062 CI>0 同向）：fp0 对 fp1 零负例，
+    ADDTACFE fp1 触发硬规矩封顶 3.55M → fp0 6.21M。**先关硬规矩再加预算**（强搜索提蓄体力 end 被硬规矩糟蹋=崩局源）。
+- **托管 hif：评测 db12324b5d57**（run template-hif-gkagent-ex-seed-v2-xingkonghod-db12324b5d57，--seeds 2 --parallel 3 --budget 10）：
+  **237/240 均分 1,265,357**（3 局服务器 10060 网络抖动待补，数字已稳）；max **14,181,357** / min 3,608 / p25 293,841 / med 592,558。
+  **vs ex-seed 967,348 ≈ +31%；vs best-known 全量 1,452,088 ≈ 87%**（66%→87%）。算法侧 0 非法 / bad_routes=0 / over_steps=0。
+  中途同局配对（99 局）：v2 vs ex-seed **+72,741 CI[+35.8k,+115.2k] 下界>0，68 胜 21 负**；v2 vs seedlock **+199,011，90 胜 9 负**；
+  **崩局 v2=0 vs seedlock=18**——下限机制（worlds+tail+fp0）修掉 seedlock 崩局源。
+  过程：首批 149 局后服务器网络抖动（10060×16 + disconnect×2 + timeout×1，19 局出错），客户端连错 10 局自停，
+  恢复后 --resume + --only core120 补 91 局。
+- **best-known 分母口径纠正**：全量上限 **1,452,088**（120 题×8，n=960，run 20261115-223849）。
+  f2-ex2 报告曾误读 2,134,509 为上限——那是 11-14 run 20261114-130117 仅 **25 题**×32（n=800）子集均分（偏高分题），作废。
+  服务器 best-known farm 全为 11-11~16（31 run），无新更新；分母只升不降、非证明最优、可超越（bestknown.py 机制）。
+- **局限（如实）**：① 锁定前 worlds 兜底丢早期最优（对全知上界主缺口）；② 扫描等待窗 0.7×budget 墙钟（10s→7s）
+  CPU 竞争下翻锁定回合（sl3b「锁定等待悬崖」，配对+bootstrap 对策，去墙钟化候选）；③ GNRPA 起点方差单题可负（2AXJNW8X −129k）；
+  ④ **AS-5KZSXANK 失锁**（"no seed reproduces the screen"，牌堆被效果改动后抽牌模型失效，ex-seed/seedlock 同款机制局限，
+  worlds 兜底打完——后续可攻：deck-modify 后重扫/扩展抽牌模型）。
+- **战略定位（用户确认）**：seed 赛道我们私有全知 bot 独占（社区因产品约束运行时不能用 seed，只做无 seed 产品）；
+  主线自己练 seed 前沿 + 真机闭环，无 seed 顺便跟进（gkmsps pilot）。best-known 是可超越下界，推前沿即价值。
+- **复现**：`cd data\bench_repo; ..\..\.venv\Scripts\python.exe -m gkbench eval --set hif --algo \Games\gakumas-agent\data\bench_repo\submissions\gkagent-ex-seed-v2\algo.py:ExSeedV2Algo --seeds 2 --parallel 3 --budget 10`
+  （--algo 盘符相对路径；eval CLI 不读 submission.json step_seconds，**--budget 10 显式**；中断 --resume db12324b5d57）。

@@ -1473,7 +1473,27 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
-**最近交接记录（2026-11-25 下午，gkbench 竞争突破——GKMSMainWheel 开源 + seed-lock+GNRPA 登顶；goal 自主循环推进中）**：
+**最近交接记录（2026-11-25 晚，ex-seed-v2 融合登顶 1.27M / best-known 87%；goal 自主循环）**：
+**主任务完成**：f2-exv2 在 ex-seed 967k 基础上融 seedlock RoutePool 跨步累积 + FastCut + 多起点 GNRPA（2×500k/步）
++ step10 + forced_play=0，保留 ex-seed worlds 投票 + core_tail → **gkagent-ex-seed-v2**。
+**托管 db12324b5d57：237/240 均分 1,265,357**（3 局网络待补），max 14.18M / 崩局 0 / over 0；
+**vs ex-seed +31% / vs best-known 1.45M = 87%**（66%→87%）。离线合并 13 题 +27%，monster 5 +685k CI>0，
+RoutePool cracking 怪物题 2.14× 单次上界。设计依据=用户观察"ex-seed 下限高/seedlock 上限高"，融合双修。
+详见 [GKBENCH §11](GKBENCH.md)。**best-known 口径纠正**：全量 1.45M（120×8），2.13M 是 25 题子集误读作废。
+**QQ 情报✓**（提交 17f9b50/b0c4dbf）：869+23 条导出，QQ_GROUP_NOTES §1-§10；**auto-gakumas 作者 tactfullotto
+（B站 nvtv/QQ ◇◇◇•）入群**，matto 邀其 PPO+SO-ISMCTS 上 gkbench（无 seed 阵营竞争加剧）；其新推送全产品化
+（Workbench Web UI/OCR 稳定器/anti-SKIP/finisher 门控），印证"社区主轴让普通玩家玩到、不冲 seed 榜"。
+**战略定位（用户确认）**：seed 赛道私有全知 bot 独占（社区产品约束运行时不能 seed），主线自己练 seed 前沿+真机闭环，
+无 seed 顺便跟进。**并行**：gkmsps pilot 无 seed 重训（驱动内存自适应，gen 1000 局跑中→训练/门，过门继续不过门停）。
+**遗留**：v2 补 3 局网络 + RESULTS 托管段填全 + bench_repo 提交（f2-exv2 收尾）；ex无seed PIMC 超时优化；
+全量 505（v2 稳定后 --full）；AS-5KZSXANK 失锁机制（deck-modify 重扫）；锁定等待悬崖去墙钟化。
+**新会话开场白**：「工作目录 D:\Games\gakumas-agent，HEAD 以 git log -1 为准。读 docs/INDEX.md → GKBENCH.md §11（v2 融合 1.27M）
+→ HANDOVER_NEXT 顶部。Hindsight 停用。战果：gkagent-ex-seed-v2 托管 1.27M（best-known 1.45M 的 87%，ex-seed 967k→+31%，
+RoutePool+多起点+fp0+step10，崩局 0）。继续：① v2 补 3 局+全量 505（--full）② 推更高（去墙钟化/deck-modify 重扫/更多起点，冲 1.45M）
+③ gkmsps 无 seed pilot 收尾（gen→训练→托管门 ≥150k）④ ex无seed PIMC 超时优化。引擎 data/_f2sl_tools/kernel/gkmscore.dll 别重编，
+AGPL 外部用不拷入 src；不碰 D:\Games\Gakumas；令牌 ~/.config/gkbench/token；基线 pytest 1681/1；探针不提交；结束发开场白。」
+
+**上一轮交接记录（2026-11-25 下午，gkbench 竞争突破——GKMSMainWheel 开源 + seed-lock+GNRPA 登顶；goal 自主循环推进中）**：
 用户上课到 16:30，设 goal-9f3755fa 自主循环（训练→投稿→跑分→改进，上限 40 轮）。**转折：GKMSMainWheel 开源**
 （github.com/yuzeis/GKMSMainWheel，AGPL，克隆 data/GKMSMainWheel）= GakumasCLI 考试引擎+C++原生核心 / GKMSPS 培育模拟器 /
 GKMSUINet 训练流程。**引擎已编通** gkmscore.dll（data/_f2sl_tools/kernel/，rules=69，mingw gcc/w64devkit），冒烟手牌精确复现官方。
