@@ -369,3 +369,14 @@ beam 离线增益约 +15–22%（B1）→ 即便开 beam 2525→~2900–3100 仍
 T1–T7 全知有效；**期中 T5 重洗 ❌**（新偶像卡考试内**生成卡**使实战 grave 15 张 vs 模型 13 张，
 `pred[1]<=obs[1]` 已容忍强化差，❌ 是 id/数量差）→ **v3.6.1 生成卡重洗模型缺口，留后续深挖**。
 T3 生产 selector 路径用 `*_v361.json` 工件 sweep 6/6（期末 12/12）；基线工件恢复 B10 口径 4 场绿。
+
+## 2026-11-26 ep-live-seed8（副本真机，beam 盲搜臂）——T1 ≥C+ 达成：B / 7103
+
+- 24.6min / 590 步 / tap confirmed=81 retaps=0 lost=0；培育 6 周走完→三次考试→story/成就。
+- **考试分 605/141/628 异常低**＝seed 未锁（候选过期+mid-exam 重载错位）盲搜 + F#40 禁 SKIP
+  硬规矩把搜索蓄力 end 改硬打；期末打法怪即此因。final 评价 **7103 / B**（≥C+ 门达成）。
+- 停因＝story 段窗口恢复失败 5 次（最小化/尺寸），非打法/非 tap。
+- 本局驱动修复链：F#50 修窗+need 读坏保守 / F#51 获得段灰勾可点计入 / F#52 check-row 期望 ANY /
+  F#53 need=0 亮橙直接保留 / F#54 考试入口刷 --current / F#55 selector history 重放快进。
+- 饮料全程未喝＝生产 allow_drinks 默认关（opt-in，门控后对照局再开）。
+- 下一局 ep-live-seed9 带 F#54/55：验证 locked_turn>0 + known_draw 喂 beam 后考试分回归正常量级。
