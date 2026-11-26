@@ -1502,6 +1502,24 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
 - **在跑子智能体**：m1-rng（M1 消费图，饮料已划界）/ hajime-tune（v2h）/ pimc-opt（expectimax-fast）；
   drink-fix2（阶段1.5）待派。⑤ 全量 505 / ⑦ GKMSPS plug 排队。
 
+**M1 考试 RNG 消费图 阶段1 ✅（2026-11-26，m1-rng 子智能体；feat 2daa7bba / docs 本条）**：
+clean-room 自写 `src/gkagent/sim/rng_graph.py`（原语 xorshift32(13,17,5)/range/signed_key 每调用恰 1 推进；
+消费节点 create_deck_random=1 range 首次调用·空堆 width=0 仍消费、move_search_random=2nf（出牌中丢弃+排序）、
+move_pick_random=1+nf、reshuffle=grave−1、panic=每手牌 1 range、support_rolls；ConsumptionGraph ledger；
+全知门分类 modeled/unmodeled；饮料 hook 接口不实现，划归 M6 drink-model）。
+**黄金回归** `tests/test_m1_rng_graph.py`（23 passed）：探针①逐动作消费精确（194 步 unknown=0）+ 生成插入位置首调用命中（17 事件）
++ 重洗 grave−1（22 事件）+ **rinami W7/W9 实机 rng 逐位匹配**（W7 27/27、W9 45/45 决策；W9 四饮料步标 owned-by-drinks，
+非饮料决策 41/41 匹配）。fixtures：`tests/fixtures/m1_probe_p1.json`/`m1_rinami_trace.json`（探针+实机黄金，牌区上下文 oracle 锚定，
+引擎只作可选 oracle；支援余数 oracle 锚定，support_rolls 公式另有独立预测回归）。
+**rinami 核对**：我们的 DLL（rules=69）重放 W7/W9 实机动作序列，终分 655198/1426865 与实机吻合、diffs=[]（与 rev318/v55 核对一致，无版本漂移）。
+**opt-in 接线**：`exam_risk.deck_rng_risks/known_info_ok` 加 `use_graph`（默认 False 逐位不变，回归证明）；打开后消费图口径只保留未刻画消费点。
+**静态扫 505 题**（data/_m1_scan505.py 不提交）：旧口径风险 493 题（含 type59/38 0-RNG 误报；真实 RNG 消费机制 482 题，
+gap report 255 为早期估计），图口径**恢复全知 419 题**（真实消费机制恢复 408），仍风险 74 题（全为 `ExamCardCreateSearch` 随机池生成，未完全探针，保守保留）。
+**全量 pytest 1734 passed/1 skipped/0 failed**（基线 1681 无回退 + M1 新增 23 + drink-model 并发新增；--basetemp=out/_pytest_tmp_m1 绕过 ACL）。
+**阶段2 建议**：① 消费图接入 expectimax/known_draw 重放（牌区动力学 predictive 化，补 trigger/enchant/timer 抽牌时机 + 移动选取牌序，
+当前 oracle 锚定）；② v3 接线 + 离线门（恢复 419 题全知后重扫失锁题 5KZSXANK）；③ ExamCardCreateSearch（type21）随机池消费探针补全 → 再恢复 74 题；
+④ 饮料消费入口由 M6 drink-model 接 hook。**铁律守住**：不重编 DLL、AGPL 只外部 oracle 不拷 src、旧投稿零改动、探针 data/_m1_* 不提交。
+
 **最近交接记录（2026-11-25 晚，ex-seed-v2 融合登顶 1.27M / best-known 87%；goal 自主循环）**：
 **主任务完成**：f2-exv2 在 ex-seed 967k 基础上融 seedlock RoutePool 跨步累积 + FastCut + 多起点 GNRPA（2×500k/步）
 + step10 + forced_play=0，保留 ex-seed worlds 投票 + core_tail → **gkagent-ex-seed-v2**。
