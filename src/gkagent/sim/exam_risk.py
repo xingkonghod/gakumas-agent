@@ -87,14 +87,26 @@ def _card_id_of(item: Any) -> str | None:
 
 
 def deck_rng_risks(
-    deck: Iterable[Any], *, index: Mapping[str, frozenset[str]] | None = None
+    deck: Iterable[Any],
+    *,
+    index: Mapping[str, frozenset[str]] | None = None,
+    use_graph: bool = False,
 ) -> list[dict[str, Any]]:
     """扫描牌组里的额外 RNG 机制卡。
 
     ``deck`` 接受 ``["p_card-...", upgrade]`` / ``("p_card-...", upgrade)`` / 纯 id 三种形式
     （``build_exam_setup`` 的 ``deck`` 是前者，``ExamSetup.deck`` 也是前者）。
     返回 ``[{"card_id": ..., "effects": [类型...]}, ...]``（按字典序、去重）。
+
+    ``use_graph=False``（默认）：旧口径，凡命中 ``EXTRA_RNG_EFFECT_TYPES`` 即风险，逐位不变。
+    ``use_graph=True``（M1 opt-in）：改用消费图口径（:func:`rng_graph.graph_rng_risks`），
+    消费次数已被探针①/实机完全刻画的效果（生成/移动/panic/0 RNG 搜索变体）不再算风险，
+    只保留未刻画消费点（随机池生成等）。默认关时行为与旧版完全一致。
     """
+    if use_graph:
+        from .rng_graph import graph_rng_risks
+
+        return graph_rng_risks(deck, index=index)
     rng_index = index if index is not None else default_extra_rng_index()
     risks: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -111,9 +123,17 @@ def deck_rng_risks(
     return risks
 
 
-def known_info_ok(deck: Iterable[Any], *, index: Mapping[str, frozenset[str]] | None = None) -> bool:
-    """牌组是否适合启用 ``known_draw``（无额外 RNG 机制卡）。"""
-    return not deck_rng_risks(deck, index=index)
+def known_info_ok(
+    deck: Iterable[Any],
+    *,
+    index: Mapping[str, frozenset[str]] | None = None,
+    use_graph: bool = False,
+) -> bool:
+    """牌组是否适合启用 ``known_draw``（无额外 RNG 机制卡）。
+
+    ``use_graph=True`` 时用消费图口径（M1 opt-in，默认关逐位不变）。
+    """
+    return not deck_rng_risks(deck, index=index, use_graph=use_graph)
 
 
 def format_rng_risks(risks: Iterable[Mapping[str, Any]], limit: int = 3) -> str:
