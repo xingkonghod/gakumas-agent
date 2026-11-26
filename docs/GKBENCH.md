@@ -422,5 +422,14 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   其余 unknown 中 **4 种 ExamStatusEnchant（rng=none 确定式）+ ExamPreservation + ExamCardMove
   变体 = 可建模增量批（阶段1.5）**。阶段2=托管 v3 饮料决策 + r14 饮料特征 + 生产 allow_drinks。
   样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 QQ_GROUP_NOTES §12。
-- **v3 托管 A/B 进行中**：臂A vote0.8（resume 40312fcb77a0）→ 臂B vote2.0 顺序；服务器间歇 SYN 丢包
-  （10060/10054 波）驱动 90s 自动重连（data/_v3_hosted_ab.ps1，不提交）；出分后对标 1,267,591 / 1.3M 目标。
+- **v3 托管 A/B 进行中**：旧评测 40312fcb77a0 被服务器清掉（404）→ 驱动改**新评测** + 404 自重置；
+  臂A vote0.8 → 臂B vote2.0 顺序；服务器间歇 SYN 丢包（10060/10054 波）90s 自动重连
+  （data/_v3_hosted_ab.ps1，不提交）；出分后对标 1,267,591 / 1.3M 目标。
+- **M1 消费图阶段1 完成（m1-rng，feat 2daa7bb / docs d813d4d）**：rng_graph.py clean-room 366 行
+  （create=1 次 range 首调用 / type9=2×nf signed_key / pick=1+nf / 重洗=n−1 / panic=每手牌 1 range /
+  支援掷点门控公式 / type59/38/156/22=0）；**W7 27/27、W9 非饮料 41/41 逐决策匹配**；rules=69 引擎
+  重放实机终分吻合**无版本漂移**；**静态扫 505：恢复全知 419 题（85%）**，仍风险 74 题全为
+  type21 ExamCardCreateSearch 随机池（保守保留）；exam_risk opt-in 默认关逐位不变；pytest 1734/1。
+  阶段2 进行中：predictive 牌区动力学 → v3g 接线离线门（失锁怪物重扫）→ type21 探针。
+  **饮料阶段2 设计**见 out/_drinks_phase2_plan.md（SAFE 纯数值段暴露进 v3d 动作空间、引擎原生核分；
+  改牌堆/RNG/回合数饮料保守排除）。
