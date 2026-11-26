@@ -690,7 +690,7 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   引擎单局串行 free<0.9GB sleep60；未起托管未杀进程；path-limited git add（并发 index 纪律）。
   pytest --basetemp=out\_pytest_tmp_m1b **1793 passed / 1 skipped / 0 failed**（226.6s exit0，本跑无 flake）。
 
-## 16. 2026-11-26 GNRPA 特化 L3 下行有界 prior（gnrpa-spec 续派，均负结果如实，零采纳）
+## 16.5 2026-11-26 GNRPA 特化 L3 下行有界 prior（gnrpa-spec 续派，均负结果如实，零采纳；撞号修复：M1 2b 占 §16）
 
 - **目标（lead 续派窄 scope）**：prior 全局有害（§15）但**下行有界用法**候选——① multi-start prior（starts=4 恰 1 路带 prior，
   mech/distill 各单变量）其余 prior=0，RoutePool 单调采纳兜底；② per-problem 门控（仅低 oracle 锁定题 opt-in、怪物禁用）；
