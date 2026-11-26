@@ -1,0 +1,9248 @@
+{
+ "W7": {
+  "opening_rng": 4255182655,
+  "opening_zones": {
+   "hand": [
+    [
+     "p_card-00-men-3_003",
+     1
+    ],
+    [
+     "p_card-01-men-2_035",
+     0
+    ],
+    [
+     "p_card-01-men-2_037",
+     1
+    ]
+   ],
+   "deck": [
+    [
+     "p_card-01-ido-3_200",
+     1
+    ],
+    [
+     "p_card-01-men-2_036",
+     1
+    ],
+    [
+     "p_card-01-act-2_001",
+     1
+    ],
+    [
+     "p_card-01-men-3_036",
+     1
+    ],
+    [
+     "p_card-00-men-3_012",
+     1
+    ],
+    [
+     "p_card-01-men-2_043",
+     0
+    ],
+    [
+     "p_card-01-men-3_034",
+     0
+    ],
+    [
+     "p_card-01-men-3_006",
+     1
+    ],
+    [
+     "p_card-01-men-3_035",
+     0
+    ],
+    [
+     "p_card-01-men-2_099",
+     1
+    ],
+    [
+     "p_card-01-ido-3_213",
+     1
+    ],
+    [
+     "p_card-01-act-2_059",
+     0
+    ],
+    [
+     "p_card-01-men-2_098",
+     1
+    ],
+    [
+     "p_card-01-men-2_011",
+     1
+    ],
+    [
+     "p_card-01-men-3_033",
+     1
+    ],
+    [
+     "p_card-00-acc-0_002",
+     0
+    ],
+    [
+     "p_card-01-act-3_049",
+     0
+    ]
+   ],
+   "grave": [],
+   "lost": []
+  },
+  "turn_attrs": [
+   3,
+   2,
+   2,
+   3,
+   3,
+   1,
+   1,
+   2,
+   3
+  ],
+  "supports": [
+   {
+    "id": "s_card-2-0007",
+    "permil": 56,
+    "filter": 2
+   },
+   {
+    "id": "s_card-3-0030",
+    "permil": 64,
+    "filter": 2
+   },
+   {
+    "id": "s_card-3-0070",
+    "permil": 61,
+    "filter": 2
+   },
+   {
+    "id": "s_card-3-0025",
+    "permil": 74,
+    "filter": 3
+   },
+   {
+    "id": "s_card-3-0064",
+    "permil": 67,
+    "filter": 3
+   },
+   {
+    "id": "s_card-3-0069",
+    "permil": 74,
+    "filter": 2
+   }
+  ],
+  "base_upg": {
+   "p_card-01-ido-3_200": 1,
+   "p_card-01-ido-3_213": 1,
+   "p_card-01-men-2_037": 1,
+   "p_card-01-men-2_099": 1,
+   "p_card-00-acc-0_002": 0,
+   "p_card-01-men-2_011": 1,
+   "p_card-01-act-3_049": 0,
+   "p_card-01-men-2_043": 0,
+   "p_card-01-men-3_036": 1,
+   "p_card-00-men-3_012": 1,
+   "p_card-00-men-3_003": 1,
+   "p_card-01-act-2_001": 1,
+   "p_card-01-men-2_098": 1,
+   "p_card-01-men-2_035": 0,
+   "p_card-01-men-3_035": 0,
+   "p_card-01-men-3_033": 1,
+   "p_card-01-men-2_036": 1,
+   "p_card-01-men-3_006": 1,
+   "p_card-01-men-3_034": 0,
+   "p_card-01-act-2_059": 0
+  },
+  "max_upg": {
+   "p_card-01-ido-3_200": 3,
+   "p_card-01-ido-3_213": 3,
+   "p_card-01-men-2_037": 3,
+   "p_card-01-men-2_099": 3,
+   "p_card-00-acc-0_002": 0,
+   "p_card-01-men-2_011": 3,
+   "p_card-01-act-3_049": 3,
+   "p_card-01-men-2_043": 3,
+   "p_card-01-men-3_036": 3,
+   "p_card-00-men-3_012": 3,
+   "p_card-00-men-3_003": 3,
+   "p_card-01-act-2_001": 3,
+   "p_card-01-men-2_098": 3,
+   "p_card-01-men-2_035": 3,
+   "p_card-01-men-3_035": 3,
+   "p_card-01-men-3_033": 3,
+   "p_card-01-men-2_036": 3,
+   "p_card-01-men-3_006": 3,
+   "p_card-01-men-3_034": 3,
+   "p_card-01-act-2_059": 3
+  },
+  "grave_cards": [
+   "p_card-01-men-2_037",
+   "p_card-01-act-2_001",
+   "p_card-01-men-2_011"
+  ],
+  "ssr": [
+   "p_card-00-men-3_003",
+   "p_card-01-men-3_036",
+   "p_card-00-men-3_012",
+   "p_card-01-men-3_034",
+   "p_card-01-ido-3_213",
+   "p_card-01-men-3_006",
+   "p_card-01-men-3_035",
+   "p_card-01-act-3_049",
+   "p_card-01-men-3_033",
+   "p_card-01-ido-3_200",
+   "p_card-01-act-3_010"
+  ],
+  "drinks": [
+   "pdrink_00-2-010",
+   "pdrink_00-2-010",
+   "pdrink_00-3-001",
+   "pdrink_00-2-009"
+  ],
+  "card_effects": {
+   "p_card-00-men-3_003": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      6
+     ]
+    },
+    {
+     "type": "ExamAntiDebuff",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-00-men-3_012": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      3
+     ]
+    },
+    {
+     "type": "ExamStaminaConsumptionDown",
+     "values": {}
+    }
+   ],
+   "p_card-01-act-2_001": [
+    {
+     "type": "ExamLesson",
+     "values": [
+      6
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-act-2_059": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      15
+     ]
+    },
+    {
+     "type": "ExamLessonAddMultipleParameterBuff",
+     "values": [
+      30,
+      1000
+     ]
+    },
+    {
+     "type": "ExamBlockRestriction",
+     "values": {}
+    }
+   ],
+   "p_card-01-act-3_049": [
+    {
+     "type": "ExamStatusEnchant",
+     "values": {}
+    }
+   ],
+   "p_card-01-ido-3_200": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamStaminaRecoverMultiple",
+     "values": [
+      100
+     ]
+    },
+    {
+     "type": "ExamStatusEnchantEncore",
+     "values": [
+      1
+     ]
+    }
+   ],
+   "p_card-01-ido-3_213": [
+    {
+     "type": "ExamStaminaRecoverMultiple",
+     "values": [
+      100
+     ]
+    },
+    {
+     "type": "ExamLessonDependStamina",
+     "values": [
+      8000
+     ]
+    },
+    {
+     "type": "ExamLessonDependPlayCardCountSum",
+     "values": [
+      2,
+      9
+     ]
+    }
+   ],
+   "p_card-01-men-2_011": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      7
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      1
+     ]
+    }
+   ],
+   "p_card-01-men-2_035": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      3
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_036": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_037": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      4
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_043": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      6
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_098": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamCardCreateId",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_099": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      7
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamCardCreateId",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_006": [
+    {
+     "type": "ExamCardSearchEffectPlayCountBuff",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_033": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      4
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamStaminaConsumptionDown",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_034": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamCardMove",
+     "values": {}
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_035": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamStatusEnchant",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_036": [
+    {
+     "type": "ExamParameterBuffMultiplePerTurn",
+     "values": {}
+    },
+    {
+     "type": "ExamStaminaConsumptionDown",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ]
+  },
+  "pitem_draw_unknown": [
+   9,
+   15,
+   20
+  ],
+  "drink_upg_unknown": {},
+  "actions": [
+   {
+    "k": 0,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 4255182655,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-00-men-3_003::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 1,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 4255182655,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-men-2_035",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 2,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 1,
+    "turn_after": 2,
+    "live_rng": 4255182655,
+    "oracle_cons": 12,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_035::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       2
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ]
+     ]
+    }
+   },
+   {
+    "k": 3,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 2,
+    "turn_after": 2,
+    "live_rng": 1516620595,
+    "oracle_cons": 2,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::2",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ]
+     ]
+    }
+   },
+   {
+    "k": 4,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 2,
+    "turn_after": 3,
+    "live_rng": 3459659169,
+    "oracle_cons": 12,
+    "is_drink": false,
+    "live_card": "p_card-01-ido-3_200::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ]
+     ]
+    }
+   },
+   {
+    "k": 5,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 3,
+    "turn_after": 3,
+    "live_rng": 1366826046,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_036::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 6,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 3,
+    "turn_after": 3,
+    "live_rng": 1366826046,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_043::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 7,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 3,
+    "turn_after": 3,
+    "live_rng": 1366826046,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-00-men-3_012::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 8,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 3,
+    "turn_after": 4,
+    "live_rng": 1366826046,
+    "oracle_cons": 16,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_034::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 9,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 4,
+    "turn_after": 4,
+    "live_rng": 1696363340,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_035::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 10,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 4,
+    "turn_after": 4,
+    "live_rng": 1696363340,
+    "oracle_cons": 2,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_099::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 11,
+    "action": [
+     "end"
+    ],
+    "turn_before": 4,
+    "turn_after": 5,
+    "live_rng": 4138886583,
+    "oracle_cons": 4,
+    "is_drink": false,
+    "live_card": null,
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       2
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 12,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 5,
+    "turn_after": 5,
+    "live_rng": 995893385,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::2",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 13,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 5,
+    "turn_after": 5,
+    "live_rng": 995893385,
+    "oracle_cons": 2,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_098::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 14,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 5,
+    "turn_after": 6,
+    "live_rng": 3059505168,
+    "oracle_cons": 7,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_033::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 15,
+    "action": [
+     "play",
+     4
+    ],
+    "turn_before": 6,
+    "turn_after": 6,
+    "live_rng": 2465633267,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_036::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 16,
+    "action": [
+     "play",
+     3
+    ],
+    "turn_before": 6,
+    "turn_after": 6,
+    "live_rng": 2465633267,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 17,
+    "action": [
+     "play",
+     3
+    ],
+    "turn_before": 6,
+    "turn_after": 6,
+    "live_rng": 2465633267,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 18,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 6,
+    "turn_after": 7,
+    "live_rng": 2465633267,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-3_049::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 19,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 7,
+    "turn_after": 8,
+    "live_rng": 2465633267,
+    "oracle_cons": 27,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 20,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 8,
+    "turn_after": 8,
+    "live_rng": 2596658745,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 21,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 8,
+    "turn_after": 8,
+    "live_rng": 2596658745,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_059::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 22,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 8,
+    "turn_after": 8,
+    "live_rng": 2596658745,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 23,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 8,
+    "turn_after": 8,
+    "live_rng": 2596658745,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_006::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 24,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 8,
+    "turn_after": 9,
+    "live_rng": 2596658745,
+    "oracle_cons": 5,
+    "is_drink": false,
+    "live_card": "p_card-01-ido-3_213::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       2
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 25,
+    "action": [
+     "play",
+     3
+    ],
+    "turn_before": 9,
+    "turn_after": 9,
+    "live_rng": 2211813516,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       2
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 26,
+    "action": [
+     "end"
+    ],
+    "turn_before": 9,
+    "turn_after": 9,
+    "live_rng": 2211813516,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": null,
+    "zones_after": {
+     "hand": [],
+     "deck": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   }
+  ]
+ },
+ "W9": {
+  "opening_rng": 374278409,
+  "opening_zones": {
+   "hand": [
+    [
+     "p_card-01-men-2_035",
+     0
+    ],
+    [
+     "p_card-00-men-3_003",
+     1
+    ],
+    [
+     "p_card-01-men-2_038",
+     1
+    ]
+   ],
+   "deck": [
+    [
+     "p_card-01-act-3_049",
+     0
+    ],
+    [
+     "p_card-01-act-2_001",
+     1
+    ],
+    [
+     "p_card-01-men-3_033",
+     1
+    ],
+    [
+     "p_card-01-men-3_036",
+     1
+    ],
+    [
+     "p_card-00-men-3_012",
+     1
+    ],
+    [
+     "p_card-01-act-3_010",
+     1
+    ],
+    [
+     "p_card-01-men-2_099",
+     1
+    ],
+    [
+     "p_card-01-men-3_006",
+     1
+    ],
+    [
+     "p_card-01-men-3_035",
+     0
+    ],
+    [
+     "p_card-01-ido-3_200",
+     1
+    ],
+    [
+     "p_card-01-men-2_036",
+     1
+    ],
+    [
+     "p_card-01-men-2_011",
+     1
+    ],
+    [
+     "p_card-00-acc-0_002",
+     0
+    ],
+    [
+     "p_card-01-men-3_034",
+     0
+    ],
+    [
+     "p_card-01-men-2_037",
+     1
+    ],
+    [
+     "p_card-01-men-2_098",
+     1
+    ],
+    [
+     "p_card-01-men-2_043",
+     0
+    ],
+    [
+     "p_card-01-ido-3_213",
+     1
+    ],
+    [
+     "p_card-01-act-2_059",
+     0
+    ]
+   ],
+   "grave": [],
+   "lost": []
+  },
+  "turn_attrs": [
+   3,
+   2,
+   1,
+   3,
+   2,
+   3,
+   3,
+   1,
+   2,
+   1,
+   2,
+   3
+  ],
+  "supports": [
+   {
+    "id": "s_card-2-0007",
+    "permil": 56,
+    "filter": 2
+   },
+   {
+    "id": "s_card-3-0030",
+    "permil": 64,
+    "filter": 2
+   },
+   {
+    "id": "s_card-3-0070",
+    "permil": 61,
+    "filter": 2
+   },
+   {
+    "id": "s_card-3-0025",
+    "permil": 74,
+    "filter": 3
+   },
+   {
+    "id": "s_card-3-0064",
+    "permil": 67,
+    "filter": 3
+   },
+   {
+    "id": "s_card-3-0069",
+    "permil": 74,
+    "filter": 2
+   }
+  ],
+  "base_upg": {
+   "p_card-01-ido-3_200": 1,
+   "p_card-01-ido-3_213": 1,
+   "p_card-01-men-2_037": 1,
+   "p_card-01-men-2_099": 1,
+   "p_card-00-acc-0_002": 0,
+   "p_card-01-men-2_011": 1,
+   "p_card-01-act-3_049": 0,
+   "p_card-01-men-2_043": 0,
+   "p_card-01-men-3_036": 1,
+   "p_card-00-men-3_012": 1,
+   "p_card-00-men-3_003": 1,
+   "p_card-01-act-2_001": 1,
+   "p_card-01-men-2_098": 1,
+   "p_card-01-men-2_035": 0,
+   "p_card-01-men-3_035": 0,
+   "p_card-01-men-3_033": 1,
+   "p_card-01-men-2_036": 1,
+   "p_card-01-men-3_006": 1,
+   "p_card-01-men-3_034": 0,
+   "p_card-01-act-2_059": 0,
+   "p_card-01-act-3_010": 1,
+   "p_card-01-men-2_038": 1
+  },
+  "max_upg": {
+   "p_card-01-ido-3_200": 3,
+   "p_card-01-ido-3_213": 3,
+   "p_card-01-men-2_037": 3,
+   "p_card-01-men-2_099": 3,
+   "p_card-00-acc-0_002": 0,
+   "p_card-01-men-2_011": 3,
+   "p_card-01-act-3_049": 3,
+   "p_card-01-men-2_043": 3,
+   "p_card-01-men-3_036": 3,
+   "p_card-00-men-3_012": 3,
+   "p_card-00-men-3_003": 3,
+   "p_card-01-act-2_001": 3,
+   "p_card-01-men-2_098": 3,
+   "p_card-01-men-2_035": 3,
+   "p_card-01-men-3_035": 3,
+   "p_card-01-men-3_033": 3,
+   "p_card-01-men-2_036": 3,
+   "p_card-01-men-3_006": 3,
+   "p_card-01-men-3_034": 3,
+   "p_card-01-act-2_059": 3,
+   "p_card-01-act-3_010": 3,
+   "p_card-01-men-2_038": 3
+  },
+  "grave_cards": [
+   "p_card-01-men-2_037",
+   "p_card-01-act-2_001",
+   "p_card-01-men-2_011"
+  ],
+  "ssr": [
+   "p_card-00-men-3_003",
+   "p_card-01-men-3_036",
+   "p_card-00-men-3_012",
+   "p_card-01-men-3_034",
+   "p_card-01-ido-3_213",
+   "p_card-01-men-3_006",
+   "p_card-01-men-3_035",
+   "p_card-01-act-3_049",
+   "p_card-01-men-3_033",
+   "p_card-01-ido-3_200",
+   "p_card-01-act-3_010"
+  ],
+  "drinks": [
+   "pdrink_00-2-010",
+   "pdrink_00-2-010",
+   "pdrink_00-3-001",
+   "pdrink_00-2-009"
+  ],
+  "card_effects": {
+   "p_card-00-acc-0_002": [],
+   "p_card-00-men-3_003": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      6
+     ]
+    },
+    {
+     "type": "ExamAntiDebuff",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-00-men-3_012": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      3
+     ]
+    },
+    {
+     "type": "ExamStaminaConsumptionDown",
+     "values": {}
+    }
+   ],
+   "p_card-01-act-2_001": [
+    {
+     "type": "ExamLesson",
+     "values": [
+      6
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-act-2_059": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      15
+     ]
+    },
+    {
+     "type": "ExamLessonAddMultipleParameterBuff",
+     "values": [
+      30,
+      1000
+     ]
+    },
+    {
+     "type": "ExamBlockRestriction",
+     "values": {}
+    }
+   ],
+   "p_card-01-act-3_010": [
+    {
+     "type": "ExamParameterBuffMultiplePerTurn",
+     "values": {}
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamLesson",
+     "values": [
+      38
+     ]
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamLessonAddMultipleParameterBuff",
+     "values": [
+      21,
+      1000
+     ]
+    }
+   ],
+   "p_card-01-act-3_049": [
+    {
+     "type": "ExamStatusEnchant",
+     "values": {}
+    }
+   ],
+   "p_card-01-ido-3_200": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamStaminaRecoverMultiple",
+     "values": [
+      100
+     ]
+    },
+    {
+     "type": "ExamStatusEnchantEncore",
+     "values": [
+      1
+     ]
+    }
+   ],
+   "p_card-01-ido-3_213": [
+    {
+     "type": "ExamStaminaRecoverMultiple",
+     "values": [
+      100
+     ]
+    },
+    {
+     "type": "ExamLessonDependStamina",
+     "values": [
+      8000
+     ]
+    },
+    {
+     "type": "ExamLessonDependPlayCardCountSum",
+     "values": [
+      2,
+      9
+     ]
+    }
+   ],
+   "p_card-01-men-2_011": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      7
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      1
+     ]
+    }
+   ],
+   "p_card-01-men-2_035": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      3
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_036": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_037": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      4
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_038": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamStatusEnchant",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_043": [
+    {
+     "type": "ExamBlock",
+     "values": [
+      6
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_098": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamCardCreateId",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-2_099": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      7
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    },
+    {
+     "type": "ExamCardDraw",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamCardCreateId",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_006": [
+    {
+     "type": "ExamCardSearchEffectPlayCountBuff",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_033": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      4
+     ]
+    },
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamStaminaConsumptionDown",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_034": [
+    {
+     "type": "ExamParameterBuff",
+     "values": {}
+    },
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      2
+     ]
+    },
+    {
+     "type": "ExamCardMove",
+     "values": {}
+    },
+    {
+     "type": "ExamEffectTimer",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_035": [
+    {
+     "type": "ExamLessonBuff",
+     "values": [
+      1
+     ]
+    },
+    {
+     "type": "ExamStatusEnchant",
+     "values": {}
+    }
+   ],
+   "p_card-01-men-3_036": [
+    {
+     "type": "ExamParameterBuffMultiplePerTurn",
+     "values": {}
+    },
+    {
+     "type": "ExamStaminaConsumptionDown",
+     "values": {}
+    },
+    {
+     "type": "ExamPlayableValueAdd",
+     "values": {}
+    }
+   ]
+  },
+  "pitem_draw_unknown": [
+   11,
+   15,
+   21,
+   28,
+   34
+  ],
+  "drink_upg_unknown": {
+   "7": {
+    "p_card-01-men-3_035": 1
+   }
+  },
+  "actions": [
+   {
+    "k": 0,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 374278409,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-00-men-3_003::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 1,
+    "action": [
+     "drink",
+     2
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 374278409,
+    "oracle_cons": 0,
+    "is_drink": true,
+    "live_card": null,
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 2,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 374278409,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_035::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ]
+     ]
+    }
+   },
+   {
+    "k": 3,
+    "action": [
+     "drink",
+     0
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 374278409,
+    "oracle_cons": 4,
+    "is_drink": true,
+    "live_card": null,
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ]
+     ]
+    }
+   },
+   {
+    "k": 4,
+    "action": [
+     "drink",
+     0
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 2999732130,
+    "oracle_cons": 4,
+    "is_drink": true,
+    "live_card": null,
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ]
+     ]
+    }
+   },
+   {
+    "k": 5,
+    "action": [
+     "play",
+     4
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 3418199402,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_036::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 6,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 1,
+    "turn_after": 1,
+    "live_rng": 3418199402,
+    "oracle_cons": 2,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 7,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 1,
+    "turn_after": 2,
+    "live_rng": 3599059646,
+    "oracle_cons": 12,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_033::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       2
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 8,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 2,
+    "turn_after": 2,
+    "live_rng": 2492382585,
+    "oracle_cons": 4,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_099::2",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 9,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 2,
+    "turn_after": 2,
+    "live_rng": 2623593834,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-00-men-3_012::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 10,
+    "action": [
+     "drink",
+     0
+    ],
+    "turn_before": 2,
+    "turn_after": 2,
+    "live_rng": 2623593834,
+    "oracle_cons": 3,
+    "is_drink": true,
+    "live_card": null,
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 11,
+    "action": [
+     "play",
+     3
+    ],
+    "turn_before": 2,
+    "turn_after": 2,
+    "live_rng": 2034438259,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-ido-3_200::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 12,
+    "action": [
+     "play",
+     4
+    ],
+    "turn_before": 2,
+    "turn_after": 3,
+    "live_rng": 2034438259,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_036::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 13,
+    "action": [
+     "play",
+     4
+    ],
+    "turn_before": 3,
+    "turn_after": 3,
+    "live_rng": 2034438259,
+    "oracle_cons": 1,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_098::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 14,
+    "action": [
+     "play",
+     4
+    ],
+    "turn_before": 3,
+    "turn_after": 3,
+    "live_rng": 1927464821,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_043::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 15,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 3,
+    "turn_after": 3,
+    "live_rng": 1927464821,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 16,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 3,
+    "turn_after": 3,
+    "live_rng": 1927464821,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 17,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 3,
+    "turn_after": 4,
+    "live_rng": 1927464821,
+    "oracle_cons": 22,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_034::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       2
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 18,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 4,
+    "turn_after": 4,
+    "live_rng": 869474166,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-3_049::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       2
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 19,
+    "action": [
+     "play",
+     3
+    ],
+    "turn_before": 4,
+    "turn_after": 4,
+    "live_rng": 869474166,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       2
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 20,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 4,
+    "turn_after": 5,
+    "live_rng": 869474166,
+    "oracle_cons": 12,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_059::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 21,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 5,
+    "turn_after": 5,
+    "live_rng": 718462096,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 22,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 5,
+    "turn_after": 5,
+    "live_rng": 718462096,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 23,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 5,
+    "turn_after": 6,
+    "live_rng": 718462096,
+    "oracle_cons": 11,
+    "is_drink": false,
+    "live_card": "p_card-01-act-3_010::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 24,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 6,
+    "turn_after": 6,
+    "live_rng": 3035554032,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 25,
+    "action": [
+     "play",
+     3
+    ],
+    "turn_before": 6,
+    "turn_after": 6,
+    "live_rng": 3035554032,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 26,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 6,
+    "turn_after": 7,
+    "live_rng": 3035554032,
+    "oracle_cons": 8,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_038::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 27,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 7,
+    "turn_after": 8,
+    "live_rng": 1580888491,
+    "oracle_cons": 7,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 28,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 8,
+    "turn_after": 8,
+    "live_rng": 3614302654,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 29,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 8,
+    "turn_after": 8,
+    "live_rng": 3614302654,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 30,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 8,
+    "turn_after": 9,
+    "live_rng": 3614302654,
+    "oracle_cons": 14,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_035::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       2
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 31,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 9,
+    "turn_after": 9,
+    "live_rng": 4268380075,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::2",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 32,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 9,
+    "turn_after": 9,
+    "live_rng": 4268380075,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 33,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 9,
+    "turn_after": 10,
+    "live_rng": 4268380075,
+    "oracle_cons": 3,
+    "is_drink": false,
+    "live_card": "p_card-00-acc-0_002::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 34,
+    "action": [
+     "play",
+     0
+    ],
+    "turn_before": 10,
+    "turn_after": 10,
+    "live_rng": 3487083169,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 35,
+    "action": [
+     "play",
+     3
+    ],
+    "turn_before": 10,
+    "turn_after": 10,
+    "live_rng": 3487083169,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 36,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 10,
+    "turn_after": 10,
+    "live_rng": 3487083169,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ]
+     ],
+     "deck": [
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 37,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 10,
+    "turn_after": 11,
+    "live_rng": 3487083169,
+    "oracle_cons": 18,
+    "is_drink": false,
+    "live_card": "p_card-00-acc-0_002::0",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       2
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       2
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 38,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 11,
+    "turn_after": 11,
+    "live_rng": 3575838772,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::2",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       2
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 39,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 11,
+    "turn_after": 11,
+    "live_rng": 3575838772,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       2
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 40,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 11,
+    "turn_after": 12,
+    "live_rng": 3575838772,
+    "oracle_cons": 14,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_011::2",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       2
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 41,
+    "action": [
+     "play",
+     2
+    ],
+    "turn_before": 12,
+    "turn_after": 12,
+    "live_rng": 3425026639,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-act-2_001::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       2
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 42,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 12,
+    "turn_after": 12,
+    "live_rng": 3425026639,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-2_037::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       2
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 43,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 12,
+    "turn_after": 12,
+    "live_rng": 3425026639,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-men-3_006::1",
+    "zones_after": {
+     "hand": [
+      [
+       "p_card-01-ido-3_213",
+       2
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ]
+     ],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   },
+   {
+    "k": 44,
+    "action": [
+     "play",
+     1
+    ],
+    "turn_before": 12,
+    "turn_after": 12,
+    "live_rng": 3425026639,
+    "oracle_cons": 0,
+    "is_drink": false,
+    "live_card": "p_card-01-ido-3_213::2",
+    "zones_after": {
+     "hand": [],
+     "deck": [],
+     "grave": [
+      [
+       "p_card-01-act-2_001",
+       1
+      ],
+      [
+       "p_card-01-men-2_011",
+       1
+      ],
+      [
+       "p_card-01-men-2_037",
+       1
+      ]
+     ],
+     "lost": [
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-acc-0_002",
+       0
+      ],
+      [
+       "p_card-00-men-3_003",
+       1
+      ],
+      [
+       "p_card-00-men-3_012",
+       1
+      ],
+      [
+       "p_card-01-act-2_059",
+       0
+      ],
+      [
+       "p_card-01-act-3_010",
+       1
+      ],
+      [
+       "p_card-01-act-3_049",
+       0
+      ],
+      [
+       "p_card-01-ido-3_200",
+       1
+      ],
+      [
+       "p_card-01-ido-3_213",
+       1
+      ],
+      [
+       "p_card-01-men-2_035",
+       0
+      ],
+      [
+       "p_card-01-men-2_036",
+       1
+      ],
+      [
+       "p_card-01-men-2_038",
+       1
+      ],
+      [
+       "p_card-01-men-2_043",
+       0
+      ],
+      [
+       "p_card-01-men-2_098",
+       1
+      ],
+      [
+       "p_card-01-men-2_099",
+       1
+      ],
+      [
+       "p_card-01-men-3_006",
+       1
+      ],
+      [
+       "p_card-01-men-3_033",
+       1
+      ],
+      [
+       "p_card-01-men-3_034",
+       0
+      ],
+      [
+       "p_card-01-men-3_035",
+       1
+      ],
+      [
+       "p_card-01-men-3_036",
+       1
+      ]
+     ]
+    }
+   }
+  ]
+ }
+}

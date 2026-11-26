@@ -102,9 +102,14 @@ class RngStream:
         return lo + ((old * width) >> 32)
 
     def signed_key(self) -> int:
-        """排序键：旧状态异或符号位（升序排序等价于客户端带符号比较）。"""
+        """排序键：旧状态异或符号位后**按带符号 int32 解释**（升序排序用）。
+
+        客户端 ``rng_signed_key`` 返回 ``v = state ^ 0x80000000`` 的带符号值
+        （``v < 0x80000000 ? v : v - 2^32``）；排序按带符号升序。推进 1 次。
+        """
         old = self.advance()
-        return old ^ SIGN_BIT
+        v = old ^ SIGN_BIT
+        return v if v < SIGN_BIT else v - (1 << 32)
 
 
 # --------------------------------------------------------------------------- 消费事件

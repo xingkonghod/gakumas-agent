@@ -53,7 +53,8 @@ def test_range_and_signed_key_each_advance_once() -> None:
     assert stream.calls == 1
     s2 = stream.state
     k = stream.signed_key()
-    assert k == (s2 ^ 0x80000000)
+    v = s2 ^ 0x80000000
+    assert k == (v if v < 0x80000000 else v - (1 << 32))  # 带符号 int32 解释
     assert stream.state == _xs(s2)
     assert stream.calls == 2
 
