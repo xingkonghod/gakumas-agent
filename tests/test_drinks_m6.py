@@ -1056,6 +1056,94 @@ def test_local_bench_drink_legal_wiring() -> None:
         assert any(a[0] == "drink" for a in obs_auto["legal"])
 
 
+# ------------------------------------------------- 阶段3①：饮料搜索预算杠杆
+def _lever_state():
+    """蛋白粉有益局面：play_limit=1，手牌 2 张正分牌 → extra_plays 解锁第 2 张。"""
+    protein = get_catalog().spec_for("pdrink_00-3-001")
+    return ExpectState(
+        hand=(CardSpec("打分A", 3, 10), CardSpec("打分B", 3, 10)),
+        deck=tuple(CardSpec(f"占位{i}", 0, 0) for i in range(6)),
+        stamina=30, stamina_max=30, turns_left=2, total_turns=2,
+        play_limit=1, plays_used=0, clear=100, perfect=200,
+        drinks=(protein,), drink_uses=(1,),
+    )
+
+
+def test_lever_defaults_bit_identical() -> None:
+    from gkagent.sim.expectimax import AnalyticLeafValue, ExpectimaxConfig, expectimax_with_stats
+
+    cfg = ExpectimaxConfig()
+    assert cfg.drink_root_only is False and cfg.drink_first is False and cfg.drink_top_k == 1
+    state = _lever_state()
+    base = expectimax_with_stats(state, AnalyticLeafValue(), time_budget_ms=5000)
+    explicit = expectimax_with_stats(
+        state, AnalyticLeafValue(), time_budget_ms=5000,
+        drink_root_only=False, drink_first=False, drink_top_k=1,
+    )
+    assert (base.card, base.drink, base.utility, base.nodes) == (
+        explicit.card, explicit.drink, explicit.utility, explicit.nodes)
+    assert base.drink == 0  # 完全搜索：蛋白粉解锁第 2 张
+
+
+def test_lever_drink_first_anytime_retention() -> None:
+    """杠杆②：节点上限构造超时——drink_first 保留已搜到的 drink；旧序全丢。"""
+    from gkagent.sim.expectimax import AnalyticLeafValue, expectimax_with_stats
+
+    protein = get_catalog().spec_for("pdrink_00-3-001")
+    state = ExpectState(
+        hand=tuple(CardSpec(f"c{i}", 3, 10 + i) for i in range(4)),
+        deck=tuple(CardSpec(f"p{i}", 0, 0) for i in range(10)),
+        stamina=30, stamina_max=30, turns_left=3, total_turns=3,
+        play_limit=1, clear=100, perfect=200, drinks=(protein,), drink_uses=(1,),
+    )
+    # cap=18 实测分离点：旧序卡先搜（~8 节点）后饮料子树撞上限 → drink 从未评估；
+    # 新序饮料子树（~14 节点）先完成 → 超时保留 drink=0（单变量 drink_first）。
+    old = expectimax_with_stats(
+        state, AnalyticLeafValue(), time_budget_ms=5000, max_nodes=18)
+    new = expectimax_with_stats(
+        state, AnalyticLeafValue(), time_budget_ms=5000, max_nodes=18, drink_first=True)
+    assert not old.complete and not new.complete
+    assert old.drink is None
+    assert new.drink == 0
+
+
+def test_lever_root_only_saves_nodes() -> None:
+    """杠杆①：递归不展开饮料 → 完全搜索节点数严格下降，根仍选有益饮料。"""
+    from gkagent.sim.expectimax import AnalyticLeafValue, expectimax_with_stats
+
+    protein = get_catalog().spec_for("pdrink_00-3-001")
+    # uses=2：递归节点可再喝（默认展开）；root_only 只根节点 1 个饮料子树。
+    state = ExpectState(
+        hand=(CardSpec("A", 3, 10), CardSpec("B", 3, 11)),
+        deck=tuple(CardSpec(f"p{i}", 0, 0) for i in range(6)),
+        stamina=30, stamina_max=30, turns_left=2, total_turns=2,
+        play_limit=1, clear=100, perfect=200, drinks=(protein,), drink_uses=(2,),
+    )
+    base = expectimax_with_stats(state, AnalyticLeafValue(), time_budget_ms=5000)
+    lean = expectimax_with_stats(
+        state, AnalyticLeafValue(), time_budget_ms=5000, drink_root_only=True)
+    assert base.complete and lean.complete
+    assert base.drink == 0 and lean.drink == 0
+    assert lean.nodes < base.nodes  # 实测 14 → 7
+
+
+def test_lever_top_k_candidates() -> None:
+    """杠杆③：候选 top-k（默认 1 → k 按优先级）。"""
+    from gkagent.sim.expectimax import _candidate_drinks
+
+    cat = get_catalog()
+    protein = cat.spec_for("pdrink_00-3-001")
+    coffee = cat.spec_for("pdrink_01-1-003")  # 集中+3（priority 2）
+    state = ExpectState(
+        hand=(CardSpec("打分", 3, 10),), stamina=30, turns_left=2,
+        play_limit=1, clear=100, perfect=200,
+        drinks=(protein, coffee), drink_uses=(1, 1),
+    )
+    assert len(_candidate_drinks(state)) == 1
+    assert len(_candidate_drinks(state, 2)) == 2
+    assert _candidate_drinks(state, 2)[0] == _candidate_drinks(state)[0]
+
+
 # --------------------------------------------------------------------- opt-in 接线
 def test_resolve_drink_ids_none_is_empty() -> None:
     loadout = resolve_drink_ids(None)

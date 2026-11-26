@@ -555,6 +555,14 @@ class ExpectimaxConfig:
     time_budget_ms: float | None = DEFAULT_TIME_BUDGET_MS
     # 是否把「喝饮料」纳入动作集合（default True；饮料为空时零开销）
     allow_drinks: bool = True
+    # ---- M6 阶段3①（2026-11-26）：饮料搜索预算杠杆（单变量 A/B，默认=旧行为）----
+    # ① 递归节点不展开饮料（仅根节点 1 个饮料子树 = 独立小预算，不挤占卡搜索）；
+    drink_root_only: bool = False
+    # ② 根节点先评饮料再搜卡（anytime 超时保留已搜到的 drink；完全搜索行为不变，
+    #    打平仍优先出牌）；
+    drink_first: bool = False
+    # ③ 候选饮料 top-k（旧=1；放宽按优先级取 k 个，单变量）。
+    drink_top_k: int = 1
 
 
 @dataclass(frozen=True)
@@ -1061,8 +1069,8 @@ def _drink_worth_expanding(state: ExpectState, drink: DrinkSpec) -> bool:
     return False
 
 
-def _candidate_drinks(state: ExpectState) -> list[int]:
-    """返回本状态最多 1 个值得展开的饮料下标（控制分支数）。
+def _candidate_drinks(state: ExpectState, k: int = 1) -> list[int]:
+    """返回本状态最多 k 个值得展开的饮料下标（控制分支数；旧口径 k=1）。
 
     优先级：能解锁当前付不起的正分牌的 stamina → 有正分牌时的 focus/condition/
     补牌/倍率 → score（任意时候都直接加分）。同一状态不把所有库存都展开；每回合
@@ -1089,7 +1097,7 @@ def _candidate_drinks(state: ExpectState) -> list[int]:
     if not useful:
         return []
     useful.sort(key=lambda item: (-item[0], item[1]))
-    return [useful[0][1]]
+    return [index for _, index in useful[: max(int(k), 1)]]
 
 
 def use_drink_state(state: ExpectState, index: int) -> ExpectState:
@@ -3135,8 +3143,9 @@ class _Search:
                 best_card = card
                 best_drink = None
                 best_key = key_break
-        if self.config.allow_drinks:
-            for index in _candidate_drinks(state):
+        # 阶段3① 杠杆①：drink_root_only 时递归节点不展开饮料（预算留给卡搜索）。
+        if self.config.allow_drinks and not self.config.drink_root_only:
+            for index in _candidate_drinks(state, self.config.drink_top_k):
                 drink = state.drinks[index]
                 value = self.search(use_drink_state(state, index))
                 # 喝饮料只在严格提升档位效用时替换；打平优先出牌（饮料可留到后面）
@@ -3175,24 +3184,10 @@ class _Search:
             0,
         )
         actions: list[tuple[str, float]] = []
-        for card in legal_cards(state):
-            try:
-                value = self.action_value(state, card)
-            except _Deadline:
-                self.aborted = True
-                break
-            actions.append((card.name, value))
-            key_break = _action_tiebreak(state, card)
-            if value > best_value + 1e-12 or (
-                abs(value - best_value) <= 1e-12
-                and (best_key is None or key_break > best_key)
-            ):
-                best_value = value
-                best_card = card
-                best_drink = None
-                best_key = key_break
-        if self.config.allow_drinks:
-            for index in _candidate_drinks(state):
+
+        def drink_loop() -> None:
+            nonlocal best_value, best_card, best_drink, best_key
+            for index in _candidate_drinks(state, self.config.drink_top_k):
                 drink = state.drinks[index]
                 try:
                     value = self.search(use_drink_state(state, index))
@@ -3210,6 +3205,32 @@ class _Search:
                         state.total_cost_available - int(drink.cost),
                         0,
                     )
+
+        # 阶段3① 杠杆②：drink_first 先评饮料——anytime 超时保留已搜到的 drink
+        # （旧序卡先搜，超时 break 时饮料从未评估 → 回 greedy 全丢）。完全搜索
+        # 最优值与顺序无关（打平仍优先出牌：卡 tiebreak key 可压过饮料 key）。
+        if self.config.allow_drinks and self.config.drink_first:
+            drink_loop()
+        for card in legal_cards(state):
+            try:
+                value = self.action_value(state, card)
+            except _Deadline:
+                self.aborted = True
+                break
+            actions.append((card.name, value))
+            key_break = _action_tiebreak(state, card)
+            if value > best_value + 1e-12 or (
+                abs(value - best_value) <= 1e-12
+                # drink_first 时当前最优可能是饮料：打平优先出牌（与旧序
+                # 「饮料仅严格提升才替换」等价），卡无条件压过饮料平局。
+                and (best_drink is not None or best_key is None or key_break > best_key)
+            ):
+                best_value = value
+                best_card = card
+                best_drink = None
+                best_key = key_break
+        if self.config.allow_drinks and not self.config.drink_first:
+            drink_loop()
         self.memo[state.canonical()] = best_value
         self.choice_memo[state.canonical()] = best_card
         self.drink_choice_memo[state.canonical()] = best_drink
@@ -3226,6 +3247,9 @@ def _config_with_overrides(
     draw_enum_limit: int | None,
     max_nodes: int | None,
     allow_drinks: bool | None,
+    drink_root_only: bool | None = None,
+    drink_first: bool | None = None,
+    drink_top_k: int | None = None,
 ) -> ExpectimaxConfig:
     base = config or ExpectimaxConfig()
     updates: dict[str, Any] = {}
@@ -3243,6 +3267,12 @@ def _config_with_overrides(
         updates["max_nodes"] = max(int(max_nodes), 1)
     if allow_drinks is not None:
         updates["allow_drinks"] = bool(allow_drinks)
+    if drink_root_only is not None:
+        updates["drink_root_only"] = bool(drink_root_only)
+    if drink_first is not None:
+        updates["drink_first"] = bool(drink_first)
+    if drink_top_k is not None:
+        updates["drink_top_k"] = max(int(drink_top_k), 1)
     return replace(base, **updates) if updates else base
 
 
@@ -3260,12 +3290,19 @@ def expectimax_with_stats(
     draw_enum_limit: int | None = None,
     max_nodes: int | None = None,
     allow_drinks: bool | None = None,
+    drink_root_only: bool | None = None,
+    drink_first: bool | None = None,
+    drink_top_k: int | None = None,
     reshuffle: ReshuffleFn | None = None,
 ) -> ExpectimaxResult:
     """完整决策：返回动作、价值、节点数、耗时、是否完整（anytime 截止）。
 
     ``reshuffle``（可选）：确定性重洗钩子，配合 ``ExpectState.discard_order``
     让牌堆抽空后的重洗也变成确定分支（见 :data:`ReshuffleFn`）。
+
+    阶段3① 饮料预算杠杆（单变量 A/B，默认 None = 旧行为）：``drink_root_only``
+    （递归不展开饮料）/ ``drink_first``（根先评饮料，anytime 保留）/
+    ``drink_top_k``（候选 top-k）。
     """
     config = _config_with_overrides(
         config,
@@ -3276,6 +3313,9 @@ def expectimax_with_stats(
         draw_enum_limit=draw_enum_limit,
         max_nodes=max_nodes,
         allow_drinks=allow_drinks,
+        drink_root_only=drink_root_only,
+        drink_first=drink_first,
+        drink_top_k=drink_top_k,
     )
     model = value or AnalyticLeafValue(
         sigma=config.sigma, a_clear=config.a_clear, a_perfect=config.a_perfect

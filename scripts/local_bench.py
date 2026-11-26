@@ -785,20 +785,32 @@ class ExpectimaxPolicy:
         label: str,
         leaf: Any,
         budget_ms: float,
+        drink_lever: str = "none",
     ) -> None:
         self.name = name
         self.label = label
         self.leaf = leaf
         self.budget_ms = float(budget_ms)
+        # M6 阶段3①：饮料搜索预算杠杆（单变量 A/B；none = 旧行为逐位不变）。
+        self.drink_lever = drink_lever
         self.fallbacks = 0
         self.incomplete = 0
         self.completed = 0
         self.recursion_errors = 0
 
     def decide(self, _obs: dict[str, Any], sim: LessonSim) -> tuple[str, int | None]:
+        levers: dict[str, Any] = {}
+        if self.drink_lever == "root_only":
+            levers["drink_root_only"] = True
+        elif self.drink_lever == "drink_first":
+            levers["drink_first"] = True
+        elif self.drink_lever == "top2":
+            levers["drink_top_k"] = 2
+        elif self.drink_lever == "top3":
+            levers["drink_top_k"] = 3
         try:
             result = expectimax_with_stats(
-                state_from_sim(sim), self.leaf, time_budget_ms=self.budget_ms
+                state_from_sim(sim), self.leaf, time_budget_ms=self.budget_ms, **levers
             )
         except RecursionError:
             # 深层 0 费/抽牌链先撞到 Python 递归上限；按 anytime 的同一口径
@@ -910,7 +922,7 @@ def make_leaf(name: str) -> Any:
 
 
 def make_algorithms(
-    names: list[str], budget_ms: float
+    names: list[str], budget_ms: float, drink_lever: str = "none"
 ) -> list[GreedyPolicy | ExpectimaxPolicy | UinetPolicy]:
     """按名字构造算法实例（每个算法独立计数）。
 
@@ -932,6 +944,7 @@ def make_algorithms(
                     label=label,
                     leaf=make_leaf(name),
                     budget_ms=budget_ms,
+                    drink_lever=drink_lever,
                 )
             )
         elif name == "uinet":
@@ -1140,7 +1153,10 @@ def run_bench(
     sample_seed: int = 0,
     p_items_mode: str = "auto",
     drinks_mode: str = "off",
+    drink_lever: str = "none",
 ) -> dict[str, Any]:
+    if drink_lever not in {"none", "root_only", "drink_first", "top2", "top3"}:
+        raise SystemExit(f"--drink-lever 未知：{drink_lever!r}")
     if p_items_mode not in {"auto", "off"}:
         raise SystemExit(f"--p-items 只支持 auto/off：{p_items_mode!r}")
     if p_items_mode != "off":
@@ -1196,7 +1212,7 @@ def run_bench(
     skipped_algorithms: list[dict[str, str]] = []
     for name in algo_names:
         try:
-            policies = make_algorithms([name], budget_ms)
+            policies = make_algorithms([name], budget_ms, drink_lever)
         except AlgorithmUnavailable as exc:
             skipped_algorithms.append({"name": name, "reason": str(exc)})
             print(f"[skip] {name}: {exc}", file=sys.stderr)
@@ -1234,7 +1250,7 @@ def run_bench(
     for spec in specs:
         for seed in seeds:
             for run in runs:
-                policy = make_algorithms([run.name], budget_ms)[0]
+                policy = make_algorithms([run.name], budget_ms, drink_lever)[0]
                 episode = run_episode(spec, seed, policy)
                 run.add(episode)
                 print(
@@ -1439,6 +1455,13 @@ def main(argv: list[str] | None = None) -> int:
         choices=["auto", "off"],
         help="M6 饮料：auto=按 loadout.drink_ids 接入效果段结算；off=不结算（默认，逐位不变）",
     )
+    parser.add_argument(
+        "--drink-lever",
+        default="none",
+        choices=["none", "root_only", "drink_first", "top2", "top3"],
+        help="M6 阶段3① 饮料搜索预算杠杆（单变量 A/B，默认 none 逐位不变）："
+        "root_only=递归不展开饮料 / drink_first=根先评饮料(anytime 保留) / top2/top3=候选 top-k",
+    )
     parser.add_argument("--out", type=Path, default=REPORT_PATH, help="排行榜 JSON 输出")
     args = parser.parse_args(argv)
 
@@ -1455,6 +1478,7 @@ def main(argv: list[str] | None = None) -> int:
         sample_seed=args.sample_seed,
         p_items_mode=args.p_items,
         drinks_mode=args.drinks,
+        drink_lever=args.drink_lever,
     )
     print("=" * 92)
     print("裁判 = 我们的模拟器 LessonSim（不是 gkbench 的 GKMS 引擎）")
