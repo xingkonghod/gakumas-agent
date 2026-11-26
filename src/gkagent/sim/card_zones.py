@@ -19,10 +19,20 @@
 显式 unknown（不猜，如实留锚点清单）
 ------------------------------------
 * **pitem 312 interval 抽牌时机**：主数据语义已推得（``card_play_interval`` interval=4
-  scope=exam、play_filter=好調效果组、条件「好调≥8」、max_uses=5、draw  bundled 在
-  ``ExamPlayableValueAdd``），但**精确 fire 口径**含 DLL 内部计数器（``interval44_count``）
-  与手牌上限跳过/计数器复位交互，两局实机样本不足以可靠反推 → 显式 unknown 锚点
-  ``pitem_draw_unknown``，留 (c) type21 类探针逐场景刻画。
+  scope=exam、play_filter=好調效果组、条件「好调≥8」、max_uses=5、draw bundled 在
+  ``ExamPlayableValueAdd``）。(c) 探针（``data/_m1b_pitem312.py`` / ``_m1b_pitem312_analysis.json``，
+  rinami W7/W9 重放 + DLL ``trigger_effect_states`` 逐步捕获）**已刻画核心 fire 规则**：
+  rules=69 下计数器是 ``phase_count``（``interval44_count`` 未填充，has_interval44=False）；
+  合格出牌（parameter_buff 好調效果组）使 phase_count++（encore/额外 play +2），
+  **phase_count 跨越 4 的倍数即 fire 抽 1**（floor(after/4)>floor(before/4)），``spent_total``++，
+  ``limit_count=5``（max_uses）用尽后 phase_count 冻结不再 fire；fire 抽牌本身 0 RNG（bundled）。
+  **仍 unknown**：「好调≥8」门的确切语义（W7/W9 stance=None 全程，parameter_buff_up-8 是门还是效果未定）
+  与**手牌上限跳过**交互（两局样本所有 fire 都成功抽牌，未触发跳过场景）不足以可靠泛化到任意牌组
+  → 保留显式 unknown 锚点 ``pitem_draw_unknown``（fixture 按决策 k 锚定），见 :data:`PITEM312_PROBE`。
+* **type21 ExamCardCreateSearch 随机池消费**（(c) 探针 ``data/_m1b_type21.py`` / ``_m1b_type21_p1_summary.json``）：
+  sup-3_024「花枝萌芽的季节」实测 cons≈132/135/136（3 题），生成卡**入手牌**（非牌堆，无 deck 插入），
+  消费与牌堆长无关（deck_len 3/7/12 无相关）→ 随机池选取口径（候选池权重/signed_key）未完全刻画
+  → 仍 :data:`rng_graph.UNMODELED_EFFECT_TYPES`（保守），静态扫 505 恢复计数维持 419（74 题仍风险）。
 * **饮料侧 soda enchant 支援强化目标**：soda 回合开始抽牌的支援强化走**独立饮料 rng**
   （exam 流 0 消费，W9 k=7 实测 rng_steps=12 不含），强化目标不可由 exam 流预测 →
   显式 unknown 锚点 ``drink_upg_unknown``（owned-by-drinks，M6）。
@@ -43,7 +53,7 @@ from .rng_graph import (
     move_search_random, move_pick_random,
 )
 
-__all__ = ["PredictiveReplay", "PREDICTIVE_COVERAGE", "UNKNOWN_TIMINGS"]
+__all__ = ["PredictiveReplay", "PREDICTIVE_COVERAGE", "UNKNOWN_TIMINGS", "PITEM312_PROBE"]
 
 #: predictive 覆盖表（报告用）：timing → "predicted" / "unknown"。
 PREDICTIVE_COVERAGE: dict[str, str] = {
@@ -68,6 +78,22 @@ UNKNOWN_TIMINGS: tuple[str, ...] = (
     "pitem_312_interval_draw",
     "drink_soda_support_upgrade",
 )
+
+#: (c) 探针刻画的 pitem 312 fire 机制（``data/_m1b_pitem312_analysis.json``，rinami W7/W9）。
+#: 核心规则已明（phase_count 跨 4 倍数 fire / max_uses5 / 好調效果组合格出牌计数），但「好调≥8」门
+#: 语义与手牌上限跳过交互未泛化验证 → 仍 unknown（不静默放宽 predictive）。供后续逐场景探针锚定。
+PITEM312_PROBE: dict[str, Any] = {
+    "enchant_id": "enchant-p_item_effect_01-3-312-0-enc01",
+    "trigger": "exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff",
+    "counter": "phase_count",            # rules=69：interval44_count 未填充（has_interval44=False）
+    "interval": 4,                        # phase_count 跨越 4 的倍数即 fire 抽 1
+    "max_uses": 5,                        # limit_count=5；spent_total 用尽后 phase_count 冻结
+    "fire_rng": 0,                        # fire 抽牌本身 0 RNG（bundled ExamPlayableValueAdd）
+    "qualifying": "parameter_buff 好調效果组出牌 phase_count++（encore/额外 play +2）",
+    "still_unknown": ("好调≥8 门确切语义（stance=None 样本）", "手牌上限跳过交互（样本未触发）"),
+    "w7_fire_k": (9, 15, 20),
+    "w9_fire_k": (11, 15, 21, 28, 34),
+}
 
 
 class PredictiveReplay:

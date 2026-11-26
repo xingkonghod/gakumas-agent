@@ -139,3 +139,30 @@ def test_signed_key_signed_int32_order() -> None:
     keys = [s2.signed_key() for _ in range(8)]
     assert keys == sorted(keys) or True  # 单次序列未必有序；验证范围即可
     assert all(-(1 << 31) <= x < (1 << 31) for x in keys)
+
+
+# --------------------------------------------------------------------------- (c) 探针锚点（m1-fix3）
+def test_pitem312_probe_anchor_documented() -> None:
+    # (c)② 探针刻画的核心 fire 机制入锚点（phase_count 跨 4 倍数 / max_uses5 / 0 RNG），
+    # 但「好调≥8」门 + 手牌上限跳过未泛化验证 → pitem_312 仍 unknown（不静默放宽）。
+    p = cz.PITEM312_PROBE
+    assert p["counter"] == "phase_count"      # rules=69：interval44_count 未填充
+    assert p["interval"] == 4 and p["max_uses"] == 5
+    assert p["fire_rng"] == 0
+    assert p["w7_fire_k"] == (9, 15, 20)
+    assert p["w9_fire_k"] == (11, 15, 21, 28, 34)
+    assert p["still_unknown"]                 # 如实留未刻画场景
+    assert cz.PREDICTIVE_COVERAGE["pitem_312_interval_draw"] == "unknown"
+    assert "pitem_312_interval_draw" in cz.UNKNOWN_TIMINGS
+
+
+def test_type21_still_unmodeled_after_probe() -> None:
+    # (c)① 探针：sup-3_024 cons≈132-136 / 生成卡入手牌 / 与牌堆长无关 → 随机池口径未刻画，
+    # type21 保守保留 unmodeled（静态扫 505 恢复计数维持 419，74 题仍风险）。
+    assert rg.classify_effect("ExamCardCreateSearch") == "unmodeled"
+    assert "ExamCardCreateSearch" in rg.UNMODELED_EFFECT_TYPES
+    assert rg.classify_effect("ExamReviewPerSearchCount") == "unmodeled"
+    # 已刻画机制仍 modeled（消费图恢复全知的基础不变）
+    assert rg.classify_effect("ExamCardCreateId") == "modeled"
+    assert rg.classify_effect("ExamCardMove") == "modeled"
+    assert rg.classify_effect("ExamPanic") == "modeled"

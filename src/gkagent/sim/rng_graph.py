@@ -288,6 +288,8 @@ MODELED_EFFECT_TYPES: frozenset[str] = frozenset(
 UNMODELED_EFFECT_TYPES: frozenset[str] = frozenset(
     {
         "ExamCardCreateSearch",  # type21：随机池生成，消费远多于生成数，未完全探针
+        # (c) 探针 data/_m1b_type21_p1（sup-3_024 ×3 题）：cons≈132/135/136，生成卡入手牌（非牌堆，
+        # 无 deck 插入），消费与牌堆长无关（3/7/12 无相关）→ 随机池权重/signed_key 口径未刻画，保守保留。
         "ExamReviewPerSearchCount",  # 按搜索次数给好印象：未探针，保守保留
     }
 )
