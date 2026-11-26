@@ -533,7 +533,7 @@ class ExamPlanSelector:
     退回期望搜索）；给 ``max_attempts`` 次重来机会，避免过期数据无限重试烧 CPU。
     """
 
-    def __init__(self, plans, *, max_attempts: int = 40) -> None:
+    def __init__(self, plans, *, max_attempts: int = 40, history=()) -> None:
         self.plans = list(plans)
         self.max_attempts = max(int(max_attempts), 1)
         self._chosen: ExamDrawPlan | None = None
@@ -542,6 +542,21 @@ class ExamPlanSelector:
         self._retries = 0
         self._locked_at = 0
         self.reset_count = 0
+        # F#55（真机 ep-live-seed8）：mid-exam 重载候选时新计划从 T1 起算，与当前
+        # 回合错位 → 永不收敛。history=已观察回合 [(observed, parameter_type)] 重放快进。
+        self._history: list = []
+        self._replaying = False
+        for obs, pt in history:
+            self._replaying = True
+            try:
+                self.begin_turn(obs, pt)
+            finally:
+                self._replaying = False
+
+    @property
+    def history(self) -> list:
+        """已观察回合记录（供 mid-exam 重载时快进新候选）。"""
+        return list(self._history)
 
     # ------------------------------------------------------------------ 状态
     @property
@@ -619,6 +634,8 @@ class ExamPlanSelector:
         return list(self._alive)
 
     def begin_turn(self, observed, parameter_type: int | None = None) -> bool:
+        # 重放也记账：链式 mid-exam 重载时 history 不丢回合。
+        self._history.append((list(observed), parameter_type))
         if self._chosen is not None:
             return self._chosen.begin_turn(observed, parameter_type)
         if not self._alive or self._retries >= self.max_attempts:

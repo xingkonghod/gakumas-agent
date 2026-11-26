@@ -719,6 +719,7 @@ def main() -> int:
             f"[exam-plan] 跳过 {skipped_risky} 个含额外 RNG 机制的候选（known_draw 不可验）"
         )
     exam_plan_selector = None
+    exam_plan_history: list = []  # F#55：mid-exam 重载时快进新候选的已观察回合
     exam_setup_mtime: float | None = None
     prev_exam_turns: int | None = None
     prev_exam_mode = False
@@ -1289,6 +1290,7 @@ def main() -> int:
                         log_lines.append(f"[exam-plan] summary 失败：{exc}")
                     lesson_policy.attach_draw_plan(None)
                     exam_plan_selector = None
+                    exam_plan_history = []  # 新考试：历史清零
                 if exam_setup_path:
                     # F#54（真机 ep-live-seed2/8）：候选过期=真机不收敛主因（探针实证
                     # grave 模型已全中）。考试入口同步跑 build_exam_setup --current 刷新
@@ -1315,6 +1317,8 @@ def main() -> int:
                         exam_setup_mtime = mtime
                         exam_plans, skipped_risky = build_exam_plans(exam_setup_path)
                         if exam_plan_selector is not None:
+                            # F#55：保留已观察回合，新候选重放快进对齐当前回合
+                            exam_plan_history = exam_plan_selector.history
                             lesson_policy.attach_draw_plan(None)
                             exam_plan_selector = None
                         log_lines.append(
@@ -1328,7 +1332,8 @@ def main() -> int:
                 if exam_plans and exam_plan_selector is None:
                     from gkagent.sim.exam_plan import ExamPlanSelector
 
-                    exam_plan_selector = ExamPlanSelector(exam_plans)
+                    exam_plan_selector = ExamPlanSelector(exam_plans, history=exam_plan_history)
+                    exam_plan_history = []
                     lesson_policy.attach_draw_plan(exam_plan_selector)
                     log_lines.append(
                         f"{step:03d} [exam-plan] 挂上 {len(exam_plans)} 个候选"

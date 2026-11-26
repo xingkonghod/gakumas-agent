@@ -404,3 +404,21 @@ def test_selector_with_real_plans_locks_on_first_hand():
     kwargs = selector.expect_state_kwargs(to_specs=list)
     assert kwargs["known_draw"] == plans[1].expect_state_kwargs(to_specs=list)["known_draw"]
 
+
+
+def test_selector_history_fast_forwards_mid_exam_reload():
+    """F#55：mid-exam 重载候选时 history 重放快进（真机 ep-live-seed8 不收敛根因）。"""
+    a = _FakePlan("a", [True, True, True])
+    b = _FakePlan("b", [False])
+    s1 = ExamPlanSelector([a, b])
+    assert s1.begin_turn(["c1"], 1)
+    assert s1.begin_turn(["c2"], 2)
+    assert s1.locked_turn == 1
+    a2 = _FakePlan("a", [True, True, True])
+    b2 = _FakePlan("b", [False])
+    s2 = ExamPlanSelector([a2, b2], history=s1.history)
+    assert a2.turn == 2, "新候选应重放已观察回合快进到 T2"
+    assert s2.locked_turn == 1
+    assert s2.begin_turn(["c3"], 3)
+    assert a2.turn == 3
+    assert len(s2.history) == 3
