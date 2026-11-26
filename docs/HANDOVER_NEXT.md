@@ -1474,7 +1474,7 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
 **最近交接记录（2026-11-26 午后，饮料阶段2 sim 侧完成（drink-fix2）；窄 scope 完成即退出）**：
-- **batch2 catalog（feat 本条哈希见 git log）**：ExamConcentration 强气 1/2 直给（姜汁汽水 ×5 /
+- **batch2 catalog（feat 5d3b1c8）**：ExamConcentration 强气 1/2 直给（姜汁汽水 ×5 /
   超级苏打 ×12，stance 渠道 + concentration2）；黑醋汁 ×38 Select→hand + cost0（前 2 张正费牌
   整费归零、0 费牌不耗次数）；特制精华 ×209 再发动（下一张 ActiveSkill 直接效果 ×2，1 次，
   喝回合+下一回合有效）。**probe6 引擎 oracle 全 PASS**（data/_drinks_probe6.py/.json 不提交；
@@ -1489,7 +1489,8 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
 - **③ r14 特征提取器只写不激活**：src/gkagent/sim/drink_features.py（33 维定长，kind×剩余次数
   聚合 + unknown/SAFE 汇总；纯函数无接线）；设计 out/_drinks_r14_features_design.md（不提交）：
   B2 叶子替换 5 legacy drink_* 位 / r14 obs+动作头，**重训门留 lead 排队**（分布漂移）。
-- **测试**：test_drinks_m6.py 63 条；全量 pytest 见 feat 提交说明（--basetemp=out\_pytest_tmp_drink3）。
+- **测试**：test_drinks_m6.py 63 条；**全量 1778 passed / 1 skipped / 0 failed**（1779 collected，
+  --basetemp=out\_pytest_tmp_drink3；高负载无 flake）。
   纪律：path-limited add（未碰 rng_graph/card_zones/exam_risk，m1-fix3 owns）；探针 ≤3 局；
   free 3.5–4GB>0.9GB；未起托管；v2/v3 原版零改动。
 - **阶段3 建议**：sim 搜索饮料预算优化（fallback 稀释是门未过主因：drink 分支 anytime 保留 /

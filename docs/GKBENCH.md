@@ -489,7 +489,7 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   sim 侧决策/特征——**引擎侧全饮料保留**（gnrpa-spec a86ffdc 实锤）。
   ③ **r14 饮料特征提取器**（src/gkagent/sim/drink_features.py，33 维定长 catalog 效果向量，
   **只写不激活**——重训分布漂移留 lead 排队；设计 out/_drinks_r14_features_design.md 不提交）。
-  tests/test_drinks_m6.py **63 条**。
+  tests/test_drinks_m6.py **63 条**；全量 **1778 passed / 1 skipped / 0 failed**（drink3 basetemp）。
 - **hif 505 题饮料覆盖实测（阶段2 杠杆真值）**：498/505 题带饮料；已实现大头=蛋白粉 extra_plays ×248 /
   苏打 ×235（4 段）/ 00-2-008 ×219（half_cost+score_buff）/ 02-3-010 ×209 / 03-3-011 extra_turn ×100；
   **最高频 pdrink_00-3-005 ×296 = 初星特制青汁**（ExamCardCreateSearch 随机生成，RNG 流未知，
