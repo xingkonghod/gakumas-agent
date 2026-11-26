@@ -380,3 +380,6 @@ T3 生产 selector 路径用 `*_v361.json` 工件 sweep 6/6（期末 12/12）；
   F#53 need=0 亮橙直接保留 / F#54 考试入口刷 --current / F#55 selector history 重放快进。
 - 饮料全程未喝＝生产 allow_drinks 默认关（opt-in，门控后对照局再开）。
 - 下一局 ep-live-seed9 带 F#54/55：验证 locked_turn>0 + known_draw 喂 beam 后考试分回归正常量级。
+- 用户核真值：最终三维 **684/513/817**（和 2014）→ 评价 7103 的大头缺口在**培育三维**，
+  非考试段；用户手动 PRO 10000+ 为参照系。考试读屏分 605/141/628 待 traffic 解码核真。
+- ep-live-seed9 实为收尾导航（done=true 90 步回主页，未开新局）；新局 ep-live-seed10 从主页起。
