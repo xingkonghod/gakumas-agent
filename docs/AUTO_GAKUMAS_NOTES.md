@@ -172,3 +172,36 @@ PBRS 负结果 −26,884 均同 §4。**新工作全在执行层可靠性 + 产�
 **新增可吸收（clean-room，只语义不拷码）**：① P点三明治 OCR 抗遮挡（对照我们 PUBじ 色块→倍率多位坑）；
 ② 手牌动画帧差稳定等待（进 C1 tapguard/读牌守卫）；③ finisher 好調≥13 门控（培育/考试末段连击先验，A/B 验证）；
 ④ 商店访问状态机 + 花光 P 点（培育侧策略）。**许可证不变**：README"仅供个人研究使用"、无 OSS license → 禁拷码入库。
+
+## 9. 2026-11-26 分享后动向研判（lead；情报缺口如实）
+
+**情报状态**：群 08:48 后静默（13:47 重抓无增量）；github fetch 两次失败（reset/timeout）→
+**post-share 实际提交未观察到**；本地 clone 止 b738b7f（11-25 17:03，分享前）。§7 的
+api.github.com 直连先例可晚些重试补观察。
+
+**分享包内容核实**（out/gkagent-search-v3-share.zip）：v3 algo（ExSeedV3Algo）+ vendor
+（draws/fastcut/opening/seedscan/seed_scan.c/.exe/gkmscore.dll；AGPL NOTICE 承 UIHorizon/yuzeis 源流）
++ README「最值钱的几个点」（**顺序律 forced_play=0 先于加预算**/多起点盆地/单调采纳/RoutePool 跨步累积/
+core_tail）+ **预搜索/快速估上限节**（对口扎易/muskot 后台预搜讨论）+ 参数表 + 局限如实
+（deck-modify 失锁/锁定前丢最优/起点方差）。
+
+**他们最新已知搜索逻辑（除我们分享的）**：
+- **tactfullotto（180w 哥）**：PPO+SO-ISMCTS 内核未变（11-23→25 四次提交全执行层/产品化）；
+  180w = Ert'Aria 对其**单局 demo 视频**评价，非平均口径；
+- **扎易**：Frida 采集 + 外部 GKMS sim 全知 + 搜索（W7/W9 +24.9%/+20.8%、21 回合对账），放弃 nodejs 轮子；
+- **Ert'Aria GakumasCLI**：native GNRPA（restarts/chunked transitions/drinks fair|used|all）+
+  目标分早停 140/240 万 + 控分占比 + 最省体力 tiebreak + 预搜索；
+- **muskot**：Bellman O(1) 上界构想（自评难）+ MDP-GapE 近优样本复杂度研究层。
+
+**接受分享后怎么转（推断，非观察）**：
+- **tactfullotto**：产品运行时纯视觉不能 seed → 最可能**双轨**：产品继续 PPO+ISMCTS，
+  **gkbench 投稿臂接我们 seed-lock/RoutePool/多起点**（matto 已邀赛马；UIHorizon about.sees="seed" 先例）；
+  其 anti-SKIP 与我们顺序律**相反** → 强搜索臂需放松 anti-SKIP（分享 README 第一条直接点穴）；
+  AGPL 互惠 → 其衍生须开源，repo 应出现 seed-search 分支（待观察）。
+- **扎易**：架构已同构 → 消费我们 seed_scan/Draws 口径补其对账残差（浮点次序/边界），
+  RoutePool 单调采纳接其外部 sim；不换内核。
+- **Ert'Aria/muskot**：GakumasCLI 已有 job/pool/restarts 结构 → RoutePool 跨步累积 + core_tail 接法自然；
+  muskot 上界研究可用我们预搜索配方作经验上界估计器。
+- **竞争面**：seed 榜分母只升不降、竞争加剧；**护城河 = 私有 sim/MITM/bot/培育闭环未分享**；
+  真机全知链路仍独占。口径提醒：180w 单局 vs 我们托管均分 1.27M/1.33M 点估不可比；
+  其 gkbench 均分待提交后才知。
