@@ -1588,6 +1588,12 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
   F#50-57 修复链全提交带真机帧回归；执行链 151 击 0 lost 级健康。
 - **停的状态**：auto_produce 0 进程、daemon quit、watcher 全杀；托管全停（服务器重启过频 eval 内存态
   被清，恢复需 matto eval 落盘/部署窗口）；goal 已 pause。
+- **20:2x 停态后收尾通知收档**：pimc-scale 224 局扫参门完成（主仓 5fb6042 §19 / bench_repo
+  3d9b9aa）：**w32t16(u70+anytime1) 唯一过门采纳为 scale 缺省**（n14 meanΔ+519,210
+  CI[+4,054,+1,041,445]、over −60%、LOO 8/14）；天花板纠正=anytime 帽下 worlds↑不过帽
+  （decide 平坦 3.28s），约束=深度稀释+怪物方差；对 gknet-v3 剩余 ~48k 差距=引擎吞吐工程债；
+  CI 下界薄+怪物子集≠全量 → **托管 A/B（scale vs 原版 --seeds 2 --parallel 3 --budget 5）
+  排 v3 臂B 后、托管恢复后**；本次未跑托管，停态不变。
 - **下一会话顺序**：① apply produce-pro 商店买卡→真机 A/B（冲最高）② 真机复跑验 F#56/57
   ③ 饮料 allow_drinks 门控对照 ④ 搜索蓄力 end 放行门控（F#40 硬规矩 vs 搜索 SKIP）⑤ v3g 托管/
   505 full/r14 饮料重训（托管恢复后）⑥ M8 timed 层差一回合/type21 池残尾。
