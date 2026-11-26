@@ -32,6 +32,9 @@ CARD_HEIGHT = 232
 # 手牌那一排的固定上沿（720x1280）：课程/试镜都是 y≈892，选中态会抬高 ~25px
 CARD_TOP = 892
 SKIP_POINT = (657, 800)
+# 日文考试「残りターン」圆环数字紧框（720x1280）：宽框 turns ROI 会混入环弧
+# 读成 912（matto r3-00074）；宽框读不到时用它兜底（见 read()）。
+AUDITION_TURNS_TIGHT = (34, 56, 52, 52)
 # 分数宝石上一回合没读到、下一回合重读时额外放宽的像素（宝石偶尔被边框/选中态切到）
 SCORE_RETRY_PADS = (8, 14)
 
@@ -57,6 +60,14 @@ LAYOUTS: dict[str, dict[str, tuple[int, int, int, int] | None]] = {
 }
 
 _ATTRIBUTES = ("歌唱", "舞蹈", "视觉")
+# 日文客户端（DMM 原版/汉化 overlay 未覆盖屏）属性名：归一到中文规范名。
+# 下游 sim.exam_plan.PARAMETER_TYPES / sim.uiobs._ATTRIBUTE_CODES 只认中文键，
+# 这里做别名映射而不是改下游（F#48 日文别名先例；matto 基准 exam_attr 缺口）。
+_ATTRIBUTE_JA_ALIASES: dict[str, str] = {
+    "ボーカル": "歌唱",
+    "ダンス": "舞蹈",
+    "ビジュアル": "视觉",
+}
 
 # 选中卡后右上角的体力预览：``25`` 和 ``-6`` 两行，两种界面各一套位置
 STAMINA_PREVIEWS: tuple[tuple[tuple[int, int, int, int], tuple[int, int, int, int]], ...] = (
@@ -217,11 +228,18 @@ class LessonReader:
         order = [kind] if kind in LAYOUTS else []
         order += [name for name in ("lesson", "audition") if name not in order]
         turns = self._first_number(image, order, "turns", 1, 40)
+        if turns is None and "audition" in order:
+            # 日文考试帧剩余回合是深色圆环里的白字：宽框会把环弧读成「912」
+            # （matto r3-00074 实测）→ 超 1..40 拒读。紧框只罩数字，兜底再试一次；
+            # 中文帧宽框能读到就不走这里（逐位不变）。
+            turns = self._number(image, AUDITION_TURNS_TIGHT, 1, 40)
         score = self._first_number(image, order, "score", 0, 200000)
         stamina = self._first_number(image, order, "stamina", 0, 199)
         gauge = self._first_number(image, order, "gauge", 0, 200000)
         attribute = self._first_attribute(image, order)
-        multiplier = self._first_number(image, order, "multiplier", 10, 999)
+        # H.I.F 本战属性倍率可超 999%（matto 真值 r3-00074 = 2805%）；旧上限 999
+        # 会把高倍率整段拒读。上限放到 9999（屏幕百分比 4 位），低倍率行为不变。
+        multiplier = self._first_number(image, order, "multiplier", 10, 9999)
         notes = []
         if turns is None:
             notes.append("turns-unread")
@@ -478,7 +496,11 @@ class LessonReader:
                 continue
             if any(ch.isdigit() for ch in text):
                 continue
-            if not any("\u4e00" <= ch <= "\u9fff" for ch in text):
+            # 汉字或假名都算卡名候选：纯假名卡名（イメトレ / ゆるふわおしゃべり）
+            # 旧过滤只认汉字 → 整张漏读（matto 基准日文卡名缺口，F#48 别名先例）。
+            if not any(
+                "\u4e00" <= ch <= "\u9fff" or "\u3040" <= ch <= "\u30ff" for ch in text
+            ):
                 continue
             x, y, w, _h = line.box
             if w < 28:
@@ -542,6 +564,9 @@ class LessonReader:
         for word in _ATTRIBUTES:
             if word in line.text:
                 return word
+        for ja, canonical in _ATTRIBUTE_JA_ALIASES.items():
+            if ja in line.text:
+                return canonical
         return None
 
 

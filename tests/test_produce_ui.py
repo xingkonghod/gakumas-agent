@@ -1099,10 +1099,19 @@ def test_read_attrs_prefers_value_over_1000_denominator() -> None:
 
 
 def test_read_attrs_rejects_out_of_range_number() -> None:
-    ocr = _attr_ocr(("2500", "215", "351"))
+    # ATTR_MAX 提到 9999（H.I.F 属性上限 3200，matto 基准）后，2500 已是合法属性；
+    # 真正越界的是 6 位以上数字（5 位会按「图标前导数字」拆分，见 parse_attr_value）。
+    ocr = _attr_ocr(("250000", "215", "351"))
     driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
     assert driver.read_attrs(_attr_image()) is None
     assert ocr.read_calls == 0
+
+
+def test_read_attrs_accepts_matto_hif_attr_range() -> None:
+    # 旧 ATTR_MAX=2000 会拒读 2001-3200 的真属性；新上限 9999 覆盖（matto 00058=2336）。
+    ocr = _attr_ocr(("2500", "2336", "3200"))
+    driver = ProduceDriver(ocr=ocr, sleep=lambda _seconds: None)
+    assert driver.read_attrs(_attr_image()) == (2500, 2336, 3200)
 
 
 def test_read_attrs_falls_back_to_full_ocr_when_two_boxes_miss() -> None:

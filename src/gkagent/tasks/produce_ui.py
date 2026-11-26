@@ -62,7 +62,9 @@ DIALOGUE_SKIP = (208, 1185)  # 剧情「SKIP」
 
 CANCEL_WORD = "取消"
 # OCR 常把「剩余回合数」读成「剩余回合」；CLEAR/PERFECT 截止圆环也常被拆分
-LESSON_WORDS = ("剩余回合", "CLEAR", "PERFECT")
+# 日文客户端（DMM 原版/汉化未覆盖）课程/考试左上是「残りターン」（matto 基准；
+# 旧中文词整屏落空 → 考试帧误判 result-tap 空转）。
+LESSON_WORDS = ("剩余回合", "CLEAR", "PERFECT", "残りターン")
 # 「+N 飘字」：只认**正收益**（P+45 / 打分+38 / Da.上升了58 由文字分支兜底）。
 # F#43 的真根因之一：旧正则 `[+\-]\s*\d+` 把外出饮料选择屏的 P 费标签「-100 / -50」
 # 当成飘字 → 每步点屏幕中央空转 10 次停机（见 docs/FAILURES.md #43）。
@@ -79,7 +81,8 @@ ATTR_ROIS: tuple[tuple[int, int, int, int], ...] = (
     (285, 655, 150, 70),  # Da
     (465, 655, 180, 70),  # Vi
 )
-ATTR_MAX = 2000  # 合理上限：属性显示为 X/1000，加成分后也不会超过 2000
+ATTR_MAX = 9999  # 合理上限：H.I.F 后期属性上限 3200（matto 真值 params 2336/3200），
+# 旧值 2000 会把 2001-3200 的真属性整段拒读；4 位数字上限，分母/百分比过滤不变。
 # 固定框兜底用的整图 OCR 取数范围：属性大数字/「/1000」小字/百分比都落在这一带，
 # 顶部分数、左上角回合数、底部按钮文字会被排除。
 ATTR_FALLBACK_Y = (600, 800)
@@ -87,7 +90,7 @@ ATTR_FALLBACK_X_SPLIT = (272, 442)  # 左/中/右三列分界（兼容两种真�
 # 三个固定框全空时的廉价闸门：行动页中央有「请选择行动」，别的页面没有。
 # 没有这道闸门就要对每个非行动帧跑 5s 的整图 OCR。
 ATTR_ACTION_TITLE_BOX = (180, 830, 360, 60)
-_ATTR_ACTION_TITLE_WORDS = ("请选择行动", "选择行动", "行动")
+_ATTR_ACTION_TITLE_WORDS = ("请选择行动", "选择行动", "行动", "行動", "を選択して")
 _ATTR_NUMBER_RE = re.compile(r"\d+")
 _ATTR_DENOMINATOR = 1000  # 显示条「X/1000」的分母
 # 只有这些屏才可能出现三颗属性圆（行动页/训练页/外出咨询页）。课程、剧情、加载、
@@ -100,6 +103,9 @@ _ATTR_PAGE_WORDS = (
     "外出",
     "咨询",
     "活动奖励",
+    "行动",
+    "行動",  # 日文行动页「行動を選択してください」（matto 基准；汉字别名）
+    "を選択して",  # OCR 偶把「行動」读成「行助」，动词短语更稳（matto 00058 实测）
     "Vo",
     "Da",
     "Vi",
@@ -487,7 +493,7 @@ def parse_attr_value(text: str | None) -> int | None:
     大数字下方常带「/1000」小字，可能被一起读成 ``312/1000``；斜杠前缀的分母
     直接剔除。OCR 偶尔把斜杠丢掉、只读成 ``312 1000``，这种 1000 同样按分母
     处理（优先取另一个数），因此「312 和 1000 同时出现」时返回 312。
-    框里混进图标/百分号时取剩余数字中最大的一个；读不到或不在 0..2000 返回
+    框里混进图标/百分号时取剩余数字中最大的一个；读不到或不在 0..ATTR_MAX 返回
     ``None``（调用方不得用 0 顶替）。
     """
     if not text:
@@ -496,7 +502,18 @@ def parse_attr_value(text: str | None) -> int | None:
     for match in _ATTR_NUMBER_RE.finditer(text):
         digits = match.group(0)
         if not 2 <= len(digits) <= 4:  # 属性是 2-4 位数字，单字符噪声不要
-            continue
+            # 日文行动页麦克风图标偶被读成前导数字，与真值合并成 5 位
+            # （matto 00058：「11473」= 图标 1 + 1473）。真属性上限 3200 不会到
+            # 5 位，所以仅当 5 位整体超上限时去掉前导 1 位再试（中文帧无此形态，
+            # 旧行为对 2-4 位逐位不变）。
+            if len(digits) == 5 and int(digits) > ATTR_MAX:
+                tail = int(digits[1:])
+                if 0 <= tail <= ATTR_MAX:
+                    digits = digits[1:]
+                else:
+                    continue
+            else:
+                continue
         start = match.start()
         if start > 0 and text[start - 1] in ("/", "／"):
             continue  # 「/1000」分母
@@ -2064,8 +2081,17 @@ class ProduceDriver:
             return TickResult("drink-keep", "keep")
 
         # 4.35) P点数兑换商店（咨询）：不买，直接「结束」
-        if ("进行兑换" in text or "兑换的道具" in text or "用P点数" in text) and "结束" in text:
-            end = self.find(lines, "结束")
+        # 日文客户端（DMM 原版/汉化未覆盖）标题是「Pポイントと交換するものを選んでください」、
+        # 按钮是「終了」——旧中文关键词整屏落空 → 商店空转（matto 基准 r3-00001/00002）。
+        shop_title = (
+            "进行兑换" in text
+            or "兑换的道具" in text
+            or "用P点数" in text
+            or "Pポイントと交換" in text
+            or "交換するものを選んで" in text
+        )
+        if shop_title and ("结束" in text or "終了" in text):
+            end = self.find(lines, "结束", "終了")
             self._click_line(agent, end) if end else self._click(agent, (640, 1165))
             return TickResult("shop", "exit")
 
