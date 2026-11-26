@@ -519,9 +519,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   SAFE 槽位 629/1629（38.6%）。阶段3=托管饮料决策（引擎侧全饮料）+ r14 重训门 +
   sim 搜索饮料预算优化（fallback 稀释是离线门未过主因）。
   样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 QQ_GROUP_NOTES §12。
-- **v3 托管 A/B 进行中**：旧评测 40312fcb77a0 被服务器清掉（404）→ 驱动改**新评测** + 404 自重置；
-  臂A vote0.8 → 臂B vote2.0 顺序；服务器间歇 SYN 丢包（10060/10054 波）90s 自动重连
-  （data/_v3_hosted_ab.ps1，不提交）；出分后对标 1,267,591 / 1.3M 目标。
+- **v3 托管 A/B（分块驱动 v2）**：服务器 **eval 注册表是内存 map（api.go `hosted map[string]*Hosted`），
+  重启即清**——臂A 两次跑至 81+/240 局被 404 清掉实证；但**已上传 episodes 落盘且排行同 algo+同 rules
+  合并、同题同种子取最新**（leaderboard_merge_test）→ **分块安全**。驱动 v2
+  （data/_v3_hosted_ab2.ps1，不提交）：每臂 **4 块×30 题顺序**（单块 ~30min < 重启间隔），块内风暴
+  --resume 续、404 本块重起；臂A vote0.8 → 臂B vote2.0；出分对标 1,267,591 / 1.3M 目标。
+  旧驱动 v1（整 240 单评测）废弃：暴露窗 > 重启间隔必被清。
 - **M1 消费图阶段1 完成（m1-rng，feat 2daa7bb / docs d813d4d）**：rng_graph.py clean-room 366 行
   （create=1 次 range 首调用 / type9=2×nf signed_key / pick=1+nf / 重洗=n−1 / panic=每手牌 1 range /
   支援掷点门控公式 / type59/38/156/22=0）；**W7 27/27、W9 非饮料 41/41 逐决策匹配**；rules=69 引擎
