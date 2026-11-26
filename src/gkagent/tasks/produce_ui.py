@@ -2062,7 +2062,12 @@ class ProduceDriver:
             if image is not None and (need > 0 or hand_header is not None):
                 # 「获得的饮料」段勾选是灰的（不可选)；按勾选框列扫描出行位置，
                 # 只补勾「手持的饮料」下面未勾选的行（行位置和文字行 y 有 20-50px 偏差，不能直接用文字行）
-                header_y = hand_header.box[1] if hand_header is not None else 400
+                # F#51（真机 ep-live-seed3/4/5 探针实证）：「获得的饮料」灰勾行**可点且计入
+                # 保留数**（灰勾=未计入伪装）；旧版从手持标题起扫把获得段滤掉 → need 永远
+                # 不满 → 点灰「保留」空转止损。扫描起点取两段标题的较上者。
+                acquired = self.find(lines, "获得的饮料")
+                base = acquired if acquired is not None else hand_header
+                header_y = base.box[1] if base is not None else 400
                 clicked = False
                 for top, bottom in self._checkbox_bands(image):
                     center = (top + bottom) // 2

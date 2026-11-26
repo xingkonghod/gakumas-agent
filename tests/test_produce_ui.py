@@ -272,8 +272,33 @@ def test_drink_keep_allchecked_garbled_need_scrolls() -> None:
     ]
     result = _driver().decide(agent, lines, image=image)
     assert result.screen == "drink-keep"
+    # F#51：获得段灰勾行可点且计入 → 先补勾获得段（check-row），不是滚动。
+    assert result.action == "check-row"
+    assert agent.device.clicks and agent.device.clicks[-1][0] == 632
+    assert agent.device.clicks[-1][1] < 770, "应点获得段灰勾行（手持标题之上）"
+
+
+def test_drink_keep_hand_allchecked_no_acquired_scrolls() -> None:
+    """F#50/F#51：无获得段、手持全勾且 need>0 → 滚动找屏下未勾行。"""
+    cv2 = pytest.importorskip("cv2")
+    path = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "drink_keep_allchecked_20261126.png"
+    if not path.exists():
+        pytest.skip(f"缺少夹具 {path}")
+    image = cv2.imread(str(path))
+    agent = FakeAgent()
+    lines = [
+        OcrLine("P饮料持有上限", 0.95, (40, 150, 200, 40)),
+        OcrLine("请选择保留的3瓶饮料。", 0.95, (40, 300, 200, 40)),
+        OcrLine("手持的饮料", 0.95, (40, 770, 200, 40)),
+        OcrLine("集中+3", 0.95, (40, 870, 200, 40)),
+        OcrLine("集中+3", 0.95, (40, 1010, 200, 40)),
+        OcrLine("保留", 0.95, (40, 1160, 200, 40)),
+        OcrLine("还可选择1个", 0.95, (40, 1210, 200, 40)),
+    ]
+    result = _driver().decide(agent, lines, image=image)
+    assert result.screen == "drink-keep"
     assert result.action == "scroll"
-    assert agent.device.swipes, "全勾+need 读坏应滚动找屏下未勾行"
+    assert agent.device.swipes
 
 
 def test_lesson_choice_follows_recommended_training() -> None:
