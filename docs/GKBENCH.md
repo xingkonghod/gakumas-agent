@@ -825,3 +825,56 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
 - **应对**：① r14 托管门优先级上调（GKMS 尺度 NN 是我们 public-safe 唯一接近对方 NN 路线的资产）；
   ② seed 行 per-problem 方差杠杆 + v3g 继续（拖尾 top10=71.8% 缺口）；③ 观察 huochai67 seedlock
   全量与身份（群/api.github.com 晚些补）；④ native 速度差距记工程债（Rust/多线程搜索不在本期 scope）。
+
+## 19. 2026-11-26 public-safe 搜索规模杠杆扫参门（pscale，bench_repo 3d9b9aa）——w32t16 过门采纳，天花板=引擎吞吐非调度
+
+- **目标（承 §18）**：531,280（n=240、worlds6/threads4/use0.85、over492）vs solid 榜首 huochai67
+  gknet-v3 579,653（32w/16t/native Rust/300ms）差 ~48k，假设**部分来自世界数/线程/预算调度而非引擎速度**。
+  新变体 `submissions/gkagent-expectimax-scale/`（**copy fast 改，原版/fast 零改动** git diff 空），
+  单变量扫 **worlds{6,12,24,32}×threads{4,8,16}**（u70+anytime1 基）+ 原版 u85 无 anytime 分离臂 3 点。
+- **门方法（承 §14 pimc-opt 实证口径，探针 data/_pscale_pair.py 不提交）**：screen6 ∪ 重灾4 = **7 题×2 seed
+  = 14 配对**（种子同 gate2 派生）；真实裁判同 seed 背靠背 + **墙钟 overlay 仿真托管 5s cap**
+  （每步 RTT 0.9+exp(0.45)≈1.35s **不补偿**，over 阈值 6050ms）+ bootstrap 10000 CI 种子 20261126；
+  **门：均分 CI 下界>0 且 over 不恶化**。16 配置×14 对=**224 局 0 err**，≤2 局并发、free<0.9GB sleep60
+  自节流（托管 v3 臂B+r14 parallel3 在跑，尾段 free 0.33GB 多次等待），墙钟 358.7min。
+- **逐配置门表（n=14，基线 orig 均分 1,118,530 / over35 / step5195ms）**：
+  | 配置 | 均分 | meanΔ | CI95 | over/Δover | decide均ms | sec/search | 门 |
+  |---|---:|---:|---|---|---:|---:|---|
+  | w6t4 | 1,231,577 | +113,048 | [−226k,+536k] | 9 / −26 | 3207 | 0.505 | over-only |
+  | w6t8 | 1,237,378 | +118,848 | [−421k,+806k] | 11 / −24 | 3198 | 0.891 | over-only |
+  | w6t16 | 1,034,216 | −84,314 | [−708k,+572k] | 11 / −24 | 3220 | 1.501 | over-only |
+  | w12t4 | 1,479,513 | +360,983 | [−141k,+903k] | 9 / −26 | 3256 | 0.279 | over-only |
+  | w12t8 | 1,461,290 | +342,761 | [−327k,+1111k] | 9 / −26 | 3256 | 0.468 | over-only |
+  | w12t16 | 1,533,785 | +415,255 | [−206k,+1119k] | 9 / −26 | 3263 | 0.787 | over-only |
+  | w24t4 | 1,386,124 | +267,594 | [−342k,+933k] | 9 / −26 | 3232 | 0.161 | over-only |
+  | w24t8 | 1,373,478 | +254,949 | [−375k,+945k] | 10 / −25 | 3236 | 0.267 | over-only |
+  | w24t16 | 1,449,525 | +330,996 | [−156k,+882k] | 12 / −23 | 3255 | 0.415 | over-only |
+  | w32t4 | 1,399,718 | +281,189 | [−186k,+826k] | 9 / −26 | 3239 | 0.146 | over-only |
+  | w32t8 | 1,106,106 | −12,423 | [−460k,+457k] | 9 / −26 | 3260 | 0.199 | over-only |
+  | **w32t16 采纳** | **1,637,739** | **+519,210** | **[+4,054,+1,041,445]** | **14 / −21** | 3275 | 0.321 | **PASS** |
+  | w12t4_o（u85 分离） | 1,355,185 | +236,656 | [−481k,+1062k] | 40 / **+5** | 3854 | 0.261 | FAIL |
+  | w32t4_o（u85 分离） | 1,503,489 | +384,959 | [−50k,+841k] | 44 / **+9** | 3927 | 0.101 | FAIL |
+  | w32t16_o（u85 分离） | 1,268,482 | +149,953 | [−526k,+897k] | 37 / **+2** | 3871 | 0.402 | FAIL |
+- **采纳判定**：**w32t16（u70+anytime1）唯一过门 → scale 缺省 worlds32/threads16**。LOO 稳健性 **8/14**
+  （_pscale_robust.py），增益跨 5 怪物题（ADDTACFE+1.52M / 3EW6E6HV+2.23M+1.98M / DS9H9NRD+1.60M /
+  3BB4BWTR+852k / K46XXQEY+1.00M）**非单题驱动**；最大负例 K46XXQEY −1.08M / DS9H9NRD −966k（盆地硬币翻转）。
+  **如实警示**：CI 下界仅 +4k **薄**（n=14 怪物重子集；换 bootstrap 序 +9.8k 仍>0）；w32t16 over14 高于
+  其它 fast 点 9–12；子集 +46% **不能外推全量 120**（简单题稀释）；基线墙钟漂移实锤（orig ADDTACFE
+  s1207168678 本跑 1.86M vs gate2 同种子 2.33M，§14 同款）。其余 11 点 over-only 不采纳；
+  **u85 无 anytime 分离臂 over 恶化 → use0.70+anytime 是规模化前置杠杆**（原版调度下 32 世界 decide~3.9s 过帽）。
+- **🔑 天花板结论（纠正任务假设）**：「Python 每世界成本太高 → worlds↑ 过帽」**不成立**——anytime 帽下
+  decide 全网格平坦 **3.20–3.28s**、worlds_s≤0.047s（32 世界）、jobs_frac≈1.0，over 全降。真实约束 =
+  **每搜索深度稀释**（sec/search orig 0.535s → w32t4 **0.146s** 浅搜噪声大，w32t8 均分 −12k）+ 怪物方差；
+  threads↑ 恢复深度（w32t16 0.321s），但 **w6t16 最深 1.5s 却均分负**（6 世界期望方差太大）→
+  甜点 = **多世界 × 足线程保 ~0.3s/搜索**。对 gknet-v3 同 32w/16t 调度我们需 ~3.28s 墙钟（其 300ms native+NN）
+  → **剩余 ~48k 差距主体 = 每墙钟秒搜索吞吐（引擎速度+NN 引导）工程债（§18④），调度杠杆真实但有界**。
+- **托管建议（留下会话，lead 排队，排 v3 臂B 后）**：A/B scale（w32t16）vs 原版 `--seeds 2 --parallel 3 --budget 5`，
+  预期 over ~−60%、均分中性偏正（怪物增益/简单题中性）；16 线程×parallel3=48>24vCPU，native wall-deadline
+  帽住搜索（§14 stress 实证），Python overhead/内存留意（离线尾段 free 0.33GB 自节流实证）；全量 120×2 保密种子
+  CI 更紧是更强验证。**本次不跑托管**。
+- **硬约束遵守**：未重编 DLL；原版/fast 零改动；AGPL 不拷 src；未碰 D:\Games\Gakumas / C:\GakumasLocal 只读；
+  **未改 src/gkagent/sim/* 与 policy/***（M8 收口）；探针 data/_pscale_*（pair/table/robust/rows/gate/smoke）不提交；
+  data/_f2*/card_library.json/REPORT.md 未提交；≤2 局并发 free<0.9GB sleep60 未起托管未杀进程；
+  pathspec 限定 commit（bench_repo 3d9b9aa 仅 submissions/gkagent-expectimax-scale；主仓仅 docs/GKBENCH.md）；
+  pytest bench_repo test_ctx+test_save **15 passed/9 skipped**（--basetemp=out\_pytest_tmp_pscale；
+  test_bench_runner fcntl POSIX-only Windows 无法收集 pre-existing；主仓 src/tests 零改动）。
