@@ -695,3 +695,54 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   select_move_hand 分类），**lead 在其收尾时验收单跑修复**，非 gnrpa 域、不静默。
   ④ GNRPA 特化专项结论：**引擎原生 GNRPA + prior=0 + 全饮料 = 当前最优配置**；特化杠杆剩余空间在
   L2 rules timeline（待 M1 deck-modify 结论）与搜索预算调度，不在 prior。
+
+## 17. 2026-11-26 ⑦ 全流程 sim 评估收尾（plug-fix 接手 gkmsps-plug 失败遗局；GKMSPS 外部 import，不拷 src）
+
+- **目标（lead 窄 DoD）**：用前任 glue [scripts/gkmsps_plug.py](../scripts/gkmsps_plug.py) 跑 **N=100 配对培育局**
+  （同 seed）plug 臂（r14 考试搜索 + 我们培育决策）vs GKMSPS 默认臂（`cli.auto(sensible=True)` smoke policy），
+  最终考试均分 + 评价点 bootstrap CI + 分段归因（课程/考试/饮料）+ 青汁消融 ≤20。计划 [out/_gkmsps_plug_plan.md](../out/_gkmsps_plug_plan.md)、
+  差距 [out/_engine_gap_report.md](../out/_engine_gap_report.md) M10。AGPL 引擎只外部 import、DLL 不重编、引擎工作树零写入。
+- **前任已完成（ substantial 半成品）**：glue 全文（缺件①master 枚举重拼写 267 表/263955 枚举 ②master_ps.json
+  ③master_extra.json 生成 + 进程内存 monkeypatch）；Values 卡估值（probe8 引擎列重权 v1.3）+ 饮料 SAFE 估值；
+  PlugProduce 培育规则（课程审查基准加权补短板 / 体力门 8/12 / 积极买卡扩组 / 饮料保留 / 事件估值）；play_exam r14
+  适配器（`uinet.uiobs.from_session` 与托管同口径）；run_arm（default/plug/plug-engine）+ attribute + boot_ci/paired_stats
+  + aojiru_ablation + 内存自节流；formation_v2/v3；probe1–9；smoke(n=1)+pilot5(n=5) 已跑。
+- **🔑 前任核心缺口（本任补齐）**：pilot5/smoke **全零**（completed 0/0）——真实選抜两臂全 `lost`。probe11 实测
+  **選抜 NPC 墙**（idol 固定难度带，rank≤2）：mid1 双 **6035** / mid2 双 **49806** / final 双 **136347**；两臂培育上限
+  远不及 mid2/final（probe10：v2 plug mid1 6151 过、mid2 8379 rank6 lost；v2/v3 default mid1 即 lost）。前任 probe9
+  已用 `exam_assume` 强制選抜过关验证本戦链（rating 16772 SS），但 **run_arm/main 未接 assume**→无法产出非退化评估。
+  本任补 `--sel-assume`（两臂選抜考试同值强制过关、選抜培育仍真实、**本戦全真实**）+ `--resume`（崩溃增量续跑）
+  + `_default_drive`（`cli.auto(sensible=True)` 逐字镜像 + 選抜 assume 拦截，policy RNG 构造一致）。
+- **formation 选型 v2（probe12 实证 v3 反而弱）**：v3「1500」能力实际仅 +25/attr（v2「450」+15），且 v3 全 phase1
+  = 起始 **12 张**牌组稀释（v2 = 10 张，phase2 两张 mid1 后才到）→ v3 plug mid1 2500 < v2 6151。选 v2（probe9 验证 + 稀释小）。
+- **N=100 配对结果**（sel-assume 300000、formation_v2、tag gkmsps-plug-v1、69.7s、**100/100 两臂全完成**；
+  [out/_gkmsps_plug_report.json](../out/_gkmsps_plug_report.json) / games.jsonl；probe13 独立复核 CI 逐位一致）：
+  | 指标 | plug | default | 配对差 mean | CI95 | 胜 P/D/T | 判定 |
+  |---|---:|---:|---:|---|---|---|
+  | **评价点 rating** | 16682.42 | 16514.77 | **+167.65** | **[+83.75, +249.10]** | 60/38/2 | **显著正（+1.0%）** |
+  | **本戦终试 round2** | 25456.7 | 23924.98 | +1531.72 | [−2374.44, +5530.81] | 41/59/0 | **跨 0 不显著** |
+  | 本戦 Round1 hon_mid1 | 20989.0 | 20839.4 | +149.65 | [−2416.98, +2624.11] | 50/50/0 | 跨 0 中性 |
+  | **本戦末参数 params_total** | 5680.31 | 5634.46 | **+45.85** | **[+12.89, +78.26]** | 59/40/1 | **显著正** |
+  | 選抜终试 sel_final | 300000 | 300000 | 0 | [0,0] | 0/0/100 | 设计置零（assume） |
+  - grade 分布：plug **SS 99 / S+ 1** vs default SS 91 / S+ 9（plug 更稳 SS）。round2 std 20139（怪物方差，median 差 −2549，default 胜局反而多）。
+- **分段归因（均值）**：rating 差 +167.65 = **param_term +91.70**（=2×params，params 差 +45.85）+ **star_term +75.95**；
+  **round1_term = round2_term = 0**——本戦 mid1 分 <360k、final 分 <600k 远低于 `HIF_ROUND1/2` piecewise 阈值（probe11：
+  本戦 final NPC 墙 ~618k，round2 全部 <<600k）→ **评价点公式在可达分段不奖励考试分**，rating ≈ 2×params + star_term（pre_round2_star capped 1110）。
+  選抜课程 lesson_param plug 1004.4 vs default 919.5（**+84.9**，plug 偏 Vo）；選抜 param_gain_total 3713.6 vs 3655.3（+58.3）；
+  本戦 exam_reward_param 两臂 0（本戦考试付星/PP 非参数）。饮料：plug gained 6.78 / discarded 2.21 / aojiru 0 / **drunk_exam 0**（r14 从不喝）；
+  本戦末 drinks_left plug **3.61** vs default **2.15**（plug 保留多但考试不喝 = **未消费价值**）。⚠ default 臂 `stats` 全空（auto 无计数器），
+  其 drinks_mean=0 是**口径假象非实测**（drinks_left 实测见上）。
+- **青汁消融（考试级注入配对，n=20，drunk 20/20）**：本戦终试 loadout 注入 pdrink_00-3-005 + 强制首口喝 vs r14 不喝，同 seed：
+  no_aojiru 21090.1 / aojiru 26993.2 / **差 +5903.1 CI[+159.2, +12192.0] 显著正但脆弱**（std_diff 13959，CI 下界仅 +159）。
+  量化 unknown RNG 扰动代价：考试级喝青汁**净正**（保守 avoid 可能漏价值），但 n=20 + 巨方差 → 不轻易改 produce 决策。
+- **瓶颈判定（如实）**：① **選抜 NPC 墙是根本瓶颈**——真实培育两臂都过不了 mid2/final，必须 assume 才能评估本戦（sim 保真/培育强度缺口）；
+  ② **本戦 final 墙 ~618k** → round2 全 <<600k → r2_term=0，**考试搜索强度在此口径下无 rating 杠杆**（round2/hon_mid1 均跨 0，
+  与 M10/臂A「怪物方差硬币翻转」一致；smoke root0 r14 mid1 34204 vs greedy 13868 的考试优势被 N=100 方差淹没）；
+  ③ **培育决策（params）是 rating 的真实杠杆**（+45.85 显著 → rating +167.65 显著，+1.0%）——plug 培育（课程加权补短板 + 买卡扩组 + 饮料保留）
+  比 default smoke 多 ~46 params；④ 饮料保留多但 r14 考试不喝 = 未消费价值（饮料→考试消费链是后续杠杆）。
+  **结论：plug 全流程显著但微小优（+1.0% rating），增益主因培育段；考试段强但 rating 公式不奖励 → 培育是瓶颈杠杆，非考试搜索。**
+- **硬约束遵守**：path-limited add+commit（禁 reset/checkout 共享 index）；**未改 src/gkagent/sim/* 与 policy/***（m8-fresh/m1-fix3 owns）；
+  未碰 D:\Games\Gakumas、C:\GakumasLocal 只读；data/_f2*、card_library.json、REPORT.md 不提交；submissions 原版零改动；
+  AGPL 不拷 src、DLL 不重编、引擎工作树零写入；free<0.9GB sleep60 自节流（本轮 free 4.0GB 充足）；引擎单进程≤1 局（未起托管未杀进程）；
+  探针 data/_gkmsps_plug_probe10–13.py 不提交。本任务 glue+docs 隔离无 src/tests 改动。
+- **前任完成/缺失清单 + 本任补齐**：见 [HANDOVER_NEXT §8 交接条](HANDOVER_NEXT.md)。glue 由本任首次提交（feat）+ docs 哈希条。

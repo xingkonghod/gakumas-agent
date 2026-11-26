@@ -1473,6 +1473,26 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
+**最近交接记录（2026-11-26 下午，⑦ 全流程 sim 评估收尾（plug-fix 接手 gkmsps-plug 失败遗局）；窄 scope 完成即退出）**：
+- **glue 首次提交（feat）+ N=100 配对评估产出**：[scripts/gkmsps_plug.py](../scripts/gkmsps_plug.py)（前任 54KB 半成品，本任补
+  `--sel-assume`/`--resume`/`_default_drive`）；结果 [out/_gkmsps_plug_report.json](../out/_gkmsps_plug_report.json) + games.jsonl；
+  详见 [GKBENCH §17](GKBENCH.md)。sel-assume 300000 / formation_v2 / tag gkmsps-plug-v1 / 69.7s / 100/100 两臂全完成。
+- **核心数字**：评价点 rating plug 16682.42 vs default 16514.77，**差 +167.65 CI[+83.75,+249.10] 显著正（+1.0%）**（胜 60/38/2，SS 99 vs 91）；
+  本戦终试 round2 差 +1531.72 CI[−2374,+5531] **跨 0 不显著**（胜 41/59，怪物方差 std 20139）；hon_mid1 差 +150 跨 0；
+  params_total 差 **+45.85 CI[+12.89,+78.26] 显著正**。青汁消融 n=20：喝 vs 不喝 **+5903 CI[+159,+12192] 显著正但脆弱**（std 13959）。
+- **🔑 瓶颈判定**：① 選抜 NPC 墙（probe11 实测 mid2 双 49806 / final 双 136347，rank≤2）真实培育两臂全 lost（pilot5 全零根因）→
+  必须 sel-assume 两臂同值强制選抜过关、本戦全真实才能评估；② 本戦 final 墙 ~618k → round2 全 <<600k → `HIF_ROUND1/2` piecewise
+  round1_term=round2_term=0 → **rating≈2×params+star_term，考试搜索强度无 rating 杠杆**；③ **培育 params 是真实杠杆**（+45.85→rating+167.65）；
+  ④ plug 饮料保留多（hon drinks_left 3.61 vs 2.15）但 r14 考试不喝（drunk_exam 0）= 未消费价值。
+- **前任缺口→本任补齐**：run_arm/main 无 sel-assume（pilot5 全零无法评估）→补；无 resume→补；formation 选型未定→probe12 实证
+  v3 反而弱（1500 能力仅 +25 vs 450+15、全 phase1=12 张起始牌组稀释）选 v2；N=100/CI/归因/消融/docs 未产出→本任全补。
+  探针 probe10（選抜可行性）/11（NPC 墙）/12（v3 稀释）/13（独立复核 CI 逐位一致）不提交。
+- **铁律守住**：path-limited add+commit 禁 reset/checkout；**未改 src/gkagent/sim/* 与 policy/***（m8-fresh/m1-fix3 owns）；
+  未碰 D:\Games\Gakumas、C:\GakumasLocal 只读；data/_f2*/card_library.json/REPORT.md 不提交；submissions 原版零改动；AGPL 不拷 src、
+  DLL 不重编、引擎工作树零写入；free 4.0GB>0.9GB 自节流；引擎单进程≤1 局未起托管未杀进程；本任务 glue+docs 隔离无 src/tests。
+- **下一任务建议（非本 scope）**：选抜培育强度提升（真过 mid2 墙，免 assume）/ 饮料→考试消费链（r14 喝饮料杠杆）/
+  本戦 final 墙下 rating 公式不奖励考试分 → 考试搜索价值需换口径（直接 round2 分布或更高 formation 触阈值）。
+
 **最近交接记录（2026-11-26 下午，饮料阶段3① 搜索预算杠杆全阴性收口（drink-fix2）；窄 scope 完成即退出）**：
 - **四杠杆单变量门全不采纳（CI 下界>0 才采纳；feat 1a8a6c4）**：机制=ExpectimaxConfig 三默认关旋钮
   （drink_root_only / drink_first / drink_top_k）+ local_bench `--drink-lever`（none 与基线
