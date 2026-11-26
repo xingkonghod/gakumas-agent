@@ -1568,6 +1568,30 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
   探针 data/_drinks_probe5* 不提交；v2/v3 原版投稿零改动；探针单进程顺序 ≤3 局、
   批次前 free 1.28–1.7GB>0.6GB；未起托管未杀进程。
 
+**最近交接记录（2026-11-26 18:2x，用户"修完停"：F#56/57 修毕全量绿，bot/daemon/watcher 全停）**：
+- **F#56**（c48bf51/3589e00）：T2 手牌"预测3/实机2"=OCR 漏读一张即 mismatch 丢 known_draw →
+  子集容差（缺1张且保序）+ turn 回退 + oracle 预测复用重读重试 + selector 漏读不重置候选；回归绿。
+- **F#57**：story/成就段窗口恢复连续失败停局（seed8/10）→ hwnd 失效每失败帧重找+重连 device；
+  story/achievement/settlement/result 段恢复等待上限 5→40（≈60s）。**缩放插曲**：fix_game_window
+  曾误缩 540x960 致 capture invalid (999,720)（F#10 同病）→ F#57b 恢复 1080x1920 截图口径；
+  1080p@200% 屏整窗 off-screen 属物理约束，bot 走 SendMessage/PrintWindow 不受影响；
+  **用户肉眼 viewing 时窗口已调 fit 540x960，跑 bot 前必须 fix_game_window 恢复**。
+- **produce-pro 交付（propose-only，data/_produce_pro/ 不提交）**：评价公式解码 **4/4 局逐位命中**
+  （floor(2.3×Σmin(cap,三维))+名次分 1700/900/500+期末分段折算）；**seed8 真值=PRO、三维
+  684/503/817=2004、期末真实 5628（读屏 628 系 OCR 误读）、期中 763、名次 2**；手动 PRO 11017 参照。
+  缺口分解：三维 +2086(53%)/名次 +800/期末折算 +1028。**最大单点浪费=生产「商店不买直接结束」**
+  （P 点全浪费）；商店买卡扩组 HIF 硬验证 **+146 params/+1247 rating、100/0 全胜**；全量 proposed
+  rating +432 CI[+380,+484]。杠杆排序（冲最高）：商店买卡+强化优先级 > 课程审查基准匹配 >
+  饮料保留+allow_drinks > 事件估值 > 连击/干劲 > 体力经济。PRO 上限三维 4500 → rating ~14672-15800。
+  **apply 分阶段：先商店买卡（HIF 硬验证）→ 审查课程/饮料（真机 A/B 确认，HIF 口径有伪影）**。
+- **真机战果累计**：T1 达成 B/7103（seed8，≥C+ 门）；seed 锁首次真机 locked_turn=1（seed10）；
+  F#50-57 修复链全提交带真机帧回归；执行链 151 击 0 lost 级健康。
+- **停的状态**：auto_produce 0 进程、daemon quit、watcher 全杀；托管全停（服务器重启过频 eval 内存态
+  被清，恢复需 matto eval 落盘/部署窗口）；goal 已 pause。
+- **下一会话顺序**：① apply produce-pro 商店买卡→真机 A/B（冲最高）② 真机复跑验 F#56/57
+  ③ 饮料 allow_drinks 门控对照 ④ 搜索蓄力 end 放行门控（F#40 硬规矩 vs 搜索 SKIP）⑤ v3g 托管/
+  505 full/r14 饮料重训（托管恢复后）⑥ M8 timed 层差一回合/type21 池残尾。
+
 **最近交接记录（2026-11-26 15:4x，用户转向：停托管→修本地→转真机；用户去做游戏/特效不在机前）**：
 - **停 gkbench 托管**（用户 15:43 决定）：服务器今天重启过频——驱动日志实测 ≥10 次连接中断
   （10060/10054/disconnect）+ ≥6 个评测跑中途或跑完被清（eval 注册表内存态）；240 局单评测必被清，
