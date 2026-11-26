@@ -2051,6 +2051,10 @@ class ProduceDriver:
             need_match = re.search(r"还可选择\s*(\d+)", text)
             if need_match:
                 need = int(need_match.group(1))
+            elif "还可选择" in text:
+                # F#50（真机 ep-live-seed3/4）：徽标数字被 OCR 读坏（1→#）→ need 误判 0
+                # → 不滚动 → 点灰「保留」空转 tap-lost。读到「还可选择」但无数字=保守 need=1。
+                need = 1
             hand_header = self.find(lines, "手持的饮料")
             # F#48（真机 ep-t31-i）：OCR 漏读「还可选择N」→ need 误判 0 → 跳过补勾直接点
             # 禁用态「保留」(360,1166) 空转 tap-lost。只要有图且（OCR 说还要选 OR 读到了
@@ -2070,8 +2074,10 @@ class ProduceDriver:
                         break
                 if clicked:
                     return TickResult("drink-keep", "check-row")
-                # 找不到未勾选行：第三瓶可能在列表下方（需要滚动）
-                if need > 0 and self.drink_scroll < 2:
+                # 找不到未勾选行：第三瓶可能在列表下方（需要滚动）。
+                # F#50：可见行全已勾时无论 need 是否读对都允许滚动（真选满时滚动无害，
+                # 下一 tick「保留」已亮直接点）；旧 need>0 条件在 OCR 读坏数字时卡死。
+                if self.drink_scroll < 2:
                     self.drink_scroll += 1
                     agent.device.swipe(360, 1020, 360, 760)
                     time.sleep(0.8)

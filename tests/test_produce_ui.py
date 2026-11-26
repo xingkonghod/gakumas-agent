@@ -17,9 +17,13 @@ DATA = Path(__file__).resolve().parents[1] / "data"
 @dataclass
 class FakeDevice:
     clicks: list[tuple[int, int]] = field(default_factory=list)
+    swipes: list[tuple[int, int, int, int]] = field(default_factory=list)
 
     def click_force(self, x: int, y: int) -> None:
         self.clicks.append((int(x), int(y)))
+
+    def swipe(self, x1: int, y1: int, x2: int, y2: int) -> None:
+        self.swipes.append((int(x1), int(y1), int(x2), int(y2)))
 
 
 @dataclass
@@ -237,6 +241,39 @@ def test_drink_capacity_dialog_clicks_keep() -> None:
     assert result.screen == "drink-keep"
     assert result.action == "keep"
     assert agent.device.clicks[-1] == _center(3)
+
+
+def test_drink_keep_allchecked_garbled_need_scrolls() -> None:
+    """F#50（真机 ep-live-seed3/4）：可见手持行全已勾 + 「还可选择」数字读坏（1→#）。
+
+    旧逻辑 need=0 → 不滚动 → 点灰「保留」空转 tap-lost 连续 3 次止损。
+    新逻辑：读不到数字保守 need=1；可见行全勾时无论 need 都允许滚动找第三行。
+    夹具 = 真机 ep-live-seed4 step_022 帧（720x1280，手持两行橙勾、第三行屏下）。
+    """
+    cv2 = pytest.importorskip("cv2")
+    path = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "drink_keep_allchecked_20261126.png"
+    if not path.exists():
+        pytest.skip(f"缺少夹具 {path}")
+    image = cv2.imread(str(path))
+    assert image is not None
+    agent = FakeAgent()
+    # 真实帧坐标（手持标题 y≈770，灰勾获得行在其上会被滤掉）；合成 _lines 间距太密会误滤。
+    lines = [
+        OcrLine("P饮料持有上限", 0.95, (40, 150, 200, 40)),
+        OcrLine("请选择保留的3瓶饮料。", 0.95, (40, 300, 200, 40)),
+        OcrLine("获得的饮料", 0.95, (40, 420, 200, 40)),
+        OcrLine("技能卡使用数追加+1", 0.95, (40, 525, 200, 40)),
+        OcrLine("随机强化后的技能卡（SSR），向手牌中", 0.95, (40, 655, 200, 40)),
+        OcrLine("手持的饮料", 0.95, (40, 770, 200, 40)),
+        OcrLine("集中+3", 0.95, (40, 870, 200, 40)),
+        OcrLine("集中+3", 0.95, (40, 1010, 200, 40)),
+        OcrLine("保留", 0.95, (40, 1160, 200, 40)),
+        OcrLine("还可选择#个", 0.95, (40, 1210, 200, 40)),
+    ]
+    result = _driver().decide(agent, lines, image=image)
+    assert result.screen == "drink-keep"
+    assert result.action == "scroll"
+    assert agent.device.swipes, "全勾+need 读坏应滚动找屏下未勾行"
 
 
 def test_lesson_choice_follows_recommended_training() -> None:
