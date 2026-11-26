@@ -810,10 +810,13 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   **申报口径问题**：其 dev about.sees 仍标 "screen"（我们 v2/v3 标 "seed"）——若 seedlock 真看牌序
   应按 seed 类申报，混排不公；观察/必要时向 matto 提出。结论：579.7k 是盲打真效率；seed 臂 dev
   试水未全量、锁稳定性存疑 → 短期威胁有限但需盯。
-- **⚠️ uinet 口径纠正**：§5 的 UINet 578,722 是 11-22 公开子集旧参考；**当前 uinet 实际 run =
-  1,109,099（n=320，rules 59，step 5s，threads 4，11-11）**。public-safe 前沿比交接认知高近一倍；
-  r14 托管门 ≥150k 仍是自设进步门，但**对标前沿应改 1.109M（rules 59 行，跨 rules 不直接比）**。
-  我们 seed 行 v2 1,267,591（rules 67）/ best-known 1,452,088 口径不变。
+- **⚠️ uinet 口径二次纠正（screen 榜全 72 行核实）**：1.633M/1.109M 的 uinet 高 run（rules 59、
+  11-11、fixed32 子集）**已被后续 run 覆盖**（排行同 algo 合并取最新 per-slot）→ 当前 uinet 行
+  469,890；**screen 真前沿 = huochai67 gknet-v3 579,653（n=360 solid）/ UINet-Ver2.1 578,722
+  （n=960 rules 59）/ uinet-ppo-r1 575,585**；榜顶 pimc-dev 791,138 仅 n=4（seedlock mode 却申报
+  screen，口径问题实锤影响榜单）。**我们 screen 最强实测 = gkagent-expectimax 531,280（n=240、
+  over 492）排第 9**，距 solid 榜首 ~48k。UIHorizon 636k 系 sees_seed=true 属 seed 组不计。
+  我们 seed 行 v3 合并 1,322,681（n=240）/ v2 1,267,591 / best-known 1,486,205（rules 65）口径不变。
 - **应对**：① r14 托管门优先级上调（GKMS 尺度 NN 是我们 public-safe 唯一接近对方 NN 路线的资产）；
   ② seed 行 per-problem 方差杠杆 + v3g 继续（拖尾 top10=71.8% 缺口）；③ 观察 huochai67 seedlock
   全量与身份（群/api.github.com 晚些补）；④ native 速度差距记工程债（Rust/多线程搜索不在本期 scope）。
