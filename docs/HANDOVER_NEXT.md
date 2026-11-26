@@ -1473,6 +1473,40 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
+**最近交接记录（2026-11-26 午间，饮料专项阶段1.5 完成（drink-fix2）；托管 A/B + m1-rng/hajime-tune/pimc-opt 在跑）**：
+- **饮料阶段1.5 完成（feat fa70b8b + docs 本条）**：阶段1（06a154a）落地后开工守卫通过。
+  确定式增量批 6 瓶建模（5 批次 id + 焙茶 side-effect）：① 4 种严选初星 ExamStatusEnchant
+  内层（玛奇朵回合结束集中+1 / 茶好印象+1 / 拼配咖啡干劲+1 / 印度茶回合开始全力值+1，
+  effectTurn=-1 永久）→ sim/drinks.py 新 kind + `turn_enchants` 渠道（(kind,value,turns)）
+  LessonSim/ExpectState 双镜新字段（canonical key + rollout 同步）；② 热绿茶 ExamCardMove
+  deck_grave→hold（**pickRangeType=Select 玩家选牌**，引擎 greedy_select_policy 不掷点；
+  sim 用 hold.hold_pick 白值降序代理，与卡 holdSelected 同口径）+ ExamPreservation 温存
+  2 段階直给（PItemDelta.stances 既有渠道，双镜零新代码）；③ 焙茶温存变更 value1=1 随
+  ExamPreservation 映射一并实现。**引擎 oracle 逐瓶全 PASS**（data/_drinks_probe5.py/.json
+  不提交，rules=69 DLL 未重编）：6 瓶 drink 步 rng_advances=0；附魔无立即增量、回合边界
+  +1/回合永久；**关键实测：茶附魔在好印象结算前触发（+1 计入当回合结算分）+ endTurn 衰减
+  freshBuffs 保护（当回合获得层本回合末不扣）→ 新字段 review_enchant_fresh 只对附魔渠道
+  建模，卡/立即渠道沿用既有 sim 口径（旧行为逐位不变；混合场景与引擎通用 fresh 的差一回合
+  缺口属既有 engine-gap，不在本批范围）**；热绿茶 hold+1/deck-1/save2 + Select 事件。
+  catalog **40/51 段实现**（33→40，11 unknown）；**hif 505 覆盖 impl 2881→2984 段（+103）/
+  78.7%→81.5%**（1629 槽位/3660 段；批次实测：玛奇朵×9/茶×7/拼配×42/印度茶×11/热绿茶×12/
+  焙茶×10——立项背景"玛奇朵×38"系与黑醋汁 01-3-012×38 混淆）。**青汁×296 + 青汁X×1 保持
+  unknown（决策层保守不喝=免费杠杆，auto-gakumas 禁用先例 QQ§11 C）**。
+- **测试**：tests/test_drinks_m6.py **49 条**（30 旧+19 新：catalog/classify/逐效果双镜/
+  fresh 保护轨迹/Select hold/oracle 配对门——probe5 子进程，样本缺失自动 skip）；
+  **全量 pytest 1753 passed / 1 skipped / 0 failed**（--basetemp=out\_pytest_tmp_drink2，
+  系统 tmp ACL 坏依旧；本轮高负载下 test_challenge/test_drink_search_latency 无 flake）。
+  W9 重放门 1,426,865 / W7 655,198 回归绿；默认 off 逐位不变绿。
+- **阶段2 建议**：① ExamConcentration 强气直给（姜汁汽水/超级苏打，同 stance 渠道可复用，
+  需 oracle 配对）；② 黑醋汁 hand-select move（Select→hand 变体）+ 特制精华再发动；
+  ③ 托管 v3 饮料决策 + r14 饮料特征 + 生产 allow_drinks（阶段1.5 新 kind 已进 expectimax
+  剪枝：turn_end_impression 同 score 常展开、其余 priority-2）；④ 好印象通用 fresh 保护
+  与引擎对齐（属 engine-gap sim 动力学失真修复，需独立门，勿混入饮料批）。
+- **纪律确认**：未碰 exam_risk.py/rng_graph.py（m1-rng owns，其工作区脏文件未提交）；
+  card_library.json/bench_local/REPORT.md 脏文件系在跑 agent 所改，未提交未还原；
+  探针 data/_drinks_probe5* 不提交；v2/v3 原版投稿零改动；探针单进程顺序 ≤3 局、
+  批次前 free 1.28–1.7GB>0.6GB；未起托管未杀进程。
+
 **最近交接记录（2026-11-26 上午，饮料专项阶段1 + pilot r14 离线门 + QQ§12 + rinami 吸收；goal 自主循环）**：
 - **QQ 增量 §12**（11-25 23:06→11-26 08:48 +62 条）：muskot **Bellman 上界**=O(1) 上界公式构想
   （自评非常难：状态爆炸+反低维抽象机制）+ 近优策略课题 + **arXiv 2006.05879=MDP-GapE**（非 GNRPA）；
@@ -1499,8 +1533,15 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
 - **环境坑**：`Temp\pytest-of-xingkonghod` ACL 坏（WinError 5；诊断脚本 verdict UNREADABLE
   **未改系统权限**，报告 out/acl-recovery/）→ **pytest 一律 --basetemp=out\_pytest_tmp_***；
   test_challenge / test_drink_search_latency 高负载下偶发 flake（单跑绿），如实记不静默。
-- **在跑子智能体**：m1-rng（M1 消费图，饮料已划界）/ hajime-tune（v2h）/ pimc-opt（expectimax-fast）；
-  drink-fix2（阶段1.5）待派。⑤ 全量 505 / ⑦ GKMSPS plug 排队。
+- **并发 git index 事故（12:1x，已修复）**：m1-fix2 `reset --soft` 误扫 drink-fix2 暂存 →
+  fa70b8b/44601dd 脱离历史、内容完整留工作区；lead 已按原口径重提交（feat+docs，含
+  scripts/replay_rinami.py——被 tracked 测试引用）。**新协调纪律：子智能体只允许 path-limited
+  add+commit 自己的文件，禁止 reset --soft/--mixed/checkout 动共享 index；跨 agent 提交由 lead 复核串行**。
+- **进度更新（12:3x）**：饮料1.5 完成（40/51 kind / hif 段 81.5%，oracle 6 瓶 rng=0 + 好印象 fresh
+  保护实测；M8 通用 fresh 对齐单列独立门）；M1 2a predictive 完成（W7 全 27 predictive 逐位、
+  1762/1；unknown=pitem312 fire 口径 + soda 支援强化目标归 M6）；pimc-opt 完成（**超时根因=网络 RTT
+  非竞争**，over −78% 均分中性、严格 CI 门如实 FAIL，GKBENCH §14）；在跑 hajime-tune / gnrpa-spec
+  （L1 prior + L4 SAFE drinks）；②b v3g 接线门 / ②c type21+pitem312 待派；④b/⑤/⑦/托管门排队。
 
 **M1 考试 RNG 消费图 阶段1 ✅（2026-11-26，m1-rng 子智能体；feat 2daa7bba / docs 本条）**：
 clean-room 自写 `src/gkagent/sim/rng_graph.py`（原语 xorshift32(13,17,5)/range/signed_key 每调用恰 1 推进；
