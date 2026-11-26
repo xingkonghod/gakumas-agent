@@ -334,5 +334,5 @@ def test_drink_limit_ocr_misses_need_still_checks_row(ocr) -> None:
     assert x == 632, f"应点勾选框列补勾，实际 ({x},{y})"
     # F#51：获得段灰勾行可点且计入保留数 → 扫描起点取两段标题较上者，
     # 补勾可能落在获得段（y≈525）或手持段；只要落在勾选框 band 内即正确。
-    assert y > 440, f"应点获得/手持段未计入行（获得标题+20 起），实际 y={y}"
+    assert y > 400, f"应点获得/手持段未计入行（获得标题起扫），实际 y={y}"
     assert agent.device.swipes == []
