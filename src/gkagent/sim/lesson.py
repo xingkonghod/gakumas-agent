@@ -637,6 +637,14 @@ class LessonSim:
         # 沿用既有「下一回合开始 -1」口径（旧行为逐位不变）。衰减时 fresh 层并入
         # 普通层（_draw_hand），随后按普通口径衰减。
         self.review_enchant_fresh: int = 0
+        # ---- M6 阶段2 batch2（2026-11-26，probe6 oracle 实测，与 ExpectState 双镜）----
+        # 黑醋汁 cost0：接下来 N 张**正费**牌整费归零（先于元气吸收）；0 费牌不耗
+        # 次数；effectTurn=-1 永久直到次数耗尽（无回合倒计时）。
+        self.zero_cost_charges: int = 0
+        # 特制精华再发动：下一张 ActiveSkill 卡直接效果 ×2（1 次）；effectTurn=1 +
+        # fresh 保护 = 喝回合 + 下一回合有效（sim 倒计时 = effectTurn+1 = 2）。
+        self.encore_charges: int = 0
+        self.encore_turns: int = 0
         # 自尊剩余回合（参考 prideTurns：EOT_DECREMENT_FIELDS 回合末 -1；
         # >0 时 resolveScore f 加算 min(min(好印象,干劲)×20, 500) 千分比）。
         self.pride_turns: int = 0
@@ -938,6 +946,13 @@ class LessonSim:
                     )
             elif eff.kind == "search_hold":
                 self._drink_search_hold(eff)
+            elif eff.kind == "select_move_hand":
+                self._drink_select_move_hand(eff)
+            elif eff.kind == "zero_cost":
+                self.zero_cost_charges += eff.value
+            elif eff.kind == "encore_active":
+                self.encore_charges += eff.value
+                self.encore_turns = max(self.encore_turns, eff.turns + 1)
         self.drink_uses[index] -= 1
         self.drinks_used_this_turn += 1
 
@@ -988,6 +1003,23 @@ class LessonSim:
             self.held.append(picked)
         self._enforce_hold_limit()
 
+    def _drink_select_move_hand(self, eff: DrinkEffect) -> None:
+        """M6 阶段2 batch2：黑醋汁 ``ExamCardMove`` deck_grave→hand（Select 玩家选牌）。
+
+        与热绿茶 search_hold 同口径（hold_pick 白值降序代理、引擎 select_policy
+        不掷点，probe6 rng=0 实测），目标区改手牌；手牌≥5 不生成（同 search_move
+        的 addCardToHand 保守守卫）。候选 0 张则 no-op。
+        """
+        candidates = list(self.deck) + list(self.discard)
+        if not candidates or len(self.hand) >= 5:
+            return
+        picked = hold_pick(candidates, max(1, eff.value))[0]
+        if picked in self.deck:
+            self.deck.remove(picked)
+        elif picked in self.discard:
+            self.discard.remove(picked)
+        self.hand.append(picked)
+
     def step(self, action: Action) -> None:
         """执行一个动作。
 
@@ -1023,14 +1055,22 @@ class LessonSim:
         self.hand.pop(action)
         self.plays_this_turn += 1
         previous_stance = self.stance
+        # 阶段2 batch2：特制精华再发动——下一张 ActiveSkill 卡直接效果 ×2（耗 1 次）。
+        drink_encore = self.encore_charges > 0 and card.category == "ActiveSkill"
+        if drink_encore:
+            self.encore_charges -= 1
         # 再演（ExamStatusEnchantEncore）：本牌直接效果执行两次；牌费只付一次，
         # 成长计数器仍按"打出这张牌一次"计。倍率类字段不翻倍（避免百分比乘方）。
-        effect_card = self._encore_card(card) if card.encore else card
+        effect_card = self._encore_card(card) if (card.encore or drink_encore) else card
         uses = self.card_uses.get(id(card), 0)
         # 依赖元气的分数按支付牌费前的层数算，所以先算分再付费用
         award = self._card_award(effect_card, uses=uses)
         self.score += award
         self._pay_card_cost(card)
+        # 阶段2 batch2：黑醋汁 cost0——支付时次数 >0 整费归零（_effective_cost），
+        # 支付**后**耗 1 次（0 费牌不耗，probe6 实测；先耗会让本牌费用回弹）。
+        if self.zero_cost_charges > 0 and self._effective_cost(card, ignore_zero_cost=True) > 0:
+            self.zero_cost_charges -= 1
         # ExamStaminaRecoverFix：付完牌费后固定回体力，封顶 stamina_max
         if effect_card.stamina_recover > 0:
             self.stamina = min(
@@ -1492,12 +1532,16 @@ class LessonSim:
             self.consumed_stamina_total += stamina_lost
             self._fire_p_items(STAMINA_REDUCE, stamina_delta=stamina_lost)
 
-    def _effective_cost(self, card: CardSpec) -> int:
+    def _effective_cost(self, card: CardSpec, *, ignore_zero_cost: bool = False) -> int:
         """实际牌费：指針倍率 × 消耗体力减少/增加回合，取整后再加减固定费用。
 
         参考引擎 ``resolveCost``：``cost = floor(cost × 指針 × halfCostTurns ×
         doubleCostTurns)``，再 ``cost += costReduction − costIncrease``、夹到 ≥0；
         费用是负数，``floor`` 对绝对值就是向上取整（我们用 ``ceil``）。
+
+        阶段2 batch2：黑醋汁 cost0 次数 >0 时整费归零（先于元气吸收/強気穿透，
+        probe6 实测 stamina/block 支付全 0）；``ignore_zero_cost=True`` 返回未归零
+        的原费（step 用它判定是否消耗次数——0 费牌不耗）。
         """
         multiplier = 1.0
         if getattr(self.config, "stance_costs", True):
@@ -1510,8 +1554,10 @@ class LessonSim:
             cost = int(card.cost)
         else:
             cost = math.ceil(card.cost * multiplier)
-        cost = cost - int(self.cost_reduction) + int(self.cost_increase)
-        return max(cost, 0)
+        cost = max(cost - int(self.cost_reduction) + int(self.cost_increase), 0)
+        if not ignore_zero_cost and self.zero_cost_charges > 0:
+            return 0
+        return cost
 
     def _has_unused_stamina_drink(self) -> bool:
         """槽里还有没消耗的回复饮料（真机可以下一回合喝它继续打牌）。"""
@@ -1895,6 +1941,17 @@ class LessonSim:
                     strong_level=level,
                     save_level=0,
                 )
+            elif kind == "concentration2" and stance_change_allowed(
+                self.stance, "concentration", locked=locked
+            ):
+                # 阶段2 batch2：强气 2 段階直给（超级苏打「强气2阶段变更」value1=2
+                # ↔ setStance(concentration2)，probe6 oracle step2 实测；同温存2口径）。
+                self.stance = replace(
+                    self.stance,
+                    stance="strong2",
+                    strong_level=2,
+                    save_level=0,
+                )
             elif kind == "leisure" and stance_change_allowed(
                 self.stance, "leisure", locked=locked
             ):
@@ -2058,6 +2115,12 @@ class LessonSim:
         self.turn_start_draw = tick_timed(self.turn_start_draw)
         # M6 阶段1.5：饮料回合边界附魔 buff 倒计时（永久 -1 保持）。
         self.turn_enchants = tick_turn_enchants(self.turn_enchants)
+        # M6 阶段2 batch2：精华再发动次数过期（effectTurn=1 + fresh = 倒计时 2；
+        # 喝回合 + 下一回合有效，probe6 跨回合实测）。zero_cost 永久不倒计时。
+        if self.encore_turns > 0:
+            self.encore_turns -= 1
+            if self.encore_turns == 0:
+                self.encore_charges = 0
         self.modifiers = timed_dict_tick(self.modifiers)
         if self.half_cost_turns > 0:
             self.half_cost_turns -= 1

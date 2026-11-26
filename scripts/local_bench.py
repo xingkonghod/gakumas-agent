@@ -710,6 +710,9 @@ def sim_to_uiobs(
     obs["legal"] = [["play", index] for index in sorted(hand_legal)]
     if None in legal_slots:
         obs["legal"].append(["end"])
+    # M6 阶段2：饮料 opt-in 时把合法饮料动作暴露进 legal（drinks off 时
+    # legal_drinks()=[] → 逐位不变）。搜索/生产据此真正喝饮料（旧版吞掉 drink）。
+    obs["legal"].extend(["drink", index] for index in sim.legal_drinks())
     obs["stance"] = _sim_stance(sim)
     obs["i"] = int(decision)
     obs["exam"]["idol"] = str(loadout.get("idol_card_id") or scene.get("idol") or "")
@@ -968,7 +971,14 @@ def run_episode(spec: ProblemSpec, seed: int, policy: Any) -> EpisodeResult:
         step_ms.append(float(elapsed_ms))
         legal = obs["legal"]
         if action == "drink":
-            # 当前题/裁判没有建模饮料；真出现只能说明模型分歧，按贪心回退。
+            # M6 阶段2：饮料已建模且 legal 提供时真正执行（--drinks auto + 搜索
+            # 选中）；off 时 legal 无 drink，不会进此分支（逐位不变）。非法/未建模
+            # 的 drink 建议仍按贪心回退（旧口径）。
+            if ["drink", target] in legal:
+                sim.use_drink(int(target))
+                route.append(f"d{target}")
+                decisions += 1
+                continue
             action, target = _greedy_action(sim)
             fallbacks += 1
         if action == "play":

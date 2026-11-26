@@ -72,7 +72,7 @@ class RuleFallbackBlocked(RuntimeError):
 
 @dataclass(frozen=True)
 class LessonAction:
-    kind: str  # card / skip / wait
+    kind: str  # card / skip / wait / drink（drink = M6 阶段2 allow_drinks opt-in）
     index: int | None = None
     point: tuple[int, int] | None = None
     reason: str = ""
@@ -142,6 +142,12 @@ class LessonPolicy:
         # 默认 None = 行为不变（其它引擎完全不读它）；engine=net 时必须给路径
         # （真机入口默认 data/knowledge/ei_policy_v6.json），缺模型大声报错/BLOCKED。
         "net_model": None,
+        # M6 阶段2（2026-11-26）：搜索是否把「喝饮料」纳入动作集合（expectimax）。
+        # **默认 False = 逐位不变**（真机出牌链路 historically 没有 drink 动作，
+        # auto_produce 单独处理饮料）；opt-in True 时搜索可返回 kind="drink" 动作
+        # （index=饮料槽位），执行端需接 use-drink UI。SAFE 划分见 sim/drinks.SAFE_KINDS
+        # （引擎侧全饮料保留，gnrpa-spec 实锤；SAFE 只约束我们自己的 sim 决策）。
+        "allow_drinks": False,
     }
 
     def __init__(
@@ -158,6 +164,7 @@ class LessonPolicy:
         net_model: str | Path | None = None,
         draw_plan=None,
         allow_rule_fallback: bool = False,
+        allow_drinks: bool | None = None,
     ) -> None:
         self.buffs = buffs or BuffLibrary.load()
         self.plans = plans or default_plan_library()
@@ -182,6 +189,9 @@ class LessonPolicy:
         # params/policy.json 的 net_model。其它引擎不读它，默认行为逐位不变。
         if net_model is not None:
             self.params["net_model"] = str(net_model)
+        # M6 阶段2：饮料搜索 opt-in（显式关键字优先级最高；None = 沿用 params）。
+        if allow_drinks is not None:
+            self.params["allow_drinks"] = bool(allow_drinks)
         # 兼容旧的显式关键字参数（优先级最高）
         if buff_first is not None:
             self.params["buff_first"] = bool(buff_first)
@@ -939,10 +949,22 @@ class LessonPolicy:
                 self._leaf_value(),
                 time_budget_ms=float(self.params["expectimax_budget_ms"]),
                 reshuffle=reshuffle,
-                # 真机出牌链路没有"喝饮料"动作（auto_produce 单独处理饮料）：
-                # 否则搜索选中饮料时 card=None，会被误当成 SKIP。
-                allow_drinks=False,
+                # M6 阶段2：allow_drinks opt-in（默认 False = 旧行为逐位不变：
+                # 搜索不枚举饮料，card=None 只可能是 SKIP）。True 时搜索选中饮料
+                # 返回 kind="drink"（index=槽位），执行端接 use-drink UI。
+                allow_drinks=bool(self.params["allow_drinks"]),
             )
+            if result.card is None and result.drink is not None:
+                return LessonAction(
+                    kind="drink",
+                    index=int(result.drink),
+                    reason=(
+                        f"expectimax: drink slot {result.drink}"
+                        f"（档位期望 {result.utility:.2f}，{result.nodes} 节点，"
+                        f"{result.elapsed_ms:.0f}ms）"
+                    ),
+                    expected=result.utility,
+                )
             if result.card is None:
                 return self._resolve_search_skip(
                     state,

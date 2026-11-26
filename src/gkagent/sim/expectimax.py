@@ -306,6 +306,12 @@ class ExpectState:
     # M6 阶段1.5：附魔渠道好印象 fresh 保护计数（与 LessonSim 双镜）：end_turn_state
     # 衰减只扣普通层，fresh 层受保护并入普通层（引擎 endTurn freshBuffs 口径）。
     review_enchant_fresh: int = 0
+    # ---- M6 阶段2 batch2（与 LessonSim 双镜，probe6 oracle 实测）----
+    # 黑醋汁 cost0 次数（正费牌整费归零，0 费牌不耗；永久直到耗尽）。
+    zero_cost_charges: int = 0
+    # 特制精华再发动次数 + 倒计时（effectTurn=1 + fresh = sim 倒计时 2）。
+    encore_charges: int = 0
+    encore_turns: int = 0
     # 自尊剩余回合（prideTurns：回合末 -1；>0 时 resolveScore f 加算
     # min(min(好印象,干劲)×20, 500) 千分比）。
     pride_turns: int = 0
@@ -494,6 +500,10 @@ class ExpectState:
             # M6 阶段1.5：饮料回合边界附魔 buff（影响后续回合边界结算）
             self.turn_enchants,
             self.review_enchant_fresh,
+            # M6 阶段2 batch2：cost0 / 再发动次数（影响后续牌费/算分）
+            self.zero_cost_charges,
+            self.encore_charges,
+            self.encore_turns,
             # P1-4：低下状态无效（影响后续 debuff 施加）
             self.nullify_debuff,
             # P1-7：元气增加无效 / 不安（影响后续元气获得）/ 延迟生效增量
@@ -763,6 +773,10 @@ def sim_from_state(
     # M6 阶段1.5：饮料回合边界附魔 buff（rollout 必须带上，与搜索一致）
     sim.turn_enchants = tuple(state.turn_enchants)
     sim.review_enchant_fresh = int(state.review_enchant_fresh)
+    # M6 阶段2 batch2：cost0 / 再发动（rollout 必须带上，与搜索一致）
+    sim.zero_cost_charges = int(state.zero_cost_charges)
+    sim.encore_charges = int(state.encore_charges)
+    sim.encore_turns = int(state.encore_turns)
     # P1-4：低下状态无效（rollout 必须带上，否则 debuff 拦截与搜索不一致）
     sim.nullify_debuff = int(state.nullify_debuff)
     # P1-7：元气增加无效 / 不安 / 延迟生效增量（rollout 必须带上，与搜索一致）
@@ -960,9 +974,13 @@ def is_legal(state: ExpectState, card: CardSpec) -> bool:
     return state.plays_left > 0 and effective_cost(state, card) <= state.total_cost_available
 
 
-def effective_cost(state: ExpectState, card: CardSpec) -> int:
+def effective_cost(state: ExpectState, card: CardSpec, *, ignore_zero_cost: bool = False) -> int:
     """实际牌费（与 LessonSim._effective_cost 同式：指針 × 费用增减回合，
-    取整后加减固定费用、夹到 ≥0）。"""
+    取整后加减固定费用、夹到 ≥0）。
+
+    阶段2 batch2：黑醋汁 cost0 次数 >0 时整费归零；``ignore_zero_cost=True``
+    返回未归零原费（判定是否消耗次数用，0 费牌不耗）。
+    """
     multiplier = stamina_cost_multiplier(state.stance_state)
     if state.half_cost_turns > 0:
         multiplier *= 0.5
@@ -972,8 +990,10 @@ def effective_cost(state: ExpectState, card: CardSpec) -> int:
         cost = int(card.cost)
     else:
         cost = math.ceil(card.cost * multiplier)
-    cost = cost - int(state.cost_reduction) + int(state.cost_increase)
-    return max(cost, 0)
+    cost = max(cost - int(state.cost_reduction) + int(state.cost_increase), 0)
+    if not ignore_zero_cost and state.zero_cost_charges > 0:
+        return 0
+    return cost
 
 
 def legal_cards(state: ExpectState) -> list[CardSpec]:
@@ -1025,12 +1045,14 @@ def _drink_worth_expanding(state: ExpectState, drink: DrinkSpec) -> bool:
     score_cards = [card for card in state.hand if card.score > 0]
     if not score_cards:
         # 补牌类即使当前手牌无正分牌也值得展开（可能抽到/移入正分牌）。
-        return bool(kinds & {"draw", "search_move", "turn_start_draw", "search_hold"})
+        return bool(kinds & {"draw", "search_move", "turn_start_draw", "search_hold",
+                             "select_move_hand"})
     if kinds & {
         "focus", "condition", "score_buff", "extra_plays",
         "draw", "search_move", "turn_start_draw", "vitality",
         "turn_end_focus", "turn_end_aggressive", "turn_start_full_power",
-        "search_hold", "preservation",
+        "search_hold", "preservation", "concentration", "select_move_hand",
+        "zero_cost", "encore_active",
     }:
         return True
     if "stamina" in kinds:
@@ -1058,7 +1080,8 @@ def _candidate_drinks(state: ExpectState) -> list[int]:
         elif kinds & {"focus", "condition", "score_buff", "extra_plays",
                       "draw", "search_move", "turn_start_draw", "vitality",
                       "turn_end_focus", "turn_end_aggressive",
-                      "turn_start_full_power", "search_hold", "preservation"}:
+                      "turn_start_full_power", "search_hold", "preservation",
+                      "concentration", "select_move_hand", "zero_cost", "encore_active"}:
             priority = 2
         elif "score" in kinds or "turn_end_impression" in kinds:
             priority = 1
@@ -1161,6 +1184,18 @@ def use_drink_state(state: ExpectState, index: int) -> ExpectState:
             )
         elif eff.kind == "search_hold":
             new_state = _drink_search_hold_state(new_state, eff)
+        elif eff.kind == "select_move_hand":
+            new_state = _drink_select_move_hand_state(new_state, eff)
+        elif eff.kind == "zero_cost":
+            new_state = replace(
+                new_state, zero_cost_charges=new_state.zero_cost_charges + eff.value
+            )
+        elif eff.kind == "encore_active":
+            new_state = replace(
+                new_state,
+                encore_charges=new_state.encore_charges + eff.value,
+                encore_turns=max(new_state.encore_turns, eff.turns + 1),
+            )
     return new_state
 
 
@@ -1321,6 +1356,44 @@ def _drink_search_hold_state(state: ExpectState, eff: DrinkEffect) -> ExpectStat
     )
 
 
+def _drink_select_move_hand_state(state: ExpectState, eff: DrinkEffect) -> ExpectState:
+    """M6 阶段2 batch2：黑醋汁 deck_grave→hand（与 ``LessonSim._drink_select_move_hand`` 双镜）。
+
+    Select 玩家选牌（hold_pick 白值降序代理）；手牌≥5 不生成（同 search_move 守卫）。
+    牌堆移牌同步 ``known_draw``（reversed 对应），弃牌堆移牌同步 ``discard_order``。
+    """
+    if len(state.hand) >= 5:
+        return state
+    candidates = list(state.deck) + list(state.discard)
+    if not candidates:
+        return state
+    picked = hold_pick(candidates, max(1, eff.value))[0]
+    deck = state.deck
+    discard = state.discard
+    known_draw = state.known_draw
+    discard_order = state.discard_order
+    if picked in deck:
+        deck = _remove_first(deck, picked)
+        if known_draw:
+            drawn = list(known_draw)
+            drawn.reverse()
+            drawn.remove(picked)
+            drawn.reverse()
+            known_draw = tuple(drawn)
+    elif picked in discard:
+        discard = _remove_first(discard, picked)
+        if discard_order is not None:
+            discard_order = _remove_first(discard_order, picked)
+    return replace(
+        state,
+        hand=state.hand + (picked,),
+        deck=deck,
+        discard=discard,
+        known_draw=known_draw,
+        discard_order=discard_order,
+    )
+
+
 def _encore_card(card: CardSpec) -> CardSpec:
     """再演（ExamStatusEnchantEncore）：直接效果执行两次，倍率类字段不翻倍。"""
     return replace(
@@ -1426,13 +1499,25 @@ def _card_award(
 
 def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectState, int]:
     """算分、付牌费、结算 buff/指針/体力回复；返回 ``(新状态, 抽牌数)``。"""
-    effect_card = _encore_card(played) if played.encore else played
+    # 阶段2 batch2：特制精华再发动（下一张 ActiveSkill 直接效果 ×2，耗 1 次）。
+    drink_encore = state.encore_charges > 0 and played.category == "ActiveSkill"
+    effect_card = _encore_card(played) if (played.encore or drink_encore) else played
     uses = state.uses_of(played.name)
     award, next_parameter_buff = _card_award(state, effect_card, uses=uses)
     state = replace(state, score=state.score + award, parameter_buff=next_parameter_buff)
     # 付牌费：先按指針修正实际费用，強気 2 段階穿透 1 点元气（直接扣体力）
     previous_stance = state.stance_state
     cost = effective_cost(state, played)
+    # 阶段2 batch2：cost0 次数在费用算定**后**扣（本牌已归零；0 费牌不耗，
+    # 与 LessonSim.step 支付后扣次数同口径）；再发动次数同步扣。
+    zero_cost_charges = state.zero_cost_charges
+    if zero_cost_charges > 0 and effective_cost(state, played, ignore_zero_cost=True) > 0:
+        zero_cost_charges -= 1
+    state = replace(
+        state,
+        zero_cost_charges=zero_cost_charges,
+        encore_charges=state.encore_charges - (1 if drink_encore else 0),
+    )
     stamina_before_cost = state.stamina
     pierce = min(cost, stamina_pierce(state.stance_state))
     if pierce:
@@ -2539,6 +2624,16 @@ def _apply_p_delta_state(
                 strong_level=level,
                 save_level=0,
             )
+        elif stance_kind == "concentration2" and stance_change_allowed(
+            stance, "concentration", locked=locked
+        ):
+            # 阶段2 batch2：强气 2 段階直给（与 LessonSim._apply_direct_stances 同口径）
+            stance = replace(
+                stance,
+                stance="strong2",
+                strong_level=2,
+                save_level=0,
+            )
         elif stance_kind == "leisure" and stance_change_allowed(
             stance, "leisure", locked=locked
         ):
@@ -2805,6 +2900,13 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     turn_start_draw = tick_timed(state.turn_start_draw)
     # M6 阶段1.5：饮料回合边界附魔 buff 倒计时（与 LessonSim._end_turn 同口径）
     turn_enchants = tick_turn_enchants(state.turn_enchants)
+    # M6 阶段2 batch2：精华再发动过期（与 LessonSim._end_turn 同口径）。
+    encore_turns = state.encore_turns
+    encore_charges = state.encore_charges
+    if encore_turns > 0:
+        encore_turns -= 1
+        if encore_turns == 0:
+            encore_charges = 0
     modifiers = tuple(sorted(timed_dict_tick(dict(state.modifiers)).items()))
     half_cost_turns = state.half_cost_turns - 1 if state.half_cost_turns > 0 else 0
     double_cost_turns = (
@@ -2834,6 +2936,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         impression=impression,
         turn_enchants=turn_enchants,
         review_enchant_fresh=review_enchant_fresh,
+        encore_charges=encore_charges,
+        encore_turns=encore_turns,
         condition_turns=condition_turns,
         perfect_condition_turns=perfect_condition_turns,
         poor_condition_turns=poor_condition_turns,
@@ -3752,6 +3856,10 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         # M6 阶段1.5：饮料回合边界附魔 buff（与 sim_from_state 双镜）
         turn_enchants=tuple(getattr(sim, "turn_enchants", ())),
         review_enchant_fresh=max(int(getattr(sim, "review_enchant_fresh", 0)), 0),
+        # M6 阶段2 batch2：cost0 / 再发动（与 sim_from_state 双镜）
+        zero_cost_charges=max(int(getattr(sim, "zero_cost_charges", 0)), 0),
+        encore_charges=max(int(getattr(sim, "encore_charges", 0)), 0),
+        encore_turns=max(int(getattr(sim, "encore_turns", 0)), 0),
         # P1-4：低下状态无效（与 sim_from_state 双镜）
         nullify_debuff=max(int(getattr(sim, "nullify_debuff", 0)), 0),
         # P1-7：元气增加无效 / 不安 / 延迟生效增量（与 sim_from_state 双镜）

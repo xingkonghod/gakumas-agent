@@ -9,7 +9,7 @@
  },
  "count": 29,
  "segments_total": 51,
- "segments_implemented": 40,
+ "segments_implemented": 45,
  "drinks": [
   {
    "id": "pdrink_00-1-001",
@@ -514,20 +514,22 @@
    "text_zh": "选择牌堆或弃牌中的技能卡，向手牌中移动使用的下一张技能卡消耗的体力变为0（2次）体力消耗2消耗体力增加1回合",
    "effects": [
     {
-     "kind": "unknown",
-     "value": 0,
+     "kind": "select_move_hand",
+     "value": 1,
      "turns": 0,
      "effect_type": "ExamCardMove",
-     "implemented": false,
-     "rng": "type9_search"
+     "implemented": true,
+     "rng": "none",
+     "search": "p_card_search-deck_grave",
+     "move_to": "hand"
     },
     {
-     "kind": "unknown",
-     "value": 0,
+     "kind": "zero_cost",
+     "value": 2,
      "turns": 0,
      "effect_type": "ExamSearchPlayCardStaminaConsumptionChange",
-     "implemented": false,
-     "rng": "search_unknown"
+     "implemented": true,
+     "rng": "none"
     },
     {
      "kind": "stamina_cost",
@@ -546,14 +548,12 @@
      "rng": "none"
     }
    ],
-   "implemented": 2,
+   "implemented": 4,
    "total": 4,
    "rng": {
-    "deterministic": false,
+    "deterministic": true,
     "entries": [],
-    "unknown": [
-     "ExamSearchPlayCardStaminaConsumptionChange"
-    ]
+    "unknown": []
    }
   },
   {
@@ -702,12 +702,12 @@
    "text_zh": "使用的下一张主动技能卡的效果再发动1次（1次・1回合）体力消耗2消耗体力增加1回合",
    "effects": [
     {
-     "kind": "unknown",
-     "value": 0,
-     "turns": 0,
+     "kind": "encore_active",
+     "value": 1,
+     "turns": 1,
      "effect_type": "ExamCardSearchEffectPlayCountBuff",
-     "implemented": false,
-     "rng": "search_unknown"
+     "implemented": true,
+     "rng": "none"
     },
     {
      "kind": "stamina_cost",
@@ -726,14 +726,12 @@
      "rng": "none"
     }
    ],
-   "implemented": 2,
+   "implemented": 3,
    "total": 3,
    "rng": {
-    "deterministic": false,
+    "deterministic": true,
     "entries": [],
-    "unknown": [
-     "ExamCardSearchEffectPlayCountBuff"
-    ]
+    "unknown": []
    }
   },
   {
@@ -745,11 +743,11 @@
    "text_zh": "强气变更全力值+1",
    "effects": [
     {
-     "kind": "unknown",
-     "value": 0,
+     "kind": "concentration",
+     "value": 1,
      "turns": 0,
      "effect_type": "ExamConcentration",
-     "implemented": false,
+     "implemented": true,
      "rng": "none"
     },
     {
@@ -761,7 +759,7 @@
      "rng": "none"
     }
    ],
-   "implemented": 1,
+   "implemented": 2,
    "total": 2,
    "rng": {
     "deterministic": true,
@@ -873,11 +871,11 @@
    "text_zh": "强气2阶段变更消耗体力减少1回合",
    "effects": [
     {
-     "kind": "unknown",
-     "value": 0,
+     "kind": "concentration",
+     "value": 2,
      "turns": 0,
      "effect_type": "ExamConcentration",
-     "implemented": false,
+     "implemented": true,
      "rng": "none"
     },
     {
@@ -889,7 +887,7 @@
      "rng": "none"
     }
    ],
-   "implemented": 1,
+   "implemented": 2,
    "total": 2,
    "rng": {
     "deterministic": true,

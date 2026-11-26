@@ -51,10 +51,12 @@ from gkagent.sim.p_items import PERMANENT_TURNS, PItemDelta, normalize_turns
 
 __all__ = [
     "DRINK_EFFECT_KINDS",
+    "SAFE_KINDS",
     "TURN_ENCHANT_KINDS",
     "DrinkEffect",
     "add_turn_enchant",
     "classify_drink_effect",
+    "drink_is_safe",
     "effects_to_delta",
     "rng_caliber",
     "legacy_effect",
@@ -90,8 +92,30 @@ DRINK_EFFECT_KINDS: dict[str, str] = {
     "turn_start_full_power": "回合开始时全力值 +N（ExamStatusEnchant 内层 ExamFullPowerPoint，trigger=exam_start_turn）",
     "search_hold": "zone search move 到保留区（ExamCardMove deck_grave→hold，Select 玩家选牌，rng=none）",
     "preservation": "温存指針直给（ExamPreservation value1=1/2 → setStance(preservation/preservation2)）",
+    # ---- 阶段2 batch2（2026-11-26）：probe6 引擎 oracle 逐瓶配对，rng=none ----
+    "concentration": "强气指針直给（ExamConcentration value1=1/2 → setStance(concentration/concentration2)）",
+    "select_move_hand": "zone search move 到手牌（ExamCardMove deck_grave→hand，Select 玩家选牌，rng=none）",
+    "zero_cost": "接下来 N 张正费牌体力消耗变为 0（ExamSearchPlayCardStaminaConsumptionChange v1=0，count=N；0 费牌不耗次数）",
+    "encore_active": "下一张主动技能卡直接效果再发动 1 次（ExamCardSearchEffectPlayCountBuff v1=1/count=1/turn=1；1 次，喝回合+下一回合有效）",
     "unknown": "未建模（RNG/交互/依赖换算），显式 no-op",
 }
+
+#: sim 侧搜索/生产决策的 SAFE kind 集合（纯数值段：不改牌堆/手牌/RNG/回合数）。
+#: **引擎侧全饮料保留**（gnrpa-spec a86ffdc 实锤：限制 SAFE 反而 −897k）；本集合
+#: 只用于我们自己的 sim 搜索/生产 allow_drinks 决策与锁定前 worlds 保守口径。
+#: encore_active 排除：再发动可能放大抽牌类卡效果（改手牌）；select_move_hand/
+#: search_hold/search_move/draw/turn_start_draw/extra_turn 改牌区/回合数；
+#: unknown 段保守排除（语义未定）。
+SAFE_KINDS = frozenset(
+    {
+        "stamina", "stamina_cost", "focus", "condition", "score", "vitality",
+        "impression", "aggressive", "full_power_point", "extra_plays",
+        "score_buff", "half_cost", "double_cost", "cost_reduction",
+        "perfect_condition", "preservation", "concentration", "zero_cost",
+        "turn_end_focus", "turn_end_impression", "turn_end_aggressive",
+        "turn_start_full_power",
+    }
+)
 
 #: 回合边界附魔 buff 渠道（turn_enchants 字段，(kind, value, turns) 三元组）。
 TURN_ENCHANT_KINDS = frozenset(
@@ -124,11 +148,14 @@ DELTA_KINDS = frozenset(
         "extra_turn",
         # 阶段1.5：温存指針直给走 PItemDelta.stances（与 P 道具 setStance 同渠道）。
         "preservation",
+        # 阶段2 batch2：强气指針直给同渠道。
+        "concentration",
     }
 )
 #: 由 use_drink / use_drink_state 直接结算的 kind（需要牌区/抽牌/回合边界交互）。
 DIRECT_KINDS = frozenset(
-    {"draw", "turn_start_draw", "search_move", "search_hold"} | TURN_ENCHANT_KINDS
+    {"draw", "turn_start_draw", "search_move", "search_hold",
+     "select_move_hand", "zero_cost", "encore_active"} | TURN_ENCHANT_KINDS
 )
 
 
@@ -250,6 +277,10 @@ def classify_drink_effect(
         # 引擎走 select_policy 不掷点，oracle rng_advances=0 实测）。其余变体 unknown。
         if move_to == "hold" and pick == "Select" and search == "p_card_search-deck_grave":
             return mk("search_hold", 1, search=search, move_to=move_to, rng="none")
+        # 阶段2 batch2：黑醋汁「牌堆/弃牌选 1 张 → 手牌」（Select 玩家选牌，
+        # probe6 oracle rng_advances=0 + greedy_select_policy 选牌事件实测）。
+        if move_to == "hand" and pick == "Select" and search == "p_card_search-deck_grave":
+            return mk("select_move_hand", 1, search=search, move_to=move_to, rng="none")
         return mk("unknown", 0, rng="type9_search")
     if et == "ExamStatusEnchant":
         # 附魔：内层是「回合开始后抽 N 张」（trigger=start_play）→ timed 回合开始抽牌。
@@ -281,19 +312,34 @@ def classify_drink_effect(
         if v1 in (1, 2):
             return mk("preservation", v1, rng="none")
         return mk("unknown", 0)
+    if et == "ExamConcentration":
+        # 阶段2 batch2：强气指針直给（姜汁汽水 v1=1 / 超级苏打 v1=2，probe6
+        # oracle stance Concentration step1/2 + rng=0 实测；同温存渠道）。
+        if v1 in (1, 2):
+            return mk("concentration", v1, rng="none")
+        return mk("unknown", 0)
+    if et == "ExamSearchPlayCardStaminaConsumptionChange":
+        # 阶段2 batch2：黑醋汁「接下来 count 张正费牌体力消耗变为 0」（v1=0，
+        # effectTurn=-1 永久直到次数耗尽；probe6 实测前 2 张正费牌 stamina/block
+        # 整费归零、0 费牌不耗次数、第 3 张正费牌恢复）。v1≠0 语义未定 → unknown。
+        if v1 == 0 and count > 0:
+            return mk("zero_cost", count, rng="none")
+        return mk("unknown", 0, rng="search_unknown")
+    if et == "ExamCardSearchEffectPlayCountBuff":
+        # 阶段2 batch2：特制精华「下一张主动卡直接效果再发动 1 次」（v1=1/count=1/
+        # turn=1；probe6 纯分卡 1244=2×622 实测，第 2 张正常、喝回合+下一回合有效
+        # （effectTurn=1 + fresh 保护 = sim 倒计时 2），过期正常）。其余值未定。
+        if v1 == 1 and count == 1 and turn == 1:
+            return mk("encore_active", 1, turn, rng="none")
+        return mk("unknown", 0, rng="search_unknown")
     if et in ("ExamCardCreateId", "ExamCardCreateSearch"):
         # 青汁：随机卡池生成 SSR → RNG 消费入口，真机流未知 → 显式 unknown。
         return mk("unknown", 0, rng="create_random_unknown")
-    # 其余（ExamCardUpgrade 交互强化 / ExamConcentration 强气指針直给（阶段2 候选）/
-    # ExamForcePlayCardSearch / ExamSearchPlayCardStaminaConsumptionChange /
-    # ExamCardSearchEffectPlayCountBuff / ExamHandGraveCountCardDraw /
-    # ExamLessonDependExamReview 依赖换算）：语义未定或需交互/RNG → 显式 no-op。
+    # 其余（ExamCardUpgrade 交互强化 / ExamForcePlayCardSearch /
+    # ExamHandGraveCountCardDraw / ExamLessonDependExamReview 依赖换算）：
+    # 语义未定或需交互/RNG → 显式 no-op。
     rng = "none"
-    if et in (
-        "ExamForcePlayCardSearch",
-        "ExamSearchPlayCardStaminaConsumptionChange",
-        "ExamCardSearchEffectPlayCountBuff",
-    ):
+    if et == "ExamForcePlayCardSearch":
         rng = "search_unknown"
     return mk("unknown", 0, rng=rng)
 
@@ -346,7 +392,22 @@ def effects_to_delta(effects: tuple[DrinkEffect, ...] | list[DrinkEffect]) -> PI
             # 阶段1.5：温存指針直给走 PItemDelta.stances（双镜 _apply_p_delta /
             # _apply_p_delta_state 已实现守卫/解除，与 P 道具 setStance 同口径）。
             delta.stances.append("preservation2" if value >= 2 else "preservation")
+        elif kind == "concentration":
+            # 阶段2 batch2：强气指針直给同渠道（concentration2 = 2 段階直给）。
+            delta.stances.append("concentration2" if value >= 2 else "concentration")
     return delta
+
+
+def drink_is_safe(effects: tuple[DrinkEffect, ...] | list[DrinkEffect]) -> bool:
+    """sim 侧 SAFE 判定：全部效果段已实现且 kind ⊆ :data:`SAFE_KINDS`。
+
+    用于我们自己的搜索/生产 allow_drinks 决策（引擎侧全饮料保留，gnrpa-spec
+    实锤）。含 unknown 段 / 改牌区 / 改回合数 / 再发动类 → False（保守不喝）。
+    空效果段（旧单效果路径）→ False（调用方走 legacy 口径）。
+    """
+    if not effects:
+        return False
+    return all(eff.implemented and eff.kind in SAFE_KINDS for eff in effects)
 
 
 def add_turn_enchant(

@@ -35,6 +35,7 @@ from gkagent.sim.drinks import (
 from gkagent.sim.expectimax import (
     ExpectState,
     _drink_draw_state,
+    apply_card,
     end_turn_state,
     start_turn_state,
     state_from_sim,
@@ -63,13 +64,13 @@ def catalog_payload() -> dict:
 def test_catalog_counts(catalog_payload) -> None:
     assert catalog_payload["count"] == 29
     assert catalog_payload["segments_total"] == 51
-    # 阶段1.5 后 40 段语义确定已实现，11 段显式 no-op（不猜）。
-    # （阶段1 33 → +4 严选初星附魔 +2 热绿茶 +1 焙茶温存 side-effect = 40。）
-    assert catalog_payload["segments_implemented"] == 40
+    # 阶段2 batch2 后 45 段语义确定已实现，6 段显式 no-op（不猜）。
+    # （阶段1 33 → 1.5 +7 = 40 → batch2 +5：强气×2 + 黑醋汁 move/cost0 + 精华再发动 = 45。）
+    assert catalog_payload["segments_implemented"] == 45
     drinks = catalog_payload["drinks"]
     assert len(drinks) == 29
     assert sum(d["total"] for d in drinks) == 51
-    assert sum(d["implemented"] for d in drinks) == 40
+    assert sum(d["implemented"] for d in drinks) == 45
 
 
 def test_w9_drinks_fully_implemented(catalog_payload) -> None:
@@ -138,7 +139,7 @@ def test_unknown_segments_are_explicit_noop(catalog_payload) -> None:
     unknown = [
         e for d in catalog_payload["drinks"] for e in d["effects"] if not e["implemented"]
     ]
-    assert len(unknown) == 11
+    assert len(unknown) == 6
     assert all(e["kind"] == "unknown" for e in unknown)
     # 未建模段不结算（effects_to_delta 跳过）。
     specs = tuple(
@@ -459,7 +460,8 @@ def test_stage15_classify_effect_bodies() -> None:
                 "trigger": "e_trigger-start_play"}],
     )
     assert u.kind == "unknown" and not u.implemented
-    # ExamCardMove：Select→hold 实现；hand-select 变体（黑醋汁）仍 unknown。
+    # ExamCardMove：Select→hold（1.5）/ Select→hand（batch2 黑醋汁）均实现；
+    # 非 Select / 非 deck_grave 变体仍 unknown。
     h = classify_drink_effect(
         "ExamCardMove", {}, search="p_card_search-deck_grave", move_to="hold", pick="Select"
     )
@@ -467,15 +469,18 @@ def test_stage15_classify_effect_bodies() -> None:
     uh = classify_drink_effect(
         "ExamCardMove", {}, search="p_card_search-deck_grave", move_to="hand", pick="Select"
     )
-    assert uh.kind == "unknown"
+    assert uh.kind == "select_move_hand" and uh.rng == "none"
+    assert classify_drink_effect(
+        "ExamCardMove", {}, search="p_card_search-deck_grave", move_to="hand", pick="Random"
+    ).kind == "unknown"
     # ExamPreservation：value1=1/2 → 温存直给；其余 unknown。
     p1 = classify_drink_effect("ExamPreservation", {"effectValue1": 1})
     assert p1.kind == "preservation" and p1.value == 1 and p1.rng == "none"
     p2 = classify_drink_effect("ExamPreservation", {"effectValue1": 2})
     assert p2.kind == "preservation" and p2.value == 2
     assert classify_drink_effect("ExamPreservation", {}).kind == "unknown"
-    # ExamConcentration（强气）不在本批 → 仍 unknown（阶段2 候选）。
-    assert classify_drink_effect("ExamConcentration", {"effectValue1": 1}).kind == "unknown"
+    # ExamConcentration（强气）阶段2 batch2 已实现（同 stance 渠道）。
+    assert classify_drink_effect("ExamConcentration", {"effectValue1": 1}).kind == "concentration"
 
 
 # ------------------------------------------------- 阶段1.5：逐效果单测（双镜）
@@ -753,6 +758,302 @@ def test_probe5_hot_green_tea_select_is_player_choice(probe5) -> None:
     assert sel["picked_numbers"][0] in sel["candidate_numbers"]
     # sim 侧玩家选择代理 = hold_pick 白值降序（与引擎 greedy 是两种确定性代理，
     # 真实选取由玩家决定；结构增量 hold+1/deck-1 已在 deltas 测试配对）。
+
+
+# ------------------------------------------------- 阶段2 batch2：catalog + classify
+def test_batch2_catalog(catalog_payload) -> None:
+    by_id = {d["id"]: d for d in catalog_payload["drinks"]}
+    # 姜汁汽水 / 超级苏打：强气直给 1/2（+ 既有 fpp/half_cost）。
+    assert {e["kind"] for e in by_id["pdrink_03-1-009"]["effects"]} == {
+        "concentration", "full_power_point"}
+    assert by_id["pdrink_03-1-009"]["implemented"] == 2
+    conc = next(e for e in by_id["pdrink_03-3-009"]["effects"] if e["kind"] == "concentration")
+    assert conc["value"] == 2 and conc["rng"] == "none"
+    assert by_id["pdrink_03-3-009"]["implemented"] == 2
+    # 黑醋汁：Select→hand + cost0（count=2）+ 既有 stamina_cost/double_cost。
+    vinegar = by_id["pdrink_01-3-012"]
+    assert vinegar["implemented"] == vinegar["total"] == 4
+    kinds = {e["kind"]: e for e in vinegar["effects"]}
+    assert kinds["select_move_hand"]["move_to"] == "hand" and kinds["select_move_hand"]["rng"] == "none"
+    assert kinds["zero_cost"]["value"] == 2 and kinds["zero_cost"]["rng"] == "none"
+    # 特制精华：再发动（v1=1/count=1/turn=1）。
+    essence = by_id["pdrink_02-3-010"]
+    assert essence["implemented"] == essence["total"] == 3
+    enc = next(e for e in essence["effects"] if e["kind"] == "encore_active")
+    assert enc["value"] == 1 and enc["turns"] == 1 and enc["rng"] == "none"
+
+
+def test_batch2_classify() -> None:
+    c1 = classify_drink_effect("ExamConcentration", {"effectValue1": 1})
+    assert c1.kind == "concentration" and c1.value == 1 and c1.rng == "none"
+    c2 = classify_drink_effect("ExamConcentration", {"effectValue1": 2})
+    assert c2.kind == "concentration" and c2.value == 2
+    assert classify_drink_effect("ExamConcentration", {}).kind == "unknown"
+    m = classify_drink_effect(
+        "ExamCardMove", {}, search="p_card_search-deck_grave", move_to="hand", pick="Select"
+    )
+    assert m.kind == "select_move_hand" and m.rng == "none"
+    z = classify_drink_effect(
+        "ExamSearchPlayCardStaminaConsumptionChange",
+        {"effectValue1": 0, "effectCount": 2, "effectTurn": -1},
+    )
+    assert z.kind == "zero_cost" and z.value == 2 and z.rng == "none"
+    assert classify_drink_effect(
+        "ExamSearchPlayCardStaminaConsumptionChange", {"effectValue1": 5, "effectCount": 2}
+    ).kind == "unknown"
+    e = classify_drink_effect(
+        "ExamCardSearchEffectPlayCountBuff",
+        {"effectValue1": 1, "effectCount": 1, "effectTurn": 1},
+    )
+    assert e.kind == "encore_active" and e.turns == 1 and e.rng == "none"
+    assert classify_drink_effect(
+        "ExamCardSearchEffectPlayCountBuff", {"effectValue1": 2, "effectCount": 1, "effectTurn": 1}
+    ).kind == "unknown"
+
+
+# ------------------------------------------------- 阶段2 batch2：逐效果单测（双镜）
+def _batch2_play(sim, state):
+    """打手牌首张（0 抽牌），双镜同步；sim 自动换回合时 state 跟进。"""
+    card = sim.hand[0]
+    turn0 = sim.current_turn
+    sim.step(0)
+    outcomes = apply_card(state, card)
+    assert len(outcomes) == 1
+    state = outcomes[0][1]
+    if sim.current_turn != turn0:
+        state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    return state
+
+
+def test_batch2_concentration_stance() -> None:
+    for did, level, stance in (("pdrink_03-1-009", 1, "strong1"), ("pdrink_03-3-009", 2, "strong2")):
+        spec = get_catalog().spec_for(did)
+        sim, state = _mirror(spec)
+        sim.use_drink(0)
+        state = use_drink_state(state, 0)
+        assert str(sim.stance.stance) == stance and sim.stance.strong_level == level
+        assert state.stance[0] == stance and state.stance[1] == level
+        _assert_mirror(sim, state)
+
+
+def test_batch2_select_move_hand() -> None:
+    hi = CardSpec("高分", 0, 9)
+    deck = [hi, CardSpec("低分", 0, 1)] + [CardSpec("占位", 0, 0)] * 4
+    spec = get_catalog().spec_for("pdrink_01-3-012")
+    sim, state = _mirror(spec, deck=deck)
+    # 初始洗牌可能把高分抽进手牌：期望选取 = 当时 deck+discard 白值最高张。
+    expected = max(list(sim.deck) + list(sim.discard), key=lambda c: c.score)
+    hand0 = len(sim.hand)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert len(sim.hand) == hand0 + 1 and len(state.hand) == hand0 + 1
+    assert sim.hand[-1] == expected and state.hand[-1] == expected
+    assert expected not in sim.deck
+    _assert_mirror(sim, state)
+
+
+def test_batch2_zero_cost_charges() -> None:
+    """cost0：前 2 张正费牌整费归零（stamina/block 支付 0），0 费牌不耗次数，第 3 张恢复。"""
+    deck = [CardSpec("打分", 8, 10)] * 10
+    spec = get_catalog().spec_for("pdrink_01-3-012")
+    sim, state = _mirror(spec, deck=deck, plays_per_turn=4)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert sim.zero_cost_charges == 2 and state.zero_cost_charges == 2
+    stamina0 = sim.stamina
+    state = _batch2_play(sim, state)
+    assert sim.stamina == stamina0 and sim.zero_cost_charges == 1
+    assert state.zero_cost_charges == 1
+    state = _batch2_play(sim, state)
+    assert sim.stamina == stamina0 and sim.zero_cost_charges == 0
+    state = _batch2_play(sim, state)
+    assert sim.stamina < stamina0  # 第 3 张正常扣费（double_cost ×2）
+    _assert_mirror(sim, state)
+
+
+def test_batch2_zero_cost_free_card_no_consume() -> None:
+    # 全 0 费牌堆：连打 4 张（跨自动换回合）次数始终不耗（probe6 口径）。
+    deck = [CardSpec("免费", 0, 5)] * 10
+    spec = get_catalog().spec_for("pdrink_01-3-012")
+    sim, state = _mirror(spec, deck=deck, plays_per_turn=4)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    for _ in range(4):
+        state = _batch2_play(sim, state)
+        assert sim.zero_cost_charges == 2 and state.zero_cost_charges == 2
+    _assert_mirror(sim, state)
+
+
+def test_batch2_encore_active() -> None:
+    """再发动：首张 ActiveSkill 直接效果 ×2（1 次），第 2 张正常，跨回合过期。"""
+    deck = [CardSpec("主动", 0, 18, category="ActiveSkill")] * 10
+    spec = get_catalog().spec_for("pdrink_02-3-010")
+    sim, state = _mirror(spec, deck=deck, plays_per_turn=3)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert sim.encore_charges == 1 and sim.encore_turns == 2
+    state = _batch2_play(sim, state)
+    assert sim.score == 36 and state.score == 36  # 18 × 2
+    assert sim.encore_charges == 0 and state.encore_charges == 0
+    state = _batch2_play(sim, state)
+    assert sim.score == 54 and state.score == 54  # 第 2 张 +18 正常
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    state = _batch2_play(sim, state)
+    assert sim.score == 72 and state.score == 72  # 下一回合 +18（次数已耗尽）
+    _assert_mirror(sim, state)
+
+
+def test_batch2_encore_mental_not_doubled() -> None:
+    deck = [CardSpec("mental", 0, 18, category="MentalSkill")] * 8
+    spec = get_catalog().spec_for("pdrink_02-3-010")
+    sim, state = _mirror(spec, deck=deck, plays_per_turn=2)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    state = _batch2_play(sim, state)
+    assert sim.score == 18 and state.score == 18  # MentalSkill 不触发再发动
+    assert sim.encore_charges == 1  # 次数保留到下一张主动卡
+    _assert_mirror(sim, state)
+
+
+# ------------------------------------------------- SAFE 划分 + 特征提取器
+def test_safe_kinds_classification() -> None:
+    from gkagent.sim.drinks import SAFE_KINDS, drink_is_safe
+
+    cat = get_catalog()
+    # SAFE：纯数值段（蛋白粉/强化精华/姜汁汽水/严选初星附魔/焙茶/超级苏打）。
+    for did in ("pdrink_00-3-001", "pdrink_00-2-008", "pdrink_03-1-009",
+                "pdrink_01-3-002", "pdrink_03-1-010", "pdrink_03-3-009"):
+        assert drink_is_safe(cat.spec_for(did).effects), did
+    # EXCLUDE：改牌区/回合数/再发动/unknown。
+    for did in ("pdrink_00-2-010", "pdrink_00-2-009", "pdrink_03-2-007",
+                "pdrink_01-3-012", "pdrink_02-3-010", "pdrink_03-3-011",
+                "pdrink_00-3-005", "pdrink_00-3-013"):
+        assert not drink_is_safe(cat.spec_for(did).effects), did
+    assert "encore_active" not in SAFE_KINDS
+    assert "concentration" in SAFE_KINDS and "zero_cost" in SAFE_KINDS
+    assert not drink_is_safe(())
+
+
+def test_drink_feature_extractor() -> None:
+    from gkagent.sim.drink_features import (
+        DRINK_FEATURE_DIM,
+        DRINK_FEATURE_NAMES,
+        drink_feature_vector,
+        drink_features_from_ids,
+    )
+
+    cat = get_catalog()
+    protein = cat.spec_for("pdrink_00-3-001")
+    vec = drink_feature_vector((protein,), (1,))
+    assert len(vec) == DRINK_FEATURE_DIM == len(DRINK_FEATURE_NAMES)
+    idx = DRINK_FEATURE_NAMES.index("drink_kind_extra_plays")
+    assert vec[idx] == 1.0
+    assert vec[DRINK_FEATURE_NAMES.index("drink_slots_remaining")] == 1.0
+    assert vec[DRINK_FEATURE_NAMES.index("drink_safe_slots")] == 1.0
+    assert vec[DRINK_FEATURE_NAMES.index("drink_unknown_segments")] == 0.0
+    # 青汁：unknown 计段不计值，非 SAFE。
+    aojiru = cat.spec_for("pdrink_00-3-005")
+    vec2 = drink_feature_vector((aojiru,), (1,))
+    assert vec2[DRINK_FEATURE_NAMES.index("drink_unknown_segments")] == 1.0
+    assert vec2[DRINK_FEATURE_NAMES.index("drink_safe_slots")] == 0.0
+    # 剩余次数加权：耗尽槽位 kind 位/剩余位归零，total_slots 仍计初始库存。
+    exhausted = drink_feature_vector((protein,), (0,))
+    assert exhausted[idx] == 0.0
+    assert exhausted[DRINK_FEATURE_NAMES.index("drink_slots_remaining")] == 0.0
+    assert exhausted[DRINK_FEATURE_NAMES.index("drink_total_slots")] == 1.0
+    assert drink_features_from_ids(None) == (0.0,) * DRINK_FEATURE_DIM
+    v_ids = drink_features_from_ids(["pdrink_00-3-001", "pdrink_00-3-001"])
+    assert v_ids[idx] == 2.0  # 不去重
+    assert v_ids == drink_feature_vector((protein, protein))
+
+
+# ------------------------------------------------- 阶段2 ②：allow_drinks opt-in
+def test_policy_allow_drinks_default_off() -> None:
+    from gkagent.policy.lesson import LessonPolicy
+
+    assert LessonPolicy.DEFAULT_PARAMS["allow_drinks"] is False
+    assert LessonPolicy().params["allow_drinks"] is False
+    assert LessonPolicy(allow_drinks=True).params["allow_drinks"] is True
+
+
+def test_expectimax_allow_drinks_gate() -> None:
+    """搜索层：allow_drinks=False 不枚举饮料（旧行为）；True 时有益饮料被选中。"""
+    from gkagent.sim.expectimax import AnalyticLeafValue, expectimax_with_stats
+
+    protein = get_catalog().spec_for("pdrink_00-3-001")
+    hand = (CardSpec("打分A", 3, 10), CardSpec("打分B", 3, 10))
+    state = ExpectState(
+        hand=hand, deck=(CardSpec("占位", 0, 0),) * 6,
+        stamina=30, stamina_max=30, turns_left=3, total_turns=3,
+        play_limit=1, plays_used=0, clear=100, perfect=200,
+        drinks=(protein,), drink_uses=(1,),
+    )
+    off = expectimax_with_stats(state, AnalyticLeafValue(), time_budget_ms=2000, allow_drinks=False)
+    assert off.drink is None
+    on = expectimax_with_stats(state, AnalyticLeafValue(), time_budget_ms=2000, allow_drinks=True)
+    assert on.drink == 0  # extra_plays 解锁第 2 张打分牌
+
+
+def test_policy_drink_action_branch(monkeypatch) -> None:
+    """LessonPolicy opt-in：搜索选中饮料 → LessonAction(kind='drink', index=槽位)。"""
+    import gkagent.sim.expectimax as ex
+    from gkagent.policy.lesson import LessonAction, LessonPolicy
+
+    policy = LessonPolicy(engine="expectimax", allow_drinks=True)
+    protein = get_catalog().spec_for("pdrink_00-3-001")
+    sim_state = ExpectState(
+        hand=(CardSpec("打分", 3, 10),), stamina=30, turns_left=3,
+        drinks=(protein,), drink_uses=(1,),
+    )
+    monkeypatch.setattr(policy, "_search_state", lambda state: (sim_state, [], None))
+
+    class _Result:
+        card = None
+        drink = 0
+        utility = 42.0
+        nodes = 7
+        elapsed_ms = 1.0
+        complete = True
+        actions = ()
+
+    captured = {}
+
+    def fake_search(state, leaf, **kw):
+        captured.update(kw)
+        return _Result()
+
+    monkeypatch.setattr(ex, "expectimax_with_stats", fake_search)
+    from gkagent.vision.lesson import LessonState
+
+    action = policy._try_expectimax(LessonState(turns_left=3, stamina=30), allow_skip=True)
+    assert captured["allow_drinks"] is True
+    assert isinstance(action, LessonAction) and action.kind == "drink" and action.index == 0
+    # 默认 off：allow_drinks=False 传给搜索（逐位不变）。
+    policy_off = LessonPolicy(engine="expectimax")
+    monkeypatch.setattr(policy_off, "_search_state", lambda state: (sim_state, [], None))
+    policy_off._try_expectimax(LessonState(turns_left=3, stamina=30), allow_skip=True)
+    assert captured["allow_drinks"] is False
+
+
+def test_local_bench_drink_legal_wiring() -> None:
+    """local_bench：--drinks auto 时 legal 暴露 drink 动作；off 逐位不变（无 drink）。"""
+    problems = ROOT / "data" / "bench_local" / "problems_hif.json"
+    if not problems.is_file() or not DRINKS_JSON.is_file():
+        pytest.skip("缺少题集或 drinks.json")
+    lb = _local_bench_module()
+    raw = lb.load_problems(problems)[0]
+    rows, index, refs = lb.load_card_table()
+    auto = lb.build_problem(raw, rows, index, refs, drinks_mode="auto")
+    off = lb.build_problem(raw, rows, index, refs, drinks_mode="off")
+    deck = [CardSpec("占位", 0, 0)] * 8
+    sim_auto = LessonSim(list(deck), auto.config, rng_seed=0)
+    sim_off = LessonSim(list(deck), off.config, rng_seed=0)
+    obs_auto = lb.sim_to_uiobs(sim_auto, auto, decision=0, played=[])
+    obs_off = lb.sim_to_uiobs(sim_off, off, decision=0, played=[])
+    assert not any(a[0] == "drink" for a in obs_off["legal"])
+    if auto.config.drinks:
+        assert any(a[0] == "drink" for a in obs_auto["legal"])
 
 
 # --------------------------------------------------------------------- opt-in 接线
