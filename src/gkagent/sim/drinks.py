@@ -14,8 +14,16 @@
   * 能复用 P 道具增量渠道（``PItemDelta``）的效果（打分/体力/层数/extra_plays/
     timed 分数倍率/费用修正/回合追加…）走 :func:`effects_to_delta`，与
     ``LessonSim._apply_p_delta`` / ``expectimax._apply_p_delta_state`` 双镜共用。
-  * 饮料特有的三类（立即抽牌 / timed 回合开始抽牌 / zone search move 偶像固有）
-    由 ``LessonSim.use_drink`` / ``expectimax.use_drink_state`` 直接结算。
+  * 饮料特有的直接结算类（立即抽牌 / timed 回合开始抽牌 / zone search move 偶像固有 /
+    阶段1.5 的回合边界附魔 buff、search hold、温存指針直给）由
+    ``LessonSim.use_drink`` / ``expectimax.use_drink_state`` 结算。
+  * **阶段1.5（2026-11-26）确定式增量批**：4 种严选初星 ExamStatusEnchant
+    （回合结束集中/好印象/干劲 +1、回合开始全力值 +1，effectTurn=-1 永久）→
+    ``turn_enchants`` 渠道（(kind, value, turns) 三元组，双镜新字段）；
+    热绿茶 ExamCardMove deck_grave→hold（pickRangeType=Select 玩家选牌，
+    引擎 select_policy 不掷点）+ ExamPreservation 温存 2 段階直给（走
+    PItemDelta.stances，与 p_items P1-3 同渠道）。引擎 oracle 逐瓶配对
+    rng_advances=0（data/_drinks_probe5.py，不提交）。
 
 **饮料 RNG 消费入口**（M6 划给饮料侧，与 m1-rng 的 ``rng_graph`` 留 hook）：
   * ``extra_plays`` / ``score_buff`` / ``half_cost`` / ``stamina_cost`` 等纯数值段
@@ -39,15 +47,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from gkagent.sim.p_items import PItemDelta
+from gkagent.sim.p_items import PERMANENT_TURNS, PItemDelta, normalize_turns
 
 __all__ = [
     "DRINK_EFFECT_KINDS",
+    "TURN_ENCHANT_KINDS",
     "DrinkEffect",
+    "add_turn_enchant",
     "classify_drink_effect",
     "effects_to_delta",
     "rng_caliber",
     "legacy_effect",
+    "tick_turn_enchants",
 ]
 
 # ---- 效果段目标分类（语义确定的才实现）------------------------------------
@@ -72,8 +83,25 @@ DRINK_EFFECT_KINDS: dict[str, str] = {
     "draw": "立即抽 N 张（ExamCardDraw）",
     "turn_start_draw": "timed 回合开始后抽 N 张（ExamStatusEnchant 内层 ExamCardDraw）",
     "search_move": "zone search move 偶像固有（ExamCardMove deck_grave→hand）",
+    # ---- 阶段1.5（2026-11-26）：确定式增量批（引擎 oracle 逐瓶配对，rng=none）----
+    "turn_end_focus": "回合结束时集中 +N（ExamStatusEnchant 内层 ExamLessonBuff，trigger=exam_end_turn）",
+    "turn_end_impression": "回合结束时好印象 +N（ExamStatusEnchant 内层 ExamReview，trigger=exam_end_turn）",
+    "turn_end_aggressive": "回合结束时干劲 +N（ExamStatusEnchant 内层 ExamCardPlayAggressive，trigger=exam_end_turn）",
+    "turn_start_full_power": "回合开始时全力值 +N（ExamStatusEnchant 内层 ExamFullPowerPoint，trigger=exam_start_turn）",
+    "search_hold": "zone search move 到保留区（ExamCardMove deck_grave→hold，Select 玩家选牌，rng=none）",
+    "preservation": "温存指針直给（ExamPreservation value1=1/2 → setStance(preservation/preservation2)）",
     "unknown": "未建模（RNG/交互/依赖换算），显式 no-op",
 }
+
+#: 回合边界附魔 buff 渠道（turn_enchants 字段，(kind, value, turns) 三元组）。
+TURN_ENCHANT_KINDS = frozenset(
+    {
+        "turn_end_focus",
+        "turn_end_impression",
+        "turn_end_aggressive",
+        "turn_start_full_power",
+    }
+)
 
 #: 走 PItemDelta 渠道的 kind（effects_to_delta 表达）；其余由 use_drink 直接结算。
 DELTA_KINDS = frozenset(
@@ -94,10 +122,14 @@ DELTA_KINDS = frozenset(
         "cost_reduction",
         "perfect_condition",
         "extra_turn",
+        # 阶段1.5：温存指針直给走 PItemDelta.stances（与 P 道具 setStance 同渠道）。
+        "preservation",
     }
 )
-#: 由 use_drink / use_drink_state 直接结算的 kind（需要牌区/抽牌交互）。
-DIRECT_KINDS = frozenset({"draw", "turn_start_draw", "search_move"})
+#: 由 use_drink / use_drink_state 直接结算的 kind（需要牌区/抽牌/回合边界交互）。
+DIRECT_KINDS = frozenset(
+    {"draw", "turn_start_draw", "search_move", "search_hold"} | TURN_ENCHANT_KINDS
+)
 
 
 @dataclass(frozen=True)
@@ -151,14 +183,15 @@ def classify_drink_effect(
     *,
     search: str = "",
     move_to: str = "",
+    pick: str = "",
     inner: list[dict] | None = None,
     label: str = "",
 ) -> DrinkEffect:
     """主数据效果本体 → :class:`DrinkEffect`（语义确定的实现，其余 unknown）。
 
     ``values`` 是效果本体字段（effectValue1/effectValue2/effectCount/effectTurn）；
-    ``search``/``move_to`` 来自 produceCardSearchId/movePositionType；``inner`` 是
-    附魔内层效果段列表（``[{"type","values","trigger"}]``）。
+    ``search``/``move_to``/``pick`` 来自 produceCardSearchId/movePositionType/
+    pickRangeType；``inner`` 是附魔内层效果段列表（``[{"type","values","trigger"}]``）。
     """
     values = values or {}
     v1 = _as_int(values.get("effectValue1") or values.get("value1"))
@@ -213,6 +246,10 @@ def classify_drink_effect(
             return mk(
                 "search_move", 1, search=search, move_to=move_to, rng="type9_search"
             )
+        # 阶段1.5：热绿茶「牌堆/弃牌选 1 张 → 保留」（pickRangeType=Select 玩家选牌，
+        # 引擎走 select_policy 不掷点，oracle rng_advances=0 实测）。其余变体 unknown。
+        if move_to == "hold" and pick == "Select" and search == "p_card_search-deck_grave":
+            return mk("search_hold", 1, search=search, move_to=move_to, rng="none")
         return mk("unknown", 0, rng="type9_search")
     if et == "ExamStatusEnchant":
         # 附魔：内层是「回合开始后抽 N 张」（trigger=start_play）→ timed 回合开始抽牌。
@@ -225,11 +262,29 @@ def classify_drink_effect(
                 return mk(
                     "turn_start_draw", n, turn, trigger="turn_start_after", rng="draw_support"
                 )
+            # 阶段1.5：严选初星系列「以后，回合结束/开始时 +N」（effectTurn=-1 永久）。
+            # 内层效果类型 × 触发时机语义确定才实现；其余内层仍 unknown。
+            n = _as_int(cvals.get("effectValue1") or cvals.get("value1"))
+            if "exam_end_turn" in ctrigger:
+                if ctype == "ExamLessonBuff":
+                    return mk("turn_end_focus", n, turn, trigger="turn_end", rng="none")
+                if ctype == "ExamReview":
+                    return mk("turn_end_impression", n, turn, trigger="turn_end", rng="none")
+                if ctype == "ExamCardPlayAggressive":
+                    return mk("turn_end_aggressive", n, turn, trigger="turn_end", rng="none")
+            if "exam_start_turn" in ctrigger and ctype == "ExamFullPowerPoint":
+                return mk("turn_start_full_power", n, turn, trigger="turn_start", rng="none")
+        return mk("unknown", 0)
+    if et == "ExamPreservation":
+        # 阶段1.5：温存指針直给（value1=1「温存变更」/ 2「温存阶段变更」↔
+        # setStance(preservation/preservation2)，与 p_items P1-3 同渠道同口径）。
+        if v1 in (1, 2):
+            return mk("preservation", v1, rng="none")
         return mk("unknown", 0)
     if et in ("ExamCardCreateId", "ExamCardCreateSearch"):
         # 青汁：随机卡池生成 SSR → RNG 消费入口，真机流未知 → 显式 unknown。
         return mk("unknown", 0, rng="create_random_unknown")
-    # 其余（ExamCardUpgrade 交互强化 / ExamConcentration/ExamPreservation 指針直给 /
+    # 其余（ExamCardUpgrade 交互强化 / ExamConcentration 强气指針直给（阶段2 候选）/
     # ExamForcePlayCardSearch / ExamSearchPlayCardStaminaConsumptionChange /
     # ExamCardSearchEffectPlayCountBuff / ExamHandGraveCountCardDraw /
     # ExamLessonDependExamReview 依赖换算）：语义未定或需交互/RNG → 显式 no-op。
@@ -287,14 +342,58 @@ def effects_to_delta(effects: tuple[DrinkEffect, ...] | list[DrinkEffect]) -> PI
             delta.perfect_condition_turns += value
         elif kind == "extra_turn":
             delta.extra_turns += value
+        elif kind == "preservation":
+            # 阶段1.5：温存指針直给走 PItemDelta.stances（双镜 _apply_p_delta /
+            # _apply_p_delta_state 已实现守卫/解除，与 P 道具 setStance 同口径）。
+            delta.stances.append("preservation2" if value >= 2 else "preservation")
     return delta
+
+
+def add_turn_enchant(
+    entries: tuple[tuple[str, int, int], ...], kind: str, value: int, turns: int
+) -> tuple[tuple[str, int, int], ...]:
+    """登记一条回合边界附魔 buff（ ``(kind, value, turns)``，同 kind+turns 合并加算）。
+
+    与 :func:`p_items.add_timed` 同口径：``turns<=0`` 归一为永久（-1）。
+    严选初星系列 effectTurn=-1（「以后」= 永久）；timed 变体留接口。
+    """
+    if not value:
+        return entries
+    turns = normalize_turns(turns)
+    merged: list[tuple[str, int, int]] = []
+    found = False
+    for old_kind, old_value, old_turns in entries:
+        if old_kind == kind and old_turns == turns:
+            merged.append((old_kind, old_value + value, old_turns))
+            found = True
+        else:
+            merged.append((old_kind, old_value, old_turns))
+    if not found:
+        merged.append((kind, value, turns))
+    return tuple(merged)
+
+
+def tick_turn_enchants(
+    entries: tuple[tuple[str, int, int], ...],
+) -> tuple[tuple[str, int, int], ...]:
+    """回合末倒计时：turns>0 的 -1、到 0 移除，永久（-1）保持（同 tick_timed）。"""
+    ticked: list[tuple[str, int, int]] = []
+    for kind, value, turns in entries:
+        if turns == PERMANENT_TURNS:
+            ticked.append((kind, value, turns))
+            continue
+        next_turns = turns - 1
+        if next_turns > 0:
+            ticked.append((kind, value, next_turns))
+    return tuple(ticked)
 
 
 def rng_caliber(effects: tuple[DrinkEffect, ...] | list[DrinkEffect]) -> dict[str, Any]:
     """一瓶饮料的 RNG 消费口径汇总（m1-rng ``rng_graph`` 的饮料 hook）。
 
     返回 ``{"deterministic": bool, "entries": [口径标签…], "unknown": [effect_type…]}``：
-      * ``none`` 段不消费随机数；
+      * ``none`` 段不消费随机数（含阶段1.5 的 Select 玩家选牌 search_hold /
+        指針直给 / 回合边界附魔 buff，引擎 oracle rng_advances=0 实测）；
       * ``type9_search`` 段按搜索候选掷点（精确消费数需引擎 oracle 配对）；
       * ``draw_support`` 段抽牌本身不掷点、入手触发支援强化（考试 RNG 图侧）；
       * ``create_random_unknown`` / ``search_unknown`` 真机流未知 → 显式 unknown。

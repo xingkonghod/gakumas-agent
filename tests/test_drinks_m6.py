@@ -34,6 +34,9 @@ from gkagent.sim.drinks import (
 )
 from gkagent.sim.expectimax import (
     ExpectState,
+    _drink_draw_state,
+    end_turn_state,
+    start_turn_state,
     state_from_sim,
     use_drink_state,
 )
@@ -60,12 +63,13 @@ def catalog_payload() -> dict:
 def test_catalog_counts(catalog_payload) -> None:
     assert catalog_payload["count"] == 29
     assert catalog_payload["segments_total"] == 51
-    # 33 段语义确定已实现，18 段显式 no-op（不猜）。
-    assert catalog_payload["segments_implemented"] == 33
+    # 阶段1.5 后 40 段语义确定已实现，11 段显式 no-op（不猜）。
+    # （阶段1 33 → +4 严选初星附魔 +2 热绿茶 +1 焙茶温存 side-effect = 40。）
+    assert catalog_payload["segments_implemented"] == 40
     drinks = catalog_payload["drinks"]
     assert len(drinks) == 29
     assert sum(d["total"] for d in drinks) == 51
-    assert sum(d["implemented"] for d in drinks) == 33
+    assert sum(d["implemented"] for d in drinks) == 40
 
 
 def test_w9_drinks_fully_implemented(catalog_payload) -> None:
@@ -134,7 +138,7 @@ def test_unknown_segments_are_explicit_noop(catalog_payload) -> None:
     unknown = [
         e for d in catalog_payload["drinks"] for e in d["effects"] if not e["implemented"]
     ]
-    assert len(unknown) == 18
+    assert len(unknown) == 11
     assert all(e["kind"] == "unknown" for e in unknown)
     # 未建模段不结算（effects_to_delta 跳过）。
     specs = tuple(
@@ -175,6 +179,16 @@ def _assert_mirror(sim: LessonSim, state: ExpectState) -> None:
     assert sim.half_cost_turns == state.half_cost_turns
     assert tuple(sim.turn_start_draw) == tuple(state.turn_start_draw)
     assert sim.vitality == state.vitality
+    # M6 阶段1.5：回合边界附魔 / fresh 保护 / 干劲 / 指針 / 保留区双镜。
+    assert tuple(sim.turn_enchants) == tuple(state.turn_enchants)
+    assert sim.review_enchant_fresh == state.review_enchant_fresh
+    assert sim.buffs.impression == state.impression
+    assert sim.motivation == state.motivation
+    assert (
+        sim.stance.stance, sim.stance.strong_level,
+        sim.stance.save_level, sim.stance.full_power_point,
+    ) == state.stance
+    assert sorted(c.name for c in sim.held) == sorted(c.name for c in state.held)
     assert sorted(c.name for c in sim.hand) == sorted(c.name for c in state.hand)
     assert sorted(c.name for c in sim.deck) == sorted(c.name for c in state.deck)
 
@@ -355,6 +369,390 @@ def test_classify_w9_effect_bodies() -> None:
     assert e.kind == "turn_start_draw" and e.value == 1 and e.turns == 5
     c = classify_drink_effect("ExamCardCreateSearch", {})
     assert c.kind == "unknown" and not c.implemented and c.rng == "create_random_unknown"
+
+
+# ------------------------------------------------- 阶段1.5：确定式增量批（catalog）
+STAGE15_IDS = (
+    "pdrink_01-3-002", "pdrink_02-3-006", "pdrink_02-3-007",
+    "pdrink_03-3-008", "pdrink_03-2-007",
+)
+
+
+def test_stage15_enchant_drinks_catalog(catalog_payload) -> None:
+    """4 种严选初星附魔：内层效果 × 触发时机 → 确定式 kind，effectTurn=-1 永久。"""
+    by_id = {d["id"]: d for d in catalog_payload["drinks"]}
+    want = {
+        "pdrink_01-3-002": ("turn_end_focus", "turn_end"),
+        "pdrink_02-3-006": ("turn_end_impression", "turn_end"),
+        "pdrink_02-3-007": ("turn_end_aggressive", "turn_end"),
+        "pdrink_03-3-008": ("turn_start_full_power", "turn_start"),
+    }
+    for did, (kind, trigger) in want.items():
+        d = by_id[did]
+        assert d["implemented"] == d["total"] == 1, (did, d["effects"])
+        eff = d["effects"][0]
+        assert eff["kind"] == kind and eff["value"] == 1, (did, eff)
+        assert eff["turns"] == -1 and eff["trigger"] == trigger, (did, eff)
+        assert eff["effect_type"] == "ExamStatusEnchant" and eff["rng"] == "none"
+        assert eff["enchant"] == f"enchant-{did}-enc01"
+        assert d["rng"]["deterministic"] is True
+
+
+def test_stage15_hot_green_tea_catalog(catalog_payload) -> None:
+    """热绿茶：ExamCardMove deck_grave→hold（Select）+ ExamPreservation 温存 2 段階。"""
+    by_id = {d["id"]: d for d in catalog_payload["drinks"]}
+    d = by_id["pdrink_03-2-007"]
+    assert d["implemented"] == d["total"] == 2
+    kinds = {e["kind"]: e for e in d["effects"]}
+    mv = kinds["search_hold"]
+    assert mv["search"] == "p_card_search-deck_grave" and mv["move_to"] == "hold"
+    assert mv["rng"] == "none" and mv["effect_type"] == "ExamCardMove"
+    pres = kinds["preservation"]
+    assert pres["value"] == 2 and pres["rng"] == "none"
+    assert pres["effect_type"] == "ExamPreservation"
+    assert d["rng"]["deterministic"] is True
+    assert "保留" in d["text_zh"] and "温存2阶段变更" in d["text_zh"]
+
+
+def test_stage15_hojicha_preservation_side_effect(catalog_payload) -> None:
+    """焙茶（温存变更 value1=1）随 ExamPreservation 映射一并实现（side-effect，oracle 验证）。"""
+    by_id = {d["id"]: d for d in catalog_payload["drinks"]}
+    d = by_id["pdrink_03-1-010"]
+    assert d["implemented"] == d["total"] == 2
+    kinds = {e["kind"]: e for e in d["effects"]}
+    assert kinds["preservation"]["value"] == 1
+    assert kinds["full_power_point"]["value"] == 2
+
+
+def test_stage15_aojiru_still_unknown(catalog_payload) -> None:
+    """青汁×2（随机生成/强制打搜索牌）保持 unknown——决策层保守不喝=免费杠杆。"""
+    by_id = {d["id"]: d for d in catalog_payload["drinks"]}
+    for did in ("pdrink_00-3-005", "pdrink_00-3-013"):
+        assert by_id[did]["implemented"] == 0
+        assert by_id[did]["rng"]["unknown"]
+
+
+def test_stage15_classify_effect_bodies() -> None:
+    """主数据效果本体 → 分类（阶段1.5 新映射，与 build_drinks 同口径）。"""
+    for ctype, kind, trigger in (
+        ("ExamLessonBuff", "turn_end_focus", "turn_end"),
+        ("ExamReview", "turn_end_impression", "turn_end"),
+        ("ExamCardPlayAggressive", "turn_end_aggressive", "turn_end"),
+    ):
+        e = classify_drink_effect(
+            "ExamStatusEnchant", {"effectTurn": -1},
+            inner=[{"type": ctype, "values": {"effectValue1": 1},
+                    "trigger": "e_trigger-exam_end_turn"}],
+        )
+        assert e.kind == kind and e.value == 1 and e.turns == -1
+        assert e.trigger == trigger and e.rng == "none" and e.implemented
+    f = classify_drink_effect(
+        "ExamStatusEnchant", {"effectTurn": -1},
+        inner=[{"type": "ExamFullPowerPoint", "values": {"effectValue1": 1},
+                "trigger": "e_trigger-exam_start_turn"}],
+    )
+    assert f.kind == "turn_start_full_power" and f.turns == -1 and f.rng == "none"
+    # 内层类型/触发不匹配仍 unknown（不猜）。
+    u = classify_drink_effect(
+        "ExamStatusEnchant", {"effectTurn": -1},
+        inner=[{"type": "ExamLessonBuff", "values": {"effectValue1": 1},
+                "trigger": "e_trigger-start_play"}],
+    )
+    assert u.kind == "unknown" and not u.implemented
+    # ExamCardMove：Select→hold 实现；hand-select 变体（黑醋汁）仍 unknown。
+    h = classify_drink_effect(
+        "ExamCardMove", {}, search="p_card_search-deck_grave", move_to="hold", pick="Select"
+    )
+    assert h.kind == "search_hold" and h.rng == "none"
+    uh = classify_drink_effect(
+        "ExamCardMove", {}, search="p_card_search-deck_grave", move_to="hand", pick="Select"
+    )
+    assert uh.kind == "unknown"
+    # ExamPreservation：value1=1/2 → 温存直给；其余 unknown。
+    p1 = classify_drink_effect("ExamPreservation", {"effectValue1": 1})
+    assert p1.kind == "preservation" and p1.value == 1 and p1.rng == "none"
+    p2 = classify_drink_effect("ExamPreservation", {"effectValue1": 2})
+    assert p2.kind == "preservation" and p2.value == 2
+    assert classify_drink_effect("ExamPreservation", {}).kind == "unknown"
+    # ExamConcentration（强气）不在本批 → 仍 unknown（阶段2 候选）。
+    assert classify_drink_effect("ExamConcentration", {"effectValue1": 1}).kind == "unknown"
+
+
+# ------------------------------------------------- 阶段1.5：逐效果单测（双镜）
+def _stage15_sim(kind: str, value: int = 1, turns: int = -1,
+                 effect_type: str = "ExamStatusEnchant", **mirror_kw):
+    eff = DrinkEffect(kind=kind, value=value, turns=turns, effect_type=effect_type)
+    drink = DrinkSpec("阶段1.5", 0, "multi", 0, effects=(eff,))
+    return _mirror(drink, **mirror_kw)
+
+
+def test_turn_end_focus_effect() -> None:
+    sim, state = _stage15_sim("turn_end_focus")
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert tuple(sim.turn_enchants) == (("turn_end_focus", 1, -1),)
+    assert sim.buffs.focus == 0  # 登记不立即加
+    _assert_mirror(sim, state)
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    assert sim.buffs.focus == 1 and state.focus == 1
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    assert sim.buffs.focus == 2 and state.focus == 2  # 永久（-1）
+    _assert_mirror(sim, state)
+
+
+def test_turn_end_aggressive_effect() -> None:
+    sim, state = _stage15_sim("turn_end_aggressive")
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    assert sim.motivation == 1 and state.motivation == 1
+    _assert_mirror(sim, state)
+
+
+def test_turn_end_impression_fresh_protection() -> None:
+    """茶：附魔在好印象结算前触发 + fresh 保护（引擎 probe5 实测口径）。
+
+    0 层起步：end1 结算 1 层 / impression 净+1（fresh 存活）；end2 结算 2 层 /
+    旧层 -1 / impression 净 0；end3 同 end2（永久）。sim 结算层 1,2,2 ↔ 引擎
+    B 场景 score 35,74,50（=1×35 / 2×37 / 2×25 属性倍率）逐层配对。
+    """
+    sim, state = _stage15_sim("turn_end_impression")
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert sim.buffs.impression == 0
+    layers = []
+    for k in range(3):
+        score0 = sim.score
+        sim.step(None)
+        state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+        layers.append(sim.score - score0)
+        assert sim.buffs.impression == 1 and state.impression == 1
+        _assert_mirror(sim, state)
+    assert layers == [1, 2, 2]
+
+
+def test_turn_end_impression_mixed_sources() -> None:
+    """混合渠道：立即好印象（路易波士茶 +3）走既有衰减口径，附魔 +1 走 fresh。
+
+    引擎 C 场景 end1 结算 4 层（3+1）；sim 同。end2 起立即渠道按既有 sim 口径
+    （下一回合开始 -1）衰减、附魔渠道 fresh 保护——与引擎的通用 fresh 保护存在
+    既有差一回合缺口（卡/立即渠道，engine-gap 已记），不在阶段1.5 范围。
+    """
+    drink = DrinkSpec("混合", 0, "multi", 0, effects=(
+        DrinkEffect(kind="impression", value=3, effect_type="ExamReview"),
+        DrinkEffect(kind="turn_end_impression", value=1, turns=-1,
+                    effect_type="ExamStatusEnchant"),
+    ))
+    sim, state = _mirror(drink)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert sim.buffs.impression == 3
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    assert sim.score == 4  # 结算 3+1 层（附魔在结算前）
+    assert sim.buffs.impression == 3  # 立即 3→2（既有口径）+ 附魔 fresh 1 存活
+    _assert_mirror(sim, state)
+
+
+def test_turn_start_full_power_effect() -> None:
+    sim, state = _stage15_sim("turn_start_full_power")
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert sim.stance.full_power_point == 0  # 登记不立即加
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    assert sim.stance.full_power_point == 1
+    assert state.stance[3] == 1
+    assert sim.full_power_point_total == 1
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    assert sim.stance.full_power_point == 2 and state.stance[3] == 2
+    _assert_mirror(sim, state)
+
+
+def test_search_hold_effect() -> None:
+    """热绿茶 move：deck_grave 选白值最高 1 张进保留区（Select 玩家选择，rng=none）。"""
+    from gkagent.sim.hold import HOLD_LIMIT
+
+    hi = CardSpec("高分", 0, 9)
+    lo = CardSpec("低分", 0, 1)
+    deck = [lo, hi] + [CardSpec("占位", 0, 0)] * 4
+    eff = DrinkEffect(kind="search_hold", value=1, search="p_card_search-deck_grave",
+                      move_to="hold", effect_type="ExamCardMove")
+    drink = DrinkSpec("热绿茶", 0, "multi", 0, effects=(eff,))
+    sim, state = _mirror(drink, deck=deck)
+    deck_n0 = len(sim.deck)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert [c.name for c in sim.held] == ["高分"]
+    assert [c.name for c in state.held] == ["高分"]
+    # 高分来自牌堆/弃牌（初始洗牌可能把低分抽进手牌）：牌堆恰好减 1。
+    assert hi not in sim.deck and len(sim.deck) == deck_n0 - 1
+    _assert_mirror(sim, state)
+    # 保留区上限 2：再喝两瓶（3 张候选）→ 最旧进弃牌堆。
+    drink2 = DrinkSpec("热绿茶", 0, "multi", 0, uses=3, effects=(eff,))
+    sim2, state2 = _mirror(drink2, deck=[CardSpec(f"卡{i}", 0, i) for i in range(6)])
+    for _ in range(3):
+        sim2.use_drink(0)
+        state2 = use_drink_state(state2, 0)
+    assert len(sim2.held) == HOLD_LIMIT == len(state2.held)
+    assert len(sim2.discard) == 1 and len(state2.discard) == 1
+    _assert_mirror(sim2, state2)
+
+
+def test_search_hold_empty_noop() -> None:
+    eff = DrinkEffect(kind="search_hold", value=1, search="p_card_search-deck_grave",
+                      move_to="hold", effect_type="ExamCardMove")
+    drink = DrinkSpec("热绿茶", 0, "multi", 0, effects=(eff,))
+    sim, state = _mirror(drink, deck=[])
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    assert sim.held == [] and state.held == ()
+    assert sim.drink_uses == [0]
+    _assert_mirror(sim, state)
+
+
+def test_preservation_stance_direct() -> None:
+    """温存指針直给（value1=2 → save2 / 1 → save1），走 PItemDelta.stances 渠道。"""
+    for value, level in ((2, 2), (1, 1)):
+        eff = DrinkEffect(kind="preservation", value=value, effect_type="ExamPreservation")
+        drink = DrinkSpec("温存", 0, "multi", 0, effects=(eff,))
+        sim, state = _mirror(drink)
+        sim.use_drink(0)
+        state = use_drink_state(state, 0)
+        assert str(sim.stance.stance) == "save" and sim.stance.save_level == level
+        assert state.stance[0] == "save" and state.stance[2] == level
+        _assert_mirror(sim, state)
+    # 温存 2 段階：出牌体力消耗 ×0.25（stance.stamina_cost_multiplier 既有口径）。
+    from gkagent.sim.stance import stamina_cost_multiplier
+
+    assert stamina_cost_multiplier(sim.stance) == 0.5  # value=1 最后一轮
+
+
+def test_preservation_cost_multiplier() -> None:
+    eff = DrinkEffect(kind="preservation", value=2, effect_type="ExamPreservation")
+    drink = DrinkSpec("热绿茶", 0, "multi", 0, effects=(eff,))
+    sim, state = _mirror(drink, deck=[CardSpec("打分", 8, 0)] * 6)
+    sim.use_drink(0)
+    state = use_drink_state(state, 0)
+    from gkagent.sim.expectimax import effective_cost
+
+    card = sim.hand[0]
+    assert effective_cost(state, card) == 2  # ceil(8 × 0.25)，向上取整既有口径
+    _assert_mirror(sim, state)
+
+
+def test_stage15_rng_caliber_deterministic() -> None:
+    from gkagent.sim.drinks import rng_caliber
+
+    for kind in ("turn_end_focus", "turn_end_impression", "turn_end_aggressive",
+                 "turn_start_full_power", "search_hold", "preservation"):
+        cal = rng_caliber((DrinkEffect(kind=kind, value=1, rng="none"),))
+        assert cal["deterministic"] is True, kind
+
+
+# ------------------------------------------------- 阶段1.5：引擎 oracle 配对
+PROBE5_SCRIPT = ROOT / "data" / "_drinks_probe5.py"
+PROBE5_JSON = ROOT / "data" / "_drinks_probe5.json"
+
+
+@pytest.fixture(scope="module")
+def probe5() -> dict:
+    """引擎 oracle 逐瓶探针（data/_drinks_probe5.py 不提交；缺失时 skip）。"""
+    if not PROBE5_SCRIPT.is_file():
+        pytest.skip("缺少 data/_drinks_probe5.py（探针不提交）")
+    if not (RINAMI / "W9").is_dir():
+        pytest.skip("缺少实机样本 data/_rinami_live/W9（不提交）")
+    if not _engine_available():
+        pytest.skip("缺少引擎核心 gkmscore.dll 或 data/bench_repo")
+    proc = subprocess.run(
+        [sys.executable, str(PROBE5_SCRIPT)],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600,
+    )
+    assert proc.returncode == 0, f"probe5 失败：{proc.stderr}\n{proc.stdout}"
+    return json.loads(PROBE5_JSON.read_text(encoding="utf-8"))
+
+
+def test_probe5_all_bottles_pass(probe5) -> None:
+    """6 瓶（5 批次 + 焙茶）确定式段 rng_advances=0 + 结构增量全 PASS。"""
+    assert probe5["all_pass"] is True
+    assert len(probe5["bottles"]) == 6
+    for rec in probe5["bottles"]:
+        assert rec["drink_rng_advances"] == 0, rec["id"]
+        assert rec["all_pass"] is True, (rec["id"], rec["checks"])
+
+
+def test_probe5_drink_deltas_match_sim(probe5) -> None:
+    """喝一瓶前后状态增量 ↔ sim 逐效果配对（指針/保留区/全力值/立即层数）。"""
+    cat = get_catalog()
+    for rec in probe5["bottles"]:
+        spec = cat.spec_for(rec["id"])
+        assert spec is not None
+        deck = [CardSpec("占位", 0, 0)] * 6
+        sim = LessonSim(
+            list(deck),
+            LessonConfig(turns=12, stamina=35, target_clear=1, stamina_max=35,
+                         drinks=(spec,), hand_size=3),
+            rng_seed=0,
+        )
+        sim.use_drink(0)
+        d = rec["drink_delta"]
+        # 立即增量：附魔类 0（登记）；焙茶 fpp+2；热绿茶指針 step2。
+        assert sim.buffs.focus == d.get("focus", 0), rec["id"]
+        assert sim.buffs.impression == d.get("impression", 0), rec["id"]
+        assert sim.motivation == d.get("aggressive", 0), rec["id"]
+        assert sim.stance.full_power_point == d.get("fpp", 0), rec["id"]
+        assert sim.stance.save_level == d.get("stance_step", 0), rec["id"]
+        if rec["id"] == "pdrink_03-2-007":
+            assert len(sim.held) == rec["drink_hold_delta"] == 1
+            assert str(sim.stance.stance) == "save"
+        if rec["id"] == "pdrink_03-1-010":
+            assert str(sim.stance.stance) == "save" and sim.stance.save_level == 1
+
+
+def test_probe5_tea_decay_trajectory_pairing(probe5) -> None:
+    """茶附魔好印象轨迹 ↔ 引擎 B 场景：impression 1,1,1 / 结算层 1,2,2。"""
+    rows = {r["step"]: r for r in probe5["decay"]["B_tea"]}
+    engine_imp = [rows[f"end{k}"]["impression"] for k in (1, 2, 3)]
+    assert engine_imp == [1, 1, 1]
+    engine_gains = [rows["end1"]["score"],
+                    rows["end2"]["score"] - rows["end1"]["score"],
+                    rows["end3"]["score"] - rows["end2"]["score"]]
+    assert all(g > 0 for g in engine_gains)
+    # sim 同口径：结算层 1,2,2（引擎分 = 层 × 当回合属性倍率，层数逐位配对）。
+    spec = get_catalog().spec_for("pdrink_02-3-006")
+    sim = LessonSim(
+        [CardSpec("占位", 0, 0)] * 12,
+        LessonConfig(turns=4, stamina=30, target_clear=100, drinks=(spec,), hand_size=3),
+        rng_seed=0,
+    )
+    sim.use_drink(0)
+    layers, imps = [], []
+    for _ in range(3):
+        s0 = sim.score
+        sim.step(None)
+        layers.append(sim.score - s0)
+        imps.append(sim.buffs.impression)
+    assert layers == [1, 2, 2] and imps == engine_imp
+    # 引擎结算层数 = score_gain / 当回合倍率（35/35=1, 74/37=2, 50/25=2）——
+    # 倍率未知但层数比一致：gain2/gain1 ≈ 2×(mult2/mult1)，这里只断言层数轨迹。
+
+
+def test_probe5_hot_green_tea_select_is_player_choice(probe5) -> None:
+    """热绿茶 Select 选牌事件：greedy_select_policy 玩家选择代理、候选∈deck_grave、不掷点。"""
+    rec = next(r for r in probe5["bottles"] if r["id"] == "pdrink_03-2-007")
+    assert len(rec["selects"]) == 1
+    sel = rec["selects"][0]
+    assert sel["produce_card_search_id"] == "p_card_search-deck_grave"
+    assert sel["rule"] == "greedy_select_policy"
+    assert sel["pick_min"] == sel["pick_max"] == 1
+    assert len(sel["picked_numbers"]) == 1
+    assert sel["picked_numbers"][0] in sel["candidate_numbers"]
+    # sim 侧玩家选择代理 = hold_pick 白值降序（与引擎 greedy 是两种确定性代理，
+    # 真实选取由玩家决定；结构增量 hold+1/deck-1 已在 deltas 测试配对）。
 
 
 # --------------------------------------------------------------------- opt-in 接线

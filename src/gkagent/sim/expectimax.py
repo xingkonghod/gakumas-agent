@@ -79,7 +79,13 @@ from gkagent.sim.lesson import (
     greedy_policy,
     safe_ceil,
 )
-from gkagent.sim.drinks import DrinkEffect, effects_to_delta
+from gkagent.sim.drinks import (
+    TURN_ENCHANT_KINDS,
+    DrinkEffect,
+    add_turn_enchant,
+    effects_to_delta,
+    tick_turn_enchants,
+)
 from gkagent.sim.p_items import (
     CARD_PLAY,
     EXAM_START,
@@ -292,6 +298,14 @@ class ExpectState:
     # ((每回合抽牌张数, 剩余回合), …)，-1 = 永久；回合开始额外抽 Σ 张
     # （start_turn_state），回合末倒计时（end_turn_state）。
     turn_start_draw: tuple[tuple[int, int], ...] = ()
+    # ---- M6 阶段1.5（2026-11-26）：饮料回合边界附魔 buff（与 LessonSim 双镜）----
+    # ((kind, 数值, 剩余回合), …)，-1 = 永久；kind ∈ TURN_ENCHANT_KINDS。
+    # turn_end_*（集中/好印象/干劲）在 end_turn_state 好印象结算**之前**加算；
+    # turn_start_full_power 在 start_turn_state 加全力值；回合末倒计时。
+    turn_enchants: tuple[tuple[str, int, int], ...] = ()
+    # M6 阶段1.5：附魔渠道好印象 fresh 保护计数（与 LessonSim 双镜）：end_turn_state
+    # 衰减只扣普通层，fresh 层受保护并入普通层（引擎 endTurn freshBuffs 口径）。
+    review_enchant_fresh: int = 0
     # 自尊剩余回合（prideTurns：回合末 -1；>0 时 resolveScore f 加算
     # min(min(好印象,干劲)×20, 500) 千分比）。
     pride_turns: int = 0
@@ -477,6 +491,9 @@ class ExpectState:
             self.pride_turns,
             # M6：饮料 timed 回合开始抽牌（影响后续抽牌）
             self.turn_start_draw,
+            # M6 阶段1.5：饮料回合边界附魔 buff（影响后续回合边界结算）
+            self.turn_enchants,
+            self.review_enchant_fresh,
             # P1-4：低下状态无效（影响后续 debuff 施加）
             self.nullify_debuff,
             # P1-7：元气增加无效 / 不安（影响后续元气获得）/ 延迟生效增量
@@ -743,6 +760,9 @@ def sim_from_state(
     sim.pride_turns = int(state.pride_turns)
     # M6：饮料 timed 回合开始抽牌（rollout 必须带上，否则回合开始抽牌数与搜索不一致）
     sim.turn_start_draw = tuple(state.turn_start_draw)
+    # M6 阶段1.5：饮料回合边界附魔 buff（rollout 必须带上，与搜索一致）
+    sim.turn_enchants = tuple(state.turn_enchants)
+    sim.review_enchant_fresh = int(state.review_enchant_fresh)
     # P1-4：低下状态无效（rollout 必须带上，否则 debuff 拦截与搜索不一致）
     sim.nullify_debuff = int(state.nullify_debuff)
     # P1-7：元气增加无效 / 不安 / 延迟生效增量（rollout 必须带上，与搜索一致）
@@ -989,24 +1009,28 @@ def _drink_worth_expanding(state: ExpectState, drink: DrinkSpec) -> bool:
 
     理由：饮料不占出牌次数，但每展开一个饮料分支就多一层递归；大多数时候
     （没有后续可打分牌/体力本来够）喝不喝对档位效用几乎无差。只保留：
-    - score 饮料：直接加分，总值得算；
+    - score / turn_end_impression 饮料：直接加分（后者回合末好印象结算），总值得算；
     - focus/condition/score_buff/extra_plays：本回合还有出牌位且有正分牌；
-    - draw/search_move/turn_start_draw：能补牌（即便当前手牌无正分牌）；
-    - stamina：本回合有出牌位、且有正分牌当前付不起（喝了才解锁）。
+    - draw/search_move/turn_start_draw/search_hold：能补牌（即便当前手牌无正分牌）；
+    - stamina：本回合有出牌位、且有正分牌当前付不起（喝了才解锁）；
+    - 阶段1.5 回合边界附魔（turn_end_focus/aggressive、turn_start_full_power）与
+      preservation 指針直给：改善后续出牌（费用倍率/层数），有出牌位+正分牌时展开。
     这样分支数从「每节点 × 库存瓶数」降到通常 0–1 个。
     """
     kinds = _drink_kinds(drink)
-    if "score" in kinds:
+    if "score" in kinds or "turn_end_impression" in kinds:
         return True
     if state.plays_left <= 0:
         return False
     score_cards = [card for card in state.hand if card.score > 0]
     if not score_cards:
         # 补牌类即使当前手牌无正分牌也值得展开（可能抽到/移入正分牌）。
-        return bool(kinds & {"draw", "search_move", "turn_start_draw"})
+        return bool(kinds & {"draw", "search_move", "turn_start_draw", "search_hold"})
     if kinds & {
         "focus", "condition", "score_buff", "extra_plays",
         "draw", "search_move", "turn_start_draw", "vitality",
+        "turn_end_focus", "turn_end_aggressive", "turn_start_full_power",
+        "search_hold", "preservation",
     }:
         return True
     if "stamina" in kinds:
@@ -1032,9 +1056,11 @@ def _candidate_drinks(state: ExpectState) -> list[int]:
         if "stamina" in kinds:
             priority = 3
         elif kinds & {"focus", "condition", "score_buff", "extra_plays",
-                      "draw", "search_move", "turn_start_draw", "vitality"}:
+                      "draw", "search_move", "turn_start_draw", "vitality",
+                      "turn_end_focus", "turn_end_aggressive",
+                      "turn_start_full_power", "search_hold", "preservation"}:
             priority = 2
-        elif "score" in kinds:
+        elif "score" in kinds or "turn_end_impression" in kinds:
             priority = 1
         useful.append((priority, index))
     if not useful:
@@ -1125,6 +1151,16 @@ def use_drink_state(state: ExpectState, index: int) -> ExpectState:
             )
         elif eff.kind == "search_move":
             new_state = _drink_search_move_state(new_state, eff)
+        elif eff.kind in TURN_ENCHANT_KINDS and eff.value > 0:
+            # 阶段1.5：回合边界附魔 buff 登记（与 LessonSim.use_drink 双镜）。
+            new_state = replace(
+                new_state,
+                turn_enchants=add_turn_enchant(
+                    new_state.turn_enchants, eff.kind, eff.value, eff.turns
+                ),
+            )
+        elif eff.kind == "search_hold":
+            new_state = _drink_search_hold_state(new_state, eff)
     return new_state
 
 
@@ -1231,6 +1267,57 @@ def _drink_search_move_state(state: ExpectState, eff: DrinkEffect) -> ExpectStat
         deck=deck,
         discard=discard,
         known_draw=known_draw,
+    )
+
+
+def _drink_search_hold_state(state: ExpectState, eff: DrinkEffect) -> ExpectState:
+    """M6 阶段1.5：热绿茶 deck_grave→hold（与 ``LessonSim._drink_search_hold`` 双镜）。
+
+    Select 玩家选牌：按白值分降序确定性选 ``eff.value`` 张（``hold.hold_pick``，
+    与卡 holdSelected 的 ``_apply_hold_state`` 同口径）；移入后 enforceHoldLimit
+    （上限 2，最旧进弃牌堆）。牌堆移牌同步 ``known_draw``（reversed 对应），
+    弃牌堆移牌同步 ``discard_order``。候选 0 张则 no-op。
+    """
+    candidates = list(state.deck) + list(state.discard)
+    if not candidates:
+        return state
+    held = state.held
+    deck = state.deck
+    discard = state.discard
+    known_draw = state.known_draw
+    discard_order = state.discard_order
+
+    def enforce_limit() -> None:
+        nonlocal held, discard, discard_order
+        while len(held) > HOLD_LIMIT:
+            oldest = held[0]
+            held = held[1:]
+            discard = discard + (oldest,)
+            if discard_order is not None:
+                discard_order = discard_order + (oldest,)
+
+    for picked in hold_pick(candidates, max(1, eff.value)):
+        if picked in deck:
+            deck = _remove_first(deck, picked)
+            if known_draw:
+                drawn = list(known_draw)
+                drawn.reverse()
+                drawn.remove(picked)
+                drawn.reverse()
+                known_draw = tuple(drawn)
+        elif picked in discard:
+            discard = _remove_first(discard, picked)
+            if discard_order is not None:
+                discard_order = _remove_first(discard_order, picked)
+        held = held + (picked,)
+    enforce_limit()
+    return replace(
+        state,
+        deck=deck,
+        discard=discard,
+        held=held,
+        known_draw=known_draw,
+        discard_order=discard_order,
     )
 
 
@@ -2572,6 +2659,24 @@ def start_turn_state(state: ExpectState) -> ExpectState:
     extra_draw = total_timed(state.turn_start_draw)
     if extra_draw > 0:
         state = _drink_draw_state(state, extra_draw)
+    # M6 阶段1.5：饮料回合开始附魔 buff（trigger=exam_start_turn，印度茶全力值+1；
+    # 与 LessonSim._draw_hand 同口径，全力值不影响抽牌，抽牌后结算净状态等价）。
+    fpp_gain = sum(
+        value for kind, value, _turns in state.turn_enchants
+        if kind == "turn_start_full_power"
+    )
+    if fpp_gain:
+        stance = apply_full_power_point(state.stance_state, fpp_gain)
+        state = replace(
+            state,
+            stance=(
+                stance.stance,
+                stance.strong_level,
+                stance.save_level,
+                stance.full_power_point,
+            ),
+            full_power_point_total=state.full_power_point_total + max(0, fpp_gain),
+        )
     state = fire_p_items(state, TURN_INTERVAL)
     # P1-7：延迟生效 P 道具到点结算（与 LessonSim._draw_hand 同口径，turn 阶段）。
     return _fire_delayed_state(state)
@@ -2613,7 +2718,20 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     if state.plays_left > 0:
         cap = state.stamina_max if state.stamina_max > 0 else stamina
         stamina = min(int(cap), stamina + 2)
-    impression = state.impression
+    # M6 阶段1.5：饮料回合结束附魔 buff（与 LessonSim._end_turn 双镜）——
+    # endOfTurn 在好印象结算**之前**触发，茶的「好印象+1」计入本回合结算分。
+    focus = state.focus
+    motivation = state.motivation
+    enchant_impression = 0
+    for kind, value, _turns in state.turn_enchants:
+        if kind == "turn_end_focus":
+            focus += value
+        elif kind == "turn_end_impression":
+            enchant_impression += value
+        elif kind == "turn_end_aggressive":
+            motivation += value
+    impression = state.impression + enchant_impression
+    review_enchant_fresh = state.review_enchant_fresh + enchant_impression
     if impression > 0:
         # B9：好印象追加发动（ExamReviewCountAdd）让结算重复 N+1 次；P 道具持久
         # 分数倍率（参考引擎 resolveScore f/g）也作用在回合末好印象上。
@@ -2638,7 +2756,11 @@ def end_turn_state(state: ExpectState) -> ExpectState:
                     safe_ceil(value * max(1.0 - score_debuff / 1000.0, 0.0))
                 )
             score += int(value)
-        impression -= 1
+        # M6 阶段1.5：附魔 fresh 层本边界受保护（与 LessonSim._draw_hand 双镜）；
+        # review_enchant_fresh==0 时与旧行为逐位一致（impression -= 1）。
+        stale = max(impression - review_enchant_fresh, 0)
+        impression = max(stale - 1, 0) + review_enchant_fresh
+    review_enchant_fresh = 0
     condition_turns = state.condition_turns - 1 if state.condition_turns > 0 else 0
     perfect_condition_turns = (
         state.perfect_condition_turns - 1 if state.perfect_condition_turns > 0 else 0
@@ -2681,6 +2803,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     hand_decreases = tick_timed(state.hand_decreases)
     # M6：饮料 timed 回合开始抽牌倒计时（与 LessonSim._end_turn 同口径）
     turn_start_draw = tick_timed(state.turn_start_draw)
+    # M6 阶段1.5：饮料回合边界附魔 buff 倒计时（与 LessonSim._end_turn 同口径）
+    turn_enchants = tick_turn_enchants(state.turn_enchants)
     modifiers = tuple(sorted(timed_dict_tick(dict(state.modifiers)).items()))
     half_cost_turns = state.half_cost_turns - 1 if state.half_cost_turns > 0 else 0
     double_cost_turns = (
@@ -2705,7 +2829,11 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         state,
         score=score,
         stamina=stamina,
+        focus=focus,
+        motivation=motivation,
         impression=impression,
+        turn_enchants=turn_enchants,
+        review_enchant_fresh=review_enchant_fresh,
         condition_turns=condition_turns,
         perfect_condition_turns=perfect_condition_turns,
         poor_condition_turns=poor_condition_turns,
@@ -3621,6 +3749,9 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         pride_turns=max(int(getattr(sim, "pride_turns", 0)), 0),
         # M6：饮料 timed 回合开始抽牌（与 sim_from_state 双镜）
         turn_start_draw=tuple(getattr(sim, "turn_start_draw", ())),
+        # M6 阶段1.5：饮料回合边界附魔 buff（与 sim_from_state 双镜）
+        turn_enchants=tuple(getattr(sim, "turn_enchants", ())),
+        review_enchant_fresh=max(int(getattr(sim, "review_enchant_fresh", 0)), 0),
         # P1-4：低下状态无效（与 sim_from_state 双镜）
         nullify_debuff=max(int(getattr(sim, "nullify_debuff", 0)), 0),
         # P1-7：元气增加无效 / 不安 / 延迟生效增量（与 sim_from_state 双镜）

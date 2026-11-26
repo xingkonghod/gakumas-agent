@@ -229,9 +229,12 @@ from gkagent.sim.p_items import (
     total_timed,
 )
 from gkagent.sim.drinks import (
+    TURN_ENCHANT_KINDS,
     DrinkEffect,
+    add_turn_enchant,
     effects_to_delta,
     legacy_effect,
+    tick_turn_enchants,
 )
 from gkagent.sim.stance import (
     FULL_POWER_POINT_COST,
@@ -621,6 +624,19 @@ class LessonSim:
         # ExamCardDraw（trigger=start_play，W9 苏打「之后 5 回合回合开始后抽技能卡」）。
         # 回合开始抽牌后额外抽 Σ 张（_draw_hand）；回合末倒计时（_end_turn）。
         self.turn_start_draw: tuple[tuple[int, int], ...] = ()
+        # ---- M6 阶段1.5（2026-11-26）：饮料回合边界附魔 buff（与 ExpectState 双镜）----
+        # ((kind, 数值, 剩余回合), …)，-1 = 永久。kind ∈ TURN_ENCHANT_KINDS：
+        # 严选初星玛奇朵/茶/拼配咖啡「以后回合结束时集中/好印象/干劲+1」
+        # （trigger=exam_end_turn，endOfTurn 在好印象结算**之前**触发）；
+        # 严选初星印度茶「以后回合开始时全力值+1」（trigger=exam_start_turn）。
+        self.turn_enchants: tuple[tuple[str, int, int], ...] = ()
+        # M6 阶段1.5：附魔渠道好印象 fresh 保护计数。引擎 oracle（probe5）实测：
+        # endTurn 好印象衰减有 freshBuffs 保护——当回合获得的层数本回合末不扣、
+        # 下一回合末才扣（每回合 -1）。茶「回合结束时好印象+1」在结算**前**触发，
+        # 该 +1 当回合末受保护。本计数只追踪附魔渠道的 fresh 层；卡/立即饮料渠道
+        # 沿用既有「下一回合开始 -1」口径（旧行为逐位不变）。衰减时 fresh 层并入
+        # 普通层（_draw_hand），随后按普通口径衰减。
+        self.review_enchant_fresh: int = 0
         # 自尊剩余回合（参考 prideTurns：EOT_DECREMENT_FIELDS 回合末 -1；
         # >0 时 resolveScore f 加算 min(min(好印象,干劲)×20, 500) 千分比）。
         self.pride_turns: int = 0
@@ -914,6 +930,14 @@ class LessonSim:
                     )
             elif eff.kind == "search_move":
                 self._drink_search_move(eff)
+            elif eff.kind in TURN_ENCHANT_KINDS:
+                # 阶段1.5：回合边界附魔 buff 登记（永久/timed，回合边结算）。
+                if eff.value > 0:
+                    self.turn_enchants = add_turn_enchant(
+                        self.turn_enchants, eff.kind, eff.value, eff.turns
+                    )
+            elif eff.kind == "search_hold":
+                self._drink_search_hold(eff)
         self.drink_uses[index] -= 1
         self.drinks_used_this_turn += 1
 
@@ -944,6 +968,25 @@ class LessonSim:
         elif chosen in self.discard:
             self.discard.remove(chosen)
         self.hand.append(chosen)
+
+    def _drink_search_hold(self, eff: DrinkEffect) -> None:
+        """M6 阶段1.5：热绿茶 ``ExamCardMove`` deck_grave→hold（Select 玩家选牌）。
+
+        从牌堆+弃牌堆按白值分降序确定性选 ``eff.value`` 张移入保留区
+        （``hold.hold_pick``，与卡 holdSelected 同口径；引擎走 select_policy
+        玩家选择、不掷点，oracle rng_advances=0 实测）。移入后 enforceHoldLimit
+        （上限 2，超限最旧进弃牌堆）。候选 0 张则 no-op。
+        """
+        candidates = list(self.deck) + list(self.discard)
+        if not candidates:
+            return
+        for picked in hold_pick(candidates, max(1, eff.value)):
+            if picked in self.deck:
+                self.deck.remove(picked)
+            elif picked in self.discard:
+                self.discard.remove(picked)
+            self.held.append(picked)
+        self._enforce_hold_limit()
 
     def step(self, action: Action) -> None:
         """执行一个动作。
@@ -1901,6 +1944,17 @@ class LessonSim:
         # 回合末体力回复（参考引擎 endTurn 顺序：先回体力，再触发 endOfTurn 效果）
         if self.plays_this_turn < self.plays_per_turn + self.extra_plays:
             self.stamina = min(self.stamina_max, self.stamina + 2)
+        # M6 阶段1.5：饮料回合结束附魔 buff（ExamStatusEnchant trigger=exam_end_turn）。
+        # 参考引擎 endTurn：endOfTurn 效果在好印象结算**之前**触发——茶「回合结束时
+        # 好印象+1」的 +1 计入**本回合**好印象结算分（oracle 逐瓶配对确认）。
+        for kind, value, _turns in self.turn_enchants:
+            if kind == "turn_end_focus":
+                self.buffs.focus += value
+            elif kind == "turn_end_impression":
+                self.buffs.impression += value
+                self.review_enchant_fresh += value
+            elif kind == "turn_end_aggressive":
+                self.motivation += value
         if self.buffs.impression > 0:
             # 好印象结算：ExamReviewMultiple（好印象强化）放大层数；「好印象追加发动」
             # （ExamReviewCountAdd，B9）让这次结算重复 N+1 次（参考引擎
@@ -2002,6 +2056,8 @@ class LessonSim:
         self.hand_decreases = tick_timed(self.hand_decreases)
         # M6：饮料 timed 回合开始抽牌倒计时（与 score_buffs 同口径）。
         self.turn_start_draw = tick_timed(self.turn_start_draw)
+        # M6 阶段1.5：饮料回合边界附魔 buff 倒计时（永久 -1 保持）。
+        self.turn_enchants = tick_turn_enchants(self.turn_enchants)
         self.modifiers = timed_dict_tick(self.modifiers)
         if self.half_cost_turns > 0:
             self.half_cost_turns -= 1
@@ -2168,9 +2224,14 @@ class LessonSim:
         self.leisure_reserves = remaining
 
     def _draw_hand(self, *, keep_extra_plays: bool = False) -> None:
-        # 新手牌 = 新回合：好印象在**下一回合开始时** -1（回合末已按当前层数加分）
+        # 新手牌 = 新回合：好印象在**下一回合开始时** -1（回合末已按当前层数加分）。
+        # M6 阶段1.5：附魔渠道 fresh 层本边界受保护（引擎 endTurn freshBuffs 口径，
+        # probe5 实测），衰减只扣普通层；随后 fresh 并入普通层（下一边界起按普通
+        # 口径衰减）。review_enchant_fresh==0 时与旧行为逐位一致。
         if self.buffs.impression > 0:
-            self.buffs.impression -= 1
+            stale = max(self.buffs.impression - self.review_enchant_fresh, 0)
+            self.buffs.impression = max(stale - 1, 0) + self.review_enchant_fresh
+        self.review_enchant_fresh = 0
         # 本回合出牌数、额外次数、已喝饮料数从 0 重新计
         # keep_extra_plays 只给构造时用：exam_start P 道具给的次数属于第 1 回合。
         self.plays_this_turn = 0
@@ -2190,6 +2251,13 @@ class LessonSim:
         extra_draw = total_timed(self.turn_start_draw)
         if extra_draw > 0:
             self._draw(extra_draw)
+        # M6 阶段1.5：饮料回合开始附魔 buff（ExamStatusEnchant trigger=exam_start_turn，
+        # 印度茶「以后回合开始时全力值+1」）。参考引擎 startOfTurn 在抽牌前触发；
+        # 全力值不影响抽牌，本模型放在抽牌后结算，回合开始净状态等价。
+        for kind, value, _turns in self.turn_enchants:
+            if kind == "turn_start_full_power":
+                self.stance = apply_full_power_point(self.stance, value)
+                self.full_power_point_total += max(0, value)
         self._fire_p_items(TURN_INTERVAL)
         # P1-7：延迟生效 P 道具到点结算（参考嵌套 at:turn / delay:N 在回合开始的
         # turn 阶段触发，位于 startOfTurn/afterStartOfTurn 之后）。

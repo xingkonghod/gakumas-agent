@@ -263,6 +263,9 @@ def build_drink(entry: dict, dmap: dict, effects: dict, enchants: dict,
             move_to = str(node.get("movePositionType") or "").replace(
                 "ProduceCardMovePositionType_", ""
             ).lower()
+            pick = str(node.get("pickRangeType") or "").replace(
+                "ProducePickRangeType_", ""
+            )
             inner: list[dict] = []
             enchant_id = str(node.get("produceExamStatusEnchantId") or "")
             if enchant_id:
@@ -281,7 +284,7 @@ def build_drink(entry: dict, dmap: dict, effects: dict, enchants: dict,
                         })
             eff = classify_drink_effect(
                 et, effect_values(node), search=search, move_to=move_to,
-                inner=inner, label=et,
+                pick=pick, inner=inner, label=et,
             )
             specs.append(eff)
             rec = {
