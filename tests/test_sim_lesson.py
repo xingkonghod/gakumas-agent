@@ -102,8 +102,8 @@ def test_condition_multiplies_by_1_5_and_rounds_up() -> None:
     sim.step(_index(sim, "打分"))
     assert sim.score == 14
     assert sim.stamina == 6
-    # 本回合结束：好调 -1，剩余 1 回合仍可在下一回合生效
-    assert sim.buffs.condition_turns == 1
+    # M8：本回合获得的好调 fresh 保护，回合末不扣（引擎 _m8_fresh_cond.py 口径）→ 仍 2。
+    assert sim.buffs.condition_turns == 2
 
 
 def test_audition_multiplier_matches_captured_real_machine_scores() -> None:
@@ -346,7 +346,8 @@ def test_skip_ends_turn_and_settles_impression() -> None:
 
     sim.step(None)  # SKIP
     assert sim.score == 3
-    assert sim.buffs.impression == 2
+    # M8：本回合获得的好印象 fresh 保护，回合末不扣（引擎 probe5 A 口径）→ 仍 3。
+    assert sim.buffs.impression == 3
     assert sim.turns_left == 1
 
 
@@ -407,7 +408,10 @@ def test_exam_card_draw_refills_from_discard_when_deck_empty() -> None:
 
 
 def test_exam_review_scores_at_turn_end_then_decays() -> None:
-    """好印象每回合结束先按层数加分、再 -1；3 层连续两回合 → +3、+2。"""
+    """好印象回合末按层数加分；M8 fresh 保护：获得当回合末不扣，下一回合末才 -1。
+
+    3 层 t1 获得：end1 +3（fresh 存活 3）/ end2 +3（旧层 3→2）→ 累计 6。
+    """
     sim = LessonSim(
         [CardSpec("好印象", 0, 0, impression=3), CardSpec("空白", 0, 0)],
         _config(turns=3, stamina=10, hand_size=2),
@@ -417,13 +421,13 @@ def test_exam_review_scores_at_turn_end_then_decays() -> None:
     assert sim.score == 0                  # 出牌本身不加分
     assert sim.buffs.impression == 3
 
-    sim.step(None)                         # 回合结束：+3，层数 3 → 2
+    sim.step(None)                         # 回合结束：+3，fresh 保护层数仍 3
     assert sim.score == 3
-    assert sim.buffs.impression == 2
+    assert sim.buffs.impression == 3
 
-    sim.step(None)                         # 再一回合结束：+2，层数 2 → 1
-    assert sim.score == 5
-    assert sim.buffs.impression == 1
+    sim.step(None)                         # 再一回合结束：+3，旧层 3 → 2
+    assert sim.score == 6
+    assert sim.buffs.impression == 2
 
 
 def test_exam_review_stops_scoring_at_zero() -> None:
@@ -1163,8 +1167,8 @@ def test_condition_additive_fix_adds_turns_to_condition_gain() -> None:
 
     sim.step(0)
     assert sim.buffs.condition_additive == 2
-    sim.step(0)  # (3 + 2) = 5，回合结束 -1 → 4
-    assert sim.buffs.condition_turns == 4
+    sim.step(0)  # (3 + 2) = 5，M8 fresh 保护回合末不扣 → 仍 5
+    assert sim.buffs.condition_turns == 5
     assert sim.buffs.condition_additive_turns == 1
 
     same = LessonSim(
@@ -1176,7 +1180,7 @@ def test_condition_additive_fix_adds_turns_to_condition_gain() -> None:
         _config(turns=2, stamina=10, hand_size=1),
     )
     same.step(0)
-    assert same.buffs.condition_turns == 4  # 同一张牌：先追加再结算 (3+2)-1
+    assert same.buffs.condition_turns == 5  # 同一张牌：先追加再结算 (3+2)，M8 fresh 不扣
 
 
 def test_full_power_lesson_multiple_boosts_full_power_conversion() -> None:

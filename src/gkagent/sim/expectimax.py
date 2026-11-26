@@ -303,9 +303,13 @@ class ExpectState:
     # turn_end_*（集中/好印象/干劲）在 end_turn_state 好印象结算**之前**加算；
     # turn_start_full_power 在 start_turn_state 加全力值；回合末倒计时。
     turn_enchants: tuple[tuple[str, int, int], ...] = ()
-    # M6 阶段1.5：附魔渠道好印象 fresh 保护计数（与 LessonSim 双镜）：end_turn_state
-    # 衰减只扣普通层，fresh 层受保护并入普通层（引擎 endTurn freshBuffs 口径）。
-    review_enchant_fresh: int = 0
+    # M8：好印象**通用** fresh 保护计数（与 LessonSim 双镜，原 M6 仅附魔渠道）：
+    # 全部渠道（卡/立即饮料/P 道具/附魔）本回合获得量；end_turn_state 衰减只扣普通层，
+    # fresh 层受保护并入普通层（引擎 endTurn freshBuffs / review_added_this_turn 口径）。
+    review_fresh: int = 0
+    # M8：好调通用 fresh 保护计数（与 LessonSim 双镜）：本回合获得量本回合末不扣，
+    # 叠加只保护新增部分（引擎 parameter_buff_passing_turn_start，_m8_fresh_cond.py 实测）。
+    condition_fresh: int = 0
     # ---- M6 阶段2 batch2（与 LessonSim 双镜，probe6 oracle 实测）----
     # 黑醋汁 cost0 次数（正费牌整费归零，0 费牌不耗；永久直到耗尽）。
     zero_cost_charges: int = 0
@@ -499,7 +503,8 @@ class ExpectState:
             self.turn_start_draw,
             # M6 阶段1.5：饮料回合边界附魔 buff（影响后续回合边界结算）
             self.turn_enchants,
-            self.review_enchant_fresh,
+            self.review_fresh,
+            self.condition_fresh,
             # M6 阶段2 batch2：cost0 / 再发动次数（影响后续牌费/算分）
             self.zero_cost_charges,
             self.encore_charges,
@@ -780,7 +785,8 @@ def sim_from_state(
     sim.turn_start_draw = tuple(state.turn_start_draw)
     # M6 阶段1.5：饮料回合边界附魔 buff（rollout 必须带上，与搜索一致）
     sim.turn_enchants = tuple(state.turn_enchants)
-    sim.review_enchant_fresh = int(state.review_enchant_fresh)
+    sim.review_fresh = int(state.review_fresh)
+    sim.condition_fresh = int(state.condition_fresh)
     # M6 阶段2 batch2：cost0 / 再发动（rollout 必须带上，与搜索一致）
     sim.zero_cost_charges = int(state.zero_cost_charges)
     sim.encore_charges = int(state.encore_charges)
@@ -1132,6 +1138,7 @@ def use_drink_state(state: ExpectState, index: int) -> ExpectState:
         # 旧单效果路径（逐位不变）：stamina/focus/condition/score。
         focus = state.focus
         condition_turns = state.condition_turns
+        condition_fresh = state.condition_fresh
         score = state.score
         if drink.effect_type == "stamina":
             stamina = min(state.stamina_max, stamina + drink.value)
@@ -1139,6 +1146,7 @@ def use_drink_state(state: ExpectState, index: int) -> ExpectState:
             focus += drink.value
         elif drink.effect_type == "condition":
             condition_turns += drink.value
+            condition_fresh += drink.value  # M8：立即饮料好调计 fresh（与 LessonSim 双镜）
         else:  # score
             score += drink.value
         return replace(
@@ -1146,6 +1154,7 @@ def use_drink_state(state: ExpectState, index: int) -> ExpectState:
             stamina=stamina,
             focus=focus,
             condition_turns=condition_turns,
+            condition_fresh=condition_fresh,
             score=score,
             drink_uses=tuple(uses),
             drinks_used_this_turn=state.drinks_used_this_turn + 1,
@@ -1662,8 +1671,11 @@ def _apply_card_effects(state: ExpectState, played: CardSpec) -> tuple[ExpectSta
     state = replace(
         state,
         condition_turns=state.condition_turns + condition_gain,
+        # M8：本回合获得的好调/好印象计 fresh（卡渠道，与 LessonSim._apply_card_buffs 双镜）。
+        condition_fresh=state.condition_fresh + max(condition_gain, 0),
         focus=state.focus + focus_gain,
         impression=state.impression + impression_gain,
+        review_fresh=state.review_fresh + max(impression_gain, 0),
         vitality=state.vitality + vitality_gain,
         motivation=state.motivation + motivation_gain,
         extra_plays=state.extra_plays + effect_card.extra_play,
@@ -2474,8 +2486,10 @@ def _apply_p_delta_state(
     extra_plays = state.extra_plays + int(delta.extra_plays)
     vitality = state.vitality
     impression = state.impression
+    review_fresh = state.review_fresh
     focus = state.focus
     condition_turns = state.condition_turns
+    condition_fresh = state.condition_fresh
     motivation = state.motivation
     stance = state.stance_state
     full_power_point_total = state.full_power_point_total
@@ -2486,6 +2500,7 @@ def _apply_p_delta_state(
             vitality = 0
         elif key == "impression":
             impression = 0
+            review_fresh = 0  # M8：层数清零则 fresh 计数同清
         elif key == "focus":
             focus = 0
         elif key == "aggressive":
@@ -2494,6 +2509,7 @@ def _apply_p_delta_state(
             stance = replace(stance, full_power_point=0)
         elif key == "parameter_buff":
             condition_turns = 0
+            condition_fresh = 0  # M8：好调清零则 fresh 计数同清
     for key, value in delta.stacks.items():
         value = int(value)
         if key == "vitality":
@@ -2501,6 +2517,8 @@ def _apply_p_delta_state(
             vitality += genki_gate(value, state.nullify_genki_turns, state.unease_turns)
         elif key == "impression":
             impression += value
+            if value > 0:  # M8：P 道具/立即饮料渠道好印象获得计 fresh
+                review_fresh += value
         elif key == "focus":
             focus += value
         elif key == "aggressive":
@@ -2513,6 +2531,8 @@ def _apply_p_delta_state(
             if value > 0:
                 value = safe_ceil(value * state.gain_multiple("condition_gain"))
             condition_turns += value
+            if value > 0:  # M8：P 道具/立即饮料渠道好调获得计 fresh
+                condition_fresh += value
     # P1-7：固定元气（fixedGenki+=）直接进元气，不受无效/不安拦截。
     if delta.fixed_vitality:
         vitality += int(delta.fixed_vitality)
@@ -2713,8 +2733,10 @@ def _apply_p_delta_state(
         vitality=vitality,
         score_growth_all=state.score_growth_all + release_growth_gain,
         impression=max(impression, 0),
+        review_fresh=min(max(review_fresh, 0), max(impression, 0)),
         focus=max(focus, 0),
         condition_turns=condition_turns,
+        condition_fresh=min(max(condition_fresh, 0), max(condition_turns, 0)),
         motivation=max(motivation, 0),
         p_item_uses=tuple(sorted(uses.items())),
         full_power_point_total=full_power_point_total,
@@ -2834,7 +2856,7 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         elif kind == "turn_end_aggressive":
             motivation += value
     impression = state.impression + enchant_impression
-    review_enchant_fresh = state.review_enchant_fresh + enchant_impression
+    review_fresh = state.review_fresh + enchant_impression
     if impression > 0:
         # B9：好印象追加发动（ExamReviewCountAdd）让结算重复 N+1 次；P 道具持久
         # 分数倍率（参考引擎 resolveScore f/g）也作用在回合末好印象上。
@@ -2859,12 +2881,19 @@ def end_turn_state(state: ExpectState) -> ExpectState:
                     safe_ceil(value * max(1.0 - score_debuff / 1000.0, 0.0))
                 )
             score += int(value)
-        # M6 阶段1.5：附魔 fresh 层本边界受保护（与 LessonSim._draw_hand 双镜）；
-        # review_enchant_fresh==0 时与旧行为逐位一致（impression -= 1）。
-        stale = max(impression - review_enchant_fresh, 0)
-        impression = max(stale - 1, 0) + review_enchant_fresh
-    review_enchant_fresh = 0
-    condition_turns = state.condition_turns - 1 if state.condition_turns > 0 else 0
+        # M8：通用 fresh 层本边界受保护（与 LessonSim._draw_hand 双镜，全部渠道）；
+        # review_fresh==0 时与旧行为逐位一致（impression -= 1）。
+        stale = max(impression - review_fresh, 0)
+        impression = max(stale - 1, 0) + review_fresh
+    review_fresh = 0
+    # M8：好调通用 fresh 保护（与 LessonSim._end_turn 双镜，_m8_fresh_cond.py 叠加实测）：
+    # 本回合获得量本回合末不扣，只扣旧层；condition_fresh==0 时与旧行为逐位一致。
+    if state.condition_turns > 0:
+        stale_cond = max(state.condition_turns - state.condition_fresh, 0)
+        condition_turns = max(stale_cond - 1, 0) + state.condition_fresh
+    else:
+        condition_turns = 0
+    condition_fresh = 0
     perfect_condition_turns = (
         state.perfect_condition_turns - 1 if state.perfect_condition_turns > 0 else 0
     )
@@ -2943,7 +2972,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         motivation=motivation,
         impression=impression,
         turn_enchants=turn_enchants,
-        review_enchant_fresh=review_enchant_fresh,
+        review_fresh=review_fresh,
+        condition_fresh=condition_fresh,
         encore_charges=encore_charges,
         encore_turns=encore_turns,
         condition_turns=condition_turns,
@@ -3895,7 +3925,8 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         turn_start_draw=tuple(getattr(sim, "turn_start_draw", ())),
         # M6 阶段1.5：饮料回合边界附魔 buff（与 sim_from_state 双镜）
         turn_enchants=tuple(getattr(sim, "turn_enchants", ())),
-        review_enchant_fresh=max(int(getattr(sim, "review_enchant_fresh", 0)), 0),
+        review_fresh=max(int(getattr(sim, "review_fresh", 0)), 0),
+        condition_fresh=max(int(getattr(sim, "condition_fresh", 0)), 0),
         # M6 阶段2 batch2：cost0 / 再发动（与 sim_from_state 双镜）
         zero_cost_charges=max(int(getattr(sim, "zero_cost_charges", 0)), 0),
         encore_charges=max(int(getattr(sim, "encore_charges", 0)), 0),

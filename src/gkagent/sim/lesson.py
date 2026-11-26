@@ -630,13 +630,21 @@ class LessonSim:
         # （trigger=exam_end_turn，endOfTurn 在好印象结算**之前**触发）；
         # 严选初星印度茶「以后回合开始时全力值+1」（trigger=exam_start_turn）。
         self.turn_enchants: tuple[tuple[str, int, int], ...] = ()
-        # M6 阶段1.5：附魔渠道好印象 fresh 保护计数。引擎 oracle（probe5）实测：
-        # endTurn 好印象衰减有 freshBuffs 保护——当回合获得的层数本回合末不扣、
-        # 下一回合末才扣（每回合 -1）。茶「回合结束时好印象+1」在结算**前**触发，
-        # 该 +1 当回合末受保护。本计数只追踪附魔渠道的 fresh 层；卡/立即饮料渠道
-        # 沿用既有「下一回合开始 -1」口径（旧行为逐位不变）。衰减时 fresh 层并入
-        # 普通层（_draw_hand），随后按普通口径衰减。
-        self.review_enchant_fresh: int = 0
+        # M8（2026-11-26）：好印象**通用** fresh 保护计数（原 M6 阶段1.5 仅附魔渠道，
+        # 现推广到全部渠道）。引擎 oracle 实测（data/_m8_fresh_probe.py G1 卡渠道重复
+        # 获得 / _m8_fresh_probe_run1 G3 P 道具 turn_end / _drinks_probe5_decay.py A 立即
+        # 饮料・B/C 附魔）：endTurn 好印象衰减有 freshBuffs 保护——**当回合获得的层数
+        # 本回合末不扣**（无论卡效果/立即饮料/P 道具/附魔哪个渠道），下一回合末才扣
+        # （每回合 -1）。引擎状态字段 review_added_this_turn 累计本回合所有渠道获得量；
+        # 回合边界 stale = review − added_this_turn 扣 1、fresh 保留，随后 added 清零。
+        # 茶「回合结束时好印象+1」在结算**前**触发，该 +1 当回合末受保护。衰减时 fresh
+        # 层并入普通层（_draw_hand），随后按普通口径衰减。review_fresh==0 时与旧行为逐位一致。
+        self.review_fresh: int = 0
+        # M8：好调通用 fresh 保护计数（与好印象同口径）。引擎 oracle 实测
+        # （_m8_fresh_probe.py G2 单渠道 + _m8_fresh_cond.py 跨回合叠加）：好调
+        # parameter_buff_remaining 当回合获得量本回合末不扣（passing_turn_start 标记），
+        # 叠加时只保护本回合新增部分（旧层照常 -1）——与好印象 stale/fresh 分裂完全同构。
+        self.condition_fresh: int = 0
         # ---- M6 阶段2 batch2（2026-11-26，probe6 oracle 实测，与 ExpectState 双镜）----
         # 黑醋汁 cost0：接下来 N 张**正费**牌整费归零（先于元气吸收）；0 费牌不耗
         # 次数；effectTurn=-1 永久直到次数耗尽（无回合倒计时）。
@@ -1465,6 +1473,9 @@ class LessonSim:
         if condition_gain > 0:
             condition_gain = safe_ceil(condition_gain * self._gain_multiple("condition_gain"))
         self.buffs.condition_turns += condition_gain
+        # M8：本回合获得的好调计 fresh（回合末衰减只扣旧层，见 _end_turn）。
+        if condition_gain > 0:
+            self.condition_fresh += condition_gain
         # B9：P 道具「X 增加量增加 +N%」增益倍率（参考引擎 setConcentrationBuff /
         # setGoodImpressionTurnsBuff / setMotivationBuff，乘在获得量上、向上取整）。
         focus_gain = card.focus
@@ -1478,6 +1489,9 @@ class LessonSim:
             motivation_gain = safe_ceil(motivation_gain * self._gain_multiple("motivation_gain"))
         self.buffs.focus += focus_gain
         self.buffs.impression += impression_gain
+        # M8：本回合获得的好印象计 fresh（卡渠道；回合末衰减只扣旧层，见 _draw_hand）。
+        if impression_gain > 0:
+            self.review_fresh += impression_gain
         vitality_gain = card.vitality + self.motivation
         if card.vitality > 0:
             # 干劲提升元气获得量；元气优先用于抵牌费（真机语义）。
@@ -1721,6 +1735,7 @@ class LessonSim:
                 self.vitality = 0
             elif key == "impression":
                 self.buffs.impression = 0
+                self.review_fresh = 0  # M8：层数清零则 fresh 计数同清
             elif key == "focus":
                 self.buffs.focus = 0
             elif key == "aggressive":
@@ -1729,6 +1744,7 @@ class LessonSim:
                 self.stance = replace(self.stance, full_power_point=0)
             elif key == "parameter_buff":
                 self.buffs.condition_turns = 0
+                self.condition_fresh = 0  # M8：好调清零则 fresh 计数同清
         for key, value in delta.stacks.items():
             if key == "vitality":
                 # P1-7：ExamBlock（genki+=）渠道过 resolveGenki 闸门（无效→0/不安×0.67）。
@@ -1738,6 +1754,9 @@ class LessonSim:
                 )
             elif key == "impression":
                 self.buffs.impression += int(value)
+                # M8：P 道具/立即饮料渠道好印象获得计 fresh（与卡渠道同口径）。
+                if int(value) > 0:
+                    self.review_fresh += int(value)
             elif key == "focus":
                 self.buffs.focus += int(value)
             elif key == "aggressive":
@@ -1753,6 +1772,9 @@ class LessonSim:
                 if gain > 0:
                     gain = safe_ceil(gain * self._gain_multiple("condition_gain"))
                 self.buffs.condition_turns += gain
+                # M8：P 道具/立即饮料渠道好调获得计 fresh（与卡渠道同口径）。
+                if gain > 0:
+                    self.condition_fresh += gain
         # P1-7：固定元气（ExamBlockFix / fixedGenki+=）直接进元气，不受无效/不安拦截。
         if delta.fixed_vitality:
             self.vitality += int(delta.fixed_vitality)
@@ -2009,7 +2031,7 @@ class LessonSim:
                 self.buffs.focus += value
             elif kind == "turn_end_impression":
                 self.buffs.impression += value
-                self.review_enchant_fresh += value
+                self.review_fresh += value
             elif kind == "turn_end_aggressive":
                 self.motivation += value
         if self.buffs.impression > 0:
@@ -2049,8 +2071,13 @@ class LessonSim:
                     impression_score = battle_bonus_score(impression_score, turn_bonus)
                 self.score += impression_score
             # 不在这里 -1：下一回合开始时扣（见 _draw_hand）
+        # M8：好调通用 fresh 保护（与好印象同构，引擎 _m8_fresh_cond.py 叠加实测）：
+        # 本回合获得量（condition_fresh）本回合末不扣，只扣旧层；随后 fresh 并入普通层。
+        # condition_fresh==0 时与旧行为逐位一致（condition_turns -= 1）。
         if self.buffs.condition_turns > 0:
-            self.buffs.condition_turns -= 1
+            stale = max(self.buffs.condition_turns - self.condition_fresh, 0)
+            self.buffs.condition_turns = max(stale - 1, 0) + self.condition_fresh
+        self.condition_fresh = 0
         # 绝好调 / 不调也按剩余回合衰减；メタモルフォーゼ是偶像特性，不随回合消失
         if self.buffs.perfect_condition_turns > 0:
             self.buffs.perfect_condition_turns -= 1
@@ -2288,13 +2315,13 @@ class LessonSim:
 
     def _draw_hand(self, *, keep_extra_plays: bool = False) -> None:
         # 新手牌 = 新回合：好印象在**下一回合开始时** -1（回合末已按当前层数加分）。
-        # M6 阶段1.5：附魔渠道 fresh 层本边界受保护（引擎 endTurn freshBuffs 口径，
-        # probe5 实测），衰减只扣普通层；随后 fresh 并入普通层（下一边界起按普通
-        # 口径衰减）。review_enchant_fresh==0 时与旧行为逐位一致。
+        # M8：通用 fresh 层本边界受保护（引擎 endTurn freshBuffs 口径，全部渠道——
+        # 卡/立即饮料/P 道具/附魔，_m8_fresh_probe.py G1 + probe5 实测），衰减只扣普通层；
+        # 随后 fresh 并入普通层（下一边界起按普通口径衰减）。review_fresh==0 时与旧行为逐位一致。
         if self.buffs.impression > 0:
-            stale = max(self.buffs.impression - self.review_enchant_fresh, 0)
-            self.buffs.impression = max(stale - 1, 0) + self.review_enchant_fresh
-        self.review_enchant_fresh = 0
+            stale = max(self.buffs.impression - self.review_fresh, 0)
+            self.buffs.impression = max(stale - 1, 0) + self.review_fresh
+        self.review_fresh = 0
         # 本回合出牌数、额外次数、已喝饮料数从 0 重新计
         # keep_extra_plays 只给构造时用：exam_start P 道具给的次数属于第 1 回合。
         self.plays_this_turn = 0

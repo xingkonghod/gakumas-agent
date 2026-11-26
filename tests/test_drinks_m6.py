@@ -182,7 +182,8 @@ def _assert_mirror(sim: LessonSim, state: ExpectState) -> None:
     assert sim.vitality == state.vitality
     # M6 阶段1.5：回合边界附魔 / fresh 保护 / 干劲 / 指針 / 保留区双镜。
     assert tuple(sim.turn_enchants) == tuple(state.turn_enchants)
-    assert sim.review_enchant_fresh == state.review_enchant_fresh
+    assert sim.review_fresh == state.review_fresh
+    assert sim.condition_fresh == state.condition_fresh
     assert sim.buffs.impression == state.impression
     assert sim.motivation == state.motivation
     assert (
@@ -540,11 +541,11 @@ def test_turn_end_impression_fresh_protection() -> None:
 
 
 def test_turn_end_impression_mixed_sources() -> None:
-    """混合渠道：立即好印象（路易波士茶 +3）走既有衰减口径，附魔 +1 走 fresh。
+    """混合渠道通用 fresh（M8 对齐引擎 C 场景）：立即 +3 与附魔 +1 同受 fresh 保护。
 
-    引擎 C 场景 end1 结算 4 层（3+1）；sim 同。end2 起立即渠道按既有 sim 口径
-    （下一回合开始 -1）衰减、附魔渠道 fresh 保护——与引擎的通用 fresh 保护存在
-    既有差一回合缺口（卡/立即渠道，engine-gap 已记），不在阶段1.5 范围。
+    引擎 probe5 C（路易波士茶 +3 立即 + 严选初星茶 +1 附魔）end1 结算 4 层（3+1），
+    回合末**全部 4 层受保护**（ts_review=4）；end2 结算 5 层（旧 4+新 1）后旧 4→3、
+    fresh 1 存活 = 4。M8 前 sim 仅保护附魔渠道（立即 3→2），现通用 fresh 与引擎逐位一致。
     """
     drink = DrinkSpec("混合", 0, "multi", 0, effects=(
         DrinkEffect(kind="impression", value=3, effect_type="ExamReview"),
@@ -558,7 +559,12 @@ def test_turn_end_impression_mixed_sources() -> None:
     sim.step(None)
     state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
     assert sim.score == 4  # 结算 3+1 层（附魔在结算前）
-    assert sim.buffs.impression == 3  # 立即 3→2（既有口径）+ 附魔 fresh 1 存活
+    assert sim.buffs.impression == 4  # M8：立即 3 + 附魔 1 全 fresh 存活（引擎 C end1=4）
+    _assert_mirror(sim, state)
+    sim.step(None)
+    state = start_turn_state(_drink_draw_state(end_turn_state(state), state.hand_size))
+    assert sim.score == 4 + 5  # end2 结算 5 层（旧 4+新 1）
+    assert sim.buffs.impression == 4  # 旧 4→3 + fresh 1 = 4（引擎 C end2=4）
     _assert_mirror(sim, state)
 
 

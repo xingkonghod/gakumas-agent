@@ -652,6 +652,44 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   pytest **1763 collected / 106 文件，复跑 exit 0 全绿**（--basetemp=out\_pytest_tmp_gnrpa）；首跑
   test_challenge::test_runs_until_runout_then_returns_home 高负载墙钟 flake 1 例**单跑绿**如实记（HANDOVER §8 同款），本任务未动 src/tests。
 
+## 16. 2026-11-26 M1 阶段2 (b) v3g 接线离线门 + (c) type21/pitem312 探针（m1-fix3）
+
+- **(b) v3g 接线（bench_repo feat，copy v3 改，v2/v3 原版零改动，vendor DLL/exe MD5 与 v3 全一致不重编）**：
+  新变体 `submissions/gkagent-ex-seed-v3g/`（入口 `ExSeedV3gAlgo`）= v3 全机制 + **杠杆④ deck-modify 失锁重扫**
+  + **消费图 graph-clean opt-in 门**（`vendor/m1_graph.py` clean-room 自写，口径=`exam_risk.known_info_ok(use_graph=True)`，
+  505 牌组 **0 mismatch**；`m1_rng_index.json` 预计算未刻画索引仅 2 卡，托管自包含无需 src）。
+- **失锁根因实证**（`data/_m1b_monster_diag.json` 不提交）：B38CARVV/VWAF2GDN/HTNFZWKG/5KZSXANK 牌堆被卡效果改动后
+  `Draws.open=False`，**冻结 seen/skip 被 deck-modify 污染**→seed_scan 内核排除真种子（B38CARVV/HTNFZWKG `frozen_match=False`）→
+  "no seed reproduces the screen" 整局 worlds 兜底。**首 obs（turn1 开局抽牌，deck-modify 之前）opening_seen 可靠**
+  （4 怪物 `opening_match` 全 True）→ 失锁时改用开局可靠抽牌重扫候选，FastCut 手牌回放（真引擎=完美 predictive 牌区）+
+  整屏 `_same` 防假锁；只对 graph-clean 启用（type21 未刻画保守不重扫）。`rescan_open=1` 缺省，=0 复现 v3。
+- **离线配对门**（`data/_m1b_pair.py` 不提交，承 `_f2exv3_pair` 真实裁判同 seed 背靠背 + bootstrap 10000 CI 种子 20261126）：
+  **怪物 4×2 seed（n=8）PASS**——锁定率 **0.625→1.0**，均分 Δ **+80,278 CI95[+11,702,+183,976] 下界>0**，3 胜 5 平 0 负，
+  崩局 v3g=0（v3=1）/ over 0 / bad_routes 0。**3 个 frozen_match=False 失锁局全恢复锁定**：B38CARVV s0 +93,616 /
+  VWAF2GDN s0 +133,818 / HTNFZWKG s0 **+414,790**（锁定后 RoutePool 替代 worlds，墙钟反降 158.8→119.4s）；
+  5KZSXANK 两 seed v3 已锁（dev 8.63M 锁T3，同 §15 gnrpa-spec）中性。
+  **恢复集 graph-clean 12 题×1 seed 回归守卫 12/12 逐位中性**（重扫只失锁触发）。
+  **合并门 n=20**：锁定率 0.85→1.0、均分 +32,111、3 胜 17 平 0 负、崩局 0、over 0；**overall CI95[0,+80,281] 下界=0**
+  （17 中性例稀释 bootstrap，monster 子集下界+11,702>0；承 v3 diag1 零例稀释同款，如实记）。
+  **重扫步 max_ms≈10.7s**（开局弱约束候选多，扫描 8s+FastCut）仍<12.05s 阈值 over=0，托管 3 并行 CPU 竞争需留意。
+- **(c) 探针（≤6 局，data/_m1b_* 不提交）**：① **type21 ExamCardCreateSearch**（sup-3_024 ×3 题）cons≈**132/135/136**，
+  生成卡**入手牌**（非牌堆无插入），消费与牌堆长无关（3/7/12 无相关）→ 随机池权重/signed_key 口径**未完全刻画**，
+  保守保留 unmodeled，**静态扫 505 恢复维持 419/493（85%）**，74 题仍风险全 sup-3_024。
+  ② **pitem 312 interval fire**（rinami W7/W9 重放 + DLL `trigger_effect_states` 捕获）：**核心规则已刻画**——rules=69
+  计数器是 **`phase_count`**（`interval44_count` 未填充 has_interval44=False），好調 parameter_buff 效果组合格出牌 phase_count++
+  （encore +2），**跨越 4 的倍数即 fire 抽 1**，`limit_count=5`（max_uses）用尽冻结，fire 抽牌 0 RNG（bundled ExamPlayableValueAdd）；
+  W7 fire k=(9,15,20)/W9=(11,15,21,28,34) 与锚点逐位吻合。**仍 unknown**：「好调≥8」门确切语义（stance=None 样本）+
+  手牌上限跳过交互（样本未触发）未泛化 → card_zones 保留 unknown 锚点（新增 `PITEM312_PROBE` 记录机制），不静默放宽 predictive。
+- **src 改动（主仓 feat）**：`card_zones.py` unknown 锚点富化（pitem312 phase_count 机制 + type21 实测）+ 新增 `PITEM312_PROBE`；
+  `rng_graph.py` type21 注释补实测；`tests/test_m1_predictive.py` +2 锚点测试（pitem312 机制/type21 仍 unmodeled）。
+  **exam_risk 默认行为零改动**（opt-in 口径不变）；M1 41 + predictive 测试绿。
+- **托管建议（留下会话）**：A/B v3g(rescan_open=1) vs v3(=0) `--seeds 2 --parallel 3 --budget 10` 盘符相对路径；
+  预期 graph-clean 失锁题（deck-modify 子类）锁定率升+分数升、锁定题中性；重扫步墙钟接近阈值留意 over。本次不跑托管。
+- **硬约束遵守**：未重编 DLL；v2/v3 原版零改动；AGPL 不拷 src（m1_graph clean-room）；未碰 D:\Games\Gakumas / C:\GakumasLocal 只读；
+  **未改 drinks/expectimax/lesson.py 与 local_bench.py**（饮料域已提交，gnrpa-spec 在读）；探针 data/_m1b_* 不提交；
+  引擎单局串行 free<0.9GB sleep60；未起托管未杀进程；path-limited git add（并发 index 纪律）。
+  pytest --basetemp=out\_pytest_tmp_m1b **1793 passed / 1 skipped / 0 failed**（226.6s exit0，本跑无 flake）。
+
 ## 16. 2026-11-26 GNRPA 特化 L3 下行有界 prior（gnrpa-spec 续派，均负结果如实，零采纳）
 
 - **目标（lead 续派窄 scope）**：prior 全局有害（§15）但**下行有界用法**候选——① multi-start prior（starts=4 恰 1 路带 prior，
@@ -764,6 +802,14 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   NN 增益小，搜索主导）。
 - **seed 赛道威胁**：pimc-dev seedlock 300ms/step 4 局样本 0.8–1.0M；若放大到 10s 预算将挑战我们
   1.27M/1.33M。**rules 67 与我们 v2 同排合并口径**（我们 v3 salvage 亦 67）；其全量 run 待观察。
+- **看不看牌序（配对实证，lead 14:0x）**：**gknet-v3/pimc-v2 主投稿=盲打不看**（sees=screen +
+  detail「UIObs v1 + opening loadout only」+ 32 reshuffled worlds determinization）；gknet vs pimc-v2
+  同 360 配对 **+22,526（199胜156负）**= blind 内 NN 增益。**dev seedlock mode=试图自锁牌序**
+  （同我们 ex-seed 路线）但锁不稳：P8ZJTXNA +150k（锁住增益）/ **WDKWQYW5 反比盲打低 1.7–2.7M**
+  （失锁兜底或锁错，与我们 deck-modify 局限同构）/ A7TVEQAN、DE36RWPS 中性 → n=4 不定论。
+  **申报口径问题**：其 dev about.sees 仍标 "screen"（我们 v2/v3 标 "seed"）——若 seedlock 真看牌序
+  应按 seed 类申报，混排不公；观察/必要时向 matto 提出。结论：579.7k 是盲打真效率；seed 臂 dev
+  试水未全量、锁稳定性存疑 → 短期威胁有限但需盯。
 - **⚠️ uinet 口径纠正**：§5 的 UINet 578,722 是 11-22 公开子集旧参考；**当前 uinet 实际 run =
   1,109,099（n=320，rules 59，step 5s，threads 4，11-11）**。public-safe 前沿比交接认知高近一倍；
   r14 托管门 ≥150k 仍是自设进步门，但**对标前沿应改 1.109M（rules 59 行，跨 rules 不直接比）**。

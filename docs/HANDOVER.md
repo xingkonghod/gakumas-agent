@@ -3086,6 +3086,25 @@ r13-teacher-r11-gradual-fade）。目的（small 显著超 r11）未达但**不�
 文档：EXPECTIMAX B11 r13；R9_ANALYSIS §12；WORKPLAN B11+P2；HANDOVER_NEXT §0/§2/§8.0/§8；INDEX；本文件二·补五十五。
 **提交**：feat 2916cd9（r13 入库+wiring 断言+文档）+ docs(handover) 哈希记录；见 [七、最近提交记录](#七最近提交记录)。
 
+### 二·补五十六、11-26（M8 —— engine-gap 通用 fresh buff 保护：好印象/好调全渠道 fresh 对齐引擎，独立门不混饮料批）
+
+**任务**：engine-gap M8「fresh buff 差一回合」（sim 动力学失真~90% 的组成部分）。drink-fix2 阶段1.5 已建附魔渠道好印象 fresh（`review_enchant_fresh`），卡/立即/P 道具渠道通用 fresh 未验证。本批用引擎 oracle（rules=69 DLL **不重编**）逐渠道×逐 buff 探针确定通用规则并对齐 sim。
+
+**通用 fresh 规则（探针实证）**：当回合获得的层数/回合数（**卡/立即饮料/P 道具/附魔任何渠道**）本回合末**不扣**，下一回合末才扣；叠加只保护本回合新增（旧层照常 -1）。引擎字段：好印象 `review_added_this_turn`、好调 `parameter_buff_passing_turn_start`；边界 `stale=total−fresh` 扣 1、fresh 保留清零。
+* 好印象：G1 卡重复+6/回合 → 结算 6,12,17,22,27,32,31,30,29；probe5 A 立即+3 → 3,3,2 / C 混合 → 4,4,4；run1 G3 P 道具 turn_end +4 当回合末受保护。
+* 好调：`_m8_fresh_cond.py` 叠加 t1/t2 各+3 → 回合开始 3,5,4,3,2,1,0（t3=5 证**部分保护**非整体）。
+* 指針固定（P1-3）/encore（M6）早已 fresh；集中/干劲/全力值永久无衰减。timed 倍率层（review_multiple/score_buff/half_cost）引擎 until_turn=获得回合+N（多持续 1 回合，G3 实证）→ sim 倒计时仍差一回合，**留后续批**（避免动 add_timed 影响 W9 重放门）；pride/nullify_genki/unease 未探针沿用旧口径。
+
+**落地**：`LessonSim.review_fresh`/`condition_fresh`（原 `review_enchant_fresh` 推广全渠道）+ `ExpectState` 双镜 + canonical + `state_from_sim`/`sim_from_state`（rollout 携带）；衰减 stale/fresh 分裂公式同 M6 先例，`fresh==0` 逐位退旧行为。卡 buff/P 道具 delta/饮料 legacy/附魔各获得点计 fresh，零层清零同清 fresh。
+
+**评测门（默认行为变化，如实 Δ+CI；改前 = monkeypatch 精确恢复 M8 前口径单变量隔离，基线逐位复现 P1-8/B1）**：
+* sim_engine_ab 64 局：**rules 池化 Δ+34.2 CI[+26.8,+41.5] 32/32 全胜**（显著正）；expectimax Δ+56.4 CI[−12.3,+125.2] 14 胜 7 负 11 平（中性偏正跨 0）。
+* B1 harness 60 局 small：unknown within Δ+3.35 CI[+0.67,+6.03] / beam Δ+4.30 CI[+1.38,+7.22]；known within +3.35[+0.67,+6.03] / beam +4.38[+2.86,+5.91]——**四臂 CI 下界均>0 显著正**；B1 门 beam/within=108% PASS 保持。
+* 结论：通用 fresh 对齐使 sim 更接近真引擎，评测分显著上升（正向保真修复）。
+
+**验证**：新增 tests/test_m8_fresh.py 11 条（卡/饮料/好调叠加轨迹 + 双镜衰减 + oracle 逐回合配对，匹配率 100%）；更新 test_sim_lesson.py 4 处 / test_p_items_b9.py 1 处 / test_drinks_m6.py mixed_sources 至 fresh 口径；全量 pytest 绿（--basetemp=out\_pytest_tmp_m8）。探针 data/_m8_fresh_*.py / _m8_ab_*.py / _m8_b1_*.py 不提交。文档：out/_engine_gap_report.md §④ M8 进展节；RULES_REFERENCE §3 fresh 行；本文件二·补五十六。
+**提交**：见 [七、最近提交记录](#七最近提交记录)（feat + docs(handover) 哈希记录）。
+
 ## 三、社区情报（他们做到哪了）
 
 **hiro-gakumas-hero**（matto49，AGPL-3.0，28 star）：

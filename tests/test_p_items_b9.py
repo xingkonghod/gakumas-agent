@@ -558,8 +558,8 @@ def test_lesson_gain_multipliers() -> None:
     ]
     card = CardSpec("a", 0, 10.0, impression=3, motivation=3, focus=3, full_power_point=5)
     sim = make_sim(*specs, deck=[card])
-    sim.step(0)  # 手牌打空 → 自动结束回合、下一回合开始好印象 -1
-    assert sim.buffs.impression == 4  # ceil(3 × 1.5) = 5，之后回合开始 -1
+    sim.step(0)  # 手牌打空 → 自动结束回合；M8 fresh 保护获得当回合末不扣
+    assert sim.buffs.impression == 5  # ceil(3 × 1.5) = 5，fresh 存活（下一回合末才 -1）
     assert sim.motivation == 5
     assert sim.buffs.focus == 5
     assert sim.stance.full_power_point == 8  # ceil(5 × 1.5)
