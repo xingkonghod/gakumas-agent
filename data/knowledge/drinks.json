@@ -1,0 +1,936 @@
+{
+ "schema": "gkagent.drinks.v1",
+ "source": {
+  "drink": "data/models/uinet_master/ProduceDrink.yaml",
+  "drink_effect": "data/models/uinet_master/ProduceDrinkEffect.yaml",
+  "effect": "data/cache/ProduceExamEffect.yaml",
+  "enchant": "data/cache/ProduceExamStatusEnchant.yaml",
+  "zh": "data/master/drinks.json"
+ },
+ "count": 29,
+ "segments_total": 51,
+ "segments_implemented": 33,
+ "drinks": [
+  {
+   "id": "pdrink_00-1-001",
+   "name": "初星水",
+   "name_ja": "初星水",
+   "rarity": "R",
+   "plan": "Common",
+   "text_zh": "打分+10",
+   "effects": [
+    {
+     "kind": "score",
+     "value": 10,
+     "turns": 0,
+     "effect_type": "ExamLesson",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-1-004",
+   "name": "乌龙茶",
+   "name_ja": "烏龍茶",
+   "rarity": "R",
+   "plan": "Common",
+   "text_zh": "元气+7",
+   "effects": [
+    {
+     "kind": "vitality",
+     "value": 7,
+     "turns": 0,
+     "effect_type": "ExamBlock",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-2-001",
+   "name": "混合果昔",
+   "name_ja": "ミックススムージー",
+   "rarity": "SR",
+   "plan": "Common",
+   "text_zh": "变更全部手牌体力回复2",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamHandGraveCountCardDraw",
+     "implemented": false,
+     "rng": "none"
+    },
+    {
+     "kind": "stamina",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamStaminaRecoverFix",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-2-003",
+   "name": "恢复饮料",
+   "name_ja": "リカバリドリンク",
+   "rarity": "SR",
+   "plan": "Common",
+   "text_zh": "体力回复6",
+   "effects": [
+    {
+     "kind": "stamina",
+     "value": 6,
+     "turns": 0,
+     "effect_type": "ExamStaminaRecoverFix",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-2-004",
+   "name": "新鲜果醋",
+   "name_ja": "フレッシュビネガー",
+   "rarity": "SR",
+   "plan": "Common",
+   "text_zh": "全部手牌在训练中强化体力回复3",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamCardUpgrade",
+     "implemented": false,
+     "rng": "none"
+    },
+    {
+     "kind": "stamina",
+     "value": 3,
+     "turns": 0,
+     "effect_type": "ExamStaminaRecoverFix",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-2-008",
+   "name": "强化精华饮料",
+   "name_ja": "ブーストエキス",
+   "rarity": "SR",
+   "plan": "Common",
+   "text_zh": "打分上升量增加30%（3回合）消耗体力减少3回合体力消耗2",
+   "effects": [
+    {
+     "kind": "score_buff",
+     "value": 300,
+     "turns": 3,
+     "effect_type": "ExamLessonValueMultiple",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "half_cost",
+     "value": 3,
+     "turns": 3,
+     "effect_type": "ExamStaminaConsumptionDown",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "stamina_cost",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamStaminaReduceFix",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 3,
+   "total": 3,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-2-009",
+   "name": "能量提升汉方饮料",
+   "name_ja": "パワフル漢方ドリンク",
+   "rarity": "SR",
+   "plan": "Common",
+   "text_zh": "将牌堆或弃牌中的1张偶像固有技能卡，向手牌中移动消耗体力减少3回合",
+   "effects": [
+    {
+     "kind": "search_move",
+     "value": 1,
+     "turns": 0,
+     "effect_type": "ExamCardMove",
+     "implemented": true,
+     "rng": "type9_search",
+     "search": "p_card_search-deck_grave-idol-unique-1",
+     "move_to": "hand"
+    },
+    {
+     "kind": "half_cost",
+     "value": 3,
+     "turns": 3,
+     "effect_type": "ExamStaminaConsumptionDown",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 2,
+   "total": 2,
+   "rng": {
+    "deterministic": false,
+    "entries": [
+     "type9_search"
+    ],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-2-010",
+   "name": "当药苏打水",
+   "name_ja": "センブリソーダ",
+   "rarity": "SR",
+   "plan": "Common",
+   "text_zh": "打分上升量增加10%（5回合）技能卡抽取2张体力消耗2在之后的5回合中，回合开始后，抽取技能卡",
+   "effects": [
+    {
+     "kind": "score_buff",
+     "value": 100,
+     "turns": 5,
+     "effect_type": "ExamLessonValueMultiple",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "draw",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamCardDraw",
+     "implemented": true,
+     "rng": "draw_support"
+    },
+    {
+     "kind": "stamina_cost",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamStaminaReduceFix",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "turn_start_draw",
+     "value": 1,
+     "turns": 5,
+     "effect_type": "ExamStatusEnchant",
+     "implemented": true,
+     "rng": "draw_support",
+     "trigger": "turn_start_after",
+     "enchant": "enchant-pdrink_00-2-010-enc01"
+    }
+   ],
+   "implemented": 4,
+   "total": 4,
+   "rng": {
+    "deterministic": false,
+    "entries": [
+     "draw_support"
+    ],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-3-001",
+   "name": "初星蛋白粉饮料",
+   "name_ja": "初星ホエイプロテイン",
+   "rarity": "SSR",
+   "plan": "Common",
+   "text_zh": "技能卡使用数追加+1",
+   "effects": [
+    {
+     "kind": "extra_plays",
+     "value": 1,
+     "turns": 0,
+     "effect_type": "ExamPlayableValueAdd",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_00-3-005",
+   "name": "初星特制青汁",
+   "name_ja": "初星スペシャル青汁",
+   "rarity": "SSR",
+   "plan": "Common",
+   "text_zh": "随机强化后的技能卡（SSR），向手牌中生成",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamCardCreateSearch",
+     "implemented": false,
+     "rng": "create_random_unknown"
+    }
+   ],
+   "implemented": 0,
+   "total": 1,
+   "rng": {
+    "deterministic": false,
+    "entries": [],
+    "unknown": [
+     "ExamCardCreateSearch"
+    ]
+   }
+  },
+  {
+   "id": "pdrink_00-3-013",
+   "name": "初星特制青汁X",
+   "name_ja": "初星スペシャル青汁X",
+   "rarity": "SSR",
+   "plan": "Common",
+   "text_zh": "随机生成强化后的固有技能卡（SSR），并且无需花费值使用",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamForcePlayCardSearch",
+     "implemented": false,
+     "rng": "search_unknown"
+    }
+   ],
+   "implemented": 0,
+   "total": 1,
+   "rng": {
+    "deterministic": false,
+    "entries": [],
+    "unknown": [
+     "ExamForcePlayCardSearch"
+    ]
+   }
+  },
+  {
+   "id": "pdrink_01-1-002",
+   "name": "维生素饮料",
+   "name_ja": "ビタミンドリンク",
+   "rarity": "R",
+   "plan": "Plan1",
+   "text_zh": "好调3回合",
+   "effects": [
+    {
+     "kind": "condition",
+     "value": 3,
+     "turns": 0,
+     "effect_type": "ExamParameterBuff",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_01-1-003",
+   "name": "冰咖啡",
+   "name_ja": "アイスコーヒー",
+   "rarity": "R",
+   "plan": "Plan1",
+   "text_zh": "集中+3",
+   "effects": [
+    {
+     "kind": "focus",
+     "value": 3,
+     "turns": 0,
+     "effect_type": "ExamLessonBuff",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_01-2-005",
+   "name": "持久力爆发饮料",
+   "name_ja": "スタミナ爆発ドリンク",
+   "rarity": "SR",
+   "plan": "Plan1",
+   "text_zh": "绝好调1回合元气+9",
+   "effects": [
+    {
+     "kind": "perfect_condition",
+     "value": 1,
+     "turns": 1,
+     "effect_type": "ExamParameterBuffMultiplePerTurn",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "vitality",
+     "value": 9,
+     "turns": 0,
+     "effect_type": "ExamBlock",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 2,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_01-3-002",
+   "name": "严选初星玛奇朵",
+   "name_ja": "厳選初星マキアート",
+   "rarity": "SSR",
+   "plan": "Plan1",
+   "text_zh": "以后，回合结束时，集中+1",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamStatusEnchant",
+     "implemented": false,
+     "rng": "none",
+     "enchant": "enchant-pdrink_01-3-002-enc01"
+    }
+   ],
+   "implemented": 0,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_01-3-004",
+   "name": "初星强化能量饮料",
+   "name_ja": "初星ブーストエナジー",
+   "rarity": "SSR",
+   "plan": "Plan1",
+   "text_zh": "绝好调2回合全部手牌在训练中强化",
+   "effects": [
+    {
+     "kind": "perfect_condition",
+     "value": 2,
+     "turns": 2,
+     "effect_type": "ExamParameterBuffMultiplePerTurn",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamCardUpgrade",
+     "implemented": false,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_01-3-012",
+   "name": "初星黑醋汁",
+   "name_ja": "初星黒酢",
+   "rarity": "SSR",
+   "plan": "Plan1",
+   "text_zh": "选择牌堆或弃牌中的技能卡，向手牌中移动使用的下一张技能卡消耗的体力变为0（2次）体力消耗2消耗体力增加1回合",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamCardMove",
+     "implemented": false,
+     "rng": "type9_search"
+    },
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamSearchPlayCardStaminaConsumptionChange",
+     "implemented": false,
+     "rng": "search_unknown"
+    },
+    {
+     "kind": "stamina_cost",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamStaminaReduceFix",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "double_cost",
+     "value": 1,
+     "turns": 1,
+     "effect_type": "ExamStaminaConsumptionAdd",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 2,
+   "total": 4,
+   "rng": {
+    "deterministic": false,
+    "entries": [],
+    "unknown": [
+     "ExamSearchPlayCardStaminaConsumptionChange"
+    ]
+   }
+  },
+  {
+   "id": "pdrink_02-1-006",
+   "name": "路易波士茶",
+   "name_ja": "ルイボスティー",
+   "rarity": "R",
+   "plan": "Plan2",
+   "text_zh": "好印象+3",
+   "effects": [
+    {
+     "kind": "impression",
+     "value": 3,
+     "turns": 0,
+     "effect_type": "ExamReview",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_02-1-008",
+   "name": "热咖啡",
+   "name_ja": "ホットコーヒー",
+   "rarity": "R",
+   "plan": "Plan2",
+   "text_zh": "干劲+3",
+   "effects": [
+    {
+     "kind": "aggressive",
+     "value": 3,
+     "turns": 0,
+     "effect_type": "ExamCardPlayAggressive",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_02-2-006",
+   "name": "时尚草本茶",
+   "name_ja": "おしゃれハーブティー",
+   "rarity": "SR",
+   "plan": "Plan2",
+   "text_zh": "好印象的100%数值变为打分上升元气+3",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamLessonDependExamReview",
+     "implemented": false,
+     "rng": "none"
+    },
+    {
+     "kind": "vitality",
+     "value": 3,
+     "turns": 0,
+     "effect_type": "ExamBlock",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_02-3-006",
+   "name": "严选初星茶",
+   "name_ja": "厳選初星ティー",
+   "rarity": "SSR",
+   "plan": "Plan2",
+   "text_zh": "以后，回合结束时，好印象+1",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamStatusEnchant",
+     "implemented": false,
+     "rng": "none",
+     "enchant": "enchant-pdrink_02-3-006-enc01"
+    }
+   ],
+   "implemented": 0,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_02-3-007",
+   "name": "严选初星拼配咖啡",
+   "name_ja": "厳選初星ブレンド",
+   "rarity": "SSR",
+   "plan": "Plan2",
+   "text_zh": "以后，回合结束时，干劲+1",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamStatusEnchant",
+     "implemented": false,
+     "rng": "none",
+     "enchant": "enchant-pdrink_02-3-007-enc01"
+    }
+   ],
+   "implemented": 0,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_02-3-010",
+   "name": "特制初星精华",
+   "name_ja": "特製ハツボシエキス",
+   "rarity": "SSR",
+   "plan": "Plan2",
+   "text_zh": "使用的下一张主动技能卡的效果再发动1次（1次・1回合）体力消耗2消耗体力增加1回合",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamCardSearchEffectPlayCountBuff",
+     "implemented": false,
+     "rng": "search_unknown"
+    },
+    {
+     "kind": "stamina_cost",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamStaminaReduceFix",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "double_cost",
+     "value": 1,
+     "turns": 1,
+     "effect_type": "ExamStaminaConsumptionAdd",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 2,
+   "total": 3,
+   "rng": {
+    "deterministic": false,
+    "entries": [],
+    "unknown": [
+     "ExamCardSearchEffectPlayCountBuff"
+    ]
+   }
+  },
+  {
+   "id": "pdrink_03-1-009",
+   "name": "姜汁汽水",
+   "name_ja": "ジンジャーエール",
+   "rarity": "R",
+   "plan": "Plan3",
+   "text_zh": "强气变更全力值+1",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamConcentration",
+     "implemented": false,
+     "rng": "none"
+    },
+    {
+     "kind": "full_power_point",
+     "value": 1,
+     "turns": 0,
+     "effect_type": "ExamFullPowerPoint",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_03-1-010",
+   "name": "焙茶",
+   "name_ja": "ほうじ茶",
+   "rarity": "R",
+   "plan": "Plan3",
+   "text_zh": "温存变更全力值+2",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamPreservation",
+     "implemented": false,
+     "rng": "none"
+    },
+    {
+     "kind": "full_power_point",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamFullPowerPoint",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_03-2-007",
+   "name": "热绿茶",
+   "name_ja": "ほっと緑茶",
+   "rarity": "SR",
+   "plan": "Plan3",
+   "text_zh": "选择牌堆或弃牌中的技能卡，向保留中移动温存2阶段变更",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamCardMove",
+     "implemented": false,
+     "rng": "type9_search"
+    },
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamPreservation",
+     "implemented": false,
+     "rng": "none"
+    }
+   ],
+   "implemented": 0,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_03-3-008",
+   "name": "严选初星印度茶",
+   "name_ja": "厳選初星チャイ",
+   "rarity": "SSR",
+   "plan": "Plan3",
+   "text_zh": "以后，回合开始时，全力值+1",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamStatusEnchant",
+     "implemented": false,
+     "rng": "none",
+     "enchant": "enchant-pdrink_03-3-008-enc01"
+    }
+   ],
+   "implemented": 0,
+   "total": 1,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_03-3-009",
+   "name": "初星超级苏打水",
+   "name_ja": "初星スーパーソーダ",
+   "rarity": "SSR",
+   "plan": "Plan3",
+   "text_zh": "强气2阶段变更消耗体力减少1回合",
+   "effects": [
+    {
+     "kind": "unknown",
+     "value": 0,
+     "turns": 0,
+     "effect_type": "ExamConcentration",
+     "implemented": false,
+     "rng": "none"
+    },
+    {
+     "kind": "half_cost",
+     "value": 1,
+     "turns": 1,
+     "effect_type": "ExamStaminaConsumptionDown",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 1,
+   "total": 2,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  },
+  {
+   "id": "pdrink_03-3-011",
+   "name": "初星汤",
+   "name_ja": "初星湯",
+   "rarity": "SSR",
+   "plan": "Plan3",
+   "text_zh": "回合追加+1体力消耗2消耗体力增加1回合",
+   "effects": [
+    {
+     "kind": "extra_turn",
+     "value": 1,
+     "turns": 0,
+     "effect_type": "ExamExtraTurn",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "stamina_cost",
+     "value": 2,
+     "turns": 0,
+     "effect_type": "ExamStaminaReduceFix",
+     "implemented": true,
+     "rng": "none"
+    },
+    {
+     "kind": "double_cost",
+     "value": 1,
+     "turns": 1,
+     "effect_type": "ExamStaminaConsumptionAdd",
+     "implemented": true,
+     "rng": "none"
+    }
+   ],
+   "implemented": 3,
+   "total": 3,
+   "rng": {
+    "deterministic": true,
+    "entries": [],
+    "unknown": []
+   }
+  }
+ ]
+}

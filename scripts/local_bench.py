@@ -34,8 +34,9 @@
 **UINet（``uinet`` 算法）的观测缺口**（详见 ``sim_to_uiobs`` 的 docstring）：
 
 - LessonSim 没有逐回合属性（``exam.types`` 一律保守填 1=Vo）；
-- 没有饮料/附魔/保留区，``drinks``/``ench``/``hold`` 为空（P 道具已从 loadout 接入
-  LessonSim/expectimax，见 ``--p-items``；UINet 的 UIObs 里没有 P 道具字段）；
+- 饮料 M6 opt-in（``--drinks auto``，**默认 off 逐位不变**）：``loadout.drink_ids`` →
+  ``LessonConfig.drinks`` 效果段结算（sim/drinks.py，29 瓶/51 段/33 实现）；
+  附魔/保留区仍空（P 道具已从 loadout 接入，见 ``--p-items``）；
 - 卡牌定制不建模，``c``/``g`` 省略；
 - hajime 的 produce 是 produce-001/006（33/48 是 lesson），不在 UINet 词表里，
   只能按 round 映射到最接近的 H.I.F 枚举；**H.I.F 题集则直接使用题面自带的
@@ -93,6 +94,10 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import sim_produce as sp  # 复用卡表 effects -> CardSpec 的成熟映射
 
+from gkagent.data.drinks_db import (
+    DrinkDataUnavailable,
+    resolve_drink_ids,
+)
 from gkagent.data.p_items_db import (
     PItemDataUnavailable,
     get_catalog,
@@ -207,6 +212,23 @@ class PItemStats:
 
 
 @dataclass(frozen=True)
+class DrinkStats:
+    """一道题 ``loadout.drink_ids`` 的解析结果（M6 饮料 opt-in）。
+
+    ``mode="off"``（默认）全 0/空 = 逐位不变；``unknown`` 是 catalog（29 瓶）
+    里没有的 id（显式上报，不猜、不影响本题可映射）；不去重（每 id 一瓶槽位）。
+    """
+
+    mode: str = "off"
+    ids: int = 0
+    known: int = 0
+    unknown: tuple[str, ...] = ()
+    slots: int = 0
+    segments: int = 0
+    implemented: int = 0
+
+
+@dataclass(frozen=True)
 class ProblemSpec:
     """一道题转换到 LessonSim 的静态部分（牌组/配置/统计）。"""
 
@@ -223,6 +245,7 @@ class ProblemSpec:
     deck_stats: DeckStats
     refs: Mapping[str, tuple[str, int]]
     p_item_stats: PItemStats = PItemStats()
+    drink_stats: DrinkStats = DrinkStats()
 
 
 @dataclass
@@ -383,6 +406,7 @@ def build_problem(
     refs: Mapping[str, tuple[str, int]],
     *,
     p_items_mode: str = "auto",
+    drinks_mode: str = "off",
 ) -> ProblemSpec:
     """一道 gkbench 题 -> LessonSim 静态配置（不可映射时抛 UnmappableProblem）。
 
@@ -468,6 +492,23 @@ def build_problem(
             implemented=int(summary["implemented"]),
             condition_unknown=int(summary.get("condition_unknown") or 0),
         )
+    # M6 饮料（opt-in，默认 off 逐位不变）：loadout.drink_ids → DrinkSpec 效果段；
+    # 未知 id 显式记进 drink_stats.unknown（不猜、不影响本题可映射）。
+    drinks: tuple = ()
+    drink_stats = DrinkStats(mode="off")
+    if drinks_mode != "off":
+        dres = resolve_drink_ids(loadout.get("drink_ids"))
+        drinks = dres.specs
+        dsum = dres.summary()
+        drink_stats = DrinkStats(
+            mode="auto",
+            ids=int(dsum["ids"]),
+            known=int(dsum["known_ids"]),
+            unknown=tuple(dsum["unknown_ids"]),
+            slots=int(dsum["slots"]),
+            segments=int(dsum["segments"]),
+            implemented=int(dsum["implemented"]),
+        )
     config = LessonConfig(
         turns=turns,
         stamina=stamina,
@@ -481,6 +522,7 @@ def build_problem(
         stamina_max=stamina_max,
         plan=plan,
         p_items=p_items,
+        drinks=drinks,
     )
     stats = DeckStats(
         entries=len(loadout.get("deck_cards") or []),
@@ -504,6 +546,7 @@ def build_problem(
         deck_stats=stats,
         refs=refs,
         p_item_stats=p_item_stats,
+        drink_stats=drink_stats,
     )
 
 
@@ -1086,6 +1129,7 @@ def run_bench(
     sample: int | None = None,
     sample_seed: int = 0,
     p_items_mode: str = "auto",
+    drinks_mode: str = "off",
 ) -> dict[str, Any]:
     if p_items_mode not in {"auto", "off"}:
         raise SystemExit(f"--p-items 只支持 auto/off：{p_items_mode!r}")
@@ -1094,6 +1138,15 @@ def run_bench(
             get_catalog()  # 显式校验数据在位（缺失直接报错，不静默当没有 P 道具）
         except PItemDataUnavailable as exc:
             raise SystemExit(f"P 道具数据不可用：{exc}") from exc
+    if drinks_mode not in {"auto", "off"}:
+        raise SystemExit(f"--drinks 只支持 auto/off：{drinks_mode!r}")
+    if drinks_mode != "off":
+        try:
+            from gkagent.data.drinks_db import get_catalog as get_drink_catalog
+
+            get_drink_catalog()  # 缺失直接报错，不静默当没有饮料
+        except DrinkDataUnavailable as exc:
+            raise SystemExit(f"饮料数据不可用：{exc}") from exc
     card_rows, card_index, refs = load_card_table()
     raw_problems = load_problems(problems_path)
     specs: list[ProblemSpec] = []
@@ -1102,7 +1155,8 @@ def run_bench(
         try:
             specs.append(
                 build_problem(
-                    raw, card_rows, card_index, refs, p_items_mode=p_items_mode
+                    raw, card_rows, card_index, refs, p_items_mode=p_items_mode,
+                    drinks_mode=drinks_mode,
                 )
             )
         except UnmappableProblem as exc:
@@ -1217,7 +1271,7 @@ def run_bench(
     uinet_gaps = [
         "exam.types 全 1（LessonSim 没有逐回合属性）",
         (
-            "hold / ench / drinks 为空（不建模保留区/附魔/饮料；P 道具已从 loadout 接入 "
+            "hold / ench 为空（不建模保留区/附魔；饮料 M6 opt-in 见 drinks 块，默认 off；P 道具已从 loadout 接入 "
             "LessonSim/expectimax，但 UINet 的 UIObs 里没有 P 道具字段）"
         ),
         "卡牌定制 c 与考试中成长 g 省略",
@@ -1279,6 +1333,17 @@ def run_bench(
             "unmodeled_types": dict(sorted(unmodeled.items())),
             "drinks_modeled": 0,
             "p_items_modeled": p_item_implemented,
+        },
+        "drinks": {
+            "mode": drinks_mode,
+            "source": "loadout.drink_ids -> data/knowledge/drinks.json",
+            "problems_with_drinks": sum(1 for s in specs if s.drink_stats.ids),
+            "ids": sum(s.drink_stats.ids for s in specs),
+            "known_ids": sum(s.drink_stats.known for s in specs),
+            "unknown_ids": sorted({u for s in specs for u in s.drink_stats.unknown}),
+            "slots": sum(s.drink_stats.slots for s in specs),
+            "segments": sum(s.drink_stats.segments for s in specs),
+            "implemented_segments": sum(s.drink_stats.implemented for s in specs),
         },
         "p_items": {
             "mode": p_items_mode,
@@ -1358,6 +1423,12 @@ def main(argv: list[str] | None = None) -> int:
         default="auto",
         help="P 道具：auto=按 loadout.produce_item_ids 接入（默认）；off=不结算（A/B 对照）",
     )
+    parser.add_argument(
+        "--drinks",
+        default="off",
+        choices=["auto", "off"],
+        help="M6 饮料：auto=按 loadout.drink_ids 接入效果段结算；off=不结算（默认，逐位不变）",
+    )
     parser.add_argument("--out", type=Path, default=REPORT_PATH, help="排行榜 JSON 输出")
     args = parser.parse_args(argv)
 
@@ -1373,6 +1444,7 @@ def main(argv: list[str] | None = None) -> int:
         sample=args.sample,
         sample_seed=args.sample_seed,
         p_items_mode=args.p_items,
+        drinks_mode=args.drinks,
     )
     print("=" * 92)
     print("裁判 = 我们的模拟器 LessonSim（不是 gkbench 的 GKMS 引擎）")
@@ -1398,6 +1470,15 @@ def main(argv: list[str] | None = None) -> int:
     if problems["skipped_count"]:
         for reason, count in problems["skipped_by_reason"].items():
             print(f"  [题目跳过] {count} 道：{reason}")
+    drinks_sum = summary.get("drinks") or {}
+    if drinks_sum and drinks_sum.get("mode") != "off":
+        print(
+            f"饮料（{drinks_sum.get('mode')}）：{drinks_sum.get('problems_with_drinks', 0)} 题带饮料，"
+            f"槽位 {drinks_sum.get('slots', 0)}（已知 id {drinks_sum.get('known_ids', 0)} / "
+            f"未知 {len(drinks_sum.get('unknown_ids') or [])}），"
+            f"效果段 {drinks_sum.get('segments', 0)}"
+            f"（已实现 {drinks_sum.get('implemented_segments', 0)}）"
+        )
     p_items = summary.get("p_items") or {}
     if p_items:
         unknown = p_items.get("unknown_ids") or []

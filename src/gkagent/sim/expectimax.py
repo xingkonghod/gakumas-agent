@@ -79,6 +79,7 @@ from gkagent.sim.lesson import (
     greedy_policy,
     safe_ceil,
 )
+from gkagent.sim.drinks import DrinkEffect, effects_to_delta
 from gkagent.sim.p_items import (
     CARD_PLAY,
     EXAM_START,
@@ -287,6 +288,10 @@ class ExpectState:
     # 手牌减少：((减少量, 剩余回合), …)，-1 = 永久；回合开始抽牌
     # max(hand_size − Σ, 0)（参考 TurnManager.startTurn cardsToDraw）。
     hand_decreases: tuple[tuple[int, int], ...] = ()
+    # ---- M6（2026-11-26）：饮料 timed 回合开始抽牌（与 LessonSim 双镜）----
+    # ((每回合抽牌张数, 剩余回合), …)，-1 = 永久；回合开始额外抽 Σ 张
+    # （start_turn_state），回合末倒计时（end_turn_state）。
+    turn_start_draw: tuple[tuple[int, int], ...] = ()
     # 自尊剩余回合（prideTurns：回合末 -1；>0 时 resolveScore f 加算
     # min(min(好印象,干劲)×20, 500) 千分比）。
     pride_turns: int = 0
@@ -470,6 +475,8 @@ class ExpectState:
             # P1-2：手牌减少（影响后续抽牌）/ 自尊（影响后续算分）
             self.hand_decreases,
             self.pride_turns,
+            # M6：饮料 timed 回合开始抽牌（影响后续抽牌）
+            self.turn_start_draw,
             # P1-4：低下状态无效（影响后续 debuff 施加）
             self.nullify_debuff,
             # P1-7：元气增加无效 / 不安（影响后续元气获得）/ 延迟生效增量
@@ -734,6 +741,8 @@ def sim_from_state(
     # P1-2：手牌减少 / 自尊（rollout 必须带上，否则抽牌数/算分与搜索不一致）
     sim.hand_decreases = tuple(state.hand_decreases)
     sim.pride_turns = int(state.pride_turns)
+    # M6：饮料 timed 回合开始抽牌（rollout 必须带上，否则回合开始抽牌数与搜索不一致）
+    sim.turn_start_draw = tuple(state.turn_start_draw)
     # P1-4：低下状态无效（rollout 必须带上，否则 debuff 拦截与搜索不一致）
     sim.nullify_debuff = int(state.nullify_debuff)
     # P1-7：元气增加无效 / 不安 / 延迟生效增量（rollout 必须带上，与搜索一致）
@@ -970,26 +979,37 @@ def available_drinks(state: ExpectState) -> list[int]:
     ]
 
 
+def _drink_kinds(drink: DrinkSpec) -> set[str]:
+    """M6：饮料已实现效果段的 kind 集合（估值/剪枝用）。"""
+    return {eff.kind for eff in drink.all_effects if eff.implemented}
+
+
 def _drink_worth_expanding(state: ExpectState, drink: DrinkSpec) -> bool:
     """饮料动作剪枝：只在「能提升本回合后续得分」时展开。
 
     理由：饮料不占出牌次数，但每展开一个饮料分支就多一层递归；大多数时候
     （没有后续可打分牌/体力本来够）喝不喝对档位效用几乎无差。只保留：
     - score 饮料：直接加分，总值得算；
-    - focus/condition：本回合还有出牌位且有正分牌；
+    - focus/condition/score_buff/extra_plays：本回合还有出牌位且有正分牌；
+    - draw/search_move/turn_start_draw：能补牌（即便当前手牌无正分牌）；
     - stamina：本回合有出牌位、且有正分牌当前付不起（喝了才解锁）。
     这样分支数从「每节点 × 库存瓶数」降到通常 0–1 个。
     """
+    kinds = _drink_kinds(drink)
+    if "score" in kinds:
+        return True
     if state.plays_left <= 0:
-        return drink.effect_type == "score"
-    score_cards = [card for card in state.hand if card.score > 0]
-    if drink.effect_type == "score":
-        return True
-    if not score_cards:
         return False
-    if drink.effect_type in ("focus", "condition"):
+    score_cards = [card for card in state.hand if card.score > 0]
+    if not score_cards:
+        # 补牌类即使当前手牌无正分牌也值得展开（可能抽到/移入正分牌）。
+        return bool(kinds & {"draw", "search_move", "turn_start_draw"})
+    if kinds & {
+        "focus", "condition", "score_buff", "extra_plays",
+        "draw", "search_move", "turn_start_draw", "vitality",
+    }:
         return True
-    if drink.effect_type == "stamina":
+    if "stamina" in kinds:
         available = state.total_cost_available
         return any(effective_cost(state, card) > available for card in score_cards)
     return False
@@ -998,21 +1018,23 @@ def _drink_worth_expanding(state: ExpectState, drink: DrinkSpec) -> bool:
 def _candidate_drinks(state: ExpectState) -> list[int]:
     """返回本状态最多 1 个值得展开的饮料下标（控制分支数）。
 
-    优先级：能解锁当前付不起的正分牌的 stamina → 有正分牌时的 focus/condition
-    → score（任意时候都直接加分）。同一状态不把所有库存都展开；每回合仍可
-    在不同节点各喝一瓶（受 ``drinks_per_turn``/库存限制）。
+    优先级：能解锁当前付不起的正分牌的 stamina → 有正分牌时的 focus/condition/
+    补牌/倍率 → score（任意时候都直接加分）。同一状态不把所有库存都展开；每回合
+    仍可在不同节点各喝一瓶（受 ``drinks_per_turn``/库存限制）。
     """
     useful: list[tuple[int, int]] = []
     for index in available_drinks(state):
         drink = state.drinks[index]
         if not _drink_worth_expanding(state, drink):
             continue
+        kinds = _drink_kinds(drink)
         priority = 0
-        if drink.effect_type == "stamina":
+        if "stamina" in kinds:
             priority = 3
-        elif drink.effect_type in ("focus", "condition"):
+        elif kinds & {"focus", "condition", "score_buff", "extra_plays",
+                      "draw", "search_move", "turn_start_draw", "vitality"}:
             priority = 2
-        elif drink.effect_type == "score":
+        elif "score" in kinds:
             priority = 1
         useful.append((priority, index))
     if not useful:
@@ -1047,27 +1069,168 @@ def use_drink_state(state: ExpectState, index: int) -> ExpectState:
             f"体力不足：喝「{drink.name}」需要 {drink.cost}，当前 {state.stamina}"
         )
     stamina = state.stamina - drink.cost
-    focus = state.focus
-    condition_turns = state.condition_turns
-    score = state.score
-    if drink.effect_type == "stamina":
-        stamina = min(state.stamina_max, stamina + drink.value)
-    elif drink.effect_type == "focus":
-        focus += drink.value
-    elif drink.effect_type == "condition":
-        condition_turns += drink.value
-    else:  # score
-        score += drink.value
     uses = list(state.drink_uses)
     uses[index] -= 1
-    return replace(
+    if not drink.effects:
+        # 旧单效果路径（逐位不变）：stamina/focus/condition/score。
+        focus = state.focus
+        condition_turns = state.condition_turns
+        score = state.score
+        if drink.effect_type == "stamina":
+            stamina = min(state.stamina_max, stamina + drink.value)
+        elif drink.effect_type == "focus":
+            focus += drink.value
+        elif drink.effect_type == "condition":
+            condition_turns += drink.value
+        else:  # score
+            score += drink.value
+        return replace(
+            state,
+            stamina=stamina,
+            focus=focus,
+            condition_turns=condition_turns,
+            score=score,
+            drink_uses=tuple(uses),
+            drinks_used_this_turn=state.drinks_used_this_turn + 1,
+        )
+    # M6 效果段路径：先走 PItemDelta 渠道（与 LessonSim._apply_p_delta 双镜），
+    # 再结算饮料特有的直接段（立即抽牌 / timed 回合开始抽牌 / search move）。
+    effects = drink.all_effects
+    new_state = replace(
         state,
         stamina=stamina,
-        focus=focus,
-        condition_turns=condition_turns,
-        score=score,
         drink_uses=tuple(uses),
         drinks_used_this_turn=state.drinks_used_this_turn + 1,
+    )
+    delta = effects_to_delta(effects)
+    if not delta.is_zero():
+        new_state = _apply_p_delta_state(
+            new_state,
+            delta,
+            status_counts=dict(new_state.status_counts),
+            uses=dict(new_state.p_item_uses),
+            delayed=new_state.delayed,
+        )
+    for eff in effects:
+        if not eff.implemented:
+            continue
+        if eff.kind == "draw" and eff.value > 0:
+            new_state = _drink_draw_state(new_state, eff.value)
+        elif eff.kind == "turn_start_draw" and eff.value > 0:
+            new_state = replace(
+                new_state,
+                turn_start_draw=add_timed(
+                    new_state.turn_start_draw, eff.value, eff.turns
+                ),
+            )
+        elif eff.kind == "search_move":
+            new_state = _drink_search_move_state(new_state, eff)
+    return new_state
+
+
+def _drink_draw_state(state: ExpectState, count: int) -> ExpectState:
+    """M6：饮料立即抽牌（与 ``LessonSim._draw`` 双镜）。
+
+    全知牌序（``known_draw`` 非空）时按序从牌堆顶抽，逐位镜像 LessonSim；
+    无序多重集时按 ``_card_key`` 排序取确定代表张（搜索的抽牌机会节点吸收
+    后续不确定性，叶子对齐见 ``AnalyticLeafValue``）。牌堆抽空把弃牌洗回。
+    """
+    hand = state.hand
+    deck = state.deck
+    discard = state.discard
+    known_draw = state.known_draw
+    discard_order = state.discard_order
+    drawn: list[CardSpec] = []
+    if known_draw:
+        take = list(known_draw[:count])
+        known_draw = tuple(known_draw[count:])
+        deck_counter = Counter(deck)
+        for card in take:
+            deck_counter[card] -= 1
+            if deck_counter[card] <= 0:
+                del deck_counter[card]
+        deck = tuple(sorted(deck_counter.elements(), key=_card_key))
+        drawn = take
+    else:
+        deck_list = sorted(deck, key=_card_key)
+        discard_list = sorted(discard, key=_card_key)
+        for _ in range(count):
+            if not deck_list:
+                if not discard_list:
+                    break
+                deck_list = discard_list
+                discard_list = []
+            drawn.append(deck_list.pop(0))
+        deck = tuple(deck_list)
+        discard = tuple(discard_list)
+        if discard_order is not None:
+            discard_order = None  # 重洗后顺序未知
+    return replace(
+        state,
+        hand=hand + tuple(drawn),
+        deck=deck,
+        discard=discard,
+        known_draw=known_draw,
+        discard_order=discard_order,
+    )
+
+
+def _drink_search_move_state(state: ExpectState, eff: DrinkEffect) -> ExpectState:
+    """M6：zone search move 偶像固有（与 ``LessonSim._drink_search_move`` 双镜）。
+
+    从牌堆+弃牌多重集找偶像固有卡，移 1 张到手牌（手牌≥5 不生成）。ExpectState
+    无 RNG，按 ``_card_key`` 排序取确定代表张（type9 roll 口径的精确选取由引擎
+    oracle 配对，见 ``sim/drinks.rng_caliber``）。
+    """
+    from gkagent.data.card_meta import card_meta_index
+
+    if len(state.hand) >= 5:
+        return state
+    index = card_meta_index()
+
+    def is_idol(card: CardSpec) -> bool:
+        if card.category == "IdolUnique":
+            return True
+        meta = index.meta(card.name)
+        return bool(meta and meta.has_meta and meta.idol_unique)
+
+    deck_candidates = sorted((c for c in state.deck if is_idol(c)), key=_card_key)
+    discard_candidates = sorted((c for c in state.discard if is_idol(c)), key=_card_key)
+    chosen: CardSpec | None = None
+    from_deck = False
+    if deck_candidates:
+        chosen, from_deck = deck_candidates[0], True
+    elif discard_candidates:
+        chosen = discard_candidates[0]
+    if chosen is None:
+        return state
+    if from_deck:
+        deck_counter = Counter(state.deck)
+        deck_counter[chosen] -= 1
+        if deck_counter[chosen] <= 0:
+            del deck_counter[chosen]
+        deck = tuple(sorted(deck_counter.elements(), key=_card_key))
+        discard = state.discard
+        known_draw = state.known_draw
+        if known_draw:
+            kd = list(known_draw)
+            if chosen in kd:
+                kd.remove(chosen)
+            known_draw = tuple(kd)
+    else:
+        deck = state.deck
+        discard_counter = Counter(state.discard)
+        discard_counter[chosen] -= 1
+        if discard_counter[chosen] <= 0:
+            del discard_counter[chosen]
+        discard = tuple(sorted(discard_counter.elements(), key=_card_key))
+        known_draw = state.known_draw
+    return replace(
+        state,
+        hand=state.hand + (chosen,),
+        deck=deck,
+        discard=discard,
+        known_draw=known_draw,
     )
 
 
@@ -2405,6 +2568,10 @@ def start_turn_state(state: ExpectState) -> ExpectState:
     """抽完新手牌后的回合开始结算（P 道具 turn_start → turn_start_after → turn_interval）。"""
     state = fire_p_items(state, TURN_START)
     state = fire_p_items(state, TURN_START_AFTER)
+    # M6：饮料 timed 回合开始抽牌（trigger=start_play，与 LessonSim._draw_hand 同口径）。
+    extra_draw = total_timed(state.turn_start_draw)
+    if extra_draw > 0:
+        state = _drink_draw_state(state, extra_draw)
     state = fire_p_items(state, TURN_INTERVAL)
     # P1-7：延迟生效 P 道具到点结算（与 LessonSim._draw_hand 同口径，turn 阶段）。
     return _fire_delayed_state(state)
@@ -2512,6 +2679,8 @@ def end_turn_state(state: ExpectState) -> ExpectState:
     score_debuffs = tick_timed(state.score_debuffs)
     # P1-2：手牌减少倒计时（与 LessonSim._end_turn 同口径）
     hand_decreases = tick_timed(state.hand_decreases)
+    # M6：饮料 timed 回合开始抽牌倒计时（与 LessonSim._end_turn 同口径）
+    turn_start_draw = tick_timed(state.turn_start_draw)
     modifiers = tuple(sorted(timed_dict_tick(dict(state.modifiers)).items()))
     half_cost_turns = state.half_cost_turns - 1 if state.half_cost_turns > 0 else 0
     double_cost_turns = (
@@ -2555,6 +2724,7 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         score_buffs=score_buffs,
         score_debuffs=score_debuffs,
         hand_decreases=hand_decreases,
+        turn_start_draw=turn_start_draw,
         pride_turns=pride_turns,
         nullify_genki_turns=nullify_genki_turns,
         unease_turns=unease_turns,
@@ -3449,6 +3619,8 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         # P1-2：手牌减少 / 自尊（与 sim_from_state 双镜）
         hand_decreases=tuple(getattr(sim, "hand_decreases", ())),
         pride_turns=max(int(getattr(sim, "pride_turns", 0)), 0),
+        # M6：饮料 timed 回合开始抽牌（与 sim_from_state 双镜）
+        turn_start_draw=tuple(getattr(sim, "turn_start_draw", ())),
         # P1-4：低下状态无效（与 sim_from_state 双镜）
         nullify_debuff=max(int(getattr(sim, "nullify_debuff", 0)), 0),
         # P1-7：元气增加无效 / 不安 / 延迟生效增量（与 sim_from_state 双镜）

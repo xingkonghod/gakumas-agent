@@ -1473,6 +1473,35 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
+**最近交接记录（2026-11-26 上午，饮料专项阶段1 + pilot r14 离线门 + QQ§12 + rinami 吸收；goal 自主循环）**：
+- **QQ 增量 §12**（11-25 23:06→11-26 08:48 +62 条）：muskot **Bellman 上界**=O(1) 上界公式构想
+  （自评非常难：状态爆炸+反低维抽象机制）+ 近优策略课题 + **arXiv 2006.05879=MDP-GapE**（非 GNRPA）；
+  Ert'Aria 实践对照 **GakumasCLI 目标分早停**（本战上/下半场封顶 140万/240万 + 达标后最省体力 +
+  目标分→占比偏差→剩余体力 tiebreak + 控分 Vo/Da/Vi 占比）→ 可吸收进 v3 早停/tiebreak 候选；
+  提交 b9f9df3（含 §11）。**rinami W7/W9 实机样本吸收** docs/RINAMI_LIVE.md（4059797）。
+- **pilot r14 重启训练成功**（昨晚卡住疑 OOM；90,144 行 GKMS 尺度、192×96/1200ep/4 线程、682.6s、
+  val 排序 0.510 擦线）；**离线门 ratio 2.33× PASS（85胜14负）/ z 尾部 FAIL 如实**（max|z| 6.2/5.3/7.2，
+  p95≤2.32；候选 rescale/clamp 后续）；权重入 submissions/gkagent-ei-r14（bench_repo 9a2edbc）；
+  **托管门 ≥150k 排队 v3 A/B 后**（GKBENCH §13 / aedca7b）。
+- **饮料专项阶段1 完成（用户指定重点；drink-model 子智能体失败后 lead 接手收尾）**：
+  build_drinks.py + drinks.json **29 瓶/51 段/33 实现**；sim/drinks.py 20 类 + drinks_db.py loadout
+  解析；DrinkSpec.effects 默认空=旧行为逐位不变 + LessonSim/ExpectState 双镜（turn_start_draw 进
+  canonical/rollout）+ expectimax 剪枝扩 kind；local_bench `--drinks auto/off` 默认 off（greedy
+  auto/off 逐位同）；**W9 全重放门绿**（1,426,865 / 45 决策 0 mismatch / 逐决策 rng 含 4 饮料步 /
+  增量逐效果配对）+ W7 回归绿；tests/test_drinks_m6.py 30 条。**hif 498/505 带饮料**；已实现大头
+  蛋白粉×248/苏打×235/00-2-008×219；**最高频青汁 pdrink_00-3-005 ×296 = ExamCardCreateSearch
+  随机生成 RNG 流未知 → 显式 unknown（决策层保守不喝=免费杠杆）**；阶段1.5=4 种确定式
+  ExamStatusEnchant + ExamPreservation + ExamCardMove 变体增量批；阶段2=托管 v3 饮料决策 +
+  r14 饮料特征 + 生产 allow_drinks（GKBENCH §13）。
+- **v3 托管 A/B**：服务器间歇 SYN 丢包（10060/10054 波）+ **旧评测 40312fcb77a0 被服务器清掉
+  （404 没有这个评测）**→ 驱动改新评测 + 404 自重置（data/_v3_hosted_ab.ps1 不提交），臂A
+  vote0.8 跑局中 → 臂B vote2.0 顺序；出分对标 1,267,591 / 1.3M。
+- **环境坑**：`Temp\pytest-of-xingkonghod` ACL 坏（WinError 5；诊断脚本 verdict UNREADABLE
+  **未改系统权限**，报告 out/acl-recovery/）→ **pytest 一律 --basetemp=out\_pytest_tmp_***；
+  test_challenge / test_drink_search_latency 高负载下偶发 flake（单跑绿），如实记不静默。
+- **在跑子智能体**：m1-rng（M1 消费图，饮料已划界）/ hajime-tune（v2h）/ pimc-opt（expectimax-fast）；
+  drink-fix2（阶段1.5）待派。⑤ 全量 505 / ⑦ GKMSPS plug 排队。
+
 **最近交接记录（2026-11-25 晚，ex-seed-v2 融合登顶 1.27M / best-known 87%；goal 自主循环）**：
 **主任务完成**：f2-exv2 在 ex-seed 967k 基础上融 seedlock RoutePool 跨步累积 + FastCut + 多起点 GNRPA（2×500k/步）
 + step10 + forced_play=0，保留 ex-seed worlds 投票 + core_tail → **gkagent-ex-seed-v2**。

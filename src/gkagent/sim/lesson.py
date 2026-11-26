@@ -228,6 +228,11 @@ from gkagent.sim.p_items import (
     timed_dict_total,
     total_timed,
 )
+from gkagent.sim.drinks import (
+    DrinkEffect,
+    effects_to_delta,
+    legacy_effect,
+)
 from gkagent.sim.stance import (
     FULL_POWER_POINT_COST,
     Stance,
@@ -464,18 +469,18 @@ class CardSpec:
 
 @dataclass(frozen=True)
 class DrinkSpec:
-    """一瓶饮料（真机底部 3 个饮料槽，每回合最多喝 1 瓶）。
+    """一瓶饮料（真机底部饮料槽）。
 
-    ``cost`` 是喝这瓶饮料需要支付的体力；真机饮料不耗体力，通常填 0，
-    字段保留给自定义/特殊饮料。``effect_type`` 只支持 ``DRINK_EFFECTS``：
+    **M6（2026-11-26）效果段列表**：``effects`` 给 ``DrinkEffect`` 元组时按段结算
+    （extra_plays / timed 分数倍率 / timed 回合开始抽牌 / 立即抽牌 / timed 费用减少 /
+    zone search move 偶像固有 / 体力/集中/好调/直接分/元气…，见 ``sim/drinks.py``）；
+    未知段 ``implemented=False`` 显式 no-op。``effects`` 为空时退回旧单效果路径
+    （``effect_type`` ∈ ``DRINK_EFFECTS`` + ``value``），旧调用逐位不变。
 
-    - ``stamina``：回复 ``value`` 点体力（不超过 ``LessonConfig.stamina_max``）；
-    - ``focus``：集中 +``value``；
-    - ``condition``：好调 +``value`` 回合；
-    - ``score``：直接加 ``value`` 分（不吃好调/集中/指針/审查基准倍率）。
-
-    ``uses`` 是这瓶饮料的可使用次数；真机是一次性消耗，默认 1。用完后该槽位
-    不可再用（``LessonSim.drink_uses`` 会记 0）。
+    ``cost`` 是喝这瓶饮料需要支付的体力；真机饮料的「体力消耗」是
+    ``ExamStaminaReduceFix`` 效果段（``stamina_cost``），通常 ``cost=0``。
+    ``uses`` 是这瓶饮料的可使用次数；真机一次性消耗，默认 1。用完后该槽位不可再用
+    （``LessonSim.drink_uses`` 记 0）。
     """
 
     name: str
@@ -483,18 +488,30 @@ class DrinkSpec:
     effect_type: str
     value: int
     uses: int = 1
+    # M6：效果段列表（非空时优先于旧单效果）；默认空 = 旧行为
+    effects: tuple[DrinkEffect, ...] = ()
 
     def __post_init__(self) -> None:
+        if self.cost < 0:
+            raise ValueError(f"饮料体力消耗不能为负：{self.cost}")
+        if self.uses < 1:
+            raise ValueError(f"饮料使用次数必须 >= 1：{self.uses}")
+        if self.effects:
+            # 效果段路径：effect_type 仅作标签（"multi"），数值在各段里。
+            return
         if self.effect_type not in DRINK_EFFECTS:
             raise ValueError(
                 f"未建模的饮料效果 {self.effect_type!r}：只支持 {DRINK_EFFECTS}"
             )
-        if self.cost < 0:
-            raise ValueError(f"饮料体力消耗不能为负：{self.cost}")
         if self.value <= 0:
             raise ValueError(f"饮料效果数值必须为正：{self.value}")
-        if self.uses < 1:
-            raise ValueError(f"饮料使用次数必须 >= 1：{self.uses}")
+
+    @property
+    def all_effects(self) -> tuple[DrinkEffect, ...]:
+        """结算用的效果段：``effects`` 非空时原样，否则旧单效果转一段。"""
+        if self.effects:
+            return self.effects
+        return (legacy_effect(self.effect_type, self.value),)
 
 
 @dataclass(frozen=True)
@@ -599,6 +616,11 @@ class LessonSim:
         # 回合开始抽牌 max(hand_size − Σ, 0)（TurnManager.startTurn cardsToDraw）；
         # 只影响回合开始抽牌，不影响卡效果抽牌（wiki buffs.json 口径）。
         self.hand_decreases: tuple[tuple[int, int], ...] = ()
+        # ---- M6（2026-11-26）：饮料 timed 回合开始抽牌（与 ExpectState 双镜）----
+        # ((每回合抽牌张数, 剩余回合), …)，-1 = 永久。来源 ExamStatusEnchant 内层
+        # ExamCardDraw（trigger=start_play，W9 苏打「之后 5 回合回合开始后抽技能卡」）。
+        # 回合开始抽牌后额外抽 Σ 张（_draw_hand）；回合末倒计时（_end_turn）。
+        self.turn_start_draw: tuple[tuple[int, int], ...] = ()
         # 自尊剩余回合（参考 prideTurns：EOT_DECREMENT_FIELDS 回合末 -1；
         # >0 时 resolveScore f 加算 min(min(好印象,干劲)×20, 500) 千分比）。
         self.pride_turns: int = 0
@@ -872,16 +894,56 @@ class LessonSim:
             )
 
         self.stamina -= drink.cost
-        if drink.effect_type == "stamina":
-            self.stamina = min(self.stamina_max, self.stamina + drink.value)
-        elif drink.effect_type == "focus":
-            self.buffs.focus += drink.value
-        elif drink.effect_type == "condition":
-            self.buffs.condition_turns += drink.value
-        else:  # score（DrinkSpec 已在构造时校验，这里只剩 score）
-            self.score += drink.value
+        effects = drink.all_effects
+        # M6：走 PItemDelta 渠道的效果段（体力/集中/好调/直接分/元气/extra_plays/
+        # timed 分数倍率/费用修正/回合追加…），与 P 道具双镜共用 _apply_p_delta。
+        delta = effects_to_delta(effects)
+        if not delta.is_zero():
+            self._apply_p_delta(delta)
+        # M6：饮料特有的直接结算段（立即抽牌 / timed 回合开始抽牌 / search move）。
+        for eff in effects:
+            if not eff.implemented:
+                continue
+            if eff.kind == "draw":
+                if eff.value > 0:
+                    self._draw(eff.value)
+            elif eff.kind == "turn_start_draw":
+                if eff.value > 0:
+                    self.turn_start_draw = add_timed(
+                        self.turn_start_draw, eff.value, eff.turns
+                    )
+            elif eff.kind == "search_move":
+                self._drink_search_move(eff)
         self.drink_uses[index] -= 1
         self.drinks_used_this_turn += 1
+
+    def _drink_search_move(self, eff: DrinkEffect) -> None:
+        """M6：zone search move 偶像固有（``ExamCardMove`` deck_grave→hand）。
+
+        从牌堆+弃牌堆里找偶像固有卡，移 1 张到手牌（手牌≥5 不生成，参考 addCardToHand）。
+        候选 >1 时用 ``self.rng`` 掷点选 1（type9 roll 口径；精确 xorshift32 消费数由
+        引擎 oracle 配对，见 ``sim/drinks.rng_caliber``）。候选 0 张则 no-op。
+        """
+        from gkagent.data.card_meta import card_meta_index
+
+        index = card_meta_index()
+
+        def is_idol(card: CardSpec) -> bool:
+            if card.category == "IdolUnique":
+                return True
+            meta = index.meta(card.name)
+            return bool(meta and meta.has_meta and meta.idol_unique)
+
+        candidates = [c for c in self.deck if is_idol(c)]
+        candidates += [c for c in self.discard if is_idol(c)]
+        if not candidates or len(self.hand) >= 5:
+            return
+        chosen = candidates[0] if len(candidates) == 1 else self.rng.choice(candidates)
+        if chosen in self.deck:
+            self.deck.remove(chosen)
+        elif chosen in self.discard:
+            self.discard.remove(chosen)
+        self.hand.append(chosen)
 
     def step(self, action: Action) -> None:
         """执行一个动作。
@@ -1938,6 +2000,8 @@ class LessonSim:
         # P1-2：手牌减少倒计时（参考 decrementBuffTurns 对 handDecreases 列表：
         # turns>0 的 -1、到 0 移除、永久保持）。
         self.hand_decreases = tick_timed(self.hand_decreases)
+        # M6：饮料 timed 回合开始抽牌倒计时（与 score_buffs 同口径）。
+        self.turn_start_draw = tick_timed(self.turn_start_draw)
         self.modifiers = timed_dict_tick(self.modifiers)
         if self.half_cost_turns > 0:
             self.half_cost_turns -= 1
@@ -2121,6 +2185,11 @@ class LessonSim:
         self._fire_p_items(TURN_START)
         # B8：回合开始后 / 每 N 回合（新语法触发 id 的两种时机，同一位置发射）
         self._fire_p_items(TURN_START_AFTER)
+        # M6：饮料 timed 回合开始抽牌（ExamStatusEnchant trigger=start_play，
+        # W9 苏打「之后 5 回合回合开始后抽技能卡」）——回合开始后额外抽 Σ 张。
+        extra_draw = total_timed(self.turn_start_draw)
+        if extra_draw > 0:
+            self._draw(extra_draw)
         self._fire_p_items(TURN_INTERVAL)
         # P1-7：延迟生效 P 道具到点结算（参考嵌套 at:turn / delay:N 在回合开始的
         # turn 阶段触发，位于 startOfTurn/afterStartOfTurn 之后）。

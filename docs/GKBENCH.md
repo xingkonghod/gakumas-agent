@@ -405,11 +405,22 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   adapter 0 错 0 回退；**z 尾部门 FAIL**（max|z| 6.23/5.29/7.17 >3，p95 ≤2.32 全正常 = 极端局尾状态
   超训练分布）；候选修复 rescale/clamp 或补尾部训练分布，后续不静默忽略。详见投稿 RESULTS.md。
 - **托管门 ≥150k 排队**：v3 A/B 两臂之后（CPU 口径公平）；离线 held-out 口径不外推托管保密种子。
-- **饮料专项立项（用户指定重点投入）**：现状 DrinkSpec 仅 4 效果类型、**v2/v3 托管 algo 零饮料处理**
-  （gkbench 动作空间含 drink，hiro/evo 都喝）= seed 赛道纯丢分；W9 实机四瓶效果（extra_plays/timed
-  倍率/timed 抽牌/zone search move/timed 降费）全缺；青汁动 RNG 未建模。子智能体 drink-model 阶段1：
-  全 catalog + sim 双镜 + **W9 全重放门（1,426,865 + 逐决策 rng 含饮料步）**；阶段2 托管 v3 饮料决策
-  + r14 饮料特征 + 生产 allow_drinks。饮料 RNG 入口归 drink-model（m1-rng 已划界）。
+- **饮料专项（用户指定重点投入）阶段1 完成**（drink-model 子智能体失败后 lead 接手收尾）：
+  `scripts/build_drinks.py` + `data/knowledge/drinks.json` **29 瓶 / 51 效果段 / 33 实现**；
+  `sim/drinks.py` 20 类效果分类 + `data/drinks_db.py` loadout 解析（不去重/未知显式上报）；
+  DrinkSpec.effects 效果段列表（**默认空=旧行为逐位不变**）+ LessonSim/ExpectState 双镜
+  （turn_start_draw 新字段进 canonical/rollout）+ expectimax 饮料剪枝扩到新 kind；
+  `local_bench --drinks auto/off`（**默认 off**，greedy 3 题 auto/off 均分逐位同 1718.0）。
+  **W9 全重放门绿**：终分 1,426,865 逐位 / 45 决策 0 mismatch / 逐决策 rng 含 4 饮料步 /
+  喝一瓶前后增量 ↔ sim 逐效果配对；W7（0 饮料）655,198 回归绿。tests/test_drinks_m6.py 30 条。
+  **RNG 口径**：蛋白粉 0 掷 / 苏打 4=抽牌触发支援强化掷点（归 m1-rng 图）/ 汉方 3=type9 搜索掷 /
+  **青汁=create_random 未知显式 no-op**。
+- **hif 505 题饮料覆盖实测（阶段2 杠杆真值）**：498/505 题带饮料；已实现大头=蛋白粉 extra_plays ×248 /
+  苏打 ×235（4 段）/ 00-2-008 ×219（half_cost+score_buff）/ 02-3-010 ×209 / 03-3-011 extra_turn ×100；
+  **最高频 pdrink_00-3-005 ×296 = 初星特制青汁**（ExamCardCreateSearch 随机生成，RNG 流未知，
+  群线索"青汁会动rng"实锤；auto-gakumas 禁用规避）→ 保持 unknown，决策层保守不喝是免费杠杆；
+  其余 unknown 中 **4 种 ExamStatusEnchant（rng=none 确定式）+ ExamPreservation + ExamCardMove
+  变体 = 可建模增量批（阶段1.5）**。阶段2=托管 v3 饮料决策 + r14 饮料特征 + 生产 allow_drinks。
   样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 QQ_GROUP_NOTES §12。
 - **v3 托管 A/B 进行中**：臂A vote0.8（resume 40312fcb77a0）→ 臂B vote2.0 顺序；服务器间歇 SYN 丢包
   （10060/10054 波）驱动 90s 自动重连（data/_v3_hosted_ab.ps1，不提交）；出分后对标 1,267,591 / 1.3M 目标。
