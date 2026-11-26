@@ -415,12 +415,27 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   喝一瓶前后增量 ↔ sim 逐效果配对；W7（0 饮料）655,198 回归绿。tests/test_drinks_m6.py 30 条。
   **RNG 口径**：蛋白粉 0 掷 / 苏打 4=抽牌触发支援强化掷点（归 m1-rng 图）/ 汉方 3=type9 搜索掷 /
   **青汁=create_random 未知显式 no-op**。
+- **饮料专项阶段1.5 完成（drink-fix2，确定式增量批）**：4 种严选初星 ExamStatusEnchant 内层
+  （回合结束集中/好印象/干劲 +1 = 玛奇朵/茶/拼配咖啡，回合开始全力值 +1 = 印度茶，effectTurn=-1
+  永久）→ `turn_enchants` 新渠道（(kind,value,turns) 三元组）双镜；热绿茶 ExamCardMove
+  deck_grave→hold（**pickRangeType=Select 玩家选牌，引擎 select_policy 不掷点**）+ ExamPreservation
+  温存 2 段階直给（PItemDelta.stances 既有渠道）；焙茶温存变更（value1=1）side-effect 一并实现。
+  **引擎 oracle 逐瓶配对全 PASS**（data/_drinks_probe5.py 不提交，6 瓶=5 批次+焙茶）：
+  drink 步 rng_advances 全 0 / 附魔触发=好印象结算**前** + **endTurn 衰减 freshBuffs 保护**
+  （当回合获得层本回合末不扣、下一回合末才扣；只对附魔渠道建模，卡/立即渠道沿用既有 sim 口径，
+  旧行为逐位不变）/ 热绿茶 hold+1/deck-1/save2（greedy_select_policy 选牌事件）。
+  catalog **40/51 段实现**（33→40，11 unknown）；hif 505 覆盖 **impl 2881→2984 段（+103）/
+  78.7%→81.5%**（1629 槽位 / 3660 段）。tests/test_drinks_m6.py **49 条**（30 旧+19 新含 oracle 配对门）。
+  批次实测槽位：玛奇朵 ×9 / 茶 ×7 / 拼配咖啡 ×42 / 印度茶 ×11 / 热绿茶 ×12 / 焙茶 ×10
+  （立项背景"玛奇朵 ×38"系与黑醋汁 01-3-012 ×38 混淆，以实测为准）。
 - **hif 505 题饮料覆盖实测（阶段2 杠杆真值）**：498/505 题带饮料；已实现大头=蛋白粉 extra_plays ×248 /
   苏打 ×235（4 段）/ 00-2-008 ×219（half_cost+score_buff）/ 02-3-010 ×209 / 03-3-011 extra_turn ×100；
   **最高频 pdrink_00-3-005 ×296 = 初星特制青汁**（ExamCardCreateSearch 随机生成，RNG 流未知，
-  群线索"青汁会动rng"实锤；auto-gakumas 禁用规避）→ 保持 unknown，决策层保守不喝是免费杠杆；
-  其余 unknown 中 **4 种 ExamStatusEnchant（rng=none 确定式）+ ExamPreservation + ExamCardMove
-  变体 = 可建模增量批（阶段1.5）**。阶段2=托管 v3 饮料决策 + r14 饮料特征 + 生产 allow_drinks。
+  群线索"青汁会动rng"实锤；auto-gakumas 禁用规避）→ 保持 unknown，决策层保守不喝是免费杠杆
+  （青汁X ×1 同保持 unknown）；阶段1.5 后剩余 11 unknown 段 = ExamConcentration 强气直给
+  （姜汁汽水/超级苏打，**阶段2 候选**，同 stance 渠道可复用）+ 黑醋汁 hand-select move /
+  特制精华再发动 / 混合果昔 / 新鲜果醋 / 时尚草本茶依赖换算等。阶段2=托管 v3 饮料决策 +
+  r14 饮料特征 + 生产 allow_drinks。
   样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 QQ_GROUP_NOTES §12。
 - **v3 托管 A/B 进行中**：旧评测 40312fcb77a0 被服务器清掉（404）→ 驱动改**新评测** + 404 自重置；
   臂A vote0.8 → 臂B vote2.0 顺序；服务器间歇 SYN 丢包（10060/10054 波）90s 自动重连
@@ -430,6 +445,57 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   支援掷点门控公式 / type59/38/156/22=0）；**W7 27/27、W9 非饮料 41/41 逐决策匹配**；rules=69 引擎
   重放实机终分吻合**无版本漂移**；**静态扫 505：恢复全知 419 题（85%）**，仍风险 74 题全为
   type21 ExamCardCreateSearch 随机池（保守保留）；exam_risk opt-in 默认关逐位不变；pytest 1734/1。
-  阶段2 进行中：predictive 牌区动力学 → v3g 接线离线门（失锁怪物重扫）→ type21 探针。
+  阶段2(a) predictive 牌区动力学完成（m1-fix2，feat 7e08a67）：card_zones.py 自写预测牌区演化，
+  不再锚 oracle 消费事件。**已预测**（主数据驱动）：type9 选牌序 signed_key 带符号 int32 升序
+  （阶段2 修正，探针①口径）/ enchant turn_start_draw（drinks.py 同口径）/ 回合开始主抽牌 /
+  ExamCardDraw 立即+timer / ExamCardCreateId DECK_RANDOM / ExamCardMove search 2nf+pick 1+nf /
+  reshuffle / support_rolls / encore 触发 move+draw。**W7 全 27 决策 predictive rng+牌区逐位匹配**；
+  anchor_fallback 开关默认 predictive，fallback 与阶段1 逐位同（W7 27/W9 45）；W9 非饮料 41 rng 逐位
+  （饮料步 owned-by-drinks）。**显式 unknown 不猜**（card_zones.UNKNOWN_TIMINGS）：① pitem 312 interval
+  抽牌时机——主数据语义已推（card_play_interval interval=4 scope=exam / play_filter=好調组 / 条件好调≥8 /
+  max_uses=5 / draw bundled ExamPlayableValueAdd），但精确 fire 含 DLL interval44_count 计数器+手牌上限
+  跳过/复位交互，两局样本不足反推 → 留 (c) 探针；② 饮料侧 soda enchant 支援强化目标走独立饮料 rng
+  （exam 流 0 消费，W9 k=7 rng_steps=12 实测）→ owned-by-drinks（M6）。另修：汉方 search_move=search 排序
+  nf+pick 1+nf（nf=1→cons3）/ 饮料 idx 按剩余列表 pop / 弃牌→grave 强化路由口径。pytest 1762/1
+  （test_drinks_m6 probe5 高负载偶发 ERROR，单跑 49 绿如实记）。
+  阶段2 剩余：(b) v3g 接线离线门（失锁怪物重扫）→ (c) type21 探针（含 pitem 312 fire 口径逐场景刻画）。
   **饮料阶段2 设计**见 out/_drinks_phase2_plan.md（SAFE 纯数值段暴露进 v3d 动作空间、引擎原生核分；
   改牌堆/RNG/回合数饮料保守排除）。
+
+## 14. 2026-11-26 任务⑥ expectimax-fast PIMC 超时优化（pimc-opt，bench_repo 6397bbb）
+
+- **目标**：gkagent-expectimax（GKMS PIMC 无 seed，public-safe）托管 hif 531k（n=240）但
+  **over_steps=492 超时多**，减 over 同时均分不降。新变体 `submissions/gkagent-expectimax-fast/`
+  （**copy 后改，原版零改动**，MD5 核对一致）；缺省 worlds4/use0.70/anytime1/early_stop0。
+- **超时根因实证（纠正「CPU 竞争」假设）**：① 本地真实裁判无网络原版 **over=0**、均 decide≈4.06s
+  （data/_pimc_diag_local.py）；② **22 自旋子进程+3 局并发（>24vCPU）搜索墙钟仍 4.07s、over=0**
+  （data/_pimc_stress.py）——C wall-deadline 帽住每搜索墙钟，竞争不拉伸；③ **服务器口径
+  server/hosted.go:179 `serverMs=time.Since(obs_sent)−WorldsMs`**=搜索+overhead+(obs下载+action上传+
+  worlds网络往返)，服务器只减自身 worlds 处理耗时、**不减网络往返**，算法补不到 obs/action 往返 →
+  ~4.04s 搜索+~1.4s 不补偿 RTT=均步时 5.4s，RTT 尖峰推尾过 6.05s。**根因=网络 RTT，非竞争**。
+  托管均步时 5406ms（中位 4164/p90 7454/max 28618），over 率随均步时升（≥5000ms 局 14.1%）；
+  重灾题 K46XXQEY17/3EW6E6HV15/DS9H9NRD15/3BB4BWTR13/33JYSHDF12（data/_pimc_diag_eps.py）。
+- **杠杆**（参数化单变量消融）：anytime 全局墙钟帽（每波按剩余全局时间重算 sec，总墙钟帽住）/
+  use↓（降搜索墙钟给 RTT 留头寸=减 over 主杠杆）/ worlds6→4 / early_stop 共识早停 / step_trans（未门）。
+- **离线 RTT 仿真配对门**（承 v3 先例，data/_pimc_pair.py 不提交；本地无网络 over=0 → 每步额外
+  RTT overlay 仿真托管 serverMs，校准原版均步时 5176≈托管 5406；同 seed 背靠背+bootstrap 10000 CI
+  种子 20261126；≤3 局并发 free>0.6GB）：**gate2 core8+重灾4 ×2seed=24 配对**（data/_pimc_gate2.json）：
+  | 配置 | 均分 | meanΔ | CI95 | over | Δover |
+  |---|---:|---:|---|---:|---:|
+  | orig | 951,439 | — | — | 67 | — |
+  | **u70w4 缺省** | 953,912 | +2,473 | [−233k,+236k] | **15** | **−78%** |
+  | u70es | 970,053 | +18,615 | [−325k,+465k] | **1** | −98.5% |
+- **门判定（如实负结果）**：over_steps 大降 **PASS**（−78%/−98.5% 逐题稳健）；**均分 CI 下界≥0 FAIL**
+  （−233k/−325k）——均分点估计中性偏升但 CI 宽=**怪物题搜索盆地方差**（13胜11负，单题±1.5M：
+  3EW6E6HV u70es+4.1M / K46XXQEY u70w4−1.58M / ADDTACFE u70es−1.8M）；原版 wall-clock anytime
+  **负载非确定**（同题同种子 K46XXQEY 710k vs 2.01M，§10 f2-ex2 同款）基线漂移。严格非劣门在怪物题
+  重子集+n=24 本质难达（原版自身复跑都过不了）。screen 6题消融 data/_pimc_screen.json（u70/u60/u70w4/u70es）。
+- **关键澄清**：over_steps 是合规/公平指标，**服务器不因此扣分**（hosted.go over 仅打标，动作照常结算）
+  → 减 over 不直接升均分；531k→UINet 578k 缺口是**搜索质量**问题，非超时问题（本优化不能逼近 578k）。
+- **托管建议（留下会话，lead 排队）**：A/B fast 缺省（u70w4）vs 原版 `--seeds 2 --parallel 3 --budget 5`，
+  预期 over 大降（合规价值）均分~531k 中性；激进 u70es（over≈0）有共识崩局风险保守 early_stop=0；
+  全量 120×2 保密种子 CI 更紧是更强验证。**本次不跑托管**。
+- **硬约束遵守**：未重编 DLL（rules69 外部 oracle）；原版 expectimax 零改动；未碰 D:\Games\Gakumas；
+  探针 data/_pimc_*（diag_hosted/diag_eps/diag_local/stress/pair）不提交；pytest 绿（exit 0，
+  --basetemp=out\_pytest_tmp_pimc；drinks test_drinks_m6 高负载偶发 flaky 单跑绿，drink-model 域，
+  计数随他智能体新增至 ~1735，本任务未动 src/tests）。
