@@ -499,3 +499,56 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   探针 data/_pimc_*（diag_hosted/diag_eps/diag_local/stress/pair）不提交；pytest 绿（exit 0，
   --basetemp=out\_pytest_tmp_pimc；drinks test_drinks_m6 高负载偶发 flaky 单跑绿，drink-model 域，
   计数随他智能体新增至 ~1735，本任务未动 src/tests）。
+
+## 15. 2026-11-26 GNRPA 特化 L1 domain prior + L4 SAFE drinks（gnrpa-spec，均负结果如实）
+
+- **目标（用户指定特化 GKMSMainWheel 原生 C++ GNRPA，rules=69）**：只做 L1 domain prior + L4 SAFE drinks
+  进 session 两杠杆有界离线实验；L2 rules timeline / L3 nesting 调度留后续。探针 data/_gnrpa_*（不提交）；
+  先例 [data/knowledge/gnrpa_specialization.json](../data/knowledge/gnrpa_specialization.json)。
+- **🔑 前提修正（探针1 实锤）**：任务书假设「v3 session.drinks 现状=空」**为误**。loadout `drink_ids` 直通
+  `build_hif_loadout_session→SegmentConfig.drink_ids→NativeSession.drinks`（session 是 DLL native，
+  `open_exam→native_session.open_loading`）；托管 core120 loadout **119/120 带 drink_ids**。故 **v3 原生 GNRPA
+  已在搜全部饮料**（含青汁 00-3-005 create_random / 苏打 00-2-010 draw）——根节点 legal_drinks 全 4 瓶，
+  current 短搜 path 含 drink 3=青汁。L4 真实杠杆不是「注入」而是「是否限制到 SAFE 子集」。
+- **门方法**：低 oracle 12 ∪ monster 5 = **16 题 × 2 门种子**（s0 dev + s1 生成 exv3/1）= n=32 配对；
+  搜索级（已知种子根 session，同 _f2exv3_pair bounds 口径）同 transitions=2M / seed=182 / stab=3，
+  L1 prior 单变量（drinks=current）、L4 drinks 单变量（prior=None）；bootstrap 10000 CI 种子 20261126。
+  自蒸馏教师种子 `pid/gnrpa-distill/{0,1}` 与门种子**不相交防泄漏**。管线确认 data/_gnrpa_probe3.py（真实 Referee）。
+- **L1 domain prior（两路单变量，均 FAIL CI 下界>0 门）**：
+  | 候选 | 构造口径 | overall meanΔ | CI95 | 正/负/零 | 判定 |
+  |---|---|---:|---|---|---|
+  | mech | cf0 特征=master 卡表 greedy 价值/费用效率，bonus∈[0,1.5] 只 boost 正分不压 setup（941 特征） | +49,074 | [−41,583, +189,168] | 7/13/12 | **FAIL**（下界<0；monster 下界=0 非>0） |
+  | distill | `PS.learn_prior`(32 条 2M GNRPA 教师路线，回放核验 32/32)，1870 权重含饮料时机键 | **−184,442** | [−615,217, +191,459] | 16/16/0 | **FAIL**（均值负+2 次 status=2 早停退化） |
+  - 分层：distill low12 CI[−34,326,+67,161] 跨 0、monster mean −620,172；mech low12 mean −31,799。
+  - **机制（ anticipated 负结果实证）**：域知识进 bias 反而约束搜索——自蒸馏 prior 把 GNRPA 锁进教师盆地，
+    高方差怪物题灾难负（WDKWQYW5 −4.4M / 5KZSXANK −2.9M / 3ZT8ZKB6 −1.4M），虽部分低 oracle 题正
+    （3G6FFZZT +248k / AXME8QK2 +2.74M / VH8WYE6J +343k），16 正 16 负 wash。**prior=0 仍正确**；
+    旧 prior 有害（§10/§11）rules=69 重建/蒸馏**未能翻案**。distill 2 次 status=2（WDKWQYW5/3601220 0.12s、
+    WNK6ARRZ/1063386126 0.77s）= prior 诱发搜索早停病理。
+- **L4 SAFE drinks（safe-vs-empty 过门，但 safe-vs-current 强负 → 不采纳限制）**：
+  | 对比 | overall meanΔ | CI95 | 正/负/零 | 含义 |
+  |---|---:|---|---|---|
+  | safe vs empty | +135,292 | **[+23,612, +266,026]** | 21/5/6 | SAFE 饮料相对无饮料有价值（字面门 PASS） |
+  | **safe vs current** | **−897,444** | **[−1,416,389, −451,108]** | 3/29/0 | **限制到 SAFE 纯丢分（强负）** |
+  | current vs empty | +1,032,737 | [+533,212, +1,617,665] | 31/1/0 | 全饮料原生搜索价值巨大 |
+  - 均分：current 2,157,172 / safe 1,259,727 / empty 1,124,435；喝频 current 3.69 / safe 1.25 / empty 0 瓶/局。
+  - **管线确认（2 题×2 臂×1 dev 种子）**：3G6FFZZT current **1,285,228**（精确复现 §13 diag1 v3vote，喝青汁+苏打+008×2）
+    锁定 T2 vs safe 444,204 锁定 T2；5KZSXANK current **8,631,520 锁定 T3**（dev 种子；托管失锁系保密种子牌堆改动非饮料）
+    vs safe **2,510,455 失锁**（"no seed reproduces the screen"）。**锁定率 current 2/2 vs safe 1/2（safe 降锁定率）**；
+    errors=0 / bad_routes=0；safe 两题均分<50% 配对 max（34.5%/29.1%）= 崩局。
+  - **机制**：「RNG 未知/破坏 lock」排除理由适用于**我们 sim 侧抽牌模型（锁定前 scan）**，**不适用于引擎自身锁定后搜索**
+    ——引擎用自己 RNG 确定式结算青汁 create_random/苏打 draw，post-lock 回放核分精确。限制饮料搜索空间=纯丢分，
+    且改变早期打法路径可触发未建模牌堆改动→失锁（早期打法敏感，同 WDKWQYW5 现象）。**现状全饮料原生搜索保留**。
+- **采纳**：**零代码改动 v3**（L1/L4 均负，prior=0 + 全饮料现状保留）；未创建 v3s 变体（无采纳杠杆）；
+  先例文件 + 本节 + HANDOVER_NEXT 条。SAFE 划分（9 瓶，kind⊆SAFE_KINDS 且 rng 确定式）记先例文件供 sim 侧阶段2 复用。
+- **L2/L3 建议**：① L2 失锁根因是 card-effect deck-modify（M1 消费图阶段2 predictive 牌区动力学 → v3g 重扫失锁怪物），
+  非饮料；青汁/苏打 post-lock 引擎已最优无需 sim 建模 RNG。② L3 若后续用 prior 须 **per-problem 门控**（仅低 oracle 锁定题
+  opt-in、怪物题禁用）或 prior 只作多起点之一（starts 中 1 路带 prior 其余 prior=0，RoutePool 单调采纳兜底），不可全局。
+  ③ L4 免费杠杆=决策层锁定前 worlds 保守不喝青汁（避早期失锁）已有先例；post-lock 全饮料保留；饮料阶段2 重心在 sim 侧
+  r14 特征/生产 allow_drinks 而非限制引擎搜索。
+- **硬约束遵守**：未重编 DLL（vendor rules69 外部调用）；AGPL 不拷 src（探针 data/ 按路径 import 引擎）；未碰
+  D:\Games\Gakumas / C:\GakumasLocal 只读；**未改 drinks.py/drinks_db.py（drink-fix2 owns）/rng_graph.py（m1-fix2 owns）/
+  exam_risk.py**；v2/v3 原版零改动（v3s 骨架已移除）；data/_f2*/card_library.json/REPORT.md 及他智能体脏文件未提交；
+  探针单进程顺序 ≤1 局、批次前查 free<0.9GB sleep60（门尾段 free 520–900MB 自动等待）；未起托管未杀进程。
+  pytest **1763 collected / 106 文件，复跑 exit 0 全绿**（--basetemp=out\_pytest_tmp_gnrpa）；首跑
+  test_challenge::test_runs_until_runout_then_returns_home 高负载墙钟 flake 1 例**单跑绿**如实记（HANDOVER §8 同款），本任务未动 src/tests。

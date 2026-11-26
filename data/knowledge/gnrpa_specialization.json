@@ -1,0 +1,61 @@
+{
+  "schema": "gkagent.gnrpa_specialization.v1",
+  "date": "2026-11-26",
+  "agent": "gnrpa-spec",
+  "scope": "L1 domain prior + L4 SAFE drinks 进 session 两杠杆有界离线实验（rules=69 原生 GNRPA）。L2 rules timeline / L3 nesting 调度留后续。",
+  "engine": {"rules_version": 69, "dll": "submissions/gkagent-ex-seed-v3/vendor/gkmscore.dll（未重编）", "variant": "gnrpa", "transitions": 2000000, "search_seed": 182, "stabilization": 3},
+  "premise_correction": {
+    "finding": "任务书假设『v3 session.drinks 现状=空』为误。loadout drink_ids 直通 build_hif_loadout_session→SegmentConfig.drink_ids→NativeSession.drinks（native_session.py L959 property / exam_session open_exam→native）。托管 core120 loadout 119/120 带 drink_ids。",
+    "consequence": "v3 原生 GNRPA 已在搜全部饮料（含青汁 pdrink_00-3-005 create_random / 苏打 00-2-010 draw）。L4 真实杠杆不是『注入』而是『是否限制到 SAFE 子集』。",
+    "evidence": "data/_gnrpa_probe1.json（legal_drinks 根节点全 4 瓶；current 短搜 path 含 drink 3=青汁）；data/bench_local/problems_hif_core.json drink_ids。"
+  },
+  "safe_classification": {
+    "source": "out/_drinks_phase2_plan.md 阶段2a + data/knowledge/drinks.json（只读，drink-fix2 owns）",
+    "safe_kinds": ["extra_plays", "score_buff", "half_cost", "double_cost", "stamina_cost", "stamina", "vitality", "aggressive", "impression", "full_power_point", "condition", "perfect_condition", "score"],
+    "rule": "饮料所有效果段 kind ⊆ safe_kinds 且 rng.deterministic 且无 unknown rng 入口",
+    "safe_ids": ["pdrink_00-1-001", "pdrink_00-1-004", "pdrink_00-2-003", "pdrink_00-2-008", "pdrink_00-3-001", "pdrink_01-1-002", "pdrink_01-2-005", "pdrink_02-1-006", "pdrink_02-1-008"],
+    "excluded_examples": {"pdrink_00-3-005": "青汁 create_random RNG 未知", "pdrink_00-2-010": "苏打 draw 改手牌", "pdrink_00-2-009": "汉方 search_move", "pdrink_03-3-011": "extra_turn 改 LimitTurn", "pdrink_03-2-007": "热绿茶 search_move"}
+  },
+  "gate_method": {
+    "problems": "低 oracle 12 ∪ monster 5 = 16 题（AS-3G6FFZZT/QV6QCSN9/P8ZJTXNA/VH8WYE6J/5XB2AEHN/DE36RWPS/BD5EAA22/DEBX8BX7/WDKWQYW5/B38CARVV/VWAF2GDN/HTNFZWKG + 5KZSXANK/AXME8QK2/WNK6ARRZ/3ZT8ZKB6）",
+    "seeds": "每题 2 门种子（s0=F0 dev + s1=random.Random(pid/exv3/1)）；自蒸馏教师种子 random.Random(pid/gnrpa-distill/{0,1}) 与门种子不相交防泄漏",
+    "design": "搜索级配对（已知种子根 session，同 _f2exv3_pair bounds 口径）：L1 prior 单变量（drinks=current）；L4 drinks 单变量（prior=None）。bootstrap 10000 CI 种子 20261126。n=32 配对。",
+    "pipeline_confirmation": "data/_gnrpa_probe3.py：真实 Referee obs 管线 v3，2 题×2 臂（current 全饮料 / safe loadout 过滤）×1 dev 种子，记锁定率/崩局/喝频。"
+  },
+  "L1_domain_prior": {
+    "candidates": {
+      "mech": "cf0 特征权重=master 卡表 greedy 价值/费用效率（types 1/56/23→effectValue1, 49→2×），bonus=1.5·log1p(eff)/log1p(eff_max)∈[0,1.5] 只 boost 正分效率特征不压制 setup；941 特征。sources=mechanics:greedy-value/cost-efficiency-cf0,rules:69,boost-only。",
+      "distill": "PS.learn_prior(32 条 2M GNRPA 教师路线，回放核验 32/32 finished==best)；1870 权重（含 dt/drink 饮料时机键）。sources=self-distill:gnrpa-2000000-rules69,teachers:32/32,drinks:current-full,seeds:gnrpa-distill/disjoint-from-gate。prior 文件 data/_gnrpa_prior_distill.json（探针，不提交）。"
+    },
+    "results_mean_delta_ci95": {
+      "mech_vs_p0": {"overall": [49074, -41583, 189168], "low12": [-31799, -76887, 17778], "monster": [226993, 0, 614336], "pos_neg_zero": "7/13/12"},
+      "distill_vs_p0": {"overall": [-184442, -615217, 191459], "low12": [13618, -34326, 67161], "monster": [-620172, -1884431, 577584], "pos_neg_zero": "16/16/0", "errors_status2": 2}
+    },
+    "mean_best": {"p0": 2157172, "mech": 2206245, "distill": 1972730},
+    "conclusion": "两路均失败 CI 下界>0 门。mech overall 下界 −41583<0（monster 下界=0 非>0）；distill overall 均值负 −184442、CI 跨 0 宽、2 次 status=2 早停（WDKWQYW5/3601220 0.12s、WNK6ARRZ/1063386126 0.77s）退化。prior=0 仍正确。",
+    "mechanism": "域知识进 bias 反而约束搜索：自蒸馏 prior 把 GNRPA 锁进教师盆地，高方差怪物题（WDKWQYW5 −4.4M / 5KZSXANK −2.9M / 3ZT8ZKB6 −1.4M）灾难性负，虽部分低 oracle 题正（3G6FFZZT +248k / AXME8QK2 +2.74M / VH8WYE6J +343k）。16 正 16 负 wash。与旧 prior 有害同结论（GKBENCH §10/§11），rules=69 重建/蒸馏未能翻案。"
+  },
+  "L4_safe_drinks": {
+    "results_mean_delta_ci95": {
+      "safe_vs_empty": {"overall": [135292, 23612, 266026], "low12": [69788, 30288, 114534], "monster": [279402, -80648, 651156], "pos_neg_zero": "21/5/6"},
+      "safe_vs_current": {"overall": [-897444, -1416389, -451108], "low12": [-173745, -250000, -100967], "monster": [-2489583, -3429552, -1540467], "pos_neg_zero": "3/29/0"},
+      "current_vs_empty": {"overall": [1032737, 533212, 1617665], "low12": [243532, 169351, 321242], "monster": [2768986, 1630727, 3869516], "pos_neg_zero": "31/1/0"}
+    },
+    "mean_best": {"current_p0": 2157172, "safe": 1259727, "empty": 1124435},
+    "drink_actions_per_game": {"current": 3.69, "safe": 1.25, "empty": 0.0},
+    "pipeline_confirmation": {
+      "AS-3G6FFZZT": {"current": {"score": 1285228, "lock_turn": 2, "seed_found": true, "drinks": 4, "note": "精确复现 RESULTS diag1 v3vote；喝青汁+苏打+008×2"}, "safe": {"score": 444204, "lock_turn": 2, "seed_found": true, "drinks": 2}},
+      "AS-5KZSXANK": {"current": {"score": 8631520, "lock_turn": 3, "seed_found": true, "drinks": 4, "note": "dev 种子锁定（托管失锁系保密种子牌堆改动非饮料）"}, "safe": {"score": 2510455, "lock_turn": null, "seed_found": false, "drinks": 1, "why": "no seed reproduces the screen"}},
+      "lock_rate": "current 2/2 vs safe 1/2（safe 降锁定率）", "errors": 0, "bad_routes": 0, "collapse_lt50pct_pairmax": "safe 两题均<50%配对max（34.5% / 29.1%）"
+    },
+    "conclusion": "不采纳 SAFE-only 限制。safe-vs-empty 过门（CI 下界+23612>0，SAFE 饮料相对无饮料有价值），但 safe-vs-current 强负（CI[−1.42M,−451k]）：限制移除青汁/苏打等被引擎原生结算的高分饮料。管线实证 safe 还降锁定率（5KZSXANK 失锁）+ 两题崩局。现状全饮料原生搜索保留。",
+    "mechanism": "『RNG 未知/破坏 lock』排除理由适用于我们 sim 侧抽牌模型（锁定前 scan），不适用于引擎自身锁定后搜索——引擎用自己的 RNG 确定式结算青汁 create_random/苏打 draw，post-lock 回放核分精确。限制饮料搜索空间=纯丢分，且改变早期打法路径可触发未建模牌堆改动→失锁（早期打法敏感，同 WDKWQYW5 现象）。"
+  },
+  "adoption": {"code_change_to_v3": "无（L1/L4 均负结果，prior=0 + 全饮料现状保留）", "v3s_variant": "未创建（无采纳杠杆）", "precedent": "本文件 + GKBENCH §14 + HANDOVER_NEXT 条"},
+  "reproduction": {"probes_not_committed": ["data/_gnrpa_probe1.py（现状核实）", "data/_gnrpa_probe2.py（teachers/priors/gate）", "data/_gnrpa_probe3.py（管线确认）", "data/_gnrpa_analyze.py", "data/_gnrpa_prior_distill.json", "data/_gnrpa_prior_mech.json", "data/_gnrpa_gate1.json", "data/_gnrpa_teachers.json", "data/_gnrpa_probe1.json", "data/_gnrpa_probe3.json"], "cmd": ".venv\\Scripts\\python.exe data\\_gnrpa_probe2.py all"},
+  "recommendations_L2_L3": [
+    "L2 rules timeline：青汁/苏打 post-lock 引擎原生结算已最优，sim 侧无需建模其 RNG；失锁根因是 card-effect deck-modify（M1 消费图阶段2 predictive 牌区动力学），非饮料。优先 m1-rng 阶段2 v3g 接线重扫失锁怪物。",
+    "L3 nesting 调度：distill prior 高方差（部分题+2.7M 部分−4.4M）→ 若后续用 prior 须 per-problem 选择/门控（仅低 oracle 锁定题 opt-in，怪物题禁用），不可全局；或 prior 只作多起点之一（starts 中 1 路带 prior 其余 prior=0，RoutePool 单调采纳兜底）。",
+    "L4 免费杠杆确认：决策层锁定前 worlds 投票保守不喝青汁（避免早期 deck-modify 失锁）已有先例；post-lock 全饮料保留。饮料阶段2 重心应在 sim 侧 r14 特征/生产 allow_drinks，而非限制引擎搜索。"
+  ]
+}

@@ -1561,6 +1561,25 @@ gap report 255 为早期估计），图口径**恢复全知 419 题**（真实�
 当前 oracle 锚定）；② v3 接线 + 离线门（恢复 419 题全知后重扫失锁题 5KZSXANK）；③ ExamCardCreateSearch（type21）随机池消费探针补全 → 再恢复 74 题；
 ④ 饮料消费入口由 M6 drink-model 接 hook。**铁律守住**：不重编 DLL、AGPL 只外部 oracle 不拷 src、旧投稿零改动、探针 data/_m1_* 不提交。
 
+**GNRPA 特化 L1 domain prior + L4 SAFE drinks ✅（2026-11-26，gnrpa-spec 子智能体；均负结果如实，零代码采纳；docs GKBENCH §15 / 先例 data/knowledge/gnrpa_specialization.json）**：
+用户指定特化 GKMSMainWheel 原生 C++ GNRPA（rules=69，v3 `ns.policy_search(variant="gnrpa")`），只做 L1+L4 两杠杆有界离线门。
+**🔑 前提修正**：任务书「v3 session.drinks=空」为误——loadout `drink_ids` 直通 NativeSession（托管 core120 119/120 带饮料），
+**v3 原生 GNRPA 已搜全部饮料含青汁/苏打**（探针1 根节点 legal_drinks 全 4 瓶）。L4 真实杠杆=「是否限制到 SAFE」非「注入」。
+**门**：低 oracle 12 ∪ monster 5=16 题×2 种子 n=32 配对，搜索级同 2M transitions/seed182/stab3，bootstrap 10000 CI；
+自蒸馏教师种子与门种子不相交防泄漏；管线确认 data/_gnrpa_probe3.py 真实 Referee。
+**L1 两路均 FAIL CI>0**：mech（cf0 greedy 价值/费用效率只 boost）overall +49,074 CI[−41,583,+189,168]；
+distill（learn_prior 32 条 2M 教师路线 1870 权重）**−184,442 CI[−615,217,+191,459]**+2 次 status=2 早停。
+机制=域知识进 bias 约束搜索锁进教师盆地，怪物题灾难负（WDKWQYW5 −4.4M/5KZSXANK −2.9M）部分低 oracle 正（AXME8QK2 +2.74M）16/16 wash。
+**prior=0 仍正确，rules=69 重建/蒸馏未翻案**（承 §10/§11 旧 prior 有害）。
+**L4 safe-vs-empty 过门 +135,292 CI[+23,612,+266,026] 但 safe-vs-current 强负 −897,444 CI[−1.42M,−451k] → 不采纳限制**：
+current vs empty +1.03M CI[+533k,+1.62M]（全饮料价值巨大）；管线 3G6FFZZT current 1,285,228（复现 diag1）喝青汁+苏打 vs safe 444,204；
+5KZSXANK current 8,631,520 锁定 T3 vs safe 2,510,455 **失锁**（safe 降锁定率 2/2→1/2 + 两题崩局<50%配对max）。
+机制=「RNG 未知/破坏 lock」排除理由适用 sim 侧抽牌模型（锁定前 scan）**不适用引擎锁定后搜索**（引擎自 RNG 确定式结算青汁/苏打，post-lock 核分精确）；
+限制=纯丢分+改早期打法可触发未建模牌堆改动失锁。**现状全饮料保留**。
+**采纳=零代码改动 v3**（prior=0+全饮料），未创建 v3s（无采纳杠杆，骨架已移除）；SAFE 划分 9 瓶记先例文件供 sim 阶段2 复用。
+**L2/L3 建议**：L2 失锁根因 card-effect deck-modify（M1 阶段2 predictive → v3g 重扫）非饮料；L3 若用 prior 须 per-problem 门控（低 oracle opt-in 怪物禁用）或作多起点之一（RoutePool 单调兜底）不可全局；L4 免费杠杆=锁定前 worlds 保守不喝青汁（已有先例）post-lock 全饮料保留。
+**铁律守住**：未重编 DLL、AGPL 不拷 src、未碰 D:\Games\Gakumas、未改 drinks.py/drinks_db.py/rng_graph.py/exam_risk.py、v2/v3 原版零改动、探针 data/_gnrpa_* 不提交、单进程≤1 局 free<0.9GB sleep60、未起托管未杀进程；pytest --basetemp=out\_pytest_tmp_gnrpa 绿（本任务未动 src/tests）。
+
 **最近交接记录（2026-11-25 晚，ex-seed-v2 融合登顶 1.27M / best-known 87%；goal 自主循环）**：
 **主任务完成**：f2-exv2 在 ex-seed 967k 基础上融 seedlock RoutePool 跨步累积 + FastCut + 多起点 GNRPA（2×500k/步）
 + step10 + forced_play=0，保留 ex-seed worlds 投票 + core_tail → **gkagent-ex-seed-v2**。
