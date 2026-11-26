@@ -746,3 +746,28 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   AGPL 不拷 src、DLL 不重编、引擎工作树零写入；free<0.9GB sleep60 自节流（本轮 free 4.0GB 充足）；引擎单进程≤1 局（未起托管未杀进程）；
   探针 data/_gkmsps_plug_probe10–13.py 不提交。本任务 glue+docs 隔离无 src/tests 改动。
 - **前任完成/缺失清单 + 本任补齐**：见 [HANDOVER_NEXT §8 交接条](HANDOVER_NEXT.md)。glue 由本任首次提交（feat）+ docs 哈希条。
+
+## 18. 2026-11-26 新竞争者 huochai67（gakumas-engine Pure-Rust）+ uinet 口径纠正
+
+- **huochai67（新 ID，不在 QQ 群成员表；身份未确认，可能群潜水者拿到分享包）**今日投稿系列：
+  | run | n | 均分 | max | over | 步预算 | rules | sees |
+  |---|---:|---:|---:|---:|---|---:|---|
+  | **gakumas-engine-gknet-v3** | 360 | **579,653** | 5.20M | 1 | **300ms/step**（内部 budget_ms=300，server cap 5s） | 67 | screen |
+  | gakumas-engine-pimc-v2（盲打无 NN） | 360 | 557,127 | 6.01M | 3 | 300ms/step | 67 | screen |
+  | gakumas-engine-pimc-dev（**seedlock** channel） | 4×3 run | 797k–1,015k | — | — | 300ms/step | 67 | screen（自锁） |
+- **架构**：Pure-Rust 引擎 + **GKNet-v2 counterfactual advantage NN**（<0.1ms 推理，w_adv=0.2 /
+  w_pol=0.02）+ **32 reshuffled-world 多线程 Rust GNRPA+PIMC hybrid**（threads=16, level=2,
+  inner_iter=20）。**NN 思想与我们 B11 policy/advantage 独立收敛**；训练纪律干净：仅 non-core 题 +
+  PLv≥60 榜单捕获，**零 Core-120 重叠**（防泄漏声明）。
+- **效率警示**：300ms/step 搜索拿到 579.7k ≈ 我们 public-safe Python PIMC ~3.5s 搜索的 531k 之上
+  → **native 速度+多线程是我们 public-safe 臂的工程差距**；NN hybrid 相对盲打仅 +22.5k（300ms 下
+  NN 增益小，搜索主导）。
+- **seed 赛道威胁**：pimc-dev seedlock 300ms/step 4 局样本 0.8–1.0M；若放大到 10s 预算将挑战我们
+  1.27M/1.33M。**rules 67 与我们 v2 同排合并口径**（我们 v3 salvage 亦 67）；其全量 run 待观察。
+- **⚠️ uinet 口径纠正**：§5 的 UINet 578,722 是 11-22 公开子集旧参考；**当前 uinet 实际 run =
+  1,109,099（n=320，rules 59，step 5s，threads 4，11-11）**。public-safe 前沿比交接认知高近一倍；
+  r14 托管门 ≥150k 仍是自设进步门，但**对标前沿应改 1.109M（rules 59 行，跨 rules 不直接比）**。
+  我们 seed 行 v2 1,267,591（rules 67）/ best-known 1,452,088 口径不变。
+- **应对**：① r14 托管门优先级上调（GKMS 尺度 NN 是我们 public-safe 唯一接近对方 NN 路线的资产）；
+  ② seed 行 per-problem 方差杠杆 + v3g 继续（拖尾 top10=71.8% 缺口）；③ 观察 huochai67 seedlock
+  全量与身份（群/api.github.com 晚些补）；④ native 速度差距记工程债（Rust/多线程搜索不在本期 scope）。
