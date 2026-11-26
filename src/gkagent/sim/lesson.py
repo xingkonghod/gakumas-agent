@@ -676,10 +676,13 @@ class LessonSim:
         # （review_times / concentration_effect / concentration_gain / impression_gain /
         #   motivation_gain / full_power_charge）
         self.modifiers: dict[str, tuple[tuple[int, int], ...]] = {}
-        # 费用修正：永久加减值 + 「接下来 N 回合」的 ×0.5 / ×2 计数器
+        # 费用修正：永久加减值 + 「接下来 N 回合」的 ×0.5 / ×2 计数器。
+        # sim-fid ①：half_cost 引擎标量 until_turn=获得回合+N（G3 005 / W9 汉方
+        # 14→17 实证），倒计时口径 -1=未生效、>=0=生效（0=最后生效回合）；
+        # double_cost 未探针沿用旧口径（0=未生效、>0 生效）。
         self.cost_reduction: int = 0
         self.cost_increase: int = 0
-        self.half_cost_turns: int = 0
+        self.half_cost_turns: int = -1
         self.double_cost_turns: int = 0
         # 回合追加（ExamExtraTurn）：pending 在本回合结束（turns_left-1 之后）加上；
         # granted 累计已追加回合数，``total_turns`` 随之增长（当前回合号不跳变）。
@@ -1560,7 +1563,7 @@ class LessonSim:
         multiplier = 1.0
         if getattr(self.config, "stance_costs", True):
             multiplier *= stamina_cost_multiplier(self.stance)
-        if self.half_cost_turns > 0:
+        if self.half_cost_turns >= 0:
             multiplier *= 0.5
         if self.double_cost_turns > 0:
             multiplier *= 2.0
@@ -1611,7 +1614,7 @@ class LessonSim:
                 # P1-1：のんびり存在性条件（悠闲变更类 P 道具/条件用）
                 "stance_leisure": 1 if stance == Stance.LEISURE else 0,
                 # B9：「消耗体力减少状态」条件 = halfCostTurns>0
-                "half_cost_state": 1 if self.half_cost_turns > 0 else 0,
+                "half_cost_state": 1 if self.half_cost_turns >= 0 else 0,
             },
             status_counts=self.status_gain_counts,
             uses=self.p_item_uses,
@@ -1871,7 +1874,10 @@ class LessonSim:
                 self._min_cost - int(delta.cost_reduction) + int(delta.cost_increase),
             )
         if delta.half_cost_turns:
-            self.half_cost_turns += int(delta.half_cost_turns)
+            # sim-fid ①：引擎 until_turn += N（W9 汉方 14→17 / G3 005 4→6→8 实证）
+            # → 倒计时 remaining += N；未生效（-1）从 0 起算（过期再施加的引擎
+            # 口径未探针，保守重置）。
+            self.half_cost_turns = max(self.half_cost_turns, 0) + int(delta.half_cost_turns)
         if delta.double_cost_turns:
             self.double_cost_turns += int(delta.double_cost_turns)
         if delta.extra_turns:
@@ -2112,8 +2118,12 @@ class LessonSim:
         )
         if self.buffs.condition_additive_turns == 0:
             self.buffs.condition_additive = 0
-        self.buffs.review_multiple_turns = _tick_buff_turns(self.buffs.review_multiple_turns)
-        if self.buffs.review_multiple_turns == 0:
+        # sim-fid ①（G3 171 实证 until_turn=获得回合+N）：好印象强化标量边界
+        # 对齐——turns>0 正常 -1；turns==0 且值>0 = 最后生效回合的回合末 → 清零；
+        # 0 且值==0 = 未生效保持。condition_additive/full_power/熱意未探针沿用旧口径。
+        if self.buffs.review_multiple_turns > 0:
+            self.buffs.review_multiple_turns -= 1
+        elif self.buffs.review_multiple_turns == 0 and self.buffs.review_multiple > 0:
             self.buffs.review_multiple = 0
         self.buffs.full_power_lesson_multiple_turns = _tick_buff_turns(
             self.buffs.full_power_lesson_multiple_turns
@@ -2149,7 +2159,7 @@ class LessonSim:
             if self.encore_turns == 0:
                 self.encore_charges = 0
         self.modifiers = timed_dict_tick(self.modifiers)
-        if self.half_cost_turns > 0:
+        if self.half_cost_turns >= 0:
             self.half_cost_turns -= 1
         if self.double_cost_turns > 0:
             self.double_cost_turns -= 1

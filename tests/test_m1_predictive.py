@@ -143,17 +143,33 @@ def test_signed_key_signed_int32_order() -> None:
 
 # --------------------------------------------------------------------------- (c) 探针锚点（m1-fix3）
 def test_pitem312_probe_anchor_documented() -> None:
-    # (c)② 探针刻画的核心 fire 机制入锚点（phase_count 跨 4 倍数 / max_uses5 / 0 RNG），
-    # 但「好调≥8」门 + 手牌上限跳过未泛化验证 → pitem_312 仍 unknown（不静默放宽）。
+    # (c)② 探针刻画的核心 fire 机制入锚点（phase_count 跨 4 倍数 / max_uses5 / 0 RNG）；
+    # sim-fid ② 「好调≥8」门已刻画（gate），手牌上限跳过仍未触发 → pitem_312 仍 unknown（不静默放宽）。
     p = cz.PITEM312_PROBE
     assert p["counter"] == "phase_count"      # rules=69：interval44_count 未填充
     assert p["interval"] == 4 and p["max_uses"] == 5
     assert p["fire_rng"] == 0
     assert p["w7_fire_k"] == (9, 15, 20)
     assert p["w9_fire_k"] == (11, 15, 21, 28, 34)
-    assert p["still_unknown"]                 # 如实留未刻画场景
+    assert p["still_unknown"]                 # 如实留未刻画场景（手牌上限跳过）
     assert cz.PREDICTIVE_COVERAGE["pitem_312_interval_draw"] == "unknown"
     assert "pitem_312_interval_draw" in cz.UNKNOWN_TIMINGS
+
+
+def test_pitem312_gate_characterized() -> None:
+    # sim-fid ②（4 局引擎探针 A/B/C/D + 主数据 trigger fieldStatus）：「好调≥8」是门不是效果，
+    # phase_count 仅出牌前 parameter_buff_remaining>=8 的合格出牌才 ++（pb7 不计 / pb9 计）。
+    g = cz.PITEM312_PROBE["gate"]
+    assert g["kind"] == "gate_not_effect"
+    assert g["field_status"] == "PARAMETER_BUFF_UP"
+    assert g["threshold"] == 8
+    assert g["quantity"] == "parameter_buff_remaining"
+    assert g["timing"] == "pre_play"
+    # fire 效果组（主数据 effect 行）：抽1 + 使用数+1 + 絶好調1T + 体力消耗1。
+    fe = cz.PITEM312_PROBE["fire_effects"]
+    assert "ExamCardDraw1" in fe and "ExamPlayableValueAdd+1" in fe
+    # 门已刻画但手牌上限跳过仍 unknown → 整体 predictive 仍保守 unknown。
+    assert any("手牌上限" in u for u in cz.PITEM312_PROBE["still_unknown"])
 
 
 def test_type21_still_unmodeled_after_probe() -> None:

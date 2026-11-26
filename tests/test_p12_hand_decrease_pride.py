@@ -148,11 +148,15 @@ def test_hand_decrease_stacks_by_amount() -> None:
 
 
 def test_hand_decrease_timed_expires() -> None:
-    """持续 2 回合的手牌减少：前 2 回合抽 2 张，第 3 回合恢复 3 张（回合末倒计时）。"""
+    """持续 2 回合的手牌减少（sim-fid ① until_turn=获得回合+N）：前 3 回合抽 2 张，
+    第 4 回合恢复 3 张（0 = 最后生效回合，回合末倒计时到 -1 才移除）。"""
     sim = LessonSim(_deck(20), _config(p_items=(_hand_decrease_spec(1, turns=2),)), rng_seed=0)
     assert len(sim.hand) == 2
     sim.step(None)
     assert sim.hand_decreases == ((1, 1),)
+    assert len(sim.hand) == 2
+    sim.step(None)
+    assert sim.hand_decreases == ((1, 0),)
     assert len(sim.hand) == 2
     sim.step(None)
     assert sim.hand_decreases == ()
@@ -179,10 +183,14 @@ def test_hand_decrease_default_zero_behavior() -> None:
 
 def test_expect_state_turn_draw_count_and_tick() -> None:
     """ExpectState.turn_draw_count / end_turn_state 倒计时（与 LessonSim 双镜）。"""
-    state = ExpectState(hand_size=3, hand_decreases=((1, 2),), turns_left=3)
+    state = ExpectState(hand_size=3, hand_decreases=((1, 2),), turns_left=4)
     assert state.turn_draw_count == 2
     state = end_turn_state(state)
     assert state.hand_decreases == ((1, 1),)
+    assert state.turn_draw_count == 2
+    state = end_turn_state(state)
+    # sim-fid ①：到 0 保留（最后生效回合），仍减抽牌。
+    assert state.hand_decreases == ((1, 0),)
     assert state.turn_draw_count == 2
     state = end_turn_state(state)
     assert state.hand_decreases == ()

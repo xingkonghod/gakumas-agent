@@ -20,6 +20,24 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 FAILS: list[str] = []
 
+# F0 官方 NPC 人数口径（承 scripts/verify_gkbench_shuffle.py / docs/GKBENCH.md §4.5）：
+# 選抜一律 6 人制 = 5 npc；**本戦按 idol 卡**——十王星南 jsna 4 人制 = 3 npc、
+# 藤田ことね fktn 2 人制 = 1 npc、其余多数 3 人制 = 2 npc。旧断言写死「6 人排名 = 5 npc」
+# 是 stale（本戦并非 6 人制），按 stage/idol aware 修。
+F0_STAGE_NPC = {"sel": 5, "main_default": 2, "main_jsna": 3, "main_fktn": 1}
+
+
+def f0_npc_count(stage: str, idol_card_id: str = "") -> int:
+    """F0 口径：stage（``sel``/``main``）+ idol 卡 id → NPC 人数（= 人制 − 1）。"""
+    if str(stage).startswith("sel"):
+        return F0_STAGE_NPC["sel"]
+    idol = str(idol_card_id or "")
+    if "jsna" in idol:
+        return F0_STAGE_NPC["main_jsna"]
+    if "fktn" in idol:
+        return F0_STAGE_NPC["main_fktn"]
+    return F0_STAGE_NPC["main_default"]
+
 
 def check(name: str, condition: bool, detail: str = "") -> None:
     if condition:
@@ -95,7 +113,22 @@ def main(argv: list[str]) -> int:
     sim = ProduceSim([CardSpec(name="t", cost=3, score=9)], config=ProduceConfig(weeks=4), rng_seed=1)
     result = sim.run(strategy_from_params(StrategyParams(training_every=0)))
     check("培育模拟可跑", result.total > 0, str(result.total))
-    check("考试有 6 人排名", len(sim.exam(1)["npc"]) == 5)
+    # 考试 NPC 数按 stage 配置（F0：本戦非 6 人制；旧写死「5 npc」是 stale 断言）。
+    # 内部 sim 的 NPC 得分档逐考试（期中 index0 / 期末 index1）配置，npc 数 = 该档长度。
+    tiers = sim.config.exam_npc_scores
+    for exam_index in (0, 1):
+        tier = tiers[min(exam_index, len(tiers) - 1)] if tiers else ()
+        got = sim.exam(exam_index)["npc"]
+        check(
+            f"考试{exam_index} NPC 数按 stage 配置（{len(tier)}）",
+            len(got) == len(tier),
+            f"got {len(got)}",
+        )
+    # F0 官方口径回归（本戦按 idol 卡，非 stage 常数）：
+    check("F0 選抜 6 人制=5 npc", f0_npc_count("sel") == 5)
+    check("F0 本戦 jsna 4 人制=3 npc", f0_npc_count("main", "i_card-jsna-3-001") == 3)
+    check("F0 本戦 fktn 2 人制=1 npc", f0_npc_count("main", "i_card-fktn-3-001") == 1)
+    check("F0 本戦其余 3 人制=2 npc", f0_npc_count("main", "i_card-hrnm-3-017") == 2)
 
     print("[7] 跑图脚本")
     auto = (ROOT / "scripts" / "auto_produce.py").read_text(encoding="utf-8")

@@ -26,13 +26,21 @@
   合格出牌（parameter_buff 好調效果组）使 phase_count++（encore/额外 play +2），
   **phase_count 跨越 4 的倍数即 fire 抽 1**（floor(after/4)>floor(before/4)），``spent_total``++，
   ``limit_count=5``（max_uses）用尽后 phase_count 冻结不再 fire；fire 抽牌本身 0 RNG（bundled）。
-  **仍 unknown**：「好调≥8」门的确切语义（W7/W9 stance=None 全程，parameter_buff_up-8 是门还是效果未定）
-  与**手牌上限跳过**交互（两局样本所有 fire 都成功抽牌，未触发跳过场景）不足以可靠泛化到任意牌组
+  **仍 unknown**：**手牌上限跳过**交互（sim-fid ② 4 局探针 A/B/C/D 所有 fire 都成功抽牌，
+  fire 抽 1 与出牌移 1 净手牌不变，未触发 hand==limit 跳过场景）不足以可靠泛化
   → 保留显式 unknown 锚点 ``pitem_draw_unknown``（fixture 按决策 k 锚定），见 :data:`PITEM312_PROBE`。
-* **type21 ExamCardCreateSearch 随机池消费**（(c) 探针 ``data/_m1b_type21.py`` / ``_m1b_type21_p1_summary.json``）：
-  sup-3_024「花枝萌芽的季节」实测 cons≈132/135/136（3 题），生成卡**入手牌**（非牌堆，无 deck 插入），
-  消费与牌堆长无关（deck_len 3/7/12 无相关）→ 随机池选取口径（候选池权重/signed_key）未完全刻画
-  → 仍 :data:`rng_graph.UNMODELED_EFFECT_TYPES`（保守），静态扫 505 恢复计数维持 419（74 题仍风险）。
+  **「好调≥8」门已刻画（sim-fid ②）**：主数据 trigger fieldStatus ``PARAMETER_BUFF_UP>=8``
+  （「好調が8ターン以上の場合」）是**门**不是效果；引擎探针实证 ``phase_count`` 仅在
+  **出牌前 parameter_buff_remaining>=8** 的合格出牌才 ++（pb=7 不计 / pb=9 计，阈值 8），
+  fire 效果组 = 抽 1 + 使用数 +1 + 絶好調 1 回合 + 体力消耗 1（主数据 effect 行）。
+* **type21 ExamCardCreateSearch 随机池消费**（(c) 探针 ``data/_m1b_type21.py`` / ``_m1b_type21_p1_summary.json``；
+  sim-fid ③ ``data/_simfid_type21_probe.py`` 6 局受控探针）：sup-3_024「花枝萌芽的季节」生成卡**入手牌**
+  （非牌堆，无 deck 插入），消费**与牌堆长/手牌/已持有牌无关**（deck 2/17/18、owned 2/8 均同 cons），
+  **随 plan 变化**（plan0/1 cons=20、plan2 cons=132，呈 2×nf 搜索机制）；候选池 =
+  ``p_random_pool-all-upgrade_1``（ProduceCardPool 174 条，plan00:9/01:56/02:56/03:53），
+  疑似按 session plan 过滤（plan1→plan00、plan2→plan00+01）。**精确消费公式（signed_key 偏移/候选序/+1）
+  未可靠刻画**（7 点拟合 G2/G5 反例，过拟合风险）→ 仍 :data:`rng_graph.UNMODELED_EFFECT_TYPES`（保守），
+  静态扫 505 恢复计数维持 419（74 题仍风险，不静默放宽）。
 * **饮料侧 soda enchant 支援强化目标**：soda 回合开始抽牌的支援强化走**独立饮料 rng**
   （exam 流 0 消费，W9 k=7 实测 rng_steps=12 不含），强化目标不可由 exam 流预测 →
   显式 unknown 锚点 ``drink_upg_unknown``（owned-by-drinks，M6）。
@@ -79,9 +87,11 @@ UNKNOWN_TIMINGS: tuple[str, ...] = (
     "drink_soda_support_upgrade",
 )
 
-#: (c) 探针刻画的 pitem 312 fire 机制（``data/_m1b_pitem312_analysis.json``，rinami W7/W9）。
-#: 核心规则已明（phase_count 跨 4 倍数 fire / max_uses5 / 好調效果组合格出牌计数），但「好调≥8」门
-#: 语义与手牌上限跳过交互未泛化验证 → 仍 unknown（不静默放宽 predictive）。供后续逐场景探针锚定。
+#: (c) 探针刻画的 pitem 312 fire 机制（``data/_m1b_pitem312_analysis.json``，rinami W7/W9；
+#: sim-fid ② ``data/_simfid_pitem312_probe.py`` A/B/C/D 4 局门探针）。核心 fire 规则已明
+#: （phase_count 跨 4 倍数 fire / max_uses5 / 好調效果组合格出牌计数）；**「好调≥8」门已刻画**
+#: （trigger fieldStatus PARAMETER_BUFF_UP>=8，phase_count 仅出牌前 pb>=8 才 ++）；
+#: 手牌上限跳过交互仍未触发 → 该子项保留 unknown（不静默放宽 predictive）。供后续逐场景探针锚定。
 PITEM312_PROBE: dict[str, Any] = {
     "enchant_id": "enchant-p_item_effect_01-3-312-0-enc01",
     "trigger": "exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff",
@@ -90,7 +100,16 @@ PITEM312_PROBE: dict[str, Any] = {
     "max_uses": 5,                        # limit_count=5；spent_total 用尽后 phase_count 冻结
     "fire_rng": 0,                        # fire 抽牌本身 0 RNG（bundled ExamPlayableValueAdd）
     "qualifying": "parameter_buff 好調效果组出牌 phase_count++（encore/额外 play +2）",
-    "still_unknown": ("好调≥8 门确切语义（stance=None 样本）", "手牌上限跳过交互（样本未触发）"),
+    "gate": {                             # sim-fid ② 刻画（主数据 + 引擎探针 A/B/C/D）
+        "kind": "gate_not_effect",        # trigger fieldStatus 条件，非 fire 效果
+        "field_status": "PARAMETER_BUFF_UP",  # 好調が8ターン以上の場合
+        "threshold": 8,
+        "quantity": "parameter_buff_remaining",  # 出牌前好调层数（剩余回合）
+        "timing": "pre_play",             # 出牌前 pb>=8 才 phase_count++（pb7 不计 / pb9 计）
+    },
+    "fire_effects": ("ExamCardDraw1", "ExamPlayableValueAdd+1",
+                     "ExamParameterBuffMultiplePerTurn(絶好調1T)", "ExamStaminaReduceFix1"),
+    "still_unknown": ("手牌上限跳过交互（4 局探针未触发 hand==limit fire；抽1与出牌移1净手牌不变）",),
     "w7_fire_k": (9, 15, 20),
     "w9_fire_k": (11, 15, 21, 28, 34),
 }

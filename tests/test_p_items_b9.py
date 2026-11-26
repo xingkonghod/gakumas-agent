@@ -91,9 +91,12 @@ def test_add_timed_merges_same_turns_and_ticks() -> None:
     entries = add_timed(entries, 100, 1)  # 不同回合数 → 另起一条
     assert sorted(entries) == [(100, 1), (800, 2)]
     assert total_timed(entries) == 900
-    # 回合末 -1：turns=1 的条目消失、turns=2 → 1
-    assert sorted(tick_timed(entries)) == [(800, 1)]
-    assert sorted(tick_timed(tick_timed(entries))) == []
+    # sim-fid ①（G3 until_turn=获得回合+N）：回合末 -1，到 0 保留（最后生效回合），
+    # 下一次 tick 才移除。
+    assert sorted(tick_timed(entries)) == [(100, 0), (800, 1)]
+    assert total_timed(tick_timed(entries)) == 900  # 0 仍生效
+    assert sorted(tick_timed(tick_timed(entries))) == [(800, 0)]
+    assert sorted(tick_timed(tick_timed(tick_timed(entries)))) == []
 
 
 def test_add_timed_zero_turns_is_permanent() -> None:
@@ -109,7 +112,10 @@ def test_timed_dict_add_and_tick() -> None:
     assert timed_dict_total(tick_timed({}) if False else table, "review_times") == 2
     ticked = timed_dict_tick(table)
     assert timed_dict_total(ticked, "review_times") == 2
-    assert timed_dict_total(timed_dict_tick(ticked), "review_times") == 0
+    # sim-fid ①：到 0 保留（最后生效回合），再 tick 才移除。
+    ticked2 = timed_dict_tick(ticked)
+    assert timed_dict_total(ticked2, "review_times") == 2
+    assert timed_dict_total(timed_dict_tick(ticked2), "review_times") == 0
 
 
 # ---------------------------------------------------------------- 数据层
@@ -410,7 +416,13 @@ def test_lesson_score_buff_multiplies_card_award_and_expires() -> None:
     card = CardSpec("a", 0, 10.0)
     assert sim.score_buffs == ((500, 1),)
     assert sim._card_award(card) == 15  # 10 × 1.5
-    sim.step(None)  # 回合末倒计时：duration=1 的 buff 到 0 移除
+    # sim-fid ①（G3 until_turn=获得回合+N）：duration=1 → 生效 2 回合，
+    # 第 1 回合末倒计时到 0 仍生效，第 2 回合末才移除。
+    sim.step(None)
+    assert sim.score_buffs == ((500, 0),)
+    assert total_timed(sim.score_buffs) == 500
+    assert sim._card_award(card) == 15
+    sim.step(None)
     assert total_timed(sim.score_buffs) == 0
     assert sim._card_award(card) == 10
 
@@ -481,13 +493,18 @@ def test_lesson_half_cost_turns_halves_cost_then_expires() -> None:
         value=2,
         trigger=EXAM_START,
     )
-    sim = make_sim(item, turns=3)
+    sim = make_sim(item, turns=4)
     card = CardSpec("a", 4, 10.0)
     assert sim._effective_cost(card) == 2  # ceil(4 × 0.5)
     sim.step(None)
     assert sim.half_cost_turns == 1
     sim.step(None)
     assert sim.half_cost_turns == 0
+    # sim-fid ①（G3 005 / W9 汉方 until_turn=获得回合+N）：0 = 最后生效回合，
+    # 仍减半；下一回合末 -1 才失效。
+    assert sim._effective_cost(card) == 2
+    sim.step(None)
+    assert sim.half_cost_turns == -1
     assert sim._effective_cost(card) == 4
 
 
@@ -607,7 +624,8 @@ def test_expect_state_end_turn_ticks_b9_channels() -> None:
     )
     after = end_turn_state(state)
     assert after.score_buffs == ((500, 1),)
-    assert after.score_debuffs == ()
+    # sim-fid ①：到 0 保留（最后生效回合），非移除。
+    assert after.score_debuffs == ((200, 0),)
     assert after.mod_total("review_times") == 1
     assert after.half_cost_turns == 1
     assert after.double_cost_turns == 0

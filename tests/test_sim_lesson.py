@@ -1139,7 +1139,11 @@ def test_status_enchant_encore_doubles_direct_effects() -> None:
 
 
 def test_review_multiple_boosts_end_of_turn_impression_score() -> None:
-    """ExamReviewMultiple：好印象强化放大回合末结算分，到期后恢复。"""
+    """ExamReviewMultiple：好印象强化放大回合末结算分，到期后恢复。
+
+    sim-fid ①（M8 G3 171 实证 until_turn=获得回合+N）：1 回合强化生效 2 回合
+    （t1 获得 → until_turn=2），t2 末才清零。
+    """
     sim = LessonSim(
         [CardSpec("好印象强化", 0, 0, review_multiple=2000, review_multiple_turns=1)],
         _config(turns=2, stamina=10, hand_size=1),
@@ -1149,10 +1153,12 @@ def test_review_multiple_boosts_end_of_turn_impression_score() -> None:
     sim.step(0)  # 5 层 × (1000+2000)/1000 = 15
     assert sim.score == 15
     assert sim.buffs.impression == 4
-    assert sim.buffs.review_multiple == 0  # 1 回合后到期清零
+    assert sim.buffs.review_multiple == 2000  # turns 1→0，最后生效回合仍生效
+    assert sim.buffs.review_multiple_turns == 0
 
-    sim.step(None)  # 下一回合按 4 层原值结算
-    assert sim.score == 19
+    sim.step(None)  # t2 仍 ×3：4 层结算 12；t2 末（until_turn=2）清零
+    assert sim.score == 15 + 12
+    assert sim.buffs.review_multiple == 0
 
 
 def test_condition_additive_fix_adds_turns_to_condition_gain() -> None:

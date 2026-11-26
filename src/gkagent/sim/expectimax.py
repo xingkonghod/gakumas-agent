@@ -337,10 +337,12 @@ class ExpectState:
     # 其它持久倍率：((key, ((数值, 剩余回合), …)), …)，key 见 MODIFIER_TARGETS。
     # 用 tuple 存（canonical 要可哈希）；读取见 mod_total / gain_multiple。
     modifiers: tuple[tuple[str, TimedAmounts], ...] = ()
-    # 费用修正：永久加减值 + 「接下来 N 回合」的 ×0.5 / ×2 计数器
+    # 费用修正：永久加减值 + 「接下来 N 回合」的 ×0.5 / ×2 计数器。
+    # sim-fid ①：half_cost -1=未生效、>=0=生效（0=最后生效回合，引擎 until_turn
+    # 口径，与 LessonSim 同）；double_cost 未探针沿用旧口径。
     cost_reduction: int = 0
     cost_increase: int = 0
-    half_cost_turns: int = 0
+    half_cost_turns: int = -1
     double_cost_turns: int = 0
     # 回合追加（ExamExtraTurn）：pending 在 end_turn_state 里加到 turns_left；
     # granted 累计已追加回合数（effective total_turns = total_turns + granted）。
@@ -996,7 +998,7 @@ def effective_cost(state: ExpectState, card: CardSpec, *, ignore_zero_cost: bool
     返回未归零原费（判定是否消耗次数用，0 费牌不耗）。
     """
     multiplier = stamina_cost_multiplier(state.stance_state)
-    if state.half_cost_turns > 0:
+    if state.half_cost_turns >= 0:
         multiplier *= 0.5
     if state.double_cost_turns > 0:
         multiplier *= 2.0
@@ -2333,7 +2335,7 @@ def _passive_state(state: ExpectState) -> PassiveState:
             # P1-1：のんびり存在性条件（与 LessonSim._passive_state 同口径）
             "stance_leisure": 1 if stance_text == Stance.LEISURE else 0,
             # B9：「消耗体力减少状态」条件 = halfCostTurns>0
-            "half_cost_state": 1 if state.half_cost_turns > 0 else 0,
+            "half_cost_state": 1 if state.half_cost_turns >= 0 else 0,
         },
         status_counts=dict(state.status_counts),
         uses=dict(state.p_item_uses),
@@ -2761,7 +2763,10 @@ def _apply_p_delta_state(
         poor_condition_turns=poor_condition_turns,
         cost_reduction=state.cost_reduction + int(delta.cost_reduction),
         cost_increase=state.cost_increase + int(delta.cost_increase),
-        half_cost_turns=state.half_cost_turns + int(delta.half_cost_turns),
+        half_cost_turns=(
+            max(state.half_cost_turns, 0) + int(delta.half_cost_turns)
+            if delta.half_cost_turns else state.half_cost_turns
+        ),
         double_cost_turns=state.double_cost_turns + int(delta.double_cost_turns),
         extra_turns=state.extra_turns + int(delta.extra_turns),
         hand=hand,
@@ -2917,8 +2922,17 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         lock_stance_fresh = False
     condition_additive_turns = _tick_turns(state.condition_additive_turns)
     condition_additive = state.condition_additive if condition_additive_turns != 0 else 0
-    review_multiple_turns = _tick_turns(state.review_multiple_turns)
-    review_multiple = state.review_multiple if review_multiple_turns != 0 else 0
+    # sim-fid ①（G3 171 实证 until_turn=获得回合+N）：好印象强化标量边界对齐
+    # （与 LessonSim._end_turn 同口径）：turns==0 且值>0 = 最后生效回合末 → 清零。
+    if state.review_multiple_turns > 0:
+        review_multiple_turns = state.review_multiple_turns - 1
+        review_multiple = state.review_multiple
+    elif state.review_multiple_turns == 0 and state.review_multiple > 0:
+        review_multiple_turns = 0
+        review_multiple = 0
+    else:
+        review_multiple_turns = state.review_multiple_turns
+        review_multiple = state.review_multiple
     full_power_turns = _tick_turns(state.full_power_lesson_multiple_turns)
     full_power_multiple = state.full_power_lesson_multiple if full_power_turns != 0 else 0
     # 熱意追加/増加 buff 倒计时；熱意本身回合末归 0（有延長则保留并 -1）
@@ -2945,7 +2959,7 @@ def end_turn_state(state: ExpectState) -> ExpectState:
         if encore_turns == 0:
             encore_charges = 0
     modifiers = tuple(sorted(timed_dict_tick(dict(state.modifiers)).items()))
-    half_cost_turns = state.half_cost_turns - 1 if state.half_cost_turns > 0 else 0
+    half_cost_turns = state.half_cost_turns - 1 if state.half_cost_turns >= 0 else -1
     double_cost_turns = (
         state.double_cost_turns - 1 if state.double_cost_turns > 0 else 0
     )
@@ -3950,7 +3964,7 @@ def state_from_sim(sim: Any, *, known_deck_order: bool = False) -> ExpectState:
         ),
         cost_reduction=max(int(getattr(sim, "cost_reduction", 0)), 0),
         cost_increase=max(int(getattr(sim, "cost_increase", 0)), 0),
-        half_cost_turns=max(int(getattr(sim, "half_cost_turns", 0)), 0),
+        half_cost_turns=int(getattr(sim, "half_cost_turns", -1)),
         double_cost_turns=max(int(getattr(sim, "double_cost_turns", 0)), 0),
         extra_turns=max(int(getattr(sim, "extra_turns_pending", 0)), 0),
         extra_turns_granted=max(int(getattr(sim, "extra_turns_granted", 0)), 0),

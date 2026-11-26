@@ -288,8 +288,12 @@ MODELED_EFFECT_TYPES: frozenset[str] = frozenset(
 UNMODELED_EFFECT_TYPES: frozenset[str] = frozenset(
     {
         "ExamCardCreateSearch",  # type21：随机池生成，消费远多于生成数，未完全探针
-        # (c) 探针 data/_m1b_type21_p1（sup-3_024 ×3 题）：cons≈132/135/136，生成卡入手牌（非牌堆，
-        # 无 deck 插入），消费与牌堆长无关（3/7/12 无相关）→ 随机池权重/signed_key 口径未刻画，保守保留。
+        # (c) data/_m1b_type21_p1（sup-3_024 ×3 题）cons≈132/135/136；sim-fid ③
+        # data/_simfid_type21_probe（6 局受控）：生成卡入手牌（非牌堆），消费与牌堆长/手牌/已持有
+        # 无关（deck 2/17/18、owned 2/8 同 cons），随 plan 变（plan0/1=20、plan2=132，2×nf 搜索机制）；
+        # 候选池 p_random_pool-all-upgrade_1（174 条，plan00:9/01:56/02:56/03:53）疑按 plan 过滤。
+        # 精确公式（signed_key 偏移/候选序/+1）7 点拟合有反例（G2/G5）未可靠刻画 → 保守保留 unmodeled，
+        # 静态扫 505 恢复维持 419（74 题仍风险，不静默放宽）。
         "ExamReviewPerSearchCount",  # 按搜索次数给好印象：未探针，保守保留
     }
 )

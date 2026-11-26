@@ -819,8 +819,13 @@ def intercept_debuff_entries(
 
 # ---- B9：定时倍率列表的纯函数（参考引擎 BuffManager.setBuff/decrementBuffTurns）----
 # 列表元素 ``(amount, turns)``：``turns`` = 剩余回合数，-1 = 永久（参考引擎 None）。
-# 同 ``turns`` 的条目按参考引擎 ``setBuff`` 合并（amount 相加）；回合末
-# ``tick_timed`` 把 turns>0 的 -1、到 0 移除、永久保持。
+# 同 ``turns`` 的条目按参考引擎 ``setBuff`` 合并（amount 相加）。
+# **sim-fid ①（M8 G3 引擎 oracle 实证）**：引擎层 ``until_turn = 获得回合 + N``，
+# 获得当回合起共生效 N+1 回合、到 until_turn 回合末才移除（data/_m8_fresh_probe.py
+# G3：好印象强化+50% 5回合 t1 获得 → until_turn=6，t6 末移除）。倒计时口径对齐：
+# ``turns`` = until_turn − 当前回合，回合末 ``tick_timed`` 把 turns>0 的 -1、
+# **turns==0 的条目保留**（0 = 最后生效回合，本回合仍计入 total）、下一回合末
+# （0 → 移除）才删、永久保持。add_timed 仍存卡面 N（获得时 until−current = N）。
 TimedAmounts = tuple[tuple[int, int], ...]
 PERMANENT_TURNS = -1
 
@@ -858,15 +863,21 @@ def total_timed(entries: TimedAmounts) -> int:
 
 
 def tick_timed(entries: TimedAmounts) -> TimedAmounts:
-    """回合末倒计时：turns>0 的 -1、到 0 移除，-1（永久）保持。"""
+    """回合末倒计时（引擎 until_turn 口径，sim-fid ①）：turns>0 的 -1；
+    **turns==0 保留**（0 = 最后生效回合，until_turn 当回合仍生效）；
+    已到 0 的条目在下一次 tick 移除；-1（永久）保持。
+
+    获得回合 T 存 N → 生效 T..T+N 共 N+1 回合（G3 实证 until_turn=T+N）。
+    """
     ticked: list[tuple[int, int]] = []
     for amount, turns in entries:
         if turns == PERMANENT_TURNS:
             ticked.append((amount, turns))
             continue
-        next_turns = turns - 1
-        if next_turns > 0:
-            ticked.append((amount, next_turns))
+        if turns == 0:
+            # 最后生效回合的回合末：移除（引擎 until_turn 到期）。
+            continue
+        ticked.append((amount, turns - 1))
     return tuple(ticked)
 
 
