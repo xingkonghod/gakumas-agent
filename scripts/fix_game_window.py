@@ -1,9 +1,10 @@
-"""把游戏窗口还原成标准尺寸（客户区 540x960 物理，与 auto_produce PRODUCE_CLIENT_SIZE 同口径）。
+"""把游戏窗口还原成标准尺寸（客户区 1080x1920 物理 → 渲染 720x1280 → capture 1280x720）。
 
-F#57（真机 ep-live-seed8/10 story 段窗口恢复连续失败根因）：旧版设 1080x1920 物理，
-在 1920x1080@200% DPI 屏上窗口高出屏幕一倍 → 大半 off-screen → story/成就段焦点切换时
-被 Windows 收回/最小化 → ensure_window 连续 5 次恢复失败停局。540x960+框≈996 ≤1080 才_fit_。
-屏幕更矮时按高度保护等比缩。用法：python scripts/fix_game_window.py
+F#57b：截图口径锁死该尺寸——缩窗（如 540x960/684x949）会得 invalid shape (999,720)
+（F#10 同病）。1920x1080@200% 屏上整窗必然 off-screen 下半，属物理约束；bot 走
+SendMessage/PrintWindow 不受影响。auto_produce 的 PRODUCE_CLIENT_SIZE=(540,960) 是
+DPI-unaware 逻辑口径（=物理 1080x1920 @200%），两者自洽。story 段窗口停局另查根因。
+用法：python scripts/fix_game_window.py
 """
 
 from __future__ import annotations
@@ -43,12 +44,10 @@ def main() -> int:
     if USER32.IsIconic(hwnd):
         USER32.ShowWindow(hwnd, 9)
         time.sleep(1.0)
-    # F#57：屏幕高度保护（物理像素），窗口不得高出屏幕。
-    screen_h = USER32.GetSystemMetrics(1)  # SM_CYSCREEN
-    target_w, target_h = 540, 960
-    if target_h + border_h > screen_h:
-        scale = (screen_h - border_h) / target_h
-        target_w, target_h = int(target_w * scale), int(target_h * scale)
+    # F#57b：截图口径锁死客户区 1080x1920 物理（渲染 720x1280 → capture 1280x720）；
+    # 缩窗会得 invalid shape (999,720)（F#10 同病）。1080p 屏放不下整窗是物理约束，
+    # bot 走 SendMessage/PrintWindow 不受 off-screen 影响；story 段停局另查根因。
+    target_w, target_h = 1080, 1920
     USER32.MoveWindow(
         hwnd,
         window.left,
