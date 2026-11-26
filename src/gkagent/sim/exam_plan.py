@@ -257,6 +257,8 @@ class ExamDrawPlan:
         self._expected_hand = 0
         self._played_cards: list[Card] = []
         self._turn_ok = False
+        self.ocr_miss = False  # F#56：子集漏读标记（selector 据此不重置候选）
+        self._pending_predicted: list | None = None  # F#56 重读重试复用预测
         self.stats: dict[str, int] = {
             "turns": 0,
             "verified": 0,
@@ -318,23 +320,46 @@ class ExamDrawPlan:
         if observed_cards is None:
             self._fail(f"T{self.turn} 手牌里有卡表查不到的卡：{list(observed)}")
             return False
-        before = self._oracle.reshuffles
-        try:
-            predicted = self._oracle.draw_next_turn(
-                int(parameter_type or 0), grave=list(self._grave) if self._grave else None
-            )
-        except ValueError as exc:  # 缺 grave 等：不该发生，但绝不让出牌崩
-            self._fail(f"T{self.turn} oracle 抽牌失败：{exc}")
-            return False
-        if self._oracle.reshuffles != before:
-            # 弃牌堆洗回牌堆：grave 清空（牌已经在牌堆里了）
-            self.stats["reshuffles"] += 1
-            self._grave.clear()
+        if self.ocr_miss and self._pending_predicted is not None:
+            # F#56 重读重试：oracle 已推进过，复用上次预测，不重复抽牌/洗回。
+            predicted = self._pending_predicted
+        else:
+            before = self._oracle.reshuffles
+            try:
+                predicted = self._oracle.draw_next_turn(
+                    int(parameter_type or 0), grave=list(self._grave) if self._grave else None
+                )
+            except ValueError as exc:  # 缺 grave 等：不该发生，但绝不让出牌崩
+                self._fail(f"T{self.turn} oracle 抽牌失败：{exc}")
+                return False
+            if self._oracle.reshuffles != before:
+                # 弃牌堆洗回牌堆：grave 清空（牌已经在牌堆里了）
+                self.stats["reshuffles"] += 1
+                self._grave.clear()
         if not _same_ids(predicted, observed_cards):
+            # F#56（真机 ep-live-seed10 T2）：实机是预测的子集且恰缺 1 张 = OCR 漏读，
+            # 不判 mismatch（否则 known_draw 永久丢）。回退 turn 计数、保持 ACTIVE 待重读。
+            pred_ids = [c[0] for c in predicted]
+            obs_ids = [c[0] for c in observed_cards]
+            if (
+                len(pred_ids) - len(obs_ids) == 1
+                and set(obs_ids) <= set(pred_ids)
+                and obs_ids == [i for i in pred_ids if i in set(obs_ids)]
+            ):
+                self.turn -= 1
+                self.ocr_miss = True
+                self._pending_predicted = list(predicted)
+                self._turn_ok = False
+                self.reason = (
+                    f"T{self.turn + 1} 疑似 OCR 漏读（预测 {len(pred_ids)} / 实机 {len(obs_ids)}），待重读"
+                )
+                return False
             self._fail(
                 f"T{self.turn} 手牌核对失败：预测 {_ids(predicted)} / 实机 {_ids(observed_cards)}"
             )
             return False
+        self.ocr_miss = False
+        self._pending_predicted = None
         self._observed = list(observed_cards)
         self._expected_hand = len(observed_cards)
         self._played_cards = []
@@ -420,6 +445,8 @@ class ExamDrawPlan:
         self._expected_hand = 0
         self._played_cards.clear()
         self._turn_ok = False
+        self.ocr_miss = False
+        self._pending_predicted = None
 
     # ------------------------------------------------------------------ 搜索接口
     def expect_state_kwargs(self, to_specs=None) -> dict[str, Any]:
@@ -650,6 +677,12 @@ class ExamPlanSelector:
         self._attempts += 1
         self._alive = survivors
         if not survivors:
+            # F#56：全候选都是 OCR 子集漏读 → 不重置（重置会丢已核对回合），保留待重读。
+            if self._alive and all(getattr(p, "ocr_miss", False) for p in self._alive):
+                return False
+            if not self._alive and all(getattr(p, "ocr_miss", False) for p in self.plans):
+                self._alive = list(self.plans)
+                return False
             # 一个都对不上：可能是读屏偶发/数据过期 → 全部重置，下次重来（有次数上限）
             self._retries += 1
             for plan in self.plans:

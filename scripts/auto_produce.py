@@ -705,6 +705,7 @@ def main() -> int:
     drink_used = False
     # 窗口前置检查（F#9）：连续恢复失败就停，不带着"点击全落空"的状态空转到超时
     window_fail_streak = 0
+    prev_screen_name = ""  # F#57：story/成就/结算段窗口恢复放宽等待的判据
     # 加载帧快速路径连续计数（F#27）：超过阈值强制 OCR，避免漏看通信错误弹窗
     loading_fast_streak = 0
     # 课程帧快速路径连续计数：超过阈值强制整屏 OCR，避免漏看「回合结束」确认框
@@ -921,13 +922,22 @@ def main() -> int:
             window_fail_streak = 0
             log_lines.append(f"{step:03d} [window] 已恢复（之前最小化/尺寸不对）")
         elif window_state == "failed":
+            # F#57（seed8/10 story 段停局）：hwnd 可能失效（游戏重建窗口）→ 每失败帧重找；
+            # story/成就/结算段游戏可能临时全屏/切换 → 放宽等待上限到 40（≈60s）再止损。
+            new_hwnd = find_game_hwnd()
+            if new_hwnd and new_hwnd != hwnd:
+                hwnd = new_hwnd
+                agent.device = Win32Device(hwnd).connect()
+                log_lines.append(f"{step:03d} [window] hwnd 失效已重找 {hwnd}")
             window_fail_streak += 1
+            transient = prev_screen_name in ("story", "achievement", "settlement", "result")
+            limit = 40 if transient else WINDOW_RESTORE_FAIL_LIMIT
             log_lines.append(
                 f"{step:03d} [window] 恢复失败（最小化/尺寸不对），等待后重试"
-                f"（{window_fail_streak}/{WINDOW_RESTORE_FAIL_LIMIT}）"
+                f"（{window_fail_streak}/{limit}）"
             )
             time.sleep(1.5)
-            if window_fail_streak >= WINDOW_RESTORE_FAIL_LIMIT:
+            if window_fail_streak >= limit:
                 log_lines.append(
                     f"{step:03d} [window] 连续 {window_fail_streak} 步恢复不了窗口，停止"
                 )
@@ -2036,6 +2046,7 @@ def main() -> int:
                     tap_lost_streak = 0
                     step_outcome = "moved"
                 tick = driver.decide(agent, lines, image)
+                prev_screen_name = tick.screen
                 if tick.point is not None and tick.expect is not None:
                     tap_guard.budget(tick.action, tick.point, tick.expect, screen=tick.screen)
                     step_expect = tick.expect

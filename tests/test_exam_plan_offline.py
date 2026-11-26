@@ -169,3 +169,33 @@ def test_main_passes_with_synthetic_current_candidates(tmp_path: Path):
 
 def test_main_reports_missing_setup(tmp_path: Path):
     assert offline.main(["--setup", str(tmp_path / "missing.json")]) == 1
+
+
+def test_begin_turn_subset_ocr_miss_retries():
+    """F#56：实机子集缺1张=OCR漏读→不mismatch、回退turn、重读重试成功。"""
+    setup = _setup()
+    truth = _truth(setup)
+    plan = ExamDrawPlan(setup)
+    assert plan.begin_turn(truth[0]["hand"], 1)
+    missing = truth[1]["hand"][1:]
+    assert not plan.begin_turn(missing, 1)
+    assert plan.active and plan.ocr_miss
+    assert plan.turn == 1
+    assert plan.begin_turn(truth[1]["hand"], 1)
+    assert plan.turn == 2 and not plan.ocr_miss
+
+
+def test_selector_keeps_candidates_on_ocr_miss():
+    """F#56：全候选子集漏读时不重置（重置会丢已核对回合）。"""
+    setup = _setup()
+    truth = _truth(setup)
+    selector = ExamPlanSelector([ExamDrawPlan(setup), ExamDrawPlan(_setup(5))])
+    missing0 = truth[0]["hand"][1:]
+    assert not selector.begin_turn(missing0, 1)
+    assert selector.reset_count == 0
+    assert selector.alive == 2
+    assert selector.begin_turn(truth[0]["hand"], 1)
+    assert selector.reset_count == 0
+    # 两候选 config_turns 不同但 T1 手牌同 → T2 才收敛
+    assert selector.begin_turn(truth[1]["hand"], 1)
+    assert selector.locked_turn == 2

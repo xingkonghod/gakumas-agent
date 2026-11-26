@@ -622,6 +622,14 @@ class LessonPolicy:
 
                 parameter = PARAMETER_TYPES.get(state.attribute or "")
                 plan.begin_turn(list(names), parameter)
+            elif not getattr(plan, "turn_ok", True) and getattr(plan, "active", False):
+                # F#56：上回合疑似 OCR 漏读（子集）→ 本帧重读重试 begin_turn，不 observe。
+                from gkagent.sim.exam_plan import PARAMETER_TYPES
+
+                parameter = PARAMETER_TYPES.get(state.attribute or "")
+                if plan.begin_turn(list(names), parameter):
+                    self._plan_hand = list(names)
+                    self._plan_played = []
             elif names != self._plan_hand:
                 plan.observe_hand(list(names))
                 self._plan_hand = list(names)
