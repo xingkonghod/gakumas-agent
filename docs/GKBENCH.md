@@ -395,3 +395,21 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
 - **自有引擎路线（用户定调：不必成为 gkms、超越它，它自己也在改）**：不追 gkms 实现（移动靶），朝 **seed-lock+深搜+MITM 真机**特化。
   **M1 RNG 图 clean-room 化恢复 255 题全知（seed 王牌主缺口，3–5d）→ v3 多起点压怪物方差冲 1.3M+**；public-safe 用官方尺度训练/GNRPA 蒸馏跟进；
   sim 保真服务训练分布对齐而非直接上榜。clean-room=BSD-3 参考+引擎当 oracle 自写（**不拷 AGPL 源码进 src**），算法（GNRPA Cazenave 2024）可自写。
+
+## 13. 2026-11-26 pilot r14 重启训练 + 离线门（ratio 2.33× PASS / z 尾部 FAIL）+ 饮料专项立项
+
+- **pilot r14 训练重启成功**（昨晚卡住疑 OOM）：90,144 行 GKMS 尺度自对弈（教师均分 349,563），
+  192×96/1200ep/4 线程限，682.6s；val 排序 0.510（≥0.50 擦线）；权重 out/ei_r14_gkmsps_pilot.json
+  已入 submissions/gkagent-ei-r14/（bench_repo 提交）。
+- **离线门 n=100 配对**：网均 **202,197** vs 贪心 86,804 = **2.33×（门 ≥1.3 PASS）**，85 胜 14 负 1 平，
+  adapter 0 错 0 回退；**z 尾部门 FAIL**（max|z| 6.23/5.29/7.17 >3，p95 ≤2.32 全正常 = 极端局尾状态
+  超训练分布）；候选修复 rescale/clamp 或补尾部训练分布，后续不静默忽略。详见投稿 RESULTS.md。
+- **托管门 ≥150k 排队**：v3 A/B 两臂之后（CPU 口径公平）；离线 held-out 口径不外推托管保密种子。
+- **饮料专项立项（用户指定重点投入）**：现状 DrinkSpec 仅 4 效果类型、**v2/v3 托管 algo 零饮料处理**
+  （gkbench 动作空间含 drink，hiro/evo 都喝）= seed 赛道纯丢分；W9 实机四瓶效果（extra_plays/timed
+  倍率/timed 抽牌/zone search move/timed 降费）全缺；青汁动 RNG 未建模。子智能体 drink-model 阶段1：
+  全 catalog + sim 双镜 + **W9 全重放门（1,426,865 + 逐决策 rng 含饮料步）**；阶段2 托管 v3 饮料决策
+  + r14 饮料特征 + 生产 allow_drinks。饮料 RNG 入口归 drink-model（m1-rng 已划界）。
+  样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 QQ_GROUP_NOTES §12。
+- **v3 托管 A/B 进行中**：臂A vote0.8（resume 40312fcb77a0）→ 臂B vote2.0 顺序；服务器间歇 SYN 丢包
+  （10060/10054 波）驱动 90s 自动重连（data/_v3_hosted_ab.ps1，不提交）；出分后对标 1,267,591 / 1.3M 目标。
