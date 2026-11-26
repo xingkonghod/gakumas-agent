@@ -810,9 +810,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   **申报口径问题**：其 dev about.sees 仍标 "screen"（我们 v2/v3 标 "seed"）——若 seedlock 真看牌序
   应按 seed 类申报，混排不公；观察/必要时向 matto 提出。结论：579.7k 是盲打真效率；seed 臂 dev
   试水未全量、锁稳定性存疑 → 短期威胁有限但需盯。
-- **⚠️ uinet 口径二次纠正（screen 榜全 72 行核实）**：1.633M/1.109M 的 uinet 高 run（rules 59、
-  11-11、fixed32 子集）**已被后续 run 覆盖**（排行同 algo 合并取最新 per-slot）→ 当前 uinet 行
-  469,890；**screen 真前沿 = huochai67 gknet-v3 579,653（n=360 solid）/ UINet-Ver2.1 578,722
+- **⚠️ uinet 口径二次纠正（screen 榜全 72 行核实 + 37 run 时间线）**：1.633M run finished
+  **2026-11-11T18:32Z = 北京 11-12 02:32**（run 20261112-022847，n=480 fixed32）、1.109M =
+  11-11T20:07Z = 北京 04:07（n=320）——matto 11-11 晚**密集扫参**（18:18–20:07Z 每 ~5min 一个 run，
+  mean 216k–1.63M 剧烈跳动）→ **1M+ 是扫参尖峰非稳定水位**；排行同 algo 合并取最新 per-slot，
+  该 run 虽在合并行 runs 列表里但同槽位被其后 17 个 run 覆盖 → 当前 uinet 行 469,890（n=960）/
+  fixed32 15 题行 270,845；**screen 真前沿 = huochai67 gknet-v3 579,653（n=360 solid）/ UINet-Ver2.1 578,722
   （n=960 rules 59）/ uinet-ppo-r1 575,585**；榜顶 pimc-dev 791,138 仅 n=4（seedlock mode 却申报
   screen，口径问题实锤影响榜单）。**我们 screen 最强实测 = gkagent-expectimax 531,280（n=240、
   over 492）排第 9**，距 solid 榜首 ~48k。UIHorizon 636k 系 sees_seed=true 属 seed 组不计。
