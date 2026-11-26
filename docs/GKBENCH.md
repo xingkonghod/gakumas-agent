@@ -531,6 +531,14 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   top+：3ZT8ZKB6#1 +3.0M / WDKWQYW5#0 +2.4M / AXME8QK2#1 +2.1M；top−：3EW6E6HV#1 −3.36M /
   F4FPT86S#1 −3.05M（同题 #0 +2.14M = 盆地硬币翻转）。缺 33JYSHDF#0/GN79HT4K#0 两局不补（边际小+
   补齐会墙钟重抽覆盖已落盘槽位）。探针 data/_v3_partial_cmp.py（不提交）。臂B vote2.0 分块跑中。
+- **逐题相对上限拖尾（v3 salvage 230 oracle 配对，data/_v3_drag_analysis.py）**：v3 ratio mean
+  **0.892**（v2 0.870，+2.2pp）；**58/230 局 >100% oracle**（前沿推进有效）；总缺口 28.77M，
+  **top10 题占 71.8%**。拖尾 top：WDKWQYW5 5.27M（67.3%）/ 3EW6E6HV 4.52M（83.8% vs v2 95.8% **回退**）/
+  QQ6J5S39 2.46M（68.5% vs 80.6% 回退）/ QV6QCSN9 1.78M（**24.9% vs 48.0% 回退=晚锁 vote0.8 丢回合**）/
+  XPRY8BRF 1.67M（83.5% vs 96.9% 回退）/ 9VEFA9VH 0.92M（53.5% vs 81.5% 回退）——**拖尾里 5 题是 v3
+  盆地硬币负侧/晚锁**，非信息缺口；失锁 deck-modify 托管残尾比预期小（5KZSXANK 95.1% / VWAF2GDN 73.7%）。
+  反事实：top10 仅拉到 v2 均值比例 0.87 → 均分 +51k；拉到 oracle → +125k。**下一杠杆=per-problem
+  自适应 starts/预算压方差 + 臂B vote2 治晚锁**；v3g 治失锁残尾。
 - **M1 消费图阶段1 完成（m1-rng，feat 2daa7bb / docs d813d4d）**：rng_graph.py clean-room 366 行
   （create=1 次 range 首调用 / type9=2×nf signed_key / pick=1+nf / 重洗=n−1 / panic=每手牌 1 range /
   支援掷点门控公式 / type59/38/156/22=0）；**W7 27/27、W9 非饮料 41/41 逐决策匹配**；rules=69 引擎
