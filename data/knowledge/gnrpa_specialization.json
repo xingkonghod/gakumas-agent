@@ -51,11 +51,46 @@
     "conclusion": "不采纳 SAFE-only 限制。safe-vs-empty 过门（CI 下界+23612>0，SAFE 饮料相对无饮料有价值），但 safe-vs-current 强负（CI[−1.42M,−451k]）：限制移除青汁/苏打等被引擎原生结算的高分饮料。管线实证 safe 还降锁定率（5KZSXANK 失锁）+ 两题崩局。现状全饮料原生搜索保留。",
     "mechanism": "『RNG 未知/破坏 lock』排除理由适用于我们 sim 侧抽牌模型（锁定前 scan），不适用于引擎自身锁定后搜索——引擎用自己的 RNG 确定式结算青汁 create_random/苏打 draw，post-lock 回放核分精确。限制饮料搜索空间=纯丢分，且改变早期打法路径可触发未建模牌堆改动→失锁（早期打法敏感，同 WDKWQYW5 现象）。"
   },
-  "adoption": {"code_change_to_v3": "无（L1/L4 均负结果，prior=0 + 全饮料现状保留）", "v3s_variant": "未创建（无采纳杠杆）", "precedent": "本文件 + GKBENCH §14 + HANDOVER_NEXT 条"},
-  "reproduction": {"probes_not_committed": ["data/_gnrpa_probe1.py（现状核实）", "data/_gnrpa_probe2.py（teachers/priors/gate）", "data/_gnrpa_probe3.py（管线确认）", "data/_gnrpa_analyze.py", "data/_gnrpa_prior_distill.json", "data/_gnrpa_prior_mech.json", "data/_gnrpa_gate1.json", "data/_gnrpa_teachers.json", "data/_gnrpa_probe1.json", "data/_gnrpa_probe3.json"], "cmd": ".venv\\Scripts\\python.exe data\\_gnrpa_probe2.py all"},
+  "L3_bounded_downside_prior": {
+    "date": "2026-11-26",
+    "scope": "prior 全局有害但下行有界用法候选（lead 续派）：① multi-start prior（starts4 恰1路带prior）② per-problem 门控（低oracle锁定opt-in/怪物禁用）③ status=2 根因。门同 L1 16题×2门种子 n=32 vs 全prior=0，CI下界>0才采纳。",
+    "multi_start_replace_i3": {
+      "design": "starts4 sd_i=182+7919*i（v3 _pool_search 公式），i=3 带 prior 其余 prior=0；multi=max(p0_0,p0_1,p0_2,prior_3)，baseline=max(4×p0)。单步 max 代理（RoutePool 跨步累积未建模=保守worst-case）。",
+      "results_mean_delta_ci95": {
+        "multi_mech": {"overall": [-33289, -87472, 8455], "low": [-442, -27298, 25203], "monster": [-105552, -262962, 0], "pos_neg_zero": "3/8/21"},
+        "multi_distill": {"overall": [-22241, -100386, 65476], "low": [-6127, -27064, 15063], "monster": [-57692, -312632, 199203], "pos_neg_zero": "3/9/20"}
+      },
+      "mean_best": {"baseline": 2528358, "multi_mech": 2495068, "multi_distill": 2506117},
+      "conclusion": "FAIL CI>0（mean 负）。但怪物灾难有界实证：distill 怪物 mean −57,692 vs L1 单搜全局怪物 −620,172（下行被 max(前3 prior=0) 兜住，不再 −4.4M 灾难）。负因=i=3 恰为最佳起点时替换 forfeit 上行（3G6FFZZT p0_3=1.11M 最佳，mech_3=894k → −219k）。"
+    },
+    "multi_start_additive_monotone": {
+      "design": "prior 作第5路（additive）：multi=max(baseline, prior_3)≥baseline 恒成立=真单调零下行（『在手路线不降分』理想口径，budget 5 starts）。",
+      "results_mean_delta_ci95": {
+        "additive_mech": {"overall": [8694, 0, 22472], "monster": [0, 0, 0], "pos_neg_zero": "3/0/29"},
+        "additive_distill": {"overall": [36111, 0, 103246], "monster": [99602, 0, 298805], "pos_neg_zero": "3/0/29"}
+      },
+      "positives_distill": {"AS-5KZSXANK/661272730": 996017, "AS-DE36RWPS/1431297520": 157916, "AS-5XB2AEHN/1751756257": 1608},
+      "conclusion": "零下行（0 neg，构造性单调安全）+ mean 正（distill +36,111 / 怪物 +99,602 含 5KZSXANK +996k），但 CI 下界=0（29 平稀释仅 3 正）→ 严格 CI>0 门 FAIL。near-miss：可证不害但稀疏正例不足过门；更多种子或可收紧 CI（lead 决策）。"
+    },
+    "per_problem_gated": {
+      "design": "opt_in=LOW12−MONSTER5（11题，WDKWQYW5 属怪物禁用）；gated_delta=(prior−p0) if pid∈opt_in else 0。复用 L1 gate1 行（单变量，无新引擎跑）。",
+      "results_mean_delta_ci95": {
+        "gated_distill": {"overall": [9362, -23796, 46443], "opt_in_only_n22": [13618, -34326, 67161], "pos_neg_zero": "11/11/10"},
+        "gated_mech": {"overall": [-21862, -54845, 12947], "opt_in_only_n22": [-31799, -76887, 17778], "pos_neg_zero": "5/13/14"}
+      },
+      "conclusion": "FAIL CI>0（distill 跨0、mech 负）。门控去掉怪物灾难但低oracle题本身 prior 增益不显著（L1 low12 已跨0）。"
+    },
+    "status2_root_cause": {
+      "finding": "status=2=稳定化早停（stabilization=3），非 deadline/unsupported/预算耗尽。实证：distill 早停 top_level_calls 11/40 vs p0 282/240，curve 早平台，repetition_stops=0/unsup_line=0/incomplete=0；WDKWQYW5/3601220 distill stab=3→status2 exp66733 best3.56M，stab=1→status0 跑满2M exp2000000 top_calls911 best3.99M。",
+      "mechanism": "prior 过约束致策略快速收敛局部最优→3 稳定窗口即终止。即便 stab=1 消除早停，distill best3.99M 仍<<p0 7.96M=prior 本身有害（早停雪上加霜）。multi-start 亦见 status2（mech_3 AXME8QK2 exp5231 / distill_3 AXME8QK2 exp975379 / WDKWQYW5 exp282115）。rc=2 精确语义需 core 源（不深究）。"
+    },
+    "conclusion": "L3 全候选未过严格 CI下界>0 门 → 不采纳，无 v3s。关键正面发现：multi-start 确实兜住怪物灾难下行（−57k vs −620k）；additive 单调零下行 near-miss（CI下界=0）。prior=0 仍缺省。"
+  },
+  "adoption": {"code_change_to_v3": "无（L1/L4/L3 均负结果，prior=0 + 全饮料现状保留）", "v3s_variant": "未创建（无采纳杠杆）", "precedent": "本文件 + GKBENCH §15（L1/L4）§16（L3）+ HANDOVER_NEXT 条"},
+  "reproduction": {"probes_not_committed": ["data/_gnrpa_probe1.py（现状核实）", "data/_gnrpa_probe2.py（teachers/priors/gate L1/L4）", "data/_gnrpa_probe3.py（管线确认）", "data/_gnrpa_probe4.py（L3 multi-start）", "data/_gnrpa_probe5.py/5b.py（status2 根因）", "data/_gnrpa_probe6.py（L3 per-problem 门控）", "data/_gnrpa_probe7.py（L3 additive）", "data/_gnrpa_analyze.py", "data/_gnrpa_prior_distill.json", "data/_gnrpa_prior_mech.json", "data/_gnrpa_gate1.json", "data/_gnrpa_gateL3.json", "data/_gnrpa_gateL3b.json", "data/_gnrpa_gateL3c.json", "data/_gnrpa_teachers.json", "data/_gnrpa_probe1.json", "data/_gnrpa_probe3.json", "data/_gnrpa_probe5.json"], "cmd": ".venv\\Scripts\\python.exe data\\_gnrpa_probe2.py all; .venv\\Scripts\\python.exe data\\_gnrpa_probe4.py"},
   "recommendations_L2_L3": [
     "L2 rules timeline：青汁/苏打 post-lock 引擎原生结算已最优，sim 侧无需建模其 RNG；失锁根因是 card-effect deck-modify（M1 消费图阶段2 predictive 牌区动力学），非饮料。优先 m1-rng 阶段2 v3g 接线重扫失锁怪物。",
-    "L3 nesting 调度：distill prior 高方差（部分题+2.7M 部分−4.4M）→ 若后续用 prior 须 per-problem 选择/门控（仅低 oracle 锁定题 opt-in，怪物题禁用），不可全局；或 prior 只作多起点之一（starts 中 1 路带 prior 其余 prior=0，RoutePool 单调采纳兜底）。",
+    "L3 nesting 调度（已测负，见 L3_bounded_downside_prior）：multi-start replace-i3 / per-problem 门控均 FAIL CI>0；multi-start 确实兜住怪物灾难下行（distill 怪物 −57k vs 单搜 −620k）；additive（prior 作第5路）单调零下行 mean+36k 但 CI下界=0 稀疏正例 near-miss。后续若推 prior：additive 单调安全可考虑更多种子收紧 CI 或放宽『可证不害』门（lead 决策）；status=2 稳定化早停可 stab=1 缓解但 prior 本身仍有害。prior=0 仍缺省。",
     "L4 免费杠杆确认：决策层锁定前 worlds 投票保守不喝青汁（避免早期 deck-modify 失锁）已有先例；post-lock 全饮料保留。饮料阶段2 重心应在 sim 侧 r14 特征/生产 allow_drinks，而非限制引擎搜索。"
   ]
 }

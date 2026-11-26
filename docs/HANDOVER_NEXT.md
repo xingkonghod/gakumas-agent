@@ -1473,6 +1473,28 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
+**最近交接记录（2026-11-26 午后，饮料阶段2 sim 侧完成（drink-fix2）；窄 scope 完成即退出）**：
+- **batch2 catalog（feat 本条哈希见 git log）**：ExamConcentration 强气 1/2 直给（姜汁汽水 ×5 /
+  超级苏打 ×12，stance 渠道 + concentration2）；黑醋汁 ×38 Select→hand + cost0（前 2 张正费牌
+  整费归零、0 费牌不耗次数）；特制精华 ×209 再发动（下一张 ActiveSkill 直接效果 ×2，1 次，
+  喝回合+下一回合有效）。**probe6 引擎 oracle 全 PASS**（data/_drinks_probe6.py/.json 不提交；
+  纯分卡干净实验 1244=2×622 + 过期对照；W9 牌堆 enchant 型首卡干扰已排除）。
+  catalog **45/51**（6 unknown）；hif **impl 2984→3286（+302）/ 81.5%→89.8%**。
+- **② allow_drinks opt-in**：LessonPolicy params/kwargs（默认 False 逐位不变）+ 搜索 drink →
+  LessonAction(kind="drink")；local_bench sim_to_uiobs legal 暴露 drink + loop 真执行
+  （修复旧版吞 drink 回退 greedy 遗留；off 逐位不变）。**sim 配对门负结果如实**：SAFE 子集
+  28 题 ×2 seed，expectimax Δ+43.1 **CI95[−97.6,+209.8] 跨 0 未过**（19 胜 9 负 28 平，崩局 0）；
+  greedy Δ=0 阴性对照；归因 anytime fallback 30.6% 稀释 + 搜索预算（phase2 plan 预警命中）。
+  SAFE_KINDS/drink_is_safe（22 纯数值 kind）只约束 sim 决策；引擎侧全饮料保留（gnrpa-spec 实锤）。
+- **③ r14 特征提取器只写不激活**：src/gkagent/sim/drink_features.py（33 维定长，kind×剩余次数
+  聚合 + unknown/SAFE 汇总；纯函数无接线）；设计 out/_drinks_r14_features_design.md（不提交）：
+  B2 叶子替换 5 legacy drink_* 位 / r14 obs+动作头，**重训门留 lead 排队**（分布漂移）。
+- **测试**：test_drinks_m6.py 63 条；全量 pytest 见 feat 提交说明（--basetemp=out\_pytest_tmp_drink3）。
+  纪律：path-limited add（未碰 rng_graph/card_zones/exam_risk，m1-fix3 owns）；探针 ≤3 局；
+  free 3.5–4GB>0.9GB；未起托管；v2/v3 原版零改动。
+- **阶段3 建议**：sim 搜索饮料预算优化（fallback 稀释是门未过主因：drink 分支 anytime 保留 /
+  预算分层）→ 复跑离线门；托管饮料决策走引擎侧（全饮料，gnrpa-spec）；r14 重训门排队。
+
 **最近交接记录（2026-11-26 午间，饮料专项阶段1.5 完成（drink-fix2）；托管 A/B + m1-rng/hajime-tune/pimc-opt 在跑）**：
 - **饮料阶段1.5 完成（feat fa70b8b + docs 本条）**：阶段1（06a154a）落地后开工守卫通过。
   确定式增量批 6 瓶建模（5 批次 id + 焙茶 side-effect）：① 4 种严选初星 ExamStatusEnchant
@@ -1579,6 +1601,16 @@ current vs empty +1.03M CI[+533k,+1.62M]（全饮料价值巨大）；管线 3G6
 **采纳=零代码改动 v3**（prior=0+全饮料），未创建 v3s（无采纳杠杆，骨架已移除）；SAFE 划分 9 瓶记先例文件供 sim 阶段2 复用。
 **L2/L3 建议**：L2 失锁根因 card-effect deck-modify（M1 阶段2 predictive → v3g 重扫）非饮料；L3 若用 prior 须 per-problem 门控（低 oracle opt-in 怪物禁用）或作多起点之一（RoutePool 单调兜底）不可全局；L4 免费杠杆=锁定前 worlds 保守不喝青汁（已有先例）post-lock 全饮料保留。
 **铁律守住**：未重编 DLL、AGPL 不拷 src、未碰 D:\Games\Gakumas、未改 drinks.py/drinks_db.py/rng_graph.py/exam_risk.py、v2/v3 原版零改动、探针 data/_gnrpa_* 不提交、单进程≤1 局 free<0.9GB sleep60、未起托管未杀进程；pytest --basetemp=out\_pytest_tmp_gnrpa 绿（本任务未动 src/tests）。
+
+**GNRPA 特化 L3 下行有界 prior ✅（2026-11-26，gnrpa-spec 续派；均负结果零采纳；docs GKBENCH §16 / 先例 L3 节）**：
+lead 续派窄 scope——prior 全局有害但下行有界用法。门同 L1（16 题×2 门种子 n=32 vs 全 prior=0，CI 下界>0 才采纳）。
+**① multi-start replace-i3**（starts4 sd=182+7919*i，i=3 带 prior，multi=max(前3 p0, prior_3)）：multi_mech −33,289 CI[−87k,+8k] / multi_distill −22,241 CI[−100k,+65k] **均 FAIL**。
+**🔑 怪物灾难有界实证**：distill 怪物 mean **−57,692 vs L1 单搜 −620,172**（max(前3 p0) 兜住，不再 −4.4M；lead 假设成立）；负因=i=3 恰最佳起点时替换 forfeit 上行。
+**① additive 单调**（prior 作第5路 max(baseline,prior_3)≥baseline 恒成立）：distill **mean+36,111 CI[0,+103k] 0 负例**（怪物+99,602 含 5KZSXANK+996k）但 **CI 下界=0**（29 平稀释仅3正）→ 严格门 FAIL，**near-miss 可证不害**（更多种子或收紧 CI，lead 决策）。
+**② per-problem 门控**（opt_in=LOW12−MONSTER5=11题，复用 L1 行推导）：gated_distill +9,362 CI[−23,796,+46,443] / gated_mech −21,862 CI[−54,845,+12,947] **均 FAIL**。
+**③ status=2 根因实锤**：=**稳定化早停 stabilization=3**（非 deadline/unsupported）；distill 早停 top_calls 11/40 vs p0 282/240、curve 早平台、repetition/unsup=0；WDKWQYW5/3601220 stab=3→status2 exp66733 best3.56M / **stab=1→status0 跑满2M best3.99M**（仍<<p0 7.96M=prior 本身有害早停雪上加霜）。
+**采纳=零**（L3 全候选未过严格 CI>0，无 v3s，prior=0 仍缺省）；先例 json 更新 L3 负结果+正面发现（multi-start 兜怪物下行/additive 单调 near-miss）。
+**铁律**：path-limited add+commit 禁 reset/checkout 共享 index；未改 drinks/rng_graph/exam_risk/expectimax/lesson；free<0.9GB 自节流（本轮 4.2GB 充足）；探针≤1 局未起托管；pytest --basetemp=out\_pytest_tmp_gnrpa2：本任务 docs/knowledge 隔离无 src/tests，full 1779 中 test_drinks_m6.py（63）foreign 确定式失败（drink-fix2 在跑脏文件 src/drinks.py+drinks.json+test，单跑仍失败非 flake），**--ignore 该文件后 1716 全绿 exit 0**（含 m1），foreign 失败不静默归本任务。
 
 **最近交接记录（2026-11-25 晚，ex-seed-v2 融合登顶 1.27M / best-known 87%；goal 自主循环）**：
 **主任务完成**：f2-exv2 在 ex-seed 967k 基础上融 seedlock RoutePool 跨步累积 + FastCut + 多起点 GNRPA（2×500k/步）

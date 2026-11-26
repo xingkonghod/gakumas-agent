@@ -471,14 +471,33 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   78.7%→81.5%**（1629 槽位 / 3660 段）。tests/test_drinks_m6.py **49 条**（30 旧+19 新含 oracle 配对门）。
   批次实测槽位：玛奇朵 ×9 / 茶 ×7 / 拼配咖啡 ×42 / 印度茶 ×11 / 热绿茶 ×12 / 焙茶 ×10
   （立项背景"玛奇朵 ×38"系与黑醋汁 01-3-012 ×38 混淆，以实测为准）。
+- **饮料阶段2 sim 侧完成（drink-fix2，batch2 + allow_drinks + 特征提取器）**：
+  ① **batch2 catalog**（probe6 引擎 oracle 逐瓶全 PASS，rng=0）：ExamConcentration 强气直给
+  1/2（姜汁汽水/超级苏打，stance 渠道复用 + concentration2 新分支）；黑醋汁 ExamCardMove
+  deck_grave→hand（Select 玩家选牌）+ ExamSearchPlayCardStaminaConsumptionChange
+  **cost0**（前 2 张正费牌整费归零、0 费牌不耗次数、第 3 张恢复，实测）；特制精华
+  ExamCardSearchEffectPlayCountBuff **再发动**（纯分卡 1244=2×622 实测，1 次，喝回合+下一回合
+  有效=effectTurn=1+fresh，过期正常；MentalSkill 不触发）。catalog **45/51 段实现**（40→45，
+  6 unknown）；hif 覆盖 **impl 2984→3286（+302）/ 81.5%→89.8%**（特制精华 ×209 全实现是大头）。
+  ② **生产 LessonPolicy allow_drinks opt-in**（默认 False 逐位不变；True 时搜索返回
+  kind="drink" 动作）+ local_bench legal/loop 接通（旧版吞 drink 回退 greedy 的遗留修复，
+  off 逐位不变）。**sim 配对门（SAFE 子集 39 题可映射 28 ×2 seed，cluster bootstrap 10000）**：
+  greedy auto/off Δ=0（阴性对照，greedy 无 drink 启发式）；**expectimax-analytic Δ+43.1
+  CI95[−97.6,+209.8] 跨 0 → 门未过（负结果如实）**，19 胜 9 负 28 平，崩局 0/0；
+  归因：anytime fallback 30.6%（超时回 greedy 不喝）+ 28 平题搜索未选饮料（预算稀释，
+  phase2 plan 预警命中）。SAFE 划分（drink_is_safe/SAFE_KINDS，纯数值段 22 kind）只约束
+  sim 侧决策/特征——**引擎侧全饮料保留**（gnrpa-spec a86ffdc 实锤）。
+  ③ **r14 饮料特征提取器**（src/gkagent/sim/drink_features.py，33 维定长 catalog 效果向量，
+  **只写不激活**——重训分布漂移留 lead 排队；设计 out/_drinks_r14_features_design.md 不提交）。
+  tests/test_drinks_m6.py **63 条**。
 - **hif 505 题饮料覆盖实测（阶段2 杠杆真值）**：498/505 题带饮料；已实现大头=蛋白粉 extra_plays ×248 /
   苏打 ×235（4 段）/ 00-2-008 ×219（half_cost+score_buff）/ 02-3-010 ×209 / 03-3-011 extra_turn ×100；
   **最高频 pdrink_00-3-005 ×296 = 初星特制青汁**（ExamCardCreateSearch 随机生成，RNG 流未知，
   群线索"青汁会动rng"实锤；auto-gakumas 禁用规避）→ 保持 unknown，决策层保守不喝是免费杠杆
-  （青汁X ×1 同保持 unknown）；阶段1.5 后剩余 11 unknown 段 = ExamConcentration 强气直给
-  （姜汁汽水/超级苏打，**阶段2 候选**，同 stance 渠道可复用）+ 黑醋汁 hand-select move /
-  特制精华再发动 / 混合果昔 / 新鲜果醋 / 时尚草本茶依赖换算等。阶段2=托管 v3 饮料决策 +
-  r14 饮料特征 + 生产 allow_drinks。
+  （青汁X ×1 同保持 unknown）；batch2 后剩余 **6 unknown 段** = 青汁×2 + ExamCardUpgrade×2
+  （新鲜果醋/初星强化能量）+ 混合果昔 ExamHandGraveCountCardDraw + 时尚草本茶依赖换算。
+  SAFE 槽位 629/1629（38.6%）。阶段3=托管饮料决策（引擎侧全饮料）+ r14 重训门 +
+  sim 搜索饮料预算优化（fallback 稀释是离线门未过主因）。
   样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 QQ_GROUP_NOTES §12。
 - **v3 托管 A/B 进行中**：旧评测 40312fcb77a0 被服务器清掉（404）→ 驱动改**新评测** + 404 自重置；
   臂A vote0.8 → 臂B vote2.0 顺序；服务器间歇 SYN 丢包（10060/10054 波）90s 自动重连
@@ -595,3 +614,38 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   探针单进程顺序 ≤1 局、批次前查 free<0.9GB sleep60（门尾段 free 520–900MB 自动等待）；未起托管未杀进程。
   pytest **1763 collected / 106 文件，复跑 exit 0 全绿**（--basetemp=out\_pytest_tmp_gnrpa）；首跑
   test_challenge::test_runs_until_runout_then_returns_home 高负载墙钟 flake 1 例**单跑绿**如实记（HANDOVER §8 同款），本任务未动 src/tests。
+
+## 16. 2026-11-26 GNRPA 特化 L3 下行有界 prior（gnrpa-spec 续派，均负结果如实，零采纳）
+
+- **目标（lead 续派窄 scope）**：prior 全局有害（§15）但**下行有界用法**候选——① multi-start prior（starts=4 恰 1 路带 prior，
+  mech/distill 各单变量）其余 prior=0，RoutePool 单调采纳兜底；② per-problem 门控（仅低 oracle 锁定题 opt-in、怪物禁用）；
+  ③ distill status=2 早停根因（廉价）。门同 §15：16 题×2 门种子 n=32 vs 全 prior=0，**CI 下界>0 才采纳**。
+  探针 data/_gnrpa_probe4/5/5b/6/7.py（不提交）；先例 [gnrpa_specialization.json](../data/knowledge/gnrpa_specialization.json) L3 节。
+- **① multi-start replace-i3**（sd_i=182+7919*i，i=3 带 prior；multi=max(p0_0,p0_1,p0_2,prior_3)，baseline=max(4×p0)；
+  单步 max 代理=保守 worst-case，RoutePool 跨步累积未建模）：
+  | 候选 | overall meanΔ | CI95 | 怪物 meanΔ | 正/负/零 | 判定 |
+  |---|---:|---|---:|---|---|
+  | multi_mech | −33,289 | [−87,472, +8,455] | −105,552 | 3/8/21 | **FAIL** |
+  | multi_distill | −22,241 | [−100,386, +65,476] | −57,692 | 3/9/20 | **FAIL** |
+  - **🔑 怪物灾难有界实证**：distill 怪物 mean **−57,692 vs §15 单搜全局怪物 −620,172**——下行被 max(前3 prior=0) 兜住，
+    不再 −4.4M 灾难（lead 假设成立）。负因=i=3 恰为最佳起点时替换 forfeit 上行（3G6FFZZT p0_3=1.11M 最佳、mech_3=894k → −219k）。
+- **① additive 单调口径**（prior 作第 5 路，multi=max(baseline,prior_3)≥baseline 恒成立=真单调零下行，「在手路线不降分」理想）：
+  additive_distill overall **mean +36,111 CI[0, +103,246]**、怪物 +99,602（含 5KZSXANK **+996,017**）；additive_mech +8,694 CI[0,+22,472]；
+  **0 负例**（构造性单调安全）但 **CI 下界=0**（29 平稀释仅 3 正）→ 严格 CI>0 门 **FAIL**。**near-miss**：可证不害但稀疏正例不足过门；
+  更多种子或可收紧 CI（lead 决策是否放宽「可证不害」门）。
+- **② per-problem 门控**（opt_in=LOW12−MONSTER5=11 题，WDKWQYW5 属怪物禁用；复用 §15 gate1 行单变量推导）：
+  gated_distill overall mean +9,362 CI[−23,796, +46,443]（opt_in n22 +13,618 CI[−34,326,+67,161]）；
+  gated_mech −21,862 CI[−54,845, +12,947]。**均 FAIL CI>0**（门控去掉怪物灾难但低 oracle 题 prior 增益本就不显著）。
+- **③ status=2 根因（实锤，廉价）**：**=稳定化早停（stabilization=3），非 deadline/unsupported/预算耗尽**。
+  distill 早停 top_level_calls 11/40 vs p0 282/240、curve 早平台、repetition_stops=0/unsup=0/incomplete=0；
+  WDKWQYW5/3601220 distill **stab=3→status2 exp66,733 best3.56M / stab=1→status0 跑满 2M top_calls911 best3.99M**。
+  机制=prior 过约束致策略快速收敛局部最优→3 稳定窗口即终止；即便 stab=1 消除早停，best3.99M 仍<<p0 7.96M=prior 本身有害（早停雪上加霜）。
+  multi-start 亦见 status2（mech_3 AXME8QK2 exp5231 / distill_3 AXME8QK2 exp975379）。rc=2 精确语义需 core 源（不深究）。
+- **采纳**：**L3 全候选未过严格 CI 下界>0 门 → 零采纳，无 v3s**（prior=0 仍缺省）。先例 json 更新 L3 负结果。
+  正面发现存档：multi-start 兜住怪物下行（−57k vs −620k）；additive 单调零下行 near-miss（mean+36k/CI下界=0）。
+- **硬约束遵守**：path-limited add+commit（禁 reset/checkout 共享 index）；未改 drinks/rng_graph/exam_risk/expectimax/lesson；
+  free<0.9GB 自节流（本轮 free 4.2GB 充足）；探针单进程≤1 局；未起托管；v2/v3 原版零改动；探针 data/_gnrpa_* 不提交。
+  pytest --basetemp=out\_pytest_tmp_gnrpa2：本任务 docs/knowledge 隔离**无 src/tests**；full **1779 collected** 中
+  **test_drinks_m6.py（63）foreign 确定式失败**（drink-fix2 在跑域：src/drinks.py+drinks.json+test_drinks_m6.py 均其脏文件；
+  stage15 classify select_move_hand vs unknown / catalog 45 vs 40 等，**单跑仍失败=非墙钟 flake**）；
+  **--ignore=tests/test_drinks_m6.py 后 1716 全绿 exit 0**（含 m1 predictive）。未改 drinks/rng_graph/exam_risk/expectimax/lesson，foreign 失败不静默归本任务。
