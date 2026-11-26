@@ -27,6 +27,7 @@ from gkagent.data.run_record import (
 )
 from gkagent.runtime.tapguard import (
     PickerGuard,
+    KIND_ANY,
     TapExpectation,
     expect_change,
     expect_dialog_gone,
@@ -2078,6 +2079,9 @@ class ProduceDriver:
                         clicked = True
                         break
                 if clicked:
+                    # F#52：勾选只改勾选框颜色、不改文本签名 → KIND_CHANGE 必判"未生效"
+                    # → retap 把勾.toggle 回去 → 振荡止损。check-row 期望=只记账不判生效。
+                    self._tap_expect = TapExpectation(kind=KIND_ANY)
                     return TickResult("drink-keep", "check-row")
                 # 找不到未勾选行：第三瓶可能在列表下方（需要滚动）。
                 # F#50：可见行全已勾时无论 need 是否读对都允许滚动（真选满时滚动无害，

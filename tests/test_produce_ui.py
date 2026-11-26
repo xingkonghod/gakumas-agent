@@ -276,6 +276,8 @@ def test_drink_keep_allchecked_garbled_need_scrolls() -> None:
     assert result.action == "check-row"
     assert agent.device.clicks and agent.device.clicks[-1][0] == 632
     assert agent.device.clicks[-1][1] < 770, "应点获得段灰勾行（手持标题之上）"
+    # F#52：勾选不改文本签名 → 期望必须 ANY，否则 retap 振荡止损。
+    assert result.expect is not None and result.expect.kind == "any"
 
 
 def test_drink_keep_hand_allchecked_no_acquired_scrolls() -> None:
