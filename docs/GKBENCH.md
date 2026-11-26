@@ -525,6 +525,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   （data/_v3_hosted_ab2.ps1，不提交）：每臂 **4 块×30 题顺序**（单块 ~30min < 重启间隔），块内风暴
   --resume 续、404 本块重起；臂A vote0.8 → 臂B vote2.0；出分对标 1,267,591 / 1.3M 目标。
   旧驱动 v1（整 240 单评测）废弃：暴露窗 > 重启间隔必被清。
+- **臂A（vote0.8）salvage 终果（n=238/240，被清评测 9ba9c00fb468 落盘 episodes）**：
+  **1,329,581 vs v2 同局 1,273,137 = +56,445（+4.4%）**，CI95[−9,829, +124,551] 跨 0（怪物题方差），
+  118 胜 81 负 39 平，**over_steps 7 vs 43**（scan_wait done 去墙钟实证）；点估已过 1.3M 目标但统计不显著。
+  top+：3ZT8ZKB6#1 +3.0M / WDKWQYW5#0 +2.4M / AXME8QK2#1 +2.1M；top−：3EW6E6HV#1 −3.36M /
+  F4FPT86S#1 −3.05M（同题 #0 +2.14M = 盆地硬币翻转）。缺 33JYSHDF#0/GN79HT4K#0 两局不补（边际小+
+  补齐会墙钟重抽覆盖已落盘槽位）。探针 data/_v3_partial_cmp.py（不提交）。臂B vote2.0 分块跑中。
 - **M1 消费图阶段1 完成（m1-rng，feat 2daa7bb / docs d813d4d）**：rng_graph.py clean-room 366 行
   （create=1 次 range 首调用 / type9=2×nf signed_key / pick=1+nf / 重洗=n−1 / panic=每手牌 1 range /
   支援掷点门控公式 / type59/38/156/22=0）；**W7 27/27、W9 非饮料 41/41 逐决策匹配**；rules=69 引擎
