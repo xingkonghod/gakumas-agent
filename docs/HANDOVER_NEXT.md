@@ -1568,6 +1568,26 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
   探针 data/_drinks_probe5* 不提交；v2/v3 原版投稿零改动；探针单进程顺序 ≤3 局、
   批次前 free 1.28–1.7GB>0.6GB；未起托管未杀进程。
 
+**最近交接记录（2026-11-26 15:4x，用户转向：停托管→修本地→转真机；用户去做游戏/特效不在机前）**：
+- **停 gkbench 托管**（用户 15:43 决定）：服务器今天重启过频——驱动日志实测 ≥10 次连接中断
+  （10060/10054/disconnect）+ ≥6 个评测跑中途或跑完被清（eval 注册表内存态）；240 局单评测必被清，
+  10 题块也多次死中途。**臂B vote2.0 停在 60/240**；统一 A/B 报告（data/_v3_ab_unified.py →
+  out/_v3_ab_unified.json）：配对 n=60 Δ−6,551 CI[−58k,+54k] 16/18/26 = **vote2 中性**（晚锁上行 vs
+  失锁下行对冲）。臂A vote0.8 salvage 240 满 = 1,322,681 保持 seed 行第一。向 matto 提 eval 落盘/
+  部署窗口话术已给用户（未发）。**托管驱动废弃不再起**（data/_v3_hosted_ab*.ps1/_r14_hosted.ps1 留档）。
+- **本地修好验证**：全量 pytest 绿（--basetemp 绕 Temp 坏 ACL）；驱动坑纪律入册：**PS 脚本必须
+  UTF-8 BOM 或纯 ASCII 匹配（PS5.1 GBK 剥 BOM 坑两度致空转）；commit 必须 pathspec 限定（fbee222 曾
+  误扫 m8 暂存 WIP）**。
+- **真机预备**：scripts/live_preflight.py 一键自检（只读）已跑 = BLOCKED 5 项（游戏未开/daemon
+  Ready/无窗口/截帧/终端非管理员）= 用户不在机前预期阻塞；LIVE_RUN §0.0 一键顺序已写。**不硬跑**。
+- **matto OCR 基准**（15:06 群分享 hiro.matto.top/ocr-dataset/check.html，49 帧真值 Claude/Codex
+  交叉读 + 5 后端横比）：ocr-bench 子智能体接入做真机 OCR 回归 + 修 top 缺口（deck_left/card_effect
+  走引擎补全 opt-in）；许可先查、无许可只本地参考不入库。
+- **在跑本地子智能体**：pimc-scale（worlds×threads 扫参门，无 seed 冲顶判据）/ sim-fidelity
+  （timed 层差一回合/pitem312 门/type21 池→74 题恢复）/ ocr-bench。收尾后不再起新托管。
+- **r14 托管门已完成**：240 局 205,614（≥150k 自设门 PASS；距 screen 前沿 579.7k 差 374k → 非榜臂）。
+- **下一会话开场白见本文末更新**；真机等用户开游戏+管理员终端后 live_preflight READY 再起局。
+
 **最近交接记录（2026-11-26 上午，饮料专项阶段1 + pilot r14 离线门 + QQ§12 + rinami 吸收；goal 自主循环）**：
 - **QQ 增量 §12**（11-25 23:06→11-26 08:48 +62 条）：muskot **Bellman 上界**=O(1) 上界公式构想
   （自评非常难：状态爆炸+反低维抽象机制）+ 近优策略课题 + **arXiv 2006.05879=MDP-GapE**（非 GNRPA）；

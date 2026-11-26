@@ -17,6 +17,15 @@ Get-Process gakumas, DMMGamePlayer -ErrorAction SilentlyContinue | Select-Object
 schtasks /Run /TN GDEAgent
 ```
 
+## 0.0 一键自检（2026-11-26 新增，只读不改游戏）
+
+```powershell
+.venv\Scripts\python.exe scripts\live_preflight.py   # exit 0=READY / 2=BLOCKED+原因清单
+```
+
+覆盖 §0.1 清单 1-7：游戏在跑/单进程/急停标记/daemon/接线/截帧/提权。**BLOCKED 不起跑**；
+用户不在机前时游戏未开属预期阻塞，开游戏+管理员终端后重跑。
+
 ## 0.1 开跑前 3 分钟自检
 
 ### 起跑前检查清单（每次必做，2026-11-15 踩过双进程互抢窗口）
