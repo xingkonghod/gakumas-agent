@@ -1290,6 +1290,22 @@ def main() -> int:
                     lesson_policy.attach_draw_plan(None)
                     exam_plan_selector = None
                 if exam_setup_path:
+                    # F#54（真机 ep-live-seed2/8）：候选过期=真机不收敛主因（探针实证
+                    # grave 模型已全中）。考试入口同步跑 build_exam_setup --current 刷新
+                    # live seed 候选，不再依赖外部 watcher；失败只告警不拦跑局。
+                    if new_exam:
+                        try:
+                            r = subprocess.run(
+                                [sys.executable, str(ROOT / "scripts" / "build_exam_setup.py"),
+                                 "--current"],
+                                cwd=str(ROOT), capture_output=True, text=True,
+                                encoding="utf-8", errors="replace", timeout=120,
+                            )
+                            log_lines.append(
+                                f"{step:03d} [exam-plan] 入口刷新 --current exit={r.returncode}"
+                            )
+                        except Exception as exc:  # noqa: BLE001 - 刷新失败不拦跑局
+                            log_lines.append(f"{step:03d} [exam-plan] 入口刷新失败：{exc}")
                     try:
                         mtime = Path(exam_setup_path).stat().st_mtime
                     except OSError:
