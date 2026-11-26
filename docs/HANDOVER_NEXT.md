@@ -1473,6 +1473,24 @@ mental-model 调用（深化 300 commit diff + 吞 8 个长会话 + 维护 12 �
 pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent（订阅）不受影响**；qwen MCP
 工具也用普通 key（一并失效，本就没在用）。跨会话上下文从此全靠 docs 交接。详见 HANDOVER 二·补四十八。
 
+**最近交接记录（2026-11-26 下午，饮料阶段3① 搜索预算杠杆全阴性收口（drink-fix2）；窄 scope 完成即退出）**：
+- **四杠杆单变量门全不采纳（CI 下界>0 才采纳；feat 1a8a6c4）**：机制=ExpectimaxConfig 三默认关旋钮
+  （drink_root_only / drink_first / drink_top_k）+ local_bench `--drink-lever`（none 与基线
+  逐位不变已验证；off 逐位不变保持；greedy 阴性对照 Δ=0 结构保持）。SAFE 28 题 ×2 seed
+  配对基线 off + cluster bootstrap 10000：① root_only Δ**−70.2** CI[−236,+46]（喝瓶 51→28，
+  严格更差）；② drink_first Δ+16.4 CI[−179,+209]；③ top2 Δ+64.5 CI[−81,+232]（点估最佳）/
+  top3 Δ+12.6 CI[−184,+202]。**全跨 0**。
+- **收口结论（饮料 sim 线）**：fallback 率四杠杆不变（~30%）→ 稀释根因=卡搜索子树本身
+  （0 费/抽牌链），饮料侧预算重分配治不了；深层饮料规划有价值（root_only 砍了降分）；
+  sim 侧饮料杠杆点估 +43~+65 正但 n=28 不显著 = **当前预算/题规模天花板**。
+  **饮料决策主线走引擎侧**（v3 原生全饮料，gnrpa-spec +1.03M 实锤；sim 离线门欠功效）。
+  复探条件：加 n（全 SAFE 可映射题/更多 seed）或先修卡搜索 fallback（卡侧预算，非饮料 scope）。
+- **测试**：test_drinks_m6.py 67 条（+4 杠杆回归：默认逐位不变 / max_nodes=18 确定性超时
+  分离 drink_first 保留 / root_only 节点 14→7 / top-k 候选）；**全量 1782 passed / 1 skipped /
+  0 failed**（1783 collected，--basetemp=out\_pytest_tmp_drink4，无 flake）。纪律：path-limited add；未碰 lesson.py buff 衰减/fresh
+  （M8 owns）/rng_graph/card_zones/exam_risk（m1-fix3）；free 3.5GB>0.9GB；≤3 局；未起托管。
+  探针 data/_drinks_gate3_* 不提交。
+
 **最近交接记录（2026-11-26 午后，饮料阶段2 sim 侧完成（drink-fix2）；窄 scope 完成即退出）**：
 - **batch2 catalog（feat 5d3b1c8）**：ExamConcentration 强气 1/2 直给（姜汁汽水 ×5 /
   超级苏打 ×12，stance 渠道 + concentration2）；黑醋汁 ×38 Select→hand + cost0（前 2 张正费牌

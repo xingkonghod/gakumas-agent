@@ -490,6 +490,26 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   ③ **r14 饮料特征提取器**（src/gkagent/sim/drink_features.py，33 维定长 catalog 效果向量，
   **只写不激活**——重训分布漂移留 lead 排队；设计 out/_drinks_r14_features_design.md 不提交）。
   tests/test_drinks_m6.py **63 条**；全量 **1778 passed / 1 skipped / 0 failed**（drink3 basetemp）。
+- **饮料阶段3① sim 搜索预算杠杆——四杠杆单变量门全阴性，sim 线收口（drink-fix2）**：
+  机制=ExpectimaxConfig 三默认关旋钮（drink_root_only/drink_first/drink_top_k）+ local_bench
+  `--drink-lever`（none 逐位不变已验证）。SAFE 28 题 ×2 seed=56 局配对基线 off，cluster
+  bootstrap 10000，**CI 下界>0 才采纳**：
+  | 杠杆 | Δ均值 | CI95 | 胜/负/平 | fallback | 喝瓶数 | 判定 |
+  |---|---|---|---|---|---|---|
+  | 基线 none | +43.1 | [−97.6,+209.8] | 19/9/28 | 30.6% | 51 | — |
+  | ① root_only（递归不展开饮料） | **−70.2** | [−236.3,+45.8] | 15/7/34 | 31.6% | 28 | 否（严格更差） |
+  | ② drink_first（根先评饮料 anytime 保留） | +16.4 | [−178.9,+208.8] | 20/9/27 | 30.2% | 51 | 否 |
+  | ③ top2（候选 top-k） | +64.5 | [−80.9,+232.2] | 19/9/28 | 29.9% | 51 | 否（点估最佳但不显著） |
+  | ③ top3 | +12.6 | [−183.6,+201.8] | 19/10/27 | 30.1% | 51 | 否 |
+  **收口结论**：① fallback 率四杠杆不变（~30%）→ 预算稀释根因是**卡搜索子树本身**
+  （0 费/抽牌链爆炸），非饮料展开——饮料侧预算重分配治不了；② root_only 喝瓶数 51→28
+  且均分降 → 深层饮料规划（出牌序列后择机喝）有价值，不能砍；③ 饮料 sim 杠杆点估
+  +43~+65 为正但 n=28 高方差下不显著 = **当前搜索预算/题规模下 sim 侧饮料杠杆天花板**；
+  ④ 引擎侧 GNRPA 饮料杠杆实锤 +1.03M（gnrpa-spec）→ **饮料决策主线走引擎侧（v3 原生全饮料），
+  sim 侧离线门欠功效**（anytime fallback 失真 + n 小）。后续若复探：加 n（全 SAFE 可映射题/
+  更多 seed）或先修卡搜索 fallback（卡侧预算，非饮料 scope）。greedy 阴性对照 Δ=0 结构保持
+  （杠杆只改 ExpectimaxPolicy）；off 逐位不变保持。tests 67 条（+4 杠杆回归）；
+  全量 **1782 passed / 1 skipped / 0 failed**（drink4 basetemp）。
 - **hif 505 题饮料覆盖实测（阶段2 杠杆真值）**：498/505 题带饮料；已实现大头=蛋白粉 extra_plays ×248 /
   苏打 ×235（4 段）/ 00-2-008 ×219（half_cost+score_buff）/ 02-3-010 ×209 / 03-3-011 extra_turn ×100；
   **最高频 pdrink_00-3-005 ×296 = 初星特制青汁**（ExamCardCreateSearch 随机生成，RNG 流未知，
