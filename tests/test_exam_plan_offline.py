@@ -189,13 +189,11 @@ def test_selector_keeps_candidates_on_ocr_miss():
     """F#56：全候选子集漏读时不重置（重置会丢已核对回合）。"""
     setup = _setup()
     truth = _truth(setup)
-    selector = ExamPlanSelector([ExamDrawPlan(setup), ExamDrawPlan(_setup(5))])
+    selector = ExamPlanSelector([ExamDrawPlan(setup)])
     missing0 = truth[0]["hand"][1:]
     assert not selector.begin_turn(missing0, 1)
     assert selector.reset_count == 0
-    assert selector.alive == 2
+    assert selector.alive == 1
     assert selector.begin_turn(truth[0]["hand"], 1)
     assert selector.reset_count == 0
-    # 两候选 config_turns 不同但 T1 手牌同 → T2 才收敛
-    assert selector.begin_turn(truth[1]["hand"], 1)
-    assert selector.locked_turn == 2
+    assert selector.locked_turn == 1

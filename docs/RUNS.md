@@ -385,3 +385,26 @@ T3 生产 selector 路径用 `*_v361.json` 工件 sweep 6/6（期末 12/12）；
 - ep-live-seed9 实为收尾导航（done=true 90 步回主页，未开新局）；新局 ep-live-seed10 从主页起。
 - **目标口径（用户 17:5x 定）：冲最高**——评价最大化、无固定上限；手动 10000+ 仅作参照基线。
   杠杆按边际收益排序，不以"够到某数"剪枝。
+
+## 2026-11-26 produce-pro 培育强化（propose-only）—— traffic 真值校正 + 评价缺口分解
+
+> 子代理 produce-pro 任务（lead 委派）：培育决策强化冲最高，propose-only + sim 门，不 apply/commit 生产。
+> 工件 `data/_produce_pro/`（REPORT.md / proposed/ / sim_gate.py / rating_analysis.py，探针不提交）。
+
+- **traffic 解码核真（只读 `C:\GakumasLocal\...\traffic.jsonl`，4 局公式逐位命中）**：seed8 是 **PRO**
+  （结果概要 `103=16` 周；REGULAR ep-t31=13）。真值三维 **684/503/817=2004**（口述 513 系误读，`201=503`）；
+  期末真实分 **5628**、期中 **763**（读屏 628/605/141 均 OCR 误读），名次均 2。评价公式
+  `floor(2.3×Σmin(cap,三维)) + 名次分(1→1700/2→900/3→500) + 期末分段折算`，PRO cap=1500。
+- **缺口分解（seed8 7103 vs 手动 PRO 11017，+3914）**：三维项 **+2086（53.3%**，三维 2004→2911 +907）/
+  名次 +800（20.4%）/ 期末折算 +1028（26.3%）。考试段缺口（+1828）主因 seed 未锁盲搜（seed10 承接修复）。
+- **考试修复后三维是瓶颈**：若考试到手动水平（rank1+期末14650），seed8 三维 2004 仅 **8931<10000**；
+  冲 10000 需三维和 ≥2469（缺 +465），冲手动 PRO 需 2911（+907）。PRO 上限三维 4500→rating ~14672-15800。
+- **rank1 +30/属性 bonus**：hiro 文档有载，traffic rank1 局未观察到（概要三维或已含）；按 traffic 命中口径计算，真机验收核。
+- **生产弱点定位**：商店「不买直接结束」（produce_ui ~2114，P 点全浪费）/ 饮料 allow_drinks 默认关 /
+  训练 attr_choice=weight 跟随推荐（非审查基准加权）/ 事件 last-row。PlugProduce 已验证规则（+46 params）是移植资产。
+- **sim 门（N=100 配对，HIF 口径，gkmsps_plug harness）**：**商店买卡扩组是压倒性主导杠杆**——
+  cur_shop vs current（现生产镜像「商店不买直接结束」）**params +145.9 CI[+137.7,+154.1]、rating +1247、100/0 全胜**；
+  全量 proposed vs current **rating +432 CI[+380,+484]（92/8）**。审查基准课程在 HIF 呈 params −258（0/100）=
+  **口径伪影**（sel-assume 强制選抜考试同值，中和了审查分布收益；HIF 课程总收益与属性选择近似无关）。
+  harness 是 HIF 非 hajime PRO，「课程得分→参数」主杠杆不在其内 → ≥+300 params 为 hajime 投影（买卡 +146 下界 ×4.11 放大），留真机 A/B。
+- 详见 `data/_produce_pro/REPORT.md`（DoD A 反推表 / DoD B proposed 清单 / DoD C 每杠杆增量曲线 / DoD D 杠杆排序+验收）。
