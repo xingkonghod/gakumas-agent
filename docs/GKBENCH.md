@@ -649,3 +649,12 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   **test_drinks_m6.py（63）foreign 确定式失败**（drink-fix2 在跑域：src/drinks.py+drinks.json+test_drinks_m6.py 均其脏文件；
   stage15 classify select_move_hand vs unknown / catalog 45 vs 40 等，**单跑仍失败=非墙钟 flake**）；
   **--ignore=tests/test_drinks_m6.py 后 1716 全绿 exit 0**（含 m1 predictive）。未改 drinks/rng_graph/exam_risk/expectimax/lesson，foreign 失败不静默归本任务。
+- **lead 裁决（2026-11-26 13:1x）**：① **additive 单调 prior 不放宽门、暂不采纳**——离线 transitions 口径的
+  构造性单调**在托管墙钟预算下不成立**（第 5 路挤占其它路墙钟，或总预算 +25% 非免费）；mean +36k ≈ +1.7%
+  杠杆小于 v3g deck-modify 失锁怪物缺口（WDKWQYW5 单题 7.2M）。若后续推：须**墙钟 overlay 门**
+  （pimc gate2 RTT overlay 先例）+ 更多种子收紧 CI，且只作 opt-in 多起点之一、不进缺省。
+  ② status=2=stab 早停已实锤：未来若用 prior 须 stab=1 + 全局墙钟帽（anytime 先例）。
+  ③ drink-fix2 在跑域 test_drinks_m6 63 确定式败 = 其 batch2 中途 WIP 不一致（catalog 45 vs 40 /
+  select_move_hand 分类），**lead 在其收尾时验收单跑修复**，非 gnrpa 域、不静默。
+  ④ GNRPA 特化专项结论：**引擎原生 GNRPA + prior=0 + 全饮料 = 当前最优配置**；特化杠杆剩余空间在
+  L2 rules timeline（待 M1 deck-modify 结论）与搜索预算调度，不在 prior。
