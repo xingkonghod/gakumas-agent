@@ -280,6 +280,30 @@ def test_drink_keep_allchecked_garbled_need_scrolls() -> None:
     assert result.expect is not None and result.expect.kind == "any"
 
 
+def test_drink_keep_need_zero_ready_clicks_keep() -> None:
+    """F#53：need=0 且保留亮橙 → 直接点保留，不扫描（否则点灰行弹上限 toast 连打止损）。"""
+    cv2 = pytest.importorskip("cv2")
+    path = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "drink_keep_ready_20261126.png"
+    if not path.exists():
+        pytest.skip(f"缺少夹具 {path}")
+    image = cv2.imread(str(path))
+    agent = FakeAgent()
+    lines = [
+        OcrLine("P饮料持有上限", 0.95, (40, 150, 200, 40)),
+        OcrLine("请选择保留的3瓶饮料。", 0.95, (40, 300, 200, 40)),
+        OcrLine("获得的饮料", 0.95, (40, 420, 200, 40)),
+        OcrLine("手持的饮料", 0.95, (40, 770, 200, 40)),
+        OcrLine("集中+3", 0.95, (40, 870, 200, 40)),
+        OcrLine("集中+3", 0.95, (40, 1010, 200, 40)),
+        OcrLine("保留", 0.95, (300, 1160, 200, 40)),
+        OcrLine("还可选择0个", 0.95, (40, 1210, 200, 40)),
+    ]
+    result = _driver().decide(agent, lines, image=image)
+    assert result.screen == "drink-keep"
+    assert result.action == "keep"
+    assert agent.device.clicks[-1] == (400, 1180)
+
+
 def test_drink_keep_hand_allchecked_no_acquired_scrolls() -> None:
     """F#50/F#51：无获得段、手持全勾且 need>0 → 滚动找屏下未勾行。"""
     cv2 = pytest.importorskip("cv2")

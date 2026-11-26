@@ -1530,6 +1530,20 @@ class ProduceDriver:
         return [(band[0], band[-1]) for band in bands]
 
     @staticmethod
+    def _keep_enabled(image) -> bool:
+        """F#53：「保留」按钮亮橙=可点（实测 enabled bright=0.84 / disabled muted=0.86）。"""
+        if image is None:
+            return False
+        patch = image[1140:1185, 300:420]
+        if patch.size == 0:
+            return False
+        blue = patch[:, :, 0].astype(int)
+        green = patch[:, :, 1].astype(int)
+        red = patch[:, :, 2].astype(int)
+        bright = ((red > 230) & (green > 100) & (green < 190) & (blue < 100)).mean()
+        return bool(bright > 0.3)
+
+    @staticmethod
     def _checkbox_checked(image, y: int) -> bool:
         """看右侧勾选框是否已选中（橙色勾）。拿不到图像就当作已选，避免乱点。"""
         if image is None:
@@ -2060,7 +2074,9 @@ class ProduceDriver:
             # F#48（真机 ep-t31-i）：OCR 漏读「还可选择N」→ need 误判 0 → 跳过补勾直接点
             # 禁用态「保留」(360,1166) 空转 tap-lost。只要有图且（OCR 说还要选 OR 读到了
             # 手持段标题），就按勾选框列扫描补勾，不单纯信 OCR 的 need。
-            if image is not None and (need > 0 or hand_header is not None):
+            # F#53：need=0 且「保留」已亮（亮橙）→ 直接点保留，不再扫描（否则点灰行弹
+            # "持有上限"toast → 同动作连打止损）。need=0 但按钮灰（OCR 漏 need，F#48）才扫描。
+            if image is not None and (need > 0 or not self._keep_enabled(image)):
                 # 「获得的饮料」段勾选是灰的（不可选)；按勾选框列扫描出行位置，
                 # 只补勾「手持的饮料」下面未勾选的行（行位置和文字行 y 有 20-50px 偏差，不能直接用文字行）
                 # F#51（真机 ep-live-seed3/4/5 探针实证）：「获得的饮料」灰勾行**可点且计入
