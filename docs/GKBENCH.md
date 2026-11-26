@@ -396,6 +396,49 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   **M1 RNG 图 clean-room 化恢复 255 题全知（seed 王牌主缺口，3–5d）→ v3 多起点压怪物方差冲 1.3M+**；public-safe 用官方尺度训练/GNRPA 蒸馏跟进；
   sim 保真服务训练分布对齐而非直接上榜。clean-room=BSD-3 参考+引擎当 oracle 自写（**不拷 AGPL 源码进 src**），算法（GNRPA Cazenave 2024）可自写。
 
+### 12.1 2026-11-26 hajime 修复（f2-hajime-tune）：v2h 离线门 vs seedlock 过 / vs v2 均分门负结果，托管 A/B 留下会话
+
+- **根因实证（探针 data/_hajime_diag.py，48 题结构 + 样题扫描/整局）**：
+  ① 初集 33/48 课程局（round=lesson，produce-001/006）**无属性池是引擎事实**（values=None / types=[] / k=0），
+  非 v2 实现缺失——v2 opening.turn_pool 与 seedlock _turn_pool 同式，audition 15 题两者都有池过滤、v2 锁定正常。
+  回退集中在课程局重牌小 deck 候选爆炸：GZP54V4T（10 卡 7 distinct，cap50）seen2→65.6M / seen8→94,660；
+  WNAX63AN（28 卡 27 distinct）seen3→130,712 / seen6→30 / seen9→1（候选随抽牌指数塌缩）。
+  v2 单扫 6 张起 + 只 FastCut（0.4ms×94k≈38s≫步预算）+ 短局打完未筛完 → 整局 worlds fp0 兜底（min 14）。
+  ② **新发现：worlds 投票早期出牌触发 deck-modify 使抽牌模型丢真种子**（audition 也中招）：
+  X8NXKZXW v2 scan 2 候选均 hand[0] 不符 → failed / s1 锁错种子 lost；DDCRRSTM scan 0 → failed 5,870
+  vs seedlock 贪心早锁 21,734。**seedlock 不失锁真机制 = 课程局 3 张早扫 + 0.85 多等 + 抽牌 +3 重扫 +
+  少量候选核对锁定 + 锁定前贪心 fp1**（clean-room 同语义自写）。
+- **v2h（copy v2 后改，原版零改动；bench_repo feat 0fde532，sets=["hajime"]，sees_seed=False/needs_gkms=True/about.sees="seed"/prior=0 承 v2）**：
+  short_greedy=1 锁定前贪心（保模型早锁）+ short_forced_play=1 锁定前有牌必出 + 课程局早扫 3 张/多等 0.85/
+  重扫 rescan_above=8000（按 v2 FastCut 0.4ms 自调，seedlock 3ms 用 256）+ **锁定后承 v2 fp0**。
+  short_exam 按 produce∈{001,002,003,006} 或无池判定（hif 也有 9–10 回合短局，不能按 turns 判）→ hif/nia 杠杆全关。
+  **两个负结果回退**：fp1 锁定后反效（2AYFMJMR 250→135 / 35BS9YF4 166→114，强搜索路线 end 是最优蓄力，
+  短考试 fp1 收益在锁定前不在锁定后）→ short_fp_locked=0；等价早锁 ≤8 锁错种子（2AYFMJMR turn3 锁错 → turn4 lost 160 vs 250，
+  重牌 deck 等价种子未来分叉）→ lock_equiv_max=1 承 v2「恰剩 1 才锁」自然消歧。
+- **离线门（data/_hajime_pair.py，48 题 ×2 生成种子 × 真裁判 rules69，同 seed 配对 + bootstrap 10000 CI，n=96）**：
+  v2 145,652 / **v2h 147,095** / seedlock 103,716（budget 5 其缺省）。
+  **v2h vs seedlock：Δ+43,379 CI[+6,490,+95,057]，53 胜 2 负 41 平，崩局 0 vs 13，lesson 层零负例（29 胜 0 负）→ 过**。
+  **v2h vs v2 均分门：Δ+1,443（+1.0%）CI[−2,379,+5,661] 跨 0，17 胜 18 负 61 平 → 未过（负结果如实）**。
+  根因：audition turn-1 出牌选择高分差硬币翻转（RBR82XW7 −116k / 5CRWDT5C −20k vs EEMMKQ5W +106k / HSAEP7SF +107k），
+  n=96 欠功效；课程局贪心蓄力代价（B8CP3AG6 −213/−167 等）与小 cap 修复（NJS4FSVV min-14→50 等）相抵。
+  **失锁率下降达成**：failed 4→0 / lost 1→0 / 锁定率 0.896→0.917 / min 10→18 / 墙钟 35.3→29.7s（−16%）；
+  over_steps=0 / bad_routes=0 / errors=0。机制修复实证：X8NXKZXW failed/锁错→锁真种子、DDCRRSTM scan0→turn3 锁 +13,199、
+  6S48T4EC scan0→锁、NJS4FSVV 14→50——正对托管 v2 回退机制（85/96 97,219 / min 14）。
+- **hif core8 抽查（防误投）**：6/8 精确同分同路线，2/8 墙钟方差非负（Δ+397,494 CI[0,+1.17M]，2 胜 0 负 6 平），
+  全 8 题 short_exam/fp_eff=false → **误投 hif 不回归**。
+- **pytest**：全量 1705 passed exit 0（--basetemp=out/_pytest_tmp_hajime 绕 Temp ACL；排队友未提交 WIP
+  tests/test_drinks_m6.py 6 败——M6 drinks 进行中工作，非本任务；src/gkagent 零改动；1681→1705 漂移来自队友近期提交）。
+- **局限**：离线生成种子 ≠ 托管保密种子（离线 v2 145.7k vs 托管 97.2k，保密种子对 v2 失败更多；seedlock 离线 103.7k≈托管 110.6k）；
+  deck-modify 真失锁未修（v3 杠杆④同局限，贪心只降触发概率）；课程局贪心中等局蓄力代价（崩局 v2h 4 vs v2 2，对 seedlock 0 vs 13）。
+- **托管建议（留下会话，lead 统一调度）**：**值得投 hajime A/B**——v2h 离线严格优于 seedlock（CI>0/lesson 零负例/崩局 0），
+  失败模式修复正对 v2 托管回退，墙钟 −16%（96 局 parallel 3 估 30–40min）；均分 vs v2 离线中性 → 托管保密种子才是判据。
+  `cd data\bench_repo; ..\..\.venv\Scripts\python.exe -m gkbench eval --set hajime --algo \Games\gakumas-agent\data\bench_repo\submissions\gkagent-ex-seed-v2h\algo.py:ExSeedV2hAlgo --seeds 2 --parallel 3 --budget 10`
+  （对照 v2 e5e96836f66e 97,219 / seedlock 110,613 / ex-seed 106,418）。
+- **复现**：`data\_hajime_diag.py scan|game`、`data\_hajime_pair.py hajime v2,v2h,seedlock <shard> 2 1` / `hif v2,v2h` / `summary`
+  （探针不提交；门数据 data/_hajime_pair_gate_s1.json / _hajime_pair_hif.json）。
+  硬约束：DLL 不重编（MD5 与 v2/seedlock 一致）；原版零改动；AGPL 不拷 src；未碰 D:\Games\Gakumas；C:\GakumasLocal 只读；
+  托管 40312fcb77a0 在跑期间离线 ≤2 局并行、free<0.6GB 暂停 90s 让托管（mem-guard 日志在探针输出）。
+
 ## 13. 2026-11-26 pilot r14 重启训练 + 离线门（ratio 2.33× PASS / z 尾部 FAIL）+ 饮料专项立项
 
 - **pilot r14 训练重启成功**（昨晚卡住疑 OOM）：90,144 行 GKMS 尺度自对弈（教师均分 349,563），
