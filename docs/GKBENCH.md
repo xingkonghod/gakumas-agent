@@ -956,9 +956,21 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   - 固定 i16/s5：同状态 +10–25%，整局中性 → 只进组合臂。
   - 填满预算 `waves=0`：墙钟 ×2.6–3、离线中性 → 改上限 2 波。
   - transitions 500k→2M：与 v4 b1 同结论（同分，2.09–2.41s/搜索）→ 不加。
-- **托管 240 槽**：`gkagent-ex-seed-v5`，缺省参数（waves=2 / threads=4 / portfolio 如上 / starts4+starts_hi6 /
-  lock2M / step500k / vote0.8 / rescan1 / tail2 / fp0 / prior0），`--seeds 2 --parallel 3 --budget 10`，分块驱动只补缺题。
-  **成绩（跑完回填）：_待填_**。
+- **托管 240 槽（结果）**：`gkagent-ex-seed-v5` 缺省参数（waves=2 / threads=4 / portfolio 如上 / starts4+starts_hi6 /
+  lock2M / step500k / vote0.8 / rescan1 / tail2 / fp0 / prior0），`--seeds 2 --parallel 5 --budget 10`，分块 6 题驱动：
+  **240/240 = 1,447,036（v4 1,372,156 → +74,881 / +5.46%；best-known 1,452,088 的 99.65%、榜顶 1,486,205 的 97.4%）**，
+  errors 0 / over 8 / 总墙钟 4,138s（69min）。逐槽 **130 胜 / 88 负 / 22 平**，相对 best-known farm 逐槽 oracle 的比例
+  **0.9227 → 0.9535**（= 天花板 1,499,295 的 96.5%）。**分层：AUDITION_MID1 +12,162,517（108 槽，+112,616/槽，63胜33负）**
+  —— v4 中期只有 starts=4、v5 给了同样的波次所以吃到最大增益；**AUDITION_FINAL +5,808,820（132 槽，+44,006/槽，67胜55负）**。
+  最大单槽增益 AS-YGF972ZK/1 +3.80M / AS-BZXB28YJ/0 +3.60M / AS-5KZSXANK/0 +2.96M / AS-AXME8QK2/1 +2.62M；
+  最大负例 AS-3EW6E6HV/1 −2.81M（其 v4 分 14.18M 高于 farm oracle 13.95M = 幸运抽样）/ AS-F4FPT86S/0 −1.70M /
+  AS-WNK6ARRZ 两槽 −2.86M。**方差**：逐槽 Δ 的 sd = 585,504 → meanΔ 的 95%CI ≈ [−708, +150,469]，
+  5.46% 点估计方向由 130:88 胜率 + oracle 比例 +3.1pt 支撑（240 槽仍不足以让 5.46% 统计显著）。
+- **官方合并行**：同参数组 n=230 均分 **1,458,384**（> best-known 1,452,088）/ over 8 / p95 5.96s / p50 1.96s /
+  ep_think 70.4s；另 11 个槽来自两个早期 v5 候选配置（`d943f444dfb0` 5 槽 portfolio+mirror/waves=1、
+  `d617abc6ed04` 6 槽填满预算版），按纪律**不重跑已结算槽** → 官方出 3 行同 label；
+  **我们自己的口径（每槽最新）= 1,447,036**。**v5b（waves=3，统一配置全量重跑）单独成行**，见
+  `submissions/gkagent-ex-seed-v5b/`。
 - **工程坑（本轮新增）**：
   - 服务器间歇 SYN 丢包（`WinError 10060` / "Server disconnected"）：eval 连续 10 局错就自动停 → 分块驱动按
     `/api/runs` 已完成槽位续跑；**评测注册表在服务器内存，重启即清**（`/api/evals/<id>` 404）。

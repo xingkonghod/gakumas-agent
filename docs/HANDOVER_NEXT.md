@@ -1589,10 +1589,17 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
 - **负结果（都做了门、默认关，别重做）**：`root_scan` 根动作枚举（离线 −9%/−1%、托管 5 槽中性）、
   `mirror_vote` 候选镜像后验投票（几乎不触发；托管 2胜3负 CI 跨 0）、固定 i16/s5（同状态 +10–25% 但整局中性）、
   填满预算 `waves=0`（墙钟 ×2.6–3、离线中性）、transitions 500k→2M（同 v4 b1 结论：同分）。
-- **托管**：`submissions/gkagent-ex-seed-v5/`（bench_repo **3ef3f83** feat：algo+README+NOTICE+submission，vendor MD5 与 v4
-  全一致不重编）；驱动 `data/_v4_hosted.py gkagent-ex-seed-v5 4`（只补缺题，done_slots 走 `/api/runs`；同题同种子最新会覆盖）。
-  **成绩与逐槽对比见 `submissions/gkagent-ex-seed-v5/RESULTS.md`（跑完回填）**。早期 15 槽读数：10 胜 4 负 1 平、
-  meanΔ +58k（CI 跨 0，仍不足以下结论）。
+- **托管结果（240/240）**：\gkagent-ex-seed-v5\ = **1,447,036**（v4 1,372,156 → **+74,881 / +5.46%**；best-known 1,452,088 的
+  **99.65%**、榜顶 1,486,205 的 97.4%）；errors 0 / over 8 / 墙钟 4,138s（69min，\--parallel 5\ 每块 6 题）。逐槽 **130 胜 /
+  88 负 / 22 平**，oracle 比例 **0.9227 → 0.9535**（天花板 1,499,295 的 96.5%）。**分层：MID1 +12,162,517（108 槽
+  +112,616/槽，63胜33负，v4 中期只有 starts=4 所以增益最大）/ FINAL +5,808,820（132 槽 +44,006/槽，67胜55负）**。
+  最大增益 AS-YGF972ZK/1 +3.80M、AS-BZXB28YJ/0 +3.60M、AS-5KZSXANK/0 +2.96M、AS-AXME8QK2/1 +2.62M；最大负例
+  AS-3EW6E6HV/1 −2.81M（v4 的 14.18M 本身高于 farm oracle 13.95M = 幸运抽样）/ F4FPT86S/0 −1.70M / WNK6ARRZ 两槽 −2.86M。
+  **方差**：逐槽 Δ sd=585,504 → meanΔ CI ≈[−708,+150,469]（5.46% 是点估计，方向由胜率+oracle 比例支撑，240 槽仍不显著）。
+  **官方同参数行 n=230 = 1,458,384（> 1,452,088）**；另 11 槽来自两个早期候选配置（按纪律不重跑已结算槽）→ 官方 3 行同 label，
+  我们自算 240 槽口径 = 1,447,036。**v5b（waves=3，统一配置全量重跑）已起跑，单独成行**。
+  bench_repo **3ef3f83** feat（algo+README+NOTICE+submission，vendor MD5 与 v4 全一致不重编）+ RESULTS.md 回填；
+  驱动 \data/_v4_hosted.py gkagent-ex-seed-v5 6 60 5\（只补缺题，done_slots 走 \/api/runs\；同题同种子最新会覆盖）。
 - **服务器教训（本轮实撞）**：① 间歇 SYN 丢包 `WinError 10060` / "Server disconnected"，评测连续 10 局错会自动停
   （`--resume <eval>` 续）；② **评测注册表在服务器内存，重启即清**（`/api/evals/<id>` 404）；③ 服务器慢时 RTT 0.8–2s
   会把整局墙钟放大（≈每局 +40–80s）→ 长跑前先用 `/api/sets` 测延迟；④ 已上传的 episode 落盘不丢，分块驱动按
