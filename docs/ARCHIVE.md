@@ -1,7 +1,8 @@
-# 私有存档 / 私有仓库（2026-11-22）
+# 存档 / 仓库（2026-11-22 建，2026-11-28 改为「代码公开 + 存档私有」双轨）
 
-> 目的：**完整 git 历史 + 采集原始数据 + 关键产物**的私有备份。官方一旦封堵，这些数据无法再采；
-> 本仓库/本项目及全部存档**只能私有**，不公开、不 fork 到公开仓库、不在群里贴链接/截图。
+> **代码仓**：GitHub **公开**（对外/群分享），AGPL-3.0-or-later，见 [../LICENSE](../LICENSE)。
+> **存档仓**：Gitee **私有**（完整历史 + tag 快照）＋ 本地裸仓库/bundle/artifacts（采集原始数据、令牌、牌序真值等
+> 只在存档侧，**永不进公开仓**）。官方一旦封堵，采集数据无法再采 → 存档侧必须继续私有。
 
 ## 1. 在哪
 
@@ -12,16 +13,16 @@
 | `D:\GakumasAgentArchive\artifacts\` | 不入 git 的关键产物：`out/exam_setup.json`、`sim_engine_ab*.json`、`data/runs/*`、`data/bench_local/*`、`capture/traffic.jsonl` + `deck_snapshots.json` + `exam_truth.json` |
 | `D:\GakumasAgentArchive\SHA256SUMS.txt` | bundle + artifacts 的 SHA-256 清单 |
 | `%USERPROFILE%\Documents\gakumas-archive\` | **冗余副本**（防 D 盘挂掉：bundle + 清单 + README）|
-| Gitee 私有仓库 | 已建（private=true），`master` + tags 已推；工作仓 remote 名 `gitee` |
-| **GitHub 私有仓库（2026-11-28 新增）** | **已建（private=true）：`xingkonghod/gakumas-agent`**；工作仓 remote 名 `origin`（默认推送目标）；gh CLI 已登录（keyring），操作见 §4 |
+| Gitee 私有仓库（存档） | 已建（private=true），`master` + tags；工作仓 remote 名 `gitee`（**URL 不写进公开文档**，见本地存档 README.txt） |
+| **GitHub 公有仓库（2026-11-28）** | **公开：`xingkonghod/gakumas-agent`**（对外/群分享，AGPL-3.0-or-later）；工作仓 remote 名 `origin`（默认推送目标）；gh CLI 已登录（keyring），操作见 §4 |
 
 ## 2. 更新存档（可重跑，幂等）
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\archive_private.ps1
-# 加 -Push 同时推到私有远端（裸仓库 origin 已指向 Gitee 私有仓库）：
+# 加 -Push 同时推到私有远端（裸仓库 origin 已指向 Gitee 私有存档）：
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\archive_private.ps1 -Push
-# GitHub 私有仓（工作仓 origin）单独推：
+# GitHub 公开仓（工作仓 origin）单独推：
 git push origin master --tags
 ```
 
@@ -47,16 +48,16 @@ python -m venv .venv; .venv\Scripts\pip install -e .
 恢复后按 [HANDOVER_NEXT §2](HANDOVER_NEXT.md) 跑四条基线；`out/exam_setup.json` 可从
 `artifacts/` 拷回，或跑 `scripts\build_exam_setup.py` 重建（依赖 `C:\GakumasLocal` 的采集文件）。
 
-## 4. 推私有仓库（首次 / 换平台）
+## 4. 推仓库（公开 GitHub / 私有 Gitee）
 
-当前工作仓（`D:\Games\gakumas-agent`）已有两个私有远端：
+当前工作仓（`D:\Games\gakumas-agent`）两个远端：
 
 ```powershell
 git remote -v
-# origin  https://github.com/xingkonghod/gakumas-agent.git   (GitHub private, 默认)
-# gitee   https://gitee.com/starry-sky-haven/gakumas-agent.git (Gitee private)
-git push origin master --tags     # GitHub 私有
-git push gitee  master --tags     # Gitee 私有
+# origin  https://github.com/xingkonghod/gakumas-agent.git   (GitHub，公开，默认)
+# gitee   <Gitee 私有存档 URL，不写进公开文档>                (Gitee，private 存档)
+git push origin master --tags     # GitHub 公开（对外/群）
+git push gitee  master --tags     # Gitee 私有存档
 ```
 
 GitHub 首次/换机登录（**凭据走 gh keyring / Windows 凭据管理器，脚本不碰 token**）：
@@ -64,18 +65,18 @@ GitHub 首次/换机登录（**凭据走 gh keyring / Windows 凭据管理器，
 ```powershell
 winget install --id GitHub.cli -e
 gh auth login --hostname github.com --git-protocol https --web --scopes repo
-gh repo create gakumas-agent --private --source=. --remote=origin --push
+gh repo create gakumas-agent --source=. --remote=origin --push      # 公开
 ```
 
 存档脚本的 `-Push` 只推**裸仓库的 origin（当前=Gitee）**；GitHub 直接在工作仓 `git push origin`。
 
-**安全红线**
-- 仓库只能 **Private**；本文件/README 不含 token，也不要把 token 写进任何文档/命令历史；
-- `data/hiro/`（AGPL 参考代码）、`data/master/`、`.venv`、`data/video/`、`data/GKMSUINet/` 大文件不入库（见 `.gitignore`）；
-- 采集原始流量、牌堆快照只放本地 `artifacts/capture/`（不进 git/远端），必要时手动拷到加密盘；
-- 不要在公开仓/群/issue 里贴：仓库链接、牌序数据、seed、截图、账号名。
+**红线（公开仓）**
+- 公开仓**只能**放：自写代码/文档/投稿快照 + 已脱敏的公开数据；**不放** token、gkbench 保密种子、采集原始流量、
+  游戏客户端/引擎源码、账号信息（`.gitignore` + `submissions/README.md` 说明已覆盖）；
+- 私有存档（Gitee/本地 artifacts）保持 private：采集数据、牌序真值、bundle、密钥；
+- 群/issue 里可以贴公开仓链接，**不要贴** token、seed/保密牌序、账号名以外的私有存档链接。
 
 ## 5. 频率
 
-- 重要节点（大功能提交、采集到新局、跑完整局）：`-Push` 一次；
-- 平时每天一次不带 `-Push` 的本地存档即可（bundle 会覆盖当日文件）。
+- 公开仓：每个阶段（大功能/成绩更新）推一次 `origin`；
+- 私有存档：重要节点 `-Push` 一次；平时每天一次不带 `-Push` 的本地存档（bundle 会覆盖当日文件）。
