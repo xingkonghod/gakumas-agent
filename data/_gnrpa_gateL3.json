@@ -1,0 +1,2046 @@
+{
+ "trans": 2000000,
+ "sd": [
+  182,
+  8101,
+  16020,
+  23939
+ ],
+ "pids": [
+  "AS-3G6FFZZT",
+  "AS-3ZT8ZKB6",
+  "AS-5KZSXANK",
+  "AS-5XB2AEHN",
+  "AS-AXME8QK2",
+  "AS-B38CARVV",
+  "AS-BD5EAA22",
+  "AS-DE36RWPS",
+  "AS-DEBX8BX7",
+  "AS-HTNFZWKG",
+  "AS-P8ZJTXNA",
+  "AS-QV6QCSN9",
+  "AS-VH8WYE6J",
+  "AS-VWAF2GDN",
+  "AS-WDKWQYW5",
+  "AS-WNK6ARRZ"
+ ],
+ "pid_seeds": {
+  "AS-3G6FFZZT": [
+   1665611653,
+   1975039316
+  ],
+  "AS-3ZT8ZKB6": [
+   816113156,
+   614877719
+  ],
+  "AS-5KZSXANK": [
+   448199597,
+   661272730
+  ],
+  "AS-5XB2AEHN": [
+   2095762233,
+   1751756257
+  ],
+  "AS-AXME8QK2": [
+   1409380188,
+   2065972513
+  ],
+  "AS-B38CARVV": [
+   1712522393,
+   912951460
+  ],
+  "AS-BD5EAA22": [
+   1917428872,
+   1712489876
+  ],
+  "AS-DE36RWPS": [
+   1431297520,
+   1188901547
+  ],
+  "AS-DEBX8BX7": [
+   1468983097,
+   1250279951
+  ],
+  "AS-HTNFZWKG": [
+   1966520935,
+   41444314
+  ],
+  "AS-P8ZJTXNA": [
+   1124647124,
+   1967825308
+  ],
+  "AS-QV6QCSN9": [
+   991324286,
+   541488974
+  ],
+  "AS-VH8WYE6J": [
+   102578817,
+   1035726864
+  ],
+  "AS-VWAF2GDN": [
+   1333413270,
+   29542526
+  ],
+  "AS-WDKWQYW5": [
+   988313260,
+   3601220
+  ],
+  "AS-WNK6ARRZ": [
+   1063386126,
+   1905441148
+  ]
+ },
+ "rows": [
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 874153,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 781256,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 728201,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 1113775,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 894193,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 1011442,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 1018411,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 1183743,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 1084576,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 1209983,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 1060779,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 1171725,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 7710863,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 6281412,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 6826430,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 6274391,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 6274391,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 6979852,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 7416573,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 8316887,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 7260674,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 8834295,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 8834295,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 4804429,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 8241776,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 4762135,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 8743837,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 7381051,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 7381051,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 6125231,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 4487469,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 5335606,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 5365001,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 4630062,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 4630062,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 6361018,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 13124,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 13124,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 9185,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 10024,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 9451,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 7961,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 8616,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 8616,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 8614,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 8616,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 8709,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 10224,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 7070349,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 5639278,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 8002875,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 8521449,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 2230170,
+   "status": 2,
+   "expansions": 5231
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 7569026,
+   "status": 2,
+   "expansions": 975379
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 4510645,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 6995751,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 6295180,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 5814448,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 5814448,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 4194188,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 451675,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 489514,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 460215,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 491436,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 434911,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 430666,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 606848,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 559358,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 477371,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 609479,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 417267,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 581661,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 852025,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 714197,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 824776,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 852025,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 852025,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 671439,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 522061,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 428371,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 805517,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 410307,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 410307,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 517605,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 322180,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 357704,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 352952,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 317543,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 473017,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 515620,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 419144,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 432990,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 735246,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 452605,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 432273,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 348175,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 26398,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 29282,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 27700,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 26398,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 15889,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 26398,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 26776,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 24226,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 21555,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 11108,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 11177,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 11177,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 517658,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 449365,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 603080,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 619012,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 577457,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 527848,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 463589,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 424548,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 385774,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 350119,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 414377,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 348297,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 1185605,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 1175989,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 1015309,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 1076694,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 1348397,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 1185605,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 891799,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 707371,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 835854,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 695539,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 835854,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 663610,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 565486,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 484889,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 384173,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 354605,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 372053,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 460200,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 809508,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 738634,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 1178129,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 719417,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 569118,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 903003,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 431289,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 570137,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 476263,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 473850,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 473850,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 444038,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 224374,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 474969,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 478043,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 284151,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 284151,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 282337,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 898993,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 1037465,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 988363,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 852110,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 886432,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 959880,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 694467,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 631805,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 557757,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 839736,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 818111,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 560583,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 5468310,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 6188501,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 4130585,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 5141079,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 5141079,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 4458593,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 7962334,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 4284571,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 5724379,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 4710236,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 4710236,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 5404504,
+   "status": 2,
+   "expansions": 282115
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 2106462,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 3058931,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 3726760,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 2006416,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 3170011,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 2945837,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "p0_0",
+   "sd": 182,
+   "best": 2230534,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "p0_1",
+   "sd": 8101,
+   "best": 2239741,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "p0_2",
+   "sd": 16020,
+   "best": 2125357,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "p0_3",
+   "sd": 23939,
+   "best": 2776691,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "mech_3",
+   "sd": 23939,
+   "best": 1620422,
+   "status": 0,
+   "expansions": 2000000
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "distill_3",
+   "sd": 23939,
+   "best": 1663985,
+   "status": 0,
+   "expansions": 2000000
+  }
+ ],
+ "summary": {
+  "baseline": {
+   "mean_best": 2528357.7
+  },
+  "multi_mech": {
+   "mean_best": 2495068.4
+  },
+  "multi_distill": {
+   "mean_best": 2506116.5
+  }
+ },
+ "ab": {
+  "multi_mech": {
+   "overall": {
+    "n": 32,
+    "mean_delta": -33289.3,
+    "ci95": [
+     -87471.8125,
+     8455.1875
+    ],
+    "pos": 3,
+    "neg": 8,
+    "zero": 21,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -219582,
+     "AS-3G6FFZZT/1975039316": -26240,
+     "AS-3ZT8ZKB6/816113156": 0,
+     "AS-3ZT8ZKB6/614877719": 0,
+     "AS-5KZSXANK/448199597": 0,
+     "AS-5KZSXANK/661272730": 0,
+     "AS-5XB2AEHN/2095762233": 0,
+     "AS-5XB2AEHN/1751756257": 93,
+     "AS-AXME8QK2/1409380188": -518574,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-B38CARVV/1712522393": -1922,
+     "AS-B38CARVV/912951460": -2631,
+     "AS-BD5EAA22/1917428872": 0,
+     "AS-BD5EAA22/1712489876": 0,
+     "AS-DE36RWPS/1431297520": 115313,
+     "AS-DE36RWPS/1188901547": 0,
+     "AS-DEBX8BX7/1468983097": 0,
+     "AS-DEBX8BX7/1250279951": 0,
+     "AS-HTNFZWKG/1966520935": -15932,
+     "AS-HTNFZWKG/41444314": 0,
+     "AS-P8ZJTXNA/1124647124": 162792,
+     "AS-P8ZJTXNA/1967825308": 0,
+     "AS-QV6QCSN9/991324286": 0,
+     "AS-QV6QCSN9/541488974": 0,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": 0,
+     "AS-VWAF2GDN/29542526": -21625,
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": 0,
+     "AS-WNK6ARRZ/1063386126": 0,
+     "AS-WNK6ARRZ/1905441148": -536950
+    }
+   },
+   "low": {
+    "n": 22,
+    "mean_delta": -442.5,
+    "ci95": [
+     -27297.863636363636,
+     25203.363636363636
+    ],
+    "pos": 3,
+    "neg": 6,
+    "zero": 13,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -219582,
+     "AS-3G6FFZZT/1975039316": -26240,
+     "AS-5XB2AEHN/2095762233": 0,
+     "AS-5XB2AEHN/1751756257": 93,
+     "AS-B38CARVV/1712522393": -1922,
+     "AS-B38CARVV/912951460": -2631,
+     "AS-BD5EAA22/1917428872": 0,
+     "AS-BD5EAA22/1712489876": 0,
+     "AS-DE36RWPS/1431297520": 115313,
+     "AS-DE36RWPS/1188901547": 0,
+     "AS-DEBX8BX7/1468983097": 0,
+     "AS-DEBX8BX7/1250279951": 0,
+     "AS-HTNFZWKG/1966520935": -15932,
+     "AS-HTNFZWKG/41444314": 0,
+     "AS-P8ZJTXNA/1124647124": 162792,
+     "AS-P8ZJTXNA/1967825308": 0,
+     "AS-QV6QCSN9/991324286": 0,
+     "AS-QV6QCSN9/541488974": 0,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": 0,
+     "AS-VWAF2GDN/29542526": -21625
+    }
+   },
+   "monster": {
+    "n": 10,
+    "mean_delta": -105552.4,
+    "ci95": [
+     -262962.2,
+     0.0
+    ],
+    "pos": 0,
+    "neg": 2,
+    "zero": 8,
+    "per_pair": {
+     "AS-3ZT8ZKB6/816113156": 0,
+     "AS-3ZT8ZKB6/614877719": 0,
+     "AS-5KZSXANK/448199597": 0,
+     "AS-5KZSXANK/661272730": 0,
+     "AS-AXME8QK2/1409380188": -518574,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": 0,
+     "AS-WNK6ARRZ/1063386126": 0,
+     "AS-WNK6ARRZ/1905441148": -536950
+    }
+   }
+  },
+  "multi_distill": {
+   "overall": {
+    "n": 32,
+    "mean_delta": -22241.2,
+    "ci95": [
+     -100385.9375,
+     65476.0625
+    ],
+    "pos": 3,
+    "neg": 9,
+    "zero": 20,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -102333,
+     "AS-3G6FFZZT/1975039316": -26240,
+     "AS-3ZT8ZKB6/816113156": 0,
+     "AS-3ZT8ZKB6/614877719": -517408,
+     "AS-5KZSXANK/448199597": 0,
+     "AS-5KZSXANK/661272730": 996017,
+     "AS-5XB2AEHN/2095762233": 0,
+     "AS-5XB2AEHN/1751756257": 1608,
+     "AS-AXME8QK2/1409380188": -518574,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-B38CARVV/1712522393": -1922,
+     "AS-B38CARVV/912951460": -2631,
+     "AS-BD5EAA22/1917428872": 0,
+     "AS-BD5EAA22/1712489876": 0,
+     "AS-DE36RWPS/1431297520": 157916,
+     "AS-DE36RWPS/1188901547": 0,
+     "AS-DEBX8BX7/1468983097": 0,
+     "AS-DEBX8BX7/1250279951": 0,
+     "AS-HTNFZWKG/1966520935": -15932,
+     "AS-HTNFZWKG/41444314": 0,
+     "AS-P8ZJTXNA/1124647124": 0,
+     "AS-P8ZJTXNA/1967825308": 0,
+     "AS-QV6QCSN9/991324286": 0,
+     "AS-QV6QCSN9/541488974": 0,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": 0,
+     "AS-VWAF2GDN/29542526": -145269,
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": 0,
+     "AS-WNK6ARRZ/1063386126": 0,
+     "AS-WNK6ARRZ/1905441148": -536950
+    }
+   },
+   "low": {
+    "n": 22,
+    "mean_delta": -6127.4,
+    "ci95": [
+     -27063.636363636364,
+     15062.772727272728
+    ],
+    "pos": 2,
+    "neg": 6,
+    "zero": 14,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -102333,
+     "AS-3G6FFZZT/1975039316": -26240,
+     "AS-5XB2AEHN/2095762233": 0,
+     "AS-5XB2AEHN/1751756257": 1608,
+     "AS-B38CARVV/1712522393": -1922,
+     "AS-B38CARVV/912951460": -2631,
+     "AS-BD5EAA22/1917428872": 0,
+     "AS-BD5EAA22/1712489876": 0,
+     "AS-DE36RWPS/1431297520": 157916,
+     "AS-DE36RWPS/1188901547": 0,
+     "AS-DEBX8BX7/1468983097": 0,
+     "AS-DEBX8BX7/1250279951": 0,
+     "AS-HTNFZWKG/1966520935": -15932,
+     "AS-HTNFZWKG/41444314": 0,
+     "AS-P8ZJTXNA/1124647124": 0,
+     "AS-P8ZJTXNA/1967825308": 0,
+     "AS-QV6QCSN9/991324286": 0,
+     "AS-QV6QCSN9/541488974": 0,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": 0,
+     "AS-VWAF2GDN/29542526": -145269
+    }
+   },
+   "monster": {
+    "n": 10,
+    "mean_delta": -57691.5,
+    "ci95": [
+     -312632.2,
+     199203.4
+    ],
+    "pos": 1,
+    "neg": 3,
+    "zero": 6,
+    "per_pair": {
+     "AS-3ZT8ZKB6/816113156": 0,
+     "AS-3ZT8ZKB6/614877719": -517408,
+     "AS-5KZSXANK/448199597": 0,
+     "AS-5KZSXANK/661272730": 996017,
+     "AS-AXME8QK2/1409380188": -518574,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": 0,
+     "AS-WNK6ARRZ/1063386126": 0,
+     "AS-WNK6ARRZ/1905441148": -536950
+    }
+   }
+  }
+ }
+}

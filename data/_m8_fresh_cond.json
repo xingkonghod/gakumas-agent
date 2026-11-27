@@ -1,0 +1,132 @@
+[
+ {
+  "kind": "open",
+  "turn": 1,
+  "cond": 0,
+  "until": null,
+  "pass": false,
+  "score": 0
+ },
+ {
+  "kind": "step",
+  "i": 0,
+  "action": [
+   "play",
+   0
+  ],
+  "played": "p_card-01-act-2_030",
+  "turn_before": 1,
+  "score_delta": 5,
+  "turn": 2,
+  "cond": 3,
+  "until": 4,
+  "pass": true,
+  "score": 5
+ },
+ {
+  "kind": "step",
+  "i": 1,
+  "action": [
+   "play",
+   0
+  ],
+  "played": "p_card-01-act-2_030",
+  "turn_before": 2,
+  "score_delta": 8,
+  "turn": 3,
+  "cond": 5,
+  "until": 7,
+  "pass": true,
+  "score": 13
+ },
+ {
+  "kind": "step",
+  "i": 2,
+  "action": [
+   "end"
+  ],
+  "played": null,
+  "turn_before": 3,
+  "score_delta": 0,
+  "turn": 4,
+  "cond": 4,
+  "until": 7,
+  "pass": true,
+  "score": 13
+ },
+ {
+  "kind": "step",
+  "i": 3,
+  "action": [
+   "end"
+  ],
+  "played": null,
+  "turn_before": 4,
+  "score_delta": 0,
+  "turn": 5,
+  "cond": 3,
+  "until": 7,
+  "pass": true,
+  "score": 13
+ },
+ {
+  "kind": "step",
+  "i": 4,
+  "action": [
+   "end"
+  ],
+  "played": null,
+  "turn_before": 5,
+  "score_delta": 0,
+  "turn": 6,
+  "cond": 2,
+  "until": 7,
+  "pass": true,
+  "score": 13
+ },
+ {
+  "kind": "step",
+  "i": 5,
+  "action": [
+   "end"
+  ],
+  "played": null,
+  "turn_before": 6,
+  "score_delta": 0,
+  "turn": 7,
+  "cond": 1,
+  "until": 7,
+  "pass": true,
+  "score": 13
+ },
+ {
+  "kind": "step",
+  "i": 6,
+  "action": [
+   "end"
+  ],
+  "played": null,
+  "turn_before": 7,
+  "score_delta": 0,
+  "turn": 8,
+  "cond": 0,
+  "until": null,
+  "pass": false,
+  "score": 13
+ },
+ {
+  "kind": "step",
+  "i": 7,
+  "action": [
+   "end"
+  ],
+  "played": null,
+  "turn_before": 8,
+  "score_delta": 0,
+  "turn": 8,
+  "cond": 0,
+  "until": null,
+  "pass": false,
+  "score": 13
+ }
+]

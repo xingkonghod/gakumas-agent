@@ -1,0 +1,227 @@
+{
+ "configs": {
+  "base": {
+   "cls": "ex",
+   "budget": 5.0,
+   "params": {
+    "procs": 16
+   }
+  },
+  "v2": {
+   "cls": "v2",
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0
+   }
+  }
+ },
+ "pids": [
+  "AS-227HBGHS",
+  "AS-23D5RE8A"
+ ],
+ "bounds": {
+  "AS-227HBGHS": {
+   "gnrpa_ub_2M": 9761,
+   "greedy": 1016
+  },
+  "AS-23D5RE8A": {
+   "gnrpa_ub_2M": 25680,
+   "greedy": 6394
+  }
+ },
+ "rows": [
+  {
+   "pid": "AS-227HBGHS",
+   "cfg": "base",
+   "seed": 433172592,
+   "score": 4208,
+   "finished": true,
+   "decisions": 19,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 2.7,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 5,
+    "vote": 1,
+    "search": 1,
+    "route": 12
+   },
+   "target": 4208,
+   "adopted": null,
+   "bad_routes": null,
+   "searches": null,
+   "transitions": null,
+   "tails": null,
+   "think_s": 45.2,
+   "wall_s": 45.3,
+   "max_ms": 4255,
+   "p95_ms": 4255,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 9761,
+   "greedy": 1016
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "cfg": "v2",
+   "seed": 433172592,
+   "score": 11322,
+   "finished": true,
+   "decisions": 23,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 3.1,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 5,
+    "vote": 1,
+    "search": 2,
+    "route": 10,
+    "tail": 5
+   },
+   "target": 11322,
+   "adopted": 3,
+   "bad_routes": 0,
+   "searches": 24,
+   "transitions": 13000000,
+   "tails": 1,
+   "think_s": 35.2,
+   "wall_s": 35.3,
+   "max_ms": 6606,
+   "p95_ms": 3268,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 9761,
+   "greedy": 1016
+  },
+  {
+   "pid": "AS-23D5RE8A",
+   "cfg": "base",
+   "seed": 369525412,
+   "score": 21893,
+   "finished": true,
+   "decisions": 21,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 2.42,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 3,
+    "search": 1,
+    "route": 17
+   },
+   "target": 21893,
+   "adopted": null,
+   "bad_routes": null,
+   "searches": null,
+   "transitions": null,
+   "tails": null,
+   "think_s": 36.2,
+   "wall_s": 36.3,
+   "max_ms": 4255,
+   "p95_ms": 4251,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 25680,
+   "greedy": 6394
+  },
+  {
+   "pid": "AS-23D5RE8A",
+   "cfg": "v2",
+   "seed": 369525412,
+   "score": 21893,
+   "finished": true,
+   "decisions": 21,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 4.03,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 3,
+    "search": 1,
+    "route": 11,
+    "tail": 6
+   },
+   "target": 21893,
+   "adopted": 1,
+   "bad_routes": 0,
+   "searches": 24,
+   "transitions": 13000000,
+   "tails": 1,
+   "think_s": 27.0,
+   "wall_s": 27.1,
+   "max_ms": 7427,
+   "p95_ms": 3204,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 25680,
+   "greedy": 6394
+  }
+ ],
+ "summary": {
+  "base": {
+   "dist": {
+    "min": 4208,
+    "p10": 4208,
+    "p25": 4208,
+    "med": 21893,
+    "max": 21893,
+    "mean": 13050.5
+   },
+   "lock_rate": 1.0,
+   "mean_lock_turn": 3.0,
+   "mean_wall_s": 40.8,
+   "over_steps": 0,
+   "max_ms": 4255,
+   "bad_routes": 0,
+   "errors": 0
+  },
+  "v2": {
+   "dist": {
+    "min": 11322,
+    "p10": 11322,
+    "p25": 11322,
+    "med": 21893,
+    "max": 21893,
+    "mean": 16607.5
+   },
+   "lock_rate": 1.0,
+   "mean_lock_turn": 3.0,
+   "mean_wall_s": 31.2,
+   "over_steps": 0,
+   "max_ms": 7427,
+   "bad_routes": 0,
+   "errors": 0
+  }
+ },
+ "ab_vs_base": {
+  "v2": {
+   "mean_delta": 3557.0,
+   "ci95": [
+    0.0,
+    7114.0
+   ],
+   "pos": 1,
+   "neg": 0,
+   "zero": 1,
+   "collapse_lt50pct_pairmax": {
+    "base": 1,
+    "v2": 0
+   },
+   "per_pid": {
+    "AS-227HBGHS": 7114,
+    "AS-23D5RE8A": 0
+   }
+  }
+ }
+}

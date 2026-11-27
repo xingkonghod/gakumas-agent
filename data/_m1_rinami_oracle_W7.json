@@ -1,0 +1,5715 @@
+{
+ "w": "W7",
+ "dll_rules": 69,
+ "opening_rng_match": true,
+ "opening_deck_match": true,
+ "opening_hand_match": true,
+ "n_match": 27,
+ "n_steps": 27,
+ "rows": [
+  {
+   "k": 0,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 0,
+   "live_card": "p_card-00-men-3_003::1",
+   "live_turn": 1,
+   "rng_before": 4255182655,
+   "rng_after": 4255182655,
+   "live_rng": 4255182655,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 1,
+   "turn_after": 1,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [],
+    "lost": [],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 0,
+   "stamina_after": 33,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 1,
+   "action": [
+    "play",
+    1
+   ],
+   "live_i": 1,
+   "live_card": "p_card-01-men-2_037::1",
+   "live_turn": 1,
+   "rng_before": 4255182655,
+   "rng_after": 4255182655,
+   "live_rng": 4255182655,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 1,
+   "turn_after": 1,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-men-2_035",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 0,
+   "stamina_after": 33,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 2,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 2,
+   "live_card": "p_card-01-men-2_035::0",
+   "live_turn": 1,
+   "rng_before": 4255182655,
+   "rng_after": 1516620595,
+   "live_rng": 4255182655,
+   "match": true,
+   "consumption": 12,
+   "turn_before": 1,
+   "turn_after": 2,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-men-2_035",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      2
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 0,
+   "stamina_after": 33,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 3,
+   "action": [
+    "play",
+    2
+   ],
+   "live_i": 5,
+   "live_card": "p_card-01-act-2_001::2",
+   "live_turn": 2,
+   "rng_before": 1516620595,
+   "rng_after": 3459659169,
+   "live_rng": 1516620595,
+   "match": true,
+   "consumption": 2,
+   "turn_before": 2,
+   "turn_after": 2,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      2
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 1383,
+   "stamina_after": 33,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 4,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 6,
+   "live_card": "p_card-01-ido-3_200::1",
+   "live_turn": 2,
+   "rng_before": 3459659169,
+   "rng_after": 1366826046,
+   "live_rng": 3459659169,
+   "match": true,
+   "consumption": 12,
+   "turn_before": 2,
+   "turn_after": 3,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 1383,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 5,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 9,
+   "live_card": "p_card-01-men-3_036::1",
+   "live_turn": 3,
+   "rng_before": 1366826046,
+   "rng_after": 1366826046,
+   "live_rng": 1366826046,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 3,
+   "turn_after": 3,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 1383,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 6,
+   "action": [
+    "play",
+    1
+   ],
+   "live_i": 10,
+   "live_card": "p_card-01-men-2_043::1",
+   "live_turn": 3,
+   "rng_before": 1366826046,
+   "rng_after": 1366826046,
+   "live_rng": 1366826046,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 3,
+   "turn_after": 3,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 1383,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 7,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 11,
+   "live_card": "p_card-00-men-3_012::1",
+   "live_turn": 3,
+   "rng_before": 1366826046,
+   "rng_after": 1366826046,
+   "live_rng": 1366826046,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 3,
+   "turn_after": 3,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-men-3_034",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 8,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 12,
+   "live_card": "p_card-01-men-3_034::0",
+   "live_turn": 3,
+   "rng_before": 1366826046,
+   "rng_after": 1696363340,
+   "live_rng": 1366826046,
+   "match": true,
+   "consumption": 16,
+   "turn_before": 3,
+   "turn_after": 4,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-men-3_034",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 28,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 9,
+   "action": [
+    "play",
+    2
+   ],
+   "live_i": 15,
+   "live_card": "p_card-01-men-3_035::1",
+   "live_turn": 4,
+   "rng_before": 1696363340,
+   "rng_after": 1696363340,
+   "live_rng": 1696363340,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 4,
+   "turn_after": 4,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-3_035",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 10,
+   "action": [
+    "play",
+    2
+   ],
+   "live_i": 16,
+   "live_card": "p_card-01-men-2_099::1",
+   "live_turn": 4,
+   "rng_before": 1696363340,
+   "rng_after": 4138886583,
+   "live_rng": 1696363340,
+   "match": true,
+   "consumption": 2,
+   "turn_before": 4,
+   "turn_after": 4,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 11,
+   "action": [
+    "end"
+   ],
+   "live_i": 17,
+   "live_card": null,
+   "live_turn": 4,
+   "rng_before": 4138886583,
+   "rng_after": 995893385,
+   "live_rng": 4138886583,
+   "match": true,
+   "consumption": 4,
+   "turn_before": 4,
+   "turn_after": 5,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      2
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 33,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 12,
+   "action": [
+    "play",
+    1
+   ],
+   "live_i": 19,
+   "live_card": "p_card-01-men-2_011::2",
+   "live_turn": 5,
+   "rng_before": 995893385,
+   "rng_after": 995893385,
+   "live_rng": 995893385,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 5,
+   "turn_after": 5,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      2
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 13,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 20,
+   "live_card": "p_card-01-men-2_098::1",
+   "live_turn": 5,
+   "rng_before": 995893385,
+   "rng_after": 3059505168,
+   "live_rng": 995893385,
+   "match": true,
+   "consumption": 2,
+   "turn_before": 5,
+   "turn_after": 5,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 14,
+   "action": [
+    "play",
+    1
+   ],
+   "live_i": 21,
+   "live_card": "p_card-01-men-3_033::1",
+   "live_turn": 5,
+   "rng_before": 3059505168,
+   "rng_after": 2465633267,
+   "live_rng": 3059505168,
+   "match": true,
+   "consumption": 7,
+   "turn_before": 5,
+   "turn_after": 6,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 31,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 15,
+   "action": [
+    "play",
+    4
+   ],
+   "live_i": 24,
+   "live_card": "p_card-01-men-2_036::1",
+   "live_turn": 6,
+   "rng_before": 2465633267,
+   "rng_after": 2465633267,
+   "live_rng": 2465633267,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 6,
+   "turn_after": 6,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 30,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 16,
+   "action": [
+    "play",
+    3
+   ],
+   "live_i": 25,
+   "live_card": "p_card-01-men-2_037::1",
+   "live_turn": 6,
+   "rng_before": 2465633267,
+   "rng_after": 2465633267,
+   "live_rng": 2465633267,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 6,
+   "turn_after": 6,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 3341,
+   "stamina_after": 30,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 17,
+   "action": [
+    "play",
+    3
+   ],
+   "live_i": 26,
+   "live_card": "p_card-01-act-2_001::1",
+   "live_turn": 6,
+   "rng_before": 2465633267,
+   "rng_after": 2465633267,
+   "live_rng": 2465633267,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 6,
+   "turn_after": 6,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 9989,
+   "stamina_after": 30,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 18,
+   "action": [
+    "play",
+    1
+   ],
+   "live_i": 27,
+   "live_card": "p_card-01-act-3_049::0",
+   "live_turn": 6,
+   "rng_before": 2465633267,
+   "rng_after": 2465633267,
+   "live_rng": 2465633267,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 6,
+   "turn_after": 7,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "deck": [],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 9989,
+   "stamina_after": 30,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 19,
+   "action": [
+    "play",
+    1
+   ],
+   "live_i": 30,
+   "live_card": "p_card-01-men-2_011::1",
+   "live_turn": 7,
+   "rng_before": 2465633267,
+   "rng_after": 2596658745,
+   "live_rng": 2465633267,
+   "match": true,
+   "consumption": 27,
+   "turn_before": 7,
+   "turn_after": 8,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "deck": [],
+    "grave": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 9989,
+   "stamina_after": 32,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 20,
+   "action": [
+    "play",
+    2
+   ],
+   "live_i": 33,
+   "live_card": "p_card-01-act-2_001::1",
+   "live_turn": 8,
+   "rng_before": 2596658745,
+   "rng_after": 2596658745,
+   "live_rng": 2596658745,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 8,
+   "turn_after": 8,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 32986,
+   "stamina_after": 35,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 21,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 34,
+   "live_card": "p_card-01-act-2_059::0",
+   "live_turn": 8,
+   "rng_before": 2596658745,
+   "rng_after": 2596658745,
+   "live_rng": 2596658745,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 8,
+   "turn_after": 8,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 83086,
+   "stamina_after": 35,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 22,
+   "action": [
+    "play",
+    2
+   ],
+   "live_i": 35,
+   "live_card": "p_card-01-men-2_037::1",
+   "live_turn": 8,
+   "rng_before": 2596658745,
+   "rng_after": 2596658745,
+   "live_rng": 2596658745,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 8,
+   "turn_after": 8,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 83086,
+   "stamina_after": 35,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 23,
+   "action": [
+    "play",
+    1
+   ],
+   "live_i": 36,
+   "live_card": "p_card-01-men-3_006::1",
+   "live_turn": 8,
+   "rng_before": 2596658745,
+   "rng_after": 2596658745,
+   "live_rng": 2596658745,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 8,
+   "turn_after": 8,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 83086,
+   "stamina_after": 35,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 24,
+   "action": [
+    "play",
+    0
+   ],
+   "live_i": 37,
+   "live_card": "p_card-01-ido-3_213::1",
+   "live_turn": 8,
+   "rng_before": 2596658745,
+   "rng_after": 2211813516,
+   "live_rng": 2596658745,
+   "match": true,
+   "consumption": 5,
+   "turn_before": 8,
+   "turn_after": 9,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-01-ido-3_213",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      2
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 633754,
+   "stamina_after": 35,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 25,
+   "action": [
+    "play",
+    3
+   ],
+   "live_i": 40,
+   "live_card": "p_card-01-act-2_001::1",
+   "live_turn": 9,
+   "rng_before": 2211813516,
+   "rng_after": 2211813516,
+   "live_rng": 2211813516,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 9,
+   "turn_after": 9,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      2
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "grave": [],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      2
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 655198,
+   "stamina_after": 35,
+   "finished": false,
+   "error": null
+  },
+  {
+   "k": 26,
+   "action": [
+    "end"
+   ],
+   "live_i": 41,
+   "live_card": null,
+   "live_turn": 9,
+   "rng_before": 2211813516,
+   "rng_after": 2211813516,
+   "live_rng": 2211813516,
+   "match": true,
+   "consumption": 0,
+   "turn_before": 9,
+   "turn_after": 9,
+   "zones_before": {
+    "hand": [
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      2
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "deck": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "zones_after": {
+    "hand": [],
+    "deck": [
+     [
+      "p_card-01-men-2_037",
+      1
+     ]
+    ],
+    "grave": [
+     [
+      "p_card-01-act-2_001",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-2_011",
+      1
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ]
+    ],
+    "lost": [
+     [
+      "p_card-00-men-3_003",
+      1
+     ],
+     [
+      "p_card-01-men-2_035",
+      0
+     ],
+     [
+      "p_card-00-acc-0_002",
+      0
+     ],
+     [
+      "p_card-01-men-3_036",
+      1
+     ],
+     [
+      "p_card-01-men-2_043",
+      0
+     ],
+     [
+      "p_card-00-men-3_012",
+      1
+     ],
+     [
+      "p_card-01-men-3_034",
+      0
+     ],
+     [
+      "p_card-01-men-3_035",
+      0
+     ],
+     [
+      "p_card-01-men-2_099",
+      1
+     ],
+     [
+      "p_card-01-men-2_098",
+      1
+     ],
+     [
+      "p_card-01-men-3_033",
+      1
+     ],
+     [
+      "p_card-01-men-2_036",
+      1
+     ],
+     [
+      "p_card-01-act-3_049",
+      0
+     ],
+     [
+      "p_card-01-ido-3_200",
+      1
+     ],
+     [
+      "p_card-01-act-2_059",
+      0
+     ],
+     [
+      "p_card-01-men-3_006",
+      1
+     ],
+     [
+      "p_card-01-ido-3_213",
+      1
+     ]
+    ],
+    "hold": []
+   },
+   "score_after": 655198,
+   "stamina_after": 35,
+   "finished": true,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,371 @@
+{
+ "free_gb_at_start": 3.48,
+ "bottles": [
+  {
+   "id": "pdrink_01-3-002",
+   "name": "严选初星玛奇朵",
+   "tag": "turn_end_focus",
+   "drink_delta": {},
+   "drink_rng_advances": 0,
+   "drink_stance": [
+    null,
+    null
+   ],
+   "drink_hold_delta": 0,
+   "drink_deck_delta": 0,
+   "selects": [],
+   "end1_delta": {
+    "focus": 1
+   },
+   "end1_ctrl_delta": {},
+   "end1_rng_advances": 0,
+   "end1_ctrl_rng_advances": 0,
+   "end2_delta": {
+    "focus": 1
+   },
+   "end2_ctrl_delta": {},
+   "end2_rng_advances": 0,
+   "end2_ctrl_rng_advances": 0,
+   "impression_after_end1": 0,
+   "score_gain_end1": 0,
+   "score_gain_end2": 0,
+   "hold_after": [],
+   "checks": {
+    "drink_rng_zero": true,
+    "drink_no_immediate_delta": true,
+    "buff_plus1_end1": true,
+    "buff_plus2_end2_total": true,
+    "end_rng_diff_zero": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_02-3-006",
+   "name": "严选初星茶",
+   "tag": "turn_end_impression",
+   "drink_delta": {},
+   "drink_rng_advances": 0,
+   "drink_stance": [
+    null,
+    null
+   ],
+   "drink_hold_delta": 0,
+   "drink_deck_delta": 0,
+   "selects": [],
+   "end1_delta": {
+    "score": 35,
+    "impression": 1
+   },
+   "end1_ctrl_delta": {},
+   "end1_rng_advances": 0,
+   "end1_ctrl_rng_advances": 0,
+   "end2_delta": {
+    "score": 74
+   },
+   "end2_ctrl_delta": {},
+   "end2_rng_advances": 0,
+   "end2_ctrl_rng_advances": 0,
+   "impression_after_end1": 1,
+   "score_gain_end1": 35,
+   "score_gain_end2": 74,
+   "hold_after": [],
+   "checks": {
+    "drink_rng_zero": true,
+    "drink_no_immediate_delta": true,
+    "enchant_before_review_settle": true,
+    "fresh_protect_end1": true,
+    "permanent_2turns": true,
+    "end_rng_diff_zero": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_02-3-007",
+   "name": "严选初星拼配咖啡",
+   "tag": "turn_end_aggressive",
+   "drink_delta": {},
+   "drink_rng_advances": 0,
+   "drink_stance": [
+    null,
+    null
+   ],
+   "drink_hold_delta": 0,
+   "drink_deck_delta": 0,
+   "selects": [],
+   "end1_delta": {
+    "aggressive": 1
+   },
+   "end1_ctrl_delta": {},
+   "end1_rng_advances": 0,
+   "end1_ctrl_rng_advances": 0,
+   "end2_delta": {
+    "aggressive": 1
+   },
+   "end2_ctrl_delta": {},
+   "end2_rng_advances": 0,
+   "end2_ctrl_rng_advances": 0,
+   "impression_after_end1": 0,
+   "score_gain_end1": 0,
+   "score_gain_end2": 0,
+   "hold_after": [],
+   "checks": {
+    "drink_rng_zero": true,
+    "drink_no_immediate_delta": true,
+    "buff_plus1_end1": true,
+    "buff_plus2_end2_total": true,
+    "end_rng_diff_zero": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_03-3-008",
+   "name": "严选初星印度茶",
+   "tag": "turn_start_full_power",
+   "drink_delta": {},
+   "drink_rng_advances": 0,
+   "drink_stance": [
+    null,
+    null
+   ],
+   "drink_hold_delta": 0,
+   "drink_deck_delta": 0,
+   "selects": [],
+   "end1_delta": {
+    "fpp": 1
+   },
+   "end1_ctrl_delta": {},
+   "end1_rng_advances": 0,
+   "end1_ctrl_rng_advances": 0,
+   "end2_delta": {
+    "fpp": 1
+   },
+   "end2_ctrl_delta": {},
+   "end2_rng_advances": 0,
+   "end2_ctrl_rng_advances": 0,
+   "impression_after_end1": 0,
+   "score_gain_end1": 0,
+   "score_gain_end2": 0,
+   "hold_after": [],
+   "checks": {
+    "drink_rng_zero": true,
+    "drink_no_immediate_delta": true,
+    "buff_plus1_end1": true,
+    "buff_plus2_end2_total": true,
+    "end_rng_diff_zero": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_03-2-007",
+   "name": "热绿茶",
+   "tag": "search_hold+preservation2",
+   "drink_delta": {
+    "stance_step": 2,
+    "preservation_change_count": 1
+   },
+   "drink_rng_advances": 0,
+   "drink_stance": [
+    null,
+    "Preservation"
+   ],
+   "drink_hold_delta": 1,
+   "drink_deck_delta": -1,
+   "selects": [
+    {
+     "effect_id": "e_effect-exam_card_move-p_card_search-deck_grave-hold-select-1_1",
+     "produce_card_search_id": "p_card_search-deck_grave",
+     "picked_numbers": [
+      1
+     ],
+     "candidate_numbers": [
+      7,
+      12,
+      16,
+      9,
+      10,
+      21,
+      4,
+      18,
+      15,
+      1,
+      17,
+      6,
+      5,
+      19,
+      3,
+      13,
+      8,
+      2,
+      20
+     ],
+     "rule": "greedy_select_policy",
+     "pick_min": 1,
+     "pick_max": 1
+    }
+   ],
+   "end1_delta": {},
+   "end1_ctrl_delta": {},
+   "end1_rng_advances": 0,
+   "end1_ctrl_rng_advances": 0,
+   "end2_delta": {},
+   "end2_ctrl_delta": {},
+   "end2_rng_advances": 0,
+   "end2_ctrl_rng_advances": 0,
+   "impression_after_end1": 0,
+   "score_gain_end1": 0,
+   "score_gain_end2": 0,
+   "hold_after": [
+    "p_card-01-ido-3_200::1"
+   ],
+   "checks": {
+    "drink_rng_zero": true,
+    "hold_plus1": true,
+    "deck_minus1": true,
+    "stance_save2": true,
+    "select_event": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_03-1-010",
+   "name": "焙茶",
+   "tag": "preservation1+fpp2",
+   "drink_delta": {
+    "fpp": 2,
+    "stance_step": 1,
+    "preservation_change_count": 1
+   },
+   "drink_rng_advances": 0,
+   "drink_stance": [
+    null,
+    "Preservation"
+   ],
+   "drink_hold_delta": 0,
+   "drink_deck_delta": 0,
+   "selects": [],
+   "end1_delta": {},
+   "end1_ctrl_delta": {},
+   "end1_rng_advances": 0,
+   "end1_ctrl_rng_advances": 0,
+   "end2_delta": {},
+   "end2_ctrl_delta": {},
+   "end2_rng_advances": 0,
+   "end2_ctrl_rng_advances": 0,
+   "impression_after_end1": 0,
+   "score_gain_end1": 0,
+   "score_gain_end2": 0,
+   "hold_after": [],
+   "checks": {
+    "drink_rng_zero": true,
+    "stance_save1": true,
+    "fpp_plus2": true
+   },
+   "all_pass": true
+  }
+ ],
+ "decay": {
+  "A_rooibos": [
+   {
+    "step": "start",
+    "turn": 1,
+    "score": 0,
+    "impression": 0
+   },
+   {
+    "step": "drink0",
+    "turn": 1,
+    "score": 0,
+    "impression": 3
+   },
+   {
+    "step": "end1",
+    "turn": 2,
+    "score": 104,
+    "impression": 3
+   },
+   {
+    "step": "end2",
+    "turn": 3,
+    "score": 215,
+    "impression": 2
+   },
+   {
+    "step": "end3",
+    "turn": 4,
+    "score": 265,
+    "impression": 1
+   }
+  ],
+  "B_tea": [
+   {
+    "step": "start",
+    "turn": 1,
+    "score": 0,
+    "impression": 0
+   },
+   {
+    "step": "drink0",
+    "turn": 1,
+    "score": 0,
+    "impression": 0
+   },
+   {
+    "step": "end1",
+    "turn": 2,
+    "score": 35,
+    "impression": 1
+   },
+   {
+    "step": "end2",
+    "turn": 3,
+    "score": 109,
+    "impression": 1
+   },
+   {
+    "step": "end3",
+    "turn": 4,
+    "score": 159,
+    "impression": 1
+   }
+  ],
+  "C_rooibos_tea": [
+   {
+    "step": "start",
+    "turn": 1,
+    "score": 0,
+    "impression": 0
+   },
+   {
+    "step": "drink0",
+    "turn": 1,
+    "score": 0,
+    "impression": 3
+   },
+   {
+    "step": "drink1",
+    "turn": 1,
+    "score": 0,
+    "impression": 3
+   },
+   {
+    "step": "end1",
+    "turn": 2,
+    "score": 139,
+    "impression": 4
+   },
+   {
+    "step": "end2",
+    "turn": 3,
+    "score": 323,
+    "impression": 4
+   },
+   {
+    "step": "end3",
+    "turn": 4,
+    "score": 448,
+    "impression": 4
+   }
+  ]
+ },
+ "all_pass": true
+}

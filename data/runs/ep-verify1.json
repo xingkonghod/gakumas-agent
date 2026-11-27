@@ -1,0 +1,64 @@
+{
+  "episode": "ep-verify1",
+  "started_at": "2026-11-15 20:01:18",
+  "weeks": [
+    {
+      "week": 1,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        221,
+        132,
+        162
+      ],
+      "stamina": 30
+    },
+    {
+      "week": 2,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        221,
+        132,
+        177
+      ],
+      "stamina": 30
+    },
+    {
+      "week": 3,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 12,
+      "note": "attrs_after 未读到"
+    },
+    {
+      "week": 4,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 7,
+      "note": "attrs_after 未读到"
+    }
+  ],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": 3,
+      "score": 217,
+      "others": [
+        603,
+        387,
+        217,
+        206,
+        205
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "lesson_min_stamina": 10
+  }
+}

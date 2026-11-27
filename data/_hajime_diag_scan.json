@@ -1,0 +1,290 @@
+{
+ "AS-GZP54V4T": {
+  "pid": "AS-GZP54V4T",
+  "stage": "hajime.4",
+  "turns": 6,
+  "opening_seed_invariant": true,
+  "pre_n": 10,
+  "k": 0,
+  "pool": null,
+  "mutable": 0,
+  "values": null,
+  "limit_turn": 6,
+  "score_cap": 50,
+  "types": [],
+  "H0": [
+   "p_card-03-ido-3_222",
+   "p_card-00-men-0_003",
+   "p_card-03-act-0_014"
+  ],
+  "deck_n": 7,
+  "seed": 1663675682,
+  "distinct_pre": 7,
+  "scans": [
+   {
+    "extra_draws": 0,
+    "seen": 2,
+    "skip": [
+     "p_card-03-ido-3_222"
+    ],
+    "cands": 65618642,
+    "scan_s": 28.58,
+    "true_in": true
+   },
+   {
+    "extra_draws": 3,
+    "seen": 5,
+    "skip": [
+     "p_card-03-ido-3_222"
+    ],
+    "cands": 752913,
+    "scan_s": 11.71,
+    "true_in": true
+   },
+   {
+    "extra_draws": 6,
+    "seen": 8,
+    "skip": [
+     "p_card-03-ido-3_222"
+    ],
+    "cands": 94660,
+    "scan_s": 6.17,
+    "true_in": true
+   }
+  ]
+ },
+ "AS-WNAX63AN": {
+  "pid": "AS-WNAX63AN",
+  "stage": "hajime.32",
+  "turns": 8,
+  "opening_seed_invariant": true,
+  "pre_n": 28,
+  "k": 0,
+  "pool": null,
+  "mutable": 0,
+  "values": null,
+  "limit_turn": 8,
+  "score_cap": 800,
+  "types": [],
+  "H0": [
+   "p_card-03-act-3_065",
+   "p_card-03-act-1_038",
+   "p_card-03-men-2_103"
+  ],
+  "deck_n": 23,
+  "seed": 1408262975,
+  "distinct_pre": 27,
+  "scans": [
+   {
+    "extra_draws": 0,
+    "seen": 3,
+    "skip": [
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049"
+    ],
+    "cands": 130712,
+    "scan_s": 15.12,
+    "true_in": true
+   },
+   {
+    "extra_draws": 3,
+    "seen": 6,
+    "skip": [
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049"
+    ],
+    "cands": 30,
+    "scan_s": 15.03,
+    "true_in": true
+   },
+   {
+    "extra_draws": 6,
+    "seen": 9,
+    "skip": [
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049"
+    ],
+    "cands": 1,
+    "scan_s": 15.13,
+    "true_in": true
+   },
+   {
+    "extra_draws": 9,
+    "seen": 12,
+    "skip": [
+     "p_card-03-act-0_047",
+     "p_card-03-men-0_049"
+    ],
+    "cands": 1,
+    "scan_s": 15.19,
+    "true_in": true
+   }
+  ]
+ },
+ "AS-X8NXKZXW": {
+  "pid": "AS-X8NXKZXW",
+  "stage": "hajime.audition_mid1",
+  "turns": 9,
+  "opening_seed_invariant": true,
+  "pre_n": 17,
+  "k": 51,
+  "pool": [
+   1,
+   1,
+   1,
+   2,
+   2,
+   3
+  ],
+  "mutable": 6,
+  "values": {
+   "1": 134,
+   "2": 110,
+   "3": 90
+  },
+  "limit_turn": 9,
+  "score_cap": 900,
+  "types": [
+   1,
+   3,
+   2,
+   1,
+   1,
+   2,
+   3,
+   2,
+   1
+  ],
+  "H0": [
+   "p_card-02-act-0_010",
+   "p_card-02-men-0_012",
+   "p_card-00-act-0_001"
+  ],
+  "deck_n": 14,
+  "seed": 414616720,
+  "distinct_pre": 14,
+  "scans": [
+   {
+    "extra_draws": 0,
+    "seen": 3,
+    "skip": [],
+    "cands": 69985,
+    "scan_s": 2.73,
+    "true_in": true
+   },
+   {
+    "extra_draws": 3,
+    "seen": 6,
+    "skip": [],
+    "cands": 36,
+    "scan_s": 2.96,
+    "true_in": true
+   },
+   {
+    "extra_draws": 6,
+    "seen": 9,
+    "skip": [],
+    "cands": 3,
+    "scan_s": 3.06,
+    "true_in": true
+   },
+   {
+    "extra_draws": 9,
+    "seen": 12,
+    "skip": [],
+    "cands": 1,
+    "scan_s": 3.14,
+    "true_in": true
+   }
+  ]
+ },
+ "AS-DDCRRSTM": {
+  "pid": "AS-DDCRRSTM",
+  "stage": "hajime.audition_final",
+  "turns": 11,
+  "opening_seed_invariant": true,
+  "pre_n": 26,
+  "k": 63,
+  "pool": [
+   1,
+   1,
+   1,
+   1,
+   2,
+   2,
+   3,
+   3
+  ],
+  "mutable": 8,
+  "values": {
+   "1": 353,
+   "2": 291,
+   "3": 238
+  },
+  "limit_turn": 11,
+  "score_cap": null,
+  "types": [
+   1,
+   1,
+   2,
+   3,
+   2,
+   1,
+   1,
+   3,
+   3,
+   2,
+   1
+  ],
+  "H0": [
+   "p_card-00-men-3_003",
+   "p_card-00-men-3_012",
+   "p_card-00-act-0_002"
+  ],
+  "deck_n": 23,
+  "seed": 839743341,
+  "distinct_pre": 23,
+  "scans": [
+   {
+    "extra_draws": 0,
+    "seen": 2,
+    "skip": [
+     "p_card-00-men-3_003"
+    ],
+    "cands": 17045,
+    "scan_s": 3.06,
+    "true_in": true
+   },
+   {
+    "extra_draws": 3,
+    "seen": 5,
+    "skip": [
+     "p_card-00-men-3_003"
+    ],
+    "cands": 3,
+    "scan_s": 3.15,
+    "true_in": true
+   },
+   {
+    "extra_draws": 6,
+    "seen": 8,
+    "skip": [
+     "p_card-00-men-3_003"
+    ],
+    "cands": 1,
+    "scan_s": 3.92,
+    "true_in": true
+   },
+   {
+    "extra_draws": 9,
+    "seen": 11,
+    "skip": [
+     "p_card-00-men-3_003"
+    ],
+    "cands": 1,
+    "scan_s": 3.19,
+    "true_in": true
+   }
+  ]
+ }
+}

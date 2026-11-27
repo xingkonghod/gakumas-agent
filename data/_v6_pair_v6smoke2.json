@@ -1,0 +1,143 @@
+{
+ "configs": {
+  "v5ref": {
+   "mod": "v5",
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "starts_hi": 6,
+    "lock_trans": 2000000,
+    "step_trans": 500000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 0.8,
+    "rescan_open": 1,
+    "waves": 2,
+    "waves_hi": 0,
+    "pool_threads": 2,
+    "pool_threads_hi": 4,
+    "portfolio": "2/8/3,2/8/5,2/16/3,2/16/5,3/8/5,2/4/8"
+   },
+   "budget": 10.0
+  },
+  "v6": {
+   "mod": "v6",
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "starts_hi": 6,
+    "lock_trans": 2000000,
+    "step_trans": 500000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 0.8,
+    "rescan_open": 1,
+    "waves": 0,
+    "waves_hi": 0,
+    "pool_threads": 4,
+    "pool_threads_hi": 4,
+    "portfolio": "2/8/3,2/8/5,2/16/3,2/16/5,3/8/5,2/4/8",
+    "max_starts": 24,
+    "admit_mult": 1.25,
+    "admit_pad": 0.1,
+    "dl_mult": 1.5
+   },
+   "budget": 10.0
+  }
+ },
+ "pairs": [
+  [
+   "AS-AXME8QK2",
+   1409380188
+  ],
+  [
+   "AS-WDKWQYW5",
+   988313260
+  ]
+ ],
+ "rows": [
+  {
+   "pid": "AS-AXME8QK2",
+   "cfg": "v6",
+   "seed": 1409380188,
+   "score": 13008688,
+   "finished": true,
+   "decisions": 47,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 2.19,
+   "counts": {
+    "worlds": 3,
+    "search": 7,
+    "route": 23,
+    "tail": 14
+   },
+   "adopted": 10,
+   "bad_routes": 0,
+   "searches": 584,
+   "think_s": 140.2,
+   "wall_s": 140.4,
+   "mean_pool_searches": 23.4,
+   "pool_truncated": 0,
+   "expect_ms_last": 560,
+   "max_ms": 7022,
+   "p95_ms": 7016,
+   "over_steps": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "cfg": "v6",
+   "seed": 988313260,
+   "score": 5182580,
+   "finished": true,
+   "decisions": 38,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 5,
+   "seed_found": true,
+   "scan_s": 3.33,
+   "counts": {
+    "worlds": 13,
+    "forced": 1,
+    "fallback": 1,
+    "search": 1,
+    "route": 18,
+    "tail": 4
+   },
+   "adopted": 6,
+   "bad_routes": 0,
+   "searches": 448,
+   "think_s": 142.7,
+   "wall_s": 142.9,
+   "mean_pool_searches": 23.6,
+   "pool_truncated": 0,
+   "expect_ms_last": 564,
+   "max_ms": 10709,
+   "p95_ms": 10706,
+   "over_steps": 0,
+   "why": null
+  }
+ ],
+ "summary": {
+  "v6": {
+   "n": 2,
+   "mean_score": 9095634,
+   "lock_rate": 1.0,
+   "mean_think_s": 141.4,
+   "mean_wall_s": 141.7,
+   "mean_pool_searches": 23.5,
+   "pool_truncated": 0,
+   "over_steps": 0,
+   "max_ms": 10709,
+   "bad_routes": 0,
+   "errors": 0
+  }
+ },
+ "ab_vs_v5": {},
+ "ab_vs_v4": {}
+}

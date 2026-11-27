@@ -1,0 +1,282 @@
+{
+ "params": {
+  "worlds": 6,
+  "mode": "eval",
+  "threads": 4,
+  "margin": 0.25,
+  "use": 0.85,
+  "min_sec": 0.03,
+  "use_prior": 0
+ },
+ "budget": 5.0,
+ "pids": [
+  "AS-227HBGHS",
+  "AS-K46XXQEY"
+ ],
+ "summary": {
+  "n_steps": 12,
+  "over": 0,
+  "over_rate": 0.0,
+  "decide_ms": {
+   "n": 12,
+   "mean": 4058.8,
+   "med": 4058.0,
+   "p90": 4063.2,
+   "max": 4071.9
+  },
+  "worlds_fetch_ms": {
+   "n": 12,
+   "mean": 7.5,
+   "med": 3.0,
+   "p90": 4.0,
+   "max": 53.0
+  },
+  "pred_search_ms": {
+   "n": 12,
+   "mean": 4029.8,
+   "med": 4032.0,
+   "p90": 4037.0,
+   "max": 4037.0
+  },
+  "overhead_ms": {
+   "n": 12,
+   "mean": 21.5,
+   "med": 22.0,
+   "p90": 27.2,
+   "max": 28.2
+  },
+  "over_by_turn": {},
+  "over_by_pid": {},
+  "overhead_by_waves": {
+   "8": {
+    "n": 1,
+    "mean": 14.7,
+    "med": 14.7,
+    "p90": 14.7,
+    "max": 14.7
+   },
+   "9": {
+    "n": 3,
+    "mean": 20.6,
+    "med": 20.3,
+    "p90": 22.0,
+    "max": 22.0
+   },
+   "11": {
+    "n": 2,
+    "mean": 17.5,
+    "med": 17.6,
+    "p90": 17.6,
+    "max": 17.6
+   },
+   "12": {
+    "n": 2,
+    "mean": 22.2,
+    "med": 22.9,
+    "p90": 22.9,
+    "max": 22.9
+   },
+   "14": {
+    "n": 4,
+    "mean": 25.4,
+    "med": 27.2,
+    "p90": 28.2,
+    "max": 28.2
+   }
+  }
+ },
+ "rows": [
+  {
+   "pid": "AS-227HBGHS",
+   "i": 0,
+   "turn": 1,
+   "ms": 4071.9,
+   "over": false,
+   "nlegal": 8,
+   "worlds": 6,
+   "sec": 0.333,
+   "worlds_s": 0.053,
+   "waves": 12,
+   "pred_search_ms": 3996.0,
+   "overhead_ms": 22.9,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "i": 1,
+   "turn": 1,
+   "ms": 4058.4,
+   "over": false,
+   "nlegal": 7,
+   "worlds": 6,
+   "sec": 0.367,
+   "worlds_s": 0.004,
+   "waves": 11,
+   "pred_search_ms": 4037.0,
+   "overhead_ms": 17.4,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "i": 2,
+   "turn": 1,
+   "ms": 4054.5,
+   "over": false,
+   "nlegal": 6,
+   "worlds": 6,
+   "sec": 0.448,
+   "worlds_s": 0.003,
+   "waves": 9,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 19.5,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "i": 3,
+   "turn": 1,
+   "ms": 4049.7,
+   "over": false,
+   "nlegal": 5,
+   "worlds": 6,
+   "sec": 0.504,
+   "worlds_s": 0.003,
+   "waves": 8,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 14.7,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "i": 4,
+   "turn": 2,
+   "ms": 4055.3,
+   "over": false,
+   "nlegal": 6,
+   "worlds": 6,
+   "sec": 0.448,
+   "worlds_s": 0.003,
+   "waves": 9,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 20.3,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "i": 5,
+   "turn": 3,
+   "ms": 4058.0,
+   "over": false,
+   "nlegal": 6,
+   "worlds": 6,
+   "sec": 0.448,
+   "worlds_s": 0.004,
+   "waves": 9,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 22.0,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "i": 0,
+   "turn": 1,
+   "ms": 4059.8,
+   "over": false,
+   "nlegal": 9,
+   "worlds": 6,
+   "sec": 0.288,
+   "worlds_s": 0.004,
+   "waves": 14,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 23.8,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "i": 1,
+   "turn": 1,
+   "ms": 4057.6,
+   "over": false,
+   "nlegal": 8,
+   "worlds": 6,
+   "sec": 0.336,
+   "worlds_s": 0.004,
+   "waves": 12,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 21.6,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "i": 2,
+   "turn": 1,
+   "ms": 4057.6,
+   "over": false,
+   "nlegal": 7,
+   "worlds": 6,
+   "sec": 0.367,
+   "worlds_s": 0.003,
+   "waves": 11,
+   "pred_search_ms": 4037.0,
+   "overhead_ms": 17.6,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "i": 3,
+   "turn": 2,
+   "ms": 4057.5,
+   "over": false,
+   "nlegal": 9,
+   "worlds": 6,
+   "sec": 0.288,
+   "worlds_s": 0.003,
+   "waves": 14,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 22.5,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "i": 4,
+   "turn": 3,
+   "ms": 4063.2,
+   "over": false,
+   "nlegal": 9,
+   "worlds": 6,
+   "sec": 0.288,
+   "worlds_s": 0.003,
+   "waves": 14,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 28.2,
+   "mode": "eval",
+   "hard": null
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "i": 5,
+   "turn": 3,
+   "ms": 4062.2,
+   "over": false,
+   "nlegal": 9,
+   "worlds": 6,
+   "sec": 0.288,
+   "worlds_s": 0.003,
+   "waves": 14,
+   "pred_search_ms": 4032.0,
+   "overhead_ms": 27.2,
+   "mode": "eval",
+   "hard": null
+  }
+ ]
+}

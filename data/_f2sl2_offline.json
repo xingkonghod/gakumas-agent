@@ -1,0 +1,31 @@
+{
+ "problems": [
+  {
+   "pid": "AS-2AXJNW8X",
+   "seed": 1171936007,
+   "score": 1374348,
+   "finished": true,
+   "decisions": 62,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "locked_seed": 1171936007,
+   "seed_found": true,
+   "scan_s": 2.06,
+   "rescans": 0,
+   "target": 1374348,
+   "adopted": 4,
+   "bad_routes": 0,
+   "hard_rule": 0,
+   "errors_meta": 0,
+   "gnrpa_ub_2M": 1272752,
+   "greedy": 204406,
+   "wall_s": 28.8,
+   "why": null
+  }
+ ],
+ "lock_rate": 1.0,
+ "mean_score": 1374348.0,
+ "mean_ub": 1272752.0,
+ "mean_greedy": 204406.0
+}

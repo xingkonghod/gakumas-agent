@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-11-16T00:35:28.721202+00:00",
+  "source": {
+    "repo": "https://github.com/gakumas-tools/gakumas-tools",
+    "commitSha": "a82c3a3a5de41d2bd6130ad08bb88136dfa1977e",
+    "commitDate": "2026-11-15T21:11:25+09:00",
+    "hiddenCardIds": [
+      923,
+      925
+    ],
+    "hiddenItemIds": [
+      512,
+      514
+    ]
+  },
+  "totals": {
+    "uniqueSkillCards": 926,
+    "hiddenSkillCards": 2,
+    "uniquePDrinks": 28,
+    "idols": 15,
+    "pIdols": 165,
+    "customizations": 111
+  },
+  "cardsByPlan": {
+    "sense": {
+      "signature": 130,
+      "normal_plan": 165,
+      "normal_common": 65,
+      "normal_total": 230,
+      "total_available": 360
+    },
+    "logic": {
+      "signature": 144,
+      "normal_plan": 171,
+      "normal_common": 65,
+      "normal_total": 236,
+      "total_available": 380
+    },
+    "anomaly": {
+      "signature": 90,
+      "normal_plan": 161,
+      "normal_common": 65,
+      "normal_total": 226,
+      "total_available": 316
+    }
+  },
+  "drinksByPlan": {
+    "sense": {
+      "plan": 6,
+      "common": 10,
+      "total_available": 16
+    },
+    "logic": {
+      "plan": 6,
+      "common": 10,
+      "total_available": 16
+    },
+    "anomaly": {
+      "plan": 6,
+      "common": 10,
+      "total_available": 16
+    }
+  },
+  "notes": {
+    "missingCardIcons": [
+      923,
+      924,
+      925,
+      926
+    ],
+    "missingCardDetails": [
+      758,
+      923,
+      924,
+      925,
+      926
+    ],
+    "missingDrinkIcons": [],
+    "missingDrinkDetails": []
+  }
+}

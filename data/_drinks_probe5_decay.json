@@ -1,0 +1,154 @@
+{
+ "A_rooibos": [
+  {
+   "step": "start",
+   "turn": 1,
+   "score": 0,
+   "impression": 0,
+   "focus": 0,
+   "aggressive": 0
+  },
+  {
+   "step": "drink0",
+   "turn": 1,
+   "score": 0,
+   "impression": 3,
+   "focus": 0,
+   "aggressive": 0
+  },
+  {
+   "step": "end1",
+   "turn": 2,
+   "score": 104,
+   "impression": 3,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 3,
+   "te_score": 0
+  },
+  {
+   "step": "end2",
+   "turn": 3,
+   "score": 215,
+   "impression": 2,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 2,
+   "te_score": 104
+  },
+  {
+   "step": "end3",
+   "turn": 4,
+   "score": 265,
+   "impression": 1,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 1,
+   "te_score": 215
+  }
+ ],
+ "B_tea": [
+  {
+   "step": "start",
+   "turn": 1,
+   "score": 0,
+   "impression": 0,
+   "focus": 0,
+   "aggressive": 0
+  },
+  {
+   "step": "drink0",
+   "turn": 1,
+   "score": 0,
+   "impression": 0,
+   "focus": 0,
+   "aggressive": 0
+  },
+  {
+   "step": "end1",
+   "turn": 2,
+   "score": 35,
+   "impression": 1,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 1,
+   "te_score": 0
+  },
+  {
+   "step": "end2",
+   "turn": 3,
+   "score": 109,
+   "impression": 1,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 1,
+   "te_score": 35
+  },
+  {
+   "step": "end3",
+   "turn": 4,
+   "score": 159,
+   "impression": 1,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 1,
+   "te_score": 109
+  }
+ ],
+ "C_rooibos_tea": [
+  {
+   "step": "start",
+   "turn": 1,
+   "score": 0,
+   "impression": 0,
+   "focus": 0,
+   "aggressive": 0
+  },
+  {
+   "step": "drink0",
+   "turn": 1,
+   "score": 0,
+   "impression": 3,
+   "focus": 0,
+   "aggressive": 0
+  },
+  {
+   "step": "drink1",
+   "turn": 1,
+   "score": 0,
+   "impression": 3,
+   "focus": 0,
+   "aggressive": 0
+  },
+  {
+   "step": "end1",
+   "turn": 2,
+   "score": 139,
+   "impression": 4,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 4,
+   "te_score": 0
+  },
+  {
+   "step": "end2",
+   "turn": 3,
+   "score": 323,
+   "impression": 4,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 4,
+   "te_score": 139
+  },
+  {
+   "step": "end3",
+   "turn": 4,
+   "score": 448,
+   "impression": 4,
+   "focus": 0,
+   "aggressive": 0,
+   "ts_review": 4,
+   "te_score": 323
+  }
+ ]
+}

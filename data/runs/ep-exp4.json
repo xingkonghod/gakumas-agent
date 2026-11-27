@@ -1,0 +1,60 @@
+{
+  "episode": "ep-exp4",
+  "started_at": "2026-11-17 00:01:57",
+  "weeks": [
+    {
+      "week": 5,
+      "action": "rest",
+      "lesson_score": null,
+      "attrs_after": [
+        271,
+        214,
+        622
+      ],
+      "stamina": 35
+    },
+    {
+      "week": 5,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": [
+        301,
+        214,
+        622
+      ],
+      "stamina": 35
+    },
+    {
+      "week": 5,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        301,
+        288,
+        622
+      ],
+      "stamina": 34
+    }
+  ],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": 2,
+      "score": 803,
+      "others": [
+        803,
+        759,
+        427,
+        417,
+        190
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  }
+}

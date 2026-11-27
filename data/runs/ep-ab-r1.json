@@ -1,0 +1,24 @@
+{
+  "episode": "ep-ab-r1",
+  "started_at": "2026-11-20 15:48:25",
+  "weeks": [
+    {
+      "week": 1,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        200,
+        890,
+        213
+      ],
+      "stamina": 34
+    }
+  ],
+  "exams": [],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  }
+}

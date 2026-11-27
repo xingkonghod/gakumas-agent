@@ -1,0 +1,40 @@
+{
+ "free_gb_at_start": 3.59,
+ "subset_problems": 39,
+ "algos": {
+  "greedy": {
+   "episodes": 56,
+   "problems": 28,
+   "mean_off": 6009.321428571428,
+   "mean_auto": 6009.321428571428,
+   "mean_diff": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ],
+   "wins": 0,
+   "losses": 0,
+   "ties": 56,
+   "crashes_auto": 0,
+   "crashes_off": 0,
+   "pass_lower_gt0": false
+  },
+  "expectimax-analytic": {
+   "episodes": 56,
+   "problems": 28,
+   "mean_off": 6175.071428571428,
+   "mean_auto": 6218.160714285715,
+   "mean_diff": 43.089285714285715,
+   "ci95": [
+    -97.64375,
+    209.84196428571425
+   ],
+   "wins": 19,
+   "losses": 9,
+   "ties": 28,
+   "crashes_auto": 0,
+   "crashes_off": 0,
+   "pass_lower_gt0": false
+  }
+ }
+}

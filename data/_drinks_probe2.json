@@ -1,0 +1,1457 @@
+{
+ "rules": 69,
+ "final_score": 1426865,
+ "expect_score": 1426865,
+ "mismatches": [],
+ "opening_rng_match": true,
+ "rows": [
+  {
+   "i": 0,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 1,
+    "score": 0,
+    "rng": 374278409,
+    "stamina": 35,
+    "hand": [
+     "p_card-01-men-2_035::0",
+     "p_card-00-men-3_003::1",
+     "p_card-01-men-2_038::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-010",
+     "pdrink_00-3-001",
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 1,
+    "score": 0,
+    "rng": 374278409,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_035::0",
+     "p_card-01-men-2_038::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-010",
+     "pdrink_00-3-001",
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 1,
+   "kind": "UseDrink",
+   "idx": 2,
+   "before": {
+    "turn": 1,
+    "score": 0,
+    "rng": 374278409,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_035::0",
+     "p_card-01-men-2_038::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-010",
+     "pdrink_00-3-001",
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 1,
+    "score": 0,
+    "rng": 374278409,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_035::0",
+     "p_card-01-men-2_038::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-010",
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 2,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 1,
+    "score": 0,
+    "rng": 374278409,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_035::0",
+     "p_card-01-men-2_038::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-010",
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 1,
+    "score": 0,
+    "rng": 374278409,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_038::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-010",
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 3,
+   "kind": "UseDrink",
+   "idx": 0,
+   "before": {
+    "turn": 1,
+    "score": 0,
+    "rng": 374278409,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_038::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-010",
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 1,
+    "score": 0,
+    "rng": 2999732130,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 4,
+   "kind": "UseDrink",
+   "idx": 0,
+   "before": {
+    "turn": 1,
+    "score": 0,
+    "rng": 2999732130,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-010",
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 1,
+    "score": 0,
+    "rng": 3418199402,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_033::1",
+     "p_card-01-men-3_036::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 5,
+   "kind": "UseHand",
+   "idx": 4,
+   "before": {
+    "turn": 1,
+    "score": 0,
+    "rng": 3418199402,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_033::1",
+     "p_card-01-men-3_036::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 1,
+    "score": 0,
+    "rng": 3418199402,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_033::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 6,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 1,
+    "score": 0,
+    "rng": 3418199402,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_033::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 1,
+    "score": 1071,
+    "rng": 3599059646,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-men-3_033::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 7,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 1,
+    "score": 1071,
+    "rng": 3599059646,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-01-act-3_049::0",
+     "p_card-01-men-3_033::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 2,
+    "score": 1071,
+    "rng": 2492382585,
+    "stamina": 29,
+    "hand": [
+     "p_card-00-men-3_012::1",
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-2_099::2",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 8,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 2,
+    "score": 1071,
+    "rng": 2492382585,
+    "stamina": 29,
+    "hand": [
+     "p_card-00-men-3_012::1",
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-2_099::2",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 2,
+    "score": 1071,
+    "rng": 2623593834,
+    "stamina": 29,
+    "hand": [
+     "p_card-00-men-3_012::1",
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_200::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 9,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 2,
+    "score": 1071,
+    "rng": 2623593834,
+    "stamina": 29,
+    "hand": [
+     "p_card-00-men-3_012::1",
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_200::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 2,
+    "score": 4052,
+    "rng": 2623593834,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_200::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   }
+  },
+  {
+   "i": 10,
+   "kind": "UseDrink",
+   "idx": 0,
+   "before": {
+    "turn": 2,
+    "score": 4052,
+    "rng": 2623593834,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_200::1"
+    ],
+    "drinks": [
+     "pdrink_00-2-009"
+    ]
+   },
+   "after": {
+    "turn": 2,
+    "score": 4052,
+    "rng": 2034438259,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_200::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 11,
+   "kind": "UseHand",
+   "idx": 3,
+   "before": {
+    "turn": 2,
+    "score": 4052,
+    "rng": 2034438259,
+    "stamina": 29,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_200::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 2,
+    "score": 4052,
+    "rng": 2034438259,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-men-2_036::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 12,
+   "kind": "UseHand",
+   "idx": 4,
+   "before": {
+    "turn": 2,
+    "score": 4052,
+    "rng": 2034438259,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-3_035::1",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-men-2_036::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 2034438259,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_098::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 13,
+   "kind": "UseHand",
+   "idx": 4,
+   "before": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 2034438259,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_098::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_043::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 14,
+   "kind": "UseHand",
+   "idx": 4,
+   "before": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_043::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 15,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 33,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 30,
+    "hand": [
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_059::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 16,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 30,
+    "hand": [
+     "p_card-01-men-3_034::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_059::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 30,
+    "hand": [
+     "p_card-01-men-3_034::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_059::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 17,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 3,
+    "score": 4052,
+    "rng": 1927464821,
+    "stamina": 30,
+    "hand": [
+     "p_card-01-men-3_034::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_059::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 4,
+    "score": 4052,
+    "rng": 869474166,
+    "stamina": 27,
+    "hand": [
+     "p_card-01-men-3_035::2",
+     "p_card-01-act-3_049::0",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_059::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 18,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 4,
+    "score": 4052,
+    "rng": 869474166,
+    "stamina": 27,
+    "hand": [
+     "p_card-01-men-3_035::2",
+     "p_card-01-act-3_049::0",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_059::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 4,
+    "score": 4052,
+    "rng": 869474166,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::2",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_059::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 19,
+   "kind": "UseHand",
+   "idx": 3,
+   "before": {
+    "turn": 4,
+    "score": 4052,
+    "rng": 869474166,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::2",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_059::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 4,
+    "score": 19794,
+    "rng": 869474166,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::2",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_059::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 20,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 4,
+    "score": 19794,
+    "rng": 869474166,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::2",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_059::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 5,
+    "score": 54971,
+    "rng": 718462096,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_037::1",
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-2_011::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 21,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 5,
+    "score": 54971,
+    "rng": 718462096,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_037::1",
+     "p_card-01-act-3_010::1",
+     "p_card-01-men-2_011::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 5,
+    "score": 54971,
+    "rng": 718462096,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_037::1",
+     "p_card-01-act-3_010::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 22,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 5,
+    "score": 54971,
+    "rng": 718462096,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_037::1",
+     "p_card-01-act-3_010::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 5,
+    "score": 54971,
+    "rng": 718462096,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 23,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 5,
+    "score": 54971,
+    "rng": 718462096,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-act-3_010::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 6,
+    "score": 89113,
+    "rng": 3035554032,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 24,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 6,
+    "score": 89113,
+    "rng": 3035554032,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_037::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 6,
+    "score": 89113,
+    "rng": 3035554032,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 25,
+   "kind": "UseHand",
+   "idx": 3,
+   "before": {
+    "turn": 6,
+    "score": 89113,
+    "rng": 3035554032,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 6,
+    "score": 111138,
+    "rng": 3035554032,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 26,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 6,
+    "score": 111138,
+    "rng": 3035554032,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_038::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 7,
+    "score": 139307,
+    "rng": 1580888491,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-men-3_035::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 27,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 7,
+    "score": 139307,
+    "rng": 1580888491,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-men-3_035::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 8,
+    "score": 139307,
+    "rng": 3614302654,
+    "stamina": 30,
+    "hand": [
+     "p_card-01-men-3_035::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_011::1",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 28,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 8,
+    "score": 139307,
+    "rng": 3614302654,
+    "stamina": 30,
+    "hand": [
+     "p_card-01-men-3_035::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_011::1",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 8,
+    "score": 139307,
+    "rng": 3614302654,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 29,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 8,
+    "score": 139307,
+    "rng": 3614302654,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 8,
+    "score": 158953,
+    "rng": 3614302654,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 30,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 8,
+    "score": 158953,
+    "rng": 3614302654,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-3_035::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 9,
+    "score": 158953,
+    "rng": 4268380075,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_037::2",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 31,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 9,
+    "score": 158953,
+    "rng": 4268380075,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_037::2",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 9,
+    "score": 158953,
+    "rng": 4268380075,
+    "stamina": 31,
+    "hand": [
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 32,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 9,
+    "score": 158953,
+    "rng": 4268380075,
+    "stamina": 31,
+    "hand": [
+     "p_card-00-acc-0_002::0",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 9,
+    "score": 196122,
+    "rng": 4268380075,
+    "stamina": 31,
+    "hand": [
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 33,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 9,
+    "score": 196122,
+    "rng": 4268380075,
+    "stamina": 31,
+    "hand": [
+     "p_card-00-acc-0_002::0",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-3_006::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 10,
+    "score": 196122,
+    "rng": 3487083169,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 34,
+   "kind": "UseHand",
+   "idx": 0,
+   "before": {
+    "turn": 10,
+    "score": 196122,
+    "rng": 3487083169,
+    "stamina": 31,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 10,
+    "score": 196122,
+    "rng": 3487083169,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_037::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 35,
+   "kind": "UseHand",
+   "idx": 3,
+   "before": {
+    "turn": 10,
+    "score": 196122,
+    "rng": 3487083169,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0",
+     "p_card-01-men-2_037::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 10,
+    "score": 196122,
+    "rng": 3487083169,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 36,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 10,
+    "score": 196122,
+    "rng": 3487083169,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-ido-3_213::1",
+     "p_card-01-act-2_001::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 10,
+    "score": 228133,
+    "rng": 3487083169,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-ido-3_213::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 37,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 10,
+    "score": 228133,
+    "rng": 3487083169,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-ido-3_213::1",
+     "p_card-00-acc-0_002::0"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 11,
+    "score": 228133,
+    "rng": 3575838772,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-2_011::2",
+     "p_card-01-act-2_001::2",
+     "p_card-01-men-2_037::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 38,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 11,
+    "score": 228133,
+    "rng": 3575838772,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-2_011::2",
+     "p_card-01-act-2_001::2",
+     "p_card-01-men-2_037::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 11,
+    "score": 280832,
+    "rng": 3575838772,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-2_011::2",
+     "p_card-01-men-2_037::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 39,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 11,
+    "score": 280832,
+    "rng": 3575838772,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-2_011::2",
+     "p_card-01-men-2_037::1",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 11,
+    "score": 280832,
+    "rng": 3575838772,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-2_011::2",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 40,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 11,
+    "score": 280832,
+    "rng": 3575838772,
+    "stamina": 28,
+    "hand": [
+     "p_card-01-men-3_006::1",
+     "p_card-01-men-2_011::2",
+     "p_card-01-ido-3_213::1"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 12,
+    "score": 280832,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-2_037::1",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 41,
+   "kind": "UseHand",
+   "idx": 2,
+   "before": {
+    "turn": 12,
+    "score": 280832,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-2_037::1",
+     "p_card-01-act-2_001::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 12,
+    "score": 338792,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-2_037::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 42,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 12,
+    "score": 338792,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-2_037::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 12,
+    "score": 338792,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 43,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 12,
+    "score": 338792,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-men-3_006::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 12,
+    "score": 338792,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   }
+  },
+  {
+   "i": 44,
+   "kind": "UseHand",
+   "idx": 1,
+   "before": {
+    "turn": 12,
+    "score": 338792,
+    "rng": 3425026639,
+    "stamina": 26,
+    "hand": [
+     "p_card-01-men-2_011::1",
+     "p_card-01-ido-3_213::2"
+    ],
+    "drinks": []
+   },
+   "after": {
+    "turn": 12,
+    "score": 1426865,
+    "rng": 3425026639,
+    "stamina": 35,
+    "hand": [],
+    "drinks": []
+   }
+  }
+ ]
+}

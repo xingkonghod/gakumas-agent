@@ -1,0 +1,42 @@
+{
+  "episode": "ep-t31-j",
+  "started_at": "2026-11-24 22:54:38",
+  "weeks": [],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": 2,
+      "score": 525,
+      "others": [
+        811,
+        731,
+        570,
+        536,
+        525
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  },
+  "events": [
+    {
+      "seq": 0,
+      "kind": "exam",
+      "exam_kind": "mid",
+      "rank": 2,
+      "score": 525,
+      "others": [
+        811,
+        731,
+        570,
+        536,
+        525
+      ]
+    }
+  ]
+}

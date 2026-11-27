@@ -1,0 +1,1958 @@
+{
+ "pitem312": {
+  "enchant": {
+   "id": "enchant-p_item_effect_01-3-312-0-enc01",
+   "produceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF",
+      "number": 2
+     },
+     "text": "好調",
+     "targetId": "Label_ExamParameterBuff",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "が<nobr>8ターン以上</nobr>の場合、",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF",
+      "number": 2
+     },
+     "text": "好調",
+     "targetId": "Label_ExamParameterBuff",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "効果のスキルカードを4回使用するごとに、",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "targetId": "Label_StyleDot"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF_MULTIPLE_PER_TURN",
+      "number": 129
+     },
+     "text": "絶好調",
+     "targetId": "Label_ExamParameterBuffMultiplePerTurn",
+     "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "<nobr>",
+     "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_Exam",
+      "number": 6
+     },
+     "examDescriptionType": {
+      "name": "ExamDescriptionType_CustomizeTurn",
+      "number": 4
+     },
+     "text": "1",
+     "turn": 1,
+     "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "ターン</nobr>",
+     "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "targetId": "Label_StyleDot"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PLAYABLE_VALUE_ADD",
+      "number": 14
+     },
+     "text": "スキルカード使用数追加",
+     "targetId": "Label_ExamPlayableValueAdd_Produce",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "<nobr>+",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_Exam",
+      "number": 6
+     },
+     "examDescriptionType": {
+      "name": "ExamDescriptionType_CustomizeEffectCount",
+      "number": 3
+     },
+     "text": "1",
+     "effectCount": 1,
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "</nobr>",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "targetId": "Label_StyleDot"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "スキルカードを引く",
+     "originProduceExamEffectId": "e_effect-exam_card_draw-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "originProduceExamEffectId": "e_effect-exam_card_draw-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "targetId": "Label_StyleDot"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_STAMINA_REDUCE_FIX",
+      "number": 7
+     },
+     "text": "体力消費",
+     "targetId": "Label_ExamStaminaReduceFix",
+     "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "<nobr>",
+     "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_Exam",
+      "number": 6
+     },
+     "examDescriptionType": {
+      "name": "ExamDescriptionType_CustomizeEffectValue1",
+      "number": 1
+     },
+     "text": "1",
+     "effectValue1": 1,
+     "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "</nobr>",
+     "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": " "
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_Exam",
+      "number": 6
+     },
+     "examDescriptionType": {
+      "name": "ExamDescriptionType_ExamTurn",
+      "number": 12
+     }
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_Exam",
+      "number": 6
+     },
+     "examDescriptionType": {
+      "name": "ExamDescriptionType_ExamCount",
+      "number": 14
+     }
+    }
+   ],
+   "produceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000",
+   "produceExamEffectIds": [
+    "e_effect-exam_parameter_buff_multiple_per_turn-01",
+    "e_effect-exam_playable_value_add-01",
+    "e_effect-exam_card_draw-0001",
+    "e_effect-exam_stamina_reduce_fix-0001"
+   ]
+  },
+  "trigger": {
+   "id": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000",
+   "phaseTypes": [
+    {
+     "name": "PRODUCE_EXAM_PHASE_TYPE_EXAM_PLAY_COUNT_INTERVAL",
+     "number": 23
+    }
+   ],
+   "phaseValues": [
+    4
+   ],
+   "fieldStatusTypes": [
+    {
+     "name": "PRODUCE_EXAM_FIELD_STATUS_TYPE_PARAMETER_BUFF_UP",
+     "number": 38
+    }
+   ],
+   "fieldStatusValues": [
+    8
+   ],
+   "produceCardSearchId": "p_card_search-target-effect_group-visible-exam_parameter_buff-000",
+   "produceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF",
+      "number": 2
+     },
+     "text": "好調",
+     "targetId": "Label_ExamParameterBuff",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "が<nobr>8ターン以上</nobr>の場合、",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF",
+      "number": 2
+     },
+     "text": "好調",
+     "targetId": "Label_ExamParameterBuff",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "効果のスキルカードを4回使用するごとに、",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    }
+   ],
+   "playProduceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF",
+      "number": 2
+     },
+     "text": "好調",
+     "targetId": "Label_ExamParameterBuff",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "が<nobr>8ターン以上</nobr>の場合、使用可",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    }
+   ],
+   "playEffectProduceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF",
+      "number": 2
+     },
+     "text": "好調",
+     "targetId": "Label_ExamParameterBuff",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "が<nobr>8ターン以上</nobr>の場合、",
+     "originProduceExamTriggerId": "e_trigger-exam_play_count_interval-4-parameter_buff_up-8-p_card_search-target-effect_group-visible-exam_parameter_buff-000"
+    }
+   ]
+  },
+  "effects": [
+   {
+    "id": "e_effect-exam_parameter_buff_multiple_per_turn-01",
+    "effectType": {
+     "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF_MULTIPLE_PER_TURN",
+     "number": 129
+    },
+    "effectTurn": 1,
+    "effectGroupIds": [
+     "effect_group-visible-exam_parameter_buff_multiple_per_turn-000"
+    ],
+    "produceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceExamEffectType",
+       "number": 2
+      },
+      "examEffectType": {
+       "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF_MULTIPLE_PER_TURN",
+       "number": 129
+      },
+      "text": "絶好調",
+      "targetId": "Label_ExamParameterBuffMultiplePerTurn",
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "<nobr>",
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_Exam",
+       "number": 6
+      },
+      "examDescriptionType": {
+       "name": "ExamDescriptionType_CustomizeTurn",
+       "number": 4
+      },
+      "text": "1",
+      "turn": 1,
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "ターン</nobr>",
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     }
+    ],
+    "customizeProduceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceDescriptionName",
+       "number": 11
+      },
+      "targetId": "Label_StyleDot",
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceExamEffectType",
+       "number": 2
+      },
+      "examEffectType": {
+       "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PARAMETER_BUFF_MULTIPLE_PER_TURN",
+       "number": 129
+      },
+      "text": "絶好調",
+      "targetId": "Label_ExamParameterBuffMultiplePerTurn",
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "<nobr>",
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_Exam",
+       "number": 6
+      },
+      "examDescriptionType": {
+       "name": "ExamDescriptionType_CustomizeTurn",
+       "number": 4
+      },
+      "text": "1",
+      "turn": 1,
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "ターン</nobr>",
+      "originProduceExamEffectId": "e_effect-exam_parameter_buff_multiple_per_turn-01"
+     }
+    ]
+   },
+   {
+    "id": "e_effect-exam_playable_value_add-01",
+    "effectType": {
+     "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PLAYABLE_VALUE_ADD",
+     "number": 14
+    },
+    "effectCount": 1,
+    "effectGroupIds": [
+     "effect_group-visible-exam_playable_value_add-000"
+    ],
+    "produceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceExamEffectType",
+       "number": 2
+      },
+      "examEffectType": {
+       "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PLAYABLE_VALUE_ADD",
+       "number": 14
+      },
+      "text": "スキルカード使用数追加",
+      "targetId": "Label_ExamPlayableValueAdd_Produce",
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "<nobr>+",
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_Exam",
+       "number": 6
+      },
+      "examDescriptionType": {
+       "name": "ExamDescriptionType_CustomizeEffectCount",
+       "number": 3
+      },
+      "text": "1",
+      "effectCount": 1,
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "</nobr>",
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     }
+    ],
+    "customizeProduceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceDescriptionName",
+       "number": 11
+      },
+      "targetId": "Label_StyleDot",
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceExamEffectType",
+       "number": 2
+      },
+      "examEffectType": {
+       "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PLAYABLE_VALUE_ADD",
+       "number": 14
+      },
+      "text": "スキルカード使用数追加",
+      "targetId": "Label_ExamPlayableValueAdd_Produce",
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "<nobr>+",
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_Exam",
+       "number": 6
+      },
+      "examDescriptionType": {
+       "name": "ExamDescriptionType_CustomizeEffectCount",
+       "number": 3
+      },
+      "text": "1",
+      "effectCount": 1,
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "</nobr>",
+      "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+     }
+    ]
+   },
+   {
+    "id": "e_effect-exam_card_draw-0001",
+    "effectType": {
+     "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_CARD_DRAW",
+     "number": 4
+    },
+    "effectValue1": 1,
+    "effectGroupIds": [
+     "effect_group-visible-exam_card_draw-000"
+    ],
+    "produceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "スキルカードを引く",
+      "originProduceExamEffectId": "e_effect-exam_card_draw-0001"
+     }
+    ],
+    "customizeProduceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceDescriptionName",
+       "number": 11
+      },
+      "targetId": "Label_StyleDot",
+      "originProduceExamEffectId": "e_effect-exam_card_draw-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "スキルカードを引く",
+      "originProduceExamEffectId": "e_effect-exam_card_draw-0001"
+     }
+    ]
+   },
+   {
+    "id": "e_effect-exam_stamina_reduce_fix-0001",
+    "effectType": {
+     "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_STAMINA_REDUCE_FIX",
+     "number": 7
+    },
+    "effectValue1": 1,
+    "effectGroupIds": [
+     "effect_group-visible-stamina_reduce_fix-000",
+     "effect_group-hidden-stamina_reduce_fix-000"
+    ],
+    "produceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceExamEffectType",
+       "number": 2
+      },
+      "examEffectType": {
+       "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_STAMINA_REDUCE_FIX",
+       "number": 7
+      },
+      "text": "体力消費",
+      "targetId": "Label_ExamStaminaReduceFix",
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "<nobr>",
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_Exam",
+       "number": 6
+      },
+      "examDescriptionType": {
+       "name": "ExamDescriptionType_CustomizeEffectValue1",
+       "number": 1
+      },
+      "text": "1",
+      "effectValue1": 1,
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "</nobr>",
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     }
+    ],
+    "customizeProduceDescriptions": [
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceDescriptionName",
+       "number": 11
+      },
+      "targetId": "Label_StyleDot",
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_ProduceExamEffectType",
+       "number": 2
+      },
+      "examEffectType": {
+       "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_STAMINA_REDUCE_FIX",
+       "number": 7
+      },
+      "text": "体力消費",
+      "targetId": "Label_ExamStaminaReduceFix",
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "<nobr>",
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_Exam",
+       "number": 6
+      },
+      "examDescriptionType": {
+       "name": "ExamDescriptionType_CustomizeEffectValue1",
+       "number": 1
+      },
+      "text": "1",
+      "effectValue1": 1,
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     },
+     {
+      "produceDescriptionType": {
+       "name": "ProduceDescriptionType_PlainText",
+       "number": 1
+      },
+      "text": "</nobr>",
+      "originProduceExamEffectId": "e_effect-exam_stamina_reduce_fix-0001"
+     }
+    ]
+   }
+  ]
+ },
+ "sup324_effects": [
+  {
+   "id": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1",
+   "effectType": {
+    "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_CARD_CREATE_SEARCH",
+    "number": 21
+   },
+   "effectValue1": 1,
+   "produceCardSearchId": "p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1",
+   "movePositionType": {
+    "name": "PRODUCE_CARD_MOVE_POSITION_TYPE_HAND",
+    "number": 1
+   },
+   "pickRangeType": {
+    "name": "PRODUCE_PICK_RANGE_TYPE_RANDOM",
+    "number": 2
+   },
+   "pickCountMin": 1,
+   "pickCountMax": 1,
+   "produceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "ランダムな強化済みスキルカードを、",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "text": "手札",
+     "targetId": "Label_ProduceCardPositionType_Hand",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "に",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_CARD_CREATE_ID",
+      "number": 6
+     },
+     "text": "生成",
+     "targetId": "Label_ExamCardCreateId",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    }
+   ],
+   "customizeProduceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "targetId": "Label_StyleDot",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "ランダムな強化済みスキルカードを、",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "text": "手札",
+     "targetId": "Label_ProduceCardPositionType_Hand",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "に",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_CARD_CREATE_ID",
+      "number": 6
+     },
+     "text": "生成",
+     "targetId": "Label_ExamCardCreateId",
+     "originProduceExamEffectId": "e_effect-exam_card_create_search-0001-p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1-hand-random-1_1"
+    }
+   ]
+  },
+  {
+   "id": "e_effect-exam_playable_value_add-01",
+   "effectType": {
+    "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PLAYABLE_VALUE_ADD",
+    "number": 14
+   },
+   "effectCount": 1,
+   "effectGroupIds": [
+    "effect_group-visible-exam_playable_value_add-000"
+   ],
+   "produceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PLAYABLE_VALUE_ADD",
+      "number": 14
+     },
+     "text": "スキルカード使用数追加",
+     "targetId": "Label_ExamPlayableValueAdd_Produce",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "<nobr>+",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_Exam",
+      "number": 6
+     },
+     "examDescriptionType": {
+      "name": "ExamDescriptionType_CustomizeEffectCount",
+      "number": 3
+     },
+     "text": "1",
+     "effectCount": 1,
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "</nobr>",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    }
+   ],
+   "customizeProduceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "targetId": "Label_StyleDot",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceExamEffectType",
+      "number": 2
+     },
+     "examEffectType": {
+      "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_PLAYABLE_VALUE_ADD",
+      "number": 14
+     },
+     "text": "スキルカード使用数追加",
+     "targetId": "Label_ExamPlayableValueAdd_Produce",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "<nobr>+",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_Exam",
+      "number": 6
+     },
+     "examDescriptionType": {
+      "name": "ExamDescriptionType_CustomizeEffectCount",
+      "number": 3
+     },
+     "text": "1",
+     "effectCount": 1,
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "</nobr>",
+     "originProduceExamEffectId": "e_effect-exam_playable_value_add-01"
+    }
+   ]
+  },
+  {
+   "id": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001",
+   "effectType": {
+    "name": "PRODUCE_EXAM_EFFECT_TYPE_EXAM_EFFECT_TIMER",
+    "number": 103
+   },
+   "effectValue1": 1,
+   "effectCount": 1,
+   "chainProduceExamEffectId": "e_effect-exam_card_draw-0001",
+   "effectGroupIds": [
+    "effect_group-visible-exam_effect_timer-000",
+    "effect_group-visible-exam_card_draw-000"
+   ],
+   "produceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "次のターン、",
+     "originProduceExamEffectId": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "スキルカードを引く",
+     "originProduceExamEffectId": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": " ",
+     "originProduceExamEffectId": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001"
+    }
+   ],
+   "customizeProduceDescriptions": [
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_ProduceDescriptionName",
+      "number": 11
+     },
+     "targetId": "Label_StyleDot",
+     "originProduceExamEffectId": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "次のターン、",
+     "originProduceExamEffectId": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": "スキルカードを引く",
+     "originProduceExamEffectId": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001"
+    },
+    {
+     "produceDescriptionType": {
+      "name": "ProduceDescriptionType_PlainText",
+      "number": 1
+     },
+     "text": " ",
+     "originProduceExamEffectId": "e_effect-exam_effect_timer-0001-01-e_effect-exam_card_draw-0001"
+    }
+   ]
+  }
+ ],
+ "sup324_search_p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1": {
+  "id": "p_card_search-random-random_pool-p_random_pool-all-upgrade_1-1",
+  "orderType": {
+   "name": "ProduceCardOrderType_Random",
+   "number": 3
+  },
+  "cardPositionType": {
+   "name": "PRODUCE_CARD_POSITION_TYPE_RANDOM_POOL",
+   "number": 7
+  },
+  "produceCardRandomPoolId": "p_random_pool-all-upgrade_1",
+  "limitCount": 1,
+  "produceDescriptions": [
+   {
+    "produceDescriptionType": {
+     "name": "ProduceDescriptionType_PlainText",
+     "number": 1
+    },
+    "text": "強化済みスキルカード"
+   }
+  ],
+  "produceCardPoolId": "p_random_pool-all-upgrade_1"
+ },
+ "parameter_buff_cards": [],
+ "table_ProduceCardPool.jsonl": {
+  "n": 10,
+  "first": {
+   "id": "p_random_pool-all-upgrade_1",
+   "produceCardRatios": [
+    {
+     "id": "p_card-00-men-1_007",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-men-1_005",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-act-2_009",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-men-2_012",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-men-2_014",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-men-3_011",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-men-3_003",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-men-3_005",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-00-men-3_012",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_001",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_002",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-1_008",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_019",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_020",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_021",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_022",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_023",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-1_024",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-1_025",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_001",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_002",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_003",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_030",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_031",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_032",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_033",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_034",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_035",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_036",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_037",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_038",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_039",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_040",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_041",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_042",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_043",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_030",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_031",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_029",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-3_033",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-3_035",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-3_036",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-3_006",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_010",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_003",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_004",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_006",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_009",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_027",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_028",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_029",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_030",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_031",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_032",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_033",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_004",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_008",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_050",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_045",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_046",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_047",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_048",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_049",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_051",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_052",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_053",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_054",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_055",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_057",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_058",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_038",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_039",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-3_041",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-3_042",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-3_043",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-3_044",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-3_002",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-3_004",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_001",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-1_034",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_011",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_059",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_049",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_032",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_035",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_060",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_056",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_050",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_045",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_036",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_062",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_052",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_038",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_040",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_041",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_042",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_044",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_046",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-1_039",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-1_049",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-1_048",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_065",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_068",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_069",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_072",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_073",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_063",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_067",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_070",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_071",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_064",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_066",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_077",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_079",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_053",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_054",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_055",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_056",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_057",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-3_058",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-3_062",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-3_063",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_065",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_037",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-3_040",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_074",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-1_051",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_075",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_076",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_080",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_081",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_082",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-3_061",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_074",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_061",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-3_034",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-1_050",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_078",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_068",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-1_069",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_070",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-1_071",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_072",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_073",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_098",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_099",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_100",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_101",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_102",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_103",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_110",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-2_111",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-2_112",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-2_104",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_076",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-1_043",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_106",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-men-3_060",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_185",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-3_184",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_186",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-3_187",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_188",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-3_189",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-1_026",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-men-1_091",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_108",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-01-act-2_113",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_093",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-men-1_094",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_044",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-02-act-2_116",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_118",
+     "upgradeCount": 1,
+     "ratio": 1
+    },
+    {
+     "id": "p_card-03-act-2_120",
+     "upgradeCount": 1,
+     "ratio": 1
+    }
+   ]
+  }
+ },
+ "pool_all_hit0": {
+  "id": "p_random_pool-all-upgrade_1",
+  "produceCardId": "p_card-00-act-2_009",
+  "upgradeCount": 1,
+  "ratio": 1
+ },
+ "pool_all_hits_n": 164,
+ "table_ProduceCardRandomPool.jsonl": {
+  "n": 333,
+  "first": {
+   "id": "p_random_pool-all-upgrade_1",
+   "produceCardId": "p_card-00-act-2_009",
+   "upgradeCount": 1,
+   "ratio": 1
+  }
+ }
+}

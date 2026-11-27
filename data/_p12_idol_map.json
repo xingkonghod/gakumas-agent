@@ -1,0 +1,28 @@
+{
+ "idol13": [
+  {
+   "id": "13",
+   "name": "雨夜 燕"
+  }
+ ],
+ "p117": [
+  {
+   "id": "117",
+   "idolId": "13",
+   "title": "初志貫徹",
+   "rarity": "SR",
+   "plan": "logic",
+   "recommendedEffect": "motivation"
+  }
+ ],
+ "p118": [
+  {
+   "id": "118",
+   "idolId": "13",
+   "title": "理論武装して",
+   "rarity": "SSR",
+   "plan": "logic",
+   "recommendedEffect": "motivation"
+  }
+ ]
+}

@@ -1,0 +1,91 @@
+{
+ "version": 1,
+ "features": [
+  "score",
+  "cost",
+  "score_per_cost",
+  "is_buff",
+  "buff_condition",
+  "buff_focus",
+  "buff_impression",
+  "buff_block",
+  "buff_stance",
+  "turns_left",
+  "stamina_ratio",
+  "affordable",
+  "last_turn",
+  "early_turn",
+  "can_clear",
+  "can_perfect",
+  "clear_ratio",
+  "perfect_gap",
+  "buff_count",
+  "deck_size"
+ ],
+ "base_score": 154.82,
+ "best_score": 159.62,
+ "weights": {
+  "score": 2.6492,
+  "cost": -0.5858,
+  "score_per_cost": -0.8355,
+  "is_buff": 0.0321,
+  "buff_condition": 1.1699,
+  "buff_focus": 3.4012,
+  "buff_impression": 1.4758,
+  "buff_block": 0.0932,
+  "buff_stance": -0.65,
+  "turns_left": 0.2086,
+  "stamina_ratio": 1.1456,
+  "affordable": 5.3446,
+  "last_turn": 0.0116,
+  "early_turn": 2.0585,
+  "can_clear": 2.3702,
+  "can_perfect": -0.2728,
+  "clear_ratio": 0.3948,
+  "perfect_gap": 1.1151,
+  "buff_count": -0.7216,
+  "deck_size": -1.4647
+ },
+ "curve": [
+  {
+   "generation": 1,
+   "best": 156.2,
+   "overall": 156.2
+  },
+  {
+   "generation": 2,
+   "best": 156.4,
+   "overall": 156.4
+  },
+  {
+   "generation": 3,
+   "best": 158.3,
+   "overall": 158.3
+  },
+  {
+   "generation": 4,
+   "best": 158.3,
+   "overall": 158.3
+  },
+  {
+   "generation": 5,
+   "best": 159.0,
+   "overall": 159.0
+  },
+  {
+   "generation": 6,
+   "best": 159.0,
+   "overall": 159.0
+  },
+  {
+   "generation": 7,
+   "best": 159.3,
+   "overall": 159.3
+  },
+  {
+   "generation": 8,
+   "best": 159.6,
+   "overall": 159.6
+  }
+ ]
+}

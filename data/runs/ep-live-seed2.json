@@ -1,0 +1,156 @@
+{
+  "episode": "ep-live-seed2",
+  "started_at": "2026-11-26 16:39:44",
+  "weeks": [
+    {
+      "week": 1,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        171,
+        90,
+        298
+      ],
+      "stamina": 35
+    },
+    {
+      "week": 1,
+      "action": "lesson",
+      "lesson_score": null,
+      "attrs_after": [
+        211,
+        90,
+        303
+      ],
+      "stamina": 36,
+      "note": "lesson_score 未读到（未用属性增量推算）"
+    },
+    {
+      "week": 2,
+      "action": "lesson",
+      "lesson_score": 60,
+      "attrs_after": [
+        211,
+        161,
+        303
+      ],
+      "stamina": 29
+    },
+    {
+      "week": 3,
+      "action": "rest",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 36,
+      "note": "attrs_after 未读到"
+    }
+  ],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": null,
+      "score": 763,
+      "others": [
+        763,
+        759,
+        439,
+        390,
+        152
+      ],
+      "note": "只读到 5/6 人分数；rank 未读到"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  },
+  "events": [
+    {
+      "seq": 0,
+      "kind": "action",
+      "week": 1,
+      "action": "train",
+      "attrs_after": [
+        171,
+        90,
+        298
+      ],
+      "stamina": 35
+    },
+    {
+      "seq": 1,
+      "kind": "action",
+      "week": 1,
+      "action": "lesson",
+      "attrs_after": [
+        211,
+        90,
+        303
+      ],
+      "stamina": 36
+    },
+    {
+      "seq": 2,
+      "kind": "action",
+      "week": 2,
+      "action": "lesson",
+      "attrs_after": null,
+      "stamina": null
+    },
+    {
+      "seq": 3,
+      "kind": "lesson",
+      "score": 60
+    },
+    {
+      "seq": 4,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 5,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 6,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 7,
+      "kind": "backfill",
+      "week": 2,
+      "attrs_after": [
+        211,
+        161,
+        303
+      ],
+      "stamina": 29
+    },
+    {
+      "seq": 8,
+      "kind": "action",
+      "week": 3,
+      "action": "rest",
+      "attrs_after": null,
+      "stamina": 36
+    },
+    {
+      "seq": 9,
+      "kind": "exam",
+      "exam_kind": "mid",
+      "rank": null,
+      "score": 763,
+      "others": [
+        763,
+        759,
+        439,
+        390,
+        152
+      ]
+    }
+  ]
+}

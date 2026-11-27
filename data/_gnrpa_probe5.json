@@ -1,0 +1,150 @@
+[
+ {
+  "status": 0,
+  "best_score": 7962334,
+  "expansions": 2000000,
+  "rollouts": 53976,
+  "incomplete_rollouts": 1,
+  "repetition_stops": 0,
+  "incumbent_updates": 67,
+  "adaptation_choices": 4522545,
+  "top_level_calls": 282,
+  "top_level_adaptations": 282,
+  "n_keys": 371,
+  "unsup_line": 0,
+  "unsup_info": 0,
+  "elapsed_seconds": 2.02164079999784,
+  "curve_len": 67,
+  "curve_tail": [
+   {
+    "score": 7962334,
+    "transitions": 524595,
+    "seconds": 0.5427219867706299
+   },
+   {
+    "score": 7962334,
+    "transitions": 533545,
+    "seconds": 0.5507051944732666
+   },
+   {
+    "score": 7962334,
+    "transitions": 548379,
+    "seconds": 0.5675759315490723
+   }
+  ],
+  "pid": "AS-WDKWQYW5",
+  "seed": 3601220,
+  "arm": "p0"
+ },
+ {
+  "status": 2,
+  "best_score": 3563925,
+  "expansions": 66733,
+  "rollouts": 2016,
+  "incomplete_rollouts": 0,
+  "repetition_stops": 0,
+  "incumbent_updates": 19,
+  "adaptation_choices": 135787,
+  "top_level_calls": 11,
+  "top_level_adaptations": 10,
+  "n_keys": 357,
+  "unsup_line": 0,
+  "unsup_info": 0,
+  "elapsed_seconds": 0.074893000011798,
+  "curve_len": 19,
+  "curve_tail": [
+   {
+    "score": 3120521,
+    "transitions": 55638,
+    "seconds": 0.06027722358703613
+   },
+   {
+    "score": 3482616,
+    "transitions": 55901,
+    "seconds": 0.06062197685241699
+   },
+   {
+    "score": 3563925,
+    "transitions": 56295,
+    "seconds": 0.0611262321472168
+   }
+  ],
+  "pid": "AS-WDKWQYW5",
+  "seed": 3601220,
+  "arm": "distill"
+ },
+ {
+  "status": 0,
+  "best_score": 2106462,
+  "expansions": 2000000,
+  "rollouts": 46054,
+  "incomplete_rollouts": 1,
+  "repetition_stops": 0,
+  "incumbent_updates": 61,
+  "adaptation_choices": 4476748,
+  "top_level_calls": 240,
+  "top_level_adaptations": 240,
+  "n_keys": 762,
+  "unsup_line": 0,
+  "unsup_info": 0,
+  "elapsed_seconds": 2.7512638000189327,
+  "curve_len": 61,
+  "curve_tail": [
+   {
+    "score": 2106462,
+    "transitions": 1102319,
+    "seconds": 1.6103386878967285
+   },
+   {
+    "score": 2106462,
+    "transitions": 1107385,
+    "seconds": 1.6177582740783691
+   },
+   {
+    "score": 2106462,
+    "transitions": 1146823,
+    "seconds": 1.6619491577148438
+   }
+  ],
+  "pid": "AS-WNK6ARRZ",
+  "seed": 1063386126,
+  "arm": "p0"
+ },
+ {
+  "status": 2,
+  "best_score": 2350969,
+  "expansions": 317852,
+  "rollouts": 7511,
+  "incomplete_rollouts": 0,
+  "repetition_stops": 0,
+  "incumbent_updates": 37,
+  "adaptation_choices": 623415,
+  "top_level_calls": 40,
+  "top_level_adaptations": 39,
+  "n_keys": 649,
+  "unsup_line": 0,
+  "unsup_info": 0,
+  "elapsed_seconds": 0.4963563999917824,
+  "curve_len": 37,
+  "curve_tail": [
+   {
+    "score": 2350969,
+    "transitions": 283483,
+    "seconds": 0.4455714225769043
+   },
+   {
+    "score": 2350969,
+    "transitions": 292716,
+    "seconds": 0.45937609672546387
+   },
+   {
+    "score": 2350969,
+    "transitions": 297594,
+    "seconds": 0.46656179428100586
+   }
+  ],
+  "pid": "AS-WNK6ARRZ",
+  "seed": 1063386126,
+  "arm": "distill"
+ }
+]

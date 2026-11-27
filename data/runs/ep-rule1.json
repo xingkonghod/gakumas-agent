@@ -1,0 +1,63 @@
+{
+  "episode": "ep-rule1",
+  "started_at": "2026-11-15 20:15:32",
+  "weeks": [
+    {
+      "week": 7,
+      "action": "rest",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 35,
+      "note": "attrs_after 未读到"
+    },
+    {
+      "week": 8,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 35,
+      "note": "attrs_after 未读到"
+    },
+    {
+      "week": 9,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 21,
+      "note": "attrs_after 未读到"
+    },
+    {
+      "week": 10,
+      "action": "lesson",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 17,
+      "note": "attrs_after 未读到；lesson_score 未读到（未用属性增量推算）"
+    },
+    {
+      "week": 8,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 1,
+      "note": "attrs_after 未读到"
+    }
+  ],
+  "exams": [],
+  "final": {
+    "attrs": [
+      365,
+      234,
+      372
+    ],
+    "rank": null,
+    "exam_score": null,
+    "eval_points": 5992,
+    "grade": "C+",
+    "note": "rank 未读到；exam_score 未读到"
+  },
+  "meta": {
+    "audition_coefficient": 4.11,
+    "lesson_min_stamina": 10
+  }
+}

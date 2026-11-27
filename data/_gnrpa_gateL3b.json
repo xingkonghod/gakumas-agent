@@ -1,0 +1,63 @@
+{
+ "opt_in": [
+  "AS-3G6FFZZT",
+  "AS-5XB2AEHN",
+  "AS-B38CARVV",
+  "AS-BD5EAA22",
+  "AS-DE36RWPS",
+  "AS-DEBX8BX7",
+  "AS-HTNFZWKG",
+  "AS-P8ZJTXNA",
+  "AS-QV6QCSN9",
+  "AS-VH8WYE6J",
+  "AS-VWAF2GDN"
+ ],
+ "distill": {
+  "overall_gated": {
+   "n": 32,
+   "mean_delta": 9362.1,
+   "ci95": [
+    -23795.53125,
+    46442.78125
+   ],
+   "pos": 11,
+   "neg": 11,
+   "zero": 10
+  },
+  "opt_in_only": {
+   "n": 22,
+   "mean_delta": 13617.6,
+   "ci95": [
+    -34325.90909090909,
+    67160.77272727272
+   ],
+   "pos": 11,
+   "neg": 11,
+   "zero": 0
+  }
+ },
+ "mech": {
+  "overall_gated": {
+   "n": 32,
+   "mean_delta": -21861.7,
+   "ci95": [
+    -54844.96875,
+    12947.28125
+   ],
+   "pos": 5,
+   "neg": 13,
+   "zero": 14
+  },
+  "opt_in_only": {
+   "n": 22,
+   "mean_delta": -31798.8,
+   "ci95": [
+    -76887.27272727272,
+    17778.0
+   ],
+   "pos": 5,
+   "neg": 13,
+   "zero": 4
+  }
+ }
+}

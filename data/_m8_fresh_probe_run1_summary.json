@@ -1,0 +1,123 @@
+{
+ "seed": 880001,
+ "discover": {
+  "ExamReview": [
+   {
+    "id": "p_card-02-ido-1_057",
+    "name": "初めての場所",
+    "value1": 6,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   },
+   {
+    "id": "p_card-02-ido-2_018",
+    "name": "Colorful Cute!",
+    "value1": 6,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   },
+   {
+    "id": "p_card-02-ido-3_022",
+    "name": "絡まる想い",
+    "value1": 8,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   },
+   {
+    "id": "p_card-02-men-0_035",
+    "name": "盛り上げの基本",
+    "value1": 4,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   },
+   {
+    "id": "p_card-02-men-1_035",
+    "name": "幸せのおまじない",
+    "value1": 7,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   },
+   {
+    "id": "p_card-02-men-2_050",
+    "name": "幸せな時間",
+    "value1": 6,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   },
+   {
+    "id": "p_card-02-sup-3_089",
+    "name": "お泊り猛勉強",
+    "value1": 5,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   }
+  ],
+  "ExamReviewMultiple": [],
+  "ExamLessonValueMultiple": [],
+  "ExamStaminaConsumptionDown": [],
+  "ExamCardPlayAggressive": [
+   {
+    "id": "p_card-02-ido-1_062",
+    "name": "初めての想い",
+    "value1": 4,
+    "turn": null,
+    "count": null,
+    "n_effects": 2
+   },
+   {
+    "id": "p_card-02-ido-3_069",
+    "name": "昼下がりのそよ風",
+    "value1": 7,
+    "turn": null,
+    "count": null,
+    "n_effects": 2
+   }
+  ],
+  "ExamLessonBuff": [
+   {
+    "id": "p_card-01-men-1_024",
+    "name": "バランス感覚",
+    "value1": 3,
+    "turn": null,
+    "count": null,
+    "n_effects": 1
+   }
+  ],
+  "StanceLock": []
+ },
+ "picked": {
+  "imp": {
+   "id": "p_card-02-ido-1_057",
+   "name": "初めての場所",
+   "value1": 6,
+   "turn": null,
+   "count": null,
+   "n_effects": 1
+  },
+  "revmult": null,
+  "scorebuff": null,
+  "halfcost": null,
+  "aggressive": {
+   "id": "p_card-02-ido-1_062",
+   "name": "初めての想い",
+   "value1": 4,
+   "turn": null,
+   "count": null,
+   "n_effects": 2
+  },
+  "cond": "p_card-01-men-2_110",
+  "lock": "p_card-03-men-2_079"
+ },
+ "g3_enchants": [
+  "enchant-p_item_effect_00-1-007-0-enc01",
+  "enchant-p_item_effect_00-2-012-0-enc01",
+  "enchant-p_item_effect_00-1-003-0-enc01"
+ ]
+}

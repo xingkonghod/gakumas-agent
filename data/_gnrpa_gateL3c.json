@@ -1,0 +1,95 @@
+{
+ "additive_mech": {
+  "overall": {
+   "n": 32,
+   "mean_delta": 8693.7,
+   "ci95": [
+    0.0,
+    22471.71875
+   ],
+   "pos": 3,
+   "neg": 0,
+   "zero": 29
+  },
+  "low": {
+   "n": 22,
+   "mean_delta": 12645.4,
+   "ci95": [
+    0.0,
+    32681.909090909092
+   ],
+   "pos": 3,
+   "neg": 0,
+   "zero": 19
+  },
+  "monster": {
+   "n": 10,
+   "mean_delta": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ],
+   "pos": 0,
+   "neg": 0,
+   "zero": 10
+  },
+  "mean_baseline": 2528357.7,
+  "mean_additive": 2537051.4,
+  "per_pair_pos": {
+   "AS-5XB2AEHN/1751756257": 93,
+   "AS-DE36RWPS/1431297520": 115313,
+   "AS-P8ZJTXNA/1124647124": 162792
+  }
+ },
+ "additive_distill": {
+  "overall": {
+   "n": 32,
+   "mean_delta": 36110.7,
+   "ci95": [
+    0.0,
+    103246.34375
+   ],
+   "pos": 3,
+   "neg": 0,
+   "zero": 29
+  },
+  "low": {
+   "n": 22,
+   "mean_delta": 7251.1,
+   "ci95": [
+    0.0,
+    21680.18181818182
+   ],
+   "pos": 2,
+   "neg": 0,
+   "zero": 20
+  },
+  "monster": {
+   "n": 10,
+   "mean_delta": 99601.7,
+   "ci95": [
+    0.0,
+    298805.1
+   ],
+   "pos": 1,
+   "neg": 0,
+   "zero": 9
+  },
+  "mean_baseline": 2528357.7,
+  "mean_additive": 2564468.3,
+  "per_pair_pos": {
+   "AS-5KZSXANK/661272730": 996017,
+   "AS-5XB2AEHN/1751756257": 1608,
+   "AS-DE36RWPS/1431297520": 157916
+  }
+ },
+ "status_nonzero": {
+  "mech_3": [
+   "AS-AXME8QK2/1409380188(s2,exp5231)"
+  ],
+  "distill_3": [
+   "AS-AXME8QK2/1409380188(s2,exp975379)",
+   "AS-WDKWQYW5/3601220(s2,exp282115)"
+  ]
+ }
+}

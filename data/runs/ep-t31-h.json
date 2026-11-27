@@ -1,0 +1,136 @@
+{
+  "episode": "ep-t31-h",
+  "started_at": "2026-11-24 22:12:25",
+  "weeks": [
+    {
+      "week": 7,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": [
+        350,
+        224,
+        387
+      ],
+      "stamina": 10
+    },
+    {
+      "week": 7,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": [
+        350,
+        224,
+        387
+      ],
+      "stamina": 17
+    },
+    {
+      "week": 7,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        350,
+        224,
+        507
+      ],
+      "stamina": 19
+    },
+    {
+      "week": 10,
+      "action": "lesson",
+      "lesson_score": null,
+      "attrs_after": [
+        350,
+        224,
+        539
+      ],
+      "stamina": 19,
+      "note": "lesson_score 未读到（未用属性增量推算）"
+    }
+  ],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": 1,
+      "score": 900,
+      "others": [
+        900,
+        488,
+        346,
+        188,
+        165
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  },
+  "events": [
+    {
+      "seq": 0,
+      "kind": "exam",
+      "exam_kind": "mid",
+      "rank": 1,
+      "score": 900,
+      "others": [
+        900,
+        488,
+        346,
+        188,
+        165
+      ]
+    },
+    {
+      "seq": 1,
+      "kind": "action",
+      "week": 7,
+      "action": "outing",
+      "attrs_after": [
+        350,
+        224,
+        387
+      ],
+      "stamina": 10
+    },
+    {
+      "seq": 2,
+      "kind": "action",
+      "week": 7,
+      "action": "outing",
+      "attrs_after": [
+        350,
+        224,
+        387
+      ],
+      "stamina": 17
+    },
+    {
+      "seq": 3,
+      "kind": "action",
+      "week": 7,
+      "action": "train",
+      "attrs_after": [
+        350,
+        224,
+        507
+      ],
+      "stamina": 19
+    },
+    {
+      "seq": 4,
+      "kind": "action",
+      "week": 10,
+      "action": "lesson",
+      "attrs_after": [
+        350,
+        224,
+        539
+      ],
+      "stamina": 19
+    }
+  ]
+}

@@ -1,0 +1,482 @@
+{
+ "seed": 880021,
+ "target": "p_card-00-sup-3_024",
+ "games": [
+  {
+   "tag": "G1_plan1_small",
+   "plan": 1,
+   "deck_n": 5,
+   "target_rows": [
+    {
+     "tag": "G1_plan1_small",
+     "i": 0,
+     "turn": 1,
+     "action": [
+      "play",
+      0
+     ],
+     "is_target": true,
+     "rng_before": 4069223193,
+     "rng_after": 1080734922,
+     "cons": 20,
+     "before": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [],
+      "hold": []
+     },
+     "after": {
+      "hand": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-men-2_012"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "gen": [
+      "p_card-00-men-2_012"
+     ],
+     "gen_upg": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "G2_plan1_large",
+   "plan": 1,
+   "deck_n": 20,
+   "target_rows": [
+    {
+     "tag": "G2_plan1_large",
+     "i": 0,
+     "turn": 1,
+     "action": [
+      "play",
+      0
+     ],
+     "is_target": true,
+     "rng_before": 2167372649,
+     "rng_after": 245934076,
+     "cons": 20,
+     "before": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [],
+      "hold": []
+     },
+     "after": {
+      "hand": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-men-3_005"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "gen": [
+      "p_card-00-men-3_005"
+     ],
+     "gen_upg": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "G3_plan0_small",
+   "plan": 0,
+   "deck_n": 5,
+   "target_rows": [
+    {
+     "tag": "G3_plan0_small",
+     "i": 0,
+     "turn": 1,
+     "action": [
+      "play",
+      0
+     ],
+     "is_target": true,
+     "rng_before": 4069223193,
+     "rng_after": 1080734922,
+     "cons": 20,
+     "before": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [],
+      "hold": []
+     },
+     "after": {
+      "hand": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-men-2_012"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "gen": [
+      "p_card-00-men-2_012"
+     ],
+     "gen_upg": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "G4_plan2_small",
+   "plan": 2,
+   "deck_n": 5,
+   "target_rows": [
+    {
+     "tag": "G4_plan2_small",
+     "i": 0,
+     "turn": 1,
+     "action": [
+      "play",
+      0
+     ],
+     "is_target": true,
+     "rng_before": 4069223193,
+     "rng_after": 129262287,
+     "cons": 132,
+     "before": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [],
+      "hold": []
+     },
+     "after": {
+      "hand": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-01-men-1_034"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "gen": [
+      "p_card-01-men-1_034"
+     ],
+     "gen_upg": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "G5_plan1_owned",
+   "plan": 1,
+   "deck_n": 21,
+   "target_rows": [
+    {
+     "tag": "G5_plan1_owned",
+     "i": 0,
+     "turn": 1,
+     "action": [
+      "play",
+      0
+     ],
+     "is_target": true,
+     "rng_before": 2786059592,
+     "rng_after": 1353871415,
+     "cons": 20,
+     "before": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "deck": [
+       "p_card-00-men-1_005",
+       "p_card-01-act-2_061",
+       "p_card-00-act-2_009",
+       "p_card-00-men-1_007",
+       "p_card-01-act-2_061",
+       "p_card-01-act-2_061",
+       "p_card-00-men-3_003",
+       "p_card-00-act-2_009",
+       "p_card-01-act-2_032",
+       "p_card-00-men-3_003",
+       "p_card-01-act-2_032",
+       "p_card-01-act-2_032",
+       "p_card-00-men-1_007",
+       "p_card-00-men-1_005",
+       "p_card-00-men-1_007",
+       "p_card-00-act-2_009",
+       "p_card-00-men-1_005",
+       "p_card-00-men-3_003"
+      ],
+      "grave": [],
+      "lost": [],
+      "hold": []
+     },
+     "after": {
+      "hand": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-men-3_003"
+      ],
+      "deck": [
+       "p_card-00-men-1_005",
+       "p_card-01-act-2_061",
+       "p_card-00-act-2_009",
+       "p_card-00-men-1_007",
+       "p_card-01-act-2_061",
+       "p_card-01-act-2_061",
+       "p_card-00-men-3_003",
+       "p_card-00-act-2_009",
+       "p_card-01-act-2_032",
+       "p_card-00-men-3_003",
+       "p_card-01-act-2_032",
+       "p_card-01-act-2_032",
+       "p_card-00-men-1_007",
+       "p_card-00-men-1_005",
+       "p_card-00-men-1_007",
+       "p_card-00-act-2_009",
+       "p_card-00-men-1_005",
+       "p_card-00-men-3_003"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "gen": [
+      "p_card-00-men-3_003"
+     ],
+     "gen_upg": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "tag": "G6_plan1_twoplay",
+   "plan": 1,
+   "deck_n": 8,
+   "target_rows": [
+    {
+     "tag": "G6_plan1_twoplay",
+     "i": 0,
+     "turn": 1,
+     "action": [
+      "play",
+      0
+     ],
+     "is_target": true,
+     "rng_before": 2205471773,
+     "rng_after": 3710583703,
+     "cons": 20,
+     "before": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [],
+      "hold": []
+     },
+     "after": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001",
+       "p_card-00-men-1_007"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "gen": [
+      "p_card-00-men-1_007"
+     ],
+     "gen_upg": [
+      0,
+      0,
+      1
+     ]
+    },
+    {
+     "tag": "G6_plan1_twoplay",
+     "i": 1,
+     "turn": 1,
+     "action": [
+      "play",
+      0
+     ],
+     "is_target": true,
+     "rng_before": 3710583703,
+     "rng_after": 3807892838,
+     "cons": 20,
+     "before": {
+      "hand": [
+       "p_card-00-sup-3_024",
+       "p_card-00-act-0_001",
+       "p_card-00-men-1_007"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "after": {
+      "hand": [
+       "p_card-00-act-0_001",
+       "p_card-00-men-1_007",
+       "p_card-00-men-2_012"
+      ],
+      "deck": [
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001",
+       "p_card-00-act-0_001"
+      ],
+      "grave": [],
+      "lost": [
+       "p_card-00-sup-3_024",
+       "p_card-00-sup-3_024"
+      ],
+      "hold": []
+     },
+     "gen": [
+      "p_card-00-men-2_012"
+     ],
+     "gen_upg": [
+      0,
+      1,
+      1
+     ]
+    }
+   ]
+  }
+ ]
+}

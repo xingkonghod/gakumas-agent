@@ -1,0 +1,1359 @@
+﻿.venv\Scripts\python.exe : [uinet] 冷启动 374.8 ms（主数据 + ONNX 会话 + 首次推理）
+At line:1 char:160
++ ... NG='utf-8'; .venv\Scripts\python.exe scripts\local_bench.py --problem ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([uinet] 冷启动 374...ONNX 会话 + 首次推理）:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  AS-C3Y5EFGV seed=1000 greedy: score=34944 steps=35 0.00s
+  AS-C3Y5EFGV seed=1000 uinet: score=28228 steps=35 0.49s
+  AS-C3Y5EFGV seed=1001 greedy: score=15393 steps=32 0.00s
+  AS-C3Y5EFGV seed=1001 uinet: score=14388 steps=33 0.46s
+  AS-C3Y5EFGV seed=1002 greedy: score=8427 steps=32 0.00s
+  AS-C3Y5EFGV seed=1002 uinet: score=35456 steps=36 0.50s
+[AS-C3Y5EFGV] main 完成
+  AS-D34KGR3N seed=1000 greedy: score=53066 steps=49 0.00s
+  AS-D34KGR3N seed=1000 uinet: score=24146 steps=47 0.64s
+  AS-D34KGR3N seed=1001 greedy: score=82523 steps=45 0.00s
+  AS-D34KGR3N seed=1001 uinet: score=36730 steps=46 0.81s
+  AS-D34KGR3N seed=1002 greedy: score=82244 steps=52 0.00s
+  AS-D34KGR3N seed=1002 uinet: score=22726 steps=48 0.86s
+[AS-D34KGR3N] main 完成
+  AS-GEAQANXF seed=1000 greedy: score=44351 steps=33 0.00s
+  AS-GEAQANXF seed=1000 uinet: score=53821 steps=38 0.68s
+  AS-GEAQANXF seed=1001 greedy: score=61169 steps=38 0.00s
+  AS-GEAQANXF seed=1001 uinet: score=67253 steps=38 0.66s
+  AS-GEAQANXF seed=1002 greedy: score=54769 steps=39 0.00s
+  AS-GEAQANXF seed=1002 uinet: score=42338 steps=38 0.61s
+[AS-GEAQANXF] main 完成
+  AS-8QSPBV48 seed=1000 greedy: score=102841 steps=47 0.00s
+  AS-8QSPBV48 seed=1000 uinet: score=65327 steps=48 0.94s
+  AS-8QSPBV48 seed=1001 greedy: score=111735 steps=52 0.00s
+  AS-8QSPBV48 seed=1001 uinet: score=89212 steps=51 0.85s
+  AS-8QSPBV48 seed=1002 greedy: score=131649 steps=48 0.00s
+  AS-8QSPBV48 seed=1002 uinet: score=84192 steps=46 0.88s
+[AS-8QSPBV48] main 完成
+  AS-499M4D9B seed=1000 greedy: score=10435 steps=37 0.00s
+  AS-499M4D9B seed=1000 uinet: score=17242 steps=40 0.57s
+  AS-499M4D9B seed=1001 greedy: score=17828 steps=42 0.00s
+  AS-499M4D9B seed=1001 uinet: score=13981 steps=43 0.64s
+  AS-499M4D9B seed=1002 greedy: score=12746 steps=39 0.00s
+  AS-499M4D9B seed=1002 uinet: score=14676 steps=41 0.66s
+[AS-499M4D9B] selection 完成
+  AS-FS37PVF9 seed=1000 greedy: score=48858 steps=51 0.00s
+  AS-FS37PVF9 seed=1000 uinet: score=48464 steps=51 0.81s
+  AS-FS37PVF9 seed=1001 greedy: score=60029 steps=54 0.00s
+  AS-FS37PVF9 seed=1001 uinet: score=43012 steps=44 0.74s
+  AS-FS37PVF9 seed=1002 greedy: score=77957 steps=51 0.00s
+  AS-FS37PVF9 seed=1002 uinet: score=52573 steps=52 0.90s
+[AS-FS37PVF9] selection 完成
+  AS-8CCJHK74 seed=1000 greedy: score=49636 steps=48 0.00s
+  AS-8CCJHK74 seed=1000 uinet: score=25331 steps=41 0.72s
+  AS-8CCJHK74 seed=1001 greedy: score=68317 steps=48 0.00s
+  AS-8CCJHK74 seed=1001 uinet: score=49904 steps=41 0.70s
+  AS-8CCJHK74 seed=1002 greedy: score=33277 steps=47 0.00s
+  AS-8CCJHK74 seed=1002 uinet: score=38111 steps=42 0.72s
+[AS-8CCJHK74] selection 完成
+  AS-VCCRY333 seed=1000 greedy: score=54420 steps=46 0.00s
+  AS-VCCRY333 seed=1000 uinet: score=84226 steps=46 0.87s
+  AS-VCCRY333 seed=1001 greedy: score=32236 steps=47 0.00s
+  AS-VCCRY333 seed=1001 uinet: score=37225 steps=43 0.82s
+  AS-VCCRY333 seed=1002 greedy: score=59907 steps=47 0.00s
+  AS-VCCRY333 seed=1002 uinet: score=70696 steps=44 0.79s
+[AS-VCCRY333] main 完成
+  AS-33JYSHDF seed=1000 greedy: score=75010 steps=45 0.00s
+  AS-33JYSHDF seed=1000 uinet: score=99025 steps=52 0.91s
+  AS-33JYSHDF seed=1001 greedy: score=41073 steps=47 0.00s
+  AS-33JYSHDF seed=1001 uinet: score=75840 steps=47 0.81s
+  AS-33JYSHDF seed=1002 greedy: score=90449 steps=48 0.00s
+  AS-33JYSHDF seed=1002 uinet: score=107609 steps=47 0.83s
+[AS-33JYSHDF] main 完成
+  AS-N7X62HPS seed=1000 greedy: score=101296 steps=47 0.00s
+  AS-N7X62HPS seed=1000 uinet: score=117398 steps=46 0.75s
+  AS-N7X62HPS seed=1001 greedy: score=122618 steps=47 0.00s
+  AS-N7X62HPS seed=1001 uinet: score=149970 steps=47 0.81s
+  AS-N7X62HPS seed=1002 greedy: score=162371 steps=48 0.01s
+  AS-N7X62HPS seed=1002 uinet: score=125518 steps=45 0.85s
+[AS-N7X62HPS] main 完成
+  AS-R8ES22AB seed=1000 greedy: score=45326 steps=38 0.01s
+  AS-R8ES22AB seed=1000 uinet: score=34879 steps=43 0.77s
+  AS-R8ES22AB seed=1001 greedy: score=53261 steps=40 0.00s
+  AS-R8ES22AB seed=1001 uinet: score=45384 steps=42 0.72s
+  AS-R8ES22AB seed=1002 greedy: score=45471 steps=40 0.00s
+  AS-R8ES22AB seed=1002 uinet: score=51071 steps=41 0.68s
+[AS-R8ES22AB] main 完成
+  AS-GN79HT4K seed=1000 greedy: score=63969 steps=51 0.00s
+  AS-GN79HT4K seed=1000 uinet: score=34788 steps=47 0.85s
+  AS-GN79HT4K seed=1001 greedy: score=88878 steps=51 0.00s
+  AS-GN79HT4K seed=1001 uinet: score=72671 steps=51 0.87s
+  AS-GN79HT4K seed=1002 greedy: score=114420 steps=53 0.00s
+  AS-GN79HT4K seed=1002 uinet: score=106961 steps=48 0.89s
+[AS-GN79HT4K] main 完成
+  AS-EV8XMEV5 seed=1000 greedy: score=5018 steps=31 0.00s
+  AS-EV8XMEV5 seed=1000 uinet: score=3120 steps=30 0.57s
+  AS-EV8XMEV5 seed=1001 greedy: score=16964 steps=32 0.00s
+  AS-EV8XMEV5 seed=1001 uinet: score=6302 steps=35 0.61s
+  AS-EV8XMEV5 seed=1002 greedy: score=7103 steps=35 0.00s
+  AS-EV8XMEV5 seed=1002 uinet: score=9890 steps=38 0.68s
+[AS-EV8XMEV5] main 完成
+  AS-6SBAY9F5 seed=1000 greedy: score=22068 steps=50 0.00s
+  AS-6SBAY9F5 seed=1000 uinet: score=19443 steps=48 0.85s
+  AS-6SBAY9F5 seed=1001 greedy: score=49750 steps=48 0.00s
+  AS-6SBAY9F5 seed=1001 uinet: score=34811 steps=45 0.82s
+  AS-6SBAY9F5 seed=1002 greedy: score=21194 steps=48 0.00s
+  AS-6SBAY9F5 seed=1002 uinet: score=19824 steps=48 0.98s
+[AS-6SBAY9F5] main 完成
+  AS-QR28VRSG seed=1000 greedy: score=41914 steps=36 0.00s
+  AS-QR28VRSG seed=1000 uinet: score=21543 steps=30 0.53s
+  AS-QR28VRSG seed=1001 greedy: score=45872 steps=36 0.00s
+  AS-QR28VRSG seed=1001 uinet: score=42939 steps=36 0.59s
+  AS-QR28VRSG seed=1002 greedy: score=64914 steps=35 0.00s
+  AS-QR28VRSG seed=1002 uinet: score=58364 steps=36 0.63s
+[AS-QR28VRSG] main 完成
+  AS-F5G5KVPN seed=1000 greedy: score=45767 steps=47 0.00s
+  AS-F5G5KVPN seed=1000 uinet: score=66414 steps=46 0.80s
+  AS-F5G5KVPN seed=1001 greedy: score=66879 steps=43 0.00s
+  AS-F5G5KVPN seed=1001 uinet: score=151446 steps=46 0.80s
+  AS-F5G5KVPN seed=1002 greedy: score=68752 steps=50 0.00s
+  AS-F5G5KVPN seed=1002 uinet: score=72309 steps=43 0.78s
+[AS-F5G5KVPN] main 完成
+  AS-KVGXV26D seed=1000 greedy: score=57137 steps=49 0.00s
+  AS-KVGXV26D seed=1000 uinet: score=26554 steps=48 0.87s
+  AS-KVGXV26D seed=1001 greedy: score=56552 steps=51 0.00s
+  AS-KVGXV26D seed=1001 uinet: score=39783 steps=47 0.87s
+  AS-KVGXV26D seed=1002 greedy: score=56172 steps=50 0.00s
+  AS-KVGXV26D seed=1002 uinet: score=32972 steps=46 0.78s
+[AS-KVGXV26D] main 完成
+  AS-Q7C672CX seed=1000 greedy: score=36639 steps=47 0.00s
+  AS-Q7C672CX seed=1000 uinet: score=40683 steps=46 0.79s
+  AS-Q7C672CX seed=1001 greedy: score=45792 steps=49 0.00s
+  AS-Q7C672CX seed=1001 uinet: score=31734 steps=51 0.94s
+  AS-Q7C672CX seed=1002 greedy: score=74051 steps=52 0.00s
+  AS-Q7C672CX seed=1002 uinet: score=51565 steps=49 0.92s
+[AS-Q7C672CX] main 完成
+  AS-QEZVB549 seed=1000 greedy: score=55508 steps=63 0.00s
+  AS-QEZVB549 seed=1000 uinet: score=78377 steps=63 1.15s
+  AS-QEZVB549 seed=1001 greedy: score=110579 steps=69 0.00s
+  AS-QEZVB549 seed=1001 uinet: score=53365 steps=59 1.06s
+  AS-QEZVB549 seed=1002 greedy: score=168964 steps=77 0.00s
+  AS-QEZVB549 seed=1002 uinet: score=46457 steps=63 1.15s
+[AS-QEZVB549] main 完成
+  AS-8T52P83V seed=1000 greedy: score=126827 steps=66 0.00s
+  AS-8T52P83V seed=1000 uinet: score=95240 steps=60 1.08s
+  AS-8T52P83V seed=1001 greedy: score=125996 steps=67 0.00s
+  AS-8T52P83V seed=1001 uinet: score=60756 steps=58 0.99s
+  AS-8T52P83V seed=1002 greedy: score=126013 steps=66 0.00s
+  AS-8T52P83V seed=1002 uinet: score=126892 steps=61 1.04s
+[AS-8T52P83V] main 完成
+  AS-XKTM6X5Y seed=1000 greedy: score=46096 steps=41 0.00s
+  AS-XKTM6X5Y seed=1000 uinet: score=52784 steps=39 0.64s
+  AS-XKTM6X5Y seed=1001 greedy: score=82837 steps=42 0.00s
+  AS-XKTM6X5Y seed=1001 uinet: score=76293 steps=43 0.73s
+  AS-XKTM6X5Y seed=1002 greedy: score=32637 steps=37 0.00s
+  AS-XKTM6X5Y seed=1002 uinet: score=48095 steps=38 0.66s
+[AS-XKTM6X5Y] main 完成
+  AS-XFFDN56Q seed=1000 greedy: score=147317 steps=50 0.00s
+  AS-XFFDN56Q seed=1000 uinet: score=141449 steps=53 0.94s
+  AS-XFFDN56Q seed=1001 greedy: score=88688 steps=52 0.00s
+  AS-XFFDN56Q seed=1001 uinet: score=104832 steps=56 0.96s
+  AS-XFFDN56Q seed=1002 greedy: score=149757 steps=52 0.01s
+  AS-XFFDN56Q seed=1002 uinet: score=118661 steps=49 0.83s
+[AS-XFFDN56Q] main 完成
+  AS-JYZAYDZF seed=1000 greedy: score=27 steps=34 0.00s
+  AS-JYZAYDZF seed=1000 uinet: score=21 steps=34 0.61s
+  AS-JYZAYDZF seed=1001 greedy: score=11 steps=32 0.00s
+  AS-JYZAYDZF seed=1001 uinet: score=39 steps=31 0.57s
+  AS-JYZAYDZF seed=1002 greedy: score=10 steps=38 0.00s
+  AS-JYZAYDZF seed=1002 uinet: score=38 steps=39 0.73s
+[AS-JYZAYDZF] main 完成
+  AS-6Z49P454 seed=1000 greedy: score=12 steps=38 0.00s
+  AS-6Z49P454 seed=1000 uinet: score=24 steps=45 0.73s
+  AS-6Z49P454 seed=1001 greedy: score=20 steps=35 0.00s
+  AS-6Z49P454 seed=1001 uinet: score=10 steps=30 0.52s
+  AS-6Z49P454 seed=1002 greedy: score=25 steps=35 0.00s
+  AS-6Z49P454 seed=1002 uinet: score=8 steps=29 0.50s
+[AS-6Z49P454] main 完成
+  AS-QW64NVTH seed=1000 greedy: score=81 steps=45 0.00s
+  AS-QW64NVTH seed=1000 uinet: score=25 steps=48 0.85s
+  AS-QW64NVTH seed=1001 greedy: score=51 steps=32 0.00s
+  AS-QW64NVTH seed=1001 uinet: score=16 steps=36 0.66s
+  AS-QW64NVTH seed=1002 greedy: score=15 steps=28 0.00s
+  AS-QW64NVTH seed=1002 uinet: score=6 steps=25 0.42s
+[AS-QW64NVTH] main 完成
+  AS-H4DSAJZK seed=1000 greedy: score=28 steps=37 0.00s
+  AS-H4DSAJZK seed=1000 uinet: score=40 steps=49 0.87s
+  AS-H4DSAJZK seed=1001 greedy: score=26 steps=35 0.00s
+  AS-H4DSAJZK seed=1001 uinet: score=40 steps=47 0.83s
+  AS-H4DSAJZK seed=1002 greedy: score=21 steps=49 0.00s
+  AS-H4DSAJZK seed=1002 uinet: score=8 steps=34 0.67s
+[AS-H4DSAJZK] main 完成
+  AS-G9JK36BF seed=1000 greedy: score=67 steps=36 0.00s
+  AS-G9JK36BF seed=1000 uinet: score=34 steps=35 0.65s
+  AS-G9JK36BF seed=1001 greedy: score=34 steps=22 0.00s
+  AS-G9JK36BF seed=1001 uinet: score=20 steps=26 0.47s
+  AS-G9JK36BF seed=1002 greedy: score=109 steps=38 0.00s
+  AS-G9JK36BF seed=1002 uinet: score=48 steps=26 0.48s
+[AS-G9JK36BF] main 完成
+  AS-89PBEPVM seed=1000 greedy: score=74 steps=56 0.00s
+  AS-89PBEPVM seed=1000 uinet: score=0 steps=43 0.83s
+  AS-89PBEPVM seed=1001 greedy: score=20 steps=38 0.00s
+  AS-89PBEPVM seed=1001 uinet: score=32 steps=37 0.72s
+  AS-89PBEPVM seed=1002 greedy: score=69 steps=47 0.00s
+  AS-89PBEPVM seed=1002 uinet: score=111 steps=33 0.60s
+[AS-89PBEPVM] main 完成
+  AS-MMQJH47C seed=1000 greedy: score=183 steps=41 0.00s
+  AS-MMQJH47C seed=1000 uinet: score=363 steps=42 0.79s
+  AS-MMQJH47C seed=1001 greedy: score=280 steps=43 0.00s
+  AS-MMQJH47C seed=1001 uinet: score=289 steps=42 0.70s
+  AS-MMQJH47C seed=1002 greedy: score=148 steps=32 0.00s
+  AS-MMQJH47C seed=1002 uinet: score=92 steps=33 0.54s
+[AS-MMQJH47C] main 完成
+  AS-535T9Y3P seed=1000 greedy: score=137 steps=29 0.00s
+  AS-535T9Y3P seed=1000 uinet: score=165 steps=45 0.77s
+  AS-535T9Y3P seed=1001 greedy: score=645 steps=41 0.00s
+  AS-535T9Y3P seed=1001 uinet: score=165 steps=34 0.56s
+  AS-535T9Y3P seed=1002 greedy: score=614 steps=38 0.00s
+  AS-535T9Y3P seed=1002 uinet: score=237 steps=39 0.64s
+[AS-535T9Y3P] main 完成
+  AS-4JS37VD8 seed=1000 greedy: score=233 steps=47 0.00s
+  AS-4JS37VD8 seed=1000 uinet: score=188 steps=63 1.23s
+  AS-4JS37VD8 seed=1001 greedy: score=337 steps=50 0.00s
+  AS-4JS37VD8 seed=1001 uinet: score=154 steps=47 0.86s
+  AS-4JS37VD8 seed=1002 greedy: score=594 steps=45 0.00s
+  AS-4JS37VD8 seed=1002 uinet: score=430 steps=49 0.83s
+[AS-4JS37VD8] main 完成
+  AS-RJHVF76J seed=1000 greedy: score=452 steps=50 0.00s
+  AS-RJHVF76J seed=1000 uinet: score=259 steps=57 1.02s
+  AS-RJHVF76J seed=1001 greedy: score=256 steps=39 0.00s
+  AS-RJHVF76J seed=1001 uinet: score=370 steps=57 1.05s
+  AS-RJHVF76J seed=1002 greedy: score=681 steps=51 0.00s
+  AS-RJHVF76J seed=1002 uinet: score=146 steps=37 0.63s
+[AS-RJHVF76J] main 完成
+  AS-9QBCBGEY seed=1000 greedy: score=733 steps=47 0.00s
+  AS-9QBCBGEY seed=1000 uinet: score=152 steps=40 0.67s
+  AS-9QBCBGEY seed=1001 greedy: score=584 steps=49 0.00s
+  AS-9QBCBGEY seed=1001 uinet: score=353 steps=45 0.74s
+  AS-9QBCBGEY seed=1002 greedy: score=283 steps=44 0.00s
+  AS-9QBCBGEY seed=1002 uinet: score=356 steps=46 0.81s
+[AS-9QBCBGEY] main 完成
+  AS-DQKWJBHF seed=1000 greedy: score=397 steps=48 0.00s
+  AS-DQKWJBHF seed=1000 uinet: score=215 steps=50 0.87s
+  AS-DQKWJBHF seed=1001 greedy: score=458 steps=67 0.00s
+  AS-DQKWJBHF seed=1001 uinet: score=96 steps=51 0.85s
+  AS-DQKWJBHF seed=1002 greedy: score=692 steps=64 0.00s
+  AS-DQKWJBHF seed=1002 uinet: score=131 steps=62 1.03s
+[AS-DQKWJBHF] main 完成
+  AS-JMYV3PZV seed=1000 greedy: score=522 steps=35 0.00s
+  AS-JMYV3PZV seed=1000 uinet: score=386 steps=37 0.63s
+  AS-JMYV3PZV seed=1001 greedy: score=332 steps=35 0.00s
+  AS-JMYV3PZV seed=1001 uinet: score=298 steps=36 0.55s
+  AS-JMYV3PZV seed=1002 greedy: score=650 steps=37 0.00s
+  AS-JMYV3PZV seed=1002 uinet: score=277 steps=37 0.60s
+[AS-JMYV3PZV] main 完成
+  AS-S2QAF4DZ seed=1000 greedy: score=143 steps=39 0.00s
+  AS-S2QAF4DZ seed=1000 uinet: score=152 steps=47 0.79s
+  AS-S2QAF4DZ seed=1001 greedy: score=609 steps=44 0.00s
+  AS-S2QAF4DZ seed=1001 uinet: score=266 steps=45 0.69s
+  AS-S2QAF4DZ seed=1002 greedy: score=226 steps=48 0.00s
+  AS-S2QAF4DZ seed=1002 uinet: score=276 steps=43 0.65s
+[AS-S2QAF4DZ] main 完成
+  AS-326RMJEV seed=1000 greedy: score=154 steps=29 0.00s
+  AS-326RMJEV seed=1000 uinet: score=228 steps=44 0.71s
+  AS-326RMJEV seed=1001 greedy: score=343 steps=52 0.00s
+  AS-326RMJEV seed=1001 uinet: score=116 steps=42 0.67s
+  AS-326RMJEV seed=1002 greedy: score=213 steps=38 0.00s
+  AS-326RMJEV seed=1002 uinet: score=102 steps=53 0.90s
+[AS-326RMJEV] main 完成
+  AS-C9DKPJY4 seed=1000 greedy: score=569 steps=60 0.00s
+  AS-C9DKPJY4 seed=1000 uinet: score=124 steps=60 0.99s
+  AS-C9DKPJY4 seed=1001 greedy: score=227 steps=63 0.00s
+  AS-C9DKPJY4 seed=1001 uinet: score=129 steps=58 1.06s
+  AS-C9DKPJY4 seed=1002 greedy: score=137 steps=48 0.00s
+  AS-C9DKPJY4 seed=1002 uinet: score=203 steps=61 1.08s
+[AS-C9DKPJY4] main 完成
+  AS-9QQH3R7N seed=1000 greedy: score=250 steps=46 0.00s
+  AS-9QQH3R7N seed=1000 uinet: score=65 steps=28 0.51s
+  AS-9QQH3R7N seed=1001 greedy: score=280 steps=36 0.00s
+  AS-9QQH3R7N seed=1001 uinet: score=121 steps=30 0.55s
+  AS-9QQH3R7N seed=1002 greedy: score=116 steps=37 0.00s
+  AS-9QQH3R7N seed=1002 uinet: score=153 steps=40 0.79s
+[AS-9QQH3R7N] main 完成
+  AS-EPQKHVYY seed=1000 greedy: score=223 steps=43 0.00s
+  AS-EPQKHVYY seed=1000 uinet: score=95 steps=48 1.02s
+  AS-EPQKHVYY seed=1001 greedy: score=273 steps=43 0.00s
+  AS-EPQKHVYY seed=1001 uinet: score=160 steps=60 1.12s
+  AS-EPQKHVYY seed=1002 greedy: score=80 steps=38 0.00s
+  AS-EPQKHVYY seed=1002 uinet: score=70 steps=41 0.70s
+[AS-EPQKHVYY] main 完成
+  AS-ACRGS75W seed=1000 greedy: score=14397 steps=38 0.00s
+  AS-ACRGS75W seed=1000 uinet: score=13977 steps=40 0.60s
+  AS-ACRGS75W seed=1001 greedy: score=4033 steps=34 0.00s
+  AS-ACRGS75W seed=1001 uinet: score=3503 steps=36 0.60s
+  AS-ACRGS75W seed=1002 greedy: score=35700 steps=44 0.00s
+  AS-ACRGS75W seed=1002 uinet: score=9031 steps=40 0.63s
+[AS-ACRGS75W] main 完成
+  AS-PGDM9FQH seed=1000 greedy: score=66951 steps=48 0.00s
+  AS-PGDM9FQH seed=1000 uinet: score=56864 steps=50 0.84s
+  AS-PGDM9FQH seed=1001 greedy: score=70034 steps=48 0.00s
+  AS-PGDM9FQH seed=1001 uinet: score=156388 steps=50 0.86s
+  AS-PGDM9FQH seed=1002 greedy: score=62741 steps=47 0.00s
+  AS-PGDM9FQH seed=1002 uinet: score=84435 steps=47 0.81s
+[AS-PGDM9FQH] main 完成
+  AS-X3STKRHK seed=1000 greedy: score=23944 steps=37 0.00s
+  AS-X3STKRHK seed=1000 uinet: score=1581 steps=38 0.72s
+  AS-X3STKRHK seed=1001 greedy: score=8986 steps=39 0.00s
+  AS-X3STKRHK seed=1001 uinet: score=37305 steps=37 0.72s
+  AS-X3STKRHK seed=1002 greedy: score=7838 steps=36 0.00s
+  AS-X3STKRHK seed=1002 uinet: score=3691 steps=35 0.73s
+[AS-X3STKRHK] main 完成
+  AS-WYV7QXHQ seed=1000 greedy: score=36357 steps=50 0.00s
+  AS-WYV7QXHQ seed=1000 uinet: score=85581 steps=48 0.94s
+  AS-WYV7QXHQ seed=1001 greedy: score=68861 steps=49 0.00s
+  AS-WYV7QXHQ seed=1001 uinet: score=53951 steps=47 0.92s
+  AS-WYV7QXHQ seed=1002 greedy: score=69492 steps=51 0.00s
+  AS-WYV7QXHQ seed=1002 uinet: score=100407 steps=48 0.97s
+[AS-WYV7QXHQ] main 完成
+  AS-AE7YXWBD seed=1000 greedy: score=7081 steps=38 0.00s
+  AS-AE7YXWBD seed=1000 uinet: score=10661 steps=35 0.71s
+  AS-AE7YXWBD seed=1001 greedy: score=15485 steps=34 0.00s
+  AS-AE7YXWBD seed=1001 uinet: score=11103 steps=34 0.68s
+  AS-AE7YXWBD seed=1002 greedy: score=16693 steps=34 0.00s
+  AS-AE7YXWBD seed=1002 uinet: score=13870 steps=35 0.72s
+[AS-AE7YXWBD] main 完成
+  AS-XE9RH2AX seed=1000 greedy: score=43996 steps=51 0.00s
+  AS-XE9RH2AX seed=1000 uinet: score=23056 steps=47 0.98s
+  AS-XE9RH2AX seed=1001 greedy: score=63761 steps=48 0.00s
+  AS-XE9RH2AX seed=1001 uinet: score=59227 steps=45 0.95s
+  AS-XE9RH2AX seed=1002 greedy: score=46243 steps=51 0.00s
+  AS-XE9RH2AX seed=1002 uinet: score=101167 steps=47 1.00s
+[AS-XE9RH2AX] main 完成
+  AS-MYVCHP48 seed=1000 greedy: score=14516 steps=38 0.00s
+  AS-MYVCHP48 seed=1000 uinet: score=8836 steps=35 0.71s
+  AS-MYVCHP48 seed=1001 greedy: score=16878 steps=32 0.00s
+  AS-MYVCHP48 seed=1001 uinet: score=13399 steps=33 0.74s
+  AS-MYVCHP48 seed=1002 greedy: score=4328 steps=34 0.00s
+  AS-MYVCHP48 seed=1002 uinet: score=5545 steps=35 0.74s
+[AS-MYVCHP48] main 完成
+  AS-MBQP4ZT7 seed=1000 greedy: score=50890 steps=51 0.00s
+  AS-MBQP4ZT7 seed=1000 uinet: score=14984 steps=48 1.19s
+  AS-MBQP4ZT7 seed=1001 greedy: score=70825 steps=47 0.00s
+  AS-MBQP4ZT7 seed=1001 uinet: score=37613 steps=45 0.96s
+  AS-MBQP4ZT7 seed=1002 greedy: score=50749 steps=47 0.00s
+  AS-MBQP4ZT7 seed=1002 uinet: score=62447 steps=48 0.97s
+[AS-MBQP4ZT7] main 完成
+  AS-EZD5TTEJ seed=1000 greedy: score=34944 steps=35 0.00s
+  AS-EZD5TTEJ seed=1000 uinet: score=28228 steps=35 0.68s
+  AS-EZD5TTEJ seed=1001 greedy: score=15393 steps=32 0.00s
+  AS-EZD5TTEJ seed=1001 uinet: score=14388 steps=33 0.59s
+  AS-EZD5TTEJ seed=1002 greedy: score=8427 steps=32 0.00s
+  AS-EZD5TTEJ seed=1002 uinet: score=35204 steps=36 0.65s
+[AS-EZD5TTEJ] main 完成
+  AS-3PP9B78E seed=1000 greedy: score=53066 steps=49 0.00s
+  AS-3PP9B78E seed=1000 uinet: score=24182 steps=47 0.94s
+  AS-3PP9B78E seed=1001 greedy: score=82523 steps=45 0.00s
+  AS-3PP9B78E seed=1001 uinet: score=36730 steps=46 0.90s
+  AS-3PP9B78E seed=1002 greedy: score=82244 steps=52 0.00s
+  AS-3PP9B78E seed=1002 uinet: score=22726 steps=48 1.03s
+[AS-3PP9B78E] main 完成
+  AS-ZYFN4EN6 seed=1000 greedy: score=40896 steps=35 0.00s
+  AS-ZYFN4EN6 seed=1000 uinet: score=63232 steps=36 0.79s
+  AS-ZYFN4EN6 seed=1001 greedy: score=24559 steps=35 0.00s
+  AS-ZYFN4EN6 seed=1001 uinet: score=58515 steps=33 0.65s
+  AS-ZYFN4EN6 seed=1002 greedy: score=37678 steps=31 0.00s
+  AS-ZYFN4EN6 seed=1002 uinet: score=30152 steps=37 0.77s
+[AS-ZYFN4EN6] main 完成
+  AS-KVF2C7SE seed=1000 greedy: score=128365 steps=49 0.00s
+  AS-KVF2C7SE seed=1000 uinet: score=113245 steps=50 1.04s
+  AS-KVF2C7SE seed=1001 greedy: score=89626 steps=46 0.00s
+  AS-KVF2C7SE seed=1001 uinet: score=92024 steps=45 0.90s
+  AS-KVF2C7SE seed=1002 greedy: score=80259 steps=44 0.00s
+  AS-KVF2C7SE seed=1002 uinet: score=102263 steps=49 0.97s
+[AS-KVF2C7SE] main 完成
+  AS-FK3X5G9V seed=1000 greedy: score=7563 steps=34 0.00s
+  AS-FK3X5G9V seed=1000 uinet: score=10825 steps=34 0.68s
+  AS-FK3X5G9V seed=1001 greedy: score=7458 steps=32 0.00s
+  AS-FK3X5G9V seed=1001 uinet: score=15008 steps=35 0.77s
+  AS-FK3X5G9V seed=1002 greedy: score=14232 steps=36 0.00s
+  AS-FK3X5G9V seed=1002 uinet: score=13913 steps=33 0.65s
+[AS-FK3X5G9V] main 完成
+  AS-H2YT523P seed=1000 greedy: score=13050 steps=34 0.00s
+  AS-H2YT523P seed=1000 uinet: score=13837 steps=33 0.67s
+  AS-H2YT523P seed=1001 greedy: score=20299 steps=32 0.00s
+  AS-H2YT523P seed=1001 uinet: score=17723 steps=34 0.74s
+  AS-H2YT523P seed=1002 greedy: score=17084 steps=33 0.00s
+  AS-H2YT523P seed=1002 uinet: score=17329 steps=34 0.74s
+[AS-H2YT523P] main 完成
+  AS-MDPPQ65C seed=1000 greedy: score=19499 steps=47 0.00s
+  AS-MDPPQ65C seed=1000 uinet: score=27748 steps=44 0.96s
+  AS-MDPPQ65C seed=1001 greedy: score=20419 steps=43 0.00s
+  AS-MDPPQ65C seed=1001 uinet: score=39989 steps=45 0.99s
+  AS-MDPPQ65C seed=1002 greedy: score=59181 steps=44 0.00s
+  AS-MDPPQ65C seed=1002 uinet: score=45291 steps=45 0.94s
+[AS-MDPPQ65C] main 完成
+  AS-H4BQSDGC seed=1000 greedy: score=13403 steps=46 0.01s
+  AS-H4BQSDGC seed=1000 uinet: score=17453 steps=44 0.96s
+  AS-H4BQSDGC seed=1001 greedy: score=20785 steps=42 0.00s
+  AS-H4BQSDGC seed=1001 uinet: score=22736 steps=46 0.95s
+  AS-H4BQSDGC seed=1002 greedy: score=22696 steps=45 0.00s
+  AS-H4BQSDGC seed=1002 uinet: score=25798 steps=45 0.89s
+[AS-H4BQSDGC] main 完成
+  AS-7HJYAY8J seed=1000 greedy: score=44439 steps=38 0.00s
+  AS-7HJYAY8J seed=1000 uinet: score=30892 steps=39 0.77s
+  AS-7HJYAY8J seed=1001 greedy: score=32301 steps=39 0.00s
+  AS-7HJYAY8J seed=1001 uinet: score=24806 steps=42 0.84s
+  AS-7HJYAY8J seed=1002 greedy: score=75708 steps=42 0.00s
+  AS-7HJYAY8J seed=1002 uinet: score=63258 steps=39 0.78s
+[AS-7HJYAY8J] main 完成
+  AS-GKSKJBWX seed=1000 greedy: score=12046 steps=31 0.00s
+  AS-GKSKJBWX seed=1000 uinet: score=10890 steps=31 0.62s
+  AS-GKSKJBWX seed=1001 greedy: score=31873 steps=31 0.00s
+  AS-GKSKJBWX seed=1001 uinet: score=34619 steps=31 0.65s
+  AS-GKSKJBWX seed=1002 greedy: score=72528 steps=32 0.00s
+  AS-GKSKJBWX seed=1002 uinet: score=36921 steps=30 0.59s
+[AS-GKSKJBWX] main 完成
+  AS-5ZWB3X25 seed=1000 greedy: score=44048 steps=37 0.00s
+  AS-5ZWB3X25 seed=1000 uinet: score=46300 steps=37 0.76s
+  AS-5ZWB3X25 seed=1001 greedy: score=30282 steps=36 0.00s
+  AS-5ZWB3X25 seed=1001 uinet: score=30119 steps=36 0.78s
+  AS-5ZWB3X25 seed=1002 greedy: score=15340 steps=36 0.00s
+  AS-5ZWB3X25 seed=1002 uinet: score=13533 steps=36 0.74s
+[AS-5ZWB3X25] main 完成
+  AS-PR9YJNSZ seed=1000 greedy: score=42264 steps=40 0.00s
+  AS-PR9YJNSZ seed=1000 uinet: score=15159 steps=39 0.84s
+  AS-PR9YJNSZ seed=1001 greedy: score=29657 steps=36 0.00s
+  AS-PR9YJNSZ seed=1001 uinet: score=45451 steps=40 0.86s
+  AS-PR9YJNSZ seed=1002 greedy: score=34094 steps=37 0.00s
+  AS-PR9YJNSZ seed=1002 uinet: score=32059 steps=36 0.78s
+[AS-PR9YJNSZ] main 完成
+  AS-CZD7MWW8 seed=1000 greedy: score=61327 steps=50 0.00s
+  AS-CZD7MWW8 seed=1000 uinet: score=38153 steps=47 0.98s
+  AS-CZD7MWW8 seed=1001 greedy: score=56022 steps=45 0.00s
+  AS-CZD7MWW8 seed=1001 uinet: score=65379 steps=47 0.91s
+  AS-CZD7MWW8 seed=1002 greedy: score=52422 steps=45 0.00s
+  AS-CZD7MWW8 seed=1002 uinet: score=57852 steps=45 0.91s
+[AS-CZD7MWW8] main 完成
+  AS-XPKNVKHH seed=1000 greedy: score=58434 steps=50 0.00s
+  AS-XPKNVKHH seed=1000 uinet: score=58921 steps=45 1.06s
+  AS-XPKNVKHH seed=1001 greedy: score=78670 steps=48 0.00s
+  AS-XPKNVKHH seed=1001 uinet: score=96282 steps=51 1.10s
+  AS-XPKNVKHH seed=1002 greedy: score=93966 steps=52 0.00s
+  AS-XPKNVKHH seed=1002 uinet: score=98459 steps=56 1.20s
+[AS-XPKNVKHH] main 完成
+  AS-47HQC2BW seed=1000 greedy: score=51549 steps=54 0.00s
+  AS-47HQC2BW seed=1000 uinet: score=123919 steps=49 1.07s
+  AS-47HQC2BW seed=1001 greedy: score=34770 steps=53 0.00s
+  AS-47HQC2BW seed=1001 uinet: score=29033 steps=48 1.01s
+  AS-47HQC2BW seed=1002 greedy: score=40860 steps=50 0.00s
+  AS-47HQC2BW seed=1002 uinet: score=86160 steps=51 1.00s
+[AS-47HQC2BW] main 完成
+  AS-K5YMDNMK seed=1000 greedy: score=59451 steps=42 0.00s
+  AS-K5YMDNMK seed=1000 uinet: score=57484 steps=41 0.86s
+  AS-K5YMDNMK seed=1001 greedy: score=50470 steps=41 0.00s
+  AS-K5YMDNMK seed=1001 uinet: score=38916 steps=41 0.82s
+  AS-K5YMDNMK seed=1002 greedy: score=118962 steps=42 0.00s
+  AS-K5YMDNMK seed=1002 uinet: score=96724 steps=45 0.96s
+[AS-K5YMDNMK] main 完成
+  AS-BCHEH65A seed=1000 greedy: score=49219 steps=37 0.00s
+  AS-BCHEH65A seed=1000 uinet: score=40443 steps=39 0.83s
+  AS-BCHEH65A seed=1001 greedy: score=38402 steps=35 0.00s
+  AS-BCHEH65A seed=1001 uinet: score=36143 steps=34 0.73s
+  AS-BCHEH65A seed=1002 greedy: score=29915 steps=34 0.00s
+  AS-BCHEH65A seed=1002 uinet: score=33319 steps=35 0.68s
+[AS-BCHEH65A] main 完成
+  AS-DCCK7KR3 seed=1000 greedy: score=23279 steps=34 0.00s
+  AS-DCCK7KR3 seed=1000 uinet: score=21367 steps=31 0.58s
+  AS-DCCK7KR3 seed=1001 greedy: score=64982 steps=33 0.00s
+  AS-DCCK7KR3 seed=1001 uinet: score=46842 steps=33 0.63s
+  AS-DCCK7KR3 seed=1002 greedy: score=73200 steps=34 0.00s
+  AS-DCCK7KR3 seed=1002 uinet: score=77917 steps=34 0.73s
+[AS-DCCK7KR3] main 完成
+  AS-TNA6X768 seed=1000 greedy: score=25405 steps=36 0.00s
+  AS-TNA6X768 seed=1000 uinet: score=36481 steps=36 0.69s
+  AS-TNA6X768 seed=1001 greedy: score=22228 steps=34 0.00s
+  AS-TNA6X768 seed=1001 uinet: score=19668 steps=37 0.80s
+  AS-TNA6X768 seed=1002 greedy: score=35830 steps=33 0.00s
+  AS-TNA6X768 seed=1002 uinet: score=20827 steps=35 0.66s
+[AS-TNA6X768] main 完成
+  AS-A98TYV5W seed=1000 greedy: score=15121 steps=30 0.00s
+  AS-A98TYV5W seed=1000 uinet: score=11760 steps=32 0.65s
+  AS-A98TYV5W seed=1001 greedy: score=11625 steps=32 0.00s
+  AS-A98TYV5W seed=1001 uinet: score=11413 steps=32 0.68s
+  AS-A98TYV5W seed=1002 greedy: score=18301 steps=32 0.00s
+  AS-A98TYV5W seed=1002 uinet: score=23527 steps=32 0.77s
+[AS-A98TYV5W] main 完成
+  AS-MH9GC58S seed=1000 greedy: score=61129 steps=42 0.00s
+  AS-MH9GC58S seed=1000 uinet: score=78715 steps=47 0.92s
+  AS-MH9GC58S seed=1001 greedy: score=32014 steps=40 0.00s
+  AS-MH9GC58S seed=1001 uinet: score=17109 steps=42 0.90s
+  AS-MH9GC58S seed=1002 greedy: score=51809 steps=44 0.00s
+  AS-MH9GC58S seed=1002 uinet: score=35953 steps=39 0.94s
+[AS-MH9GC58S] main 完成
+  AS-6A76ZPJZ seed=1000 greedy: score=118045 steps=44 0.00s
+  AS-6A76ZPJZ seed=1000 uinet: score=130516 steps=44 1.00s
+  AS-6A76ZPJZ seed=1001 greedy: score=96765 steps=46 0.00s
+  AS-6A76ZPJZ seed=1001 uinet: score=110560 steps=45 1.01s
+  AS-6A76ZPJZ seed=1002 greedy: score=79714 steps=44 0.00s
+  AS-6A76ZPJZ seed=1002 uinet: score=80422 steps=44 0.98s
+[AS-6A76ZPJZ] main 完成
+  AS-KADADGSH seed=1000 greedy: score=54245 steps=48 0.00s
+  AS-KADADGSH seed=1000 uinet: score=63957 steps=49 1.08s
+  AS-KADADGSH seed=1001 greedy: score=69363 steps=44 0.00s
+  AS-KADADGSH seed=1001 uinet: score=62679 steps=46 1.04s
+  AS-KADADGSH seed=1002 greedy: score=47381 steps=47 0.00s
+  AS-KADADGSH seed=1002 uinet: score=64891 steps=43 1.01s
+[AS-KADADGSH] main 完成
+  AS-GMB4YY9S seed=1000 greedy: score=74911 steps=49 0.00s
+  AS-GMB4YY9S seed=1000 uinet: score=75211 steps=51 1.09s
+  AS-GMB4YY9S seed=1001 greedy: score=82008 steps=49 0.00s
+  AS-GMB4YY9S seed=1001 uinet: score=106611 steps=48 0.96s
+  AS-GMB4YY9S seed=1002 greedy: score=150834 steps=48 0.00s
+  AS-GMB4YY9S seed=1002 uinet: score=123976 steps=50 0.98s
+[AS-GMB4YY9S] main 完成
+  AS-N5AZ37XZ seed=1000 greedy: score=100560 steps=50 0.00s
+  AS-N5AZ37XZ seed=1000 uinet: score=53856 steps=48 0.96s
+  AS-N5AZ37XZ seed=1001 greedy: score=92910 steps=46 0.00s
+  AS-N5AZ37XZ seed=1001 uinet: score=105592 steps=49 0.97s
+  AS-N5AZ37XZ seed=1002 greedy: score=42779 steps=44 0.00s
+  AS-N5AZ37XZ seed=1002 uinet: score=42780 steps=46 0.87s
+[AS-N5AZ37XZ] main 完成
+  AS-M48JJPBF seed=1000 greedy: score=106823 steps=60 0.00s
+  AS-M48JJPBF seed=1000 uinet: score=76777 steps=65 1.41s
+  AS-M48JJPBF seed=1001 greedy: score=118805 steps=52 0.00s
+  AS-M48JJPBF seed=1001 uinet: score=124079 steps=57 1.20s
+  AS-M48JJPBF seed=1002 greedy: score=112003 steps=57 0.00s
+  AS-M48JJPBF seed=1002 uinet: score=110194 steps=57 1.23s
+[AS-M48JJPBF] main 完成
+  AS-BD5EAA22 seed=1000 greedy: score=35826 steps=33 0.00s
+  AS-BD5EAA22 seed=1000 uinet: score=37996 steps=33 0.68s
+  AS-BD5EAA22 seed=1001 greedy: score=45795 steps=33 0.00s
+  AS-BD5EAA22 seed=1001 uinet: score=53131 steps=31 0.61s
+  AS-BD5EAA22 seed=1002 greedy: score=44719 steps=34 0.00s
+  AS-BD5EAA22 seed=1002 uinet: score=29660 steps=33 0.62s
+[AS-BD5EAA22] main 完成
+  AS-9THV4CYT seed=1000 greedy: score=10622 steps=32 0.00s
+  AS-9THV4CYT seed=1000 uinet: score=34829 steps=33 0.68s
+  AS-9THV4CYT seed=1001 greedy: score=55553 steps=34 0.00s
+  AS-9THV4CYT seed=1001 uinet: score=36030 steps=32 0.63s
+  AS-9THV4CYT seed=1002 greedy: score=27366 steps=35 0.00s
+  AS-9THV4CYT seed=1002 uinet: score=27264 steps=31 0.69s
+[AS-9THV4CYT] main 完成
+  AS-T3CGSPTK seed=1000 greedy: score=25813 steps=34 0.00s
+  AS-T3CGSPTK seed=1000 uinet: score=27093 steps=33 0.65s
+  AS-T3CGSPTK seed=1001 greedy: score=38513 steps=36 0.00s
+  AS-T3CGSPTK seed=1001 uinet: score=28579 steps=33 0.64s
+  AS-T3CGSPTK seed=1002 greedy: score=26265 steps=36 0.00s
+  AS-T3CGSPTK seed=1002 uinet: score=17407 steps=36 0.71s
+[AS-T3CGSPTK] main 完成
+  AS-T6RQM3PT seed=1000 greedy: score=34494 steps=33 0.00s
+  AS-T6RQM3PT seed=1000 uinet: score=42486 steps=33 0.70s
+  AS-T6RQM3PT seed=1001 greedy: score=42922 steps=33 0.00s
+  AS-T6RQM3PT seed=1001 uinet: score=43082 steps=31 0.62s
+  AS-T6RQM3PT seed=1002 greedy: score=31684 steps=34 0.00s
+  AS-T6RQM3PT seed=1002 uinet: score=20175 steps=35 0.68s
+[AS-T6RQM3PT] main 完成
+  AS-M6AVWNAH seed=1000 greedy: score=23205 steps=35 0.00s
+  AS-M6AVWNAH seed=1000 uinet: score=41191 steps=38 0.73s
+  AS-M6AVWNAH seed=1001 greedy: score=45885 steps=36 0.00s
+  AS-M6AVWNAH seed=1001 uinet: score=29964 steps=36 0.73s
+  AS-M6AVWNAH seed=1002 greedy: score=36341 steps=33 0.00s
+  AS-M6AVWNAH seed=1002 uinet: score=19541 steps=33 0.65s
+[AS-M6AVWNAH] main 完成
+  AS-SCASSX2G seed=1000 greedy: score=41827 steps=33 0.00s
+  AS-SCASSX2G seed=1000 uinet: score=30117 steps=36 0.68s
+  AS-SCASSX2G seed=1001 greedy: score=72947 steps=36 0.00s
+  AS-SCASSX2G seed=1001 uinet: score=58015 steps=38 0.74s
+  AS-SCASSX2G seed=1002 greedy: score=74861 steps=37 0.00s
+  AS-SCASSX2G seed=1002 uinet: score=44945 steps=38 0.70s
+[AS-SCASSX2G] main 完成
+  AS-C52Q5Q28 seed=1000 greedy: score=83883 steps=44 0.00s
+  AS-C52Q5Q28 seed=1000 uinet: score=45025 steps=41 0.85s
+  AS-C52Q5Q28 seed=1001 greedy: score=141901 steps=49 0.01s
+  AS-C52Q5Q28 seed=1001 uinet: score=68329 steps=41 0.81s
+  AS-C52Q5Q28 seed=1002 greedy: score=72662 steps=44 0.00s
+  AS-C52Q5Q28 seed=1002 uinet: score=72865 steps=45 0.93s
+[AS-C52Q5Q28] main 完成
+  AS-SHXK7DEB seed=1000 greedy: score=86957 steps=48 0.00s
+  AS-SHXK7DEB seed=1000 uinet: score=113956 steps=45 0.84s
+  AS-SHXK7DEB seed=1001 greedy: score=52500 steps=47 0.01s
+  AS-SHXK7DEB seed=1001 uinet: score=97107 steps=48 0.92s
+  AS-SHXK7DEB seed=1002 greedy: score=101743 steps=47 0.00s
+  AS-SHXK7DEB seed=1002 uinet: score=72939 steps=44 0.85s
+[AS-SHXK7DEB] main 完成
+  AS-65JQVEZX seed=1000 greedy: score=89261 steps=48 0.00s
+  AS-65JQVEZX seed=1000 uinet: score=115258 steps=45 0.86s
+  AS-65JQVEZX seed=1001 greedy: score=82580 steps=47 0.01s
+  AS-65JQVEZX seed=1001 uinet: score=104929 steps=47 0.87s
+  AS-65JQVEZX seed=1002 greedy: score=106139 steps=47 0.00s
+  AS-65JQVEZX seed=1002 uinet: score=72945 steps=43 0.79s
+[AS-65JQVEZX] main 完成
+  AS-FJ5YDHK7 seed=1000 greedy: score=85440 steps=47 0.00s
+  AS-FJ5YDHK7 seed=1000 uinet: score=95030 steps=45 0.93s
+  AS-FJ5YDHK7 seed=1001 greedy: score=73456 steps=47 0.00s
+  AS-FJ5YDHK7 seed=1001 uinet: score=77724 steps=46 0.90s
+  AS-FJ5YDHK7 seed=1002 greedy: score=71143 steps=46 0.00s
+  AS-FJ5YDHK7 seed=1002 uinet: score=66712 steps=47 0.93s
+[AS-FJ5YDHK7] main 完成
+  AS-BGGYSP52 seed=1000 greedy: score=78103 steps=44 0.00s
+  AS-BGGYSP52 seed=1000 uinet: score=79878 steps=45 0.89s
+  AS-BGGYSP52 seed=1001 greedy: score=87314 steps=42 0.00s
+  AS-BGGYSP52 seed=1001 uinet: score=46322 steps=43 0.88s
+  AS-BGGYSP52 seed=1002 greedy: score=71170 steps=44 0.00s
+  AS-BGGYSP52 seed=1002 uinet: score=109146 steps=43 0.87s
+[AS-BGGYSP52] main 完成
+  AS-VEQK4DRY seed=1000 greedy: score=70561 steps=44 0.00s
+  AS-VEQK4DRY seed=1000 uinet: score=97839 steps=46 0.91s
+  AS-VEQK4DRY seed=1001 greedy: score=160687 steps=48 0.00s
+  AS-VEQK4DRY seed=1001 uinet: score=62601 steps=45 0.88s
+  AS-VEQK4DRY seed=1002 greedy: score=169601 steps=49 0.00s
+  AS-VEQK4DRY seed=1002 uinet: score=54353 steps=47 0.94s
+[AS-VEQK4DRY] main 完成
+  AS-5KV58JZC seed=1000 greedy: score=34645 steps=33 0.00s
+  AS-5KV58JZC seed=1000 uinet: score=30871 steps=35 0.68s
+  AS-5KV58JZC seed=1001 greedy: score=43514 steps=33 0.00s
+  AS-5KV58JZC seed=1001 uinet: score=54392 steps=31 0.63s
+  AS-5KV58JZC seed=1002 greedy: score=43559 steps=34 0.01s
+  AS-5KV58JZC seed=1002 uinet: score=28161 steps=32 0.62s
+[AS-5KV58JZC] main 完成
+  AS-QJAAPJ6P seed=1000 greedy: score=77251 steps=40 0.00s
+  AS-QJAAPJ6P seed=1000 uinet: score=55176 steps=40 0.81s
+  AS-QJAAPJ6P seed=1001 greedy: score=43421 steps=40 0.00s
+  AS-QJAAPJ6P seed=1001 uinet: score=40018 steps=38 0.86s
+  AS-QJAAPJ6P seed=1002 greedy: score=34359 steps=36 0.00s
+  AS-QJAAPJ6P seed=1002 uinet: score=31690 steps=36 0.70s
+[AS-QJAAPJ6P] main 完成
+  AS-GVMVPSWC seed=1000 greedy: score=33226 steps=33 0.00s
+  AS-GVMVPSWC seed=1000 uinet: score=37816 steps=33 0.67s
+  AS-GVMVPSWC seed=1001 greedy: score=43584 steps=33 0.00s
+  AS-GVMVPSWC seed=1001 uinet: score=48775 steps=31 0.62s
+  AS-GVMVPSWC seed=1002 greedy: score=36103 steps=34 0.00s
+  AS-GVMVPSWC seed=1002 uinet: score=34814 steps=36 0.73s
+[AS-GVMVPSWC] main 完成
+  AS-9NRN2GPQ seed=1000 greedy: score=32524 steps=33 0.00s
+  AS-9NRN2GPQ seed=1000 uinet: score=29527 steps=35 0.73s
+  AS-9NRN2GPQ seed=1001 greedy: score=35796 steps=33 0.00s
+  AS-9NRN2GPQ seed=1001 uinet: score=44688 steps=31 0.60s
+  AS-9NRN2GPQ seed=1002 greedy: score=31771 steps=34 0.00s
+  AS-9NRN2GPQ seed=1002 uinet: score=30341 steps=36 0.75s
+[AS-9NRN2GPQ] main 完成
+  AS-6HBP3XAX seed=1000 greedy: score=30175 steps=33 0.00s
+  AS-6HBP3XAX seed=1000 uinet: score=27763 steps=35 0.70s
+  AS-6HBP3XAX seed=1001 greedy: score=38321 steps=33 0.00s
+  AS-6HBP3XAX seed=1001 uinet: score=46579 steps=31 0.62s
+  AS-6HBP3XAX seed=1002 greedy: score=32612 steps=34 0.00s
+  AS-6HBP3XAX seed=1002 uinet: score=27949 steps=36 0.68s
+[AS-6HBP3XAX] main 完成
+  AS-5HN7K4T5 seed=1000 greedy: score=22716 steps=35 0.00s
+  AS-5HN7K4T5 seed=1000 uinet: score=40303 steps=38 0.74s
+  AS-5HN7K4T5 seed=1001 greedy: score=34026 steps=36 0.00s
+  AS-5HN7K4T5 seed=1001 uinet: score=25047 steps=36 0.77s
+  AS-5HN7K4T5 seed=1002 greedy: score=36000 steps=35 0.00s
+  AS-5HN7K4T5 seed=1002 uinet: score=26205 steps=34 0.72s
+[AS-5HN7K4T5] main 完成
+  AS-AASWQAP5 seed=1000 greedy: score=27796 steps=33 0.00s
+  AS-AASWQAP5 seed=1000 uinet: score=31949 steps=33 0.68s
+  AS-AASWQAP5 seed=1001 greedy: score=42333 steps=33 0.00s
+  AS-AASWQAP5 seed=1001 uinet: score=39824 steps=31 0.64s
+  AS-AASWQAP5 seed=1002 greedy: score=40085 steps=34 0.00s
+  AS-AASWQAP5 seed=1002 uinet: score=23557 steps=33 0.74s
+[AS-AASWQAP5] main 完成
+  AS-PAMFF44T seed=1000 greedy: score=32203 steps=32 0.00s
+  AS-PAMFF44T seed=1000 uinet: score=32373 steps=33 0.67s
+  AS-PAMFF44T seed=1001 greedy: score=46714 steps=33 0.00s
+  AS-PAMFF44T seed=1001 uinet: score=47320 steps=31 0.63s
+  AS-PAMFF44T seed=1002 greedy: score=23167 steps=34 0.01s
+  AS-PAMFF44T seed=1002 uinet: score=30057 steps=33 0.60s
+[AS-PAMFF44T] main 完成
+  AS-ZC6EVE6S seed=1000 greedy: score=37682 steps=33 0.00s
+  AS-ZC6EVE6S seed=1000 uinet: score=42303 steps=33 0.62s
+  AS-ZC6EVE6S seed=1001 greedy: score=47435 steps=33 0.00s
+  AS-ZC6EVE6S seed=1001 uinet: score=48993 steps=31 0.57s
+  AS-ZC6EVE6S seed=1002 greedy: score=45997 steps=34 0.00s
+  AS-ZC6EVE6S seed=1002 uinet: score=28901 steps=33 0.62s
+[AS-ZC6EVE6S] main 完成
+  AS-2WG5ZPP3 seed=1000 greedy: score=22821 steps=31 0.00s
+  AS-2WG5ZPP3 seed=1000 uinet: score=35893 steps=32 0.56s
+  AS-2WG5ZPP3 seed=1001 greedy: score=52859 steps=34 0.00s
+  AS-2WG5ZPP3 seed=1001 uinet: score=52381 steps=36 0.66s
+  AS-2WG5ZPP3 seed=1002 greedy: score=48885 steps=38 0.00s
+  AS-2WG5ZPP3 seed=1002 uinet: score=41428 steps=38 0.72s
+[AS-2WG5ZPP3] main 完成
+  AS-B8EGS4G3 seed=1000 greedy: score=63109 steps=51 0.00s
+  AS-B8EGS4G3 seed=1000 uinet: score=86296 steps=49 0.99s
+  AS-B8EGS4G3 seed=1001 greedy: score=137698 steps=50 0.00s
+  AS-B8EGS4G3 seed=1001 uinet: score=170828 steps=51 1.04s
+  AS-B8EGS4G3 seed=1002 greedy: score=77477 steps=45 0.00s
+  AS-B8EGS4G3 seed=1002 uinet: score=45094 steps=44 0.86s
+[AS-B8EGS4G3] main 完成
+  AS-GA82ZZFY seed=1000 greedy: score=107200 steps=45 0.00s
+  AS-GA82ZZFY seed=1000 uinet: score=102356 steps=46 0.89s
+  AS-GA82ZZFY seed=1001 greedy: score=106016 steps=46 0.00s
+  AS-GA82ZZFY seed=1001 uinet: score=101115 steps=44 0.94s
+  AS-GA82ZZFY seed=1002 greedy: score=76513 steps=44 0.00s
+  AS-GA82ZZFY seed=1002 uinet: score=90828 steps=44 0.92s
+[AS-GA82ZZFY] main 完成
+  AS-6V44FKS2 seed=1000 greedy: score=69720 steps=46 0.00s
+  AS-6V44FKS2 seed=1000 uinet: score=90366 steps=47 1.28s
+  AS-6V44FKS2 seed=1001 greedy: score=80014 steps=45 0.00s
+  AS-6V44FKS2 seed=1001 uinet: score=119906 steps=48 1.34s
+  AS-6V44FKS2 seed=1002 greedy: score=60379 steps=44 0.00s
+  AS-6V44FKS2 seed=1002 uinet: score=56970 steps=44 1.06s
+[AS-6V44FKS2] main 完成
+  AS-4V2K2SND seed=1000 greedy: score=102124 steps=46 0.00s
+  AS-4V2K2SND seed=1000 uinet: score=92664 steps=45 1.08s
+  AS-4V2K2SND seed=1001 greedy: score=105772 steps=46 0.01s
+  AS-4V2K2SND seed=1001 uinet: score=83515 steps=44 1.13s
+  AS-4V2K2SND seed=1002 greedy: score=79993 steps=44 0.00s
+  AS-4V2K2SND seed=1002 uinet: score=77560 steps=44 1.12s
+[AS-4V2K2SND] main 完成
+  AS-MKZ58AM8 seed=1000 greedy: score=104101 steps=46 0.00s
+  AS-MKZ58AM8 seed=1000 uinet: score=92366 steps=45 1.18s
+  AS-MKZ58AM8 seed=1001 greedy: score=114280 steps=46 0.00s
+  AS-MKZ58AM8 seed=1001 uinet: score=87643 steps=44 1.27s
+  AS-MKZ58AM8 seed=1002 greedy: score=84442 steps=44 0.00s
+  AS-MKZ58AM8 seed=1002 uinet: score=80563 steps=43 1.04s
+[AS-MKZ58AM8] main 完成
+  AS-4CKKFFFG seed=1000 greedy: score=87811 steps=47 0.00s
+  AS-4CKKFFFG seed=1000 uinet: score=107057 steps=45 1.28s
+  AS-4CKKFFFG seed=1001 greedy: score=54404 steps=47 0.00s
+  AS-4CKKFFFG seed=1001 uinet: score=101164 steps=48 1.29s
+  AS-4CKKFFFG seed=1002 greedy: score=84454 steps=46 0.00s
+  AS-4CKKFFFG seed=1002 uinet: score=75140 steps=43 1.11s
+[AS-4CKKFFFG] main 完成
+  AS-KZM3B2ZS seed=1000 greedy: score=80941 steps=52 0.00s
+  AS-KZM3B2ZS seed=1000 uinet: score=98008 steps=49 1.34s
+  AS-KZM3B2ZS seed=1001 greedy: score=130448 steps=51 0.00s
+  AS-KZM3B2ZS seed=1001 uinet: score=166482 steps=50 1.39s
+  AS-KZM3B2ZS seed=1002 greedy: score=82853 steps=45 0.00s
+  AS-KZM3B2ZS seed=1002 uinet: score=49841 steps=44 1.19s
+[AS-KZM3B2ZS] main 完成
+  AS-PWBK9A7Z seed=1000 greedy: score=97336 steps=48 0.00s
+  AS-PWBK9A7Z seed=1000 uinet: score=92366 steps=46 1.17s
+  AS-PWBK9A7Z seed=1001 greedy: score=72278 steps=48 0.00s
+  AS-PWBK9A7Z seed=1001 uinet: score=85306 steps=48 1.12s
+  AS-PWBK9A7Z seed=1002 greedy: score=65503 steps=52 0.00s
+  AS-PWBK9A7Z seed=1002 uinet: score=99842 steps=48 1.07s
+[AS-PWBK9A7Z] main 完成
+  AS-6Q22PNH6 seed=1000 greedy: score=43766 steps=46 0.00s
+  AS-6Q22PNH6 seed=1000 uinet: score=56797 steps=49 1.22s
+  AS-6Q22PNH6 seed=1001 greedy: score=163274 steps=49 0.00s
+  AS-6Q22PNH6 seed=1001 uinet: score=189956 steps=54 1.34s
+  AS-6Q22PNH6 seed=1002 greedy: score=97701 steps=53 0.00s
+  AS-6Q22PNH6 seed=1002 uinet: score=52905 steps=49 1.17s
+[AS-6Q22PNH6] main 完成
+  AS-953T4KRG seed=1000 greedy: score=118841 steps=46 0.00s
+  AS-953T4KRG seed=1000 uinet: score=108285 steps=45 1.04s
+  AS-953T4KRG seed=1001 greedy: score=126086 steps=46 0.00s
+  AS-953T4KRG seed=1001 uinet: score=100940 steps=44 1.14s
+  AS-953T4KRG seed=1002 greedy: score=103505 steps=44 0.00s
+  AS-953T4KRG seed=1002 uinet: score=74369 steps=41 1.08s
+[AS-953T4KRG] main 完成
+  AS-PDH52JGC seed=1000 greedy: score=25556 steps=34 0.00s
+  AS-PDH52JGC seed=1000 uinet: score=31714 steps=37 0.90s
+  AS-PDH52JGC seed=1001 greedy: score=23114 steps=37 0.00s
+  AS-PDH52JGC seed=1001 uinet: score=22833 steps=36 0.91s
+  AS-PDH52JGC seed=1002 greedy: score=44011 steps=37 0.00s
+  AS-PDH52JGC seed=1002 uinet: score=21384 steps=33 0.74s
+[AS-PDH52JGC] main 完成
+  AS-3HS4PT9J seed=1000 greedy: score=14736 steps=34 0.00s
+  AS-3HS4PT9J seed=1000 uinet: score=21924 steps=33 0.87s
+  AS-3HS4PT9J seed=1001 greedy: score=26330 steps=38 0.00s
+  AS-3HS4PT9J seed=1001 uinet: score=31844 steps=37 0.94s
+  AS-3HS4PT9J seed=1002 greedy: score=19653 steps=37 0.00s
+  AS-3HS4PT9J seed=1002 uinet: score=18531 steps=37 0.87s
+[AS-3HS4PT9J] main 完成
+  AS-GWDJWWMB seed=1000 greedy: score=83972 steps=40 0.00s
+  AS-GWDJWWMB seed=1000 uinet: score=57613 steps=38 0.97s
+  AS-GWDJWWMB seed=1001 greedy: score=46530 steps=36 0.00s
+  AS-GWDJWWMB seed=1001 uinet: score=45154 steps=36 0.89s
+  AS-GWDJWWMB seed=1002 greedy: score=78303 steps=41 0.00s
+  AS-GWDJWWMB seed=1002 uinet: score=81577 steps=40 0.99s
+[AS-GWDJWWMB] main 完成
+  AS-6T2JT9B6 seed=1000 greedy: score=61630 steps=46 0.00s
+  AS-6T2JT9B6 seed=1000 uinet: score=58256 steps=49 1.17s
+  AS-6T2JT9B6 seed=1001 greedy: score=50653 steps=51 0.00s
+  AS-6T2JT9B6 seed=1001 uinet: score=81243 steps=48 1.16s
+  AS-6T2JT9B6 seed=1002 greedy: score=64570 steps=49 0.00s
+  AS-6T2JT9B6 seed=1002 uinet: score=55501 steps=43 0.98s
+[AS-6T2JT9B6] main 完成
+  AS-XDHSYXS2 seed=1000 greedy: score=46455 steps=48 0.00s
+  AS-XDHSYXS2 seed=1000 uinet: score=54696 steps=49 1.21s
+  AS-XDHSYXS2 seed=1001 greedy: score=71493 steps=48 0.00s
+  AS-XDHSYXS2 seed=1001 uinet: score=48216 steps=48 1.13s
+  AS-XDHSYXS2 seed=1002 greedy: score=29191 steps=50 0.00s
+  AS-XDHSYXS2 seed=1002 uinet: score=41186 steps=45 1.02s
+[AS-XDHSYXS2] main 完成
+  AS-YAW2D6WF seed=1000 greedy: score=134643 steps=55 0.00s
+  AS-YAW2D6WF seed=1000 uinet: score=116273 steps=53 1.29s
+  AS-YAW2D6WF seed=1001 greedy: score=157750 steps=52 0.00s
+  AS-YAW2D6WF seed=1001 uinet: score=75632 steps=52 1.22s
+  AS-YAW2D6WF seed=1002 greedy: score=171815 steps=57 0.00s
+  AS-YAW2D6WF seed=1002 uinet: score=94315 steps=54 1.27s
+[AS-YAW2D6WF] main 完成
+  AS-SGREPQ2X seed=1000 greedy: score=20616 steps=31 0.00s
+  AS-SGREPQ2X seed=1000 uinet: score=35537 steps=31 0.70s
+  AS-SGREPQ2X seed=1001 greedy: score=27033 steps=34 0.01s
+  AS-SGREPQ2X seed=1001 uinet: score=23535 steps=35 0.83s
+  AS-SGREPQ2X seed=1002 greedy: score=39067 steps=37 0.00s
+  AS-SGREPQ2X seed=1002 uinet: score=30793 steps=37 0.91s
+[AS-SGREPQ2X] main 完成
+  AS-JAHNYW7G seed=1000 greedy: score=13212 steps=31 0.00s
+  AS-JAHNYW7G seed=1000 uinet: score=22000 steps=34 0.72s
+  AS-JAHNYW7G seed=1001 greedy: score=19838 steps=38 0.00s
+  AS-JAHNYW7G seed=1001 uinet: score=23965 steps=37 0.84s
+  AS-JAHNYW7G seed=1002 greedy: score=13859 steps=37 0.00s
+  AS-JAHNYW7G seed=1002 uinet: score=15738 steps=37 0.88s
+[AS-JAHNYW7G] main 完成
+  AS-H4TQJXT2 seed=1000 greedy: score=12276 steps=32 0.00s
+  AS-H4TQJXT2 seed=1000 uinet: score=22665 steps=37 0.84s
+  AS-H4TQJXT2 seed=1001 greedy: score=15114 steps=32 0.00s
+  AS-H4TQJXT2 seed=1001 uinet: score=20058 steps=36 0.71s
+  AS-H4TQJXT2 seed=1002 greedy: score=27511 steps=37 0.00s
+  AS-H4TQJXT2 seed=1002 uinet: score=13952 steps=33 0.81s
+[AS-H4TQJXT2] main 完成
+  AS-5D6CFEYD seed=1000 greedy: score=37482 steps=35 0.00s
+  AS-5D6CFEYD seed=1000 uinet: score=45328 steps=39 0.93s
+  AS-5D6CFEYD seed=1001 greedy: score=44534 steps=39 0.00s
+  AS-5D6CFEYD seed=1001 uinet: score=32585 steps=38 0.86s
+  AS-5D6CFEYD seed=1002 greedy: score=50030 steps=39 0.00s
+  AS-5D6CFEYD seed=1002 uinet: score=45662 steps=40 0.88s
+[AS-5D6CFEYD] main 完成
+  AS-2B2A6EC2 seed=1000 greedy: score=86906 steps=47 0.00s
+  AS-2B2A6EC2 seed=1000 uinet: score=81856 steps=46 0.96s
+  AS-2B2A6EC2 seed=1001 greedy: score=43707 steps=50 0.00s
+  AS-2B2A6EC2 seed=1001 uinet: score=68235 steps=47 1.09s
+  AS-2B2A6EC2 seed=1002 greedy: score=65393 steps=49 0.01s
+  AS-2B2A6EC2 seed=1002 uinet: score=98074 steps=42 0.96s
+[AS-2B2A6EC2] main 完成
+  AS-MHCQJ5DF seed=1000 greedy: score=31176 steps=44 0.00s
+  AS-MHCQJ5DF seed=1000 uinet: score=32958 steps=49 1.07s
+  AS-MHCQJ5DF seed=1001 greedy: score=37486 steps=48 0.00s
+  AS-MHCQJ5DF seed=1001 uinet: score=55370 steps=46 0.99s
+  AS-MHCQJ5DF seed=1002 greedy: score=44719 steps=50 0.01s
+  AS-MHCQJ5DF seed=1002 uinet: score=35843 steps=42 1.00s
+[AS-MHCQJ5DF] main 完成
+  AS-7C3XQW7W seed=1000 greedy: score=135662 steps=51 0.00s
+  AS-7C3XQW7W seed=1000 uinet: score=92116 steps=49 1.21s
+  AS-7C3XQW7W seed=1001 greedy: score=80348 steps=52 0.00s
+  AS-7C3XQW7W seed=1001 uinet: score=89909 steps=51 1.14s
+  AS-7C3XQW7W seed=1002 greedy: score=89191 steps=51 0.00s
+  AS-7C3XQW7W seed=1002 uinet: score=119763 steps=52 1.16s
+[AS-7C3XQW7W] main 完成
+  AS-QV3B9HMJ seed=1000 greedy: score=46723 steps=47 0.00s
+  AS-QV3B9HMJ seed=1000 uinet: score=52854 steps=46 1.21s
+  AS-QV3B9HMJ seed=1001 greedy: score=60816 steps=49 0.01s
+  AS-QV3B9HMJ seed=1001 uinet: score=56486 steps=47 1.08s
+  AS-QV3B9HMJ seed=1002 greedy: score=31176 steps=49 0.01s
+  AS-QV3B9HMJ seed=1002 uinet: score=35385 steps=48 1.05s
+[AS-QV3B9HMJ] main 完成
+  AS-74K2TCT3 seed=1000 greedy: score=23281 steps=32 0.00s
+  AS-74K2TCT3 seed=1000 uinet: score=36304 steps=35 0.77s
+  AS-74K2TCT3 seed=1001 greedy: score=21871 steps=37 0.00s
+  AS-74K2TCT3 seed=1001 uinet: score=23046 steps=37 0.81s
+  AS-74K2TCT3 seed=1002 greedy: score=42025 steps=37 0.00s
+  AS-74K2TCT3 seed=1002 uinet: score=19378 steps=33 0.73s
+[AS-74K2TCT3] main 完成
+  AS-ZF3BXSVN seed=1000 greedy: score=40925 steps=34 0.00s
+  AS-ZF3BXSVN seed=1000 uinet: score=48076 steps=38 0.74s
+  AS-ZF3BXSVN seed=1001 greedy: score=55886 steps=42 0.00s
+  AS-ZF3BXSVN seed=1001 uinet: score=66699 steps=40 0.83s
+  AS-ZF3BXSVN seed=1002 greedy: score=80689 steps=43 0.00s
+  AS-ZF3BXSVN seed=1002 uinet: score=79496 steps=44 0.88s
+[AS-ZF3BXSVN] main 完成
+  AS-56C53DFR seed=1000 greedy: score=31432 steps=38 0.00s
+  AS-56C53DFR seed=1000 uinet: score=32786 steps=34 0.69s
+  AS-56C53DFR seed=1001 greedy: score=33592 steps=39 0.00s
+  AS-56C53DFR seed=1001 uinet: score=42309 steps=39 0.83s
+  AS-56C53DFR seed=1002 greedy: score=45821 steps=46 0.00s
+  AS-56C53DFR seed=1002 uinet: score=54801 steps=36 0.76s
+[AS-56C53DFR] main 完成
+  AS-VTG88WSC seed=1000 greedy: score=54398 steps=42 0.00s
+  AS-VTG88WSC seed=1000 uinet: score=58840 steps=42 0.85s
+  AS-VTG88WSC seed=1001 greedy: score=18099 steps=37 0.00s
+  AS-VTG88WSC seed=1001 uinet: score=28424 steps=37 0.75s
+  AS-VTG88WSC seed=1002 greedy: score=43941 steps=37 0.00s
+  AS-VTG88WSC seed=1002 uinet: score=58918 steps=37 0.80s
+[AS-VTG88WSC] main 完成
+  AS-D2ZX7SMJ seed=1000 greedy: score=52819 steps=40 0.00s
+  AS-D2ZX7SMJ seed=1000 uinet: score=41978 steps=36 0.87s
+  AS-D2ZX7SMJ seed=1001 greedy: score=26970 steps=36 0.01s
+  AS-D2ZX7SMJ seed=1001 uinet: score=48020 steps=38 1.09s
+  AS-D2ZX7SMJ seed=1002 greedy: score=61973 steps=39 0.00s
+  AS-D2ZX7SMJ seed=1002 uinet: score=66953 steps=40 1.12s
+[AS-D2ZX7SMJ] main 完成
+  AS-GS6TDTHX seed=1000 greedy: score=49989 steps=39 0.00s
+  AS-GS6TDTHX seed=1000 uinet: score=58396 steps=37 1.03s
+  AS-GS6TDTHX seed=1001 greedy: score=37030 steps=40 0.00s
+  AS-GS6TDTHX seed=1001 uinet: score=38184 steps=40 1.22s
+  AS-GS6TDTHX seed=1002 greedy: score=46204 steps=41 0.00s
+  AS-GS6TDTHX seed=1002 uinet: score=23804 steps=35 1.00s
+[AS-GS6TDTHX] main 完成
+  AS-8N8MM85M seed=1000 greedy: score=16981 steps=34 0.01s
+  AS-8N8MM85M seed=1000 uinet: score=29645 steps=35 0.90s
+  AS-8N8MM85M seed=1001 greedy: score=56468 steps=39 0.00s
+  AS-8N8MM85M seed=1001 uinet: score=27350 steps=39 0.96s
+  AS-8N8MM85M seed=1002 greedy: score=57284 steps=43 0.00s
+  AS-8N8MM85M seed=1002 uinet: score=66863 steps=40 1.15s
+[AS-8N8MM85M] main 完成
+  AS-KDFN4VM4 seed=1000 greedy: score=18841 steps=31 0.01s
+  AS-KDFN4VM4 seed=1000 uinet: score=37374 steps=34 0.87s
+  AS-KDFN4VM4 seed=1001 greedy: score=31281 steps=38 0.00s
+  AS-KDFN4VM4 seed=1001 uinet: score=41420 steps=37 0.93s
+  AS-KDFN4VM4 seed=1002 greedy: score=34522 steps=37 0.00s
+  AS-KDFN4VM4 seed=1002 uinet: score=28668 steps=37 1.02s
+[AS-KDFN4VM4] main 完成
+  AS-VCEVKZ9W seed=1000 greedy: score=37338 steps=34 0.00s
+  AS-VCEVKZ9W seed=1000 uinet: score=47313 steps=38 0.79s
+  AS-VCEVKZ9W seed=1001 greedy: score=54617 steps=42 0.00s
+  AS-VCEVKZ9W seed=1001 uinet: score=46395 steps=39 0.91s
+  AS-VCEVKZ9W seed=1002 greedy: score=85321 steps=43 0.00s
+  AS-VCEVKZ9W seed=1002 uinet: score=81705 steps=44 0.93s
+[AS-VCEVKZ9W] main 完成
+  AS-YHQPHTGZ seed=1000 greedy: score=38911 steps=34 0.00s
+  AS-YHQPHTGZ seed=1000 uinet: score=50678 steps=38 0.74s
+  AS-YHQPHTGZ seed=1001 greedy: score=59799 steps=42 0.00s
+  AS-YHQPHTGZ seed=1001 uinet: score=49264 steps=39 0.80s
+  AS-YHQPHTGZ seed=1002 greedy: score=89821 steps=43 0.00s
+  AS-YHQPHTGZ seed=1002 uinet: score=92069 steps=44 0.83s
+[AS-YHQPHTGZ] main 完成
+  AS-G3VX66PA seed=1000 greedy: score=26826 steps=32 0.00s
+  AS-G3VX66PA seed=1000 uinet: score=37655 steps=33 0.75s
+  AS-G3VX66PA seed=1001 greedy: score=53711 steps=40 0.00s
+  AS-G3VX66PA seed=1001 uinet: score=52783 steps=41 0.89s
+  AS-G3VX66PA seed=1002 greedy: score=50277 steps=39 0.00s
+  AS-G3VX66PA seed=1002 uinet: score=64576 steps=38 0.84s
+[AS-G3VX66PA] main 完成
+  AS-4JMD6HGX seed=1000 greedy: score=42963 steps=35 0.00s
+  AS-4JMD6HGX seed=1000 uinet: score=30615 steps=37 0.73s
+  AS-4JMD6HGX seed=1001 greedy: score=44725 steps=39 0.00s
+  AS-4JMD6HGX seed=1001 uinet: score=51580 steps=42 0.99s
+  AS-4JMD6HGX seed=1002 greedy: score=56038 steps=42 0.00s
+  AS-4JMD6HGX seed=1002 uinet: score=52160 steps=41 1.14s
+[AS-4JMD6HGX] main 完成
+  AS-P9Q576V4 seed=1000 greedy: score=97349 steps=51 0.01s
+  AS-P9Q576V4 seed=1000 uinet: score=99161 steps=48 1.06s
+  AS-P9Q576V4 seed=1001 greedy: score=90163 steps=54 0.00s
+  AS-P9Q576V4 seed=1001 uinet: score=67333 steps=52 1.11s
+  AS-P9Q576V4 seed=1002 greedy: score=122469 steps=53 0.01s
+  AS-P9Q576V4 seed=1002 uinet: score=67988 steps=52 1.15s
+[AS-P9Q576V4] main 完成
+  AS-C3S3B9BW seed=1000 greedy: score=56555 steps=44 0.00s
+  AS-C3S3B9BW seed=1000 uinet: score=73232 steps=49 1.07s
+  AS-C3S3B9BW seed=1001 greedy: score=53479 steps=51 0.00s
+  AS-C3S3B9BW seed=1001 uinet: score=73580 steps=49 0.94s
+  AS-C3S3B9BW seed=1002 greedy: score=66632 steps=49 0.00s
+  AS-C3S3B9BW seed=1002 uinet: score=56249 steps=43 0.92s
+[AS-C3S3B9BW] main 完成
+  AS-EFSSB2R6 seed=1000 greedy: score=81322 steps=46 0.00s
+  AS-EFSSB2R6 seed=1000 uinet: score=113030 steps=52 1.27s
+  AS-EFSSB2R6 seed=1001 greedy: score=118303 steps=53 0.00s
+  AS-EFSSB2R6 seed=1001 uinet: score=60532 steps=51 1.06s
+  AS-EFSSB2R6 seed=1002 greedy: score=104516 steps=54 0.00s
+  AS-EFSSB2R6 seed=1002 uinet: score=115520 steps=50 1.11s
+[AS-EFSSB2R6] main 完成
+  AS-98XVFQ2X seed=1000 greedy: score=118963 steps=50 0.00s
+  AS-98XVFQ2X seed=1000 uinet: score=88020 steps=52 1.10s
+  AS-98XVFQ2X seed=1001 greedy: score=142459 steps=55 0.00s
+  AS-98XVFQ2X seed=1001 uinet: score=128004 steps=53 1.24s
+  AS-98XVFQ2X seed=1002 greedy: score=129280 steps=53 0.00s
+  AS-98XVFQ2X seed=1002 uinet: score=131339 steps=54 1.15s
+[AS-98XVFQ2X] main 完成
+  AS-VVN28TRW seed=1000 greedy: score=125376 steps=54 0.00s
+  AS-VVN28TRW seed=1000 uinet: score=119108 steps=53 1.10s
+  AS-VVN28TRW seed=1001 greedy: score=74689 steps=54 0.01s
+  AS-VVN28TRW seed=1001 uinet: score=88538 steps=51 1.04s
+  AS-VVN28TRW seed=1002 greedy: score=123357 steps=49 0.00s
+  AS-VVN28TRW seed=1002 uinet: score=116779 steps=55 1.33s
+[AS-VVN28TRW] main 完成
+  AS-QY2HV7EA seed=1000 greedy: score=125454 steps=55 0.00s
+  AS-QY2HV7EA seed=1000 uinet: score=113940 steps=56 1.56s
+  AS-QY2HV7EA seed=1001 greedy: score=85280 steps=48 0.00s
+  AS-QY2HV7EA seed=1001 uinet: score=61020 steps=54 1.34s
+  AS-QY2HV7EA seed=1002 greedy: score=98746 steps=58 0.00s
+  AS-QY2HV7EA seed=1002 uinet: score=104328 steps=56 1.28s
+[AS-QY2HV7EA] main 完成
+  AS-BTPXBCBE seed=1000 greedy: score=75672 steps=51 0.00s
+  AS-BTPXBCBE seed=1000 uinet: score=82538 steps=52 1.27s
+  AS-BTPXBCBE seed=1001 greedy: score=80661 steps=51 0.00s
+  AS-BTPXBCBE seed=1001 uinet: score=64199 steps=49 1.04s
+  AS-BTPXBCBE seed=1002 greedy: score=107467 steps=54 0.00s
+  AS-BTPXBCBE seed=1002 uinet: score=66313 steps=48 1.15s
+[AS-BTPXBCBE] main 完成
+  AS-5JBXM9WZ seed=1000 greedy: score=68454 steps=47 0.00s
+  AS-5JBXM9WZ seed=1000 uinet: score=52800 steps=46 1.09s
+  AS-5JBXM9WZ seed=1001 greedy: score=99656 steps=49 0.01s
+  AS-5JBXM9WZ seed=1001 uinet: score=93573 steps=47 1.25s
+  AS-5JBXM9WZ seed=1002 greedy: score=83468 steps=47 0.00s
+  AS-5JBXM9WZ seed=1002 uinet: score=45077 steps=48 1.18s
+[AS-5JBXM9WZ] main 完成
+  AS-T9NYG28B seed=1000 greedy: score=126840 steps=50 0.00s
+  AS-T9NYG28B seed=1000 uinet: score=47414 steps=48 1.10s
+  AS-T9NYG28B seed=1001 greedy: score=134747 steps=55 0.00s
+  AS-T9NYG28B seed=1001 uinet: score=120689 steps=53 1.26s
+  AS-T9NYG28B seed=1002 greedy: score=130634 steps=56 0.00s
+  AS-T9NYG28B seed=1002 uinet: score=119035 steps=54 1.34s
+[AS-T9NYG28B] main 完成
+  AS-2TZAH96C seed=1000 greedy: score=81335 steps=52 0.00s
+  AS-2TZAH96C seed=1000 uinet: score=73535 steps=48 1.09s
+  AS-2TZAH96C seed=1001 greedy: score=85715 steps=55 0.00s
+  AS-2TZAH96C seed=1001 uinet: score=93751 steps=53 1.03s
+  AS-2TZAH96C seed=1002 greedy: score=91908 steps=57 0.00s
+  AS-2TZAH96C seed=1002 uinet: score=70626 steps=49 1.17s
+[AS-2TZAH96C] main 完成
+  AS-6XJHJMX2 seed=1000 greedy: score=116232 steps=50 0.00s
+  AS-6XJHJMX2 seed=1000 uinet: score=48759 steps=48 1.20s
+  AS-6XJHJMX2 seed=1001 greedy: score=128302 steps=55 0.00s
+  AS-6XJHJMX2 seed=1001 uinet: score=136565 steps=55 1.24s
+  AS-6XJHJMX2 seed=1002 greedy: score=121764 steps=53 0.00s
+  AS-6XJHJMX2 seed=1002 uinet: score=140286 steps=54 1.17s
+[AS-6XJHJMX2] main 完成
+  AS-32EBTA5J seed=1000 greedy: score=112447 steps=55 0.00s
+  AS-32EBTA5J seed=1000 uinet: score=107287 steps=47 1.13s
+  AS-32EBTA5J seed=1001 greedy: score=101848 steps=52 0.01s
+  AS-32EBTA5J seed=1001 uinet: score=117002 steps=53 1.26s
+  AS-32EBTA5J seed=1002 greedy: score=137801 steps=55 0.00s
+  AS-32EBTA5J seed=1002 uinet: score=79229 steps=52 1.29s
+[AS-32EBTA5J] main 完成
+  AS-TGP3GHJK seed=1000 greedy: score=44757 steps=35 0.00s
+  AS-TGP3GHJK seed=1000 uinet: score=62898 steps=38 0.84s
+  AS-TGP3GHJK seed=1001 greedy: score=52097 steps=39 0.00s
+  AS-TGP3GHJK seed=1001 uinet: score=61158 steps=38 0.99s
+  AS-TGP3GHJK seed=1002 greedy: score=88537 steps=39 0.00s
+  AS-TGP3GHJK seed=1002 uinet: score=51024 steps=40 1.01s
+[AS-TGP3GHJK] main 完成
+  AS-BNEERWGF seed=1000 greedy: score=25149 steps=31 0.00s
+  AS-BNEERWGF seed=1000 uinet: score=43698 steps=33 0.80s
+  AS-BNEERWGF seed=1001 greedy: score=48584 steps=34 0.00s
+  AS-BNEERWGF seed=1001 uinet: score=52620 steps=36 0.83s
+  AS-BNEERWGF seed=1002 greedy: score=60348 steps=37 0.00s
+  AS-BNEERWGF seed=1002 uinet: score=31507 steps=35 0.84s
+[AS-BNEERWGF] main 完成
+  AS-6822Q226 seed=1000 greedy: score=37338 steps=34 0.00s
+  AS-6822Q226 seed=1000 uinet: score=45826 steps=38 0.88s
+  AS-6822Q226 seed=1001 greedy: score=55546 steps=42 0.00s
+  AS-6822Q226 seed=1001 uinet: score=46683 steps=39 1.04s
+  AS-6822Q226 seed=1002 greedy: score=89621 steps=43 0.00s
+  AS-6822Q226 seed=1002 uinet: score=88930 steps=44 0.97s
+[AS-6822Q226] main 完成
+  AS-HNWPMZEN seed=1000 greedy: score=45326 steps=38 0.00s
+  AS-HNWPMZEN seed=1000 uinet: score=34879 steps=43 0.92s
+  AS-HNWPMZEN seed=1001 greedy: score=53261 steps=40 0.00s
+  AS-HNWPMZEN seed=1001 uinet: score=45384 steps=42 1.04s
+  AS-HNWPMZEN seed=1002 greedy: score=45471 steps=40 0.00s
+  AS-HNWPMZEN seed=1002 uinet: score=51071 steps=41 0.86s
+[AS-HNWPMZEN] main 完成
+  AS-VH8WYE6J seed=1000 greedy: score=36009 steps=34 0.00s
+  AS-VH8WYE6J seed=1000 uinet: score=42436 steps=37 0.88s
+  AS-VH8WYE6J seed=1001 greedy: score=28846 steps=38 0.00s
+  AS-VH8WYE6J seed=1001 uinet: score=38265 steps=37 0.98s
+  AS-VH8WYE6J seed=1002 greedy: score=45591 steps=37 0.00s
+  AS-VH8WYE6J seed=1002 uinet: score=26951 steps=38 0.82s
+[AS-VH8WYE6J] main 完成
+  AS-R2PD5KJM seed=1000 greedy: score=55199 steps=42 0.00s
+  AS-R2PD5KJM seed=1000 uinet: score=44719 steps=38 0.80s
+  AS-R2PD5KJM seed=1001 greedy: score=19167 steps=37 0.00s
+  AS-R2PD5KJM seed=1001 uinet: score=28832 steps=38 0.80s
+  AS-R2PD5KJM seed=1002 greedy: score=43502 steps=37 0.00s
+  AS-R2PD5KJM seed=1002 uinet: score=75247 steps=42 0.88s
+[AS-R2PD5KJM] main 完成
+  AS-ZPMWMCX7 seed=1000 greedy: score=24162 steps=31 0.00s
+  AS-ZPMWMCX7 seed=1000 uinet: score=49918 steps=34 0.77s
+  AS-ZPMWMCX7 seed=1001 greedy: score=42830 steps=34 0.00s
+  AS-ZPMWMCX7 seed=1001 uinet: score=31319 steps=35 0.74s
+  AS-ZPMWMCX7 seed=1002 greedy: score=49413 steps=37 0.00s
+  AS-ZPMWMCX7 seed=1002 uinet: score=34203 steps=36 0.68s
+[AS-ZPMWMCX7] main 完成
+  AS-2YQF3E47 seed=1000 greedy: score=78885 steps=54 0.00s
+  AS-2YQF3E47 seed=1000 uinet: score=82809 steps=53 1.11s
+  AS-2YQF3E47 seed=1001 greedy: score=74926 steps=52 0.00s
+  AS-2YQF3E47 seed=1001 uinet: score=92971 steps=53 1.19s
+  AS-2YQF3E47 seed=1002 greedy: score=128626 steps=49 0.00s
+  AS-2YQF3E47 seed=1002 uinet: score=75174 steps=52 1.15s
+[AS-2YQF3E47] main 完成
+  AS-Y5QRFCHN seed=1000 greedy: score=86280 steps=50 0.00s
+  AS-Y5QRFCHN seed=1000 uinet: score=62731 steps=51 1.17s
+  AS-Y5QRFCHN seed=1001 greedy: score=118635 steps=55 0.00s
+  AS-Y5QRFCHN seed=1001 uinet: score=91294 steps=57 1.19s
+  AS-Y5QRFCHN seed=1002 greedy: score=94971 steps=53 0.00s
+  AS-Y5QRFCHN seed=1002 uinet: score=123395 steps=55 1.21s
+[AS-Y5QRFCHN] main 完成
+  AS-6XE5VCW7 seed=1000 greedy: score=112131 steps=46 0.00s
+  AS-6XE5VCW7 seed=1000 uinet: score=111119 steps=47 1.06s
+  AS-6XE5VCW7 seed=1001 greedy: score=67206 steps=49 0.00s
+  AS-6XE5VCW7 seed=1001 uinet: score=72421 steps=46 1.01s
+  AS-6XE5VCW7 seed=1002 greedy: score=78550 steps=49 0.01s
+  AS-6XE5VCW7 seed=1002 uinet: score=65281 steps=43 0.89s
+[AS-6XE5VCW7] main 完成
+  AS-JEXTS79M seed=1000 greedy: score=126864 steps=47 0.00s
+  AS-JEXTS79M seed=1000 uinet: score=111051 steps=51 1.12s
+  AS-JEXTS79M seed=1001 greedy: score=94303 steps=52 0.00s
+  AS-JEXTS79M seed=1001 uinet: score=103229 steps=51 1.21s
+  AS-JEXTS79M seed=1002 greedy: score=142869 steps=54 0.00s
+  AS-JEXTS79M seed=1002 uinet: score=146633 steps=52 1.41s
+[AS-JEXTS79M] main 完成
+  AS-4DMVEPNQ seed=1000 greedy: score=110798 steps=46 0.00s
+  AS-4DMVEPNQ seed=1000 uinet: score=60355 steps=46 1.23s
+  AS-4DMVEPNQ seed=1001 greedy: score=82022 steps=49 0.00s
+  AS-4DMVEPNQ seed=1001 uinet: score=84362 steps=46 1.12s
+  AS-4DMVEPNQ seed=1002 greedy: score=93594 steps=49 0.00s
+  AS-4DMVEPNQ seed=1002 uinet: score=76587 steps=43 0.98s
+[AS-4DMVEPNQ] main 完成
+  AS-MPKN5EFA seed=1000 greedy: score=114641 steps=50 0.00s
+  AS-MPKN5EFA seed=1000 uinet: score=49763 steps=48 1.11s
+  AS-MPKN5EFA seed=1001 greedy: score=134742 steps=55 0.00s
+  AS-MPKN5EFA seed=1001 uinet: score=122394 steps=53 1.26s
+  AS-MPKN5EFA seed=1002 greedy: score=127933 steps=53 0.00s
+  AS-MPKN5EFA seed=1002 uinet: score=118800 steps=54 1.15s
+[AS-MPKN5EFA] main 完成
+  AS-TB53BY53 seed=1000 greedy: score=77170 steps=49 0.00s
+  AS-TB53BY53 seed=1000 uinet: score=62088 steps=47 0.96s
+  AS-TB53BY53 seed=1001 greedy: score=57100 steps=51 0.00s
+  AS-TB53BY53 seed=1001 uinet: score=97009 steps=48 1.00s
+  AS-TB53BY53 seed=1002 greedy: score=64463 steps=49 0.01s
+  AS-TB53BY53 seed=1002 uinet: score=92392 steps=47 0.99s
+[AS-TB53BY53] main 完成
+  AS-68M9R8G6 seed=1000 greedy: score=40826 steps=32 0.00s
+  AS-68M9R8G6 seed=1000 uinet: score=34037 steps=32 0.79s
+  AS-68M9R8G6 seed=1001 greedy: score=42952 steps=35 0.00s
+  AS-68M9R8G6 seed=1001 uinet: score=54840 steps=34 0.89s
+  AS-68M9R8G6 seed=1002 greedy: score=16715 steps=31 0.00s
+  AS-68M9R8G6 seed=1002 uinet: score=50419 steps=34 0.82s
+[AS-68M9R8G6] main 完成
+  AS-TY5S8YF5 seed=1000 greedy: score=47579 steps=35 0.00s
+  AS-TY5S8YF5 seed=1000 uinet: score=41653 steps=37 0.80s
+  AS-TY5S8YF5 seed=1001 greedy: score=37060 steps=36 0.00s
+  AS-TY5S8YF5 seed=1001 uinet: score=41823 steps=34 0.73s
+  AS-TY5S8YF5 seed=1002 greedy: score=20018 steps=37 0.00s
+  AS-TY5S8YF5 seed=1002 uinet: score=27225 steps=34 0.68s
+[AS-TY5S8YF5] main 完成
+  AS-YDTHW9ZR seed=1000 greedy: score=123961 steps=44 0.00s
+  AS-YDTHW9ZR seed=1000 uinet: score=86483 steps=46 0.99s
+  AS-YDTHW9ZR seed=1001 greedy: score=85161 steps=44 0.00s
+  AS-YDTHW9ZR seed=1001 uinet: score=46696 steps=44 1.05s
+  AS-YDTHW9ZR seed=1002 greedy: score=54926 steps=41 0.00s
+  AS-YDTHW9ZR seed=1002 uinet: score=84551 steps=46 0.98s
+[AS-YDTHW9ZR] main 完成
+  AS-39K74JRQ seed=1000 greedy: score=113037 steps=49 0.00s
+  AS-39K74JRQ seed=1000 uinet: score=66813 steps=46 0.98s
+  AS-39K74JRQ seed=1001 greedy: score=120278 steps=47 0.00s
+  AS-39K74JRQ seed=1001 uinet: score=111601 steps=47 1.21s
+  AS-39K74JRQ seed=1002 greedy: score=72444 steps=47 0.00s
+  AS-39K74JRQ seed=1002 uinet: score=110953 steps=48 1.11s
+[AS-39K74JRQ] main 完成
+  AS-ZHAN6GNN seed=1000 greedy: score=65458 steps=45 0.00s
+  AS-ZHAN6GNN seed=1000 uinet: score=40615 steps=44 0.90s
+  AS-ZHAN6GNN seed=1001 greedy: score=91507 steps=48 0.00s
+  AS-ZHAN6GNN seed=1001 uinet: score=65031 steps=53 1.13s
+  AS-ZHAN6GNN seed=1002 greedy: score=79946 steps=47 0.00s
+  AS-ZHAN6GNN seed=1002 uinet: score=80577 steps=47 1.05s
+[AS-ZHAN6GNN] main 完成
+  AS-5J7R8EWS seed=1000 greedy: score=134 steps=47 0.00s
+  AS-5J7R8EWS seed=1000 uinet: score=8 steps=47 1.07s
+  AS-5J7R8EWS seed=1001 greedy: score=25 steps=49 0.00s
+  AS-5J7R8EWS seed=1001 uinet: score=23 steps=43 1.02s
+  AS-5J7R8EWS seed=1002 greedy: score=77 steps=46 0.00s
+  AS-5J7R8EWS seed=1002 uinet: score=9 steps=42 0.95s
+[AS-5J7R8EWS] main 完成
+  AS-5CF5HRHX seed=1000 greedy: score=92 steps=58 0.00s
+  AS-5CF5HRHX seed=1000 uinet: score=83 steps=56 1.25s
+  AS-5CF5HRHX seed=1001 greedy: score=109 steps=69 0.00s
+  AS-5CF5HRHX seed=1001 uinet: score=81 steps=61 1.37s
+  AS-5CF5HRHX seed=1002 greedy: score=180 steps=65 0.00s
+  AS-5CF5HRHX seed=1002 uinet: score=35 steps=34 0.77s
+[AS-5CF5HRHX] main 完成
+  AS-YFQF5NNP seed=1000 greedy: score=143 steps=34 0.00s
+  AS-YFQF5NNP seed=1000 uinet: score=171 steps=35 0.55s
+  AS-YFQF5NNP seed=1001 greedy: score=99 steps=31 0.00s
+  AS-YFQF5NNP seed=1001 uinet: score=157 steps=30 0.54s
+  AS-YFQF5NNP seed=1002 greedy: score=147 steps=31 0.00s
+  AS-YFQF5NNP seed=1002 uinet: score=57 steps=29 0.48s
+[AS-YFQF5NNP] selection 完成
+  AS-PWVAS77D seed=1000 greedy: score=164 steps=34 0.00s
+  AS-PWVAS77D seed=1000 uinet: score=43 steps=31 0.49s
+  AS-PWVAS77D seed=1001 greedy: score=119 steps=28 0.00s
+  AS-PWVAS77D seed=1001 uinet: score=124 steps=33 0.53s
+  AS-PWVAS77D seed=1002 greedy: score=156 steps=35 0.00s
+  AS-PWVAS77D seed=1002 uinet: score=29 steps=30 0.44s
+[AS-PWVAS77D] selection 完成
+  AS-VW3MWW4R seed=1000 greedy: score=71 steps=46 0.00s
+  AS-VW3MWW4R seed=1000 uinet: score=13 steps=46 0.97s
+  AS-VW3MWW4R seed=1001 greedy: score=81 steps=53 0.00s
+  AS-VW3MWW4R seed=1001 uinet: score=52 steps=51 1.15s
+  AS-VW3MWW4R seed=1002 greedy: score=58 steps=52 0.00s
+  AS-VW3MWW4R seed=1002 uinet: score=46 steps=52 1.10s
+[AS-VW3MWW4R] selection 完成
+  AS-5BCW7MC9 seed=1000 greedy: score=171 steps=41 0.00s
+  AS-5BCW7MC9 seed=1000 uinet: score=24 steps=33 0.70s
+  AS-5BCW7MC9 seed=1001 greedy: score=146 steps=43 0.00s
+  AS-5BCW7MC9 seed=1001 uinet: score=52 steps=33 0.69s
+  AS-5BCW7MC9 seed=1002 greedy: score=80 steps=36 0.00s
+  AS-5BCW7MC9 seed=1002 uinet: score=65 steps=32 0.76s
+[AS-5BCW7MC9] selection 完成
+  AS-2AXJNW8X seed=1000 greedy: score=94 steps=70 0.00s
+  AS-2AXJNW8X seed=1000 uinet: score=47 steps=48 1.03s
+  AS-2AXJNW8X seed=1001 greedy: score=66 steps=43 0.00s
+  AS-2AXJNW8X seed=1001 uinet: score=54 steps=48 1.00s
+  AS-2AXJNW8X seed=1002 greedy: score=60 steps=63 0.00s
+  AS-2AXJNW8X seed=1002 uinet: score=48 steps=43 0.86s
+[AS-2AXJNW8X] selection 完成
+  AS-D964SQTJ seed=1000 greedy: score=95 steps=58 0.00s
+  AS-D964SQTJ seed=1000 uinet: score=66 steps=63 1.38s
+  AS-D964SQTJ seed=1001 greedy: score=75 steps=60 0.00s
+  AS-D964SQTJ seed=1001 uinet: score=27 steps=54 1.07s
+  AS-D964SQTJ seed=1002 greedy: score=88 steps=62 0.01s
+  AS-D964SQTJ seed=1002 uinet: score=14 steps=51 1.08s
+[AS-D964SQTJ] selection 完成
+  AS-JC5BMB7P seed=1000 greedy: score=18958 steps=33 0.00s
+  AS-JC5BMB7P seed=1000 uinet: score=23928 steps=31 0.60s
+  AS-JC5BMB7P seed=1001 greedy: score=41928 steps=34 0.00s
+  AS-JC5BMB7P seed=1001 uinet: score=29663 steps=34 0.69s
+  AS-JC5BMB7P seed=1002 greedy: score=11474 steps=34 0.00s
+  AS-JC5BMB7P seed=1002 uinet: score=29751 steps=33 0.60s
+[AS-JC5BMB7P] main 完成
+  AS-9MGMSGS9 seed=1000 greedy: score=29416 steps=37 0.00s
+  AS-9MGMSGS9 seed=1000 uinet: score=26608 steps=35 0.71s
+  AS-9MGMSGS9 seed=1001 greedy: score=44530 steps=34 0.00s
+  AS-9MGMSGS9 seed=1001 uinet: score=27401 steps=34 0.66s
+  AS-9MGMSGS9 seed=1002 greedy: score=29694 steps=36 0.00s
+  AS-9MGMSGS9 seed=1002 uinet: score=37870 steps=37 0.77s
+[AS-9MGMSGS9] main 完成
+  AS-FD4JEXVS seed=1000 greedy: score=18824 steps=41 0.00s
+  AS-FD4JEXVS seed=1000 uinet: score=41322 steps=46 0.91s
+  AS-FD4JEXVS seed=1001 greedy: score=76665 steps=44 0.00s
+  AS-FD4JEXVS seed=1001 uinet: score=47674 steps=45 0.92s
+  AS-FD4JEXVS seed=1002 greedy: score=38315 steps=46 0.00s
+  AS-FD4JEXVS seed=1002 uinet: score=8999 steps=48 1.06s
+[AS-FD4JEXVS] main 完成
+  AS-D92HSANA seed=1000 greedy: score=112474 steps=49 0.00s
+  AS-D92HSANA seed=1000 uinet: score=16351 steps=50 1.00s
+  AS-D92HSANA seed=1001 greedy: score=25117 steps=46 0.00s
+  AS-D92HSANA seed=1001 uinet: score=89028 steps=49 0.96s
+  AS-D92HSANA seed=1002 greedy: score=42117 steps=48 0.01s
+  AS-D92HSANA seed=1002 uinet: score=78632 steps=51 0.99s
+[AS-D92HSANA] main 完成
+  AS-X46JEE94 seed=1000 greedy: score=8426 steps=32 0.00s
+  AS-X46JEE94 seed=1000 uinet: score=4428 steps=29 0.56s
+  AS-X46JEE94 seed=1001 greedy: score=10428 steps=33 0.00s
+  AS-X46JEE94 seed=1001 uinet: score=11202 steps=30 0.48s
+  AS-X46JEE94 seed=1002 greedy: score=10854 steps=32 0.00s
+  AS-X46JEE94 seed=1002 uinet: score=10188 steps=30 0.54s
+[AS-X46JEE94] selection 完成
+  AS-M62D442T seed=1000 greedy: score=2587 steps=34 0.00s
+  AS-M62D442T seed=1000 uinet: score=5489 steps=33 0.54s
+  AS-M62D442T seed=1001 greedy: score=5039 steps=34 0.00s
+  AS-M62D442T seed=1001 uinet: score=8907 steps=32 0.58s
+  AS-M62D442T seed=1002 greedy: score=2015 steps=32 0.00s
+  AS-M62D442T seed=1002 uinet: score=4405 steps=30 0.55s
+[AS-M62D442T] selection 完成
+  AS-55FJ98TG seed=1000 greedy: score=38652 steps=48 0.00s
+  AS-55FJ98TG seed=1000 uinet: score=43213 steps=48 0.90s
+  AS-55FJ98TG seed=1001 greedy: score=69311 steps=47 0.00s
+  AS-55FJ98TG seed=1001 uinet: score=36701 steps=49 0.90s
+  AS-55FJ98TG seed=1002 greedy: score=60515 steps=49 0.00s
+  AS-55FJ98TG seed=1002 uinet: score=42298 steps=47 0.81s
+[AS-55FJ98TG] selection 完成
+  AS-BXPCYHDJ seed=1000 greedy: score=15615 steps=54 0.00s
+  AS-BXPCYHDJ seed=1000 uinet: score=33530 steps=51 0.90s
+  AS-BXPCYHDJ seed=1001 greedy: score=14120 steps=48 0.00s
+  AS-BXPCYHDJ seed=1001 uinet: score=13528 steps=48 0.89s
+  AS-BXPCYHDJ seed=1002 greedy: score=6626 steps=50 0.00s
+  AS-BXPCYHDJ seed=1002 uinet: score=6581 steps=48 0.86s
+[AS-BXPCYHDJ] selection 完成
+  AS-ZPJYQV9C seed=1000 greedy: score=53585 steps=48 0.00s
+  AS-ZPJYQV9C seed=1000 uinet: score=52642 steps=48 0.94s
+  AS-ZPJYQV9C seed=1001 greedy: score=31354 steps=51 0.00s
+  AS-ZPJYQV9C seed=1001 uinet: score=23569 steps=41 0.88s
+  AS-ZPJYQV9C seed=1002 greedy: score=52145 steps=48 0.00s
+  AS-ZPJYQV9C seed=1002 uinet: score=48194 steps=49 0.90s
+[AS-ZPJYQV9C] selection 完成
+  AS-QM6RF35M seed=1000 greedy: score=37211 steps=45 0.00s
+  AS-QM6RF35M seed=1000 uinet: score=7745 steps=41 0.77s
+  AS-QM6RF35M seed=1001 greedy: score=55594 steps=46 0.00s
+  AS-QM6RF35M seed=1001 uinet: score=54167 steps=44 0.81s
+  AS-QM6RF35M seed=1002 greedy: score=71853 steps=48 0.00s
+  AS-QM6RF35M seed=1002 uinet: score=54575 steps=45 0.96s
+[AS-QM6RF35M] selection 完成
+  AS-HQRRCB56 seed=1000 greedy: score=64 steps=53 0.00s
+  AS-HQRRCB56 seed=1000 uinet: score=86 steps=47 0.99s
+  AS-HQRRCB56 seed=1001 greedy: score=38 steps=23 0.00s
+  AS-HQRRCB56 seed=1001 uinet: score=33 steps=49 1.01s
+  AS-HQRRCB56 seed=1002 greedy: score=113 steps=46 0.00s
+  AS-HQRRCB56 seed=1002 uinet: score=30 steps=41 0.95s
+[AS-HQRRCB56] main 完成
+  AS-3Y27F7B3 seed=1000 greedy: score=80 steps=73 0.00s
+  AS-3Y27F7B3 seed=1000 uinet: score=17 steps=47 0.95s
+  AS-3Y27F7B3 seed=1001 greedy: score=38 steps=29 0.00s
+  AS-3Y27F7B3 seed=1001 uinet: score=84 steps=59 1.37s
+  AS-3Y27F7B3 seed=1002 greedy: score=143 steps=55 0.00s
+  AS-3Y27F7B3 seed=1002 uinet: score=36 steps=57 1.53s
+[AS-3Y27F7B3] main 完成
+  AS-CKDKGJCM seed=1000 greedy: score=24619 steps=36 0.00s
+  AS-CKDKGJCM seed=1000 uinet: score=22795 steps=36 1.00s
+  AS-CKDKGJCM seed=1001 greedy: score=18709 steps=33 0.00s
+  AS-CKDKGJCM seed=1001 uinet: score=12843 steps=33 0.94s
+  AS-CKDKGJCM seed=1002 greedy: score=17113 steps=32 0.00s
+  AS-CKDKGJCM seed=1002 uinet: score=16172 steps=34 0.87s
+[AS-CKDKGJCM] main 完成
+  AS-FZCFEXMX seed=1000 greedy: score=40451 steps=44 0.01s
+  AS-FZCFEXMX seed=1000 uinet: score=57228 steps=44 0.93s
+  AS-FZCFEXMX seed=1001 greedy: score=77367 steps=44 0.00s
+  AS-FZCFEXMX seed=1001 uinet: score=58184 steps=43 1.06s
+  AS-FZCFEXMX seed=1002 greedy: score=24036 steps=45 0.00s
+  AS-FZCFEXMX seed=1002 uinet: score=27032 steps=43 1.13s
+[AS-FZCFEXMX] main 完成
+  AS-WH942B88 seed=1000 greedy: score=42535 steps=43 0.00s
+  AS-WH942B88 seed=1000 uinet: score=48903 steps=41 0.99s
+  AS-WH942B88 seed=1001 greedy: score=19501 steps=42 0.00s
+  AS-WH942B88 seed=1001 uinet: score=61061 steps=43 1.04s
+  AS-WH942B88 seed=1002 greedy: score=34305 steps=43 0.00s
+  AS-WH942B88 seed=1002 uinet: score=13928 steps=39 0.91s
+[AS-WH942B88] main 完成
+  AS-CSNGP7ZS seed=1000 greedy: score=14884 steps=41 0.00s
+  AS-CSNGP7ZS seed=1000 uinet: score=11757 steps=40 1.00s
+  AS-CSNGP7ZS seed=1001 greedy: score=13934 steps=41 0.00s
+  AS-CSNGP7ZS seed=1001 uinet: score=32582 steps=39 1.06s
+  AS-CSNGP7ZS seed=1002 greedy: score=16865 steps=41 0.00s
+  AS-CSNGP7ZS seed=1002 uinet: score=21705 steps=41 1.00s
+[AS-CSNGP7ZS] main 完成
+  AS-KETSQ8T3 seed=1000 greedy: score=42535 steps=43 0.00s
+  AS-KETSQ8T3 seed=1000 uinet: score=48903 steps=41 0.88s
+  AS-KETSQ8T3 seed=1001 greedy: score=19501 steps=42 0.00s
+  AS-KETSQ8T3 seed=1001 uinet: score=61061 steps=43 0.88s
+  AS-KETSQ8T3 seed=1002 greedy: score=34305 steps=43 0.00s
+  AS-KETSQ8T3 seed=1002 uinet: score=13928 steps=39 0.87s
+[AS-KETSQ8T3] main 完成
+  AS-5KZSXANK seed=1000 greedy: score=37225 steps=50 0.00s
+  AS-5KZSXANK seed=1000 uinet: score=57133 steps=51 1.34s
+  AS-5KZSXANK seed=1001 greedy: score=14860 steps=48 0.00s
+  AS-5KZSXANK seed=1001 uinet: score=59248 steps=51 1.22s
+  AS-5KZSXANK seed=1002 greedy: score=44681 steps=52 0.00s
+  AS-5KZSXANK seed=1002 uinet: score=50628 steps=53 1.36s
+[AS-5KZSXANK] main 完成
+  AS-VYXXGD2Z seed=1000 greedy: score=67972 steps=52 0.00s
+  AS-VYXXGD2Z seed=1000 uinet: score=65571 steps=51 1.32s
+  AS-VYXXGD2Z seed=1001 greedy: score=109434 steps=52 0.00s
+  AS-VYXXGD2Z seed=1001 uinet: score=35598 steps=47 1.12s
+  AS-VYXXGD2Z seed=1002 greedy: score=75433 steps=48 0.00s
+  AS-VYXXGD2Z seed=1002 uinet: score=77240 steps=50 1.09s
+[AS-VYXXGD2Z] main 完成
+  AS-AAGAP92F seed=1000 greedy: score=11213 steps=34 0.00s
+  AS-AAGAP92F seed=1000 uinet: score=12639 steps=33 0.68s
+  AS-AAGAP92F seed=1001 greedy: score=5902 steps=34 0.00s
+  AS-AAGAP92F seed=1001 uinet: score=7828 steps=30 0.69s
+  AS-AAGAP92F seed=1002 greedy: score=14137 steps=34 0.00s
+  AS-AAGAP92F seed=1002 uinet: score=13762 steps=34 0.63s
+[AS-AAGAP92F] selection 完成
+  AS-Z4VBZFDZ seed=1000 greedy: score=16172 steps=32 0.00s
+  AS-Z4VBZFDZ seed=1000 uinet: score=15226 steps=32 0.57s
+  AS-Z4VBZFDZ seed=1001 greedy: score=13886 steps=32 0.00s
+  AS-Z4VBZFDZ seed=1001 uinet: score=14112 steps=32 0.52s
+  AS-Z4VBZFDZ seed=1002 greedy: score=23997 steps=32 0.00s
+  AS-Z4VBZFDZ seed=1002 uinet: score=22937 steps=32 0.54s
+[AS-Z4VBZFDZ] selection 完成
+  AS-7TT292TN seed=1000 greedy: score=66813 steps=44 0.00s
+  AS-7TT292TN seed=1000 uinet: score=45516 steps=45 1.08s
+  AS-7TT292TN seed=1001 greedy: score=32278 steps=48 0.00s
+  AS-7TT292TN seed=1001 uinet: score=34308 steps=46 1.24s
+  AS-7TT292TN seed=1002 greedy: score=31215 steps=42 0.00s
+  AS-7TT292TN seed=1002 uinet: score=28811 steps=40 0.99s
+[AS-7TT292TN] selection 完成
+  AS-VYPZB2GV seed=1000 greedy: score=32230 steps=45 0.00s

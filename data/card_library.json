@@ -153,25 +153,25 @@
   "id": "p_card-00-men-2_012",
   "name": "偶像宣言",
   "text": "体力消耗 / 1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-men-2_012",
   "name": "偶像宣言+",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 消耗体力减少 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": -1.0
+  "value": 0.0
  },
  {
   "id": "p_card-00-men-2_012",
   "name": "偶像宣言++",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 消耗体力减少 / <nobr> / 2 / 回合</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": -1.0
+  "value": 0.0
  },
  {
   "id": "p_card-00-men-2_012",
   "name": "偶像宣言+++",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 消耗体力减少 / <nobr> / 3 / 回合</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": -1.0
+  "value": 0.0
  },
  {
   "id": "p_card-00-men-2_014",
@@ -201,49 +201,49 @@
   "id": "p_card-00-men-3_003",
   "name": "偶像之魂",
   "text": "训练 / 开始时加入手牌 / 元气 / + / 6 / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-00-men-3_003",
   "name": "偶像之魂+",
   "text": "训练 / 开始时加入手牌 / 元气 / + / 6 / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 全部手牌在 / 训练中强化 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.5
+  "value": 5.5
  },
  {
   "id": "p_card-00-men-3_003",
   "name": "偶像之魂++",
   "text": "训练 / 开始时加入手牌 / 元气 / + / 6 / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 全部手牌在 / 训练中强化 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.5
+  "value": 5.5
  },
  {
   "id": "p_card-00-men-3_003",
   "name": "偶像之魂+++",
   "text": "训练 / 开始时加入手牌 / 元气 / + / 6 / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 全部手牌在 / 训练中强化 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.5
+  "value": 5.5
  },
  {
   "id": "p_card-00-men-3_005",
   "name": "重整架势",
   "text": "变更全部手牌 / 消耗体力减少 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-men-3_005",
   "name": "重整架势+",
   "text": "变更全部手牌 / 消耗体力减少 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-men-3_005",
   "name": "重整架势++",
   "text": "变更全部手牌 / 消耗体力减少 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-men-3_005",
   "name": "重整架势+++",
   "text": "变更全部手牌 / 消耗体力减少 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-men-3_011",
@@ -393,25 +393,25 @@
   "id": "p_card-00-sup-2_029",
   "name": "全力支援",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-2_029",
   "name": "全力支援+",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-2_029",
   "name": "全力支援++",
   "text": "元气 / + / 1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-2_029",
   "name": "全力支援+++",
   "text": "元气 / + / 2 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-2_092",
@@ -441,49 +441,49 @@
   "id": "p_card-00-sup-3_024",
   "name": "花枝萌芽的季节",
   "text": "随机强化后的技能卡， / 手牌 / 中 / 生成 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_024",
   "name": "花枝萌芽的季节+",
   "text": "随机强化后的技能卡， / 手牌 / 中 / 生成 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_024",
   "name": "花枝萌芽的季节++",
   "text": "随机强化后的技能卡， / 手牌 / 中 / 生成 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_024",
   "name": "花枝萌芽的季节+++",
   "text": "元气 / + / 1 / 随机强化后的技能卡， / 手牌 / 中 / 生成 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-00-sup-3_025",
   "name": "沐浴阳光的学生会室",
   "text": "体力回复 / <nobr> / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-00-sup-3_025",
   "name": "沐浴阳光的学生会室+",
   "text": "体力回复 / <nobr> / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-00-sup-3_025",
   "name": "沐浴阳光的学生会室++",
   "text": "体力回复 / <nobr> / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-00-sup-3_025",
   "name": "沐浴阳光的学生会室+++",
   "text": "体力回复 / <nobr> / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-00-sup-3_026",
@@ -513,25 +513,25 @@
   "id": "p_card-00-sup-3_027",
   "name": "茶话会",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 全部手牌在 / 训练中强化 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_027",
   "name": "茶话会+",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 全部手牌在 / 训练中强化 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_027",
   "name": "茶话会++",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 全部手牌在 / 训练中强化 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_027",
   "name": "茶话会+++",
   "text": "元气 / + / 1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 全部手牌在 / 训练中强化 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-00-sup-3_037",
@@ -561,97 +561,97 @@
   "id": "p_card-00-sup-3_046",
   "name": "光之舞台",
   "text": "削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-3_046",
   "name": "光之舞台+",
   "text": "削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-3_046",
   "name": "光之舞台++",
   "text": "元气 / + / 1 / 削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_046",
   "name": "光之舞台+++",
   "text": "元气 / + / 2 / 削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_048",
   "name": "新学生会诞生！",
   "text": "训练 / 开始时加入手牌 / 消耗体力减少 / <nobr> / 2 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-sup-3_048",
   "name": "新学生会诞生！+",
   "text": "训练 / 开始时加入手牌 / 消耗体力减少 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-sup-3_048",
   "name": "新学生会诞生！++",
   "text": "训练 / 开始时加入手牌 / 消耗体力减少 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-sup-3_048",
   "name": "新学生会诞生！+++",
   "text": "训练 / 开始时加入手牌 / 消耗体力减少 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.5
+  "value": 1.5
  },
  {
   "id": "p_card-00-sup-3_088",
   "name": "小水洼蹦跳",
   "text": "体力消耗 / 1 / 元气 / + / 3 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_088",
   "name": "小水洼蹦跳+",
   "text": "体力消耗 / 1 / 元气 / + / 8 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_088",
   "name": "小水洼蹦跳++",
   "text": "体力消耗 / 1 / 元气 / + / 10 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_088",
   "name": "小水洼蹦跳+++",
   "text": "体力消耗 / 1 / 元气 / + / 12 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_093",
   "name": "红叶下奔跑",
   "text": "低下状态无效 / <nobr> / 1 / 次</nobr> / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-3_093",
   "name": "红叶下奔跑+",
   "text": "低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-3_093",
   "name": "红叶下奔跑++",
   "text": "元气 / + / 1 / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_093",
   "name": "红叶下奔跑+++",
   "text": "元气 / + / 2 / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_125",
@@ -681,97 +681,97 @@
   "id": "p_card-00-sup-3_152",
   "name": "夏夜绽放的回忆",
   "text": "牌堆或弃牌中随机一张 / 睡意 / 向 / 除外 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 每使用5次技能卡， / 打分 / <nobr>+ / 4 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-00-sup-3_152",
   "name": "夏夜绽放的回忆+",
   "text": "牌堆或弃牌中随机一张 / 睡意 / 向 / 除外 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 每使用5次技能卡， / 打分 / <nobr>+ / 4 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-00-sup-3_152",
   "name": "夏夜绽放的回忆++",
   "text": "牌堆或弃牌中随机一张 / 睡意 / 向 / 除外 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 每使用5次技能卡， / 打分 / <nobr>+ / 4 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-00-sup-3_152",
   "name": "夏夜绽放的回忆+++",
   "text": "牌堆或弃牌中随机一张 / 睡意 / 向 / 除外 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 每使用5次技能卡， / 打分 / <nobr>+ / 4 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-00-sup-3_155",
   "name": "被月光包围",
   "text": "训练 / 开始时加入手牌 / 削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_155",
   "name": "被月光包围+",
   "text": "训练 / 开始时加入手牌 / 削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_155",
   "name": "被月光包围++",
   "text": "训练 / 开始时加入手牌 / 削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_155",
   "name": "被月光包围+++",
   "text": "训练 / 开始时加入手牌 / 削减消耗体力 / <nobr> / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_158",
   "name": "抓住胜利吧！",
   "text": "使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 1 / 次</nobr>） / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-3_158",
   "name": "抓住胜利吧！+",
   "text": "使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 1 / 次</nobr>） / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-00-sup-3_158",
   "name": "抓住胜利吧！++",
   "text": "元气 / + / 2 / 使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 1 / 次</nobr>） / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_158",
   "name": "抓住胜利吧！+++",
   "text": "元气 / + / 2 / 使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 1 / 次</nobr>） / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-00-sup-3_161",
   "name": "执念夹爪",
   "text": "体力消耗 / 1 / 固定元气 / <nobr>+ / 5 / </nobr> / 体力在<nobr>50%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-00-sup-3_161",
   "name": "执念夹爪+",
   "text": "体力消耗 / 1 / 固定元气 / <nobr>+ / 10 / </nobr> / 体力在<nobr>50%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-00-sup-3_161",
   "name": "执念夹爪++",
   "text": "体力消耗 / 1 / 固定元气 / <nobr>+ / 12 / </nobr> / 体力在<nobr>50%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-00-sup-3_161",
   "name": "执念夹爪+++",
   "text": "体力消耗 / 1 / 固定元气 / <nobr>+ / 14 / </nobr> / 体力在<nobr>50%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-01-act-0_005",
@@ -1191,37 +1191,37 @@
   "id": "p_card-01-act-100_004",
   "name": "最高杰作",
   "text": "好调 / 消耗 / 5 / 回合 / 打分 / <nobr>+ / 4 / </nobr>（ / 集中 / 效果会<nobr>3.5倍</nobr>生效） / 牌堆或弃牌中的技能卡在<nobr>9张以上</nobr>的时候， / 在之后的<nobr> / 3 / 回合</nobr>中， / 回合开始时， / 好调 / <nobr> / 1 / 回合</nobr> / ・ / 集中 / <nobr>+ / 1 / </nobr> / ・ / 技能卡抽取<nobr> / 2 / 张</nobr> / ・ / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 10.0
+  "value": 11.0
  },
  {
   "id": "p_card-01-act-100_006",
   "name": "天下无双",
   "text": "绝好调 / <nobr> / 7 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 技能卡使用后， / 绝好调 / 在<nobr>5回合以上</nobr>的时候， / 打分 / <nobr>+ / 2 / </nobr>（ / 集中 / 效果会<nobr>2倍</nobr>生效） / ・ / 绝好调减少 / <nobr> / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 10.0
+  "value": 11.0
  },
  {
   "id": "p_card-01-act-2_001",
   "name": "齐声应援",
   "text": "集中 / 消耗 / 3 / 打分 / + / 6 / 好调 / <nobr> / 2 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-01-act-2_001",
   "name": "齐声应援+",
   "text": "集中 / 消耗 / 2 / 打分 / + / 6 / 好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-01-act-2_001",
   "name": "齐声应援++",
   "text": "集中 / 消耗 / 2 / 打分 / + / 12 / 好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-01-act-2_001",
   "name": "齐声应援+++",
   "text": "集中 / 消耗 / 2 / 打分 / + / 16 / 好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-01-act-2_002",
@@ -1611,25 +1611,25 @@
   "id": "p_card-01-act-3_185",
   "name": "脚光",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 好调 / 在<nobr>20回合以下</nobr>的时候，每使用2次技能卡后， / 打分 / <nobr>+ / 5 / </nobr>（ / 集中 / 效果会<nobr>3倍</nobr>生效） / ・ / 好调减少 / <nobr> / 3 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.0
+  "value": 12.0
  },
  {
   "id": "p_card-01-act-3_185",
   "name": "脚光+",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 好调 / 在<nobr>20回合以下</nobr>的时候，每使用2次技能卡后， / 打分 / <nobr>+ / 6 / </nobr>（ / 集中 / 效果会<nobr>4倍</nobr>生效） / ・ / 好调减少 / <nobr> / 3 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.0
+  "value": 12.0
  },
  {
   "id": "p_card-01-act-3_185",
   "name": "脚光++",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 好调 / 在<nobr>20回合以下</nobr>的时候，每使用2次技能卡后， / 打分 / <nobr>+ / 7 / </nobr>（ / 集中 / 效果会<nobr>4倍</nobr>生效） / ・ / 好调减少 / <nobr> / 3 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.0
+  "value": 12.0
  },
  {
   "id": "p_card-01-act-3_185",
   "name": "脚光+++",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 好调 / 在<nobr>20回合以下</nobr>的时候，每使用2次技能卡后， / 打分 / <nobr>+ / 9 / </nobr>（ / 集中 / 效果会<nobr>4倍</nobr>生效） / ・ / 好调减少 / <nobr> / 3 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.0
+  "value": 12.0
  },
  {
   "id": "p_card-01-ido-1_010",
@@ -1875,25 +1875,25 @@
   "id": "p_card-01-ido-100_039",
   "name": "汇聚喜爱的启明星",
   "text": "训练 / 开始时加入手牌 / 集中 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 选择牌堆或弃牌中的<nobr>最多2张</nobr>技能卡，向 / 牌堆的最顶部 / 中移动 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-100_040",
   "name": "舞台中闪耀的启明星",
   "text": "训练 / 开始时加入手牌 / 集中 / <nobr>+ / 4 / </nobr> / 随机1张手牌中的 / 辅助技能卡 / （SR）可无需花费值使用 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-100_044",
   "name": "鼓舞前行的启明星",
   "text": "训练 / 开始时加入手牌 / 集中增加量增加 / <nobr>+ / 10 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 集中 / <nobr>+ / 4 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-01-ido-100_045",
   "name": "被大家喜爱的启明星",
   "text": "训练 / 开始时加入手牌 / 好调 / <nobr> / 6 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-2_016",
@@ -2259,49 +2259,49 @@
   "id": "p_card-01-ido-3_075",
   "name": "欢迎来到茶会♪",
   "text": "元气 / + / 3 / 绝好调 / <nobr> / 2 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_075",
   "name": "欢迎来到茶会♪+",
   "text": "元气 / + / 5 / 绝好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_075",
   "name": "欢迎来到茶会♪++",
   "text": "元气 / + / 5 / 绝好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_075",
   "name": "欢迎来到茶会♪+++",
   "text": "元气 / + / 5 / 绝好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_080",
   "name": "精确无比的标牌制作",
   "text": "训练 / 开始时加入手牌 / 好调 / <nobr> / 3 / 回合</nobr> / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_080",
   "name": "精确无比的标牌制作+",
   "text": "训练 / 开始时加入手牌 / 好调 / <nobr> / 5 / 回合</nobr> / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_080",
   "name": "精确无比的标牌制作++",
   "text": "训练 / 开始时加入手牌 / 好调 / <nobr> / 5 / 回合</nobr> / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_080",
   "name": "精确无比的标牌制作+++",
   "text": "训练 / 开始时加入手牌 / 好调 / <nobr> / 6 / 回合</nobr> / 低下状态无效 / <nobr> / 1 / 次</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_082",
@@ -2379,25 +2379,25 @@
   "id": "p_card-01-ido-3_097",
   "name": "轻抿一口",
   "text": "训练 / 开始时加入手牌 / 集中 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-ido-3_097",
   "name": "轻抿一口+",
   "text": "训练 / 开始时加入手牌 / 集中 / <nobr>+ / 4 / </nobr> / 消耗体力减少 / <nobr> / 1 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-01-ido-3_097",
   "name": "轻抿一口++",
   "text": "训练 / 开始时加入手牌 / 集中 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 消耗体力减少 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-01-ido-3_097",
   "name": "轻抿一口+++",
   "text": "训练 / 开始时加入手牌 / 集中 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 消耗体力减少 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-01-ido-3_098",
@@ -2475,49 +2475,49 @@
   "id": "p_card-01-ido-3_108",
   "name": "梦想仍会延续",
   "text": "好调 / 状态的时候，可以使用 / 好调 / 的<nobr> / 100 / %</nobr>数值变为 / 打分 / 上升 / 好调 / <nobr> / 1 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_108",
   "name": "梦想仍会延续+",
   "text": "好调 / 状态的时候，可以使用 / 好调 / 的<nobr> / 150 / %</nobr>数值变为 / 打分 / 上升 / 好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_108",
   "name": "梦想仍会延续++",
   "text": "好调 / 状态的时候，可以使用 / 好调 / 的<nobr> / 150 / %</nobr>数值变为 / 打分 / 上升 / 好调 / <nobr> / 3 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_108",
   "name": "梦想仍会延续+++",
   "text": "好调 / 状态的时候，可以使用 / 好调 / 的<nobr> / 150 / %</nobr>数值变为 / 打分 / 上升 / 好调 / <nobr> / 4 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_118",
   "name": "与英雄的相遇",
   "text": "好调 / <nobr> / 4 / 回合</nobr> / 集中 / <nobr>+ / 1 / </nobr> / 好调 / 在<nobr>4回合以上</nobr>的时候， / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好调 / 在<nobr>12回合以上</nobr>的时候， / <nobr> / 2 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_118",
   "name": "与英雄的相遇+",
   "text": "好调 / <nobr> / 4 / 回合</nobr> / 集中 / <nobr>+ / 2 / </nobr> / 好调 / 在<nobr>4回合以上</nobr>的时候， / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好调 / 在<nobr>12回合以上</nobr>的时候， / <nobr> / 2 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_118",
   "name": "与英雄的相遇++",
   "text": "好调 / <nobr> / 5 / 回合</nobr> / 集中 / <nobr>+ / 3 / </nobr> / 好调 / 在<nobr>4回合以上</nobr>的时候， / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好调 / 在<nobr>12回合以上</nobr>的时候， / <nobr> / 2 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_118",
   "name": "与英雄的相遇+++",
   "text": "好调 / <nobr> / 5 / 回合</nobr> / 集中 / <nobr>+ / 4 / </nobr> / 好调 / 在<nobr>4回合以上</nobr>的时候， / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好调 / 在<nobr>12回合以上</nobr>的时候， / <nobr> / 2 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_128",
@@ -2547,25 +2547,25 @@
   "id": "p_card-01-ido-3_133",
   "name": "无论是怎样的世界",
   "text": "打分 / <nobr>+ / 7 / </nobr>（ / 集中 / 效果会<nobr>2倍</nobr>生效） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_133",
   "name": "无论是怎样的世界+",
   "text": "打分 / <nobr>+ / 17 / </nobr>（ / 集中 / 效果会<nobr>2倍</nobr>生效） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_133",
   "name": "无论是怎样的世界++",
   "text": "打分 / <nobr>+ / 22 / </nobr>（ / 集中 / 效果会<nobr>2倍</nobr>生效） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_133",
   "name": "无论是怎样的世界+++",
   "text": "打分 / <nobr>+ / 22 / </nobr>（ / 集中 / 效果会<nobr>2倍</nobr>生效） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_134",
@@ -2595,25 +2595,25 @@
   "id": "p_card-01-ido-3_137",
   "name": "直至晨曦降临",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 3 / </nobr> / <nobr> / 3 / 回合</nobr>后， / 好调 / <nobr> / 5 / 回合</nobr> / <nobr> / 4 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_137",
   "name": "直至晨曦降临+",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 5 / </nobr> / <nobr> / 3 / 回合</nobr>后， / 好调 / <nobr> / 7 / 回合</nobr> / <nobr> / 4 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_137",
   "name": "直至晨曦降临++",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 5 / </nobr> / <nobr> / 3 / 回合</nobr>后， / 好调 / <nobr> / 8 / 回合</nobr> / <nobr> / 4 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_137",
   "name": "直至晨曦降临+++",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 7 / </nobr> / <nobr> / 3 / 回合</nobr>后， / 好调 / <nobr> / 8 / 回合</nobr> / <nobr> / 4 / 回合</nobr>后， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_139",
@@ -2763,25 +2763,25 @@
   "id": "p_card-01-ido-3_170",
   "name": "怒放吧！",
   "text": "集中 / <nobr>+ / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 除外中的技能卡在<nobr>4张以上</nobr>的时候， / 打分 / <nobr>+ / 5 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_170",
   "name": "怒放吧！+",
   "text": "集中 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 除外中的技能卡在<nobr>4张以上</nobr>的时候， / 打分 / <nobr>+ / 5 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_170",
   "name": "怒放吧！++",
   "text": "集中 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 除外中的技能卡在<nobr>4张以上</nobr>的时候， / 打分 / <nobr>+ / 10 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_170",
   "name": "怒放吧！+++",
   "text": "集中 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 除外中的技能卡在<nobr>4张以上</nobr>的时候， / 打分 / <nobr>+ / 17 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-01-ido-3_174",
@@ -2811,25 +2811,25 @@
   "id": "p_card-01-ido-3_191",
   "name": "老师居然是偶像！",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-01-ido-3_191",
   "name": "老师居然是偶像！+",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-01-ido-3_191",
   "name": "老师居然是偶像！++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-01-ido-3_191",
   "name": "老师居然是偶像！+++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-01-ido-3_200",
@@ -2907,25 +2907,25 @@
   "id": "p_card-01-ido-3_215",
   "name": "你带给我的梦想",
   "text": "体力消耗 / 7 / 训练 / 开始时加入手牌 / 最大体力的<nobr> / 20 / %</nobr>数值变为 / 体力回复 / 集中增加量追加 / <nobr>+ / 2 / </nobr>（<nobr> / 2 / 回合</nobr>） / 体力在<nobr>80%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_215",
   "name": "你带给我的梦想+",
   "text": "体力消耗 / 4 / 训练 / 开始时加入手牌 / 最大体力的<nobr> / 20 / %</nobr>数值变为 / 体力回复 / 集中增加量追加 / <nobr>+ / 2 / </nobr>（<nobr> / 2 / 回合</nobr>） / 体力在<nobr>80%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_215",
   "name": "你带给我的梦想++",
   "text": "体力消耗 / 3 / 训练 / 开始时加入手牌 / 最大体力的<nobr> / 20 / %</nobr>数值变为 / 体力回复 / 集中增加量追加 / <nobr>+ / 2 / </nobr>（<nobr> / 2 / 回合</nobr>） / 体力在<nobr>80%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_215",
   "name": "你带给我的梦想+++",
   "text": "体力消耗 / 2 / 训练 / 开始时加入手牌 / 最大体力的<nobr> / 20 / %</nobr>数值变为 / 体力回复 / 集中增加量追加 / <nobr>+ / 2 / </nobr>（<nobr> / 2 / 回合</nobr>） / 体力在<nobr>80%以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 10.0
  },
  {
   "id": "p_card-01-ido-3_233",
@@ -3003,25 +3003,25 @@
   "id": "p_card-01-ido-3_241",
   "name": "海浪间摇动的光芒",
   "text": "集中 / 消耗 / 2 / 打分 / <nobr>+ / 3 / </nobr>（ / 集中 / 效果会<nobr>2倍</nobr>生效） / 集中增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 4 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 9.0
  },
  {
   "id": "p_card-01-ido-3_241",
   "name": "海浪间摇动的光芒+",
   "text": "集中 / 消耗 / 1 / 打分 / <nobr>+ / 7 / </nobr>（ / 集中 / 效果会<nobr>2倍</nobr>生效） / 集中增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 4 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 9.0
  },
  {
   "id": "p_card-01-ido-3_241",
   "name": "海浪间摇动的光芒++",
   "text": "集中 / 消耗 / 1 / 打分 / <nobr>+ / 9 / </nobr>（ / 集中 / 效果会<nobr>2.5倍</nobr>生效） / 集中增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 4 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 9.0
  },
  {
   "id": "p_card-01-ido-3_241",
   "name": "海浪间摇动的光芒+++",
   "text": "集中 / 消耗 / 1 / 打分 / <nobr>+ / 11 / </nobr>（ / 集中 / 效果会<nobr>3倍</nobr>生效） / 集中增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 4 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 8.0
+  "value": 9.0
  },
  {
   "id": "p_card-01-ido-3_242",
@@ -3315,13 +3315,13 @@
   "id": "p_card-01-men-100_001",
   "name": "完美无缺",
   "text": "训练 / 开始时加入手牌 / 好调增加量增加 / <nobr>+ / 25 / %</nobr> / 集中增加量增加 / <nobr>+ / 25 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-01-men-100_005",
   "name": "王者风范",
   "text": "好调 / <nobr> / 3 / 回合</nobr> / 集中 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 跳过回合时， / 下个回合， / 打分上升量增加 / <nobr> / 110 / %</nobr>（<nobr> / 1 / 回合</nobr>） / ・ / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / ・ / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 2 / 回合</nobr>后， / 主动技能卡 / 不可使用<nobr>（ / 1 / 回合）</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.0
+  "value": 9.0
  },
  {
   "id": "p_card-01-men-2_011",
@@ -3423,25 +3423,25 @@
   "id": "p_card-01-men-2_037",
   "name": "存在感",
   "text": "好调 / 消耗 / 2 / 回合 / 集中 / <nobr>+ / 4 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-01-men-2_037",
   "name": "存在感+",
   "text": "好调 / 消耗 / 1 / 回合 / 集中 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-01-men-2_037",
   "name": "存在感++",
   "text": "好调 / 消耗 / 1 / 回合 / 集中 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-01-men-2_037",
   "name": "存在感+++",
   "text": "好调 / 消耗 / 1 / 回合 / 集中 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-01-men-2_038",
@@ -3567,49 +3567,49 @@
   "id": "p_card-01-men-2_098",
   "name": "刺激",
   "text": "好调 / <nobr> / 5 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_098",
   "name": "刺激+",
   "text": "好调 / <nobr> / 7 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_098",
   "name": "刺激++",
   "text": "好调 / <nobr> / 7 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_098",
   "name": "刺激+++",
   "text": "好调 / <nobr> / 7 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_099",
   "name": "一决胜负",
   "text": "集中 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_099",
   "name": "一决胜负+",
   "text": "集中 / <nobr>+ / 8 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_099",
   "name": "一决胜负++",
   "text": "集中 / <nobr>+ / 8 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_099",
   "name": "一决胜负+++",
   "text": "集中 / <nobr>+ / 8 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-2_104",
@@ -3639,49 +3639,49 @@
   "id": "p_card-01-men-2_110",
   "name": "无所畏惧",
   "text": "好调 / <nobr> / 3 / 回合</nobr> / 集中 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-2_110",
   "name": "无所畏惧+",
   "text": "好调 / <nobr> / 3 / 回合</nobr> / 集中 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-2_110",
   "name": "无所畏惧++",
   "text": "好调 / <nobr> / 3 / 回合</nobr> / 集中 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-2_110",
   "name": "无所畏惧+++",
   "text": "好调 / <nobr> / 3 / 回合</nobr> / 集中 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-3_006",
   "name": "国民级偶像",
   "text": "好调 / 消耗 / 1 / 回合 / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-01-men-3_006",
   "name": "国民级偶像+",
   "text": "好调 / 消耗 / 1 / 回合 / 元气 / + / 8 / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-01-men-3_006",
   "name": "国民级偶像++",
   "text": "好调 / 消耗 / 1 / 回合 / 元气 / + / 13 / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-01-men-3_006",
   "name": "国民级偶像+++",
   "text": "好调 / 消耗 / 1 / 回合 / 元气 / + / 16 / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 3.5
  },
  {
   "id": "p_card-01-men-3_033",
@@ -3711,25 +3711,25 @@
   "id": "p_card-01-men-3_034",
   "name": "天赋才能",
   "text": "体力消耗 / 5 / 好调 / <nobr> / 3 / 回合</nobr> / 集中 / <nobr>+ / 2 / </nobr> / 牌堆或弃牌中的随机3张技能卡（SSR）向 / 牌堆的最顶部 / 中移动 / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-3_034",
   "name": "天赋才能+",
   "text": "体力消耗 / 4 / 好调 / <nobr> / 4 / 回合</nobr> / 集中 / <nobr>+ / 3 / </nobr> / 牌堆或弃牌中的随机3张技能卡（SSR）向 / 牌堆的最顶部 / 中移动 / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-3_034",
   "name": "天赋才能++",
   "text": "体力消耗 / 3 / 好调 / <nobr> / 4 / 回合</nobr> / 集中 / <nobr>+ / 3 / </nobr> / 牌堆或弃牌中的随机3张技能卡（SSR）向 / 牌堆的最顶部 / 中移动 / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-3_034",
   "name": "天赋才能+++",
   "text": "体力消耗 / 2 / 好调 / <nobr> / 4 / 回合</nobr> / 集中 / <nobr>+ / 3 / </nobr> / 牌堆或弃牌中的随机3张技能卡（SSR）向 / 牌堆的最顶部 / 中移动 / 下个回合， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-01-men-3_035",
@@ -3759,25 +3759,25 @@
   "id": "p_card-01-men-3_036",
   "name": "魅惑的视线",
   "text": "集中 / 消耗 / 3 / 绝好调 / <nobr> / 4 / 回合</nobr> / 消耗体力减少 / <nobr> / 2 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-3_036",
   "name": "魅惑的视线+",
   "text": "集中 / 消耗 / 3 / 绝好调 / <nobr> / 5 / 回合</nobr> / 消耗体力减少 / <nobr> / 5 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-3_036",
   "name": "魅惑的视线++",
   "text": "集中 / 消耗 / 3 / 绝好调 / <nobr> / 6 / 回合</nobr> / 消耗体力减少 / <nobr> / 5 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-men-3_036",
   "name": "魅惑的视线+++",
   "text": "集中 / 消耗 / 3 / 绝好调 / <nobr> / 7 / 回合</nobr> / 消耗体力减少 / <nobr> / 6 / 回合</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-01-sup-2_087",
@@ -3975,25 +3975,25 @@
   "id": "p_card-01-sup-3_109",
   "name": "练习重新开始！",
   "text": "好调 / <nobr> / 1 / 回合</nobr> / 变更全部手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-sup-3_109",
   "name": "练习重新开始！+",
   "text": "好调 / <nobr> / 3 / 回合</nobr> / 变更全部手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-sup-3_109",
   "name": "练习重新开始！++",
   "text": "好调 / <nobr> / 4 / 回合</nobr> / 变更全部手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-sup-3_109",
   "name": "练习重新开始！+++",
   "text": "好调 / <nobr> / 5 / 回合</nobr> / 变更全部手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-01-sup-3_157",
@@ -4359,7 +4359,7 @@
   "id": "p_card-02-act-100_009",
   "name": "我才是最强的！",
   "text": "干劲 / 消耗 / 5 / 干劲 / 在<nobr>6以上</nobr>的时候，可以使用 / 好印象 / <nobr>+ / 12 / </nobr> / 好印象 / 的<nobr> / 250 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-02-act-100_010",
@@ -4467,25 +4467,25 @@
   "id": "p_card-02-act-2_049",
   "name": "最喜欢大家",
   "text": "干劲 / 消耗 / 3 / 好印象 / 的<nobr> / 90 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-act-2_049",
   "name": "最喜欢大家+",
   "text": "干劲 / 消耗 / 2 / 好印象 / 的<nobr> / 120 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-act-2_049",
   "name": "最喜欢大家++",
   "text": "干劲 / 消耗 / 2 / 好印象 / 的<nobr> / 140 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-act-2_049",
   "name": "最喜欢大家+++",
   "text": "干劲 / 消耗 / 2 / 好印象 / 的<nobr> / 160 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-act-2_062",
@@ -4611,25 +4611,25 @@
   "id": "p_card-02-act-3_050",
   "name": "献给闪耀的你",
   "text": "干劲 / 消耗 / 4 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 技能卡使用时， / 好印象 / 的<nobr> / 30 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-act-3_050",
   "name": "献给闪耀的你+",
   "text": "干劲 / 消耗 / 4 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 技能卡使用时， / 好印象 / 的<nobr> / 50 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-act-3_050",
   "name": "献给闪耀的你++",
   "text": "干劲 / 消耗 / 3 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 技能卡使用时， / 好印象 / 的<nobr> / 50 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-act-3_050",
   "name": "献给闪耀的你+++",
   "text": "干劲 / 消耗 / 3 / 元气 / + / 1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 技能卡使用时， / 好印象 / 的<nobr> / 50 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-02-act-3_052",
@@ -4995,25 +4995,25 @@
   "id": "p_card-02-ido-100_037",
   "name": "率先冲锋的启明星",
   "text": "好印象 / <nobr>+ / 5 / </nobr> / 好印象强化 / <nobr>+ / 30 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-100_041",
   "name": "带来笑容的启明星",
   "text": "训练 / 开始时加入手牌 / 好印象 / <nobr>+ / 10 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 微热愁绪♡ / 向 / 牌堆的随机位置 / <nobr>5张</nobr> / 生成 / 下个回合， / 除外以外中的 / 微热愁绪 / 向 / 手牌 / 中移动 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-ido-100_046",
   "name": "证明自身的启明星",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 在之后的<nobr> / 5 / 回合</nobr>中， / 直接效果 / 使 / 干劲 / 增加后， / 牌堆或弃牌中的随机 / 辅助技能卡 / 1张向 / 牌堆的最顶部 / 中移动 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-100_048",
   "name": "逐梦不止的启明星",
   "text": "之后 / 4 / 次为限， / 技能卡花费值使体力减少时， / 元气 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-2_018",
@@ -5379,25 +5379,25 @@
   "id": "p_card-02-ido-3_076",
   "name": "用捞金鱼一决胜负",
   "text": "体力消耗 / 2 / 好印象 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_076",
   "name": "用捞金鱼一决胜负+",
   "text": "体力消耗 / 2 / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_076",
   "name": "用捞金鱼一决胜负++",
   "text": "体力消耗 / 2 / 好印象 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_076",
   "name": "用捞金鱼一决胜负+++",
   "text": "体力消耗 / 2 / 好印象 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_078",
@@ -5427,49 +5427,49 @@
   "id": "p_card-02-ido-3_079",
   "name": "苦战手工",
   "text": "体力消耗 / 4 / 好印象 / <nobr>+ / 4 / </nobr> / 干劲 / <nobr>+ / 4 / </nobr> / 好印象 / 在<nobr>3以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_079",
   "name": "苦战手工+",
   "text": "体力消耗 / 4 / 好印象 / <nobr>+ / 6 / </nobr> / 干劲 / <nobr>+ / 5 / </nobr> / 好印象 / 在<nobr>3以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_079",
   "name": "苦战手工++",
   "text": "体力消耗 / 4 / 好印象 / <nobr>+ / 7 / </nobr> / 干劲 / <nobr>+ / 5 / </nobr> / 好印象 / 在<nobr>3以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_079",
   "name": "苦战手工+++",
   "text": "体力消耗 / 3 / 好印象 / <nobr>+ / 7 / </nobr> / 干劲 / <nobr>+ / 5 / </nobr> / 好印象 / 在<nobr>3以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_081",
   "name": "再会，明天",
   "text": "好印象 / 在<nobr>1以上</nobr>的时候，可以使用 / 最大体力的<nobr> / 10 / %</nobr>数值变为 / 体力回复 / 好印象 / <nobr>+ / 3 / </nobr> / 元气 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_081",
   "name": "再会，明天+",
   "text": "好印象 / 在<nobr>1以上</nobr>的时候，可以使用 / 最大体力的<nobr> / 10 / %</nobr>数值变为 / 体力回复 / 好印象 / <nobr>+ / 5 / </nobr> / 元气 / <nobr>+ / 10 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_081",
   "name": "再会，明天++",
   "text": "好印象 / 在<nobr>1以上</nobr>的时候，可以使用 / 最大体力的<nobr> / 10 / %</nobr>数值变为 / 体力回复 / 好印象 / <nobr>+ / 5 / </nobr> / 元气 / <nobr>+ / 10 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_081",
   "name": "再会，明天+++",
   "text": "好印象 / 在<nobr>1以上</nobr>的时候，可以使用 / 最大体力的<nobr> / 15 / %</nobr>数值变为 / 体力回复 / 好印象 / <nobr>+ / 5 / </nobr> / 元气 / <nobr>+ / 14 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_086",
@@ -5571,49 +5571,49 @@
   "id": "p_card-02-ido-3_104",
   "name": "再次飞翔",
   "text": "元气 / + / 1 / 好印象 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-ido-3_104",
   "name": "再次飞翔+",
   "text": "元气 / + / 2 / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-ido-3_104",
   "name": "再次飞翔++",
   "text": "元气 / + / 2 / 好印象 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-ido-3_104",
   "name": "再次飞翔+++",
   "text": "元气 / + / 2 / 好印象 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-ido-3_105",
   "name": "尤里卡！",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 回合开始时，体力在<nobr>50%以下</nobr>的时候， / 元气 / 的<nobr> / 30 / %</nobr>数值变为 / 打分 / 上升 / ・ / 最大体力的<nobr> / 5 / %</nobr>数值变为 / 体力回复 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_105",
   "name": "尤里卡！+",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 回合开始时，体力在<nobr>50%以下</nobr>的时候， / 元气 / 的<nobr> / 40 / %</nobr>数值变为 / 打分 / 上升 / ・ / 最大体力的<nobr> / 10 / %</nobr>数值变为 / 体力回复 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_105",
   "name": "尤里卡！++",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 回合开始时，体力在<nobr>50%以下</nobr>的时候， / 元气 / 的<nobr> / 40 / %</nobr>数值变为 / 打分 / 上升 / ・ / 最大体力的<nobr> / 10 / %</nobr>数值变为 / 体力回复 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_105",
   "name": "尤里卡！+++",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 回合开始时，体力在<nobr>50%以下</nobr>的时候， / 元气 / 的<nobr> / 40 / %</nobr>数值变为 / 打分 / 上升 / ・ / 最大体力的<nobr> / 10 / %</nobr>数值变为 / 体力回复 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-02-ido-3_111",
@@ -5811,25 +5811,25 @@
   "id": "p_card-02-ido-3_140",
   "name": "我、绝不",
   "text": "干劲 / 在<nobr>9以上</nobr>的时候，可以使用 / 自尊 / （<nobr> / 5 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / <nobr>+ / 8 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_140",
   "name": "我、绝不+",
   "text": "干劲 / 在<nobr>9以上</nobr>的时候，可以使用 / 自尊 / （<nobr> / 5 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / <nobr>+ / 9 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_140",
   "name": "我、绝不++",
   "text": "干劲 / 在<nobr>9以上</nobr>的时候，可以使用 / 自尊 / （<nobr> / 5 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / <nobr>+ / 11 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_140",
   "name": "我、绝不+++",
   "text": "干劲 / 在<nobr>9以上</nobr>的时候，可以使用 / 自尊 / （<nobr> / 5 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / <nobr>+ / 13 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-ido-3_143",
@@ -5883,73 +5883,73 @@
   "id": "p_card-02-ido-3_146",
   "name": "微热愁绪",
   "text": "体力消耗 / 7 / 好印象 / 在<nobr>10以上</nobr>的时候，可以使用 / 元气 / <nobr>+ / 2 / </nobr> / 干劲 / <nobr>+ / 2 / </nobr> / 牌堆或弃牌中每有1张技能卡， / 好印象 / <nobr>+2</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-02-ido-3_146",
   "name": "微热愁绪+",
   "text": "体力消耗 / 5 / 好印象 / 在<nobr>10以上</nobr>的时候，可以使用 / 元气 / <nobr>+ / 6 / </nobr> / 干劲 / <nobr>+ / 4 / </nobr> / 牌堆或弃牌中每有1张技能卡， / 好印象 / <nobr>+2</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-02-ido-3_146",
   "name": "微热愁绪++",
   "text": "体力消耗 / 4 / 好印象 / 在<nobr>10以上</nobr>的时候，可以使用 / 元气 / <nobr>+ / 6 / </nobr> / 干劲 / <nobr>+ / 4 / </nobr> / 牌堆或弃牌中每有1张技能卡， / 好印象 / <nobr>+2</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-02-ido-3_146",
   "name": "微热愁绪+++",
   "text": "体力消耗 / 3 / 好印象 / 在<nobr>10以上</nobr>的时候，可以使用 / 元气 / <nobr>+ / 6 / </nobr> / 干劲 / <nobr>+ / 4 / </nobr> / 牌堆或弃牌中每有1张技能卡， / 好印象 / <nobr>+2</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-02-ido-3_148",
   "name": "直达天际",
   "text": "好印象 / <nobr>+ / 3 / </nobr> / 好印象强化 / <nobr>+ / 20 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 消耗体力增加 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_148",
   "name": "直达天际+",
   "text": "好印象 / <nobr>+ / 4 / </nobr> / 好印象强化 / <nobr>+ / 20 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 消耗体力增加 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_148",
   "name": "直达天际++",
   "text": "好印象 / <nobr>+ / 4 / </nobr> / 好印象强化 / <nobr>+ / 25 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 消耗体力增加 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_148",
   "name": "直达天际+++",
   "text": "好印象 / <nobr>+ / 5 / </nobr> / 好印象强化 / <nobr>+ / 25 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 消耗体力增加 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_165",
   "name": "梦境与现实的边界",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 干劲 / 在<nobr>8以下</nobr>的时候， / 好印象 / <nobr>1.1 / 倍 / </nobr> / 干劲 / 在<nobr>9以上</nobr>的时候， / 好印象 / 的<nobr> / 140 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr>",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-02-ido-3_165",
   "name": "梦境与现实的边界+",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 干劲 / 在<nobr>8以下</nobr>的时候， / 好印象 / <nobr>1.1 / 倍 / </nobr> / 干劲 / 在<nobr>9以上</nobr>的时候， / 好印象 / 的<nobr> / 250 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr>",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-02-ido-3_165",
   "name": "梦境与现实的边界++",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 干劲 / 在<nobr>8以下</nobr>的时候， / 好印象 / <nobr>1.1 / 倍 / </nobr> / 干劲 / 在<nobr>9以上</nobr>的时候， / 好印象 / 的<nobr> / 300 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr>",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-02-ido-3_165",
   "name": "梦境与现实的边界+++",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 干劲 / 在<nobr>8以下</nobr>的时候， / 好印象 / <nobr>1.1 / 倍 / </nobr> / 干劲 / 在<nobr>9以上</nobr>的时候， / 好印象 / 的<nobr> / 350 / %</nobr>数值变为 / 打分 / 上升 / <nobr> / 不可重复 / </nobr>",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-02-ido-3_167",
@@ -5979,25 +5979,25 @@
   "id": "p_card-02-ido-3_169",
   "name": "超越我吧",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 元气 / 效果的技能卡每使用2次， / 超越我吧（翔） / 向 / 牌堆的最顶部 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-02-ido-3_169",
   "name": "超越我吧+",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 元气 / 效果的技能卡每使用2次， / 超越我吧（翔） / 向 / 牌堆的最顶部 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-02-ido-3_169",
   "name": "超越我吧++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 元气 / 效果的技能卡每使用2次， / 超越我吧（翔） / 向 / 牌堆的最顶部 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-02-ido-3_169",
   "name": "超越我吧+++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 元气 / 效果的技能卡每使用2次， / 超越我吧（翔） / 向 / 牌堆的最顶部 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-02-ido-3_171",
@@ -6027,25 +6027,25 @@
   "id": "p_card-02-ido-3_173",
   "name": "怒放的鲜花",
   "text": "训练 / 开始时加入手牌 / 以后， / 好印象 / 在<nobr>6以上</nobr>的时候， / 好印象 / 效果的技能卡每使用3次， / 好印象追加发动 / <nobr>+ / 1 / </nobr>（<nobr> / 3 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-02-ido-3_173",
   "name": "怒放的鲜花+",
   "text": "训练 / 开始时加入手牌 / 以后， / 好印象 / 在<nobr>6以上</nobr>的时候， / 好印象 / 效果的技能卡每使用3次， / 好印象追加发动 / <nobr>+ / 1 / </nobr>（<nobr> / 3 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-02-ido-3_173",
   "name": "怒放的鲜花++",
   "text": "训练 / 开始时加入手牌 / 好印象 / <nobr>+ / 2 / </nobr> / 以后， / 好印象 / 在<nobr>6以上</nobr>的时候， / 好印象 / 效果的技能卡每使用3次， / 好印象追加发动 / <nobr>+ / 1 / </nobr>（<nobr> / 3 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.5
+  "value": 10.5
  },
  {
   "id": "p_card-02-ido-3_173",
   "name": "怒放的鲜花+++",
   "text": "训练 / 开始时加入手牌 / 好印象 / <nobr>+ / 3 / </nobr> / 以后， / 好印象 / 在<nobr>6以上</nobr>的时候， / 好印象 / 效果的技能卡每使用3次， / 好印象追加发动 / <nobr>+ / 1 / </nobr>（<nobr> / 3 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.5
+  "value": 10.5
  },
  {
   "id": "p_card-02-ido-3_176",
@@ -6075,49 +6075,49 @@
   "id": "p_card-02-ido-3_190",
   "name": "超越我吧（翔）",
   "text": "体力消耗 / 1 / 元气 / 在<nobr>15以上</nobr>的时候，可以使用 / 元气 / 的<nobr> / 80 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-02-ido-3_190",
   "name": "超越我吧（翔）+",
   "text": "体力消耗 / 1 / 元气 / 在<nobr>15以上</nobr>的时候，可以使用 / 元气 / 的<nobr> / 130 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-02-ido-3_190",
   "name": "超越我吧（翔）++",
   "text": "体力消耗 / 1 / 元气 / 在<nobr>15以上</nobr>的时候，可以使用 / 元气 / 的<nobr> / 150 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-02-ido-3_190",
   "name": "超越我吧（翔）+++",
   "text": "体力消耗 / 1 / 元气 / 在<nobr>15以上</nobr>的时候，可以使用 / 元气 / 的<nobr> / 180 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-02-ido-3_192",
   "name": "我是亚纱里推♡",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_192",
   "name": "我是亚纱里推♡+",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_192",
   "name": "我是亚纱里推♡++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_192",
   "name": "我是亚纱里推♡+++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_198",
@@ -6147,49 +6147,49 @@
   "id": "p_card-02-ido-3_201",
   "name": "支撑我的话语",
   "text": "干劲 / <nobr>+ / 3 / </nobr> / 干劲增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 抽取技能卡 / 再演 / ： / 直接效果 / 使 / 干劲 / 增加5次时， / 自身会再次使用 / （ / 2 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-02-ido-3_201",
   "name": "支撑我的话语+",
   "text": "干劲 / <nobr>+ / 3 / </nobr> / 干劲增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 抽取技能卡 / 再演 / ： / 直接效果 / 使 / 干劲 / 增加5次时， / 自身会再次使用 / （ / 2 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-02-ido-3_201",
   "name": "支撑我的话语++",
   "text": "干劲 / <nobr>+ / 3 / </nobr> / 干劲增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 抽取技能卡 / 再演 / ： / 直接效果 / 使 / 干劲 / 增加5次时， / 自身会再次使用 / （ / 2 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-02-ido-3_201",
   "name": "支撑我的话语+++",
   "text": "干劲 / <nobr>+ / 3 / </nobr> / 干劲增加量追加 / <nobr>+ / 1 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 抽取技能卡 / 再演 / ： / 直接效果 / 使 / 干劲 / 增加5次时， / 自身会再次使用 / （ / 2 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-02-ido-3_203",
   "name": "闪耀光辉的路标",
   "text": "好印象 / 消耗 / 5 / 好印象 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 再演 / ： / 最终回合的回合开始后， / 自身会再次使用 / （ / 3 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-02-ido-3_203",
   "name": "闪耀光辉的路标+",
   "text": "好印象 / 消耗 / 5 / 好印象 / <nobr>+ / 4 / </nobr> / 干劲 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 再演 / ： / 最终回合的回合开始后， / 自身会再次使用 / （ / 3 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-02-ido-3_203",
   "name": "闪耀光辉的路标++",
   "text": "好印象 / 消耗 / 5 / 元气 / <nobr>+ / 2 / </nobr> / 好印象 / <nobr>+ / 4 / </nobr> / 干劲 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 再演 / ： / 最终回合的回合开始后， / 自身会再次使用 / （ / 3 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.5
+  "value": 5.5
  },
  {
   "id": "p_card-02-ido-3_203",
   "name": "闪耀光辉的路标+++",
   "text": "好印象 / 消耗 / 5 / 元气 / <nobr>+ / 6 / </nobr> / 好印象 / <nobr>+ / 4 / </nobr> / 干劲 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 再演 / ： / 最终回合的回合开始后， / 自身会再次使用 / （ / 3 / 次为限・回合内1次为限） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.5
+  "value": 5.5
  },
  {
   "id": "p_card-02-ido-3_211",
@@ -6219,25 +6219,25 @@
   "id": "p_card-02-ido-3_214",
   "name": "直到触及理想的那天",
   "text": "干劲 / <nobr>+ / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 移动时效果 / ：移动到手牌时， / 干劲 / <nobr>+ / 3 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_214",
   "name": "直到触及理想的那天+",
   "text": "干劲 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 移动时效果 / ：移动到手牌时， / 干劲 / <nobr>+ / 3 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_214",
   "name": "直到触及理想的那天++",
   "text": "干劲 / <nobr>+ / 4 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 移动时效果 / ：移动到手牌时， / 干劲 / <nobr>+ / 3 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_214",
   "name": "直到触及理想的那天+++",
   "text": "干劲 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 移动时效果 / ：移动到手牌时， / 干劲 / <nobr>+ / 3 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-ido-3_216",
@@ -6267,25 +6267,25 @@
   "id": "p_card-02-ido-3_232",
   "name": "微热愁绪♡",
   "text": "好印象 / <nobr>+ / 2 / </nobr> / 好印象强化 / <nobr>+ / 20 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_232",
   "name": "微热愁绪♡+",
   "text": "好印象 / <nobr>+ / 4 / </nobr> / 好印象强化 / <nobr>+ / 20 / %</nobr>（<nobr> / 4 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_232",
   "name": "微热愁绪♡++",
   "text": "好印象 / <nobr>+ / 5 / </nobr> / 好印象强化 / <nobr>+ / 20 / %</nobr>（<nobr> / 4 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_232",
   "name": "微热愁绪♡+++",
   "text": "好印象 / <nobr>+ / 6 / </nobr> / 好印象强化 / <nobr>+ / 20 / %</nobr>（<nobr> / 4 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-02-ido-3_236",
@@ -6699,19 +6699,19 @@
   "id": "p_card-02-men-100_007",
   "name": "绝佳♪",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 在之后的<nobr> / 5 / 回合</nobr>中， / 回合开始后， / 抽取技能卡 / 以后， / 回合开始后， / 随机2张手牌中的技能卡（R）可无需花费值使用 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-men-100_008",
   "name": "究极笑容",
   "text": "好印象 / 在<nobr>6以上</nobr>的时候，可以使用 / 好印象强化 / <nobr>+ / 100 / %</nobr> / 所有的技能卡的 / 好印象值增加 / +6 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-02-men-100_011",
   "name": "最强表演者",
   "text": "干劲 / 在<nobr>9以上</nobr>的时候，可以使用 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 干劲 / <nobr>+ / 5 / </nobr> / 以后， / 技能卡花费值使体力减少时， / 元气 / <nobr>+ / 4 / </nobr>（ / 干劲 / 效果会<nobr>2.5倍</nobr>生效） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-men-2_004",
@@ -6909,49 +6909,49 @@
   "id": "p_card-02-men-2_056",
   "name": "无法抑制的心意",
   "text": "体力消耗 / 4 / 干劲 / <nobr>+ / 3 / </nobr> / 好印象 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-2_056",
   "name": "无法抑制的心意+",
   "text": "体力消耗 / 4 / 干劲 / <nobr>+ / 4 / </nobr> / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-2_056",
   "name": "无法抑制的心意++",
   "text": "体力消耗 / 3 / 干劲 / <nobr>+ / 4 / </nobr> / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-2_056",
   "name": "无法抑制的心意+++",
   "text": "体力消耗 / 3 / 元气 / + / 1 / 干劲 / <nobr>+ / 4 / </nobr> / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-men-2_057",
   "name": "梦幻心情",
   "text": "好印象 / 消耗 / 2 / 干劲 / <nobr>+ / 4 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-men-2_057",
   "name": "梦幻心情+",
   "text": "好印象 / 消耗 / 1 / 干劲 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-men-2_057",
   "name": "梦幻心情++",
   "text": "好印象 / 消耗 / 1 / 干劲 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-men-2_057",
   "name": "梦幻心情+++",
   "text": "好印象 / 消耗 / 1 / 干劲 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-men-2_058",
@@ -6981,145 +6981,145 @@
   "id": "p_card-02-men-2_060",
   "name": "少女情怀",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 4 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-men-2_060",
   "name": "少女情怀+",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 好印象 / <nobr>+ / 2 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-men-2_060",
   "name": "少女情怀++",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 好印象 / <nobr>+ / 2 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-men-2_060",
   "name": "少女情怀+++",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 好印象 / <nobr>+ / 2 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-men-2_100",
   "name": "心情多变",
   "text": "元气 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-men-2_100",
   "name": "心情多变+",
   "text": "元气 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-men-2_100",
   "name": "心情多变++",
   "text": "元气 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-men-2_100",
   "name": "心情多变+++",
   "text": "元气 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-men-2_101",
   "name": "冒险心",
   "text": "好印象 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-2_101",
   "name": "冒险心+",
   "text": "好印象 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-2_101",
   "name": "冒险心++",
   "text": "好印象 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-2_101",
   "name": "冒险心+++",
   "text": "好印象 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-2_111",
   "name": "成长痛",
   "text": "元气 / <nobr>+ / 2 / </nobr> / 干劲 / <nobr>+ / 3 / </nobr> / 好印象 / <nobr>+ / 4 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-men-2_111",
   "name": "成长痛+",
   "text": "元气 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 4 / </nobr> / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-men-2_111",
   "name": "成长痛++",
   "text": "元气 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 4 / </nobr> / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-men-2_111",
   "name": "成长痛+++",
   "text": "元气 / <nobr>+ / 3 / </nobr> / 干劲 / <nobr>+ / 4 / </nobr> / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr>",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-men-3_002",
   "name": "我是明星",
   "text": "好印象 / 消耗 / 2 / 回合追加 / <nobr>+1</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-3_002",
   "name": "我是明星+",
   "text": "好印象 / 消耗 / 1 / 回合追加 / <nobr>+1</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.0
+  "value": 3.0
  },
  {
   "id": "p_card-02-men-3_002",
   "name": "我是明星++",
   "text": "好印象 / 消耗 / 1 / 元气 / + / 1 / 回合追加 / <nobr>+1</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-men-3_002",
   "name": "我是明星+++",
   "text": "好印象 / 消耗 / 1 / 元气 / + / 5 / 回合追加 / <nobr>+1</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.5
+  "value": 4.5
  },
  {
   "id": "p_card-02-men-3_004",
   "name": "星屑轰动",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 好印象增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 5 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-men-3_004",
   "name": "星屑轰动+",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 7 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 好印象 / 在<nobr>10以上</nobr>的时候， / 好印象增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 5 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-men-3_004",
   "name": "星屑轰动++",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 8 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / 好印象 / 在<nobr>10以上</nobr>的时候， / 好印象增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 5 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-men-3_004",
   "name": "星屑轰动+++",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 9 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 好印象增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 5 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-02-men-3_040",
@@ -7341,25 +7341,25 @@
   "id": "p_card-02-sup-2_095",
   "name": "草笛和声",
   "text": "好印象 / <nobr>+ / 2 / </nobr> / 体力回复 / <nobr> / 1 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.5
+  "value": 7.5
  },
  {
   "id": "p_card-02-sup-2_095",
   "name": "草笛和声+",
   "text": "好印象 / <nobr>+ / 2 / </nobr> / 体力回复 / <nobr> / 3 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.5
+  "value": 7.5
  },
  {
   "id": "p_card-02-sup-2_095",
   "name": "草笛和声++",
   "text": "好印象 / <nobr>+ / 2 / </nobr> / 体力回复 / <nobr> / 4 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.5
+  "value": 7.5
  },
  {
   "id": "p_card-02-sup-2_095",
   "name": "草笛和声+++",
   "text": "好印象 / <nobr>+ / 2 / </nobr> / 体力回复 / <nobr> / 5 / </nobr> / 好印象 / 在<nobr>10以上</nobr>的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.5
+  "value": 7.5
  },
  {
   "id": "p_card-02-sup-3_023",
@@ -7413,25 +7413,25 @@
   "id": "p_card-02-sup-3_092",
   "name": "那本书，有趣吗？",
   "text": "体力消耗 / 5 / 好印象 / 在<nobr>3以上</nobr>的时候， / 好印象 / 的<nobr> / 120 / %</nobr>数值变为 / 打分 / 上升 / 干劲 / 在<nobr>3以上</nobr>的时候， / 元气 / 的<nobr> / 50 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.5
+  "value": 12.5
  },
  {
   "id": "p_card-02-sup-3_092",
   "name": "那本书，有趣吗？+",
   "text": "体力消耗 / 4 / 好印象 / 在<nobr>3以上</nobr>的时候， / 好印象 / 的<nobr> / 150 / %</nobr>数值变为 / 打分 / 上升 / 干劲 / 在<nobr>3以上</nobr>的时候， / 元气 / 的<nobr> / 70 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.5
+  "value": 12.5
  },
  {
   "id": "p_card-02-sup-3_092",
   "name": "那本书，有趣吗？++",
   "text": "体力消耗 / 4 / 好印象 / 在<nobr>3以上</nobr>的时候， / 好印象 / 的<nobr> / 180 / %</nobr>数值变为 / 打分 / 上升 / 干劲 / 在<nobr>3以上</nobr>的时候， / 元气 / 的<nobr> / 80 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.5
+  "value": 12.5
  },
  {
   "id": "p_card-02-sup-3_092",
   "name": "那本书，有趣吗？+++",
   "text": "体力消耗 / 4 / 好印象 / 在<nobr>3以上</nobr>的时候， / 好印象 / 的<nobr> / 190 / %</nobr>数值变为 / 打分 / 上升 / 干劲 / 在<nobr>3以上</nobr>的时候， / 元气 / 的<nobr> / 100 / %</nobr>数值变为 / 打分 / 上升 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 11.5
+  "value": 12.5
  },
  {
   "id": "p_card-02-sup-3_094",
@@ -7485,25 +7485,25 @@
   "id": "p_card-02-sup-3_178",
   "name": "憧憬的不良行为",
   "text": "干劲 / 消耗 / 3 / 好印象 / <nobr>+ / 3 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / 干劲 / 在<nobr>6以上</nobr>的时候， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-sup-3_178",
   "name": "憧憬的不良行为+",
   "text": "干劲 / 消耗 / 2 / 好印象 / <nobr>+ / 4 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / 干劲 / 在<nobr>6以上</nobr>的时候， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-sup-3_178",
   "name": "憧憬的不良行为++",
   "text": "干劲 / 消耗 / 2 / 好印象 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / 干劲 / 在<nobr>6以上</nobr>的时候， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-sup-3_178",
   "name": "憧憬的不良行为+++",
   "text": "干劲 / 消耗 / 2 / 好印象 / <nobr>+ / 6 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 抽取技能卡 / 干劲 / 在<nobr>6以上</nobr>的时候， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.0
+  "value": 2.0
  },
  {
   "id": "p_card-02-sup-3_180",
@@ -7581,25 +7581,25 @@
   "id": "p_card-02-sup-3_195",
   "name": "让我看看你们的本事",
   "text": "干劲 / <nobr>+ / 4 / </nobr> / 变更全部手牌 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-sup-3_195",
   "name": "让我看看你们的本事+",
   "text": "干劲 / <nobr>+ / 5 / </nobr> / 变更全部手牌 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-sup-3_195",
   "name": "让我看看你们的本事++",
   "text": "干劲 / <nobr>+ / 5 / </nobr> / 变更全部手牌 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-02-sup-3_195",
   "name": "让我看看你们的本事+++",
   "text": "干劲 / <nobr>+ / 6 / </nobr> / 变更全部手牌 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-act-0_014",
@@ -8049,25 +8049,25 @@
   "id": "p_card-03-act-2_067",
   "name": "理想的节奏",
   "text": "打分 / + / 6 / （ / 2 / 次） / 非 / 温存 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 成长 / ： / 直接效果 / 使 / 指针 / 变更的时候， / 自身的 / 打分值增加 / +5 / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-03-act-2_067",
   "name": "理想的节奏+",
   "text": "打分 / + / 6 / （ / 2 / 次） / 非 / 温存 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 成长 / ： / 直接效果 / 使 / 指针 / 变更的时候， / 自身的 / 打分值增加 / +7 / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-03-act-2_067",
   "name": "理想的节奏++",
   "text": "打分 / + / 6 / （ / 2 / 次） / 非 / 温存 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 成长 / ： / 直接效果 / 使 / 指针 / 变更的时候， / 自身的 / 打分值增加 / +7 / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-03-act-2_067",
   "name": "理想的节奏+++",
   "text": "打分 / + / 6 / （ / 2 / 次） / 非 / 温存 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 成长 / ： / 直接效果 / 使 / 指针 / 变更的时候， / 自身的 / 打分值增加 / +8 / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-03-act-2_068",
@@ -8241,49 +8241,49 @@
   "id": "p_card-03-act-2_082",
   "name": "潮流领袖",
   "text": "全力值 / 消耗 / 2 / 自身向 / 保留 / 中移动 / 非 / 全力 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 全力 / 的时候， / 打分 / <nobr>+ / 3 / </nobr>（累计 / 全力值 / 的 / 50 / %数值，变为 / 打分 / 上升量增加・<nobr> / 2 / 次</nobr>） / 成长 / ： / 自身使用后， / 全力 / 的时候， / 自身的 / 打分值增加 / +5・ / 全力值花费值增加 / +1（4次为限） / <nobr> / 不可重复 / </nobr>",
-  "value": 20.0
+  "value": 21.0
  },
  {
   "id": "p_card-03-act-2_082",
   "name": "潮流领袖+",
   "text": "全力值 / 消耗 / 2 / 自身向 / 保留 / 中移动 / 非 / 全力 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 全力 / 的时候， / 打分 / <nobr>+ / 10 / </nobr>（累计 / 全力值 / 的 / 100 / %数值，变为 / 打分 / 上升量增加・<nobr> / 2 / 次</nobr>） / 成长 / ： / 自身使用后， / 全力 / 的时候， / 自身的 / 打分值增加 / +5・ / 全力值花费值增加 / +1（4次为限） / <nobr> / 不可重复 / </nobr>",
-  "value": 20.0
+  "value": 21.0
  },
  {
   "id": "p_card-03-act-2_082",
   "name": "潮流领袖++",
   "text": "全力值 / 消耗 / 2 / 自身向 / 保留 / 中移动 / 非 / 全力 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 全力 / 的时候， / 打分 / <nobr>+ / 12 / </nobr>（累计 / 全力值 / 的 / 120 / %数值，变为 / 打分 / 上升量增加・<nobr> / 2 / 次</nobr>） / 成长 / ： / 自身使用后， / 全力 / 的时候， / 自身的 / 打分值增加 / +5・ / 全力值花费值增加 / +1（4次为限） / <nobr> / 不可重复 / </nobr>",
-  "value": 20.0
+  "value": 21.0
  },
  {
   "id": "p_card-03-act-2_082",
   "name": "潮流领袖+++",
   "text": "全力值 / 消耗 / 2 / 自身向 / 保留 / 中移动 / 非 / 全力 / 状态的时候， / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 全力 / 的时候， / 打分 / <nobr>+ / 14 / </nobr>（累计 / 全力值 / 的 / 140 / %数值，变为 / 打分 / 上升量增加・<nobr> / 2 / 次</nobr>） / 成长 / ： / 自身使用后， / 全力 / 的时候， / 自身的 / 打分值增加 / +5・ / 全力值花费值增加 / +1（4次为限） / <nobr> / 不可重复 / </nobr>",
-  "value": 20.0
+  "value": 21.0
  },
  {
   "id": "p_card-03-act-2_102",
   "name": "超速前进",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 4 / </nobr> / 全力值 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / 下个回合， / 温存 / 变更 / <nobr> / 不可重复 / </nobr>",
-  "value": 8.5
+  "value": 9.5
  },
  {
   "id": "p_card-03-act-2_102",
   "name": "超速前进+",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 4 / </nobr>（<nobr> / 2 / 次</nobr>） / 全力值 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / 下个回合， / 温存 / 变更 / <nobr> / 不可重复 / </nobr>",
-  "value": 8.5
+  "value": 9.5
  },
  {
   "id": "p_card-03-act-2_102",
   "name": "超速前进++",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 4 / </nobr>（<nobr> / 2 / 次</nobr>） / 全力值 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / 下个回合， / 温存 / 变更 / <nobr> / 不可重复 / </nobr>",
-  "value": 8.5
+  "value": 9.5
  },
  {
   "id": "p_card-03-act-2_102",
   "name": "超速前进+++",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 4 / </nobr>（<nobr> / 2 / 次</nobr>） / 全力值 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / 下个回合， / 温存 / 变更 / <nobr> / 不可重复 / </nobr>",
-  "value": 8.5
+  "value": 9.5
  },
  {
   "id": "p_card-03-act-2_106",
@@ -8433,25 +8433,25 @@
   "id": "p_card-03-act-3_065",
   "name": "全身全灵",
   "text": "强气 / 变更 / 使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 2 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-03-act-3_065",
   "name": "全身全灵+",
   "text": "强气 / 变更 / 使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 2 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 2 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-03-act-3_065",
   "name": "全身全灵++",
   "text": "强气 / 变更 / 使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 2 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 2 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-03-act-3_065",
   "name": "全身全灵+++",
   "text": "强气 / 变更 / 使用的下一张技能卡消耗的体力变为<nobr> / 0 / </nobr>（<nobr> / 2 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 2 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-03-act-3_188",
@@ -8577,25 +8577,25 @@
   "id": "p_card-03-ido-100_038",
   "name": "飞向高处的启明星",
   "text": "全力值 / <nobr>+ / 5 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 1 / 次为限， / 回合开始时， / 全力 / 的时候， / 选择<nobr>1张</nobr>除外以外的技能卡，消耗花费值使用 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-03-ido-100_042",
   "name": "创造奇迹的启明星",
   "text": "使用的下一张 / 朝着光照的方向 / 的消耗体力变为<nobr> / 0 / </nobr>（<nobr> / 5 / 次</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 强气 / 效果的技能卡的 / 打分值增加 / +11 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-100_043",
   "name": "传递勇气的启明星",
   "text": "全力值 / 消耗 / 5 / 打分 / <nobr>+ / 20 / </nobr>（累计 / 全力值 / 的 / 650 / %数值，变为 / 打分 / 上升量增加） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 9.0
+  "value": 10.0
  },
  {
   "id": "p_card-03-ido-100_047",
   "name": "俯瞰群星的启明星",
   "text": "元气 / <nobr>+ / 4 / </nobr> / 热意增加 / <nobr>+ / 30 / %</nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 3 / 次为限， / 回合开始时，不是 / 温存 / 状态的时候， / 悠闲 / 变更 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 3.0
+  "value": 4.0
  },
  {
   "id": "p_card-03-ido-2_084",
@@ -8721,25 +8721,25 @@
   "id": "p_card-03-ido-3_101",
   "name": "得到的答案",
   "text": "星光 / 的 / 打分上升次数增加 / +1 / 牌堆或弃牌中的 / 星光+ / 1张向 / 手牌 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.5
+  "value": 5.5
  },
  {
   "id": "p_card-03-ido-3_101",
   "name": "得到的答案+",
   "text": "温存 / 2 / 阶段变更 / 星光 / 的 / 打分上升次数增加 / +1 / 牌堆或弃牌中的 / 星光+ / 1张向 / 手牌 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-ido-3_101",
   "name": "得到的答案++",
   "text": "温存 / 2 / 阶段变更 / 星光 / 的 / 打分上升次数增加 / +1 / 牌堆或弃牌中的 / 星光+ / 1张向 / 手牌 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-ido-3_101",
   "name": "得到的答案+++",
   "text": "温存 / 2 / 阶段变更 / 星光 / 的 / 打分上升次数增加 / +1 / 牌堆或弃牌中的 / 星光+ / 1张向 / 手牌 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-ido-3_106",
@@ -8769,25 +8769,25 @@
   "id": "p_card-03-ido-3_107",
   "name": "新的舞台",
   "text": "选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 全力值 / <nobr>+ / 1 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-03-ido-3_107",
   "name": "新的舞台+",
   "text": "选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 全力值 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 保留 / 中的技能卡的 / 打分值增加 / +5 / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_107",
   "name": "新的舞台++",
   "text": "选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 全力值 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 保留 / 中的技能卡的 / 打分值增加 / +8 / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_107",
   "name": "新的舞台+++",
   "text": "选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 全力值 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 保留 / 中的技能卡的 / 打分值增加 / +8 / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_110",
@@ -8943,19 +8943,19 @@
   "id": "p_card-03-ido-3_122",
   "name": "小心手滑！+",
   "text": "训练 / 开始时加入手牌 / 在之后的<nobr> / 5 / 回合</nobr>中， / 回合开始时，不是 / 强气 / 状态的时候， / 强气 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-03-ido-3_122",
   "name": "小心手滑！++",
   "text": "训练 / 开始时加入手牌 / 元气 / + / 5 / 在之后的<nobr> / 5 / 回合</nobr>中， / 回合开始时，不是 / 强气 / 状态的时候， / 强气 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-03-ido-3_122",
   "name": "小心手滑！+++",
   "text": "训练 / 开始时加入手牌 / 元气 / + / 9 / 在之后的<nobr> / 5 / 回合</nobr>中， / 回合开始时，不是 / 强气 / 状态的时候， / 强气 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-03-ido-3_123",
@@ -8985,25 +8985,25 @@
   "id": "p_card-03-ido-3_129",
   "name": "新生的光芒",
   "text": "温存 / 2 / 阶段变更 / 热意追加 / <nobr>+ / 5 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_129",
   "name": "新生的光芒+",
   "text": "温存 / 2 / 阶段变更 / 热意追加 / <nobr>+ / 8 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_129",
   "name": "新生的光芒++",
   "text": "温存 / 2 / 阶段变更 / 热意追加 / <nobr>+ / 10 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_129",
   "name": "新生的光芒+++",
   "text": "温存 / 2 / 阶段变更 / 热意追加 / <nobr>+ / 10 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_131",
@@ -9033,25 +9033,25 @@
   "id": "p_card-03-ido-3_135",
   "name": "朝着光照的方向",
   "text": "体力消耗 / 1 / 强气 / 的时候，可以使用 / 温存 / 变更 / 元气 / <nobr>+ / 5 / </nobr> / 热意追加 / <nobr>+ / 8 / </nobr> / 辅助技能卡 / 的 / 花费值增加 / +1・ / 体力消耗花费值增加 / +1 / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_135",
   "name": "朝着光照的方向+",
   "text": "体力消耗 / 1 / 强气 / 的时候，可以使用 / 温存 / 变更 / 元气 / <nobr>+ / 8 / </nobr> / 热意追加 / <nobr>+ / 10 / </nobr> / 辅助技能卡 / 的 / 花费值增加 / +1・ / 体力消耗花费值增加 / +1 / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_135",
   "name": "朝着光照的方向++",
   "text": "体力消耗 / 1 / 强气 / 的时候，可以使用 / 温存 / 变更 / 元气 / <nobr>+ / 10 / </nobr> / 热意追加 / <nobr>+ / 11 / </nobr> / 辅助技能卡 / 的 / 花费值增加 / +1・ / 体力消耗花费值增加 / +1 / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_135",
   "name": "朝着光照的方向+++",
   "text": "体力消耗 / 1 / 强气 / 的时候，可以使用 / 温存 / 变更 / 元气 / <nobr>+ / 11 / </nobr> / 热意追加 / <nobr>+ / 12 / </nobr> / 辅助技能卡 / 的 / 花费值增加 / +1・ / 体力消耗花费值增加 / +1 / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_138",
@@ -9129,25 +9129,25 @@
   "id": "p_card-03-ido-3_163",
   "name": "满溢的情感",
   "text": "全力值 / 消耗 / 6 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 全力值 / <nobr>+ / 2 / </nobr> / 之后 / 3 / 次为限， / 回合结束时， / 全力值 / 在<nobr>9以下</nobr>的时候， / 打分 / <nobr>+ / 2 / </nobr>（累计 / 全力值 / 的 / 100 / %数值，变为 / 打分 / 上升量增加） / <nobr> / 不可重复 / </nobr>",
-  "value": 13.0
+  "value": 14.0
  },
  {
   "id": "p_card-03-ido-3_163",
   "name": "满溢的情感+",
   "text": "全力值 / 消耗 / 4 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 全力值 / <nobr>+ / 3 / </nobr> / 之后 / 3 / 次为限， / 回合结束时， / 全力值 / 在<nobr>9以下</nobr>的时候， / 打分 / <nobr>+ / 2 / </nobr>（累计 / 全力值 / 的 / 100 / %数值，变为 / 打分 / 上升量增加） / <nobr> / 不可重复 / </nobr>",
-  "value": 13.0
+  "value": 14.0
  },
  {
   "id": "p_card-03-ido-3_163",
   "name": "满溢的情感++",
   "text": "全力值 / 消耗 / 4 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 全力值 / <nobr>+ / 5 / </nobr> / 之后 / 3 / 次为限， / 回合结束时， / 全力值 / 在<nobr>9以下</nobr>的时候， / 打分 / <nobr>+ / 2 / </nobr>（累计 / 全力值 / 的 / 100 / %数值，变为 / 打分 / 上升量增加） / <nobr> / 不可重复 / </nobr>",
-  "value": 13.0
+  "value": 14.0
  },
  {
   "id": "p_card-03-ido-3_163",
   "name": "满溢的情感+++",
   "text": "全力值 / 消耗 / 4 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 全力值 / <nobr>+ / 5 / </nobr> / 之后 / 3 / 次为限， / 回合结束时， / 全力值 / 在<nobr>9以下</nobr>的时候， / 打分 / <nobr>+ / 4 / </nobr>（累计 / 全力值 / 的 / 100 / %数值，变为 / 打分 / 上升量增加） / <nobr> / 不可重复 / </nobr>",
-  "value": 13.0
+  "value": 14.0
  },
  {
   "id": "p_card-03-ido-3_166",
@@ -9225,49 +9225,49 @@
   "id": "p_card-03-ido-3_177",
   "name": "让我告诉你们吧",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 6 / </nobr> / 热意追加 / <nobr>+ / 2 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_177",
   "name": "让我告诉你们吧+",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 6 / </nobr> / 热意追加 / <nobr>+ / 2 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_177",
   "name": "让我告诉你们吧++",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 6 / </nobr> / 热意追加 / <nobr>+ / 5 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_177",
   "name": "让我告诉你们吧+++",
   "text": "强气 / 变更 / 打分 / <nobr>+ / 6 / </nobr> / 热意追加 / <nobr>+ / 8 / </nobr>（<nobr> / 2 / 回合</nobr>） / 下个回合， / 技能卡抽取<nobr> / 2 / 张</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 5.0
+  "value": 6.0
  },
  {
   "id": "p_card-03-ido-3_193",
   "name": "NEO・亚纱里冲击",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_193",
   "name": "NEO・亚纱里冲击+",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_193",
   "name": "NEO・亚纱里冲击++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_193",
   "name": "NEO・亚纱里冲击+++",
   "text": "训练 / 开始时加入手牌 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 使用的下一张技能卡的效果再发动<nobr> / 1 / 次</nobr>（<nobr> / 1 / 次</nobr>） / 选择牌堆或弃牌中的<nobr>1张</nobr>技能卡，直接就能用！没有任何代价！ / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-ido-3_197",
@@ -9345,25 +9345,25 @@
   "id": "p_card-03-ido-3_235",
   "name": "不能再软弱下去了！",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 2 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 全力值 / <nobr>+ / 9 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-ido-3_235",
   "name": "不能再软弱下去了！+",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 2 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 全力值 / <nobr>+ / 10 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-ido-3_235",
   "name": "不能再软弱下去了！++",
   "text": "元气 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 2 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 全力值 / <nobr>+ / 10 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-03-ido-3_235",
   "name": "不能再软弱下去了！+++",
   "text": "元气 / <nobr>+ / 2 / </nobr> / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 2 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 全力值 / <nobr>+ / 10 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.5
+  "value": 8.5
  },
  {
   "id": "p_card-03-ido-3_238",
@@ -9633,25 +9633,25 @@
   "id": "p_card-03-men-1_050",
   "name": "逆转局面",
   "text": "全力值 / 消耗 / 1 / 温存 / 变更 / 热意追加 / <nobr>+ / 3 / </nobr> / 所有的技能卡的 / 花费值减少 / -1 / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-1_050",
   "name": "逆转局面+",
   "text": "全力值 / 消耗 / 1 / 温存 / 变更 / 热意追加 / <nobr>+ / 6 / </nobr> / 所有的技能卡的 / 花费值减少 / -1 / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-1_050",
   "name": "逆转局面++",
   "text": "全力值 / 消耗 / 1 / 温存 / 变更 / 热意追加 / <nobr>+ / 7 / </nobr> / 所有的技能卡的 / 花费值减少 / -1 / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-1_050",
   "name": "逆转局面+++",
   "text": "全力值 / 消耗 / 1 / 温存 / 变更 / 热意追加 / <nobr>+ / 8 / </nobr> / 所有的技能卡的 / 花费值减少 / -1 / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-1_051",
@@ -9681,19 +9681,19 @@
   "id": "p_card-03-men-100_014",
   "name": "顶尖水准",
   "text": "温存 / 的时候，可以使用 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 以后， / 主动技能卡 / 使用后， / 强气 / 的时候， / 热意追加 / <nobr>+ / 3 / </nobr> / 以后， / 辅助技能卡 / 使用后， / 温存 / 的时候， / 热意增加 / <nobr>+ / 50 / %</nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-men-100_015",
   "name": "专家",
   "text": "指针 / 变更次数在<nobr>4次以上</nobr>的时候，可以使用 / 保留 / 中的技能卡的 / 打分值增加 / +5 / 保留 / 中的技能卡可无需花费值使用 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 下个回合， / 温存 / 变更 / 移动时效果 / ：移动到手牌时， / 选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / <nobr> / 不可重复 / </nobr>",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-men-100_016",
   "name": "传奇巨星",
   "text": "技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 温存 / 存在次数在<nobr>2次以上</nobr>的时候， / 回合追加 / <nobr>+1</nobr> / 强气 / 存在次数在<nobr>2次以上</nobr>的时候， / 回合追加 / <nobr>+1</nobr> / 全力 / 存在次数在<nobr>2次以上</nobr>的时候， / 回合追加 / <nobr>+1</nobr> / 之后 / 3 / 次为限， / 剩余<nobr>3回合内</nobr>的时候， / 全力 / 存在的时候， / 打分上升量增加 / <nobr> / 150 / %</nobr>（<nobr> / 1 / 回合</nobr>） / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 10.5
+  "value": 14.5
  },
  {
   "id": "p_card-03-men-2_064",
@@ -9747,25 +9747,25 @@
   "id": "p_card-03-men-2_074",
   "name": "坚韧意志",
   "text": "温存 / 存在次数在<nobr>2次以上</nobr>的时候，可以使用 / 温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 主动技能卡 / 的 / 打分值增加 / +14・ / 花费值增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-men-2_074",
   "name": "坚韧意志+",
   "text": "温存 / 存在次数在<nobr>2次以上</nobr>的时候，可以使用 / 温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 主动技能卡 / 的 / 打分值增加 / +18・ / 花费值增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-men-2_074",
   "name": "坚韧意志++",
   "text": "温存 / 存在次数在<nobr>2次以上</nobr>的时候，可以使用 / 温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 主动技能卡 / 的 / 打分值增加 / +18・ / 花费值增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-men-2_074",
   "name": "坚韧意志+++",
   "text": "温存 / 存在次数在<nobr>2次以上</nobr>的时候，可以使用 / 温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 主动技能卡 / 的 / 打分值增加 / +18・ / 花费值增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 6.0
+  "value": 7.0
  },
  {
   "id": "p_card-03-men-2_075",
@@ -9843,145 +9843,145 @@
   "id": "p_card-03-men-2_078",
   "name": "达成感",
   "text": "温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 3 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 温存 / 变更 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-03-men-2_078",
   "name": "达成感+",
   "text": "温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 3 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 温存 / 变更 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-03-men-2_078",
   "name": "达成感++",
   "text": "温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 3 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 温存 / 变更 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-03-men-2_078",
   "name": "达成感+++",
   "text": "温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 之后 / 3 / 次为限， / 全力 / 被解除后，非 / 全力 / 状态的时候， / 温存 / 变更 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 7.0
+  "value": 8.0
  },
  {
   "id": "p_card-03-men-2_079",
   "name": "切磋琢磨",
   "text": "全力值 / <nobr>+ / 2 / </nobr> / 选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 指针固定 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-03-men-2_079",
   "name": "切磋琢磨+",
   "text": "全力值 / <nobr>+ / 3 / </nobr> / 选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 指针固定 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 2.0
+  "value": 3.0
  },
  {
   "id": "p_card-03-men-2_079",
   "name": "切磋琢磨++",
   "text": "元气 / + / 3 / 全力值 / <nobr>+ / 3 / </nobr> / 选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 指针固定 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-03-men-2_079",
   "name": "切磋琢磨+++",
   "text": "元气 / + / 5 / 全力值 / <nobr>+ / 3 / </nobr> / 选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 指针固定 / <nobr> / 1 / 回合</nobr> / <nobr> / 不可重复 / </nobr>",
-  "value": 3.5
+  "value": 4.5
  },
  {
   "id": "p_card-03-men-2_080",
   "name": "意见领袖",
   "text": "辅助技能卡 / 的 / 元气值增加 / +5・ / 花费值增加 / +1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-2_080",
   "name": "意见领袖+",
   "text": "辅助技能卡 / 的 / 元气值增加 / +6・ / 花费值增加 / +1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-2_080",
   "name": "意见领袖++",
   "text": "辅助技能卡 / 的 / 元气值增加 / +7・ / 花费值增加 / +1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-2_080",
   "name": "意见领袖+++",
   "text": "辅助技能卡 / 的 / 元气值增加 / +8・ / 花费值增加 / +1 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 抽取技能卡 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-2_103",
   "name": "冒险机遇",
   "text": "全力值 / <nobr>+ / 3 / </nobr> / 全力值增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-03-men-2_103",
   "name": "冒险机遇+",
   "text": "全力值 / <nobr>+ / 3 / </nobr> / 全力值增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 4 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-03-men-2_103",
   "name": "冒险机遇++",
   "text": "全力值 / <nobr>+ / 3 / </nobr> / 全力值增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 4 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-03-men-2_103",
   "name": "冒险机遇+++",
   "text": "全力值 / <nobr>+ / 3 / </nobr> / 全力值增加量增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 4 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 2 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 4.0
+  "value": 5.0
  },
  {
   "id": "p_card-03-men-2_112",
   "name": "火力全开",
   "text": "温存 / 变更 / 热意增加 / <nobr>+ / 100 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-2_112",
   "name": "火力全开+",
   "text": "温存 / 变更 / 热意增加 / <nobr>+ / 150 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-2_112",
   "name": "火力全开++",
   "text": "温存 / 变更 / 热意增加 / <nobr>+ / 150 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-2_112",
   "name": "火力全开+++",
   "text": "温存 / 变更 / 热意增加 / <nobr>+ / 150 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 技能卡抽取<nobr> / 3 / 张</nobr> / 睡意 / 向 / 牌堆的随机位置 / 中 / 生成 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-men-3_058",
   "name": "成为偶像",
   "text": "全力值 / 消耗 / 3 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 手牌的 / 打分上升次数增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 5.5
+  "value": 6.5
  },
  {
   "id": "p_card-03-men-3_058",
   "name": "成为偶像+",
   "text": "全力值 / 消耗 / 3 / 元气 / + / 4 / 温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 手牌的 / 打分上升次数增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 8.5
+  "value": 9.5
  },
  {
   "id": "p_card-03-men-3_058",
   "name": "成为偶像++",
   "text": "全力值 / 消耗 / 3 / 元气 / + / 9 / 温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 手牌的 / 打分上升次数增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 8.5
+  "value": 9.5
  },
  {
   "id": "p_card-03-men-3_058",
   "name": "成为偶像+++",
   "text": "全力值 / 消耗 / 3 / 元气 / + / 14 / 温存 / 变更 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / 手牌的 / 打分上升次数增加 / +1 / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 8.5
+  "value": 9.5
  },
  {
   "id": "p_card-03-men-3_060",
@@ -10179,49 +10179,49 @@
   "id": "p_card-03-sup-3_126",
   "name": "对战请多指教！",
   "text": "选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-03-sup-3_126",
   "name": "对战请多指教！+",
   "text": "选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 0.0
+  "value": 1.0
  },
  {
   "id": "p_card-03-sup-3_126",
   "name": "对战请多指教！++",
   "text": "元气 / + / 2 / 选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-sup-3_126",
   "name": "对战请多指教！+++",
   "text": "元气 / + / 5 / 选择牌堆或弃牌中的技能卡，向 / 保留 / 中移动 / 抽取技能卡 / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-sup-3_162",
   "name": "调皮的圣诞老人",
   "text": "温存 / 2 / 阶段变更 / 热意增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-sup-3_162",
   "name": "调皮的圣诞老人+",
   "text": "温存 / 2 / 阶段变更 / 热意增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-sup-3_162",
   "name": "调皮的圣诞老人++",
   "text": "温存 / 2 / 阶段变更 / 热意增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-sup-3_162",
   "name": "调皮的圣诞老人+++",
   "text": "温存 / 2 / 阶段变更 / 热意增加 / <nobr>+ / 50 / %</nobr>（<nobr> / 3 / 回合</nobr>） / 技能卡使用数追加 / <nobr>+ / 1 / </nobr> / <nobr> / 不可重复 / </nobr> / 训练中仅限1次",
-  "value": 1.5
+  "value": 2.5
  },
  {
   "id": "p_card-03-sup-3_179",

@@ -1,0 +1,3191 @@
+{
+ "trans": 2000000,
+ "pids": [
+  "AS-3G6FFZZT",
+  "AS-3ZT8ZKB6",
+  "AS-5KZSXANK",
+  "AS-5XB2AEHN",
+  "AS-AXME8QK2",
+  "AS-B38CARVV",
+  "AS-BD5EAA22",
+  "AS-DE36RWPS",
+  "AS-DEBX8BX7",
+  "AS-HTNFZWKG",
+  "AS-P8ZJTXNA",
+  "AS-QV6QCSN9",
+  "AS-VH8WYE6J",
+  "AS-VWAF2GDN",
+  "AS-WDKWQYW5",
+  "AS-WNK6ARRZ"
+ ],
+ "pid_seeds": {
+  "AS-3G6FFZZT": [
+   [
+    1665611653,
+    "s0"
+   ],
+   [
+    1975039316,
+    "s1"
+   ]
+  ],
+  "AS-3ZT8ZKB6": [
+   [
+    816113156,
+    "s0"
+   ],
+   [
+    614877719,
+    "s1"
+   ]
+  ],
+  "AS-5KZSXANK": [
+   [
+    448199597,
+    "s0"
+   ],
+   [
+    661272730,
+    "s1"
+   ]
+  ],
+  "AS-5XB2AEHN": [
+   [
+    2095762233,
+    "s0"
+   ],
+   [
+    1751756257,
+    "s1"
+   ]
+  ],
+  "AS-AXME8QK2": [
+   [
+    1409380188,
+    "s0"
+   ],
+   [
+    2065972513,
+    "s1"
+   ]
+  ],
+  "AS-B38CARVV": [
+   [
+    1712522393,
+    "s0"
+   ],
+   [
+    912951460,
+    "s1"
+   ]
+  ],
+  "AS-BD5EAA22": [
+   [
+    1917428872,
+    "s0"
+   ],
+   [
+    1712489876,
+    "s1"
+   ]
+  ],
+  "AS-DE36RWPS": [
+   [
+    1431297520,
+    "s0"
+   ],
+   [
+    1188901547,
+    "s1"
+   ]
+  ],
+  "AS-DEBX8BX7": [
+   [
+    1468983097,
+    "s0"
+   ],
+   [
+    1250279951,
+    "s1"
+   ]
+  ],
+  "AS-HTNFZWKG": [
+   [
+    1966520935,
+    "s0"
+   ],
+   [
+    41444314,
+    "s1"
+   ]
+  ],
+  "AS-P8ZJTXNA": [
+   [
+    1124647124,
+    "s0"
+   ],
+   [
+    1967825308,
+    "s1"
+   ]
+  ],
+  "AS-QV6QCSN9": [
+   [
+    991324286,
+    "s0"
+   ],
+   [
+    541488974,
+    "s1"
+   ]
+  ],
+  "AS-VH8WYE6J": [
+   [
+    102578817,
+    "s0"
+   ],
+   [
+    1035726864,
+    "s1"
+   ]
+  ],
+  "AS-VWAF2GDN": [
+   [
+    1333413270,
+    "s0"
+   ],
+   [
+    29542526,
+    "s1"
+   ]
+  ],
+  "AS-WDKWQYW5": [
+   [
+    988313260,
+    "s0"
+   ],
+   [
+    3601220,
+    "s1"
+   ]
+  ],
+  "AS-WNK6ARRZ": [
+   [
+    1063386126,
+    "s0"
+   ],
+   [
+    1905441148,
+    "s1"
+   ]
+  ]
+ },
+ "safe_ids": [
+  "pdrink_00-1-001",
+  "pdrink_00-1-004",
+  "pdrink_00-2-003",
+  "pdrink_00-2-008",
+  "pdrink_00-3-001",
+  "pdrink_01-1-002",
+  "pdrink_01-2-005",
+  "pdrink_02-1-006",
+  "pdrink_02-1-008"
+ ],
+ "rows": [
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "p0",
+   "best": 874153,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.903,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "mech",
+   "best": 682379,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.374,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "distill",
+   "best": 1121922,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.697,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "empty",
+   "best": 322794,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.171,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1665611653,
+   "arm": "safe",
+   "best": 344456,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.03,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "p0",
+   "best": 1018411,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.43,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "mech",
+   "best": 1349741,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.47,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "distill",
+   "best": 1238381,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.328,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "empty",
+   "best": 380184,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.646,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1975039316,
+   "arm": "safe",
+   "best": 523065,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.813,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "p0",
+   "best": 7710863,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.024,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "mech",
+   "best": 7710863,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.423,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "distill",
+   "best": 6277105,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.887,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "empty",
+   "best": 2657553,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.014,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 816113156,
+   "arm": "safe",
+   "best": 3381127,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.458,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "p0",
+   "best": 7416573,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.97,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "mech",
+   "best": 7416573,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.364,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "distill",
+   "best": 7546550,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.237,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "empty",
+   "best": 3347238,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.6,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 614877719,
+   "arm": "safe",
+   "best": 3876943,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.418,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "p0",
+   "best": 8241776,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.87,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-001",
+    "pdrink_00-2-010",
+    "pdrink_00-2-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "mech",
+   "best": 8241776,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.638,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-001",
+    "pdrink_00-2-010",
+    "pdrink_00-2-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "distill",
+   "best": 5327614,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.368,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_00-2-010",
+    "pdrink_00-2-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "empty",
+   "best": 3055640,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.089,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 448199597,
+   "arm": "safe",
+   "best": 3611711,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.89,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "p0",
+   "best": 4487469,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.165,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_02-3-010",
+    "pdrink_00-2-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "mech",
+   "best": 4487469,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.197,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_02-3-010",
+    "pdrink_00-2-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "distill",
+   "best": 5958973,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.178,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-010",
+    "pdrink_00-2-010",
+    "pdrink_00-2-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "empty",
+   "best": 2919102,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.202,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 661272730,
+   "arm": "safe",
+   "best": 3164278,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.425,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "p0",
+   "best": 13124,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.701,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_00-1-004",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "mech",
+   "best": 8524,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.945,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_03-3-011",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "distill",
+   "best": 9665,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.953,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_00-1-004",
+    "pdrink_00-1-004",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "empty",
+   "best": 4665,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.409,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 2095762233,
+   "arm": "safe",
+   "best": 5685,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.65,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_00-1-004"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "p0",
+   "best": 8616,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.895,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_03-3-011",
+    "pdrink_00-1-004",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "mech",
+   "best": 10224,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.919,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_00-1-004",
+    "pdrink_00-1-004",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "distill",
+   "best": 10224,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.815,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_00-1-004",
+    "pdrink_00-1-004",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "empty",
+   "best": 5769,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.406,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1751756257,
+   "arm": "safe",
+   "best": 7191,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.524,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-1-004",
+    "pdrink_00-1-004"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "p0",
+   "best": 7070349,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.786,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "mech",
+   "best": 7070349,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.841,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "distill",
+   "best": 9814784,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.387,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "empty",
+   "best": 2956788,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.93,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 1409380188,
+   "arm": "safe",
+   "best": 2956788,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.999,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "p0",
+   "best": 4510645,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.302,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-3-005",
+    "pdrink_02-3-010",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "mech",
+   "best": 4510645,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.407,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-3-005",
+    "pdrink_02-3-010",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "distill",
+   "best": 4568458,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.378,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-3-005",
+    "pdrink_02-3-010",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "empty",
+   "best": 2725256,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.942,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2065972513,
+   "arm": "safe",
+   "best": 2725256,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.866,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "p0",
+   "best": 451675,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.029,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_01-3-012",
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "mech",
+   "best": 403249,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.367,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_01-3-012",
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "distill",
+   "best": 455133,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.407,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_01-3-012",
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "empty",
+   "best": 316157,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.657,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 1712522393,
+   "arm": "safe",
+   "best": 311966,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.936,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "p0",
+   "best": 606848,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.097,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_01-2-005",
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "mech",
+   "best": 520005,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.38,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_01-2-005",
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "distill",
+   "best": 540217,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.116,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-2-005",
+    "pdrink_01-3-012",
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "empty",
+   "best": 478459,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.655,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 912951460,
+   "arm": "safe",
+   "best": 403522,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.868,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_01-2-005"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "p0",
+   "best": 852025,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.054,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "mech",
+   "best": 852025,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.047,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "distill",
+   "best": 698919,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.75,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "empty",
+   "best": 229378,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.615,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1917428872,
+   "arm": "safe",
+   "best": 253768,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.402,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "p0",
+   "best": 522061,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.247,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_02-3-010",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "mech",
+   "best": 522061,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.192,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_02-3-010",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "distill",
+   "best": 467930,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.982,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-008",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "empty",
+   "best": 166717,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.177,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 1712489876,
+   "arm": "safe",
+   "best": 283852,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.901,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "p0",
+   "best": 322180,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.155,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008",
+    "pdrink_03-3-011",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "mech",
+   "best": 420277,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.435,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "distill",
+   "best": 270007,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.302,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_03-3-011",
+    "pdrink_00-2-008",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "empty",
+   "best": 219878,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.995,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1431297520,
+   "arm": "safe",
+   "best": 293205,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.767,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "p0",
+   "best": 419144,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.72,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-3-005",
+    "pdrink_03-3-011",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "mech",
+   "best": 451441,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.383,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_03-3-011",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "distill",
+   "best": 453054,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.979,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008",
+    "pdrink_03-3-011",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "empty",
+   "best": 226455,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.933,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 1188901547,
+   "arm": "safe",
+   "best": 306325,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.133,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "p0",
+   "best": 26398,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.075,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "mech",
+   "best": 26077,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.641,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "distill",
+   "best": 26399,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.747,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "empty",
+   "best": 8898,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.377,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1468983097,
+   "arm": "safe",
+   "best": 7674,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.845,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "p0",
+   "best": 26776,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.838,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "mech",
+   "best": 21745,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.902,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "distill",
+   "best": 21745,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.203,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "empty",
+   "best": 9988,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.987,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1250279951,
+   "arm": "safe",
+   "best": 10260,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.855,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "p0",
+   "best": 517658,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.086,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "mech",
+   "best": 571230,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.147,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "distill",
+   "best": 581034,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.013,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "empty",
+   "best": 166219,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.482,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1966520935,
+   "arm": "safe",
+   "best": 211635,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.506,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "p0",
+   "best": 463589,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.208,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "mech",
+   "best": 339382,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.059,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "distill",
+   "best": 530316,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.192,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_00-3-005",
+    "pdrink_00-3-001",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "empty",
+   "best": 241140,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.537,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 41444314,
+   "arm": "safe",
+   "best": 204963,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.581,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "p0",
+   "best": 1185605,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.559,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "mech",
+   "best": 1049066,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.506,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "distill",
+   "best": 1091251,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.99,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "empty",
+   "best": 893198,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.047,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1124647124,
+   "arm": "safe",
+   "best": 1059683,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.324,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "p0",
+   "best": 891799,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.353,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "mech",
+   "best": 633646,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.461,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "distill",
+   "best": 863041,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.053,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_01-3-002",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "empty",
+   "best": 590018,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.486,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1967825308,
+   "arm": "safe",
+   "best": 947506,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.91,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "p0",
+   "best": 565486,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.258,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "mech",
+   "best": 383410,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.288,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-008",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "distill",
+   "best": 403803,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.217,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "empty",
+   "best": 237140,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.802,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 991324286,
+   "arm": "safe",
+   "best": 279133,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.936,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "p0",
+   "best": 809508,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.481,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-008",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "mech",
+   "best": 762439,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.259,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "distill",
+   "best": 777243,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.576,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-2-008",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "empty",
+   "best": 497929,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.971,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 541488974,
+   "arm": "safe",
+   "best": 616429,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.647,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "p0",
+   "best": 431289,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.307,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-007",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "mech",
+   "best": 431289,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.199,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-007",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "distill",
+   "best": 444145,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.042,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-006",
+    "pdrink_02-3-006",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "empty",
+   "best": 168782,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.493,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 102578817,
+   "arm": "safe",
+   "best": 168782,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.392,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "p0",
+   "best": 224374,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.065,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-006",
+    "pdrink_02-3-006",
+    "pdrink_02-3-006",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "mech",
+   "best": 224374,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.931,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-006",
+    "pdrink_02-3-006",
+    "pdrink_02-3-006",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "distill",
+   "best": 567527,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.695,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_02-3-006",
+    "pdrink_02-3-006",
+    "pdrink_02-3-006",
+    "pdrink_02-3-010"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "empty",
+   "best": 178571,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.433,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1035726864,
+   "arm": "safe",
+   "best": 178571,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.526,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "p0",
+   "best": 898993,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.986,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_01-3-012",
+    "pdrink_01-3-012",
+    "pdrink_00-3-001",
+    "pdrink_01-3-012"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "mech",
+   "best": 818159,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.083,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_01-3-012",
+    "pdrink_00-3-001",
+    "pdrink_01-3-012"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "distill",
+   "best": 995747,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.155,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "empty",
+   "best": 677026,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.791,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1333413270,
+   "arm": "safe",
+   "best": 909407,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.89,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "p0",
+   "best": 694467,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.964,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "mech",
+   "best": 643862,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.061,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "distill",
+   "best": 556064,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.842,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012",
+    "pdrink_01-3-012"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "empty",
+   "best": 447099,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 1.855,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 29542526,
+   "arm": "safe",
+   "best": 674717,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.196,
+   "n_drink": 2,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 2
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "p0",
+   "best": 5468310,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.697,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "mech",
+   "best": 5468310,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.544,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "distill",
+   "best": 3521207,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.578,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "empty",
+   "best": 4083324,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.163,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 988313260,
+   "arm": "safe",
+   "best": 3279459,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.212,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "p0",
+   "best": 7962334,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 4.588,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "mech",
+   "best": 7962334,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 4.881,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "distill",
+   "best": 3563925,
+   "status": 2,
+   "expansions": 66733,
+   "wall": 0.122,
+   "n_drink": 3,
+   "drink_ids": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005",
+    "pdrink_00-3-005"
+   ],
+   "n_drinks_held": 3
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "empty",
+   "best": 4171350,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 5.17,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 3601220,
+   "arm": "safe",
+   "best": 5714712,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.602,
+   "n_drink": 1,
+   "drink_ids": [
+    "pdrink_00-3-001"
+   ],
+   "n_drinks_held": 1
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "p0",
+   "best": 2106462,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 4.747,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "mech",
+   "best": 4043177,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.843,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-2-010",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "distill",
+   "best": 2350969,
+   "status": 2,
+   "expansions": 317852,
+   "wall": 0.77,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_03-3-011",
+    "pdrink_03-3-011",
+    "pdrink_00-3-005",
+    "pdrink_03-3-011"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "empty",
+   "best": 2218431,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.764,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1063386126,
+   "arm": "safe",
+   "best": 2218431,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.713,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "p0",
+   "best": 2230534,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.495,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "mech",
+   "best": 2563745,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.975,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "distill",
+   "best": 2074010,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 3.089,
+   "n_drink": 4,
+   "drink_ids": [
+    "pdrink_03-3-011",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011",
+    "pdrink_03-3-011"
+   ],
+   "n_drinks_held": 4
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "empty",
+   "best": 1380776,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 2.576,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1905441148,
+   "arm": "safe",
+   "best": 1380776,
+   "status": 0,
+   "expansions": 2000000,
+   "wall": 4.116,
+   "n_drink": 0,
+   "drink_ids": [],
+   "n_drinks_held": 0
+  }
+ ],
+ "summary": {
+  "p0": {
+   "mean_best": 2157171.7,
+   "mean_drink_actions": 3.69,
+   "errors": 0,
+   "mean_wall": 2.69
+  },
+  "mech": {
+   "mean_best": 2206245.2,
+   "mean_drink_actions": 3.69,
+   "errors": 0,
+   "mean_wall": 2.57
+  },
+  "distill": {
+   "mean_best": 1972730.1,
+   "mean_drink_actions": 3.69,
+   "errors": 2,
+   "mean_wall": 2.22
+  },
+  "empty": {
+   "mean_best": 1124435.1,
+   "mean_drink_actions": 0.0,
+   "errors": 0,
+   "mean_wall": 2.07
+  },
+  "safe": {
+   "mean_best": 1259727.4,
+   "mean_drink_actions": 1.25,
+   "errors": 0,
+   "mean_wall": 2.14
+  }
+ },
+ "ab": {
+  "L1_mech_vs_p0": {
+   "overall": {
+    "n": 32,
+    "mean_delta": 49073.5,
+    "ci95": [
+     -41583.3125,
+     189167.71875
+    ],
+    "pos": 7,
+    "neg": 13,
+    "zero": 12,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -191774,
+     "AS-3G6FFZZT/1975039316": 331330,
+     "AS-3ZT8ZKB6/816113156": 0,
+     "AS-3ZT8ZKB6/614877719": 0,
+     "AS-5KZSXANK/448199597": 0,
+     "AS-5KZSXANK/661272730": 0,
+     "AS-5XB2AEHN/2095762233": -4600,
+     "AS-5XB2AEHN/1751756257": 1608,
+     "AS-AXME8QK2/1409380188": 0,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-B38CARVV/1712522393": -48426,
+     "AS-B38CARVV/912951460": -86843,
+     "AS-BD5EAA22/1917428872": 0,
+     "AS-BD5EAA22/1712489876": 0,
+     "AS-DE36RWPS/1431297520": 98097,
+     "AS-DE36RWPS/1188901547": 32297,
+     "AS-DEBX8BX7/1468983097": -321,
+     "AS-DEBX8BX7/1250279951": -5031,
+     "AS-HTNFZWKG/1966520935": 53572,
+     "AS-HTNFZWKG/41444314": -124207,
+     "AS-P8ZJTXNA/1124647124": -136539,
+     "AS-P8ZJTXNA/1967825308": -258153,
+     "AS-QV6QCSN9/991324286": -182076,
+     "AS-QV6QCSN9/541488974": -47069,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": -80834,
+     "AS-VWAF2GDN/29542526": -50605,
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": 0,
+     "AS-WNK6ARRZ/1063386126": 1936715,
+     "AS-WNK6ARRZ/1905441148": 333211
+    }
+   },
+   "low12": {
+    "n": 22,
+    "mean_delta": -31798.8,
+    "ci95": [
+     -76887.27272727272,
+     17778.0
+    ],
+    "pos": 5,
+    "neg": 13,
+    "zero": 4,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -191774,
+     "AS-3G6FFZZT/1975039316": 331330,
+     "AS-5XB2AEHN/2095762233": -4600,
+     "AS-5XB2AEHN/1751756257": 1608,
+     "AS-B38CARVV/1712522393": -48426,
+     "AS-B38CARVV/912951460": -86843,
+     "AS-BD5EAA22/1917428872": 0,
+     "AS-BD5EAA22/1712489876": 0,
+     "AS-DE36RWPS/1431297520": 98097,
+     "AS-DE36RWPS/1188901547": 32297,
+     "AS-DEBX8BX7/1468983097": -321,
+     "AS-DEBX8BX7/1250279951": -5031,
+     "AS-HTNFZWKG/1966520935": 53572,
+     "AS-HTNFZWKG/41444314": -124207,
+     "AS-P8ZJTXNA/1124647124": -136539,
+     "AS-P8ZJTXNA/1967825308": -258153,
+     "AS-QV6QCSN9/991324286": -182076,
+     "AS-QV6QCSN9/541488974": -47069,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": -80834,
+     "AS-VWAF2GDN/29542526": -50605
+    }
+   },
+   "monster": {
+    "n": 10,
+    "mean_delta": 226992.6,
+    "ci95": [
+     0.0,
+     614335.6
+    ],
+    "pos": 2,
+    "neg": 0,
+    "zero": 8,
+    "per_pair": {
+     "AS-3ZT8ZKB6/816113156": 0,
+     "AS-3ZT8ZKB6/614877719": 0,
+     "AS-5KZSXANK/448199597": 0,
+     "AS-5KZSXANK/661272730": 0,
+     "AS-AXME8QK2/1409380188": 0,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": 0,
+     "AS-WNK6ARRZ/1063386126": 1936715,
+     "AS-WNK6ARRZ/1905441148": 333211
+    }
+   }
+  },
+  "L1_distill_vs_p0": {
+   "overall": {
+    "n": 32,
+    "mean_delta": -184441.6,
+    "ci95": [
+     -615217.0,
+     191459.25
+    ],
+    "pos": 16,
+    "neg": 16,
+    "zero": 0,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": 247769,
+     "AS-3G6FFZZT/1975039316": 219970,
+     "AS-3ZT8ZKB6/816113156": -1433758,
+     "AS-3ZT8ZKB6/614877719": 129977,
+     "AS-5KZSXANK/448199597": -2914162,
+     "AS-5KZSXANK/661272730": 1471504,
+     "AS-5XB2AEHN/2095762233": -3459,
+     "AS-5XB2AEHN/1751756257": 1608,
+     "AS-AXME8QK2/1409380188": 2744435,
+     "AS-AXME8QK2/2065972513": 57813,
+     "AS-B38CARVV/1712522393": 3458,
+     "AS-B38CARVV/912951460": -66631,
+     "AS-BD5EAA22/1917428872": -153106,
+     "AS-BD5EAA22/1712489876": -54131,
+     "AS-DE36RWPS/1431297520": -52173,
+     "AS-DE36RWPS/1188901547": 33910,
+     "AS-DEBX8BX7/1468983097": 1,
+     "AS-DEBX8BX7/1250279951": -5031,
+     "AS-HTNFZWKG/1966520935": 63376,
+     "AS-HTNFZWKG/41444314": 66727,
+     "AS-P8ZJTXNA/1124647124": -94354,
+     "AS-P8ZJTXNA/1967825308": -28758,
+     "AS-QV6QCSN9/991324286": -161683,
+     "AS-QV6QCSN9/541488974": -32265,
+     "AS-VH8WYE6J/102578817": 12856,
+     "AS-VH8WYE6J/1035726864": 343153,
+     "AS-VWAF2GDN/1333413270": 96754,
+     "AS-VWAF2GDN/29542526": -138403,
+     "AS-WDKWQYW5/988313260": -1947103,
+     "AS-WDKWQYW5/3601220": -4398409,
+     "AS-WNK6ARRZ/1063386126": 244507,
+     "AS-WNK6ARRZ/1905441148": -156524
+    }
+   },
+   "low12": {
+    "n": 22,
+    "mean_delta": 13617.6,
+    "ci95": [
+     -34325.90909090909,
+     67160.77272727272
+    ],
+    "pos": 11,
+    "neg": 11,
+    "zero": 0,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": 247769,
+     "AS-3G6FFZZT/1975039316": 219970,
+     "AS-5XB2AEHN/2095762233": -3459,
+     "AS-5XB2AEHN/1751756257": 1608,
+     "AS-B38CARVV/1712522393": 3458,
+     "AS-B38CARVV/912951460": -66631,
+     "AS-BD5EAA22/1917428872": -153106,
+     "AS-BD5EAA22/1712489876": -54131,
+     "AS-DE36RWPS/1431297520": -52173,
+     "AS-DE36RWPS/1188901547": 33910,
+     "AS-DEBX8BX7/1468983097": 1,
+     "AS-DEBX8BX7/1250279951": -5031,
+     "AS-HTNFZWKG/1966520935": 63376,
+     "AS-HTNFZWKG/41444314": 66727,
+     "AS-P8ZJTXNA/1124647124": -94354,
+     "AS-P8ZJTXNA/1967825308": -28758,
+     "AS-QV6QCSN9/991324286": -161683,
+     "AS-QV6QCSN9/541488974": -32265,
+     "AS-VH8WYE6J/102578817": 12856,
+     "AS-VH8WYE6J/1035726864": 343153,
+     "AS-VWAF2GDN/1333413270": 96754,
+     "AS-VWAF2GDN/29542526": -138403
+    }
+   },
+   "monster": {
+    "n": 10,
+    "mean_delta": -620172.0,
+    "ci95": [
+     -1884431.2,
+     577584.2
+    ],
+    "pos": 5,
+    "neg": 5,
+    "zero": 0,
+    "per_pair": {
+     "AS-3ZT8ZKB6/816113156": -1433758,
+     "AS-3ZT8ZKB6/614877719": 129977,
+     "AS-5KZSXANK/448199597": -2914162,
+     "AS-5KZSXANK/661272730": 1471504,
+     "AS-AXME8QK2/1409380188": 2744435,
+     "AS-AXME8QK2/2065972513": 57813,
+     "AS-WDKWQYW5/988313260": -1947103,
+     "AS-WDKWQYW5/3601220": -4398409,
+     "AS-WNK6ARRZ/1063386126": 244507,
+     "AS-WNK6ARRZ/1905441148": -156524
+    }
+   }
+  },
+  "L4_safe_vs_empty": {
+   "overall": {
+    "n": 32,
+    "mean_delta": 135292.3,
+    "ci95": [
+     23611.84375,
+     266026.0625
+    ],
+    "pos": 21,
+    "neg": 5,
+    "zero": 6,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": 21662,
+     "AS-3G6FFZZT/1975039316": 142881,
+     "AS-3ZT8ZKB6/816113156": 723574,
+     "AS-3ZT8ZKB6/614877719": 529705,
+     "AS-5KZSXANK/448199597": 556071,
+     "AS-5KZSXANK/661272730": 245176,
+     "AS-5XB2AEHN/2095762233": 1020,
+     "AS-5XB2AEHN/1751756257": 1422,
+     "AS-AXME8QK2/1409380188": 0,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-B38CARVV/1712522393": -4191,
+     "AS-B38CARVV/912951460": -74937,
+     "AS-BD5EAA22/1917428872": 24390,
+     "AS-BD5EAA22/1712489876": 117135,
+     "AS-DE36RWPS/1431297520": 73327,
+     "AS-DE36RWPS/1188901547": 79870,
+     "AS-DEBX8BX7/1468983097": -1224,
+     "AS-DEBX8BX7/1250279951": 272,
+     "AS-HTNFZWKG/1966520935": 45416,
+     "AS-HTNFZWKG/41444314": -36177,
+     "AS-P8ZJTXNA/1124647124": 166485,
+     "AS-P8ZJTXNA/1967825308": 357488,
+     "AS-QV6QCSN9/991324286": 41993,
+     "AS-QV6QCSN9/541488974": 118500,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": 232381,
+     "AS-VWAF2GDN/29542526": 227618,
+     "AS-WDKWQYW5/988313260": -803865,
+     "AS-WDKWQYW5/3601220": 1543362,
+     "AS-WNK6ARRZ/1063386126": 0,
+     "AS-WNK6ARRZ/1905441148": 0
+    }
+   },
+   "low12": {
+    "n": 22,
+    "mean_delta": 69787.8,
+    "ci95": [
+     30288.409090909092,
+     114534.13636363637
+    ],
+    "pos": 16,
+    "neg": 4,
+    "zero": 2,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": 21662,
+     "AS-3G6FFZZT/1975039316": 142881,
+     "AS-5XB2AEHN/2095762233": 1020,
+     "AS-5XB2AEHN/1751756257": 1422,
+     "AS-B38CARVV/1712522393": -4191,
+     "AS-B38CARVV/912951460": -74937,
+     "AS-BD5EAA22/1917428872": 24390,
+     "AS-BD5EAA22/1712489876": 117135,
+     "AS-DE36RWPS/1431297520": 73327,
+     "AS-DE36RWPS/1188901547": 79870,
+     "AS-DEBX8BX7/1468983097": -1224,
+     "AS-DEBX8BX7/1250279951": 272,
+     "AS-HTNFZWKG/1966520935": 45416,
+     "AS-HTNFZWKG/41444314": -36177,
+     "AS-P8ZJTXNA/1124647124": 166485,
+     "AS-P8ZJTXNA/1967825308": 357488,
+     "AS-QV6QCSN9/991324286": 41993,
+     "AS-QV6QCSN9/541488974": 118500,
+     "AS-VH8WYE6J/102578817": 0,
+     "AS-VH8WYE6J/1035726864": 0,
+     "AS-VWAF2GDN/1333413270": 232381,
+     "AS-VWAF2GDN/29542526": 227618
+    }
+   },
+   "monster": {
+    "n": 10,
+    "mean_delta": 279402.3,
+    "ci95": [
+     -80648.3,
+     651155.5
+    ],
+    "pos": 5,
+    "neg": 1,
+    "zero": 4,
+    "per_pair": {
+     "AS-3ZT8ZKB6/816113156": 723574,
+     "AS-3ZT8ZKB6/614877719": 529705,
+     "AS-5KZSXANK/448199597": 556071,
+     "AS-5KZSXANK/661272730": 245176,
+     "AS-AXME8QK2/1409380188": 0,
+     "AS-AXME8QK2/2065972513": 0,
+     "AS-WDKWQYW5/988313260": -803865,
+     "AS-WDKWQYW5/3601220": 1543362,
+     "AS-WNK6ARRZ/1063386126": 0,
+     "AS-WNK6ARRZ/1905441148": 0
+    }
+   }
+  },
+  "L4_safe_vs_current": {
+   "overall": {
+    "n": 32,
+    "mean_delta": -897444.3,
+    "ci95": [
+     -1416388.53125,
+     -451108.3125
+    ],
+    "pos": 3,
+    "neg": 29,
+    "zero": 0,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -529697,
+     "AS-3G6FFZZT/1975039316": -495346,
+     "AS-3ZT8ZKB6/816113156": -4329736,
+     "AS-3ZT8ZKB6/614877719": -3539630,
+     "AS-5KZSXANK/448199597": -4630065,
+     "AS-5KZSXANK/661272730": -1323191,
+     "AS-5XB2AEHN/2095762233": -7439,
+     "AS-5XB2AEHN/1751756257": -1425,
+     "AS-AXME8QK2/1409380188": -4113561,
+     "AS-AXME8QK2/2065972513": -1785389,
+     "AS-B38CARVV/1712522393": -139709,
+     "AS-B38CARVV/912951460": -203326,
+     "AS-BD5EAA22/1917428872": -598257,
+     "AS-BD5EAA22/1712489876": -238209,
+     "AS-DE36RWPS/1431297520": -28975,
+     "AS-DE36RWPS/1188901547": -112819,
+     "AS-DEBX8BX7/1468983097": -18724,
+     "AS-DEBX8BX7/1250279951": -16516,
+     "AS-HTNFZWKG/1966520935": -306023,
+     "AS-HTNFZWKG/41444314": -258626,
+     "AS-P8ZJTXNA/1124647124": -125922,
+     "AS-P8ZJTXNA/1967825308": 55707,
+     "AS-QV6QCSN9/991324286": -286353,
+     "AS-QV6QCSN9/541488974": -193079,
+     "AS-VH8WYE6J/102578817": -262507,
+     "AS-VH8WYE6J/1035726864": -45803,
+     "AS-VWAF2GDN/1333413270": 10414,
+     "AS-VWAF2GDN/29542526": -19750,
+     "AS-WDKWQYW5/988313260": -2188851,
+     "AS-WDKWQYW5/3601220": -2247622,
+     "AS-WNK6ARRZ/1063386126": 111969,
+     "AS-WNK6ARRZ/1905441148": -849758
+    }
+   },
+   "low12": {
+    "n": 22,
+    "mean_delta": -173744.7,
+    "ci95": [
+     -250000.45454545456,
+     -100967.36363636363
+    ],
+    "pos": 2,
+    "neg": 20,
+    "zero": 0,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": -529697,
+     "AS-3G6FFZZT/1975039316": -495346,
+     "AS-5XB2AEHN/2095762233": -7439,
+     "AS-5XB2AEHN/1751756257": -1425,
+     "AS-B38CARVV/1712522393": -139709,
+     "AS-B38CARVV/912951460": -203326,
+     "AS-BD5EAA22/1917428872": -598257,
+     "AS-BD5EAA22/1712489876": -238209,
+     "AS-DE36RWPS/1431297520": -28975,
+     "AS-DE36RWPS/1188901547": -112819,
+     "AS-DEBX8BX7/1468983097": -18724,
+     "AS-DEBX8BX7/1250279951": -16516,
+     "AS-HTNFZWKG/1966520935": -306023,
+     "AS-HTNFZWKG/41444314": -258626,
+     "AS-P8ZJTXNA/1124647124": -125922,
+     "AS-P8ZJTXNA/1967825308": 55707,
+     "AS-QV6QCSN9/991324286": -286353,
+     "AS-QV6QCSN9/541488974": -193079,
+     "AS-VH8WYE6J/102578817": -262507,
+     "AS-VH8WYE6J/1035726864": -45803,
+     "AS-VWAF2GDN/1333413270": 10414,
+     "AS-VWAF2GDN/29542526": -19750
+    }
+   },
+   "monster": {
+    "n": 10,
+    "mean_delta": -2489583.4,
+    "ci95": [
+     -3429552.1,
+     -1540466.6
+    ],
+    "pos": 1,
+    "neg": 9,
+    "zero": 0,
+    "per_pair": {
+     "AS-3ZT8ZKB6/816113156": -4329736,
+     "AS-3ZT8ZKB6/614877719": -3539630,
+     "AS-5KZSXANK/448199597": -4630065,
+     "AS-5KZSXANK/661272730": -1323191,
+     "AS-AXME8QK2/1409380188": -4113561,
+     "AS-AXME8QK2/2065972513": -1785389,
+     "AS-WDKWQYW5/988313260": -2188851,
+     "AS-WDKWQYW5/3601220": -2247622,
+     "AS-WNK6ARRZ/1063386126": 111969,
+     "AS-WNK6ARRZ/1905441148": -849758
+    }
+   }
+  },
+  "L4_current_vs_empty": {
+   "overall": {
+    "n": 32,
+    "mean_delta": 1032736.6,
+    "ci95": [
+     533212.21875,
+     1617665.3125
+    ],
+    "pos": 31,
+    "neg": 1,
+    "zero": 0,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": 551359,
+     "AS-3G6FFZZT/1975039316": 638227,
+     "AS-3ZT8ZKB6/816113156": 5053310,
+     "AS-3ZT8ZKB6/614877719": 4069335,
+     "AS-5KZSXANK/448199597": 5186136,
+     "AS-5KZSXANK/661272730": 1568367,
+     "AS-5XB2AEHN/2095762233": 8459,
+     "AS-5XB2AEHN/1751756257": 2847,
+     "AS-AXME8QK2/1409380188": 4113561,
+     "AS-AXME8QK2/2065972513": 1785389,
+     "AS-B38CARVV/1712522393": 135518,
+     "AS-B38CARVV/912951460": 128389,
+     "AS-BD5EAA22/1917428872": 622647,
+     "AS-BD5EAA22/1712489876": 355344,
+     "AS-DE36RWPS/1431297520": 102302,
+     "AS-DE36RWPS/1188901547": 192689,
+     "AS-DEBX8BX7/1468983097": 17500,
+     "AS-DEBX8BX7/1250279951": 16788,
+     "AS-HTNFZWKG/1966520935": 351439,
+     "AS-HTNFZWKG/41444314": 222449,
+     "AS-P8ZJTXNA/1124647124": 292407,
+     "AS-P8ZJTXNA/1967825308": 301781,
+     "AS-QV6QCSN9/991324286": 328346,
+     "AS-QV6QCSN9/541488974": 311579,
+     "AS-VH8WYE6J/102578817": 262507,
+     "AS-VH8WYE6J/1035726864": 45803,
+     "AS-VWAF2GDN/1333413270": 221967,
+     "AS-VWAF2GDN/29542526": 247368,
+     "AS-WDKWQYW5/988313260": 1384986,
+     "AS-WDKWQYW5/3601220": 3790984,
+     "AS-WNK6ARRZ/1063386126": -111969,
+     "AS-WNK6ARRZ/1905441148": 849758
+    }
+   },
+   "low12": {
+    "n": 22,
+    "mean_delta": 243532.5,
+    "ci95": [
+     169350.95454545456,
+     321241.54545454547
+    ],
+    "pos": 22,
+    "neg": 0,
+    "zero": 0,
+    "per_pair": {
+     "AS-3G6FFZZT/1665611653": 551359,
+     "AS-3G6FFZZT/1975039316": 638227,
+     "AS-5XB2AEHN/2095762233": 8459,
+     "AS-5XB2AEHN/1751756257": 2847,
+     "AS-B38CARVV/1712522393": 135518,
+     "AS-B38CARVV/912951460": 128389,
+     "AS-BD5EAA22/1917428872": 622647,
+     "AS-BD5EAA22/1712489876": 355344,
+     "AS-DE36RWPS/1431297520": 102302,
+     "AS-DE36RWPS/1188901547": 192689,
+     "AS-DEBX8BX7/1468983097": 17500,
+     "AS-DEBX8BX7/1250279951": 16788,
+     "AS-HTNFZWKG/1966520935": 351439,
+     "AS-HTNFZWKG/41444314": 222449,
+     "AS-P8ZJTXNA/1124647124": 292407,
+     "AS-P8ZJTXNA/1967825308": 301781,
+     "AS-QV6QCSN9/991324286": 328346,
+     "AS-QV6QCSN9/541488974": 311579,
+     "AS-VH8WYE6J/102578817": 262507,
+     "AS-VH8WYE6J/1035726864": 45803,
+     "AS-VWAF2GDN/1333413270": 221967,
+     "AS-VWAF2GDN/29542526": 247368
+    }
+   },
+   "monster": {
+    "n": 10,
+    "mean_delta": 2768985.7,
+    "ci95": [
+     1630726.8,
+     3869515.6
+    ],
+    "pos": 9,
+    "neg": 1,
+    "zero": 0,
+    "per_pair": {
+     "AS-3ZT8ZKB6/816113156": 5053310,
+     "AS-3ZT8ZKB6/614877719": 4069335,
+     "AS-5KZSXANK/448199597": 5186136,
+     "AS-5KZSXANK/661272730": 1568367,
+     "AS-AXME8QK2/1409380188": 4113561,
+     "AS-AXME8QK2/2065972513": 1785389,
+     "AS-WDKWQYW5/988313260": 1384986,
+     "AS-WDKWQYW5/3601220": 3790984,
+     "AS-WNK6ARRZ/1063386126": -111969,
+     "AS-WNK6ARRZ/1905441148": 849758
+    }
+   }
+  }
+ }
+}

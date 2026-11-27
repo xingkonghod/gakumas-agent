@@ -1,0 +1,82 @@
+{
+ "free_gb_at_start": 3.54,
+ "baseline_off_mean": 6175.071428571428,
+ "levers": {
+  "root_only": {
+   "episodes": 56,
+   "problems": 28,
+   "mean_auto": 6104.821428571428,
+   "mean_diff": -70.25,
+   "ci95": [
+    -236.25178571428572,
+    45.750892857142844
+   ],
+   "wins": 15,
+   "losses": 7,
+   "ties": 34,
+   "crashes_auto": 0,
+   "fallbacks_auto": 394,
+   "fallbacks_off": 397,
+   "fallback_rate_auto": 0.3157,
+   "drink_steps_auto": 28,
+   "adopt_ci_lower_gt0": false
+  },
+  "drink_first": {
+   "episodes": 56,
+   "problems": 28,
+   "mean_auto": 6191.464285714285,
+   "mean_diff": 16.392857142857142,
+   "ci95": [
+    -178.9254464285714,
+    208.82946428571418
+   ],
+   "wins": 20,
+   "losses": 9,
+   "ties": 27,
+   "crashes_auto": 0,
+   "fallbacks_auto": 385,
+   "fallbacks_off": 397,
+   "fallback_rate_auto": 0.3024,
+   "drink_steps_auto": 51,
+   "adopt_ci_lower_gt0": false
+  },
+  "top2": {
+   "episodes": 56,
+   "problems": 28,
+   "mean_auto": 6239.535714285715,
+   "mean_diff": 64.46428571428571,
+   "ci95": [
+    -80.89330357142856,
+    232.16249999999997
+   ],
+   "wins": 19,
+   "losses": 9,
+   "ties": 28,
+   "crashes_auto": 0,
+   "fallbacks_auto": 384,
+   "fallbacks_off": 397,
+   "fallback_rate_auto": 0.2995,
+   "drink_steps_auto": 51,
+   "adopt_ci_lower_gt0": false
+  },
+  "top3": {
+   "episodes": 56,
+   "problems": 28,
+   "mean_auto": 6187.696428571428,
+   "mean_diff": 12.625,
+   "ci95": [
+    -183.59151785714286,
+    201.83749999999978
+   ],
+   "wins": 19,
+   "losses": 10,
+   "ties": 27,
+   "crashes_auto": 0,
+   "fallbacks_auto": 385,
+   "fallbacks_off": 397,
+   "fallback_rate_auto": 0.3008,
+   "drink_steps_auto": 51,
+   "adopt_ci_lower_gt0": false
+  }
+ }
+}

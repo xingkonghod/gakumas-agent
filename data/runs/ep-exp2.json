@@ -1,0 +1,33 @@
+{
+  "episode": "ep-exp2",
+  "started_at": "2026-11-16 23:47:08",
+  "weeks": [
+    {
+      "week": 1,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 25,
+      "note": "attrs_after 未读到"
+    },
+    {
+      "week": 1,
+      "action": "lesson",
+      "lesson_score": null,
+      "attrs_after": [
+        154,
+        122,
+        366
+      ],
+      "stamina": 17,
+      "note": "lesson_score 未读到（未用属性增量推算）"
+    }
+  ],
+  "exams": [],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  }
+}

@@ -1,0 +1,12 @@
+{
+ "pid": "AS-227HBGHS",
+ "seed": 433172592,
+ "trans": 50000,
+ "best": 4892,
+ "replay_score": 4892,
+ "replay_err": null,
+ "direct_err": "step#2 ('play', 0): ValueError: illegal action play 0",
+ "research_best": 4969,
+ "noprior_best": 7588,
+ "rate": 766129.7119181715
+}

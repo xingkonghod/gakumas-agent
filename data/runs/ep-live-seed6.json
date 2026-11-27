@@ -1,0 +1,13 @@
+{
+  "episode": "ep-live-seed6",
+  "started_at": "2026-11-26 17:05:41",
+  "weeks": [],
+  "exams": [],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  },
+  "events": []
+}

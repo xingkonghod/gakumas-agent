@@ -1,0 +1,26 @@
+{
+  "episode": "ep-t1-f",
+  "started_at": "2026-11-21 20:42:54",
+  "weeks": [],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": 1,
+      "score": 854,
+      "others": [
+        854,
+        604,
+        392,
+        232,
+        204
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  }
+}

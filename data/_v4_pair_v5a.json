@@ -1,0 +1,444 @@
+{
+ "configs": {
+  "v3": {
+   "cls": "v3",
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "lock_trans": 2000000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 2.0
+   }
+  },
+  "s6": {
+   "cls": "v3g",
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 6,
+    "lock_trans": 2000000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 2.0,
+    "rescan_open": 1
+   }
+  },
+  "v5": {
+   "cls": "v5",
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "lock_trans": 2000000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 0.8,
+    "rescan_open": 1,
+    "starts_hi": 6,
+    "vote_sec_cap_hi": 2.0
+   }
+  },
+  "v5b": {
+   "cls": "v5",
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "lock_trans": 2000000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 0.8,
+    "rescan_open": 1,
+    "starts_hi": 8,
+    "vote_sec_cap_hi": 2.0
+   }
+  }
+ },
+ "pairs": [
+  [
+   "AS-5KZSXANK",
+   448199597
+  ],
+  [
+   "AS-QV6QCSN9",
+   991324286
+  ],
+  [
+   "AS-P8ZJTXNA",
+   1124647124
+  ]
+ ],
+ "rows": [
+  {
+   "pid": "AS-5KZSXANK",
+   "cfg": "s6",
+   "seed": 448199597,
+   "score": 10127523,
+   "finished": true,
+   "decisions": 35,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 1.5,
+   "hard_rule": 0,
+   "graph_clean": true,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 3,
+    "search": 4,
+    "route": 22,
+    "tail": 6
+   },
+   "adopted": 8,
+   "bad_routes": 0,
+   "searches": 156,
+   "transitions": 80476804,
+   "think_s": 121.1,
+   "wall_s": 121.3,
+   "max_ms": 8505,
+   "p95_ms": 8010,
+   "over_steps": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "cfg": "s6",
+   "seed": 1124647124,
+   "score": 1572295,
+   "finished": true,
+   "decisions": 41,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.57,
+   "hard_rule": 0,
+   "graph_clean": true,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 5,
+    "search": 2,
+    "route": 26,
+    "tail": 8
+   },
+   "adopted": 3,
+   "bad_routes": 0,
+   "searches": 168,
+   "transitions": 87716325,
+   "think_s": 131.2,
+   "wall_s": 131.4,
+   "max_ms": 8504,
+   "p95_ms": 8006,
+   "over_steps": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "cfg": "s6",
+   "seed": 991324286,
+   "score": 636549,
+   "finished": true,
+   "decisions": 38,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 6,
+   "seed_found": true,
+   "scan_s": 2.21,
+   "hard_rule": 0,
+   "graph_clean": false,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 10,
+    "search": 2,
+    "route": 20,
+    "tail": 6
+   },
+   "adopted": 3,
+   "bad_routes": 0,
+   "searches": 132,
+   "transitions": 69190035,
+   "think_s": 154.8,
+   "wall_s": 154.9,
+   "max_ms": 8504,
+   "p95_ms": 8007,
+   "over_steps": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "cfg": "v3",
+   "seed": 448199597,
+   "score": 8631520,
+   "finished": true,
+   "decisions": 38,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 1.97,
+   "hard_rule": 0,
+   "graph_clean": null,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 3,
+    "search": 5,
+    "route": 27,
+    "tail": 3
+   },
+   "target": 8631520,
+   "adopted": 6,
+   "bad_routes": 0,
+   "searches": 128,
+   "transitions": 67390890,
+   "think_s": 104.3,
+   "wall_s": 104.5,
+   "max_ms": 8504,
+   "p95_ms": 8009,
+   "over_steps": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "cfg": "v3",
+   "seed": 991324286,
+   "score": 356115,
+   "finished": true,
+   "decisions": 38,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 6,
+   "seed_found": true,
+   "scan_s": 2.24,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 8,
+    "search": 2,
+    "route": 18,
+    "forced": 1,
+    "tail": 9
+   },
+   "target": 356115,
+   "adopted": 2,
+   "bad_routes": 0,
+   "searches": 80,
+   "transitions": 44431555,
+   "tails": 1,
+   "think_s": 71.9,
+   "wall_s": 72.1,
+   "max_ms": 8503,
+   "p95_ms": 3206,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 565486,
+   "greedy": 21780
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "cfg": "v3",
+   "seed": 1124647124,
+   "score": 1572295,
+   "finished": true,
+   "decisions": 41,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.97,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 5,
+    "search": 3,
+    "route": 25,
+    "tail": 8
+   },
+   "target": 1572295,
+   "adopted": 5,
+   "bad_routes": 0,
+   "searches": 112,
+   "transitions": 60571115,
+   "tails": 1,
+   "think_s": 78.3,
+   "wall_s": 78.5,
+   "max_ms": 8503,
+   "p95_ms": 3205,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 1185605,
+   "greedy": 127106
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "cfg": "v5",
+   "seed": 448199597,
+   "score": 10127523,
+   "finished": true,
+   "decisions": 35,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 1.66,
+   "hard_rule": 0,
+   "graph_clean": true,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 3,
+    "search": 4,
+    "route": 22,
+    "tail": 6
+   },
+   "adopted": 8,
+   "bad_routes": 0,
+   "searches": 156,
+   "transitions": 80464388,
+   "think_s": 113.9,
+   "wall_s": 114.1,
+   "max_ms": 8504,
+   "p95_ms": 8010,
+   "over_steps": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "cfg": "v5b",
+   "seed": 448199597,
+   "score": 10127523,
+   "finished": true,
+   "decisions": 35,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 1.97,
+   "hard_rule": 0,
+   "graph_clean": true,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 3,
+    "search": 4,
+    "route": 22,
+    "tail": 6
+   },
+   "adopted": 8,
+   "bad_routes": 0,
+   "searches": 208,
+   "transitions": 104486272,
+   "think_s": 153.8,
+   "wall_s": 153.9,
+   "max_ms": 8505,
+   "p95_ms": 8006,
+   "over_steps": 0,
+   "why": null
+  }
+ ],
+ "summary": {
+  "v3": {
+   "n": 3,
+   "mean_score": 3519977,
+   "lock_rate": 1.0,
+   "mean_think_s": 84.8,
+   "mean_wall_s": 85.0,
+   "mean_transitions": 57464520,
+   "mean_adopted": 4.3,
+   "over_steps": 0,
+   "max_ms": 8504,
+   "bad_routes": 0,
+   "errors": 0
+  },
+  "s6": {
+   "n": 3,
+   "mean_score": 4112122,
+   "lock_rate": 1.0,
+   "mean_think_s": 135.7,
+   "mean_wall_s": 135.9,
+   "mean_transitions": 79127721,
+   "mean_adopted": 4.7,
+   "over_steps": 0,
+   "max_ms": 8505,
+   "bad_routes": 0,
+   "errors": 0
+  },
+  "v5": {
+   "n": 1,
+   "mean_score": 10127523,
+   "lock_rate": 1.0,
+   "mean_think_s": 113.9,
+   "mean_wall_s": 114.1,
+   "mean_transitions": 80464388,
+   "mean_adopted": 8.0,
+   "over_steps": 0,
+   "max_ms": 8504,
+   "bad_routes": 0,
+   "errors": 0
+  },
+  "v5b": {
+   "n": 1,
+   "mean_score": 10127523,
+   "lock_rate": 1.0,
+   "mean_think_s": 153.8,
+   "mean_wall_s": 153.9,
+   "mean_transitions": 104486272,
+   "mean_adopted": 8.0,
+   "over_steps": 0,
+   "max_ms": 8505,
+   "bad_routes": 0,
+   "errors": 0
+  }
+ },
+ "ab_vs_v3": {
+  "s6": {
+   "n": 3,
+   "mean_delta": 592145.7,
+   "ci95": [
+    0.0,
+    1496003.0
+   ],
+   "pos": 2,
+   "neg": 0,
+   "zero": 1,
+   "per_pair": {
+    "AS-5KZSXANK/448199597": 1496003,
+    "AS-QV6QCSN9/991324286": 280434,
+    "AS-P8ZJTXNA/1124647124": 0
+   },
+   "think_ratio": 1.6
+  },
+  "v5": {
+   "n": 1,
+   "mean_delta": 1496003.0,
+   "ci95": [
+    1496003.0,
+    1496003.0
+   ],
+   "pos": 1,
+   "neg": 0,
+   "zero": 0,
+   "per_pair": {
+    "AS-5KZSXANK/448199597": 1496003
+   },
+   "think_ratio": 1.09
+  },
+  "v5b": {
+   "n": 1,
+   "mean_delta": 1496003.0,
+   "ci95": [
+    1496003.0,
+    1496003.0
+   ],
+   "pos": 1,
+   "neg": 0,
+   "zero": 0,
+   "per_pair": {
+    "AS-5KZSXANK/448199597": 1496003
+   },
+   "think_ratio": 1.47
+  }
+ }
+}

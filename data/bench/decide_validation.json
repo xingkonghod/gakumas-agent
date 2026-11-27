@@ -1,0 +1,166 @@
+[
+ {
+  "step": "001",
+  "expected": "result-tap",
+  "screen": "result-tap",
+  "ok": true,
+  "action": "gain",
+  "ocr_ms": 3030,
+  "text": "期中截止 审查基准 击掌 100 训练中仅限1次 5周 回忆效果 击掌 30 35/35 17 集中效果会1.5倍生效) 制作人！ P ←打分+17 好了，！ 快点开始呢， ! 舌香 西 自",
+  "click": [
+   360,
+   1000
+  ]
+ },
+ {
+  "step": "005",
+  "expected": "story",
+  "screen": "story",
+  "ok": true,
+  "action": "tap",
+  "ocr_ms": 1022,
+  "text": "期中截止 审查基准 维生素饮料 5周 100 35/35 30 好调3回合 好了，快点开始吧， 制作人！ P 、早<始 !",
+  "click": [
+   360,
+   1000
+  ]
+ },
+ {
+  "step": "007",
+  "expected": "action",
+  "screen": "action",
+  "ok": true,
+  "action": "sim-train-Vo",
+  "ocr_ms": 603,
+  "text": "154/1000 895/1000 189/1000 期中截止 35/35 30 推荐歌唱训练 Vo.训练 Da训练 /1.练",
+  "click": [
+   194,
+   1012
+  ]
+ },
+ {
+  "step": "008",
+  "expected": "blank",
+  "screen": "blank",
+  "ok": true,
+  "action": "wait",
+  "ocr_ms": 363,
+  "text": "",
+  "click": null
+ },
+ {
+  "step": "009",
+  "expected": "action-confirm",
+  "screen": "action-confirm",
+  "ok": true,
+  "action": "confirm",
+  "ocr_ms": 1096,
+  "text": "期中截止 审查基准 5周 100 出色的工作 30 35/35 ！技能卡变换时，视觉能力值在400以上的时候， HIF ←视觉能力值上升+25 （培育中3次） 体力回复2 P 自",
+  "click": [
+   194,
+   1012
+  ]
+ },
+ {
+  "step": "010",
+  "expected": "loading",
+  "screen": "loading",
+  "ok": true,
+  "action": "wait",
+  "ocr_ms": 68,
+  "text": "LOADING",
+  "click": null
+ },
+ {
+  "step": "021",
+  "expected": "lesson",
+  "screen": "lesson",
+  "ok": true,
+  "action": "n/a",
+  "ocr_ms": 1295,
+  "text": "表现的基础 24 平衡感 PERFECT截止 表情的基础 15 剩余回合数 M SKIP M M CLEAR E 130 3 0 土 自",
+  "click": null
+ },
+ {
+  "step": "031",
+  "expected": "toast",
+  "screen": "toast",
+  "ok": true,
+  "action": "wait",
+  "ocr_ms": 1178,
+  "text": "Da.训练 +11 审查基准 100 34 11 +11 获得P点数 CLEAP P P 24./35 P 自 # TUABNIS'",
+  "click": null
+ },
+ {
+  "step": "035",
+  "expected": "unknown",
+  "screen": "unknown",
+  "ok": true,
+  "action": "no-op",
+  "ocr_ms": 512,
+  "text": "国 國三",
+  "click": null
+ },
+ {
+  "step": "036",
+  "expected": "action",
+  "screen": "action",
+  "ok": true,
+  "action": "sim-train-Da",
+  "ocr_ms": 553,
+  "text": "154/1000 133/1000 192/1000 期中截止2 24/35 4 请选择行动 授课 授课 休息",
+  "click": [
+   360,
+   1012
+  ]
+ },
+ {
+  "step": "038",
+  "expected": "loading",
+  "screen": "loading",
+  "ok": true,
+  "action": "wait",
+  "ocr_ms": 15,
+  "text": "LOADING",
+  "click": null
+ },
+ {
+  "step": "039",
+  "expected": "event-choice",
+  "screen": "event-choice",
+  "ok": true,
+  "action": "last-row",
+  "ocr_ms": 84,
+  "text": "快进 要让我们我出共同的问题点吧 仔细地处理一下吧 使用视频网果学习胞",
+  "click": [
+   360,
+   935
+  ]
+ },
+ {
+  "step": "042",
+  "expected": "card-reward",
+  "screen": "card-reward",
+  "ok": true,
+  "action": "pick+claim",
+  "ocr_ms": 94,
+  "text": "请选择要领取的技能卡。 推荐 领取",
+  "click": [
+   365,
+   1097
+  ]
+ },
+ {
+  "step": "057",
+  "expected": "action",
+  "screen": "action",
+  "ok": true,
+  "action": "consult",
+  "ocr_ms": 329,
+  "text": "154/1000 133/1000 243/1000 期中止 20/35 4 外出 咨询 动奖励 咨询 休息",
+  "click": [
+   450,
+   1027
+  ]
+ }
+]

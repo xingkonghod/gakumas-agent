@@ -1,0 +1,141 @@
+[
+ {
+  "pid": "AS-3G6FFZZT",
+  "seed": 1665611653,
+  "arm": "current",
+  "loadout_drinks": [
+   "pdrink_00-2-008",
+   "pdrink_00-2-008",
+   "pdrink_00-2-010",
+   "pdrink_00-3-005"
+  ],
+  "score": 1285228,
+  "finished": true,
+  "err": null,
+  "state": "locked",
+  "lock_turn": 2,
+  "seed_found": true,
+  "n_drink_actions": 4,
+  "drink_actions": [
+   [
+    "drink",
+    3
+   ],
+   [
+    "drink",
+    2
+   ],
+   [
+    "drink",
+    0
+   ],
+   [
+    "drink",
+    0
+   ]
+  ],
+  "drinks_left": [],
+  "target": 1285228,
+  "bad_routes": 0,
+  "wall_s": 101.2,
+  "why": null
+ },
+ {
+  "pid": "AS-3G6FFZZT",
+  "seed": 1665611653,
+  "arm": "safe",
+  "loadout_drinks": [
+   "pdrink_00-2-008",
+   "pdrink_00-2-008"
+  ],
+  "score": 444204,
+  "finished": true,
+  "err": null,
+  "state": "locked",
+  "lock_turn": 2,
+  "seed_found": true,
+  "n_drink_actions": 2,
+  "drink_actions": [
+   [
+    "drink",
+    0
+   ],
+   [
+    "drink",
+    0
+   ]
+  ],
+  "drinks_left": [],
+  "target": 444204,
+  "bad_routes": 0,
+  "wall_s": 84.2,
+  "why": null
+ },
+ {
+  "pid": "AS-5KZSXANK",
+  "seed": 448199597,
+  "arm": "current",
+  "loadout_drinks": [
+   "pdrink_00-2-010",
+   "pdrink_02-3-010",
+   "pdrink_00-3-001",
+   "pdrink_00-3-005"
+  ],
+  "score": 8631520,
+  "finished": true,
+  "err": null,
+  "state": "locked",
+  "lock_turn": 3,
+  "seed_found": true,
+  "n_drink_actions": 4,
+  "drink_actions": [
+   [
+    "drink",
+    3
+   ],
+   [
+    "drink",
+    2
+   ],
+   [
+    "drink",
+    0
+   ],
+   [
+    "drink",
+    0
+   ]
+  ],
+  "drinks_left": [],
+  "target": 8631520,
+  "bad_routes": 0,
+  "wall_s": 124.8,
+  "why": null
+ },
+ {
+  "pid": "AS-5KZSXANK",
+  "seed": 448199597,
+  "arm": "safe",
+  "loadout_drinks": [
+   "pdrink_00-3-001"
+  ],
+  "score": 2510455,
+  "finished": true,
+  "err": null,
+  "state": "failed",
+  "lock_turn": null,
+  "seed_found": false,
+  "n_drink_actions": 1,
+  "drink_actions": [
+   [
+    "drink",
+    0
+   ]
+  ],
+  "drinks_left": [],
+  "target": -1,
+  "bad_routes": 0,
+  "wall_s": 248.8,
+  "why": "no seed reproduces the screen"
+ }
+]

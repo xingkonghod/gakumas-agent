@@ -1,0 +1,1682 @@
+[
+ {
+  "id": "AS-C3Y5EFGV",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-D34KGR3N",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-GEAQANXF",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-8QSPBV48",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-499M4D9B",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 296,
+   "2": 221,
+   "3": 172
+  }
+ },
+ {
+  "id": "AS-FS37PVF9",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 3,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 585,
+   "2": 435,
+   "3": 340
+  }
+ },
+ {
+  "id": "AS-8CCJHK74",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 988,
+   "2": 735,
+   "3": 574
+  }
+ },
+ {
+  "id": "AS-VCCRY333",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-33JYSHDF",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-N7X62HPS",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-R8ES22AB",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-GN79HT4K",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-EV8XMEV5",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-6SBAY9F5",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-KFE67GVN",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1088,
+   "2": 1392,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-8T52P83V",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-QQ6J5S39",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-XKTM6X5Y",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1089,
+   "2": 1960,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-G9JK36BF",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-4JS37VD8",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-5TPNAKYP",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-B38CARVV",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1088,
+   "2": 1392,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-4ND5SSJ7",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1088,
+   "2": 1392,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-JMYV3PZV",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-VWAF2GDN",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-P8ZJTXNA",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1307,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-FK3X5G9V",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-GKSKJBWX",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-CZD7MWW8",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-BD5EAA22",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-C52Q5Q28",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-AASWQAP5",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-PAMFF44T",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-ZC6EVE6S",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-4CKKFFFG",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-KZM3B2ZS",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-XDHSYXS2",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-74K2TCT3",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-ZF3BXSVN",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-4JMD6HGX",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-EFSSB2R6",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-VVN28TRW",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-BNEERWGF",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-VH8WYE6J",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-6XE5VCW7",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-ZHAN6GNN",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-9MGMSGS9",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-D92HSANA",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-H37BYCDE",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-ERXY3JPJ",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 2,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 613,
+   "2": 341,
+   "3": 409
+  }
+ },
+ {
+  "id": "AS-6HSQ9JWD",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 2,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 613,
+   "2": 341,
+   "3": 409
+  }
+ },
+ {
+  "id": "AS-PPHWPMPP",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 1035,
+   "2": 575,
+   "3": 690
+  }
+ },
+ {
+  "id": "AS-5KZSXANK",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1088,
+   "2": 1392,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-Z4VBZFDZ",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 172,
+   "2": 221,
+   "3": 296
+  }
+ },
+ {
+  "id": "AS-93WKA9BK",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 574,
+   "2": 735,
+   "3": 988
+  }
+ },
+ {
+  "id": "AS-WW7D3AF9",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 311,
+   "2": 173,
+   "3": 207
+  }
+ },
+ {
+  "id": "AS-3EW6E6HV",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-3ZT8ZKB6",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 735,
+   "2": 574,
+   "3": 988
+  }
+ },
+ {
+  "id": "AS-QTGKN7AK",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 173,
+   "2": 311,
+   "3": 207
+  }
+ },
+ {
+  "id": "AS-CWVGS7VF",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-Z8SVEZ7F",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 311,
+   "2": 173,
+   "3": 207
+  }
+ },
+ {
+  "id": "AS-VBZG5R3W",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 1035,
+   "2": 575,
+   "3": 690
+  }
+ },
+ {
+  "id": "AS-K46XXQEY",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 574,
+   "2": 735,
+   "3": 988
+  }
+ },
+ {
+  "id": "AS-C8D4VT3F",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 172,
+   "2": 221,
+   "3": 296
+  }
+ },
+ {
+  "id": "AS-WDKWQYW5",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1871,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-BAC6C9DK",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 221,
+   "2": 172,
+   "3": 296
+  }
+ },
+ {
+  "id": "AS-N47GNCGH",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 3,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 435,
+   "2": 340,
+   "3": 585
+  }
+ },
+ {
+  "id": "AS-6YHSC2FD",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-9K97D5FT",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 296,
+   "2": 221,
+   "3": 172
+  }
+ },
+ {
+  "id": "AS-7SXQZ4QQ",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 4,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 585,
+   "2": 435,
+   "3": 340
+  }
+ },
+ {
+  "id": "AS-DKGA23WQ",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 311,
+   "2": 173,
+   "3": 207
+  }
+ },
+ {
+  "id": "AS-HTNFZWKG",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 1035,
+   "2": 690,
+   "3": 575
+  }
+ },
+ {
+  "id": "AS-VMDN884H",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 311,
+   "2": 207,
+   "3": 173
+  }
+ },
+ {
+  "id": "AS-CG59PVWZ",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 3,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 613,
+   "2": 409,
+   "3": 341
+  }
+ },
+ {
+  "id": "AS-WPCEABPZ",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 1035,
+   "2": 690,
+   "3": 575
+  }
+ },
+ {
+  "id": "AS-D7HGXSYH",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-A5FQEEBN",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 172,
+   "2": 221,
+   "3": 296
+  }
+ },
+ {
+  "id": "AS-CC97RV4E",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 172,
+   "2": 221,
+   "3": 296
+  }
+ },
+ {
+  "id": "AS-WA3NCQXP",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 690,
+   "2": 1035,
+   "3": 575
+  }
+ },
+ {
+  "id": "AS-K2ER4ZRJ",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-ZT8WGCSW",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 2,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 613,
+   "2": 341,
+   "3": 409
+  }
+ },
+ {
+  "id": "AS-Y4K4R52T",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1089,
+   "2": 1960,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-MPE5PSK3",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 173,
+   "2": 311,
+   "3": 207
+  }
+ },
+ {
+  "id": "AS-CFY7E95P",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 4,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 341,
+   "2": 613,
+   "3": 409
+  }
+ },
+ {
+  "id": "AS-F4FPT86S",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-DS9H9NRD",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-BZXB28YJ",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-XPRY8BRF",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-3BB4BWTR",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 4,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 613,
+   "2": 341,
+   "3": 409
+  }
+ },
+ {
+  "id": "AS-YGF972ZK",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-YSNBNDV4",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-9CXZJCME",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-QV6QCSN9",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-5XB2AEHN",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 207,
+   "2": 311,
+   "3": 173
+  }
+ },
+ {
+  "id": "AS-DE36RWPS",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 4,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 409,
+   "2": 613,
+   "3": 341
+  }
+ },
+ {
+  "id": "AS-WNK6ARRZ",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 690,
+   "2": 1035,
+   "3": 575
+  }
+ },
+ {
+  "id": "AS-55GGG5KS",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-DEBX8BX7",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 311,
+   "2": 173,
+   "3": 207
+  }
+ },
+ {
+  "id": "AS-X9GNYH3W",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-B8ZWDS3J",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 988,
+   "2": 735,
+   "3": 574
+  }
+ },
+ {
+  "id": "AS-357NNR8Y",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-23D5RE8A",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 221,
+   "2": 172,
+   "3": 296
+  }
+ },
+ {
+  "id": "AS-3G6FFZZT",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-GBQHME2Q",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-4G377XCN",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 311,
+   "2": 173,
+   "3": 207
+  }
+ },
+ {
+  "id": "AS-AKXKPVB2",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 2,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 613,
+   "2": 341,
+   "3": 409
+  }
+ },
+ {
+  "id": "AS-YJPHF48J",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 2,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 1035,
+   "2": 575,
+   "3": 690
+  }
+ },
+ {
+  "id": "AS-663NKTY4",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-E8M2YFR2",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-ZVVKTGQF",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 1035,
+   "2": 575,
+   "3": 690
+  }
+ },
+ {
+  "id": "AS-J6YCVQPZ",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-A7TVEQAN",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1960,
+   "2": 1089,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-P8NM4YAA",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1089,
+   "2": 1960,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-BYF8GGWR",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 4,
+  "round_label": "选拔赛 3",
+  "criteria": {
+   "1": 575,
+   "2": 1035,
+   "3": 690
+  }
+ },
+ {
+  "id": "AS-H92D8GD2",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID2",
+  "plan_type": 3,
+  "round_label": "选拔赛 2",
+  "criteria": {
+   "1": 341,
+   "2": 613,
+   "3": 409
+  }
+ },
+ {
+  "id": "AS-6SCJE43J",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 4,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1307,
+   "2": 1960,
+   "3": 1089
+  }
+ },
+ {
+  "id": "AS-9VEFA9VH",
+  "limit_turn": 12,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_FINAL",
+  "plan_type": 3,
+  "round_label": "本战下半场",
+  "criteria": {
+   "1": 1871,
+   "2": 1392,
+   "3": 1088
+  }
+ },
+ {
+  "id": "AS-YZESXMWW",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1089,
+   "2": 1960,
+   "3": 1307
+  }
+ },
+ {
+  "id": "AS-AXME8QK2",
+  "limit_turn": 9,
+  "score_cap": null,
+  "produce_id": "produce-008",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 3,
+  "round_label": "本战上半场",
+  "criteria": {
+   "1": 1392,
+   "2": 1088,
+   "3": 1871
+  }
+ },
+ {
+  "id": "AS-TZSCVNKP",
+  "limit_turn": 10,
+  "score_cap": null,
+  "produce_id": "produce-007",
+  "step_type": "AUDITION_MID1",
+  "plan_type": 2,
+  "round_label": "选拔赛 1",
+  "criteria": {
+   "1": 173,
+   "2": 311,
+   "3": 207
+  }
+ }
+]

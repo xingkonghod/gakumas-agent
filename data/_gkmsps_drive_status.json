@@ -1,0 +1,33 @@
+{
+ "started": "2026-11-25 18:18:19",
+ "ablation": {
+  "prior_on": {
+   "episodes": 50,
+   "mean_final": 374014.14,
+   "min_final": 2280,
+   "max_final": 2718156,
+   "fallbacks": 55,
+   "decisions": 1516,
+   "wall_s_sum": 382.2
+  },
+  "prior_off": {
+   "episodes": 50,
+   "mean_final": 429610.1,
+   "min_final": 3343,
+   "max_final": 2978298,
+   "fallbacks": 0,
+   "decisions": 1496,
+   "wall_s_sum": 360.4
+  },
+  "mean_diff_off_minus_on": 55595.96,
+  "wins_off": 29,
+  "wins_on": 21,
+  "ties": 0,
+  "winner": "off",
+  "paired_seed_match": 50
+ },
+ "gen_rc": 0,
+ "gen_workers": 3,
+ "gen_prior": "off",
+ "finished": "2026-11-25 20:20:50"
+}

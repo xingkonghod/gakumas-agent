@@ -1,0 +1,332 @@
+{
+ "meta": [
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 1054158060,
+   "lab": "d0",
+   "best": 873761,
+   "replay": 873761,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.765
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "seed": 456154521,
+   "lab": "d1",
+   "best": 562079,
+   "replay": 562079,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.121
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 1263242103,
+   "lab": "d0",
+   "best": 4650022,
+   "replay": 4650022,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.764
+  },
+  {
+   "pid": "AS-3ZT8ZKB6",
+   "seed": 212067395,
+   "lab": "d1",
+   "best": 4860212,
+   "replay": 4860212,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 3.154
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 2014364676,
+   "lab": "d0",
+   "best": 5392397,
+   "replay": 5392397,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.632
+  },
+  {
+   "pid": "AS-5KZSXANK",
+   "seed": 631363271,
+   "lab": "d1",
+   "best": 4480916,
+   "replay": 4480916,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.765
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 82532509,
+   "lab": "d0",
+   "best": 19251,
+   "replay": 19251,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.362
+  },
+  {
+   "pid": "AS-5XB2AEHN",
+   "seed": 1106896948,
+   "lab": "d1",
+   "best": 10956,
+   "replay": 10956,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.725
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 2032035346,
+   "lab": "d0",
+   "best": 6674730,
+   "replay": 6674730,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.402
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "seed": 802117222,
+   "lab": "d1",
+   "best": 8421808,
+   "replay": 8421808,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.32
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 2003050762,
+   "lab": "d0",
+   "best": 485513,
+   "replay": 485513,
+   "ok": true,
+   "n_drink": 3,
+   "wall": 1.869
+  },
+  {
+   "pid": "AS-B38CARVV",
+   "seed": 2009806896,
+   "lab": "d1",
+   "best": 405508,
+   "replay": 405508,
+   "ok": true,
+   "n_drink": 3,
+   "wall": 1.833
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 840503298,
+   "lab": "d0",
+   "best": 678901,
+   "replay": 678901,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.776
+  },
+  {
+   "pid": "AS-BD5EAA22",
+   "seed": 640757242,
+   "lab": "d1",
+   "best": 597016,
+   "replay": 597016,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.995
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 456740583,
+   "lab": "d0",
+   "best": 335306,
+   "replay": 335306,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.882
+  },
+  {
+   "pid": "AS-DE36RWPS",
+   "seed": 105214071,
+   "lab": "d1",
+   "best": 419696,
+   "replay": 419696,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.189
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 2111096583,
+   "lab": "d0",
+   "best": 18707,
+   "replay": 18707,
+   "ok": true,
+   "n_drink": 2,
+   "wall": 2.046
+  },
+  {
+   "pid": "AS-DEBX8BX7",
+   "seed": 1068563262,
+   "lab": "d1",
+   "best": 10721,
+   "replay": 10721,
+   "ok": true,
+   "n_drink": 2,
+   "wall": 2.137
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 122300792,
+   "lab": "d0",
+   "best": 425255,
+   "replay": 425255,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.517
+  },
+  {
+   "pid": "AS-HTNFZWKG",
+   "seed": 1721464854,
+   "lab": "d1",
+   "best": 340084,
+   "replay": 340084,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.764
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 2084094552,
+   "lab": "d0",
+   "best": 1310073,
+   "replay": 1310073,
+   "ok": true,
+   "n_drink": 3,
+   "wall": 1.989
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "seed": 1428025002,
+   "lab": "d1",
+   "best": 1317591,
+   "replay": 1317591,
+   "ok": true,
+   "n_drink": 3,
+   "wall": 1.758
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 1434674427,
+   "lab": "d0",
+   "best": 730395,
+   "replay": 730395,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.44
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "seed": 992395165,
+   "lab": "d1",
+   "best": 956417,
+   "replay": 956417,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.063
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 1129605420,
+   "lab": "d0",
+   "best": 556954,
+   "replay": 556954,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.057
+  },
+  {
+   "pid": "AS-VH8WYE6J",
+   "seed": 223596063,
+   "lab": "d1",
+   "best": 508289,
+   "replay": 508289,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.931
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 468564830,
+   "lab": "d0",
+   "best": 1022318,
+   "replay": 1022318,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.935
+  },
+  {
+   "pid": "AS-VWAF2GDN",
+   "seed": 1480499030,
+   "lab": "d1",
+   "best": 1062645,
+   "replay": 1062645,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 1.738
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 315442395,
+   "lab": "d0",
+   "best": 6368411,
+   "replay": 6368411,
+   "ok": true,
+   "n_drink": 3,
+   "wall": 2.336
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "seed": 357347548,
+   "lab": "d1",
+   "best": 4953671,
+   "replay": 4953671,
+   "ok": true,
+   "n_drink": 3,
+   "wall": 2.052
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 1523437389,
+   "lab": "d0",
+   "best": 2435037,
+   "replay": 2435037,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 2.754
+  },
+  {
+   "pid": "AS-WNK6ARRZ",
+   "seed": 386853229,
+   "lab": "d1",
+   "best": 3280991,
+   "replay": 3280991,
+   "ok": true,
+   "n_drink": 4,
+   "wall": 3.025
+  }
+ ],
+ "n_examples": 32,
+ "sources": [
+  "self-distill:gnrpa-2000000-rules69",
+  "teachers:32/32",
+  "drinks:current-full",
+  "seeds:gnrpa-distill/disjoint-from-gate"
+ ],
+ "n_weights": 1870
+}

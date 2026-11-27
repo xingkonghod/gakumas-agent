@@ -1,0 +1,649 @@
+{
+ "configs": {
+  "orig": {
+   "cls": "orig",
+   "params": {
+    "worlds": 6,
+    "mode": "eval",
+    "threads": 4,
+    "margin": 0.25,
+    "min_sec": 0.03,
+    "use_prior": 0,
+    "use": 0.85
+   }
+  },
+  "u70": {
+   "cls": "fast",
+   "params": {
+    "worlds": 6,
+    "mode": "eval",
+    "threads": 4,
+    "margin": 0.25,
+    "min_sec": 0.03,
+    "use_prior": 0,
+    "use": 0.7,
+    "anytime": 1
+   }
+  },
+  "u60": {
+   "cls": "fast",
+   "params": {
+    "worlds": 6,
+    "mode": "eval",
+    "threads": 4,
+    "margin": 0.25,
+    "min_sec": 0.03,
+    "use_prior": 0,
+    "use": 0.6,
+    "anytime": 1
+   }
+  },
+  "u70w4": {
+   "cls": "fast",
+   "params": {
+    "worlds": 4,
+    "mode": "eval",
+    "threads": 4,
+    "margin": 0.25,
+    "min_sec": 0.03,
+    "use_prior": 0,
+    "use": 0.7,
+    "anytime": 1
+   }
+  },
+  "u70es": {
+   "cls": "fast",
+   "params": {
+    "worlds": 6,
+    "mode": "eval",
+    "threads": 4,
+    "margin": 0.25,
+    "min_sec": 0.03,
+    "use_prior": 0,
+    "use": 0.7,
+    "anytime": 1,
+    "early_stop": 1
+   }
+  }
+ },
+ "pids": [
+  "AS-227HBGHS",
+  "AS-ADDTACFE",
+  "AS-33JYSHDF",
+  "AS-K46XXQEY",
+  "AS-3EW6E6HV",
+  "AS-DS9H9NRD"
+ ],
+ "rtt_mean": 0.45,
+ "pairs": [
+  [
+   "AS-227HBGHS",
+   433172592
+  ],
+  [
+   "AS-ADDTACFE",
+   1207168678
+  ],
+  [
+   "AS-33JYSHDF",
+   1187446727
+  ],
+  [
+   "AS-K46XXQEY",
+   1286311921
+  ],
+  [
+   "AS-3EW6E6HV",
+   153762096
+  ],
+  [
+   "AS-DS9H9NRD",
+   1036556784
+  ]
+ ],
+ "rows": [
+  {
+   "pid": "AS-227HBGHS",
+   "seed": 433172592,
+   "cfg": "orig",
+   "score": 7508,
+   "finished": true,
+   "decisions": 19,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 5141,
+   "step_ms_max": 5915,
+   "step_ms_p95": 5915,
+   "decide_ms_mean": 3791
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "seed": 433172592,
+   "cfg": "u70",
+   "score": 3257,
+   "finished": true,
+   "decisions": 19,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4367,
+   "step_ms_max": 5183,
+   "step_ms_p95": 5183,
+   "decide_ms_mean": 3017
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "seed": 433172592,
+   "cfg": "u60",
+   "score": 3257,
+   "finished": true,
+   "decisions": 19,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3921,
+   "step_ms_max": 4712,
+   "step_ms_p95": 4712,
+   "decide_ms_mean": 2571
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "seed": 433172592,
+   "cfg": "u70w4",
+   "score": 7795,
+   "finished": true,
+   "decisions": 20,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4334,
+   "step_ms_max": 5185,
+   "step_ms_p95": 5185,
+   "decide_ms_mean": 2984
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "seed": 433172592,
+   "cfg": "u70es",
+   "score": 8175,
+   "finished": true,
+   "decisions": 17,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 2869,
+   "step_ms_max": 3466,
+   "step_ms_p95": 3466,
+   "decide_ms_mean": 1519
+  },
+  {
+   "pid": "AS-ADDTACFE",
+   "seed": 1207168678,
+   "cfg": "orig",
+   "score": 1305032,
+   "finished": true,
+   "decisions": 30,
+   "err": null,
+   "over_steps": 3,
+   "step_ms_mean": 5267,
+   "step_ms_max": 7313,
+   "step_ms_p95": 6663,
+   "decide_ms_mean": 3917
+  },
+  {
+   "pid": "AS-ADDTACFE",
+   "seed": 1207168678,
+   "cfg": "u70",
+   "score": 1537388,
+   "finished": true,
+   "decisions": 30,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4667,
+   "step_ms_max": 6590,
+   "step_ms_p95": 5932,
+   "decide_ms_mean": 3317
+  },
+  {
+   "pid": "AS-ADDTACFE",
+   "seed": 1207168678,
+   "cfg": "u60",
+   "score": 929540,
+   "finished": true,
+   "decisions": 33,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4122,
+   "step_ms_max": 6113,
+   "step_ms_p95": 5460,
+   "decide_ms_mean": 2772
+  },
+  {
+   "pid": "AS-ADDTACFE",
+   "seed": 1207168678,
+   "cfg": "u70w4",
+   "score": 2511266,
+   "finished": true,
+   "decisions": 30,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4557,
+   "step_ms_max": 6592,
+   "step_ms_p95": 5933,
+   "decide_ms_mean": 3207
+  },
+  {
+   "pid": "AS-ADDTACFE",
+   "seed": 1207168678,
+   "cfg": "u70es",
+   "score": 1261302,
+   "finished": true,
+   "decisions": 31,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3114,
+   "step_ms_max": 4936,
+   "step_ms_p95": 4280,
+   "decide_ms_mean": 1764
+  },
+  {
+   "pid": "AS-33JYSHDF",
+   "seed": 1187446727,
+   "cfg": "orig",
+   "score": 541431,
+   "finished": true,
+   "decisions": 25,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 5015,
+   "step_ms_max": 6534,
+   "step_ms_p95": 5967,
+   "decide_ms_mean": 3665
+  },
+  {
+   "pid": "AS-33JYSHDF",
+   "seed": 1187446727,
+   "cfg": "u70",
+   "score": 115642,
+   "finished": true,
+   "decisions": 21,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4519,
+   "step_ms_max": 5799,
+   "step_ms_p95": 5160,
+   "decide_ms_mean": 3169
+  },
+  {
+   "pid": "AS-33JYSHDF",
+   "seed": 1187446727,
+   "cfg": "u60",
+   "score": 342859,
+   "finished": true,
+   "decisions": 26,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3973,
+   "step_ms_max": 5325,
+   "step_ms_p95": 4688,
+   "decide_ms_mean": 2623
+  },
+  {
+   "pid": "AS-33JYSHDF",
+   "seed": 1187446727,
+   "cfg": "u70w4",
+   "score": 455471,
+   "finished": true,
+   "decisions": 24,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4647,
+   "step_ms_max": 5799,
+   "step_ms_p95": 5163,
+   "decide_ms_mean": 3297
+  },
+  {
+   "pid": "AS-33JYSHDF",
+   "seed": 1187446727,
+   "cfg": "u70es",
+   "score": 265840,
+   "finished": true,
+   "decisions": 28,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3019,
+   "step_ms_max": 4480,
+   "step_ms_p95": 3668,
+   "decide_ms_mean": 1669
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "seed": 1286311921,
+   "cfg": "orig",
+   "score": 710683,
+   "finished": true,
+   "decisions": 31,
+   "err": null,
+   "over_steps": 4,
+   "step_ms_mean": 5414,
+   "step_ms_max": 6938,
+   "step_ms_p95": 6743,
+   "decide_ms_mean": 4064
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "seed": 1286311921,
+   "cfg": "u70",
+   "score": 1554762,
+   "finished": true,
+   "decisions": 30,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4650,
+   "step_ms_max": 6203,
+   "step_ms_p95": 6014,
+   "decide_ms_mean": 3300
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "seed": 1286311921,
+   "cfg": "u60",
+   "score": 989687,
+   "finished": true,
+   "decisions": 29,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4150,
+   "step_ms_max": 5727,
+   "step_ms_p95": 5540,
+   "decide_ms_mean": 2800
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "seed": 1286311921,
+   "cfg": "u70w4",
+   "score": 431231,
+   "finished": true,
+   "decisions": 33,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4655,
+   "step_ms_max": 6202,
+   "step_ms_p95": 6013,
+   "decide_ms_mean": 3305
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "seed": 1286311921,
+   "cfg": "u70es",
+   "score": 1041007,
+   "finished": true,
+   "decisions": 31,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3182,
+   "step_ms_max": 4737,
+   "step_ms_p95": 4552,
+   "decide_ms_mean": 1832
+  },
+  {
+   "pid": "AS-3EW6E6HV",
+   "seed": 153762096,
+   "cfg": "orig",
+   "score": 1502478,
+   "finished": true,
+   "decisions": 49,
+   "err": null,
+   "over_steps": 6,
+   "step_ms_mean": 5177,
+   "step_ms_max": 6751,
+   "step_ms_p95": 6283,
+   "decide_ms_mean": 3827
+  },
+  {
+   "pid": "AS-3EW6E6HV",
+   "seed": 153762096,
+   "cfg": "u70",
+   "score": 2425720,
+   "finished": true,
+   "decisions": 49,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4610,
+   "step_ms_max": 6008,
+   "step_ms_p95": 5557,
+   "decide_ms_mean": 3260
+  },
+  {
+   "pid": "AS-3EW6E6HV",
+   "seed": 153762096,
+   "cfg": "u60",
+   "score": 4075256,
+   "finished": true,
+   "decisions": 53,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4179,
+   "step_ms_max": 5602,
+   "step_ms_p95": 5279,
+   "decide_ms_mean": 2829
+  },
+  {
+   "pid": "AS-3EW6E6HV",
+   "seed": 153762096,
+   "cfg": "u70w4",
+   "score": 2549169,
+   "finished": true,
+   "decisions": 46,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4626,
+   "step_ms_max": 6014,
+   "step_ms_p95": 5558,
+   "decide_ms_mean": 3276
+  },
+  {
+   "pid": "AS-3EW6E6HV",
+   "seed": 153762096,
+   "cfg": "u70es",
+   "score": 2682903,
+   "finished": true,
+   "decisions": 49,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3107,
+   "step_ms_max": 4357,
+   "step_ms_p95": 3910,
+   "decide_ms_mean": 1757
+  },
+  {
+   "pid": "AS-DS9H9NRD",
+   "seed": 1036556784,
+   "cfg": "orig",
+   "score": 734518,
+   "finished": true,
+   "decisions": 39,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 5058,
+   "step_ms_max": 6959,
+   "step_ms_p95": 5915,
+   "decide_ms_mean": 3708
+  },
+  {
+   "pid": "AS-DS9H9NRD",
+   "seed": 1036556784,
+   "cfg": "u70",
+   "score": 844990,
+   "finished": true,
+   "decisions": 33,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4361,
+   "step_ms_max": 6235,
+   "step_ms_p95": 5181,
+   "decide_ms_mean": 3011
+  },
+  {
+   "pid": "AS-DS9H9NRD",
+   "seed": 1036556784,
+   "cfg": "u60",
+   "score": 1368960,
+   "finished": true,
+   "decisions": 36,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3942,
+   "step_ms_max": 5760,
+   "step_ms_p95": 4708,
+   "decide_ms_mean": 2592
+  },
+  {
+   "pid": "AS-DS9H9NRD",
+   "seed": 1036556784,
+   "cfg": "u70w4",
+   "score": 1119114,
+   "finished": true,
+   "decisions": 39,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4517,
+   "step_ms_max": 6232,
+   "step_ms_p95": 5404,
+   "decide_ms_mean": 3167
+  },
+  {
+   "pid": "AS-DS9H9NRD",
+   "seed": 1036556784,
+   "cfg": "u70es",
+   "score": 1124451,
+   "finished": true,
+   "decisions": 39,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 3146,
+   "step_ms_max": 5132,
+   "step_ms_p95": 4685,
+   "decide_ms_mean": 1796
+  }
+ ],
+ "summary": {
+  "orig": {
+   "mean_score": 800275,
+   "over_steps": 15,
+   "step_ms_mean": 5179,
+   "step_ms_max": 7313,
+   "errors": 0
+  },
+  "u70": {
+   "mean_score": 1080293,
+   "over_steps": 3,
+   "step_ms_mean": 4529,
+   "step_ms_max": 6590,
+   "errors": 0
+  },
+  "u60": {
+   "mean_score": 1284926,
+   "over_steps": 1,
+   "step_ms_mean": 4048,
+   "step_ms_max": 6113,
+   "errors": 0
+  },
+  "u70w4": {
+   "mean_score": 1179008,
+   "over_steps": 3,
+   "step_ms_mean": 4556,
+   "step_ms_max": 6592,
+   "errors": 0
+  },
+  "u70es": {
+   "mean_score": 1063946,
+   "over_steps": 0,
+   "step_ms_mean": 3073,
+   "step_ms_max": 5132,
+   "errors": 0
+  }
+ },
+ "ab_vs_orig": {
+  "u70": {
+   "n": 6,
+   "mean_delta": 280018.2,
+   "ci95": [
+    -86208.7,
+    658822.0
+   ],
+   "pos": 4,
+   "neg": 2,
+   "zero": 0,
+   "over_delta_total": -12,
+   "gate_pass": false,
+   "per_pair": {
+    "AS-227HBGHS/433172592": -4251,
+    "AS-ADDTACFE/1207168678": 232356,
+    "AS-33JYSHDF/1187446727": -425789,
+    "AS-K46XXQEY/1286311921": 844079,
+    "AS-3EW6E6HV/153762096": 923242,
+    "AS-DS9H9NRD/1036556784": 110472
+   }
+  },
+  "u60": {
+   "n": 6,
+   "mean_delta": 484651.5,
+   "ci95": [
+    -145562.5,
+    1376048.0
+   ],
+   "pos": 3,
+   "neg": 3,
+   "zero": 0,
+   "over_delta_total": -14,
+   "gate_pass": false,
+   "per_pair": {
+    "AS-227HBGHS/433172592": -4251,
+    "AS-ADDTACFE/1207168678": -375492,
+    "AS-33JYSHDF/1187446727": -198572,
+    "AS-K46XXQEY/1286311921": 279004,
+    "AS-3EW6E6HV/153762096": 2572778,
+    "AS-DS9H9NRD/1036556784": 634442
+   }
+  },
+  "u70w4": {
+   "n": 6,
+   "mean_delta": 378732.7,
+   "ci95": [
+    -57656.8,
+    841712.7
+   ],
+   "pos": 4,
+   "neg": 2,
+   "zero": 0,
+   "over_delta_total": -12,
+   "gate_pass": false,
+   "per_pair": {
+    "AS-227HBGHS/433172592": 287,
+    "AS-ADDTACFE/1207168678": 1206234,
+    "AS-33JYSHDF/1187446727": -85960,
+    "AS-K46XXQEY/1286311921": -279452,
+    "AS-3EW6E6HV/153762096": 1046691,
+    "AS-DS9H9NRD/1036556784": 384596
+   }
+  },
+  "u70es": {
+   "n": 6,
+   "mean_delta": 263671.3,
+   "ci95": [
+    -60175.0,
+    664323.5
+   ],
+   "pos": 4,
+   "neg": 2,
+   "zero": 0,
+   "over_delta_total": -15,
+   "gate_pass": false,
+   "per_pair": {
+    "AS-227HBGHS/433172592": 667,
+    "AS-ADDTACFE/1207168678": -43730,
+    "AS-33JYSHDF/1187446727": -275591,
+    "AS-K46XXQEY/1286311921": 330324,
+    "AS-3EW6E6HV/153762096": 1180425,
+    "AS-DS9H9NRD/1036556784": 389933
+   }
+  }
+ }
+}

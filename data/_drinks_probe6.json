@@ -1,0 +1,756 @@
+{
+ "free_gb_at_start": 4.01,
+ "bottles": [
+  {
+   "id": "pdrink_03-1-009",
+   "name": "姜汁汽水",
+   "tag": "concentration1",
+   "drink_rng_advances": 0,
+   "drink_d_score": 0,
+   "drink_d_stamina": 0,
+   "drink_d_fpp": 1,
+   "drink_stance": [
+    null,
+    "Concentration"
+   ],
+   "drink_stance_step": [
+    0,
+    1
+   ],
+   "drink_d_conc_count": 1,
+   "drink_hand_delta": 0,
+   "drink_deck_delta": 0,
+   "reduce_change": [
+    false,
+    false
+   ],
+   "reduce_threshold": [
+    0,
+    0
+   ],
+   "repeat": [
+    0,
+    0
+   ],
+   "selects": [],
+   "checks": {
+    "drink_rng_zero": true,
+    "stance_strong1": true,
+    "fpp_plus1": true,
+    "conc_count_plus1": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_03-3-009",
+   "name": "初星超级苏打水",
+   "tag": "concentration2",
+   "drink_rng_advances": 0,
+   "drink_d_score": 0,
+   "drink_d_stamina": 0,
+   "drink_d_fpp": 0,
+   "drink_stance": [
+    null,
+    "Concentration"
+   ],
+   "drink_stance_step": [
+    0,
+    2
+   ],
+   "drink_d_conc_count": 1,
+   "drink_hand_delta": 0,
+   "drink_deck_delta": 0,
+   "reduce_change": [
+    false,
+    false
+   ],
+   "reduce_threshold": [
+    0,
+    0
+   ],
+   "repeat": [
+    0,
+    0
+   ],
+   "selects": [],
+   "checks": {
+    "drink_rng_zero": true,
+    "stance_strong2": true,
+    "conc_count_plus1": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_01-3-012",
+   "name": "初星黑醋汁",
+   "tag": "select_hand_cost0",
+   "drink_rng_advances": 0,
+   "drink_d_score": 0,
+   "drink_d_stamina": -2,
+   "drink_d_fpp": 0,
+   "drink_stance": [
+    null,
+    null
+   ],
+   "drink_stance_step": [
+    0,
+    0
+   ],
+   "drink_d_conc_count": 0,
+   "drink_hand_delta": 1,
+   "drink_deck_delta": -1,
+   "reduce_change": [
+    false,
+    false
+   ],
+   "reduce_threshold": [
+    0,
+    0
+   ],
+   "repeat": [
+    0,
+    0
+   ],
+   "selects": [
+    {
+     "effect_id": "e_effect-exam_card_move-p_card_search-deck_grave-hand-select-1_1",
+     "produce_card_search_id": "p_card_search-deck_grave",
+     "picked_numbers": [
+      1
+     ],
+     "candidate_numbers": [
+      7,
+      12,
+      16,
+      9,
+      10,
+      21,
+      4,
+      18,
+      15,
+      1,
+      17,
+      6,
+      5,
+      19,
+      3,
+      13,
+      8,
+      2,
+      20
+     ],
+     "rule": "greedy_select_policy",
+     "pick_min": 1,
+     "pick_max": 1
+    }
+   ],
+   "plays": [
+    {
+     "k": 0,
+     "idx": 0,
+     "card": "p_card-01-men-2_035",
+     "upgrade": 0,
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": 0,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 1,
+     "idx": 0,
+     "card": "p_card-01-act-3_049",
+     "upgrade": 0,
+     "category": "ActiveSkill",
+     "d_score": 0,
+     "d_stamina": 0,
+     "d_block": 0,
+     "d_focus": -3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 2,
+     "idx": 1,
+     "card": "p_card-00-men-3_012",
+     "upgrade": 1,
+     "category": "MentalSkill",
+     "d_score": 225,
+     "d_stamina": 0,
+     "d_block": 5,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 3,
+     "idx": 1,
+     "card": "p_card-01-act-3_010",
+     "upgrade": 1,
+     "category": "ActiveSkill",
+     "d_score": 1773,
+     "d_stamina": 0,
+     "d_block": -4,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 4,
+     "idx": 0,
+     "card": "p_card-01-men-2_099",
+     "upgrade": 1,
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -1,
+     "d_block": -1,
+     "d_focus": 8,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 1,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 5,
+     "idx": 1,
+     "card": "p_card-01-men-3_035",
+     "upgrade": 0,
+     "category": "MentalSkill",
+     "d_score": 1178,
+     "d_stamina": -3,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    }
+   ],
+   "ctrl_plays": [
+    {
+     "k": 0,
+     "idx": 0,
+     "card": "p_card-01-men-2_035",
+     "upgrade": 0,
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -4,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 1,
+     "idx": 0,
+     "card": "p_card-01-act-3_049",
+     "upgrade": 0,
+     "category": "ActiveSkill",
+     "d_score": 0,
+     "d_stamina": 0,
+     "d_block": 0,
+     "d_focus": -3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 2,
+     "idx": 1,
+     "card": "p_card-00-men-3_012",
+     "upgrade": 1,
+     "category": "MentalSkill",
+     "d_score": 225,
+     "d_stamina": -1,
+     "d_block": 5,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 3,
+     "idx": 1,
+     "card": "p_card-01-act-3_010",
+     "upgrade": 1,
+     "category": "ActiveSkill",
+     "d_score": 1773,
+     "d_stamina": 0,
+     "d_block": -4,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 4,
+     "idx": 0,
+     "card": "p_card-01-men-2_099",
+     "upgrade": 1,
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -1,
+     "d_block": -1,
+     "d_focus": 8,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 1,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    },
+    {
+     "k": 5,
+     "idx": 1,
+     "card": "p_card-01-men-3_035",
+     "upgrade": 0,
+     "category": "MentalSkill",
+     "d_score": 1178,
+     "d_stamina": -3,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0,
+     "reduce_change_after": false,
+     "reduce_threshold_after": 0
+    }
+   ],
+   "cost0_positive_cost_plays": [
+    {
+     "k": 0,
+     "card": "p_card-01-men-2_035",
+     "ctrl_stamina": -4,
+     "target_stamina": 0,
+     "target_block": 0
+    },
+    {
+     "k": 2,
+     "card": "p_card-00-men-3_012",
+     "ctrl_stamina": -1,
+     "target_stamina": 0,
+     "target_block": 5
+    },
+    {
+     "k": 4,
+     "card": "p_card-01-men-2_099",
+     "ctrl_stamina": -1,
+     "target_stamina": -1,
+     "target_block": -1
+    },
+    {
+     "k": 5,
+     "card": "p_card-01-men-3_035",
+     "ctrl_stamina": -3,
+     "target_stamina": -3,
+     "target_block": 0
+    }
+   ],
+   "checks": {
+    "drink_rng_zero": true,
+    "hand_plus1": true,
+    "deck_minus1": true,
+    "select_event": true,
+    "cost0_first2_zero": true,
+    "cost0_third_normal": true
+   },
+   "all_pass": true
+  },
+  {
+   "id": "pdrink_02-3-010",
+   "name": "特制初星精华",
+   "tag": "encore_active",
+   "drink_rng_advances": 0,
+   "drink_d_score": 0,
+   "drink_d_stamina": -2,
+   "drink_d_fpp": 0,
+   "drink_stance": [
+    null,
+    null
+   ],
+   "drink_stance_step": [
+    0,
+    0
+   ],
+   "drink_d_conc_count": 0,
+   "drink_hand_delta": 0,
+   "drink_deck_delta": 0,
+   "reduce_change": [
+    false,
+    false
+   ],
+   "reduce_threshold": [
+    0,
+    0
+   ],
+   "repeat": [
+    0,
+    0
+   ],
+   "selects": [],
+   "plays": [
+    {
+     "k": 0,
+     "idx": 0,
+     "turn": 1,
+     "card": "p_card-01-men-2_035",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -8,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 1,
+     "idx": 0,
+     "turn": 2,
+     "card": "p_card-01-act-3_049",
+     "category": "ActiveSkill",
+     "d_score": 0,
+     "d_stamina": 0,
+     "d_block": 0,
+     "d_focus": -3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 2,
+     "idx": 1,
+     "turn": 3,
+     "card": "p_card-00-men-3_012",
+     "category": "MentalSkill",
+     "d_score": 225,
+     "d_stamina": -1,
+     "d_block": 5,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 3,
+     "idx": 1,
+     "turn": 3,
+     "card": "p_card-01-act-3_010",
+     "category": "ActiveSkill",
+     "d_score": 1923,
+     "d_stamina": 0,
+     "d_block": -4,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 4,
+     "idx": 0,
+     "turn": 4,
+     "card": "p_card-01-men-2_099",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -1,
+     "d_block": -1,
+     "d_focus": 8,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 1,
+     "repeat_after": 0
+    },
+    {
+     "k": 5,
+     "idx": 1,
+     "turn": 4,
+     "card": "p_card-01-men-3_035",
+     "category": "MentalSkill",
+     "d_score": 1178,
+     "d_stamina": -3,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 6,
+     "idx": 0,
+     "turn": 5,
+     "card": "p_card-01-men-2_036",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -2,
+     "d_block": 0,
+     "d_focus": 2,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 7,
+     "idx": 0,
+     "turn": 6,
+     "card": "p_card-01-men-3_034",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -3,
+     "d_block": 0,
+     "d_focus": 4,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 12,
+     "repeat_after": 0
+    }
+   ],
+   "ctrl_plays": [
+    {
+     "k": 0,
+     "idx": 0,
+     "turn": 1,
+     "card": "p_card-01-men-2_035",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -4,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 1,
+     "idx": 0,
+     "turn": 2,
+     "card": "p_card-01-act-3_049",
+     "category": "ActiveSkill",
+     "d_score": 0,
+     "d_stamina": 0,
+     "d_block": 0,
+     "d_focus": -3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 2,
+     "idx": 1,
+     "turn": 3,
+     "card": "p_card-00-men-3_012",
+     "category": "MentalSkill",
+     "d_score": 225,
+     "d_stamina": -1,
+     "d_block": 5,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 3,
+     "idx": 1,
+     "turn": 3,
+     "card": "p_card-01-act-3_010",
+     "category": "ActiveSkill",
+     "d_score": 1773,
+     "d_stamina": 0,
+     "d_block": -4,
+     "d_focus": 0,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 4,
+     "idx": 0,
+     "turn": 4,
+     "card": "p_card-01-men-2_099",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -1,
+     "d_block": -1,
+     "d_focus": 8,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 1,
+     "repeat_after": 0
+    },
+    {
+     "k": 5,
+     "idx": 1,
+     "turn": 4,
+     "card": "p_card-01-men-3_035",
+     "category": "MentalSkill",
+     "d_score": 1178,
+     "d_stamina": -3,
+     "d_block": 0,
+     "d_focus": 3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 6,
+     "idx": 0,
+     "turn": 5,
+     "card": "p_card-01-men-2_036",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -2,
+     "d_block": 0,
+     "d_focus": 2,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 0,
+     "repeat_after": 0
+    },
+    {
+     "k": 7,
+     "idx": 0,
+     "turn": 6,
+     "card": "p_card-01-men-3_034",
+     "category": "MentalSkill",
+     "d_score": 0,
+     "d_stamina": -3,
+     "d_block": 0,
+     "d_focus": 4,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0,
+     "rng_advances": 12,
+     "repeat_after": 0
+    }
+   ],
+   "encore_observed": {
+    "k": 1,
+    "card": "p_card-01-act-3_049",
+    "target": {
+     "d_score": 0,
+     "d_focus": -3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0
+    },
+    "ctrl": {
+     "d_score": 0,
+     "d_focus": -3,
+     "d_impression": 0,
+     "d_aggressive": 0,
+     "d_fpp": 0
+    }
+   },
+   "checks": {
+    "drink_rng_zero": true
+   },
+   "all_pass": true
+  }
+ ],
+ "encore_clean": {
+  "card": "p_card-01-act-2_003",
+  "rows": [
+   {
+    "k": 0,
+    "turn": 1,
+    "target_score": 1244,
+    "ctrl_score": 622,
+    "target_rng": 0
+   },
+   {
+    "k": 1,
+    "turn": 2,
+    "target_score": 663,
+    "ctrl_score": 663,
+    "target_rng": 0
+   },
+   {
+    "k": 2,
+    "turn": 4,
+    "target_score": 622,
+    "ctrl_score": 622,
+    "target_rng": 0
+   }
+  ],
+  "checks": {
+   "first_doubled": true,
+   "second_normal": true,
+   "third_expired_normal": true
+  },
+  "all_pass": true
+ },
+ "all_pass": true
+}

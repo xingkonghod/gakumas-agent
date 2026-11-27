@@ -1,0 +1,940 @@
+{
+ "tag": "p1",
+ "dll": "D:\\Games\\gakumas-agent\\data\\_f2sl_tools\\kernel\\gkmscore.dll",
+ "target": "p_card-00-sup-3_024",
+ "games": [
+  {
+   "final": {
+    "tag": "AS-4BFABQK9",
+    "pid": "AS-4BFABQK9",
+    "seed": 485599979,
+    "steps": 17,
+    "score": 48851,
+    "target_plays": 1,
+    "target_cons": [
+     132
+    ]
+   },
+   "target_rows": [
+    {
+     "tag": "AS-4BFABQK9",
+     "pid": "AS-4BFABQK9",
+     "seed": 485599979,
+     "i": 9,
+     "action": [
+      "play",
+      2
+     ],
+     "played": "p_card-00-sup-3_024",
+     "is_target": true,
+     "rng_before": 1204118744,
+     "rng_after": 2850406780,
+     "consumption": 132,
+     "deck_len_before": 3,
+     "deck_len_after": 3,
+     "hand_before": [
+      "p_card-01-act-3_010",
+      "p_card-00-sup-3_093",
+      "p_card-00-sup-3_024"
+     ],
+     "hand_after": [
+      "p_card-01-act-3_010",
+      "p_card-00-sup-3_093",
+      "p_card-01-act-2_061"
+     ],
+     "grave_len_before": 12,
+     "grave_len_after": 12,
+     "deck_inserted": []
+    }
+   ],
+   "insert_events": [
+    {
+     "tag": "AS-4BFABQK9",
+     "pid": "AS-4BFABQK9",
+     "seed": 485599979,
+     "i": 12,
+     "action": [
+      "play",
+      0
+     ],
+     "played": "p_card-01-act-2_061",
+     "is_target": false,
+     "rng_before": 2850406780,
+     "rng_after": 2815578328,
+     "consumption": 13,
+     "deck_len_before": 1,
+     "deck_len_after": 11,
+     "hand_before": [
+      "p_card-01-act-2_061",
+      "p_card-01-men-3_036",
+      "p_card-01-men-3_006"
+     ],
+     "hand_after": [
+      "p_card-00-acc-0_002",
+      "p_card-01-act-2_001",
+      "p_card-01-men-2_037",
+      "p_card-01-men-1_034"
+     ],
+     "grave_len_before": 12,
+     "grave_len_after": 0,
+     "deck_inserted": [
+      {
+       "index": 0,
+       "card": "p_card-01-men-2_038"
+      },
+      {
+       "index": 1,
+       "card": "p_card-01-men-3_006"
+      },
+      {
+       "index": 2,
+       "card": "p_card-01-act-2_061"
+      },
+      {
+       "index": 3,
+       "card": "p_card-01-ido-3_241"
+      },
+      {
+       "index": 4,
+       "card": "p_card-01-men-2_040"
+      },
+      {
+       "index": 5,
+       "card": "p_card-01-men-2_011"
+      },
+      {
+       "index": 6,
+       "card": "p_card-01-act-3_049"
+      },
+      {
+       "index": 7,
+       "card": "p_card-01-men-3_036"
+      },
+      {
+       "index": 8,
+       "card": "p_card-01-men-2_098"
+      },
+      {
+       "index": 9,
+       "card": "p_card-01-men-2_104"
+      },
+      {
+       "index": 10,
+       "card": "p_card-00-sup-3_158"
+      }
+     ],
+     "insert_pred": [
+      {
+       "card": "p_card-01-men-2_038",
+       "index": 0,
+       "pred_steps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+       ]
+      },
+      {
+       "card": "p_card-01-men-3_006",
+       "index": 1,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-2_061",
+       "index": 2,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-ido-3_241",
+       "index": 3,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_040",
+       "index": 4,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_011",
+       "index": 5,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-3_049",
+       "index": 6,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-3_036",
+       "index": 7,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_098",
+       "index": 8,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_104",
+       "index": 9,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-00-sup-3_158",
+       "index": 10,
+       "pred_steps": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "final": {
+    "tag": "AS-3TJXEB7T",
+    "pid": "AS-3TJXEB7T",
+    "seed": 1940456797,
+    "steps": 27,
+    "score": 102812,
+    "target_plays": 1,
+    "target_cons": [
+     135
+    ]
+   },
+   "target_rows": [
+    {
+     "tag": "AS-3TJXEB7T",
+     "pid": "AS-3TJXEB7T",
+     "seed": 1940456797,
+     "i": 6,
+     "action": [
+      "play",
+      1
+     ],
+     "played": "p_card-00-sup-3_024",
+     "is_target": true,
+     "rng_before": 924402982,
+     "rng_after": 1339438525,
+     "consumption": 135,
+     "deck_len_before": 7,
+     "deck_len_after": 7,
+     "hand_before": [
+      "p_card-01-act-3_049",
+      "p_card-00-sup-3_024",
+      "p_card-00-sup-3_158"
+     ],
+     "hand_after": [
+      "p_card-01-act-3_049",
+      "p_card-00-sup-3_158",
+      "p_card-01-act-2_032"
+     ],
+     "grave_len_before": 8,
+     "grave_len_after": 8,
+     "deck_inserted": []
+    }
+   ],
+   "insert_events": [
+    {
+     "tag": "AS-3TJXEB7T",
+     "pid": "AS-3TJXEB7T",
+     "seed": 1940456797,
+     "i": 9,
+     "action": [
+      "play",
+      0
+     ],
+     "played": "p_card-01-men-2_099",
+     "is_target": false,
+     "rng_before": 2088305260,
+     "rng_after": 4011775365,
+     "consumption": 15,
+     "deck_len_before": 0,
+     "deck_len_after": 14,
+     "hand_before": [
+      "p_card-01-men-2_099",
+      "p_card-01-men-2_038",
+      "p_card-01-act-3_010"
+     ],
+     "hand_after": [
+      "p_card-01-men-2_038",
+      "p_card-01-act-3_010",
+      "p_card-01-ido-3_241"
+     ],
+     "grave_len_before": 14,
+     "grave_len_after": 0,
+     "deck_inserted": [
+      {
+       "index": 0,
+       "card": "p_card-01-men-3_036"
+      },
+      {
+       "index": 1,
+       "card": "p_card-00-sup-3_158"
+      },
+      {
+       "index": 2,
+       "card": "p_card-01-men-3_034"
+      },
+      {
+       "index": 3,
+       "card": "p_card-01-act-3_049"
+      },
+      {
+       "index": 4,
+       "card": "p_card-01-men-2_040"
+      },
+      {
+       "index": 5,
+       "card": "p_card-01-act-2_001"
+      },
+      {
+       "index": 6,
+       "card": "p_card-00-acc-0_002"
+      },
+      {
+       "index": 7,
+       "card": "p_card-01-act-2_032"
+      },
+      {
+       "index": 8,
+       "card": "p_card-00-sup-3_093"
+      },
+      {
+       "index": 9,
+       "card": "p_card-01-men-2_043"
+      },
+      {
+       "index": 10,
+       "card": "p_card-01-men-3_006"
+      },
+      {
+       "index": 11,
+       "card": "p_card-01-men-2_037"
+      },
+      {
+       "index": 12,
+       "card": "p_card-01-men-2_011"
+      },
+      {
+       "index": 13,
+       "card": "p_card-01-men-2_104"
+      }
+     ],
+     "insert_pred": [
+      {
+       "card": "p_card-01-men-3_036",
+       "index": 0,
+       "pred_steps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+       ]
+      },
+      {
+       "card": "p_card-00-sup-3_158",
+       "index": 1,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-3_034",
+       "index": 2,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-3_049",
+       "index": 3,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_040",
+       "index": 4,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-2_001",
+       "index": 5,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-00-acc-0_002",
+       "index": 6,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-2_032",
+       "index": 7,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-00-sup-3_093",
+       "index": 8,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_043",
+       "index": 9,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-3_006",
+       "index": 10,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_037",
+       "index": 11,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_011",
+       "index": 12,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_104",
+       "index": 13,
+       "pred_steps": []
+      }
+     ]
+    },
+    {
+     "tag": "AS-3TJXEB7T",
+     "pid": "AS-3TJXEB7T",
+     "seed": 1940456797,
+     "i": 17,
+     "action": [
+      "play",
+      2
+     ],
+     "played": "p_card-01-act-2_032",
+     "is_target": false,
+     "rng_before": 4265502607,
+     "rng_after": 278746689,
+     "consumption": 8,
+     "deck_len_before": 4,
+     "deck_len_after": 8,
+     "hand_before": [
+      "p_card-01-men-3_006",
+      "p_card-00-acc-0_002",
+      "p_card-01-act-2_032"
+     ],
+     "hand_after": [
+      "p_card-01-men-2_043",
+      "p_card-01-men-2_037",
+      "p_card-01-men-2_011",
+      "p_card-01-men-2_104",
+      "p_card-01-act-2_032"
+     ],
+     "grave_len_before": 6,
+     "grave_len_after": 0,
+     "deck_inserted": [
+      {
+       "index": 0,
+       "card": "p_card-01-act-2_001"
+      },
+      {
+       "index": 1,
+       "card": "p_card-01-men-2_040"
+      },
+      {
+       "index": 2,
+       "card": "p_card-01-men-2_038"
+      },
+      {
+       "index": 3,
+       "card": "p_card-01-act-3_010"
+      },
+      {
+       "index": 4,
+       "card": "p_card-01-ido-3_241"
+      },
+      {
+       "index": 5,
+       "card": "p_card-01-men-3_006"
+      },
+      {
+       "index": 6,
+       "card": "p_card-01-act-3_049"
+      },
+      {
+       "index": 7,
+       "card": "p_card-00-acc-0_002"
+      }
+     ],
+     "insert_pred": [
+      {
+       "card": "p_card-01-act-2_001",
+       "index": 0,
+       "pred_steps": [
+        4,
+        5
+       ]
+      },
+      {
+       "card": "p_card-01-men-2_040",
+       "index": 1,
+       "pred_steps": [
+        1
+       ]
+      },
+      {
+       "card": "p_card-01-men-2_038",
+       "index": 2,
+       "pred_steps": [
+        2,
+        6,
+        7
+       ]
+      },
+      {
+       "card": "p_card-01-act-3_010",
+       "index": 3,
+       "pred_steps": [
+        0,
+        3
+       ]
+      },
+      {
+       "card": "p_card-01-ido-3_241",
+       "index": 4,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-3_006",
+       "index": 5,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-3_049",
+       "index": 6,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-00-acc-0_002",
+       "index": 7,
+       "pred_steps": []
+      }
+     ]
+    },
+    {
+     "tag": "AS-3TJXEB7T",
+     "pid": "AS-3TJXEB7T",
+     "seed": 1940456797,
+     "i": 22,
+     "action": [
+      "play",
+      0
+     ],
+     "played": "p_card-01-ido-3_241",
+     "is_target": false,
+     "rng_before": 366012428,
+     "rng_after": 1642222571,
+     "consumption": 17,
+     "deck_len_before": 1,
+     "deck_len_after": 6,
+     "hand_before": [
+      "p_card-01-ido-3_241",
+      "p_card-01-men-3_006",
+      "p_card-01-act-3_049"
+     ],
+     "hand_after": [
+      "p_card-00-acc-0_002",
+      "p_card-01-men-2_043",
+      "p_card-01-men-2_104",
+      "p_card-01-act-3_010",
+      "p_card-01-ido-3_241"
+     ],
+     "grave_len_before": 7,
+     "grave_len_after": 0,
+     "deck_inserted": [
+      {
+       "index": 0,
+       "card": "p_card-01-men-3_006"
+      },
+      {
+       "index": 1,
+       "card": "p_card-01-men-2_011"
+      },
+      {
+       "index": 2,
+       "card": "p_card-01-act-2_001"
+      },
+      {
+       "index": 3,
+       "card": "p_card-01-men-2_037"
+      },
+      {
+       "index": 4,
+       "card": "p_card-01-act-3_049"
+      },
+      {
+       "index": 5,
+       "card": "p_card-01-act-2_032"
+      }
+     ],
+     "insert_pred": [
+      {
+       "card": "p_card-01-men-3_006",
+       "index": 0,
+       "pred_steps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+       ]
+      },
+      {
+       "card": "p_card-01-men-2_011",
+       "index": 1,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-2_001",
+       "index": 2,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_037",
+       "index": 3,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-3_049",
+       "index": 4,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-2_032",
+       "index": 5,
+       "pred_steps": []
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "final": {
+    "tag": "AS-JQXN3NK5",
+    "pid": "AS-JQXN3NK5",
+    "seed": 622427346,
+    "steps": 12,
+    "score": 1458,
+    "target_plays": 1,
+    "target_cons": [
+     136
+    ]
+   },
+   "target_rows": [
+    {
+     "tag": "AS-JQXN3NK5",
+     "pid": "AS-JQXN3NK5",
+     "seed": 622427346,
+     "i": 0,
+     "action": [
+      "play",
+      0
+     ],
+     "played": "p_card-00-sup-3_024",
+     "is_target": true,
+     "rng_before": 1256600488,
+     "rng_after": 3722430993,
+     "consumption": 136,
+     "deck_len_before": 12,
+     "deck_len_after": 12,
+     "hand_before": [
+      "p_card-00-sup-3_024",
+      "p_card-01-men-0_029",
+      "p_card-01-men-2_104"
+     ],
+     "hand_after": [
+      "p_card-01-men-0_029",
+      "p_card-01-men-2_104",
+      "p_card-00-men-3_003"
+     ],
+     "grave_len_before": 0,
+     "grave_len_after": 0,
+     "deck_inserted": []
+    }
+   ],
+   "insert_events": [
+    {
+     "tag": "AS-JQXN3NK5",
+     "pid": "AS-JQXN3NK5",
+     "seed": 622427346,
+     "i": 4,
+     "action": [
+      "play",
+      4
+     ],
+     "played": "p_card-01-act-1_036",
+     "is_target": false,
+     "rng_before": 2530336648,
+     "rng_after": 4185204621,
+     "consumption": 22,
+     "deck_len_before": 0,
+     "deck_len_after": 9,
+     "hand_before": [
+      "p_card-01-act-0_028",
+      "p_card-01-men-2_099",
+      "p_card-01-men-2_043",
+      "p_card-01-men-0_026",
+      "p_card-01-act-1_036"
+     ],
+     "hand_after": [
+      "p_card-01-act-0_028",
+      "p_card-01-ido-3_241",
+      "p_card-00-sup-3_093"
+     ],
+     "grave_len_before": 8,
+     "grave_len_after": 0,
+     "deck_inserted": [
+      {
+       "index": 0,
+       "card": "p_card-01-men-2_043"
+      },
+      {
+       "index": 1,
+       "card": "p_card-01-men-1_034"
+      },
+      {
+       "index": 2,
+       "card": "p_card-01-men-0_026"
+      },
+      {
+       "index": 3,
+       "card": "p_card-01-men-2_040"
+      },
+      {
+       "index": 4,
+       "card": "p_card-00-men-3_003"
+      },
+      {
+       "index": 5,
+       "card": "p_card-01-men-2_099"
+      },
+      {
+       "index": 6,
+       "card": "p_card-01-men-0_026"
+      },
+      {
+       "index": 7,
+       "card": "p_card-01-men-2_104"
+      },
+      {
+       "index": 8,
+       "card": "p_card-01-men-0_025"
+      }
+     ],
+     "insert_pred": [
+      {
+       "card": "p_card-01-men-2_043",
+       "index": 0,
+       "pred_steps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+       ]
+      },
+      {
+       "card": "p_card-01-men-1_034",
+       "index": 1,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-0_026",
+       "index": 2,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_040",
+       "index": 3,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-00-men-3_003",
+       "index": 4,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_099",
+       "index": 5,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-0_026",
+       "index": 6,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_104",
+       "index": 7,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-0_025",
+       "index": 8,
+       "pred_steps": []
+      }
+     ]
+    },
+    {
+     "tag": "AS-JQXN3NK5",
+     "pid": "AS-JQXN3NK5",
+     "seed": 622427346,
+     "i": 8,
+     "action": [
+      "play",
+      0
+     ],
+     "played": "p_card-01-men-0_026",
+     "is_target": false,
+     "rng_before": 346839749,
+     "rng_after": 1092082138,
+     "consumption": 8,
+     "deck_len_before": 1,
+     "deck_len_after": 7,
+     "hand_before": [
+      "p_card-01-men-0_026",
+      "p_card-01-men-2_104",
+      "p_card-01-men-0_025"
+     ],
+     "hand_after": [
+      "p_card-00-acc-0_002",
+      "p_card-00-men-3_003",
+      "p_card-01-men-2_104"
+     ],
+     "grave_len_before": 7,
+     "grave_len_after": 0,
+     "deck_inserted": [
+      {
+       "index": 0,
+       "card": "p_card-01-men-0_025"
+      },
+      {
+       "index": 1,
+       "card": "p_card-01-men-0_026"
+      },
+      {
+       "index": 2,
+       "card": "p_card-01-men-2_040"
+      },
+      {
+       "index": 3,
+       "card": "p_card-00-sup-3_093"
+      },
+      {
+       "index": 4,
+       "card": "p_card-01-act-0_028"
+      },
+      {
+       "index": 5,
+       "card": "p_card-01-men-1_034"
+      },
+      {
+       "index": 6,
+       "card": "p_card-01-ido-3_241"
+      }
+     ],
+     "insert_pred": [
+      {
+       "card": "p_card-01-men-0_025",
+       "index": 0,
+       "pred_steps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+       ]
+      },
+      {
+       "card": "p_card-01-men-0_026",
+       "index": 1,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-2_040",
+       "index": 2,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-00-sup-3_093",
+       "index": 3,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-act-0_028",
+       "index": 4,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-men-1_034",
+       "index": 5,
+       "pred_steps": []
+      },
+      {
+       "card": "p_card-01-ido-3_241",
+       "index": 6,
+       "pred_steps": []
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

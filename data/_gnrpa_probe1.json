@@ -1,0 +1,614 @@
+{
+ "safe_ids": [
+  "pdrink_00-1-001",
+  "pdrink_00-1-004",
+  "pdrink_00-2-003",
+  "pdrink_00-2-008",
+  "pdrink_00-3-001",
+  "pdrink_01-1-002",
+  "pdrink_01-2-005",
+  "pdrink_02-1-006",
+  "pdrink_02-1-008"
+ ],
+ "inventory": {
+  "AS-3G6FFZZT": {
+   "drinks": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-010",
+    "pdrink_00-3-005"
+   ],
+   "safe": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008"
+   ],
+   "kinds": {
+    "pdrink_00-2-008": [
+     "score_buff",
+     "half_cost",
+     "stamina_cost"
+    ],
+    "pdrink_00-2-010": [
+     "score_buff",
+     "draw",
+     "stamina_cost",
+     "turn_start_draw"
+    ],
+    "pdrink_00-3-005": [
+     "unknown"
+    ]
+   }
+  },
+  "AS-3ZT8ZKB6": {
+   "drinks": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-008",
+    "pdrink_00-2-010",
+    "pdrink_00-3-005"
+   ],
+   "safe": [
+    "pdrink_00-2-008"
+   ],
+   "kinds": {
+    "pdrink_02-3-010": [
+     "unknown",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_00-2-008": [
+     "score_buff",
+     "half_cost",
+     "stamina_cost"
+    ],
+    "pdrink_00-2-010": [
+     "score_buff",
+     "draw",
+     "stamina_cost",
+     "turn_start_draw"
+    ],
+    "pdrink_00-3-005": [
+     "unknown"
+    ]
+   }
+  },
+  "AS-5KZSXANK": {
+   "drinks": [
+    "pdrink_00-2-010",
+    "pdrink_02-3-010",
+    "pdrink_00-3-001",
+    "pdrink_00-3-005"
+   ],
+   "safe": [
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_00-2-010": [
+     "score_buff",
+     "draw",
+     "stamina_cost",
+     "turn_start_draw"
+    ],
+    "pdrink_02-3-010": [
+     "unknown",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ],
+    "pdrink_00-3-005": [
+     "unknown"
+    ]
+   }
+  },
+  "AS-5XB2AEHN": {
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-1-004",
+    "pdrink_03-3-011",
+    "pdrink_00-1-001"
+   ],
+   "safe": [
+    "pdrink_00-1-004",
+    "pdrink_00-1-001"
+   ],
+   "kinds": {
+    "pdrink_00-3-005": [
+     "unknown"
+    ],
+    "pdrink_00-1-004": [
+     "vitality"
+    ],
+    "pdrink_03-3-011": [
+     "extra_turn",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_00-1-001": [
+     "score"
+    ]
+   }
+  },
+  "AS-AXME8QK2": {
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_02-3-010",
+    "pdrink_02-3-010",
+    "pdrink_00-3-005"
+   ],
+   "safe": [],
+   "kinds": {
+    "pdrink_00-3-005": [
+     "unknown"
+    ],
+    "pdrink_02-3-010": [
+     "unknown",
+     "stamina_cost",
+     "double_cost"
+    ]
+   }
+  },
+  "AS-B38CARVV": {
+   "drinks": [
+    "pdrink_01-2-005",
+    "pdrink_01-3-012",
+    "pdrink_01-3-002"
+   ],
+   "safe": [
+    "pdrink_01-2-005"
+   ],
+   "kinds": {
+    "pdrink_01-2-005": [
+     "perfect_condition",
+     "vitality"
+    ],
+    "pdrink_01-3-012": [
+     "unknown",
+     "unknown",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_01-3-002": [
+     "turn_end_focus"
+    ]
+   }
+  },
+  "AS-BD5EAA22": {
+   "drinks": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-008",
+    "pdrink_00-3-001",
+    "pdrink_00-2-010"
+   ],
+   "safe": [
+    "pdrink_00-2-008",
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_02-3-010": [
+     "unknown",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_00-2-008": [
+     "score_buff",
+     "half_cost",
+     "stamina_cost"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ],
+    "pdrink_00-2-010": [
+     "score_buff",
+     "draw",
+     "stamina_cost",
+     "turn_start_draw"
+    ]
+   }
+  },
+  "AS-DE36RWPS": {
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_03-3-011",
+    "pdrink_00-2-008",
+    "pdrink_00-3-001"
+   ],
+   "safe": [
+    "pdrink_00-2-008",
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_00-3-005": [
+     "unknown"
+    ],
+    "pdrink_03-3-011": [
+     "extra_turn",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_00-2-008": [
+     "score_buff",
+     "half_cost",
+     "stamina_cost"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ]
+   }
+  },
+  "AS-DEBX8BX7": {
+   "drinks": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-005"
+   ],
+   "safe": [
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ],
+    "pdrink_00-3-005": [
+     "unknown"
+    ]
+   }
+  },
+  "AS-HTNFZWKG": {
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-001",
+    "pdrink_00-2-010",
+    "pdrink_00-3-005"
+   ],
+   "safe": [
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_00-3-005": [
+     "unknown"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ],
+    "pdrink_00-2-010": [
+     "score_buff",
+     "draw",
+     "stamina_cost",
+     "turn_start_draw"
+    ]
+   }
+  },
+  "AS-P8ZJTXNA": {
+   "drinks": [
+    "pdrink_00-2-008",
+    "pdrink_00-3-001",
+    "pdrink_01-3-002"
+   ],
+   "safe": [
+    "pdrink_00-2-008",
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_00-2-008": [
+     "score_buff",
+     "half_cost",
+     "stamina_cost"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ],
+    "pdrink_01-3-002": [
+     "turn_end_focus"
+    ]
+   }
+  },
+  "AS-QV6QCSN9": {
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-2-008",
+    "pdrink_00-3-001",
+    "pdrink_00-3-005"
+   ],
+   "safe": [
+    "pdrink_00-2-008",
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_00-3-005": [
+     "unknown"
+    ],
+    "pdrink_00-2-008": [
+     "score_buff",
+     "half_cost",
+     "stamina_cost"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ]
+   }
+  },
+  "AS-VH8WYE6J": {
+   "drinks": [
+    "pdrink_02-3-010",
+    "pdrink_02-3-006",
+    "pdrink_02-3-007",
+    "pdrink_00-2-010"
+   ],
+   "safe": [],
+   "kinds": {
+    "pdrink_02-3-010": [
+     "unknown",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_02-3-006": [
+     "turn_end_impression"
+    ],
+    "pdrink_02-3-007": [
+     "turn_end_aggressive"
+    ],
+    "pdrink_00-2-010": [
+     "score_buff",
+     "draw",
+     "stamina_cost",
+     "turn_start_draw"
+    ]
+   }
+  },
+  "AS-VWAF2GDN": {
+   "drinks": [
+    "pdrink_01-3-012",
+    "pdrink_00-3-001",
+    "pdrink_01-3-012",
+    "pdrink_00-3-001"
+   ],
+   "safe": [
+    "pdrink_00-3-001",
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_01-3-012": [
+     "unknown",
+     "unknown",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ]
+   }
+  },
+  "AS-WDKWQYW5": {
+   "drinks": [
+    "pdrink_00-3-005",
+    "pdrink_00-3-005",
+    "pdrink_00-3-001"
+   ],
+   "safe": [
+    "pdrink_00-3-001"
+   ],
+   "kinds": {
+    "pdrink_00-3-005": [
+     "unknown"
+    ],
+    "pdrink_00-3-001": [
+     "extra_plays"
+    ]
+   }
+  },
+  "AS-WNK6ARRZ": {
+   "drinks": [
+    "pdrink_03-3-011",
+    "pdrink_00-3-005",
+    "pdrink_00-2-010",
+    "pdrink_03-2-007"
+   ],
+   "safe": [],
+   "kinds": {
+    "pdrink_03-3-011": [
+     "extra_turn",
+     "stamina_cost",
+     "double_cost"
+    ],
+    "pdrink_00-3-005": [
+     "unknown"
+    ],
+    "pdrink_00-2-010": [
+     "score_buff",
+     "draw",
+     "stamina_cost",
+     "turn_start_draw"
+    ],
+    "pdrink_03-2-007": [
+     "search_hold",
+     "preservation"
+    ]
+   }
+  }
+ },
+ "reps": {
+  "AS-3G6FFZZT": {
+   "seed": 1665611653,
+   "drinks_native": [
+    "pdrink_00-2-008",
+    "pdrink_00-2-008",
+    "pdrink_00-2-010",
+    "pdrink_00-3-005"
+   ],
+   "legal_drinks": [
+    [
+     "drink",
+     0
+    ],
+    [
+     "drink",
+     1
+    ],
+    [
+     "drink",
+     2
+    ],
+    [
+     "drink",
+     3
+    ]
+   ],
+   "n_legal": 8,
+   "arms": {
+    "current": {
+     "drinks": [
+      "pdrink_00-2-008",
+      "pdrink_00-2-008",
+      "pdrink_00-2-010",
+      "pdrink_00-3-005"
+     ],
+     "best": 856995,
+     "status": 0,
+     "expansions": 100000,
+     "seconds": 0.12,
+     "n_drink_actions": 4,
+     "drink_actions": [
+      [
+       "drink",
+       3
+      ],
+      [
+       "drink",
+       0
+      ],
+      [
+       "drink",
+       0
+      ],
+      [
+       "drink",
+       0
+      ]
+     ],
+     "path_len": 37
+    },
+    "empty": {
+     "drinks": [],
+     "best": 270729,
+     "status": 0,
+     "expansions": 100000,
+     "seconds": 0.09,
+     "n_drink_actions": 0,
+     "drink_actions": [],
+     "path_len": 25
+    },
+    "safe": {
+     "drinks": [
+      "pdrink_00-2-008",
+      "pdrink_00-2-008"
+     ],
+     "best": 341515,
+     "status": 0,
+     "expansions": 100000,
+     "seconds": 0.1,
+     "n_drink_actions": 2,
+     "drink_actions": [
+      [
+       "drink",
+       0
+      ],
+      [
+       "drink",
+       0
+      ]
+     ],
+     "path_len": 30
+    }
+   }
+  },
+  "AS-3ZT8ZKB6": {
+   "seed": 816113156,
+   "drinks_native": [
+    "pdrink_02-3-010",
+    "pdrink_00-2-008",
+    "pdrink_00-2-010",
+    "pdrink_00-3-005"
+   ],
+   "legal_drinks": [
+    [
+     "drink",
+     0
+    ],
+    [
+     "drink",
+     1
+    ],
+    [
+     "drink",
+     2
+    ],
+    [
+     "drink",
+     3
+    ]
+   ],
+   "n_legal": 7,
+   "arms": {
+    "current": {
+     "drinks": [
+      "pdrink_02-3-010",
+      "pdrink_00-2-008",
+      "pdrink_00-2-010",
+      "pdrink_00-3-005"
+     ],
+     "best": 4262109,
+     "status": 0,
+     "expansions": 100000,
+     "seconds": 0.13,
+     "n_drink_actions": 4,
+     "drink_actions": [
+      [
+       "drink",
+       0
+      ],
+      [
+       "drink",
+       1
+      ],
+      [
+       "drink",
+       0
+      ],
+      [
+       "drink",
+       0
+      ]
+     ],
+     "path_len": 38
+    },
+    "empty": {
+     "drinks": [],
+     "best": 2459736,
+     "status": 0,
+     "expansions": 100000,
+     "seconds": 0.1,
+     "n_drink_actions": 0,
+     "drink_actions": [],
+     "path_len": 33
+    },
+    "safe": {
+     "drinks": [
+      "pdrink_00-2-008"
+     ],
+     "best": 2065450,
+     "status": 0,
+     "expansions": 100000,
+     "seconds": 0.11,
+     "n_drink_actions": 1,
+     "drink_actions": [
+      [
+       "drink",
+       0
+      ]
+     ],
+     "path_len": 32
+    }
+   }
+  }
+ }
+}

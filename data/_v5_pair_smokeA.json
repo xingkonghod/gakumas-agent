@@ -1,0 +1,186 @@
+{
+ "configs": {
+  "v4ref": {
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "starts_hi": 6,
+    "lock_trans": 2000000,
+    "step_trans": 500000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 0.8,
+    "rescan_open": 1,
+    "waves": 1,
+    "pool_threads": 1
+   }
+  },
+  "rs": {
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "starts_hi": 6,
+    "lock_trans": 2000000,
+    "step_trans": 500000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 0.8,
+    "rescan_open": 1,
+    "waves": 0,
+    "pool_threads": 2,
+    "pool_threads_hi": 4,
+    "root_scan": 1
+   }
+  },
+  "rsdeep": {
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "starts_hi": 6,
+    "lock_trans": 2000000,
+    "step_trans": 500000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 0.8,
+    "rescan_open": 1,
+    "waves": 0,
+    "pool_threads": 2,
+    "pool_threads_hi": 4,
+    "root_scan": 1,
+    "deep_trans": 2000000,
+    "deep_waves": 1
+   }
+  }
+ },
+ "pairs": [
+  [
+   "AS-AXME8QK2",
+   1409380188
+  ],
+  [
+   "AS-BZXB28YJ",
+   1875523773
+  ]
+ ],
+ "rows": [
+  {
+   "pid": "AS-AXME8QK2",
+   "cfg": "v4ref",
+   "seed": 1409380188,
+   "score": 9775277,
+   "finished": true,
+   "decisions": 49,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 2.17,
+   "hard_rule": 0,
+   "graph_clean": true,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 3,
+    "search": 6,
+    "route": 24,
+    "forced": 1,
+    "tail": 15
+   },
+   "adopted": 7,
+   "bad_routes": 0,
+   "searches": 108,
+   "transitions": 56818677,
+   "think_s": 113.7,
+   "wall_s": 114.0,
+   "max_ms": 8542,
+   "p95_ms": 8515,
+   "over_steps": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-AXME8QK2",
+   "cfg": "rs",
+   "seed": 1409380188,
+   "score": 2730881,
+   "finished": true,
+   "decisions": 42,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 3,
+   "seed_found": true,
+   "scan_s": 1.79,
+   "hard_rule": 0,
+   "graph_clean": true,
+   "rescan_used": false,
+   "counts": {
+    "worlds": 3,
+    "fallback": 23,
+    "search": 3,
+    "route": 2,
+    "tail": 11
+   },
+   "adopted": 3,
+   "bad_routes": 0,
+   "searches": 0,
+   "transitions": 0,
+   "think_s": 248.1,
+   "wall_s": 248.3,
+   "max_ms": 8524,
+   "p95_ms": 8521,
+   "over_steps": 0,
+   "why": null
+  }
+ ],
+ "summary": {
+  "v4ref": {
+   "n": 1,
+   "mean_score": 9775277,
+   "lock_rate": 1.0,
+   "mean_think_s": 113.7,
+   "mean_wall_s": 114.0,
+   "mean_transitions": 56818677,
+   "mean_searches": 108,
+   "mean_adopted": 7.0,
+   "over_steps": 0,
+   "max_ms": 8542,
+   "bad_routes": 0,
+   "errors": 0
+  },
+  "rs": {
+   "n": 1,
+   "mean_score": 2730881,
+   "lock_rate": 1.0,
+   "mean_think_s": 248.1,
+   "mean_wall_s": 248.3,
+   "mean_transitions": 0,
+   "mean_searches": 0,
+   "mean_adopted": 3.0,
+   "over_steps": 0,
+   "max_ms": 8524,
+   "bad_routes": 0,
+   "errors": 0
+  }
+ },
+ "ab_vs_v4": {
+  "rs": {
+   "n": 1,
+   "mean_delta": -7044396.0,
+   "ci95": [
+    -7044396.0,
+    -7044396.0
+   ],
+   "pos": 0,
+   "neg": 1,
+   "zero": 0,
+   "per_pair": {
+    "AS-AXME8QK2/1409380188": -7044396
+   },
+   "think_ratio": 2.18
+  }
+ }
+}

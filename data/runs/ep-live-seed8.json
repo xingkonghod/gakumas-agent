@@ -1,0 +1,250 @@
+{
+  "episode": "ep-live-seed8",
+  "started_at": "2026-11-26 17:11:40",
+  "weeks": [
+    {
+      "week": 6,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": [
+        387,
+        180,
+        424
+      ],
+      "stamina": 36
+    },
+    {
+      "week": 7,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        387,
+        180,
+        652
+      ],
+      "stamina": 36
+    },
+    {
+      "week": 8,
+      "action": "lesson",
+      "lesson_score": 90,
+      "attrs_after": [
+        387,
+        286,
+        669
+      ],
+      "stamina": 15
+    },
+    {
+      "week": 9,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        655,
+        286,
+        672
+      ],
+      "stamina": 13
+    },
+    {
+      "week": 10,
+      "action": "lesson",
+      "lesson_score": null,
+      "attrs_after": [
+        655,
+        286,
+        769
+      ],
+      "stamina": 7,
+      "note": "lesson_score 未读到（未用属性增量推算）"
+    },
+    {
+      "week": 10,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 4,
+      "note": "attrs_after 未读到"
+    }
+  ],
+  "exams": [
+    {
+      "kind": "final",
+      "rank": 2,
+      "score": 605,
+      "others": [
+        605,
+        564,
+        125
+      ],
+      "note": "只读到 3/6 人分数"
+    },
+    {
+      "kind": "final",
+      "rank": 3,
+      "score": 141,
+      "others": [
+        568,
+        440,
+        272,
+        141
+      ],
+      "note": "只读到 4/6 人分数"
+    },
+    {
+      "kind": "final",
+      "rank": 2,
+      "score": 628,
+      "others": [
+        628,
+        492,
+        401,
+        232,
+        53
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  },
+  "events": [
+    {
+      "seq": 0,
+      "kind": "action",
+      "week": 6,
+      "action": "outing",
+      "attrs_after": [
+        387,
+        180,
+        424
+      ],
+      "stamina": 36
+    },
+    {
+      "seq": 1,
+      "kind": "action",
+      "week": 7,
+      "action": "train",
+      "attrs_after": [
+        387,
+        180,
+        652
+      ],
+      "stamina": 36
+    },
+    {
+      "seq": 2,
+      "kind": "action",
+      "week": 8,
+      "action": "lesson",
+      "attrs_after": null,
+      "stamina": null
+    },
+    {
+      "seq": 3,
+      "kind": "lesson",
+      "score": 90
+    },
+    {
+      "seq": 4,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 5,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 6,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 7,
+      "kind": "backfill",
+      "week": 8,
+      "attrs_after": [
+        387,
+        286,
+        669
+      ],
+      "stamina": 15
+    },
+    {
+      "seq": 8,
+      "kind": "action",
+      "week": 9,
+      "action": "train",
+      "attrs_after": [
+        655,
+        286,
+        672
+      ],
+      "stamina": 13
+    },
+    {
+      "seq": 9,
+      "kind": "action",
+      "week": 10,
+      "action": "lesson",
+      "attrs_after": [
+        655,
+        286,
+        769
+      ],
+      "stamina": 7
+    },
+    {
+      "seq": 10,
+      "kind": "action",
+      "week": 10,
+      "action": "outing",
+      "attrs_after": null,
+      "stamina": 4
+    },
+    {
+      "seq": 11,
+      "kind": "exam",
+      "exam_kind": "final",
+      "rank": 2,
+      "score": 605,
+      "others": [
+        605,
+        564,
+        125
+      ]
+    },
+    {
+      "seq": 12,
+      "kind": "exam",
+      "exam_kind": "final",
+      "rank": 3,
+      "score": 141,
+      "others": [
+        568,
+        440,
+        272,
+        141
+      ]
+    },
+    {
+      "seq": 13,
+      "kind": "exam",
+      "exam_kind": "final",
+      "rank": 2,
+      "score": 628,
+      "others": [
+        628,
+        492,
+        401,
+        232,
+        53
+      ]
+    }
+  ]
+}

@@ -1,5 +1,10 @@
 # 本地 gkbench 对比报告：「初」（hajime）48 题
 
+> **2026-11-19 更新（UINet 接入后）**：`scripts/local_bench.py` 已接入 `uinet`，并把方案从
+> `mechanic` 猜测改为 `scene.plan` 权威值（46/48 题是 PLAN3=logic）；本文件的三组数字是**旧基线**，
+> 不能与本次重跑逐项对齐。新结果（greedy / uinet / expectimax-ensemble，48×3）见
+> `data/bench_local/REPORT_UINET.md`，数据在 `data/bench_local/leaderboard_uinet.json`。
+
 - 生成时间：20261119T120517Z（UTC，机器本地 20:05 +08:00）
 - 裁判：**LessonSim（我们自己的模拟器）**，不是 gkbench 的 GKMS 引擎
 - 题数：48（lesson 33 / mid 8 / final 7）；种子：3 个/题（1000、1001、1002，自选）

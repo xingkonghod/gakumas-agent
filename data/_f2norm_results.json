@@ -1,0 +1,19 @@
+{
+ "rescalebuffs": {
+  "run": "template-hif-gkagent-ei-r13-norm-rescalebuffs-xingkonghod-376ccb367b1c",
+  "n": 239,
+  "mean": 103958.76569037657,
+  "min": 670,
+  "max": 801102,
+  "over_steps": 13,
+  "err_eps": 0,
+  "zero": 0,
+  "decisions": 5638,
+  "stages": {
+   "lesson": [
+    239,
+    103958.76569037657
+   ]
+  }
+ }
+}

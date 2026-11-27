@@ -1,0 +1,558 @@
+{
+ "window": 100000,
+ "narrow": [
+  {
+   "pid": "AS-227HBGHS",
+   "index": 0,
+   "seed": 433172592,
+   "model_match": true,
+   "turns": 10,
+   "npc": 5,
+   "k": 57,
+   "found": true,
+   "hits": 340,
+   "secs": 0.023,
+   "error": null
+  },
+  {
+   "pid": "AS-23D5RE8A",
+   "index": 0,
+   "seed": 369525412,
+   "model_match": true,
+   "turns": 10,
+   "npc": 5,
+   "k": 57,
+   "found": true,
+   "hits": 156,
+   "secs": 0.017,
+   "error": null
+  },
+  {
+   "pid": "AS-2AXJNW8X",
+   "index": 0,
+   "seed": 1171936007,
+   "model_match": true,
+   "turns": 12,
+   "npc": 5,
+   "k": 69,
+   "found": true,
+   "hits": 598,
+   "secs": 0.016,
+   "error": null
+  },
+  {
+   "pid": "AS-2B4ESEP7",
+   "index": 0,
+   "seed": 878152980,
+   "model_match": true,
+   "turns": 12,
+   "npc": 2,
+   "k": 33,
+   "found": true,
+   "hits": 10024,
+   "secs": 0.017,
+   "error": null
+  },
+  {
+   "pid": "AS-2CRAZXA5",
+   "index": 0,
+   "seed": 2078621441,
+   "model_match": true,
+   "turns": 12,
+   "npc": 5,
+   "k": 69,
+   "found": true,
+   "hits": 25,
+   "secs": 0.015,
+   "error": null
+  },
+  {
+   "pid": "AS-2FTNGCRA",
+   "index": 0,
+   "seed": 814909328,
+   "model_match": true,
+   "turns": 10,
+   "npc": 5,
+   "k": 57,
+   "found": true,
+   "hits": 6641,
+   "secs": 0.013,
+   "error": null
+  },
+  {
+   "pid": "AS-2GST7F74",
+   "index": 0,
+   "seed": 397485671,
+   "model_match": true,
+   "turns": 9,
+   "npc": 2,
+   "k": 24,
+   "found": true,
+   "hits": 490,
+   "secs": 0.015,
+   "error": null
+  },
+  {
+   "pid": "AS-2JMM58RD",
+   "index": 0,
+   "seed": 1133676494,
+   "model_match": true,
+   "turns": 12,
+   "npc": 2,
+   "k": 33,
+   "found": true,
+   "hits": 599,
+   "secs": 0.014,
+   "error": null
+  },
+  {
+   "pid": "AS-2JSC8ZZZ",
+   "index": 0,
+   "seed": 489901256,
+   "model_match": true,
+   "turns": 9,
+   "npc": 2,
+   "k": 24,
+   "found": true,
+   "hits": 574,
+   "secs": 0.014,
+   "error": null
+  },
+  {
+   "pid": "AS-2KZXYJ3G",
+   "index": 0,
+   "seed": 495073181,
+   "model_match": true,
+   "turns": 12,
+   "npc": 5,
+   "k": 69,
+   "found": true,
+   "hits": 11785,
+   "secs": 0.018,
+   "error": null
+  },
+  {
+   "pid": "AS-2MVMV8MT",
+   "index": 0,
+   "seed": 1850915205,
+   "model_match": true,
+   "turns": 12,
+   "npc": 5,
+   "k": 69,
+   "found": true,
+   "hits": 33,
+   "secs": 0.014,
+   "error": null
+  },
+  {
+   "pid": "AS-2QWSQEQH",
+   "index": 0,
+   "seed": 241761003,
+   "model_match": true,
+   "turns": 10,
+   "npc": 5,
+   "k": 57,
+   "found": true,
+   "hits": 182,
+   "secs": 0.014,
+   "error": null
+  },
+  {
+   "pid": "AS-2REWJHRC",
+   "index": 0,
+   "seed": 189621906,
+   "model_match": true,
+   "turns": 12,
+   "npc": 5,
+   "k": 69,
+   "found": true,
+   "hits": 722,
+   "secs": 0.016,
+   "error": null
+  },
+  {
+   "pid": "AS-2RNVYBWF",
+   "index": 0,
+   "seed": 1185636655,
+   "model_match": true,
+   "turns": 12,
+   "npc": 5,
+   "k": 69,
+   "found": true,
+   "hits": 27,
+   "secs": 0.013,
+   "error": null
+  },
+  {
+   "pid": "AS-2TV9P3TF",
+   "index": 0,
+   "seed": 706265473,
+   "model_match": true,
+   "turns": 9,
+   "npc": 2,
+   "k": 24,
+   "found": true,
+   "hits": 11023,
+   "secs": 0.016,
+   "error": null
+  },
+  {
+   "pid": "AS-2W4G8JWA",
+   "index": 0,
+   "seed": 985107245,
+   "model_match": true,
+   "turns": 12,
+   "npc": 5,
+   "k": 69,
+   "found": true,
+   "hits": 543,
+   "secs": 0.016,
+   "error": null
+  },
+  {
+   "pid": "AS-2YDHZV2T",
+   "index": 0,
+   "seed": 1240362689,
+   "model_match": true,
+   "turns": 12,
+   "npc": 3,
+   "k": 45,
+   "found": true,
+   "hits": 521,
+   "secs": 0.016,
+   "error": null
+  },
+  {
+   "pid": "AS-323ADZVK",
+   "index": 0,
+   "seed": 2045633667,
+   "model_match": false,
+   "turns": 12,
+   "npc": 2,
+   "k": 33,
+   "found": true,
+   "hits": 672,
+   "secs": 0.014,
+   "error": null
+  },
+  {
+   "pid": "AS-33JYSHDF",
+   "index": 0,
+   "seed": 1187446727,
+   "model_match": true,
+   "turns": 12,
+   "npc": 2,
+   "k": 33,
+   "found": true,
+   "hits": 23,
+   "secs": 0.015,
+   "error": null
+  },
+  {
+   "pid": "AS-33JYSHDF",
+   "index": 1,
+   "seed": 1457829608,
+   "model_match": true,
+   "turns": 12,
+   "npc": 2,
+   "k": 33,
+   "found": true,
+   "hits": 155,
+   "secs": 0.014,
+   "error": null
+  }
+ ],
+ "full": [],
+ "model_mismatch": [
+  {
+   "pid": "AS-323ADZVK",
+   "index": 0,
+   "seed": 2045633667,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-2_080",
+    "p_card-03-men-2_112"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-2_080",
+    "p_card-03-men-0_044"
+   ]
+  },
+  {
+   "pid": "AS-357NNR8Y",
+   "index": 0,
+   "seed": 1635087026,
+   "predicted": [
+    "p_card-01-men-2_104",
+    "p_card-01-men-2_098",
+    "p_card-00-men-2_012"
+   ],
+   "actual": [
+    "p_card-01-men-2_104",
+    "p_card-01-men-2_098",
+    "p_card-01-men-0_026"
+   ]
+  },
+  {
+   "pid": "AS-4T4FSXKG",
+   "index": 0,
+   "seed": 1634069185,
+   "predicted": [
+    "p_card-01-men-2_034",
+    "p_card-03-act-2_102",
+    "p_card-01-act-2_030"
+   ],
+   "actual": [
+    "p_card-01-men-2_034",
+    "p_card-03-act-0_042",
+    "p_card-03-men-0_044"
+   ]
+  },
+  {
+   "pid": "AS-663NKTY4",
+   "index": 0,
+   "seed": 143236048,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-01-act-3_010",
+    "p_card-00-sup-3_152"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-0_044",
+    "p_card-01-act-3_010"
+   ]
+  },
+  {
+   "pid": "AS-8MY3XH4R",
+   "index": 0,
+   "seed": 1054495424,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-00-sup-3_152",
+    "p_card-00-sup-3_024"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-0_044",
+    "p_card-03-men-0_045"
+   ]
+  },
+  {
+   "pid": "AS-CA5H82FC",
+   "index": 0,
+   "seed": 2136667911,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-2_112",
+    "p_card-03-act-1_072"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-0_045",
+    "p_card-03-men-2_112"
+   ]
+  },
+  {
+   "pid": "AS-CVD67TFP",
+   "index": 0,
+   "seed": 1986571619,
+   "predicted": [
+    "p_card-02-men-1_076",
+    "p_card-02-men-3_004",
+    "p_card-02-act-3_050"
+   ],
+   "actual": [
+    "p_card-02-men-1_076",
+    "p_card-02-men-0_034",
+    "p_card-02-men-3_004"
+   ]
+  },
+  {
+   "pid": "AS-DSYYTFYE",
+   "index": 0,
+   "seed": 219867306,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-03-ido-3_209",
+    "p_card-01-act-2_030"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-0_045",
+    "p_card-03-act-0_042"
+   ]
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "index": 0,
+   "seed": 1286311921,
+   "predicted": [
+    "p_card-02-men-2_004",
+    "p_card-02-men-2_057",
+    "p_card-02-act-3_045"
+   ],
+   "actual": [
+    "p_card-02-men-2_004",
+    "p_card-02-men-2_057",
+    "p_card-02-act-3_045",
+    "p_card-02-men-2_056"
+   ]
+  },
+  {
+   "pid": "AS-KT8BWRT4",
+   "index": 0,
+   "seed": 488189400,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-00-sup-3_152",
+    "p_card-00-sup-3_024"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-0_045",
+    "p_card-03-act-0_043"
+   ]
+  },
+  {
+   "pid": "AS-NWX7R6SF",
+   "index": 0,
+   "seed": 378605705,
+   "predicted": [
+    "p_card-01-men-3_006",
+    "p_card-01-ido-3_241",
+    "p_card-01-men-2_037"
+   ],
+   "actual": [
+    "p_card-01-men-3_006",
+    "p_card-01-men-0_029",
+    "p_card-01-ido-3_241"
+   ]
+  },
+  {
+   "pid": "AS-PTJ4N63R",
+   "index": 0,
+   "seed": 1014917116,
+   "predicted": [
+    "p_card-02-men-2_004",
+    "p_card-02-sup-3_094",
+    "p_card-02-men-2_057"
+   ],
+   "actual": [
+    "p_card-02-men-2_004",
+    "p_card-02-sup-3_094",
+    "p_card-02-men-2_057",
+    "p_card-02-men-3_043"
+   ]
+  },
+  {
+   "pid": "AS-QD27AEW4",
+   "index": 0,
+   "seed": 517750626,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-01-act-2_030",
+    "p_card-01-act-3_010"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-0_044",
+    "p_card-03-act-0_042"
+   ]
+  },
+  {
+   "pid": "AS-QV6QCSN9",
+   "index": 0,
+   "seed": 991324286,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-2_112",
+    "p_card-00-sup-3_024"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-2_112",
+    "p_card-03-act-0_043"
+   ]
+  },
+  {
+   "pid": "AS-SAKA4RM8",
+   "index": 0,
+   "seed": 1462037154,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-00-sup-3_024",
+    "p_card-03-men-2_112"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-03-men-0_044",
+    "p_card-00-sup-3_024"
+   ]
+  },
+  {
+   "pid": "AS-SGWGCZWQ",
+   "index": 0,
+   "seed": 541283092,
+   "predicted": [
+    "p_card-03-ido-3_222",
+    "p_card-00-sup-3_024",
+    "p_card-03-men-2_112"
+   ],
+   "actual": [
+    "p_card-03-ido-3_222",
+    "p_card-00-sup-3_024",
+    "p_card-03-act-0_043"
+   ]
+  },
+  {
+   "pid": "AS-X9GNYH3W",
+   "index": 0,
+   "seed": 737000061,
+   "predicted": [
+    "p_card-00-sup-3_152",
+    "p_card-03-act-2_102",
+    "p_card-03-ido-100_042"
+   ],
+   "actual": [
+    "p_card-03-men-0_044",
+    "p_card-03-act-0_043",
+    "p_card-03-act-0_042"
+   ]
+  },
+  {
+   "pid": "AS-YMESH3GA",
+   "index": 0,
+   "seed": 105722893,
+   "predicted": [
+    "p_card-02-men-2_004",
+    "p_card-02-men-2_008",
+    "p_card-02-men-2_111"
+   ],
+   "actual": [
+    "p_card-02-men-2_004",
+    "p_card-02-men-2_008",
+    "p_card-02-men-2_111",
+    "p_card-02-act-1_037"
+   ]
+  }
+ ],
+ "no_obs": [
+  {
+   "pid": "AS-ADDTACFE",
+   "index": 0,
+   "seed": 1207168678
+  },
+  {
+   "pid": "AS-AEJ2XZ6E",
+   "index": 0,
+   "seed": 1004637944
+  },
+  {
+   "pid": "AS-QTK9P823",
+   "index": 0,
+   "seed": 2053739589
+  }
+ ]
+}

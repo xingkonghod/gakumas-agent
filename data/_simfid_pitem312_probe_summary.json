@@ -1,0 +1,2110 @@
+{
+ "seed": 880031,
+ "enchant": "enchant-p_item_effect_01-3-312-0-enc01",
+ "games": [
+  {
+   "tag": "A_gate_high",
+   "rows": [
+    {
+     "tag": "A_gate_high",
+     "kind": "open",
+     "turn": 1,
+     "hand_n": 3,
+     "deck_n": 12,
+     "pb": 0,
+     "pb_until": null,
+     "pb_pass": false,
+     "playable_adds": 0,
+     "perfect": null,
+     "stamina_down_until": null,
+     "hand_limit": 5,
+     "tes": {
+      "phase_count": 0,
+      "spent_total": 0,
+      "limit_count": 5,
+      "limit_count_in_turn": -1,
+      "installed_play_count": 0,
+      "skip_play_count_once": false,
+      "skip_card_played_once": false
+     },
+     "stance": null
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 0,
+     "turn": 1,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 3,
+      "deck_n": 12,
+      "pb": 0,
+      "pb_until": null,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 1,
+      "hand_n": 2,
+      "deck_n": 13,
+      "pb": 3,
+      "pb_until": 3,
+      "pb_pass": false,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 1,
+     "turn": 1,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 2,
+      "deck_n": 13,
+      "pb": 3,
+      "pb_until": 3,
+      "pb_pass": false,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 1,
+      "hand_n": 1,
+      "deck_n": 14,
+      "pb": 6,
+      "pb_until": 6,
+      "pb_pass": false,
+      "playable_adds": 2,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 2,
+     "turn": 1,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 1,
+      "deck_n": 14,
+      "pb": 6,
+      "pb_until": 6,
+      "pb_pass": false,
+      "playable_adds": 2,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 1,
+      "hand_n": 0,
+      "deck_n": 15,
+      "pb": 9,
+      "pb_until": 9,
+      "pb_pass": false,
+      "playable_adds": 3,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 3,
+     "turn": 1,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 0,
+      "deck_n": 15,
+      "pb": 9,
+      "pb_until": 9,
+      "pb_pass": false,
+      "playable_adds": 3,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 2,
+      "hand_n": 3,
+      "deck_n": 12,
+      "pb": 9,
+      "pb_until": 10,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 4,
+     "turn": 2,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      1
+     ],
+     "before": {
+      "turn": 2,
+      "hand_n": 3,
+      "deck_n": 12,
+      "pb": 9,
+      "pb_until": 10,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 2,
+      "hand_n": 2,
+      "deck_n": 13,
+      "pb": 12,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 5,
+     "turn": 2,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 2,
+      "hand_n": 2,
+      "deck_n": 13,
+      "pb": 12,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 10,
+      "pb": 11,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 6,
+     "turn": 3,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 10,
+      "pb": 11,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 4,
+      "hand_n": 3,
+      "deck_n": 7,
+      "pb": 10,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 7,
+     "turn": 4,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 4,
+      "hand_n": 3,
+      "deck_n": 7,
+      "pb": 10,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 5,
+      "hand_n": 3,
+      "deck_n": 4,
+      "pb": 9,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 8,
+     "turn": 5,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 5,
+      "hand_n": 3,
+      "deck_n": 4,
+      "pb": 9,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 6,
+      "hand_n": 3,
+      "deck_n": 1,
+      "pb": 8,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 9,
+     "turn": 6,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 6,
+      "hand_n": 3,
+      "deck_n": 1,
+      "pb": 8,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 7,
+      "hand_n": 3,
+      "deck_n": 16,
+      "pb": 7,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 10,
+     "turn": 7,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 7,
+      "hand_n": 3,
+      "deck_n": 16,
+      "pb": 7,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 8,
+      "hand_n": 3,
+      "deck_n": 13,
+      "pb": 6,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "A_gate_high",
+     "kind": "step",
+     "i": 11,
+     "turn": 8,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 8,
+      "hand_n": 3,
+      "deck_n": 13,
+      "pb": 6,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 8,
+      "hand_n": 0,
+      "deck_n": 13,
+      "pb": 5,
+      "pb_until": 13,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    }
+   ]
+  },
+  {
+   "tag": "B_gate_low",
+   "rows": [
+    {
+     "tag": "B_gate_low",
+     "kind": "open",
+     "turn": 1,
+     "hand_n": 3,
+     "deck_n": 14,
+     "pb": 0,
+     "pb_until": null,
+     "pb_pass": false,
+     "playable_adds": 0,
+     "perfect": null,
+     "stamina_down_until": null,
+     "hand_limit": 5,
+     "tes": {
+      "phase_count": 0,
+      "spent_total": 0,
+      "limit_count": 5,
+      "limit_count_in_turn": -1,
+      "installed_play_count": 0,
+      "skip_play_count_once": false,
+      "skip_card_played_once": false
+     },
+     "stance": null
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 0,
+     "turn": 1,
+     "played": "p_card-01-act-2_042",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 3,
+      "deck_n": 14,
+      "pb": 0,
+      "pb_until": null,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 2,
+      "hand_n": 3,
+      "deck_n": 11,
+      "pb": 1,
+      "pb_until": 2,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 1,
+     "turn": 2,
+     "played": "p_card-01-act-2_042",
+     "action": [
+      "play",
+      1
+     ],
+     "before": {
+      "turn": 2,
+      "hand_n": 3,
+      "deck_n": 11,
+      "pb": 1,
+      "pb_until": 2,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 8,
+      "pb": 1,
+      "pb_until": 3,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 2,
+     "turn": 3,
+     "played": "p_card-01-act-2_042",
+     "action": [
+      "play",
+      1
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 8,
+      "pb": 1,
+      "pb_until": 3,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 4,
+      "hand_n": 3,
+      "deck_n": 5,
+      "pb": 1,
+      "pb_until": 4,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 3,
+     "turn": 4,
+     "played": "p_card-01-act-2_042",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 4,
+      "hand_n": 3,
+      "deck_n": 5,
+      "pb": 1,
+      "pb_until": 4,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 5,
+      "hand_n": 3,
+      "deck_n": 2,
+      "pb": 1,
+      "pb_until": 5,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 4,
+     "turn": 5,
+     "played": "p_card-01-act-2_042",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 5,
+      "hand_n": 3,
+      "deck_n": 2,
+      "pb": 1,
+      "pb_until": 5,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 6,
+      "hand_n": 3,
+      "deck_n": 9,
+      "pb": 1,
+      "pb_until": 6,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 5,
+     "turn": 6,
+     "played": "p_card-01-act-2_042",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 6,
+      "hand_n": 3,
+      "deck_n": 9,
+      "pb": 1,
+      "pb_until": 6,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 7,
+      "hand_n": 3,
+      "deck_n": 6,
+      "pb": 1,
+      "pb_until": 7,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 6,
+     "turn": 7,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 7,
+      "hand_n": 3,
+      "deck_n": 6,
+      "pb": 1,
+      "pb_until": 7,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 8,
+      "hand_n": 3,
+      "deck_n": 3,
+      "pb": 0,
+      "pb_until": null,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "B_gate_low",
+     "kind": "step",
+     "i": 7,
+     "turn": 8,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 8,
+      "hand_n": 3,
+      "deck_n": 3,
+      "pb": 0,
+      "pb_until": null,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 8,
+      "hand_n": 0,
+      "deck_n": 3,
+      "pb": 0,
+      "pb_until": null,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    }
+   ]
+  },
+  {
+   "tag": "C_hand_full",
+   "rows": [
+    {
+     "tag": "C_hand_full",
+     "kind": "open",
+     "turn": 1,
+     "hand_n": 5,
+     "deck_n": 10,
+     "pb": 0,
+     "pb_until": null,
+     "pb_pass": false,
+     "playable_adds": 0,
+     "perfect": null,
+     "stamina_down_until": null,
+     "hand_limit": 5,
+     "tes": {
+      "phase_count": 0,
+      "spent_total": 0,
+      "limit_count": 5,
+      "limit_count_in_turn": -1,
+      "installed_play_count": 0,
+      "skip_play_count_once": false,
+      "skip_card_played_once": false
+     },
+     "stance": null
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 0,
+     "turn": 1,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 5,
+      "deck_n": 10,
+      "pb": 0,
+      "pb_until": null,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 1,
+      "hand_n": 4,
+      "deck_n": 11,
+      "pb": 3,
+      "pb_until": 3,
+      "pb_pass": false,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 1,
+     "turn": 1,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 4,
+      "deck_n": 11,
+      "pb": 3,
+      "pb_until": 3,
+      "pb_pass": false,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 1,
+      "hand_n": 3,
+      "deck_n": 12,
+      "pb": 6,
+      "pb_until": 6,
+      "pb_pass": false,
+      "playable_adds": 2,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 2,
+     "turn": 1,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 3,
+      "deck_n": 12,
+      "pb": 6,
+      "pb_until": 6,
+      "pb_pass": false,
+      "playable_adds": 2,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 1,
+      "hand_n": 2,
+      "deck_n": 13,
+      "pb": 9,
+      "pb_until": 9,
+      "pb_pass": false,
+      "playable_adds": 3,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 3,
+     "turn": 1,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      1
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 2,
+      "deck_n": 13,
+      "pb": 9,
+      "pb_until": 9,
+      "pb_pass": false,
+      "playable_adds": 3,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 0,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 1,
+      "hand_n": 1,
+      "deck_n": 14,
+      "pb": 12,
+      "pb_until": 12,
+      "pb_pass": false,
+      "playable_adds": 4,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 4,
+     "turn": 1,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 1,
+      "hand_n": 1,
+      "deck_n": 14,
+      "pb": 12,
+      "pb_until": 12,
+      "pb_pass": false,
+      "playable_adds": 4,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 2,
+      "hand_n": 5,
+      "deck_n": 9,
+      "pb": 12,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 5,
+     "turn": 2,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 2,
+      "hand_n": 5,
+      "deck_n": 9,
+      "pb": 12,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 5,
+      "deck_n": 4,
+      "pb": 11,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 6,
+     "turn": 3,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 5,
+      "deck_n": 4,
+      "pb": 11,
+      "pb_until": 13,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 1,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 4,
+      "deck_n": 5,
+      "pb": 14,
+      "pb_until": 16,
+      "pb_pass": true,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 2,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 7,
+     "turn": 3,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 4,
+      "deck_n": 5,
+      "pb": 14,
+      "pb_until": 16,
+      "pb_pass": true,
+      "playable_adds": 1,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 2,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 6,
+      "pb": 17,
+      "pb_until": 19,
+      "pb_pass": true,
+      "playable_adds": 2,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 3,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 8,
+     "turn": 3,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      0
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 6,
+      "pb": 17,
+      "pb_until": 19,
+      "pb_pass": true,
+      "playable_adds": 2,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 3,
+       "spent_total": 0,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 4,
+      "deck_n": 5,
+      "pb": 20,
+      "pb_until": 22,
+      "pb_pass": true,
+      "playable_adds": 5,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 4,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 9,
+     "turn": 3,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      1
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 4,
+      "deck_n": 5,
+      "pb": 20,
+      "pb_until": 22,
+      "pb_pass": true,
+      "playable_adds": 5,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 4,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 6,
+      "pb": 23,
+      "pb_until": 25,
+      "pb_pass": true,
+      "playable_adds": 6,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 5,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 10,
+     "turn": 3,
+     "played": "p_card-01-men-2_110",
+     "action": [
+      "play",
+      2
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 3,
+      "deck_n": 6,
+      "pb": 23,
+      "pb_until": 25,
+      "pb_pass": true,
+      "playable_adds": 6,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 5,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 3,
+      "hand_n": 2,
+      "deck_n": 7,
+      "pb": 26,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 7,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 11,
+     "turn": 3,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 3,
+      "hand_n": 2,
+      "deck_n": 7,
+      "pb": 26,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 7,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 4,
+      "hand_n": 5,
+      "deck_n": 2,
+      "pb": 25,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 12,
+     "turn": 4,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 4,
+      "hand_n": 5,
+      "deck_n": 2,
+      "pb": 25,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 5,
+      "hand_n": 5,
+      "deck_n": 19,
+      "pb": 24,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 13,
+     "turn": 5,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 5,
+      "hand_n": 5,
+      "deck_n": 19,
+      "pb": 24,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 6,
+      "hand_n": 5,
+      "deck_n": 14,
+      "pb": 23,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 14,
+     "turn": 6,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 6,
+      "hand_n": 5,
+      "deck_n": 14,
+      "pb": 23,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 7,
+      "hand_n": 5,
+      "deck_n": 9,
+      "pb": 22,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 15,
+     "turn": 7,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 7,
+      "hand_n": 5,
+      "deck_n": 9,
+      "pb": 22,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 8,
+      "hand_n": 5,
+      "deck_n": 4,
+      "pb": 21,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    },
+    {
+     "tag": "C_hand_full",
+     "kind": "step",
+     "i": 16,
+     "turn": 8,
+     "played": null,
+     "action": [
+      "end"
+     ],
+     "before": {
+      "turn": 8,
+      "hand_n": 5,
+      "deck_n": 4,
+      "pb": 21,
+      "pb_until": 28,
+      "pb_pass": true,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     },
+     "after": {
+      "turn": 8,
+      "hand_n": 0,
+      "deck_n": 4,
+      "pb": 20,
+      "pb_until": 28,
+      "pb_pass": false,
+      "playable_adds": 0,
+      "perfect": null,
+      "stamina_down_until": null,
+      "hand_limit": 5,
+      "tes": {
+       "phase_count": 6,
+       "spent_total": 1,
+       "limit_count": 5,
+       "limit_count_in_turn": -1,
+       "installed_play_count": 0,
+       "skip_play_count_once": false,
+       "skip_card_played_once": false
+      },
+      "stance": null
+     }
+    }
+   ]
+  }
+ ]
+}

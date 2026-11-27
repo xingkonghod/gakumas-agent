@@ -1,0 +1,595 @@
+{
+ "configs": {
+  "v2": {
+   "cls": "v2",
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0
+   }
+  },
+  "v3vote": {
+   "cls": "v3",
+   "budget": 10.0,
+   "params": {
+    "procs": 16,
+    "report": 0,
+    "forced_play": 0,
+    "starts": 4,
+    "lock_trans": 2000000,
+    "scan_wait_mode": "done",
+    "vote_sec_cap": 2.0
+   }
+  }
+ },
+ "pids": [
+  "AS-WDKWQYW5",
+  "AS-P8ZJTXNA",
+  "AS-3G6FFZZT"
+ ],
+ "pid_seeds": {
+  "AS-WDKWQYW5": [
+   [
+    988313260,
+    "s0"
+   ],
+   [
+    3601220,
+    "s1"
+   ]
+  ],
+  "AS-P8ZJTXNA": [
+   [
+    1124647124,
+    "s0"
+   ],
+   [
+    1967825308,
+    "s1"
+   ]
+  ],
+  "AS-3G6FFZZT": [
+   [
+    1665611653,
+    "s0"
+   ],
+   [
+    1975039316,
+    "s1"
+   ]
+  ]
+ },
+ "bounds": {
+  "AS-WDKWQYW5/988313260": {
+   "gnrpa_ub_2M": 5468310,
+   "greedy": 155548
+  },
+  "AS-WDKWQYW5/3601220": {
+   "gnrpa_ub_2M": 7962334,
+   "greedy": 517878
+  },
+  "AS-P8ZJTXNA/1124647124": {
+   "gnrpa_ub_2M": 1185605,
+   "greedy": 127106
+  },
+  "AS-P8ZJTXNA/1967825308": {
+   "gnrpa_ub_2M": 891799,
+   "greedy": 358198
+  },
+  "AS-3G6FFZZT/1665611653": {
+   "gnrpa_ub_2M": 874153,
+   "greedy": 41755
+  },
+  "AS-3G6FFZZT/1975039316": {
+   "gnrpa_ub_2M": 1018411,
+   "greedy": 49944
+  }
+ },
+ "rows": [
+  {
+   "pid": "AS-WDKWQYW5",
+   "cfg": "v2",
+   "seed": 988313260,
+   "score": 2717870,
+   "finished": true,
+   "decisions": 34,
+   "err": null,
+   "state": "failed",
+   "lock_turn": null,
+   "seed_found": false,
+   "scan_s": 3.28,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 33,
+    "forced": 1
+   },
+   "target": -1,
+   "adopted": 0,
+   "bad_routes": 0,
+   "searches": 0,
+   "transitions": 0,
+   "tails": 0,
+   "think_s": 107.8,
+   "wall_s": 108.0,
+   "max_ms": 5238,
+   "p95_ms": 3276,
+   "over_steps": 0,
+   "why": "no seed reproduces the screen",
+   "gnrpa_ub_2M": 5468310,
+   "greedy": 155548
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "cfg": "v3vote",
+   "seed": 988313260,
+   "score": 2717870,
+   "finished": true,
+   "decisions": 34,
+   "err": null,
+   "state": "failed",
+   "lock_turn": null,
+   "seed_found": false,
+   "scan_s": 6.59,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 33,
+    "forced": 1
+   },
+   "target": -1,
+   "adopted": 0,
+   "bad_routes": 0,
+   "searches": 0,
+   "transitions": 0,
+   "tails": 0,
+   "think_s": 264.7,
+   "wall_s": 264.9,
+   "max_ms": 8507,
+   "p95_ms": 8109,
+   "over_steps": 0,
+   "why": "no seed reproduces the screen",
+   "gnrpa_ub_2M": 5468310,
+   "greedy": 155548
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "cfg": "v2",
+   "seed": 3601220,
+   "score": 1476122,
+   "finished": true,
+   "decisions": 31,
+   "err": null,
+   "state": "failed",
+   "lock_turn": null,
+   "seed_found": false,
+   "scan_s": 3.29,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 31
+   },
+   "target": -1,
+   "adopted": 0,
+   "bad_routes": 0,
+   "searches": 0,
+   "transitions": 0,
+   "tails": 0,
+   "think_s": 101.0,
+   "wall_s": 101.2,
+   "max_ms": 4895,
+   "p95_ms": 3212,
+   "over_steps": 0,
+   "why": "no seed reproduces the screen",
+   "gnrpa_ub_2M": 7962334,
+   "greedy": 517878
+  },
+  {
+   "pid": "AS-WDKWQYW5",
+   "cfg": "v3vote",
+   "seed": 3601220,
+   "score": 652615,
+   "finished": true,
+   "decisions": 32,
+   "err": null,
+   "state": "failed",
+   "lock_turn": null,
+   "seed_found": false,
+   "scan_s": 6.96,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 32
+   },
+   "target": -1,
+   "adopted": 0,
+   "bad_routes": 0,
+   "searches": 0,
+   "transitions": 0,
+   "tails": 0,
+   "think_s": 256.6,
+   "wall_s": 256.8,
+   "max_ms": 8510,
+   "p95_ms": 8011,
+   "over_steps": 0,
+   "why": "no seed reproduces the screen",
+   "gnrpa_ub_2M": 7962334,
+   "greedy": 517878
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "cfg": "v2",
+   "seed": 1124647124,
+   "score": 1321115,
+   "finished": true,
+   "decisions": 37,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.53,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 5,
+    "search": 3,
+    "route": 21,
+    "tail": 8
+   },
+   "target": 1321115,
+   "adopted": 3,
+   "bad_routes": 0,
+   "searches": 48,
+   "transitions": 25000000,
+   "tails": 1,
+   "think_s": 43.6,
+   "wall_s": 43.7,
+   "max_ms": 3501,
+   "p95_ms": 3204,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 1185605,
+   "greedy": 127106
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "cfg": "v3vote",
+   "seed": 1124647124,
+   "score": 1572295,
+   "finished": true,
+   "decisions": 41,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.58,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 5,
+    "search": 3,
+    "route": 25,
+    "tail": 8
+   },
+   "target": 1572295,
+   "adopted": 5,
+   "bad_routes": 0,
+   "searches": 112,
+   "transitions": 61198402,
+   "tails": 1,
+   "think_s": 100.4,
+   "wall_s": 100.5,
+   "max_ms": 8503,
+   "p95_ms": 8004,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 1185605,
+   "greedy": 127106
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "cfg": "v2",
+   "seed": 1967825308,
+   "score": 755153,
+   "finished": true,
+   "decisions": 34,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.6,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 8,
+    "search": 3,
+    "forced": 1,
+    "route": 12,
+    "tail": 10
+   },
+   "target": 755153,
+   "adopted": 4,
+   "bad_routes": 0,
+   "searches": 30,
+   "transitions": 16000000,
+   "tails": 1,
+   "think_s": 42.3,
+   "wall_s": 42.4,
+   "max_ms": 3326,
+   "p95_ms": 3204,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 891799,
+   "greedy": 358198
+  },
+  {
+   "pid": "AS-P8ZJTXNA",
+   "cfg": "v3vote",
+   "seed": 1967825308,
+   "score": 755153,
+   "finished": true,
+   "decisions": 34,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.63,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 8,
+    "search": 2,
+    "forced": 1,
+    "route": 13,
+    "tail": 10
+   },
+   "target": 755153,
+   "adopted": 5,
+   "bad_routes": 0,
+   "searches": 60,
+   "transitions": 35328568,
+   "tails": 1,
+   "think_s": 101.1,
+   "wall_s": 101.2,
+   "max_ms": 8503,
+   "p95_ms": 8005,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 891799,
+   "greedy": 358198
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "cfg": "v2",
+   "seed": 1665611653,
+   "score": 861668,
+   "finished": true,
+   "decisions": 33,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.61,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 1,
+    "search": 3,
+    "route": 20,
+    "tail": 9
+   },
+   "target": 861668,
+   "adopted": 3,
+   "bad_routes": 0,
+   "searches": 46,
+   "transitions": 24000000,
+   "tails": 1,
+   "think_s": 34.2,
+   "wall_s": 34.3,
+   "max_ms": 4098,
+   "p95_ms": 3206,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 874153,
+   "greedy": 41755
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "cfg": "v3vote",
+   "seed": 1665611653,
+   "score": 1285228,
+   "finished": true,
+   "decisions": 37,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.66,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 1,
+    "search": 6,
+    "route": 22,
+    "tail": 8
+   },
+   "target": 1285228,
+   "adopted": 8,
+   "bad_routes": 0,
+   "searches": 112,
+   "transitions": 60010650,
+   "tails": 1,
+   "think_s": 78.7,
+   "wall_s": 78.9,
+   "max_ms": 8503,
+   "p95_ms": 8005,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 874153,
+   "greedy": 41755
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "cfg": "v2",
+   "seed": 1975039316,
+   "score": 967549,
+   "finished": true,
+   "decisions": 33,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.65,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 3,
+    "search": 3,
+    "route": 13,
+    "tail": 13,
+    "forced": 1
+   },
+   "target": 967549,
+   "adopted": 4,
+   "bad_routes": 0,
+   "searches": 32,
+   "transitions": 17000000,
+   "tails": 1,
+   "think_s": 33.5,
+   "wall_s": 33.6,
+   "max_ms": 4224,
+   "p95_ms": 3205,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 1018411,
+   "greedy": 49944
+  },
+  {
+   "pid": "AS-3G6FFZZT",
+   "cfg": "v3vote",
+   "seed": 1975039316,
+   "score": 1253482,
+   "finished": true,
+   "decisions": 32,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 2,
+   "seed_found": true,
+   "scan_s": 1.58,
+   "hard_rule": 0,
+   "counts": {
+    "worlds": 3,
+    "search": 3,
+    "route": 11,
+    "tail": 15
+   },
+   "target": 1253482,
+   "adopted": 5,
+   "bad_routes": 0,
+   "searches": 48,
+   "transitions": 27600548,
+   "tails": 3,
+   "think_s": 81.5,
+   "wall_s": 81.6,
+   "max_ms": 8514,
+   "p95_ms": 8514,
+   "over_steps": 0,
+   "why": null,
+   "gnrpa_ub_2M": 1018411,
+   "greedy": 49944
+  }
+ ],
+ "summary": {
+  "v2": {
+   "dist": {
+    "min": 755153,
+    "p10": 755153,
+    "p25": 861668,
+    "med": 1321115,
+    "max": 2717870,
+    "mean": 1349912.8
+   },
+   "lock_rate": 0.6666666666666666,
+   "mean_lock_turn": 34.333333333333336,
+   "mean_wall_s": 60.5,
+   "over_steps": 0,
+   "max_ms": 5238,
+   "bad_routes": 0,
+   "errors": 0
+  },
+  "v3vote": {
+   "dist": {
+    "min": 652615,
+    "p10": 652615,
+    "p25": 755153,
+    "med": 1285228,
+    "max": 2717870,
+    "mean": 1372773.8
+   },
+   "lock_rate": 0.6666666666666666,
+   "mean_lock_turn": 34.333333333333336,
+   "mean_wall_s": 147.3,
+   "over_steps": 0,
+   "max_ms": 8514,
+   "bad_routes": 0,
+   "errors": 0
+  }
+ },
+ "ab_vs_v2": {
+  "v3vote": {
+   "overall": {
+    "n": 6,
+    "mean_delta": 22861.0,
+    "ci95": [
+     -341160.1666666667,
+     284153.1666666667
+    ],
+    "pos": 3,
+    "neg": 1,
+    "zero": 2,
+    "collapse_lt50pct_pairmax": {
+     "v2": 0,
+     "v3vote": 1
+    },
+    "per_pair": {
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": -823507,
+     "AS-P8ZJTXNA/1124647124": 251180,
+     "AS-P8ZJTXNA/1967825308": 0,
+     "AS-3G6FFZZT/1665611653": 423560,
+     "AS-3G6FFZZT/1975039316": 285933
+    }
+   },
+   "monster": {
+    "n": 2,
+    "mean_delta": -411753.5,
+    "ci95": [
+     -823507.0,
+     0.0
+    ],
+    "pos": 0,
+    "neg": 1,
+    "zero": 1,
+    "collapse_lt50pct_pairmax": {
+     "v2": 0,
+     "v3vote": 1
+    },
+    "per_pair": {
+     "AS-WDKWQYW5/988313260": 0,
+     "AS-WDKWQYW5/3601220": -823507
+    }
+   },
+   "core": {
+    "n": 4,
+    "mean_delta": 240168.2,
+    "ci95": [
+     71483.25,
+     380465.0
+    ],
+    "pos": 3,
+    "neg": 0,
+    "zero": 1,
+    "collapse_lt50pct_pairmax": {
+     "v2": 0,
+     "v3vote": 0
+    },
+    "per_pair": {
+     "AS-P8ZJTXNA/1124647124": 251180,
+     "AS-P8ZJTXNA/1967825308": 0,
+     "AS-3G6FFZZT/1665611653": 423560,
+     "AS-3G6FFZZT/1975039316": 285933
+    }
+   }
+  }
+ }
+}

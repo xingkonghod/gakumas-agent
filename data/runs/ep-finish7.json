@@ -1,0 +1,26 @@
+{
+  "episode": "ep-finish7",
+  "started_at": "2026-11-21 22:13:39",
+  "weeks": [],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": 3,
+      "score": 914,
+      "others": [
+        914,
+        859,
+        695,
+        612,
+        571
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  }
+}

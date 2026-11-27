@@ -1,0 +1,264 @@
+{
+  "episode": "ep-live-seed10",
+  "started_at": "2026-11-26 17:40:29",
+  "weeks": [
+    {
+      "week": 1,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        145,
+        149,
+        204
+      ],
+      "stamina": 25
+    },
+    {
+      "week": 2,
+      "action": "lesson",
+      "lesson_score": null,
+      "attrs_after": [
+        145,
+        175,
+        221
+      ],
+      "stamina": 25,
+      "note": "lesson_score 未读到（未用属性增量推算）"
+    },
+    {
+      "week": 3,
+      "action": "lesson",
+      "lesson_score": 0,
+      "attrs_after": null,
+      "stamina": 1,
+      "note": "attrs_after 未读到"
+    },
+    {
+      "week": 7,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": [
+        303,
+        215,
+        307
+      ],
+      "stamina": 11
+    },
+    {
+      "week": 8,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": [
+        303,
+        215,
+        307
+      ],
+      "stamina": 18
+    },
+    {
+      "week": 9,
+      "action": "train",
+      "lesson_score": null,
+      "attrs_after": [
+        303,
+        215,
+        495
+      ],
+      "stamina": 25
+    },
+    {
+      "week": 8,
+      "action": "lesson",
+      "lesson_score": null,
+      "attrs_after": [
+        303,
+        215,
+        552
+      ],
+      "stamina": 21,
+      "note": "lesson_score 未读到（未用属性增量推算）"
+    },
+    {
+      "week": 11,
+      "action": "outing",
+      "lesson_score": null,
+      "attrs_after": null,
+      "stamina": 14,
+      "note": "attrs_after 未读到"
+    }
+  ],
+  "exams": [
+    {
+      "kind": "mid",
+      "rank": 1,
+      "score": 900,
+      "others": [
+        900,
+        466,
+        335,
+        188,
+        173
+      ],
+      "note": "只读到 5/6 人分数"
+    },
+    {
+      "kind": "final",
+      "rank": 1,
+      "score": 683,
+      "others": [
+        827,
+        698,
+        683,
+        665,
+        517
+      ],
+      "note": "只读到 5/6 人分数"
+    }
+  ],
+  "final": null,
+  "meta": {
+    "audition_coefficient": 4.11,
+    "training_min_stamina": 12,
+    "lesson_min_stamina": 12
+  },
+  "events": [
+    {
+      "seq": 0,
+      "kind": "action",
+      "week": 1,
+      "action": "train",
+      "attrs_after": [
+        145,
+        149,
+        204
+      ],
+      "stamina": 25
+    },
+    {
+      "seq": 1,
+      "kind": "action",
+      "week": 2,
+      "action": "lesson",
+      "attrs_after": [
+        145,
+        175,
+        221
+      ],
+      "stamina": 25
+    },
+    {
+      "seq": 2,
+      "kind": "action",
+      "week": 3,
+      "action": "lesson",
+      "attrs_after": null,
+      "stamina": null
+    },
+    {
+      "seq": 3,
+      "kind": "lesson",
+      "score": 0
+    },
+    {
+      "seq": 4,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 5,
+      "kind": "lesson",
+      "score": null
+    },
+    {
+      "seq": 6,
+      "kind": "backfill",
+      "week": 3,
+      "attrs_after": null,
+      "stamina": 1
+    },
+    {
+      "seq": 7,
+      "kind": "exam",
+      "exam_kind": "mid",
+      "rank": 1,
+      "score": 900,
+      "others": [
+        900,
+        466,
+        335,
+        188,
+        173
+      ]
+    },
+    {
+      "seq": 8,
+      "kind": "action",
+      "week": 7,
+      "action": "outing",
+      "attrs_after": [
+        303,
+        215,
+        307
+      ],
+      "stamina": 11
+    },
+    {
+      "seq": 9,
+      "kind": "action",
+      "week": 8,
+      "action": "outing",
+      "attrs_after": [
+        303,
+        215,
+        307
+      ],
+      "stamina": 18
+    },
+    {
+      "seq": 10,
+      "kind": "action",
+      "week": 9,
+      "action": "train",
+      "attrs_after": [
+        303,
+        215,
+        495
+      ],
+      "stamina": 25
+    },
+    {
+      "seq": 11,
+      "kind": "action",
+      "week": 8,
+      "action": "lesson",
+      "attrs_after": [
+        303,
+        215,
+        552
+      ],
+      "stamina": 21
+    },
+    {
+      "seq": 12,
+      "kind": "action",
+      "week": 11,
+      "action": "outing",
+      "attrs_after": null,
+      "stamina": 14
+    },
+    {
+      "seq": 13,
+      "kind": "exam",
+      "exam_kind": "final",
+      "rank": 1,
+      "score": 683,
+      "others": [
+        827,
+        698,
+        683,
+        665,
+        517
+      ]
+    }
+  ]
+}

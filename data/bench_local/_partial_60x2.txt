@@ -1,0 +1,177 @@
+﻿.venv\Scripts\python.exe : [uinet] 冷启动 382.6 ms（主数据 + ONNX 会话 + 首次推理）
+At line:1 char:160
++ ... NG='utf-8'; .venv\Scripts\python.exe scripts\local_bench.py --problem ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([uinet] 冷启动 382...ONNX 会话 + 首次推理）:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  AS-C3Y5EFGV seed=1000 greedy: score=34944 steps=35 0.00s
+  AS-C3Y5EFGV seed=1000 uinet: score=28228 steps=35 0.44s
+  AS-C3Y5EFGV seed=1000 expectimax(ensemble): score=33612 steps=34 2.63s
+  AS-C3Y5EFGV seed=1001 greedy: score=15393 steps=32 0.00s
+  AS-C3Y5EFGV seed=1001 uinet: score=14388 steps=33 0.57s
+  AS-C3Y5EFGV seed=1001 expectimax(ensemble): score=19494 steps=32 2.06s
+[AS-C3Y5EFGV] main 完成
+  AS-VCCRY333 seed=1000 greedy: score=54420 steps=46 0.00s
+  AS-VCCRY333 seed=1000 uinet: score=84226 steps=46 0.73s
+  AS-VCCRY333 seed=1000 expectimax(ensemble): score=59004 steps=48 3.37s
+  AS-VCCRY333 seed=1001 greedy: score=32236 steps=47 0.01s
+  AS-VCCRY333 seed=1001 uinet: score=37225 steps=43 0.65s
+  AS-VCCRY333 seed=1001 expectimax(ensemble): score=69525 steps=49 2.72s
+[AS-VCCRY333] main 完成
+  AS-XKTM6X5Y seed=1000 greedy: score=46096 steps=41 0.00s
+  AS-XKTM6X5Y seed=1000 uinet: score=52784 steps=39 0.59s
+  AS-XKTM6X5Y seed=1000 expectimax(ensemble): score=53776 steps=39 4.42s
+  AS-XKTM6X5Y seed=1001 greedy: score=82837 steps=42 0.00s
+  AS-XKTM6X5Y seed=1001 uinet: score=76293 steps=43 0.69s
+  AS-XKTM6X5Y seed=1001 expectimax(ensemble): score=49463 steps=41 3.09s
+[AS-XKTM6X5Y] main 完成
+  AS-RJHVF76J seed=1000 greedy: score=452 steps=50 0.01s
+  AS-RJHVF76J seed=1000 uinet: score=259 steps=57 1.02s
+  AS-RJHVF76J seed=1000 expectimax(ensemble): score=439 steps=44 7.04s
+  AS-RJHVF76J seed=1001 greedy: score=256 steps=39 0.00s
+  AS-RJHVF76J seed=1001 uinet: score=370 steps=57 1.32s
+  AS-RJHVF76J seed=1001 expectimax(ensemble): score=716 steps=49 6.07s
+[AS-RJHVF76J] main 完成
+  AS-C9DKPJY4 seed=1000 greedy: score=569 steps=60 0.01s
+  AS-C9DKPJY4 seed=1000 uinet: score=124 steps=60 1.02s
+  AS-C9DKPJY4 seed=1000 expectimax(ensemble): score=453 steps=60 8.87s
+  AS-C9DKPJY4 seed=1001 greedy: score=227 steps=63 0.00s
+  AS-C9DKPJY4 seed=1001 uinet: score=129 steps=58 1.01s
+  AS-C9DKPJY4 seed=1001 expectimax(ensemble): score=423 steps=61 7.85s
+[AS-C9DKPJY4] main 完成
+  AS-MBQP4ZT7 seed=1000 greedy: score=50890 steps=51 0.00s
+  AS-MBQP4ZT7 seed=1000 uinet: score=14984 steps=48 0.91s
+  AS-MBQP4ZT7 seed=1000 expectimax(ensemble): score=28995 steps=51 5.34s
+  AS-MBQP4ZT7 seed=1001 greedy: score=70825 steps=47 0.00s
+  AS-MBQP4ZT7 seed=1001 uinet: score=37613 steps=45 0.80s
+  AS-MBQP4ZT7 seed=1001 expectimax(ensemble): score=44041 steps=48 4.24s
+[AS-MBQP4ZT7] main 完成
+  AS-EZD5TTEJ seed=1000 greedy: score=34944 steps=35 0.00s
+  AS-EZD5TTEJ seed=1000 uinet: score=28228 steps=35 0.58s
+  AS-EZD5TTEJ seed=1000 expectimax(ensemble): score=33612 steps=34 2.67s
+  AS-EZD5TTEJ seed=1001 greedy: score=15393 steps=32 0.00s
+  AS-EZD5TTEJ seed=1001 uinet: score=14388 steps=33 0.59s
+  AS-EZD5TTEJ seed=1001 expectimax(ensemble): score=19494 steps=32 2.13s
+[AS-EZD5TTEJ] main 完成
+  AS-ZYFN4EN6 seed=1000 greedy: score=40896 steps=35 0.00s
+  AS-ZYFN4EN6 seed=1000 uinet: score=63232 steps=36 0.67s
+  AS-ZYFN4EN6 seed=1000 expectimax(ensemble): score=65321 steps=36 2.81s
+  AS-ZYFN4EN6 seed=1001 greedy: score=24559 steps=35 0.00s
+  AS-ZYFN4EN6 seed=1001 uinet: score=58515 steps=33 0.60s
+  AS-ZYFN4EN6 seed=1001 expectimax(ensemble): score=35812 steps=33 2.38s
+[AS-ZYFN4EN6] main 完成
+  AS-KVF2C7SE seed=1000 greedy: score=128365 steps=49 0.00s
+  AS-KVF2C7SE seed=1000 uinet: score=113245 steps=50 0.80s
+  AS-KVF2C7SE seed=1000 expectimax(ensemble): score=151714 steps=48 4.05s
+  AS-KVF2C7SE seed=1001 greedy: score=89626 steps=46 0.00s
+  AS-KVF2C7SE seed=1001 uinet: score=92024 steps=45 0.83s
+  AS-KVF2C7SE seed=1001 expectimax(ensemble): score=107841 steps=46 4.01s
+[AS-KVF2C7SE] main 完成
+  AS-GMB4YY9S seed=1000 greedy: score=74911 steps=49 0.00s
+  AS-GMB4YY9S seed=1000 uinet: score=75211 steps=51 0.95s
+  AS-GMB4YY9S seed=1000 expectimax(ensemble): score=91335 steps=49 3.31s
+  AS-GMB4YY9S seed=1001 greedy: score=82008 steps=49 0.00s
+  AS-GMB4YY9S seed=1001 uinet: score=106611 steps=48 0.82s
+  AS-GMB4YY9S seed=1001 expectimax(ensemble): score=68207 steps=48 3.60s
+[AS-GMB4YY9S] main 完成
+  AS-9THV4CYT seed=1000 greedy: score=10622 steps=32 0.00s
+  AS-9THV4CYT seed=1000 uinet: score=34829 steps=33 0.60s
+  AS-9THV4CYT seed=1000 expectimax(ensemble): score=41309 steps=33 2.08s
+  AS-9THV4CYT seed=1001 greedy: score=55553 steps=34 0.00s
+  AS-9THV4CYT seed=1001 uinet: score=36030 steps=32 0.55s
+  AS-9THV4CYT seed=1001 expectimax(ensemble): score=25694 steps=34 1.04s
+[AS-9THV4CYT] main 完成
+  AS-6Q22PNH6 seed=1000 greedy: score=43766 steps=46 0.00s
+  AS-6Q22PNH6 seed=1000 uinet: score=56797 steps=49 0.84s
+  AS-6Q22PNH6 seed=1000 expectimax(ensemble): score=131641 steps=55 6.65s
+  AS-6Q22PNH6 seed=1001 greedy: score=163274 steps=49 0.00s
+  AS-6Q22PNH6 seed=1001 uinet: score=189956 steps=54 0.97s
+  AS-6Q22PNH6 seed=1001 expectimax(ensemble): score=144318 steps=53 5.39s
+[AS-6Q22PNH6] main 完成
+  AS-YAW2D6WF seed=1000 greedy: score=134643 steps=55 0.00s
+  AS-YAW2D6WF seed=1000 uinet: score=116273 steps=53 0.83s
+  AS-YAW2D6WF seed=1000 expectimax(ensemble): score=173976 steps=54 4.21s
+  AS-YAW2D6WF seed=1001 greedy: score=157750 steps=52 0.00s
+  AS-YAW2D6WF seed=1001 uinet: score=75632 steps=52 0.84s
+  AS-YAW2D6WF seed=1001 expectimax(ensemble): score=204606 steps=52 4.92s
+[AS-YAW2D6WF] main 完成
+  AS-D2ZX7SMJ seed=1000 greedy: score=52819 steps=40 0.00s
+  AS-D2ZX7SMJ seed=1000 uinet: score=41978 steps=36 0.57s
+  AS-D2ZX7SMJ seed=1000 expectimax(ensemble): score=44577 steps=39 2.70s
+  AS-D2ZX7SMJ seed=1001 greedy: score=26970 steps=36 0.00s
+  AS-D2ZX7SMJ seed=1001 uinet: score=48020 steps=38 0.64s
+  AS-D2ZX7SMJ seed=1001 expectimax(ensemble): score=34535 steps=36 3.18s
+[AS-D2ZX7SMJ] main 完成
+  AS-VCEVKZ9W seed=1000 greedy: score=37338 steps=34 0.00s
+  AS-VCEVKZ9W seed=1000 uinet: score=47313 steps=38 0.65s
+  AS-VCEVKZ9W seed=1000 expectimax(ensemble): score=43803 steps=34 2.52s
+  AS-VCEVKZ9W seed=1001 greedy: score=54617 steps=42 0.00s
+  AS-VCEVKZ9W seed=1001 uinet: score=46395 steps=39 0.73s
+  AS-VCEVKZ9W seed=1001 expectimax(ensemble): score=56963 steps=41 4.24s
+[AS-VCEVKZ9W] main 完成
+  AS-P9Q576V4 seed=1000 greedy: score=97349 steps=51 0.00s
+  AS-P9Q576V4 seed=1000 uinet: score=99161 steps=48 0.84s
+  AS-P9Q576V4 seed=1000 expectimax(ensemble): score=87151 steps=50 3.79s
+  AS-P9Q576V4 seed=1001 greedy: score=90163 steps=54 0.00s
+  AS-P9Q576V4 seed=1001 uinet: score=67333 steps=52 1.00s
+  AS-P9Q576V4 seed=1001 expectimax(ensemble): score=92713 steps=55 5.06s
+[AS-P9Q576V4] main 完成
+  AS-C3S3B9BW seed=1000 greedy: score=56555 steps=44 0.00s
+  AS-C3S3B9BW seed=1000 uinet: score=73232 steps=49 0.87s
+  AS-C3S3B9BW seed=1000 expectimax(ensemble): score=78233 steps=47 3.81s
+  AS-C3S3B9BW seed=1001 greedy: score=53479 steps=51 0.00s
+  AS-C3S3B9BW seed=1001 uinet: score=73580 steps=49 0.84s
+  AS-C3S3B9BW seed=1001 expectimax(ensemble): score=36307 steps=45 4.02s
+[AS-C3S3B9BW] main 完成
+  AS-TGP3GHJK seed=1000 greedy: score=44757 steps=35 0.00s
+  AS-TGP3GHJK seed=1000 uinet: score=62898 steps=38 0.72s
+  AS-TGP3GHJK seed=1000 expectimax(ensemble): score=46573 steps=35 2.85s
+  AS-TGP3GHJK seed=1001 greedy: score=52097 steps=39 0.00s
+  AS-TGP3GHJK seed=1001 uinet: score=61158 steps=38 0.66s
+  AS-TGP3GHJK seed=1001 expectimax(ensemble): score=25770 steps=34 3.74s
+[AS-TGP3GHJK] main 完成
+  AS-4DMVEPNQ seed=1000 greedy: score=110798 steps=46 0.00s
+  AS-4DMVEPNQ seed=1000 uinet: score=60355 steps=46 0.81s
+  AS-4DMVEPNQ seed=1000 expectimax(ensemble): score=75411 steps=45 3.48s
+  AS-4DMVEPNQ seed=1001 greedy: score=82022 steps=49 0.00s
+  AS-4DMVEPNQ seed=1001 uinet: score=84362 steps=46 0.79s
+  AS-4DMVEPNQ seed=1001 expectimax(ensemble): score=79647 steps=51 5.62s
+[AS-4DMVEPNQ] main 完成
+  AS-68M9R8G6 seed=1000 greedy: score=40826 steps=32 0.00s
+  AS-68M9R8G6 seed=1000 uinet: score=34037 steps=32 0.55s
+  AS-68M9R8G6 seed=1000 expectimax(ensemble): score=34712 steps=34 2.29s
+  AS-68M9R8G6 seed=1001 greedy: score=42952 steps=35 0.00s
+  AS-68M9R8G6 seed=1001 uinet: score=54840 steps=34 0.63s
+  AS-68M9R8G6 seed=1001 expectimax(ensemble): score=28137 steps=35 2.05s
+[AS-68M9R8G6] main 完成
+  AS-39K74JRQ seed=1000 greedy: score=113037 steps=49 0.00s
+  AS-39K74JRQ seed=1000 uinet: score=66813 steps=46 0.80s
+  AS-39K74JRQ seed=1000 expectimax(ensemble): score=124646 steps=48 3.20s
+  AS-39K74JRQ seed=1001 greedy: score=120278 steps=47 0.00s
+  AS-39K74JRQ seed=1001 uinet: score=111601 steps=47 0.86s
+  AS-39K74JRQ seed=1001 expectimax(ensemble): score=87260 steps=45 2.65s
+[AS-39K74JRQ] main 完成
+  AS-PWVAS77D seed=1000 greedy: score=164 steps=34 0.00s
+  AS-PWVAS77D seed=1000 uinet: score=43 steps=31 0.42s
+  AS-PWVAS77D seed=1000 expectimax(ensemble): score=132 steps=33 0.20s
+  AS-PWVAS77D seed=1001 greedy: score=119 steps=28 0.00s
+  AS-PWVAS77D seed=1001 uinet: score=124 steps=33 0.47s
+  AS-PWVAS77D seed=1001 expectimax(ensemble): score=153 steps=33 0.10s
+[AS-PWVAS77D] selection 完成
+  AS-2AXJNW8X seed=1000 greedy: score=94 steps=70 0.00s
+  AS-2AXJNW8X seed=1000 uinet: score=47 steps=48 0.88s
+  AS-2AXJNW8X seed=1000 expectimax(ensemble): score=64 steps=58 10.46s
+  AS-2AXJNW8X seed=1001 greedy: score=66 steps=43 0.00s
+  AS-2AXJNW8X seed=1001 uinet: score=54 steps=48 0.82s
+  AS-2AXJNW8X seed=1001 expectimax(ensemble): score=45 steps=40 5.50s
+[AS-2AXJNW8X] selection 完成
+  AS-D964SQTJ seed=1000 greedy: score=95 steps=58 0.01s
+  AS-D964SQTJ seed=1000 uinet: score=66 steps=63 1.05s
+  AS-D964SQTJ seed=1000 expectimax(ensemble): score=158 steps=60 7.37s
+  AS-D964SQTJ seed=1001 greedy: score=75 steps=60 0.00s
+  AS-D964SQTJ seed=1001 uinet: score=27 steps=54 1.06s
+  AS-D964SQTJ seed=1001 expectimax(ensemble): score=110 steps=65 7.52s
+[AS-D964SQTJ] selection 完成
+  AS-HQRRCB56 seed=1000 greedy: score=64 steps=53 0.00s
+  AS-HQRRCB56 seed=1000 uinet: score=86 steps=47 1.00s

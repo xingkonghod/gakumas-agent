@@ -63,3 +63,29 @@ data/agent_result.json
 
 # gkbench public data downloads (scripts/bench_download.py), local analysis only
 data/bench_local/gkbench_dl/
+
+# --- local third-party / toolchain / browser profile / probe outputs (not project source) ---
+data/_f2sl_tools/
+data/chrome-gemini/
+data/GKMSMainWheel/
+data/manual/
+data/arun/
+data/reverse/
+data/unlock/
+data/unlock13/
+data/_auto_gakumas_latest/
+data/_gkmsps_plug_data/
+data/_gkmsps_pool/
+data/_gkmsps_labels/
+data/_gkmsps_labels_ab/
+data/_gkmsps_labels_smoke/
+data/_ocr_dataset/
+data/_produce_pro/
+data/_rinami_live/
+data/_examplan_fix/
+data/_gkmsnet/
+data/bench/ep-full1/
+data/pytest-final-final/
+data/repro_zero/
+data/_v5_snaps/
+data/_v6_gate/

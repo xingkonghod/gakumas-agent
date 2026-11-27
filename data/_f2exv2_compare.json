@@ -1,0 +1,158 @@
+{
+ "core_n": 120,
+ "v2_run": "template-hif-gkagent-ex-seed-v2-xingkonghod-db12324b5d57",
+ "v2_n": 240,
+ "v2_dist": {
+  "n": 240,
+  "min": 3608,
+  "p10": 29996,
+  "p25": 293841,
+  "med": 592558,
+  "max": 14181357,
+  "mean": 1267591.3
+ },
+ "pairs": {
+  "gkagent-ex-seed": {
+   "n_paired": 240,
+   "mean_delta": 300243.1,
+   "ci95": [
+    200647.67916666667,
+    409908.9375
+   ],
+   "win": 171,
+   "loss": 50,
+   "tie": 19,
+   "collapse_v2": 0,
+   "collapse_other": 13,
+   "v2_mean_paired": 1267591.3,
+   "other_mean_paired": 967348.2,
+   "v2_over_steps": 43,
+   "other_over_steps": 172,
+   "worst5": [
+    [
+     -651189,
+     "AS-YSNBNDV4",
+     0
+    ],
+    [
+     -444590,
+     "AS-QQ6J5S39",
+     1
+    ],
+    [
+     -386953,
+     "AS-BZXB28YJ",
+     1
+    ],
+    [
+     -380405,
+     "AS-N47GNCGH",
+     0
+    ],
+    [
+     -330811,
+     "AS-WPCEABPZ",
+     1
+    ]
+   ],
+   "best5": [
+    [
+     5891424,
+     "AS-AXME8QK2",
+     1
+    ],
+    [
+     5731189,
+     "AS-5KZSXANK",
+     0
+    ],
+    [
+     4266428,
+     "AS-3EW6E6HV",
+     1
+    ],
+    [
+     3667432,
+     "AS-XPRY8BRF",
+     0
+    ],
+    [
+     3629113,
+     "AS-3EW6E6HV",
+     0
+    ]
+   ]
+  },
+  "gkagent-seedlock": {
+   "n_paired": 240,
+   "mean_delta": 322741.6,
+   "ci95": [
+    214340.0125,
+    437299.3333333333
+   ],
+   "win": 208,
+   "loss": 31,
+   "tie": 1,
+   "collapse_v2": 0,
+   "collapse_other": 45,
+   "v2_mean_paired": 1267591.3,
+   "other_mean_paired": 944849.6,
+   "v2_over_steps": 43,
+   "other_over_steps": 27,
+   "worst5": [
+    [
+     -3531651,
+     "AS-WDKWQYW5",
+     0
+    ],
+    [
+     -2744192,
+     "AS-WNK6ARRZ",
+     0
+    ],
+    [
+     -1830644,
+     "AS-3ZT8ZKB6",
+     1
+    ],
+    [
+     -1416115,
+     "AS-5KZSXANK",
+     0
+    ],
+    [
+     -307556,
+     "AS-P8ZJTXNA",
+     0
+    ]
+   ],
+   "best5": [
+    [
+     5449424,
+     "AS-3EW6E6HV",
+     1
+    ],
+    [
+     5094290,
+     "AS-F4FPT86S",
+     1
+    ],
+    [
+     3797733,
+     "AS-AXME8QK2",
+     0
+    ],
+    [
+     3757881,
+     "AS-XPRY8BRF",
+     1
+    ],
+    [
+     3607719,
+     "AS-XPRY8BRF",
+     0
+    ]
+   ]
+  }
+ }
+}

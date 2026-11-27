@@ -1,0 +1,165 @@
+{
+ "summary": {
+  "v2": {
+   "n": 8,
+   "dist": {
+    "min": 8061,
+    "p10": 8061,
+    "p25": 328603,
+    "med": 806846,
+    "max": 4469935,
+    "mean": 1322149.0
+   },
+   "lock_rate": 1.0,
+   "lost_after_lock": 0,
+   "failed": 0,
+   "mean_lock_turn": 3.0,
+   "mean_wall_s": 57.6,
+   "over_steps": 0,
+   "max_ms": 8548,
+   "bad_routes": 0,
+   "errors": 0
+  },
+  "v2h": {
+   "n": 8,
+   "dist": {
+    "min": 8061,
+    "p10": 8061,
+    "p25": 328603,
+    "med": 806846,
+    "max": 6205012,
+    "mean": 1719642.8
+   },
+   "lock_rate": 1.0,
+   "lost_after_lock": 0,
+   "failed": 0,
+   "mean_lock_turn": 3.0,
+   "mean_wall_s": 55.5,
+   "over_steps": 0,
+   "max_ms": 7404,
+   "bad_routes": 0,
+   "errors": 0
+  }
+ },
+ "ab": {
+  "v2_vs_v2h": {
+   "overall": {
+    "n": 8,
+    "mean_delta": -397493.8,
+    "ci95": [
+     -1170142.0,
+     0.0
+    ],
+    "pos": 0,
+    "neg": 2,
+    "zero": 6,
+    "collapse_lt50pct_pairmax": {
+     "v2h": 0,
+     "v2": 0
+    },
+    "per_pair": {
+     "AS-2AXJNW8X/1171936007": -89357,
+     "AS-323ADZVK/2045633667": 0,
+     "AS-8MY3XH4R/1054495424": 0,
+     "AS-ADDTACFE/1207168678": -3090593,
+     "AS-227HBGHS/433172592": 0,
+     "AS-23D5RE8A/369525412": 0,
+     "AS-33JYSHDF/1187446727": 0,
+     "AS-93WKA9BK/612702093": 0
+    }
+   },
+   "lesson": {
+    "n": 0,
+    "mean_delta": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "pos": 0,
+    "neg": 0,
+    "zero": 0,
+    "collapse_lt50pct_pairmax": {
+     "v2h": 0,
+     "v2": 0
+    },
+    "per_pair": {}
+   },
+   "audition": {
+    "n": 0,
+    "mean_delta": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "pos": 0,
+    "neg": 0,
+    "zero": 0,
+    "collapse_lt50pct_pairmax": {
+     "v2h": 0,
+     "v2": 0
+    },
+    "per_pair": {}
+   }
+  },
+  "v2h_vs_v2": {
+   "overall": {
+    "n": 8,
+    "mean_delta": 397493.8,
+    "ci95": [
+     0.0,
+     1170142.0
+    ],
+    "pos": 2,
+    "neg": 0,
+    "zero": 6,
+    "collapse_lt50pct_pairmax": {
+     "v2": 0,
+     "v2h": 0
+    },
+    "per_pair": {
+     "AS-2AXJNW8X/1171936007": 89357,
+     "AS-323ADZVK/2045633667": 0,
+     "AS-8MY3XH4R/1054495424": 0,
+     "AS-ADDTACFE/1207168678": 3090593,
+     "AS-227HBGHS/433172592": 0,
+     "AS-23D5RE8A/369525412": 0,
+     "AS-33JYSHDF/1187446727": 0,
+     "AS-93WKA9BK/612702093": 0
+    }
+   },
+   "lesson": {
+    "n": 0,
+    "mean_delta": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "pos": 0,
+    "neg": 0,
+    "zero": 0,
+    "collapse_lt50pct_pairmax": {
+     "v2": 0,
+     "v2h": 0
+    },
+    "per_pair": {}
+   },
+   "audition": {
+    "n": 0,
+    "mean_delta": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "pos": 0,
+    "neg": 0,
+    "zero": 0,
+    "collapse_lt50pct_pairmax": {
+     "v2": 0,
+     "v2h": 0
+    },
+    "per_pair": {}
+   }
+  }
+ },
+ "n_pairs": 8
+}

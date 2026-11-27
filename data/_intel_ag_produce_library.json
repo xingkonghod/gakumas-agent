@@ -1,0 +1,305 @@
+{
+  "p_idol_id": 163,
+  "plan": "logic",
+  "scenario_id": "hif_honsen",
+  "recommended_effect": "goodImpressionTurns",
+  "initial_loadout_captured": true,
+  "p_points": 550,
+  "idol_stats": {
+    "vocal": 2663,
+    "dance": 1134,
+    "visual": 2486
+  },
+  "deck_count": 23,
+  "deck_ids": [
+    920,
+    922,
+    299,
+    23,
+    179,
+    127,
+    129,
+    305,
+    99,
+    175,
+    171,
+    297,
+    711,
+    159,
+    23,
+    173,
+    778,
+    427,
+    137,
+    617,
+    96,
+    180,
+    94
+  ],
+  "cards": [
+    {
+      "card_id": 920,
+      "name": "ありのままのわたし+",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 922,
+      "name": "認めてくれるひと+",
+      "card_type": "active",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 299,
+      "name": "オトメゴコロ+",
+      "card_type": "mental",
+      "rarity": "SR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 23,
+      "name": "眠気",
+      "card_type": "trouble",
+      "rarity": "T",
+      "upgraded": false,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 179,
+      "name": "トキメキ+",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 127,
+      "name": "ファンシーチャーム+",
+      "card_type": "mental",
+      "rarity": "SR",
+      "upgraded": true,
+      "memory_hooks": {
+        "force_initial_hand": true
+      }
+    },
+    {
+      "card_id": 129,
+      "name": "ワクワクが止まらない+",
+      "card_type": "mental",
+      "rarity": "SR",
+      "upgraded": true,
+      "memory_hooks": {
+        "force_initial_hand": true
+      }
+    },
+    {
+      "card_id": 305,
+      "name": "輝くキミへ+",
+      "card_type": "active",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 99,
+      "name": "アイドル宣言+",
+      "card_type": "mental",
+      "rarity": "SR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 175,
+      "name": "ノートの端の決意+",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 171,
+      "name": "私がスター+",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 297,
+      "name": "止められない想い+",
+      "card_type": "mental",
+      "rarity": "SR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 711,
+      "name": "冒険心+",
+      "card_type": "mental",
+      "rarity": "SR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 159,
+      "name": "アイドル魂+",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 23,
+      "name": "眠気",
+      "card_type": "trouble",
+      "rarity": "T",
+      "upgraded": false,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 173,
+      "name": "星屑センセーション+",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 778,
+      "name": "びしっとキメ顔+",
+      "card_type": "active",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 427,
+      "name": "キセキの魔法+",
+      "card_type": "active",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 137,
+      "name": "やる気は満点+",
+      "card_type": "mental",
+      "rarity": "SR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 617,
+      "name": "対象、ロックオン+",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": true,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 96,
+      "name": "みんな大好き",
+      "card_type": "active",
+      "rarity": "SR",
+      "upgraded": false,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 180,
+      "name": "虹色ドリーマー",
+      "card_type": "mental",
+      "rarity": "SSR",
+      "upgraded": false,
+      "memory_hooks": {}
+    },
+    {
+      "card_id": 94,
+      "name": "キラメキ",
+      "card_type": "active",
+      "rarity": "SR",
+      "upgraded": false,
+      "memory_hooks": {}
+    }
+  ],
+  "p_items": [
+    {
+      "item_id": 436,
+      "name": "花ロボ(黄)",
+      "canonical_name": "ポーチ（黄）",
+      "mode": "produce",
+      "source_type": "produce",
+      "rarity": "SSR",
+      "description": "花ロボ(黄) | レッスン終了時、 | 十ランダムな特定のPドリンクを獲得 | 十Pドリンクを選択して獲得 | 十以降の試験開始時、0好印象+3・ | やる気 | +3 | +(プロデュース中2回)"
+    },
+    {
+      "item_id": 509,
+      "name": "星々を統べる輝き+",
+      "canonical_name": "星々を統べる輝き+",
+      "mode": "stage",
+      "source_type": "pIdol",
+      "rarity": "SSR",
+      "description": "星々を統べる輝き+ | 直接効果で、0好印象が4回増加時、 | +,好印象追加発動+1(2ターン) | +ぐ好印象強化+10%(2ターン)"
+    },
+    {
+      "item_id": 447,
+      "name": "H.I.Fワッペン",
+      "canonical_name": "H.I.Fワッペン",
+      "mode": "produce",
+      "source_type": "produce",
+      "rarity": "SSR",
+      "description": "H.I.Fワッペン | スキルカ-ド獲得時、 | ◆スタ-性+10 | ◆(プロデュ-ス中20回)"
+    },
+    {
+      "item_id": 404,
+      "name": "咲季の完全食・改",
+      "canonical_name": "咲季の完全食・改",
+      "mode": "stage",
+      "source_type": "support",
+      "rarity": "SSR",
+      "description": "咲季の完全食・改 | ターン内にスキルカードを2回使用時、 | +ぐ′好印象+2 | +く》好印象強化+25% | 十(レッスン内1回)"
+    },
+    {
+      "item_id": 61,
+      "name": "美鈴からの贈り物",
+      "canonical_name": "美鈴からの贈り物",
+      "mode": "produce",
+      "source_type": "support",
+      "rarity": "SR",
+      "description": "美鈴からの贈り物 | ボーカルSPレッスン終了時、ホーカルが400以上の | 場合、 | 十ランダムなスキルカードを強化"
+    },
+    {
+      "item_id": 510,
+      "name": "過激め?チョイス",
+      "canonical_name": "過激め？チョイス",
+      "mode": "produce",
+      "source_type": "support",
+      "rarity": "SSR",
+      "description": "過激め?チョイス"
+    },
+    {
+      "item_id": 487,
+      "name": "素敵なお仕事",
+      "canonical_name": "素敵なお仕事",
+      "mode": "produce",
+      "source_type": "support",
+      "rarity": "SSR",
+      "description": "素敵なお仕事 | スキルカードチェンジ時、ビジュアルが400以上の | 場合、 | 十ビジュアル上昇+25 | 十体力回復2 | 十(プロデュース中3回)"
+    }
+  ],
+  "card_memory_hooks": {
+    "127": {
+      "force_initial_hand": true
+    },
+    "129": {
+      "force_initial_hand": true
+    }
+  },
+  "log": [
+    "Captured loadout: p_idol=163, plan=logic, rec=goodImpressionTurns, deck=22, p_items=7"
+  ]
+}

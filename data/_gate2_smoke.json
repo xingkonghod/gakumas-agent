@@ -1,0 +1,234 @@
+{
+ "schema": "gkagent.local_bench.v1",
+ "generated_at": "20261126T050113Z",
+ "referee": {
+  "name": "LessonSim",
+  "module": "gkagent.sim.lesson",
+  "official_gkbench_referee": false,
+  "gkbench_referee": "GKMS native（rules 59，不在本机；gkumas-tools 只支持 contest）",
+  "score_comparable_to_gkbench_leaderboard": false
+ },
+ "comparability": "不可比：裁判=我们的 LessonSim（非 gkbench GKMS native rules 59）；题集官方种子不公开（hajime 的 /api/sets/hajime/seeds 401），本跑分用自选种子；卡牌定制/饮料/逐回合属性/审查基准回合未建模（P 道具已按 loadout.produce_item_ids 接入 LessonSim，部分效果类型仍是 no-op）。H.I.F 题集已把 produce/step/plan 放回 UINet 词表，但裁判仍是简化模拟器，分值尺度与真实 GKMS 不同。只能作本地同题同种子的相对排名。",
+ "problems": {
+  "path": "data\\_drinks_gate2_problems.json",
+  "is_hif": true,
+  "source_total": 39,
+  "count": 2,
+  "limit": 2,
+  "sample": null,
+  "sample_seed": null,
+  "kinds": {
+   "main": 2
+  },
+  "stages": {
+   "hif.main1": 1,
+   "hif.main2": 1
+  },
+  "plans": {
+   "logic": 1,
+   "sense": 1
+  },
+  "core": 1,
+  "uinet_produce": {
+   "produce-008": 2
+  },
+  "uinet_step": {
+   "AUDITION_FINAL": 1,
+   "AUDITION_MID1": 1
+  },
+  "skipped_count": 11,
+  "skipped_by_reason": {
+   "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表": 11
+  },
+  "skipped": [
+   {
+    "id": "AS-QTA57JF6",
+    "name": "hist-20260904-produce-008-shro-3-018-r2",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-49TPAMY5",
+    "name": "hist-20260924-produce-008-hrnm-3-012-r2",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-P8ZJTXNA",
+    "name": "hist-20261025-produce-008-ttmr-3-007-r2",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-P9N9PS57",
+    "name": "yz-20261007-amao-3-000-hif-sel1",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-6HSQ9JWD",
+    "name": "yz-20261007-hmsz-3-020-hif-sel2",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-QB72M7FX",
+    "name": "yz-20261008-kcna-3-005-hif-sel1",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-VCYXDMKW",
+    "name": "yz-20261012-ttmr-3-000-hif-main2",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-Z8SVEZ7F",
+    "name": "yz-20261013-amao-3-000-hif-sel1",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-AKXKPVB2",
+    "name": "yz-20261104-amao-3-000-hif-sel2",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-YZESXMWW",
+    "name": "yz-20261107-ssmk-3-012-hif-main1",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   },
+   {
+    "id": "AS-TZSCVNKP",
+    "name": "yz-20261111-kcna-3-005-hif-sel1",
+    "reason": "scene.plan=PLAN1 不在 LessonSim/UINet 方案词表"
+   }
+  ],
+  "ids": [
+   "AS-GN79HT4K",
+   "AS-QW64NVTH"
+  ]
+ },
+ "seeds": [
+  1000
+ ],
+ "seeds_per_problem": 1,
+ "episodes_per_algo": 2,
+ "budget_ms": 300.0,
+ "deck_modeling": {
+  "deck_entries": 45,
+  "unresolved_entries": 0,
+  "customized_entries_ignored": 4,
+  "effects": 130,
+  "modeled_effects": 118,
+  "modeled_effect_rate": 0.9077,
+  "unmodeled_types": {
+   "ExamBlockAddMultipleAggressive": 1,
+   "ExamCardUpgrade": 1,
+   "ExamExtraTurn": 1,
+   "ExamHandGraveCountCardDraw": 1,
+   "ExamLessonDependExamCardPlayAggressive": 1,
+   "ExamSearchPlayCardStaminaConsumptionChange": 1,
+   "ExamStaminaConsumptionAdd": 1,
+   "ExamStaminaConsumptionDown": 2
+  },
+  "drinks_modeled": 0,
+  "p_items_modeled": 6
+ },
+ "drinks": {
+  "mode": "auto",
+  "source": "loadout.drink_ids -> data/knowledge/drinks.json",
+  "problems_with_drinks": 2,
+  "ids": 5,
+  "known_ids": 5,
+  "unknown_ids": [],
+  "slots": 5,
+  "segments": 9,
+  "implemented_segments": 9
+ },
+ "p_items": {
+  "mode": "auto",
+  "source": "loadout.produce_item_ids -> data/knowledge/p_items.json",
+  "problems_with_items": 2,
+  "ids": 10,
+  "known_ids": 10,
+  "unknown_ids": [],
+  "duplicate_ids": [],
+  "specs": 13,
+  "implemented_specs": 6,
+  "condition_unknown_specs": 0,
+  "note": "未知 id = p_items.json（1115 件，覆盖到 2026-11 上游）里都没有的道具，显式列出不作猜测；未实现效果类型仍是 no-op；新增 47 条里条件未解析的 spec 保守不触发（condition_unknown_specs，见 sim/p_items.py）。"
+ },
+ "algorithms": {
+  "expectimax-analytic": {
+   "name": "expectimax-analytic",
+   "label": "expectimax(analytic)",
+   "episodes": 2,
+   "mean": 699.5,
+   "p50": 275.0,
+   "p90": 1124.0,
+   "min": 275,
+   "max": 1124,
+   "turns_mean": 11.5,
+   "finished_rate": 1.0,
+   "decisions": 61,
+   "decisions_per_episode": 30.5,
+   "fallbacks": 33,
+   "fallback_rate": 0.541,
+   "complete_rate": 0.6066,
+   "anytime_rate": 0.3934,
+   "completed": 37,
+   "incomplete": 24,
+   "errors": 0,
+   "recursion_errors": 0,
+   "step_ms_mean": 162.809,
+   "step_ms_p50": 16.534,
+   "step_ms_p90": 324.873,
+   "wall_s": 9.946
+  }
+ },
+ "skipped_algorithms": [],
+ "uinet": null,
+ "episodes": [
+  {
+   "problem": "AS-GN79HT4K",
+   "kind": "main",
+   "seed": 1000,
+   "algo": "expectimax-analytic",
+   "score": 1124,
+   "finished": true,
+   "turns": 13,
+   "decisions": 22,
+   "fallbacks": 12,
+   "incomplete": 4,
+   "errors": 0,
+   "recursion_errors": 0,
+   "step_ms_mean": 70.133,
+   "step_ms_p50": 1.541,
+   "step_ms_p90": 304.695,
+   "wall_s": 1.547,
+   "route": "p2 p0 p0 e p2 p2 p1 p0 p1 p0 p1 p0 p0 p0 p0 p0 p1 p1 p1 p2 p1 p0"
+  },
+  {
+   "problem": "AS-QW64NVTH",
+   "kind": "main",
+   "seed": 1000,
+   "algo": "expectimax-analytic",
+   "score": 275,
+   "finished": true,
+   "turns": 10,
+   "decisions": 39,
+   "fallbacks": 21,
+   "incomplete": 20,
+   "errors": 0,
+   "recursion_errors": 0,
+   "step_ms_mean": 215.088,
+   "step_ms_p50": 301.365,
+   "step_ms_p90": 457.562,
+   "wall_s": 8.399,
+   "route": "p1 p4 p3 p3 p1 p1 p1 p2 p0 p1 d0 d1 p2 d2 p1 p0 p0 p2 p1 p0 p1 p2 p1 p0 p2 p1 p1 p1 p0 p3 p1 p1 p3 p0 p1 p1 p2 p0 p0"
+  }
+ ],
+ "per_problem": {
+  "AS-GN79HT4K": {
+   "expectimax-analytic": 1124.0
+  },
+  "AS-QW64NVTH": {
+   "expectimax-analytic": 275.0
+  }
+ },
+ "output": "data\\_gate2_smoke.json"
+}

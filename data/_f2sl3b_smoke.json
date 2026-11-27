@@ -1,0 +1,112 @@
+{
+ "configs": {
+  "base": {},
+  "fp0": {
+   "forced_play": 0
+  }
+ },
+ "pids": [
+  "AS-227HBGHS"
+ ],
+ "rows": [
+  {
+   "pid": "AS-227HBGHS",
+   "cfg": "base",
+   "params": {},
+   "seed": 433172592,
+   "score": 4219,
+   "finished": true,
+   "decisions": 17,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 4,
+   "seed_found": true,
+   "scan_s": 3.55,
+   "rescans": 0,
+   "hard_rule": 0,
+   "counts": {
+    "base": 3,
+    "pool": 14
+   },
+   "target": 4219,
+   "adopted": 2,
+   "bad_routes": 0,
+   "think_s": 9.8,
+   "wall_s": 9.9,
+   "max_ms": 3540,
+   "p95_ms": 3540,
+   "over5": 0,
+   "over6": 0,
+   "why": null
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "cfg": "fp0",
+   "params": {
+    "forced_play": 0
+   },
+   "seed": 433172592,
+   "score": 4451,
+   "finished": true,
+   "decisions": 17,
+   "err": null,
+   "state": "locked",
+   "lock_turn": 5,
+   "seed_found": true,
+   "scan_s": 5.87,
+   "rescans": 0,
+   "hard_rule": 0,
+   "counts": {
+    "base": 4,
+    "pool": 13
+   },
+   "target": 4451,
+   "adopted": 2,
+   "bad_routes": 0,
+   "think_s": 12.5,
+   "wall_s": 12.6,
+   "max_ms": 3510,
+   "p95_ms": 3510,
+   "over5": 0,
+   "over6": 0,
+   "why": null
+  }
+ ],
+ "summary": {
+  "base": {
+   "mean_score": 4219.0,
+   "lock_rate": 1.0,
+   "mean_lock_turn": 4.0,
+   "mean_wall_s": 9.9,
+   "over5": 0,
+   "over6": 0,
+   "max_ms": 3540,
+   "errors": 0
+  },
+  "fp0": {
+   "mean_score": 4451.0,
+   "lock_rate": 1.0,
+   "mean_lock_turn": 5.0,
+   "mean_wall_s": 12.6,
+   "over5": 0,
+   "over6": 0,
+   "max_ms": 3510,
+   "errors": 0
+  }
+ },
+ "ab_vs_base": {
+  "fp0": {
+   "mean_delta": 232.0,
+   "ci95": [
+    232.0,
+    232.0
+   ],
+   "pos": 1,
+   "neg": 0,
+   "zero": 0,
+   "per_pid": {
+    "AS-227HBGHS": 232
+   }
+  }
+ }
+}

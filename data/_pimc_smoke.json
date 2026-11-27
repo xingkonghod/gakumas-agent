@@ -1,0 +1,137 @@
+{
+ "configs": {
+  "orig": {
+   "cls": "orig",
+   "params": {
+    "worlds": 6,
+    "mode": "eval",
+    "threads": 4,
+    "margin": 0.25,
+    "min_sec": 0.03,
+    "use_prior": 0,
+    "use": 0.85
+   }
+  },
+  "u70": {
+   "cls": "fast",
+   "params": {
+    "worlds": 6,
+    "mode": "eval",
+    "threads": 4,
+    "margin": 0.25,
+    "min_sec": 0.03,
+    "use_prior": 0,
+    "use": 0.7,
+    "anytime": 1
+   }
+  }
+ },
+ "pids": [
+  "AS-227HBGHS",
+  "AS-K46XXQEY"
+ ],
+ "rtt_mean": 0.45,
+ "pairs": [
+  [
+   "AS-227HBGHS",
+   433172592
+  ],
+  [
+   "AS-K46XXQEY",
+   1286311921
+  ]
+ ],
+ "rows": [
+  {
+   "pid": "AS-227HBGHS",
+   "seed": 433172592,
+   "cfg": "orig",
+   "score": 7508,
+   "finished": true,
+   "decisions": 19,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 5139,
+   "step_ms_max": 5919,
+   "step_ms_p95": 5919,
+   "decide_ms_mean": 3789
+  },
+  {
+   "pid": "AS-227HBGHS",
+   "seed": 433172592,
+   "cfg": "u70",
+   "score": 3257,
+   "finished": true,
+   "decisions": 19,
+   "err": null,
+   "over_steps": 0,
+   "step_ms_mean": 4367,
+   "step_ms_max": 5184,
+   "step_ms_p95": 5184,
+   "decide_ms_mean": 3017
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "seed": 1286311921,
+   "cfg": "orig",
+   "score": 19873,
+   "finished": false,
+   "decisions": 20,
+   "err": null,
+   "over_steps": 2,
+   "step_ms_mean": 5440,
+   "step_ms_max": 6925,
+   "step_ms_p95": 6925,
+   "decide_ms_mean": 4090
+  },
+  {
+   "pid": "AS-K46XXQEY",
+   "seed": 1286311921,
+   "cfg": "u70",
+   "score": 76068,
+   "finished": false,
+   "decisions": 20,
+   "err": null,
+   "over_steps": 1,
+   "step_ms_mean": 4703,
+   "step_ms_max": 6204,
+   "step_ms_p95": 6204,
+   "decide_ms_mean": 3353
+  }
+ ],
+ "summary": {
+  "orig": {
+   "mean_score": 13690,
+   "over_steps": 2,
+   "step_ms_mean": 5290,
+   "step_ms_max": 6925,
+   "errors": 1
+  },
+  "u70": {
+   "mean_score": 39662,
+   "over_steps": 1,
+   "step_ms_mean": 4535,
+   "step_ms_max": 6204,
+   "errors": 1
+  }
+ },
+ "ab_vs_orig": {
+  "u70": {
+   "n": 2,
+   "mean_delta": 25972.0,
+   "ci95": [
+    -4251.0,
+    56195.0
+   ],
+   "pos": 1,
+   "neg": 1,
+   "zero": 0,
+   "over_delta_total": -1,
+   "gate_pass": false,
+   "per_pair": {
+    "AS-227HBGHS/433172592": -4251,
+    "AS-K46XXQEY/1286311921": 56195
+   }
+  }
+ }
+}
