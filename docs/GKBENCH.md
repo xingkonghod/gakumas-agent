@@ -987,3 +987,81 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   **状态价值/策略引导**（B11 学习叶子在 large 场景仍负，但 policy/advantage 路线在 large 显著超 beam，可做「导航」而非叶子）；
   ③ `lock≥4` 的 11 槽（均分 588k）与 8 个无 oracle 的 produce-008 低分槽（400–870k）是独立可攻点；
   ④ 精确尾 horizon（tail_turns=3）需先证明 3 回合能在 8s 内 complete（当前 2 回合在深局已 deadline）。
+
+## 22. 2026-11-27 深夜 v6「先修引擎/搜索再全算力」阶段：每步墙钟构成 + 预算内自适应波次（准入控制）（bench_repo cd35efa）
+
+- **用户指令（OPENING_v6 §3）**：先测量（①）→ 波次准入控制（②）→ 并行/线程配比（③）→ prior 引导（④）→
+  tail 3 回合（⑤）→ 独立可攻点（⑥）；**①–③ 修完先跑 20–30 槽小样门，过门再一次性单 eval 全量 240**；
+  纪律不变（DLL 不重编 / AGPL 只引用 / 探针不提交 / pathspec 提交 / 托管只补缺题 / 跑托管时不开本地重探针）。
+- **① 每步墙钟构成（`data/_v6_stepscan.py` 拉 v5 240 局 8,000 步 → `_v6_analyze.py`）**：
+  - 按步模式（ms）：`route` 4,770 步 mean 2,147 / `search` 664 步 mean 4,197（这两类=锁定后 pool 搜索）/
+    `worlds` 1,043 步 mean 4,287 / `tail` 1,422 步 mean **94**（绝大多数锁定后早 proven）/ `fallback` 3 步
+    mean 14,628 / `forced` 51 步 mean 637；**总 think 17,890s**（240 局）。
+  - **锁定后每步只用了 2.4s / 7s**（`search_use`×budget）：6,898 个锁定步在 7s 内合计空转 **35,359s = 2.9×**
+    —— 这是 v5 的「可换墙钟」，也是 ② 的动机（不是加预算，是把空转换成不会被截断的起点）。
+  - `scan_s` mean 2s（p90 4 / max 8）；lock_turn：1–2 有 145 槽、3 有 78 槽、≥4 有 14 槽、失锁 3 槽。
+  - **over（>12.05s）13 步（我们「每槽最新」口径；官方 v5 行 n=230 over=8）全部来自锁定前候选管线**：
+    `worlds` 7 + `fallback` 2 + `search` 3 + `route` 1；机制=P8ZJTXNA 扫描出 **12,171 候选**时每步在
+    FastCut/mirror 管线里烧 10.5–27s（`lock_pipe=1.05`×budget 的 deadline），叠加 `scan_wait_cap=0.95`（9.5s）
+    + vote + RTT。**锁定后的 pool 搜索没有 status≠0**（0 次）——即 v5 的 over 不是 pool 波次造成的。
+  - **v5b（waves=3）over=57 的机制复核**（`data/_v6_v5bsteps.json`）：每步 18 起点；`route` 步 mean
+    4,260ms（v5 2,147）、`search` 步 mean 6,189（v5 4,197）、p95 8.5s、max 23.4s。**`pool_status` 依旧全 0**——
+    注意 `core_search` 的 status 0 = 「内部无失败」，**撞 deadline 也是 0**（`R->status = s->failed==0?0:...`），
+    所以「status≠0 才算截断」是错的；真实证据=单步 18 起点 × 4s deadline ÷ 4 线程 ≈ 18–23s 且 `elapsed` 撞满
+    cap → 最后一波起点在 deadline 计时开始后才开跑、整步 overshoot。结论：**加起点必须同时做准入控制**。
+- **② v6 机制（`submissions/gkagent-ex-seed-v6`，bench_repo cd35efa；v5 逐位复现路径保留）**：
+  - **预算内自适应波次**：去掉「几波」概念，改流水线式发起点——每发一个先过**准入控制**：
+    `剩余 ≥ 预期×admit_mult(1.25) + admit_pad(0.10)`；单次 `deadline = min(search_deadline_cap(4.0), 预期×dl_mult(1.5))`；
+    **预期** = 该 transitions 预算下最近 6 次**完整**搜索的 `prep+elapsed`（中位/最新取大；撞 deadline 的样本 ×1.25
+    上调 → 慢状态自动变保守）；预算尾巴用 **anytime 短搜**（deadline=剩余−0.15，绝不越界）；每步起点上限
+    `max_starts=24`（v5=12）。RoutePool 只采纳更高终局分 ⇒ 仍单调安全。
+  - **小样门（15 题 × 2 保密种子 = 30 槽，parallel 6；eval 51d7bda2d64c）**：**over 0（v5 同槽 5）**；
+    每步 p50 3,964ms（v5 1,956）/ p95 6,123（5,964）/ **max 11,110（17,385）**；每步起点 **23.5（v5 10.8）**、
+    完整搜索 19,656 / anytime 145；总 think 4,802s vs 3,330s（+44%）。
+  - **小样门分数**：v5 均分 5,444,110 / v6 **5,281,200** → meanΔ −162,909，CI95 [−785k,+374k]
+    （**统计不显著**）；逐槽 **17 胜 / 11 负 / 2 平**、**中位 Δ +165,536**、**oracle 比例 0.9185 → 0.9278**。
+    负均值主要来自 3 个 **v5 幸运槽**（YGF972ZK/1 v5 14.56M vs oracle 7.96M = **+83%**、BZXB28YJ/0 +78%、
+    AXME8QK2/0 +32%；v6 在这三槽仍 **≥ oracle**：8.55M / 5.14M / 6.97M）→ 判为「赢家诅咒 + 30 槽方差太大
+    （逐槽 sd 1.66M）」，不据此判 v6 为负；1–2% 量级增益 30 槽测不出来（SE≈300k）。
+  - **全量 240（单 eval 661dffa3b25f + 两次 resume，parallel 6，总墙钟 ≈86min）**：
+    **240/240 = 1,461,263**（vs v5 1,447,036 → **+14,226 / +0.98%**；**新 PB**，同时超过 best-known
+    1,452,088 与 v5 官方行 1,458,385）。逐槽 **105 胜 / 103 负 / 32 平**（meanΔ CI95 [−72,379,+108,085]，
+    **仍不显著**）；**oracle 比例 0.9535 → 0.9698（+1.63pt）**；分层 **MID +58,861/槽（+6.36M）/
+    FINAL −22,292/槽（−2.94M，在 132 槽 SE≈61k 内=噪声）**。官方单行 n=240：over 36 / errors 0 /
+    p50 3,846ms / p95 7,002 / max 76,341 / ep_think 124s。每步起点 **23.3（p10=24，几乎每步顶到
+    max_starts=24；v5 10.8）**，完整 124,264 / anytime 1,390；总 think **29,755s（v5 17,890s，+66%）**。
+  - **over 8→36 的分解（诚实记录，「不增 over」这一条没做到）**：`worlds` 14 / `route` 11 / `search` 9 /
+    `fallback` 2；其中 **4 步 >40s（最大 76.3s）** 出现在一次 DNS/断链事故期间（同一局 `worlds` 步
+    12.6→39.3→76.3s；eval 因此 10 连错停机一次）→ 网络停摆伪影；其余 12–21s 的是深局 `route/search` 步
+    （24 起点、`pool_status` 全 0、`pool_expect_ms` 只有 810–1,423ms）→ **说明 expect 模型只覆盖 C 搜索时长，
+    没覆盖 `session.clone()`/状态拷贝/线程排队**；v7 修这个才能把深局步压回 ≤8s。
+  - **⚠️ 单槽不可比的硬证据（v6 同算法同槽复跑：门 vs 全量同 30 槽）**：meanΔ −67,523、sd **1,767,371**、
+    **max|Δ| = 6,143,529**（AS-YGF972ZK/0 门 6.90M → 全量 13.05M；3EW6E6HV/1 14.19M → 10.84M）。
+    ⇒ 小样门 30 槽的 Δ 本身就有 ±65k 量级噪声，「v6 门 −162,909」不能当否证；**只看 240 槽聚合 +
+    oracle 比例 + over 三项**。
+  - **结论**：v6 的调度修复按预期把「每步空转 2.4s/7s」换成了 23 个不被截断的起点（MID 明显受益 +58,861/槽），
+    但 (a) 分数增益 +0.98% 仍在噪声内，(b) FINAL 没吃到（68% 的分数在 FINAL），(c) over 反而涨到 36。
+    下一步优先级：**① 把 clone/prep 计入准入（修 12–21s 深局步）→ 同等墙钟更多有效搜索**；
+    **② FINAL 专项**（132 槽 1.78M 均分）；**③ tail_turns=3**；**④ lock≥4 的 pre-lock 决策质量**。
+- **③ 并行/线程配比（`data/_v6_threads.py`：真实锁定后深局快照，1–24 并发各搜 500k transitions）**：
+  - native `policy_search` 每线程一份 core 副本 → 1/2/4/8/12/16/20/24 并发下单次耗时 0.45–0.72s（**24 并发只 +22–25%**），
+    聚合吞吐近线性：**2.1M → 37M transitions/s**。16 个 CPU burner（模拟 scan procs=16）并发时单次 +7–31%（轻微饥饿）。
+  - 结论：**parallel_games × threads_per_game ≈ 20–24**（本轮 6×4=24；v5 是 5×(4/2)）；scan procs=16 不必下调；
+    真正的开销不在 native 吞吐，而在 server RTT 与 Python 侧调度。
+- **④ prior 引导（结论：现有 native 接口表达不了 B11 网）**：native prior 是**静态**权重表
+  （`engine.prior().weights` → `native_search.prior_table`：per-(phase, master card row) + drinks/end，按当前 session
+  的牌组现算、但**与状态/动作无关**）；B11 policy/advantage 是**状态-动作相关**输出。要挂上去必须
+  (a) 改引擎加 hook（**DLL 不重编红线**）或 (b) 每次搜索绑一个「当前 session 的动态 prior 对象」+ 把 native session
+  桥回训练特征（工程量≥一个任务）→ **本轮不做，如实记录**。历史 prior（规则版）全负的结论不变。
+- **⑤ tail_turns 2→3（可行性：通过，代价≈0）**：`data/_v6_tail_prod.py` 用**生产路径**（v6 algo、tail_turns=3）
+  打决赛 dev seed：**turns_left=3 时 tail 14–21ms 就 complete**（AS-WDKWQYW5 21ms / AS-5KZSXANK 14ms，
+  nodes ~800–1,300），随后 `pool.proven=True` 不再搜；整局 think 123.5s/101.2s（与 tail_turns=2 同量级）。
+  ⇒ **+1 回合精确尾近乎免费，v7 直接采纳 tail_turns=3**（甚至可试 4；深局/大牌堆树更大的题还没覆盖，
+  生产数据 tail 步 p99 0.7–0.9s）。注：第一版临时探针（直接 `TN.tail_exact`、没走生产 `_tail()` 的
+  `_calibrate_tail` 时钟纪元校准）出现过 wall=0.01s + status=deadline 的伪影，结论以上面生产路径为准。
+- **⑥ 独立可攻点（`data/_v6_diag6.py`）**：
+  - **lock≥4 的 11 槽**：锁定前全部走 `ctx.worlds` 随机世界 PIMC（worlds 步 7–16），方差极大（QV6QCSN9/1 v4 0.52M →
+    v5 1.20M；X9GNYH3W/1 v5 只有 0.18M；P8ZJTXNA 12k 候选）。⇒ **下一杠杆是晚锁题的 pre-lock 决策质量**
+    （后验镜像投票 / 更多世界 / 更早锁定），不是锁定后的起点数。
+  - **8 个无 oracle 的 produce-008 低分槽**：think 只有 38–75s、早锁、tail 很早 proven，**3 槽 v5 与 v4 逐位同分**
+    （580,317 / 713,938 / 867,619）→ 已接近该题最优，**不值得再投**。上一行「独立可攻点」里这一半可以划掉。

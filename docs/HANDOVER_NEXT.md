@@ -1573,6 +1573,55 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
 下一把顺序 ①每步墙钟构成测量 ②波次准入控制（修 v5b 截断白烧）③并行/线程配比 ④prior 引导起点
 ⑤tail horizon 3 ⑥lock≥4 与 produce-008 低分槽；先 20–30 槽小样、过门再全量 240。
 
+**最近交接记录（2026-11-28 凌晨，v6「先修引擎/搜索再全算力」阶段：v5 逐步墙钟构成 + 预算内自适应波次；全量 240 = 1,461,263 新 PB）**：
+- **用户指令** = OPENING_v6 §3：① 每步墙钟构成测量 → ② 波次准入控制（修 v5b 截断白烧）→ ③ 并行/线程配比 →
+  ④ prior 引导 → ⑤ tail_turns=3 → ⑥ 独立可攻点；**①–③ 修完先跑 20–30 槽小样门，过门再一次性单 eval 全量 240**
+  （不带 `--only`、parallel 5–6）；不要用全量跑去试参数。
+- **① 测量**（`data/_v6_stepscan.py` 拉 v5 240 局 8,000 步 → `_v6_analyze.py`）：**锁定后每步只用 2.4s / 7s**
+  （6,898 个锁定步空转 **35,359s = 2.9×**）；v5 的 over(13 步) **全部来自锁定前候选管线**（P8ZJTXNA 扫描出
+  12,171 候选时单步 10.5–27s、scan_wait 9.5s+vote+RTT），**锁定后 pool 搜索没有 status≠0**；
+  **v5b（waves=3）over=57 的机制复核**：18 起点/步、`route` 步 mean 4.26s（v5 2.15）、p95 8.5s、max 23.4s，
+  单步 18 起点 × 4s deadline ÷ 4 线程 ≈ 18–23s、最后一波在 deadline 计时后才开跑 → **加起点必须配准入控制**；
+  注意 `core_search` 的 **status 0 = 内部无失败**（撞 deadline 也是 0），不能拿 status≠0 当截断判据。
+- **② v6 机制**（bench_repo **cd35efa**，`submissions/gkagent-ex-seed-v6`）：**预算内自适应波次**——流水线式发起点，
+  每次发前过准入 `剩余 ≥ 预期×1.25+0.10`；单次 `deadline=min(4.0, 预期×1.5)`；预期=该 trans 预算下最近 6 次
+  **完整**搜索的 prep+elapsed（中位/最新取大、撞 deadline ×1.25）；预算尾巴发 anytime 短搜（deadline=剩余−0.15，
+  **不越界**）；`max_starts=24`（v5=12）；RoutePool 只采纳更高终局分=仍单调安全；v5 逐位复现路径保留。
+- **小样门（15 题×2 保密种子=30 槽，parallel 6；eval 51d7bda2d64c）**：**over 0（v5 同槽 5）**、每步起点
+  **23.5（v5 10.8）**、p50 3,964ms（1,956）/ p95 6,123（5,964）/ **max 11,110（17,385）**、think 4,802s（3,330）；
+  均分 5,281,200 vs 5,444,110（Δ−162,909、CI 跨 0、**17 胜 11 负 2 平**、中位 Δ +165,536、**oracle 比例
+  0.9185→0.9278**）。负均值被 3 个 **v5 幸运槽**主导（v5 高出 oracle +83%/+78%/+32%；v6 在这三槽仍 ≥ oracle）。
+  **⚠️ 同算法同槽复跑（门 vs 全量同 30 槽）：sd 1.77M、max|Δ| 6.14M** → 30 槽门不可靠，只看 240 聚合。
+- **③ 并行/线程配比**（`data/_v6_threads.py`，真实深局快照）：native `policy_search` 每线程一份 core，
+  1/2/4/8/12/16/20/24 并发下单次 0.45–0.72s（**24 并发只 +22–25%**），聚合吞吐近线性 **2.1M→37M transitions/s**；
+  16 个 CPU burner（模拟 scan procs=16）只 +7–31% ⇒ **parallel×threads≈20–24**（本轮 6×4），scan procs=16 不必下调。
+- **全量 240（单 eval **661dffa3b25f** + 2 次 resume，parallel 6，总墙钟 ≈86min）= **1,461,263**
+  （**新 PB**；vs v5 1,447,036 **+14,226 / +0.98%**；**oracle 比例 0.9535→0.9698**；**MID +58,861/槽（+6.36M）
+  / FINAL −22,292/槽（−2.94M，噪声内）**；逐槽 105 胜/103 负/32 平，CI95 [−72,379,+108,085] 仍不显著）。
+  官方单行 n=240：over 36 / errors 0 / p50 3,846 / p95 7,002 / max 76,341 ms / ep_think 124s；
+  每步起点 23.3（几乎每步顶满 24）、完整 124,264 / anytime 1,390、总 think 29,755s（v5 17,890，+66%）。
+- **over 8→36（「不增 over」这条没做到，如实记）**：`worlds` 14 / `route` 11 / `search` 9 / `fallback` 2；
+  其中 **4 步 >40s（最大 76.3s）是运行中一次 DNS/断链事故的伪影**（`getaddrinfo failed`，eval 10 连错停过一次，
+  已用 `--resume 661dffa3b25f --only <120 核心题>` 续跑）；其余 12–21s 的深局 route/search 步（24 起点、
+  `pool_status` 全 0、`pool_expect_ms` 只有 810–1,423ms）⇒ **expect 模型只覆盖 C 搜索时长，没覆盖
+  `session.clone()`/状态拷贝/线程排队 —— v7 必修**（修完可把深局步压回 ≤8s 并让同样墙钟换更多有效搜索）。
+- **⑤ tail_turns=3：可行且近乎免费**（`data/_v6_tail_prod.py` 生产路径）：turns_left=3 的精确尾 **14–21ms 就
+  complete**（nodes ~800–1,300），随后 proven 不再搜 ⇒ v7 直接采纳（可再试 4）。第一版临时探针有 tail 时钟纪元
+  伪影（wall=0.01s+deadline），别用直接 `TN.tail_exact` 的写法测。
+- **④ prior：blocked（不是没做）**——native prior 是**静态** per-(phase, master card row) 权重表
+  （`engine.prior().weights→native_search.prior_table`），B11 policy/advantage 是**状态-动作相关**输出；
+  要挂必须 (a) 改引擎加 hook（**DLL 不重编红线**）或 (b) 每次搜索绑「当前 session 的动态 prior 对象」+ native
+  session→训练特征桥（≥一个任务）。历史规则 prior 全负结论不变。
+- **⑥ 独立可攻点**（`data/_v6_diag6.py`）：**lock≥4 的 11 槽**全是 pre-lock 随机世界 PIMC 质量问题
+  （worlds 步 7–16、方差巨大：QV6QCSN9/1 v4 0.52M→v5 1.20M）→ 下一杠杆是晚锁题决策质量；**8 个无 oracle 的
+  produce-008 低分槽**：think 仅 38–75s、早锁、tail 早 proven、**3 槽 v4/v5 逐位同分** → 已近最优，**不再投**。
+- **纪律**：DLL 未重编；AGPL 只外部引用；`data/_v6_*`/`out/` 探针不提交；pathspec 提交；本轮只改投稿目录+docs
+  （主仓 src 零改动，pytest 未跑）；托管只补缺题、resume 用 `--only` 限定核心题（gkbench 的 `--resume` 会遍历
+  全部 505 题、必须配 `--only`）。
+- **下一步（v7 优先级）**：① **clone/prep 计入准入**（修深局 12–21s 步、over 压回 ≤8）；② **FINAL 专项**
+  （132 槽、68% 分数、v6 没吃到）；③ **tail_turns=3 采纳**（免费 +1 回合精确尾）；④ **lock≥4 pre-lock**
+  （mirror_vote/更多世界）；⑤ 1.50M 还差 **+39k**，1.6M 仍需正面超 farm。
+
 **最近交接记录（2026-11-27 18:xx，v5「改引擎+搜索」阶段：预算饱和多波次并行 RoutePool + GNRPA 配置组合；托管进行中）**：
 - **本轮先做的是「诊断」而不是写代码**：把 v4 托管 240 局的**逐步记录全量拉下来**（`data/_v5_lockscan.py`，探针不提交）→
   两个结论改写了缺口归因：① **238/240 局都锁上了**（仅 2 局 worlds 兜底，QQ6J5S39/1 是唯一失锁怪物）→ 剩余 17.2M 缺口
