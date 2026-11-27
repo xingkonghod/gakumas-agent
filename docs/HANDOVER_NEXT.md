@@ -1395,7 +1395,7 @@ ExamParameterBuffReduce（触发未支持）。
 | 截图归档 | `data/auto/step_NNN.png` 会被**后续跑局轮转覆盖**：关键屏要及时归档进 `tests/fixtures/`（A4 已归 8 张，README 有溯源表）。回合结束确认框的真机帧就是这么丢的（扫 1352 张 0 命中），下次真机跑局出现时补拍 |
 | 时间口径 | 期中考试有 `forceEndScore` 提前结束，但 K（洗牌前 RNG 消耗）**按配置回合**算，不是实战回合 |
 | 提交 | 一次任务一个 `feat(...)` 提交（含测试+文档），再一个 `docs(handover): 补提交记录哈希`；`.gitignore` 已忽略 `out/` |
-| 存档 | 私有存档/私有仓库见 [ARCHIVE.md](ARCHIVE.md)：`scripts\archive_private.ps1`（bundle+裸仓库+采集数据备份，`-Push` 推 Gitee 私有仓）；**只能私有** |
+| 存档 | 双轨见 [ARCHIVE.md](ARCHIVE.md)：**GitHub 公开**（代码/文档/投稿）+ **Gitee 私有**（bundle+裸仓库+采集数据备份，`scripts\archive_private.ps1 -Push`）；私有存档侧保持 private |
 
 ---
 
@@ -1457,7 +1457,7 @@ ExamParameterBuffReduce（触发未支持）。
 - F1/F2 gkbench 公开对比（ranked 禁 seed，只能交不看 seed 的算法；public-safe 学生网**须阶段2 双过**；fixed/template 口径见 [GKBENCH.md](GKBENCH.md)）。
 
 **阶段 5 · 收尾（旧 G）**
-- 私有存档/私有仓库（[ARCHIVE.md](ARCHIVE.md)：bundle+裸仓库+采集数据备份，只能私有）；文档总收尾。
+- 存档双轨（[ARCHIVE.md](ARCHIVE.md)：GitHub 公开 + Gitee 私有 bundle/裸仓库/采集数据备份）；文档总收尾。
 
 **旧路线图未完成项 → 本路线图映射（无遗漏）**：T5 剩余建模→阶段1（离线）+阶段3（需真机数据）；T7②③→阶段1 P1-6；T8→持续；T1/T2/T3/C1 真机验收→阶段3；T6/D1→阶段3；T9-E0→阶段3；B11 练学生（含继续降档候选）→阶段2；F1/F2→阶段4；G 收尾→阶段5。（A1–A5/B1–B10/B2-R/C0/C1 代码/F0 已完成，不重做。）
 
