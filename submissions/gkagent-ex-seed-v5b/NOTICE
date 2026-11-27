@@ -1,0 +1,19 @@
+本投稿的 vendor/ 组件（seed_scan.c / seedscan.py / opening.py / draws.py / fastcut.py）提取自
+UIHorizon-v2.2b-gratwanderung 投稿（作者 yuzeis），其源流为 GKMSProject / GKMSMainWheel
+（https://github.com/matto49/GKMSMainWheel 等），许可证 AGPL-3.0-or-later。
+seed_scan.exe 由 seed_scan.c 经 mingw gcc -O3 编译（w64devkit），与 gkagent-ex-seed /
+gkagent-seedlock 随附的是同一份（MD5 55DA3A05A400B94AC8AF916B489F7725），不重编。
+
+vendor/gkmscore.dll 为 GKMS 官方引擎原生核心（AGPL-3.0-or-later，rules=69，949KB），
+与 data/GKMSMainWheel 编通的是同一份（MD5 659942B251D5A37C97368B0CCAC406B8），不重编；
+复制自 gkagent-seedlock/vendor（其 NOTICE.txt 一并保留）。
+
+运行所需的主数据表与引擎 Python 代码按 GKMS_ROOT 路径外部引用本机 data/GKMSMainWheel
+克隆（缺省 <repo>/data/GKMSMainWheel，可用 env 覆盖），不随本投稿分发；AGPL-3.0-or-later。
+
+algo.py（ExSeedV5Algo：seed-lock 状态机 + 预算饱和多波次并行 RoutePool（独立 core 副本）+ GNRPA
+搜索配置组合 + core_tail 调度 + 去墙钟扫描等待）为本投稿作者 xingkonghod 编写，随本仓库许可分发；
+其中 _same/_differs/_v1 屏幕比对辅助函数改编自 UIHorizon vendor/bench/uihorizon_bench.py
+（AGPL-3.0-or-later），RoutePool 回放核分 / played 同步口径沿用 gkagent-seedlock（本仓库先前投稿）
+与 UIHorizon vendor/uihorizon/pool.py 的设计（AGPL-3.0-or-later）。引擎代码不拷入本文件 /
+src/gkagent 生产代码。

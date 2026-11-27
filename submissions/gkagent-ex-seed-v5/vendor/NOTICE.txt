@@ -1,0 +1,21 @@
+gkagent-seedlock vendor 产物来源与许可
+=====================================
+
+gkmscore.dll  GKMS 官方引擎原生核心（x64 Windows，exam rules=69，949,148 字节）。
+              来源：data/GKMSMainWheel（GKMSMainWheel Ver1.0 Morgendämmerung，
+              Copyright (C) 2026 花吹雪また一年P，AGPL-3.0-or-later）的
+              GakumasCLI/native 编译产物（与 data/_f2sl_tools/kernel/gkmscore.dll 同一份）。
+              对应源码：GKMSMainWheel/GakumasCLI/native/core_*.h、api.cpp 等（AGPL）。
+              本投稿按 AGPL 生态（gkbench 仓库同许可）随提交分发二进制；源码以上述仓库路径为准。
+
+seed_scan.c   种子扫描内核源码，AGPL-3.0-or-later。
+              派生自 GKMSMainWheel/GakumasCLI/tools/seed_solver.c（AGPL，同版权人）：
+              xorshift32(13,17,5) + 回合属性先抽 + k 次前置 RNG + 背向 Fisher-Yates + 前向抽牌；
+              skip（放置/效果移牌）扩展语义参考 gkbench 仓库 UIHorizon 提交的
+              vendor/bench/seed_scan.c 注释文档。
+
+seed_scan.exe 上述 seed_scan.c 以 w64devkit gcc -O3 编译（x64 Windows，91,719 字节）。
+              缺失时 algo.py 用 gcc/clang 现编到临时目录。
+
+引擎 Python 代码与主数据表（GakumasCLI/ro/master/tables，~100MB）不随提交拷贝，
+按 GKMS_ROOT 引用本机 data/GKMSMainWheel（同 UIHorizon 依赖 GKMSProject 克隆的做法）。
