@@ -1,6 +1,18 @@
 # 下一阶段开场白（v6：先把引擎/搜索修好，再全算力打一把）
 
-> 用法：新会话第一句话发「读 docs/INDEX.md → docs/HANDOVER_NEXT.md 顶部 18:xx 条 → docs/RELEASE_V5.md → docs/GKBENCH.md §21 → docs/OPENING_v6.md，然后按 §3 的顺序开工」。
+## 0. 第一句话（直接粘到新会话）
+
+> 读 `docs/INDEX.md` → `docs/HANDOVER_NEXT.md` 顶部（2026-11-27 18:xx 条 + OPENING_v6 指针）→ `docs/OPENING_v6.md`
+> → `docs/RELEASE_V5.md` → `docs/GKBENCH.md §21`，然后按 `docs/OPENING_v6.md` §3 的顺序开工。
+> 现状：**v5 官方行 1,458,385 / n=230（总榜第 2、hosted/外部第 1，已超 best-known 1,452,088），自算 240 槽 = 1,447,036
+> （vs v4 +5.46%）**；v5b（waves=3）负结果 1,398,855；天花板校准 1,499,295（240 槽）⇒ 1.5M = 天花板本身，
+> **1.6M 要比 farm 逐槽最大再高 ~8%（farm 非硬上限：我们已 45.7% 的槽 ≥ farm 最大，中位比 0.984）**。
+> 任务顺序：① 每步墙钟构成测量（先测量别动参数）② 波次准入控制（修 v5b 的 deadline 截断白烧，12→20–30 起点且 over 不涨）
+> ③ 并行/线程配比（native 1/2/4/8 线程扩展 + scan procs=16 饥饿，定 parallel×threads≈20）④ prior 引导起点（B11 v6 只挂部分波次）
+> ⑤ tail_turns 2→3 可行性 ⑥ lock≥4 的 11 槽 + 8 个无 oracle 的 produce-008 低分槽。
+> 流程：①–③ 修完先 20–30 槽小样（10–15 大决赛 + 3–5 MID），过门再**一次性单 eval 全量 240 槽**
+> （`--seeds 2 --parallel 6 --budget 10`，不带 `--only`；断了 `--resume`，重建时 params 必须一致）—— 单 run/n=240，
+> 逐局分数公开、行不被拆。纪律见本文件 §5。
 
 ## 1. 现状（2026-11-27 夜，全部已提交）
 
@@ -60,12 +72,20 @@ B11 的 policy/advantage 网（`data/knowledge/ei_policy_v6.json`）作为 **GNR
 
 ## 4. 算力与托管策略（「全部算力跑下一把」）
 
+- **托管用「一次性单 eval 覆盖 240 槽」**（不要再默认分块）：
+  `python -m gkbench eval --set hif --algo <spec> --seeds 2 --parallel 6 --budget 10`（**不带 `--only`**）
+  → 单 eval = 单 run = **单行 n=240**，逐局 score/route 在 `/api/runs/<run>` 公开，站上才有机会算 `vs_oracle`（相对上限）。
+  分块只作为**断点兜底**：断了先 `--resume <eval>`；若 404（服务器重启清评测）就按缺槽重建，**params 必须与上次完全一致**
+  （否则站上按 params 拆行；v5 就是 11 个早期配置槽把行拆成 n=230/5/6 且 vs_oracle=null）。
 - 一把全量 240 槽的实测成本：**v5 = 4,138s（69min，parallel 5 / waves 2）；v5b = 8,706s（145min，parallel 5 / waves 3）**。
-  ⇒ 下一把建议 **parallel 5–6 + 自适应波数（预算内 20–30 起点）**，预计 90–120min。
+  ⇒ 下一把建议 **parallel 6 + 自适应波数（预算内 20–30 起点）**，预计 80–120min。
 - 顺序：**①②③ 修完先跑 20–30 槽的小样**（挑 10–15 个大决赛槽 + 3–5 个 MID），同槽对 v5/v4 看 Δ 和 over，
   通过后再**一把全量 240**。**不要用全量跑去试参数**（一把 2h）。
 - 判据（沿用）：**只看 240 槽聚合**（单槽同 config 重跑 ±5–7%、大槽 ±20%）；逐槽配对 + oracle 比例 + over 三项一起看。
 - 目标：先稳过 **1.45M（240 槽口径）**，再冲 **1.50M**；1.6M 要等 ④⑤ 或更强搜索（native/策略）落地。
+- **对外口径**：站上行会被拆分/`vs_oracle=null`，所以**我们自己发布 vs_oracle 同口径数字**（几何平均比 + win 率 + 中位比）：
+  v4 geo 0.9020 / win 34.9% / 中位 0.9387；**v5 geo 0.9232 / win 45.7% / 中位 0.9841**；best-known 自己 geo=1.0 / win=0.5。
+  复算 `data/_v5_final.py` + `data/_v5_vs_oracle.py`。
 
 ## 5. 纪律（不变）
 
