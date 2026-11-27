@@ -1597,7 +1597,12 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
   AS-3EW6E6HV/1 −2.81M（v4 的 14.18M 本身高于 farm oracle 13.95M = 幸运抽样）/ F4FPT86S/0 −1.70M / WNK6ARRZ 两槽 −2.86M。
   **方差**：逐槽 Δ sd=585,504 → meanΔ CI ≈[−708,+150,469]（5.46% 是点估计，方向由胜率+oracle 比例支撑，240 槽仍不显著）。
   **官方同参数行 n=230 = 1,458,384（> 1,452,088）**；另 11 槽来自两个早期候选配置（按纪律不重跑已结算槽）→ 官方 3 行同 label，
-  我们自算 240 槽口径 = 1,447,036。**v5b（waves=3，统一配置全量重跑）已起跑，单独成行**。
+  我们自算 240 槽口径 = 1,447,036。**v5b（waves=3）已跑完：240/240 = 1,398,855（vs v4 +1.95% 但 vs v5 −3.33%）= 负结果**：
+  over 8→57、p95 5.96→8.54s——每步 18 起点顶到 10s/12.05s deadline 上限，被截断的搜索（status≠0）RoutePool 不采纳=白烧，
+  **v5 的 12 起点是留了余量的甜点**；官方单配置干净行 n=240=1,398,855（bench_repo cc0a35e feat + v5b/RESULTS.md）。
+- **本阶段结论（v5 定稿）**：v4 1,372,156 → **v5 1,447,036（+5.46%，best-known 的 99.65%）**，同参数官方行 1,458,384；
+  下一个维度不是加起点（已证伪），而是 **① 每墙钟秒搜索吞吐**（native 外部编译工程债）**② 策略/价值引导**（B11 policy/advantage 导航）
+  **③ lock≥4 的 11 槽 + 8 个无 oracle 的 produce-008 低分槽 ④ 精确尾 horizon 3**。开放口径见 \docs/RELEASE_V5.md\（发群材料已整理）。
   bench_repo **3ef3f83** feat（algo+README+NOTICE+submission，vendor MD5 与 v4 全一致不重编）+ RESULTS.md 回填；
   驱动 \data/_v4_hosted.py gkagent-ex-seed-v5 6 60 5\（只补缺题，done_slots 走 \/api/runs\；同题同种子最新会覆盖）。
 - **服务器教训（本轮实撞）**：① 间歇 SYN 丢包 `WinError 10060` / "Server disconnected"，评测连续 10 局错会自动停
