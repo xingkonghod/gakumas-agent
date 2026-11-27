@@ -89,3 +89,5 @@ data/pytest-final-final/
 data/repro_zero/
 data/_v5_snaps/
 data/_v6_gate/
+
+data/pytest-final-*.err

@@ -1,0 +1,64 @@
+diff --git a/submissions/gkagent-seedlock/algo.py b/submissions/gkagent-seedlock/algo.py
+--- a/submissions/gkagent-seedlock/algo.py
++++ b/submissions/gkagent-seedlock/algo.py
+@@ -10,7 +10,8 @@
+ #      候选少时用引擎 FastCut（复用 loading，~3ms/种子）按历史手牌逐一筛。
+ #   3. 唯一候选且引擎重建与画面一致 → 锁定。锁定后整局确定：NativeSearch.policy_search GNRPA
+ #      搜整场路线，路线池每步可重搜（取终局分更高者），照着路线首动作打。
+-#   4. 锁定前/丢失后：引擎卡表贪心兜底。硬规矩：legal 里有 play 绝不 end。
++#   4. 锁定前/丢失后：引擎卡表贪心兜底。硬规矩 forced_play（缺省 1 开）：legal 里有 play 绝不 end；
++#      托管评测 obs 完美，可 forced_play=0 关掉（允许 GNRPA 为蓄体力主动 end）。
+ #
+ # 只读 ctx.obs / ctx.loadout / ctx.meta，不用 ctx.worlds，不拿裁判的种子（sees_seed 类属性 False，
+ # 托管门禁要求；about.sees="seed" 如实声明「锁定后看牌序」，网站按此标看牌序，UIHorizon 同先例）。
+@@ -370,23 +371,26 @@
+         "detail": ["只读 ctx.obs / ctx.loadout，不用 ctx.worlds，不拿裁判的种子",
+                    "种子由 seed_scan 内核并行分段扫 [0,2^32) 反推，引擎快筛 + 整屏核对锁定，通常第 1–3 回合",
+                    "锁定后整局确定：NativeSearch GNRPA（官方 gkmscore.dll）路线池，回放核分采纳",
+-                   "锁定前/丢失后引擎卡表贪心兜底；硬规矩：有可出牌绝不 end",
++                   "锁定前/丢失后引擎卡表贪心兜底；硬规矩 forced_play（缺省开）：有可出牌绝不 end",
+                    "成绩应与看牌序的算法对照（UIHorizon 同类）"],
+         "sees": "seed",
+         "family": "gkagent-seedlock", "family_name": "gkagent-seedlock",
+     }
+ 
+     def __init__(self, procs=8, hi=1 << 31, scan_min=6, step_trans=300000, lock_trans=1000000,
+-                 stabilization=3, prior=0, rescan_above=256, report=1, **kw):
++                 stabilization=3, prior=0, rescan_above=256, forced_play=1, report=1, **kw):
+         # hi 缺省 2^31：gkbench 的全部种子（固定题 dev 种子与保密模板 HMAC mod (2^31-2)+1，server/tseeds.go）
+         # 都落在 [1, 2^31-1]；扫 [0,2^32) 的上半段是纯浪费。hi=4294967296 可扩到全 32 位空间。
+         super().__init__(procs=int(procs), hi=int(hi), scan_min=int(scan_min), step_trans=int(step_trans),
+                          lock_trans=int(lock_trans), stabilization=int(stabilization), prior=int(prior),
+-                         rescan_above=int(rescan_above), **kw)
++                         rescan_above=int(rescan_above), forced_play=int(forced_play), **kw)
+         self.procs, self.hi, self.scan_min = int(procs), int(hi), int(scan_min)
+         self.step_trans, self.lock_trans = int(step_trans), int(lock_trans)
+         self.stabilization, self.use_prior = int(stabilization), bool(int(prior))
+         self.rescan_above = int(rescan_above)
++        # forced_play=1（缺省）：硬规矩「有可出牌绝不 end」（真机 bot 防 OCR 盲打的历史约束）。
++        # forced_play=0：托管评测 obs 完美，允许 GNRPA 为蓄体力主动 end，不丢在手路线。
++        self.forced_play = bool(int(forced_play))
+         self.report, self.games, self.g = bool(int(report)), 0, None
+         self.master = self.ns = self.prior_obj = self.kernel_exe = None
+         self.fastcut = None
+@@ -400,7 +404,8 @@
+         d = super().describe()
+         d["params"] = {"procs": self.procs, "hi": self.hi, "scan_min": self.scan_min,
+                        "step_trans": self.step_trans, "lock_trans": self.lock_trans,
+-                       "stabilization": self.stabilization, "prior": int(self.use_prior)}
++                       "stabilization": self.stabilization, "prior": int(self.use_prior),
++                       "forced_play": int(self.forced_play)}
+         return d
+ 
+     # -- 加载（每进程一次；托管 evaluate 每线程一个实例，共享 master/内核，搜索各用各的 core 副本）
+@@ -675,8 +680,8 @@
+                 meta["error"] = f"pool {type(e).__name__}: {e}"
+         if action is None:
+             action, mode = self._fallback(obs, legal), "base"
+-        if action[0] == "end" and any(a[0] == "play" for a in legal):
+-            action, mode = self._best_play(obs, legal), "forced_play"   # 硬规矩：有可出牌绝不 end
++        if self.forced_play and action[0] == "end" and any(a[0] == "play" for a in legal):
++            action, mode = self._best_play(obs, legal), "forced_play"   # 硬规矩（forced_play=1 缺省）：有可出牌绝不 end
+             meta["hard_rule"] = True
+             if g.state == "locked":
+                 self.pool.played(action)
