@@ -188,8 +188,8 @@ B10 T5 剩余①② 生成卡确定式 + 指定卡名/手牌张数映射 ✅（�
 | 我们的离线 B1/B2/B3 数字 | [EXPECTIMAX.md](EXPECTIMAX.md)「T4 修正」「B2 学习叶子」「B3 规则修正与重标定」、[RULES_REFERENCE.md](RULES_REFERENCE.md)、`out/b2_eval_*.json`、`out/b3_eval_*.json` | 2026-11-22 |
 | 本地判官复算 UINet / H.I.F | `data/bench_local/REPORT.md`、`REPORT_UINET.md`、`REPORT_HIF.md`（gitignore，不在仓库内） | 11-19/20（B1/B2 之前） |
 | hiro | [HIRO_VIDEO_NOTES.md](HIRO_VIDEO_NOTES.md)、[HANDOVER §三](HANDOVER.md) | 11-21 |
-| QQ 群 / 2B / 论文 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md)、[GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md) | 11-22 |
+| QQ 群 / 2B / 论文 | 群情报（已移除）、[GROUP_FILES_ANALYSIS.md](GROUP_FILES_ANALYSIS.md) | 11-22 |
 | 官方 AI | [OFFICIAL_AI_NOTES.md](OFFICIAL_AI_NOTES.md)、[README §5](../README.md) | 11-19 ~ 11-21 |
-| gkbench 公开口径 | [GKBENCH.md](GKBENCH.md)（API/参考分/批量下载）、[QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md)、`data/bench_repo`（MIT 本地克隆） | 11-22（API 抓取） |
+| gkbench 公开口径 | [GKBENCH.md](GKBENCH.md)（API/参考分/批量下载）、群情报（已移除）、`data/bench_repo`（MIT 本地克隆） | 11-22（API 抓取） |
 | gkbench 官方种子核对（F0） | `scripts/verify_gkbench_shuffle.py`（384 组 check.hand）、[GKBENCH.md §4.5](GKBENCH.md) | 2026-11-22 |
 | auto-gakumas | [AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md)（GitHub API 公开 README/交接/manifest/树/扫库样例；未运行未拷贝） | 2026-11-23（仓库 11-22 创建） |

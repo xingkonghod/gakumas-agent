@@ -520,7 +520,7 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   （新鲜果醋/初星强化能量）+ 混合果昔 ExamHandGraveCountCardDraw + 时尚草本茶依赖换算。
   SAFE 槽位 629/1629（38.6%）。阶段3=托管饮料决策（引擎侧全饮料）+ r14 重训门 +
   sim 搜索饮料预算优化（fallback 稀释是离线门未过主因）。
-  样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 QQ_GROUP_NOTES §12。
+  样本吸收见 [RINAMI_LIVE.md](RINAMI_LIVE.md)；群情报 Bellman 上界/GakumasCLI 目标分早停见 群情报（已移除）。
 - **v3 托管 A/B（分块驱动 v2）**：服务器 **eval 注册表是内存 map（api.go `hosted map[string]*Hosted`），
   重启即清**——臂A 两次跑至 81+/240 局被 404 清掉实证；但**已上传 episodes 落盘且排行同 algo+同 rules
   合并、同题同种子取最新**（leaderboard_merge_test）→ **分块安全**。驱动 v2

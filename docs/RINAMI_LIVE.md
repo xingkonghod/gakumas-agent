@@ -2,7 +2,7 @@
 
 > 来源：QQ 群文件 `rinami-hif-w7-w9-live.zip`（16,793 B，sha256 b8d4030a…，用户 QQ UI 下载后提供）。
 > 解包在 `data/_rinami_live/`（**不提交**，探针纪律；扎易将上传社区题集）。本文档跟踪。
-> 群讨论上下文见 [QQ_GROUP_NOTES §11](QQ_GROUP_NOTES.md)（Frida 可行性文档 +24.9%/+20.8%）。
+> 群讨论上下文见 群情报（已移除）（Frida 可行性文档 +24.9%/+20.8%）。
 
 ## 一、样本内容
 

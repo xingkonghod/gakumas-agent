@@ -69,7 +69,7 @@ flowchart LR
 | 考试属性倍率（审查倍率：分段折线 + 联动惩罚） | 客户端行为：gakumas-tools（BSD-3）`typeMultipliers.js` 同结构公式；hiro-gakumas-hero（AGPL，本地参考）`gakumas_produce/attributes.py` 的客户端反编译还原实现 | **按语义重写** `sim/exam_multiplier.py`（自写 f32/ceil/归一化），数据来自主数据表；**未拷贝 AGPL 代码**（见 RULES_REFERENCE §5.1/许可） |
 | 官方 AI 启发式（H1–H10） | gkbench `algos/official_ai.py`（MIT） | 阅读笔记（`OFFICIAL_AI_NOTES.md`），对照而非搬运 |
 | 工程原则（分层/纯函数/预算下一帧） | hiro-gakumas-hero（AGPL-3.0）视频/仓库笔记 | 只学原则，**未拷贝代码**（ADR-007） |
-| 考试 RNG 全部消费入口 | QQ 群 2026-11-22 公开文档（匿名） | 归档对照（`QQ_GROUP_NOTES.md`）；用于标注模型缺口，未使用其代码 |
+| 考试 RNG 全部消费入口 | QQ 群 2026-11-22 公开文档（匿名） | 归档对照（`群情报（已移除）`）；用于标注模型缺口，未使用其代码 |
 
 ---
 
@@ -87,7 +87,7 @@ flowchart LR
 | gakumas-tools / wiki / leafierlemon | 社区站点/项目 | 见各自 | 否 | 公式/排期口径对照 |
 | UIHorizon / UINet | gkbench 算法 | 见 gkbench | 否 | 外部榜单数字作为参照 |
 | 官方 AI | `gkbench/algos/official_ai.py` | MIT | 否（阅读笔记） | 启发式对照 |
-| QQ 群「初星学园情报处理部」 | 群聊/公开文档（匿名） | — | 否 | 情报引用，见 `QQ_GROUP_NOTES.md` |
+| QQ 群「初星学园情报处理部」 | 群聊/公开文档（匿名） | — | 否 | 情报引用，见 `群情报（已移除）` |
 | 《体系建模、随机机制与高分路线优化》论文/精简版.docx | 花吹雪また一年（2K9TNJ8S），2026-09/11 | 公开文档（群内分享） | 否（只引用公式/结论） | 仅本地存档 `group_files/`；引用需标注作者/日期 |
 | GKMSMAA_20261120（魔改 MaaGakumasu + gkmsmaa 执行层） | 20261120 群包 | **AGPL-3.0**（继承 MaaGakumasu） | **禁止拷贝/合并** | 只做架构参考；`D:\GakumasAgentArchive\group_files\` 本地存档，不入库 |
 | launch_gakumas.ps1（DMM 免客户端直启） | 群工具 | 社区脚本（未声明） | 否 | 只借鉴思路（pf_access_token 直启），未拷入仓库 |

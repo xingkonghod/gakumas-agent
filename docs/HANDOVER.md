@@ -439,7 +439,7 @@ beam 数百端点上是十几倍耗时，当前预算不可行；learned 线性 
 
 ### 二·补十一、11-22 凌晨（known_draw 事前检测：额外 RNG 机制）
 
-**背景**：群公开的「考试 RNG 全部显式消费入口」清单（已归档到 [QQ_GROUP_NOTES](QQ_GROUP_NOTES.md)）说明，
+**背景**：群公开的「考试 RNG 全部显式消费入口」清单（已归档到 群情报（已移除））说明，
 除我们已建模的 K 组成之外，恐慌/卡牌搜索/随机选取/生成卡/随机移动还会额外消耗 xorshift32 —— 这类牌组
 `known_draw` 只能用到第一个事件，之前只能靠"核对失败才停用"事后兜底。
 
@@ -3150,7 +3150,7 @@ H.I.F 本战夺冠 6 次（最高 130 万）；初 REGULAR 评价 A（10,428）
 其算法只看 UI，理论上可交 gkbench ranked，关注后续。**可吸收候选**：回忆限 1（我们 catalog
 有 MemoryAbility 表）、干劲经济守卫、饮料 #19/#25 门控、B2 重训纯分标签不加塑形。
 
-详见 `docs/QQ_GROUP_NOTES.md`、`docs/HIRO_VIDEO_NOTES.md`；**我们 vs 他们的完整进度对照
+详见 `群情报（已移除）`、`docs/HIRO_VIDEO_NOTES.md`；**我们 vs 他们的完整进度对照
 （口径/数字/唯一可比路径）见 [COMPARE.md](COMPARE.md)**。
 
 ---

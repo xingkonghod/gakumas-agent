@@ -788,7 +788,7 @@ C0/T9 见 HANDOVER 二·补三十 /
 | G4 | **策略强度**：B1 修正 + B2 学习叶子（beam）+ B3 回合规则 | B1（B3 前口径）：beam unknown 164.0 / known 165.5 vs within 143.1；B3 规则修正后重测 within 89.1 → beam 95.7（+6.6，CI 全正，决策门 107.4% PASS）。B2：旧口径数据训练的 MLP 叶子在 B3 规则下**显著变差**（确认段 beam −27.9）→ 必须重采数据重训。B3 已把模拟器每回合 1 张 + 跳过回体力 + 取整对齐真机，整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点）。剩余：T5 机制（审查倍率/熱意/P 道具）→ B2 重训 → 真机 A/B（T2） | 考试分（评价点主要来源之一） | T5 / T2 |
 | G5 | **机制建模缺口** | [OFFICIAL_AI_NOTES §3/§5](OFFICIAL_AI_NOTES.md#L330)：P 道具/回忆/附魔、选牌评估器、饮料、考试减益、考试内生成卡；回合内重洗（11-20 期末 T9）、同局多次重洗 RNG 快照未建模 | 模拟器与实战偏差 → 搜索决策偏 | T5 / T6 |
 | G6 | **工程可靠性**：无互验/复盘 | 对照 hiro 三条原则（[HIRO_VIDEO_NOTES L32](HIRO_VIDEO_NOTES.md#L32)）：动作前预算下一帧、纯函数状态、自动复盘页——我们都没有 | 排障慢、回归靠人肉 | T7 |
-| G7 | **情报跟踪** | hiro Windows 版进展、QQ 群 seed 口径都在变（[QQ_GROUP_NOTES](QQ_GROUP_NOTES.md#L59)） | 方向判断；低成本 | T8 |
+| G7 | **情报跟踪** | hiro Windows 版进展、QQ 群 seed 口径都在变（群情报（已移除）） | 方向判断；低成本 | T8 |
 
 **明确不需要补的**（ADR 已定，别浪费预算）：
 
@@ -913,7 +913,7 @@ P 道具数据），再上真机重验 F#42/#43 与 T3。
 **兜底**：对不上就自动停用（现有设计），**绝不能**用错牌序。
 
 > 2026-11-22 情报补充（**已实现事前检测**：`exam_risk.py` + `rng_risk` 字段 + bot 跳过候选）：考试 RNG 还有恐慌/搜索排序/随机选取/生成卡/随机移动等入口（见
-> [QQ_GROUP_NOTES](QQ_GROUP_NOTES.md) 凌晨条目），我们的 K 模型未覆盖。牌组含这些效果的考试
+> 群情报（已移除） 凌晨条目），我们的 K 模型未覆盖。牌组含这些效果的考试
 > **known_draw 只能用到第一个此类事件**；T3 验收时用"纯牌组"考试跑，或在建 setup 时前置标记不可验。
 
 **验收（DoD）**：真机一局考试的每回合核对通过（离线预演 A5 已通过：候选→1、`locked_turn≤3`、选中
@@ -1288,7 +1288,7 @@ ExamParameterBuffReduce（触发未支持）。
 - DoD 达成；剩余 `ExamInitialDeck`/开局加牌机制留给 F1（需官方引擎或更多样本），不阻塞 F1/F2。
 
 ### T8（P3，低成本）情报与决策记录 🟡（持续；2026-11-23 新增 auto-gakumas 分析）
-- 每完成一个任务：更新 `QQ_GROUP_NOTES.md` / `HIRO_VIDEO_NOTES.md`（有变化时）、写一条 ADR（`ARCHITECTURE.md`）。
+- 每完成一个任务：更新 `群情报（已移除）` / `HIRO_VIDEO_NOTES.md`（有变化时）、写一条 ADR（`ARCHITECTURE.md`）。
 - 只在有明确收益时更新；别为写文档而写。
 - **2026-11-23**：用户 B 站发现 **tactfullotto/auto-gakumas**（零 LLM / Android ADB /
   每战在线 PPO + SO-ISMCTS，H.I.F 本戦实机 2回戦 1.59M，B 站宣称 S4+）→
@@ -1430,7 +1430,7 @@ ExamParameterBuffReduce（触发未支持）。
 - **P1-8** ✅ **2026-11-24 完成**（P 道具剩段 bounded batch，BSD-3 + DSL 三重核实；**只改数据层标注 sim/ 零改动**）：日文好調の%分（天生的才能 pitem_01-3-346-0/1）——DSL 天性の才能 493/494 `at:afterCardUsed { if:countCards[hand & baseId(23)]>=1 { score+=goodConditionTurns*0.3 } }`（+ genki+=1; ×0.5）；眠気 baseId(23)↔card_table/card_meta 睡意 p_card-00-acc-0_002（B10 zone_count 已解析 hand≥1）；本批补 `CONVERSION_SOURCES_JA={"好調":"parameter_buff"}` 日文换算源标注（「Xの%分」），结算复用 P1-5 依赖换算渠道 int(condition_turns×N/100)；32 条单测，pytest 1644/1（1645 收集 / 99 文件）；RULES_REFERENCE §5.10；implemented 1179→1181/1849（+2）、依赖换算 76→78（好调换算 11→13）；p_items.json 仅 2 条记录变化；**评测零 P 道具结算 + sim/ 零改动**，sim_engine_ab 重标定改前/改后 64 局逐位相同（差异=0）；天生的才能 sense pIdol 158 不在 gkbench hif loadout → local_bench 零触达；**保持 no-op 如实记**：全力・强气效果卡打分（per-card g.score 成长 43 段，DSL target:effect(fullPowerCharge){g.score+=11}，values 恒空需逐卡证据表+新机制，超出 bounded）/塔 gimmick（低谷11/紧张6/弱气6/体力回复无效6=29 段，参考引擎 ALL_FIELDS 无字段）/ExamParameterBuffReduce（3 段 produce_start_lesson/buff_consume 触发未支持，buff_consume 依赖 buff-cost 卡机制 P1-4 已记无落点）。**阶段1 剩 P 道具后续批次（新机制/真机）；下一任务先问用户（P 道具剩段 vs 阶段2 r11）**
 - 每项 DoD：参考引擎证据（规则项）+ 代码 + 单测 + [RULES_REFERENCE](RULES_REFERENCE.md) 核验表更新（规则项）+ `sim_engine_ab` 重标定（规则项，如 B3 例）。
 - **留阶段 3（离线做不了，需真机数据）**：考试 RNG 流（随机生成卡 H.I.F应援棒 / panic / search / move）、fresh buff 差一回合衰减（真机逐回合截图）、附魔/主道具回忆、真机培育侧 P 道具列表（T6/D1）。
-- **T8 情报跟踪**：持续低成本，有变化才更新 QQ_GROUP_NOTES/HIRO_VIDEO_NOTES/AUTO_GAKUMAS_NOTES + ADR，不单独占会话。
+- **T8 情报跟踪**：持续低成本，有变化才更新 群情报（已移除）/HIRO_VIDEO_NOTES/AUTO_GAKUMAS_NOTES + ADR，不单独占会话。
 
 **阶段 2 · 重采 + 练学生 + 新旧对比** ✅ **2026-11-24 完成（r11 small+large 双过入库，首个双过学生）**
 - 🔒 **旧数据/模型全保留**（用户指定）：out/ 的 `ei_r5_selfplay.npz`/`ei_r9_selfplay_large.npz`/`ei_r4_demos.npz`/`ei_r9_demos.npz`、模型 v1/v6/r9/r10、各 `ei_r*_eval_*.json`、入库 `ei_policy_v6.json`（r6 权重）**一律不覆盖不删**，作**旧规则参照**。（入库位 ei_policy_v6.json 已换 r11 权重，旧 r6 权重保留 out/ei_r6_v6_mix.json。）
@@ -1853,7 +1853,7 @@ lead 续派窄 scope——prior 全局有害但下行有界用法。门同 L1（
 **vs ex-seed 同局配对 +31.0% CI[+200k,+410k] / vs best-known 1.45M = 87.3%**（66.6%→87.3%）。离线合并 13 题 +27%，monster 5 +685k CI>0，
 RoutePool cracking 怪物题 2.14× 单次上界。设计依据=用户观察"ex-seed 下限高/seedlock 上限高"，融合双修。
 详见 [GKBENCH §11](GKBENCH.md)。**best-known 口径纠正**：全量 1.45M（120×8），2.13M 是 25 题子集误读作废。
-**QQ 情报✓**（提交 17f9b50/b0c4dbf）：869+23 条导出，QQ_GROUP_NOTES §1-§10；**auto-gakumas 作者 tactfullotto
+**QQ 情报✓**（提交 17f9b50/b0c4dbf）：869+23 条导出（归档不入库）；**auto-gakumas 作者 tactfullotto
 （B站 nvtv/QQ ◇◇◇•）入群**，matto 邀其 PPO+SO-ISMCTS 上 gkbench（无 seed 阵营竞争加剧）；其新推送全产品化
 （Workbench Web UI/OCR 稳定器/anti-SKIP/finisher 门控），印证"社区主轴让普通玩家玩到、不冲 seed 榜"。
 **战略定位（用户确认）**：seed 赛道私有全知 bot 独占（社区产品约束运行时不能 seed），主线自己练 seed 前沿+真机闭环，
@@ -1893,8 +1893,7 @@ hajime 110,613（n=96）；③ gkagent-expectimax（GKMS PIMC 无seed）~509k（
 **新会话开场白**：「工作目录 D:\Games\gakumas-agent。读 docs/INDEX.md → GKBENCH.md §9-10（gkbench 竞争全貌）。
 goal-9f3755fa 自主循环推进 gkbench：引擎 GKMSMainWheel 已编通（data/_f2sl_tools/kernel/gkmscore.dll），seed-lock+GNRPA 投稿 hif 944k 登顶。
 四版对比见 GKBENCH §10。继续：ex有seed 跑分（f2-ex2）/ 推 seed-lock 更高（用户选定，f2-sl3 失败需重派）/ GKMSPS 官方尺度重训网 / 全量505。
-**另：用户要更新 QQ 群情报**——按 docs/QQ_EXPORT_PLAN.md 导出「初星学园情报处理部」群最近讨论（工具已克隆 data/_qq_export/nt_msg_db_util，
-需密钥提取+Python3.14+sqlcipher；最快备选=用户 QQ UI 导出 txt）→ 更新 QQ_GROUP_NOTES.md。
+**另：用户要更新 QQ 群情报**——按内部导出流程整理群最近讨论（工具/消息库/密钥**均不入库**）→ 更新内部归档。
 子智能体失败就接手，引擎别重编。令牌 ~/.config/gkbench/token。基线 pytest 1681/1。不碰 D:\Games\Gakumas，引擎 AGPL 作外部用。」
 
 **上一轮交接记录（2026-11-25，ep-t31 C+ 调查 + F#48 日文别名修复 + F#49 drink-keep + PRO 难度 opt-in；纯离线，真机 T1/T2 留下会话）**：
@@ -3223,7 +3222,7 @@ card_library.json 不提交。纯离线（真机验收留到阶段 E）。
 | 项目 | 他们强在哪 | 他们弱在哪（我们的机会） |
 |---|---|---|
 | **hiro-gakumas-hero**（matto49，AGPL，[HIRO_VIDEO_NOTES](HIRO_VIDEO_NOTES.md)） | Mac+PlayCover 40+ 局稳定；初 REGULAR A/10428；H.I.F. 本战最高 130 万；三层架构 + 规则/LLM 权衡；互验 + 自动复盘页；~120 模块/600+ 测试 | **Windows DMM 不成熟**（只到第 2/3 名）；没有 seed/牌序途径；LLM 有 token 成本 |
-| **QQ 群「初星学园情报处理部」**（[QQ_GROUP_NOTES](QQ_GROUP_NOTES.md)） | seed 反推（2^31 枚举+观测剪枝）信息论口径清晰（3 回合收敛 ~1000 候选）；nodejs 实现 | 自己定规矩**实战不用 seed**；uihorizon/uinet "到头了"（10× 训练量反而倒退）；无公开成绩 |
+| **QQ 群「初星学园情报处理部」**（群情报（已移除）） | seed 反推（2^31 枚举+观测剪枝）信息论口径清晰（3 回合收敛 ~1000 候选）；nodejs 实现 | 自己定规矩**实战不用 seed**；uihorizon/uinet "到头了"（10× 训练量反而倒退）；无公开成绩 |
 | **官方 AI**（GKMS 私有，[OFFICIAL_AI_NOTES](OFFICIAL_AI_NOTES.md)） | 真实牌序 + 50+ 特征评估 + 计划重放 + 限深/命令预算；考试机制覆盖最全 | 私有、不可移植、需 GKMS 原生核心；我们拿不到权重 |
 | **MaaGakumasu**（[MAA_INTEGRATION](MAA_INTEGRATION.md)） | 手和眼：截屏/识别/点击/日常/汉化完整 | 出牌只到启发式；我们只做决策层（ADR-001） |
 | **我们** | **唯一**把 MITM 采集→seed→整段牌序（含弃牌重洗）做成生产接口并经实机逐张验证；纯 Python/Windows 原生；0 token；B3 把模拟器回合规则/取整对齐真机后，整局 A/B 里 expectimax 显著强于 rules（+342~+429 评价点）；B1 修正后 beam 显著强于 within；B4 把考试审查倍率（分段+联动惩罚）对齐客户端公式并改用屏幕真实倍率；B6 把 P 道具（loadout `produce_item_ids`）接进模拟器/评测/提交（exam_start + extra_plays，离线 A/B greedy +3.36%）；B7 把 P 道具 catalog 补到上游 1115 件、gkbench 未知 id 清零；**B8 做了 P 道具条件/效果语义第一批**（新语法 trigger id 解析、依赖换算「X 的 N% 数值变为 Y」、固定/百分比体力、5 类新触发；数据层 676/1849 段、gkbench 已实现 59/153 段；greedy A/B +225.2）；**B9 做了持久倍率/modifier 第二批**（打分上升量增加/减少、好印象强化/追加发动、热意/集中/好印象/干劲/全力值增益倍率、绝好调/不调、费用修正、回合追加、温存/强气指針直给；20 类 target/369 段/298 件；数据层 **1025/1849 段**、gkbench **103/153 段**；greedy A/B +110.3） | 自动化最后一公里（T1）、无 A/B（T2）、全知未实时接通（T3）；B2 学习叶子旧模型在 B3 规则下失效待重训；机制覆盖仍缺 P 道具**生成卡/强化状态花费卡**、指定卡名/手牌映射、附魔、fresh buff（T5 剩余） |

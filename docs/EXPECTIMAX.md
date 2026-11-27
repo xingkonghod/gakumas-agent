@@ -765,7 +765,7 @@ expectimax。先用真实小牌组（14 张 / 5 回合，CLEAR 120 / PERFECT 170
 
 ### known_draw 的已知边界（2026-11-22 情报更新）
 
-群里公开的「考试 RNG 全部显式消费入口」清单（详见 [QQ_GROUP_NOTES](QQ_GROUP_NOTES.md)）与我们的 K 模型对照：
+群里公开的「考试 RNG 全部显式消费入口」清单（详见 群情报（已移除））与我们的 K 模型对照：
 已覆盖 `open_turn_types(T-3)`、`session_start_turn(npc×T)`、`deck_shuffle(N-1)`、弃牌堆回收(N-1)、
 支援升级判定；**未建模**：恐慌判定（`apply_panic_command`）、卡牌搜索随机排序（`get_search_card_list`）、
 随机选取卡牌（`pickRangeType==2`）、随机卡池生成（`apply_card_create_search`）、出牌后随机返回牌库位置

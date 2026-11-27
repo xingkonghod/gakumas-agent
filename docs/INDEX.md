@@ -19,7 +19,6 @@
 | 0 | [HANDOVER_NEXT.md](HANDOVER_NEXT.md) | **补什么 · 做什么 · 任务验收**（行动型交接，先看这个）|
 | 1 | [HANDOVER.md](HANDOVER.md) | 现状 + 已完成什么（二·补五）|
 | 2 | [MASTER_DATA.md](MASTER_DATA.md) | 主数据库怎么建的、seed 字段在哪 |
-| 3 | [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md) | 社区怎么反推 seed 的（信息论口径）|
 | 4 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 采集链路的坑（改之前必看）|
 | 5 | [EXPECTIMAX.md](EXPECTIMAX.md) | 搜索/全知牌序/beam 与已知限制 |
 
@@ -77,7 +76,6 @@
 | [GKBENCH.md](GKBENCH.md) | **gkbench 数据/口径：公开 API、批量下载、参考分（fixed/template）、哪些要登录令牌** |
 | [HIRO_VIDEO_NOTES.md](HIRO_VIDEO_NOTES.md) | hiro-gakumas-hero 的架构（视频 + 仓库）|
 | [AUTO_GAKUMAS_NOTES.md](AUTO_GAKUMAS_NOTES.md) | auto-gakumas 分析（Android ADB + 每战在线 PPO + SO-ISMCTS，H.I.F 本戦实机 2回戦 1.59M；无许可证只参考，2026-11-23）|
-| [QQ_GROUP_NOTES.md](QQ_GROUP_NOTES.md) | 群里的技术讨论 |
 | [OFFICIAL_AI_NOTES.md](OFFICIAL_AI_NOTES.md) | 官方 AI 的启发式（10 条）|
 
 ---
@@ -105,7 +103,6 @@
 | **RULES_FROM_BINARY.md** | 元数据解包结果（枚举/字段/方法签名）|
 | **UNLOCK_REPORT.md** | GakumasUnlock 工具分析 |
 | **UNLOCK_ADAPT.md** | hook 机制与版本适配 |
-| **QQ_GROUP_NOTES.md** | 群讨论记录 |
 | **HIRO_VIDEO_NOTES.md** | hiro 项目视频要点 |
 | **AUTO_GAKUMAS_NOTES.md** | auto-gakumas 外部情报（零 LLM / ADB / 每战在线 PPO + SO-ISMCTS / 回忆限 1；许可证红线）|
 | **OFFICIAL_AI_NOTES.md** | 官方 AI 的策略启发式 |

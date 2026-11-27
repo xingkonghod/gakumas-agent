@@ -91,3 +91,5 @@ data/_v5_snaps/
 data/_v6_gate/
 
 data/pytest-final-*.err
+
+data/_qq_export/
