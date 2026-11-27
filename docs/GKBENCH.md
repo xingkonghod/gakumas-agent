@@ -918,3 +918,54 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   （1,452,088 / 1,486,205），达标后**群里全部开源**。剩余缺口集中在 ~10 道怪物题（搜索质量/方差），
   参考 §18/§19：native 吞吐是工程债（gknet-v3 300ms/step ≈ 我们 3.5s）、prior 类均负（§15/§16.5）、
   tail 目前 `tail_turns=2` 精确、`status=2`=stabilization 早停。
+
+## 21. 2026-11-27 晚 ex-seed-v5「改引擎/搜索」阶段：预算饱和多波次并行 RoutePool + GNRPA 配置组合（bench_repo 3ef3f83）
+
+- **用户指令**：不再靠参数微调，**改引擎 + 搜索**做 v5；目标先过 best-known 1,452,088、冲 1.5M+；达标后群里开源。
+  本节记录**做了什么、证据、负结果、托管数字**（探针 `data/_v5_*` 不提交；投稿目录 `submissions/gkagent-ex-seed-v5/`）。
+- **第一性分析（v4 托管 240 局逐步记录全量拉取，`data/_v5_lockscan.py`，240/240 槽）**：
+  - **238/240 局锁定**（仅 2 局整局 worlds 兜底；QQ6J5S39/1 是唯一失锁怪物）→ **缺口不是「锁不住」而是锁定后的搜索质量**，
+    这是本轮最重要的纠偏（此前假设 monster 题=失锁兜底问题）。
+  - 锁定回合分布：lock 1–2 有 143 槽（均分 1,433,476）、lock 3 有 84 槽（1,368,202）、**lock≥4 有 11 槽（588,174）**。
+  - **每步 10s 预算只用 2.3–4.3s**：GNRPA `transitions=500k`/起点 ≈0.5s 先到（v4 已证伪加 transitions 有效），剩余墙钟空转。
+  - 最大单槽缺口：AXME8QK2/1 −3.28M（lock2）、WDKWQYW5/1 −3.00M（lock3）、BZXB28YJ/1 −2.92M（lock2）、
+    QQ6J5S39/1 −1.80M（失锁）、QQ6J5S39/0 −1.15M；232 配对槽里 **68 槽（29.3%）我们已超 best-known farm 逐槽最大值**（+18.3M）。
+- **🔑 天花板校准（`data/_v5_ceiling.py`，写报告的可行性基准）**：把 232 配对槽的缺口全抹平（低于 oracle 的补到
+  oracle、已超的保留）→ 240 槽均分 **1,499,295**（≈1.5M）。所以「过 1,452,088」= 逐槽比例从 0.923 提到 **~0.986**
+  （几乎逐槽追平 best-known 12 个 farm run 的逐槽最大）→ **1.50M 就是「逐槽逼近 farm 最大」的量级**，
+  1.55M+ 需要全面反超 farm。这个校准说明该目标基本等于「把搜索打到 farm 上限」，本轮据此排优先级。
+- **搜索质量探针（同状态、同 transitions 预算）**：
+  - 多 sd 重启分布（`_v5_restart_curve.py`）：AS-AXME8QK2 turn4 12 个 sd → 6.11M/中位 7.23M/**max 9.70M**（1.6× 跨度）；
+    AS-BZXB28YJ turn4 → 1.64M/2.74M/**5.37M**（3.3×）；但**深局会收敛**（AS-WDKWQYW5 turn8 全部 4.91M、QV6QCSN9 turn6 全部 340,811）。
+  - GNRPA 配置网格（`_v5_engine_grid.py`：levels 2/3/4 × iterations 8/16 × stabilization 3/5）：同状态
+    **`stabilization=5` 在 AS-5KZSXANK +31%**（7.30M→9.54M）、**`iterations=16` 在 AS-AXME8QK2 +26%**（7.50M→9.43M），
+    但**没有一组全胜**（i16s5 在 5KZSXANK 反而 −6%）→ 做成逐起点轮换的**配置组合**。
+  - **整局配对 A/B 中性**：固定换 i16/s5 后 AS-AXME8QK2 −0.8%、AS-WDKWQYW5 +0.07%。机制解释：
+    末段 `core_tail` 精确尾 + 早期动作主导终局分，中途搜索的「终局分估计」变好不一定改变首动作。
+- **v5 采纳（三条，全部只取更高终局分 → 单调安全；v4 逐位可复现：waves=1/threads=1/portfolio 空/root_scan=0）**：
+  ① **多波次**：一波跑完只要 `t_end`（0.7×预算）前还有时间就再发一波（新 sd），缺省 `waves=2` 上限
+  （**不用填满**：实测填满墙钟 ×2.6–3、240 槽要 ~7h）；
+  ② **并行独立 core 副本**：一波内每起点在自己的 core 上并行搜（`session.search_tables()` 天然一份 core、ctypes 释放 GIL），
+  `pool_threads=4` → 同等墙钟 2× 起点；
+  ③ **搜索配置组合**：逐起点轮换 `(levels,iterations,stabilization)=2/8/3,2/8/5,2/16/3,2/16/5,3/8/5,2/4/8`（首项= v4 口径）。
+- **负结果（都做了门，默认关，仅留对照臂；不得复用重复试）**：
+  - `root_scan` 根动作枚举（每合法首动作先走一步再完整续搜）：离线 2 局 −9%/−1%、托管 5 槽中性 → 不采纳
+    （GNRPA 的首动作已覆盖得不错）。
+  - `mirror_vote` 锁定前候选镜像后验投票（代替 `ctx.worlds()` 随机世界）：候选管线在 worlds 投票前就锁定 → 实测几乎不触发；
+    托管 5 槽 2 胜 3 负 CI 跨 0 → 默认关。
+  - 固定 i16/s5：同状态 +10–25%，整局中性 → 只进组合臂。
+  - 填满预算 `waves=0`：墙钟 ×2.6–3、离线中性 → 改上限 2 波。
+  - transitions 500k→2M：与 v4 b1 同结论（同分，2.09–2.41s/搜索）→ 不加。
+- **托管 240 槽**：`gkagent-ex-seed-v5`，缺省参数（waves=2 / threads=4 / portfolio 如上 / starts4+starts_hi6 /
+  lock2M / step500k / vote0.8 / rescan1 / tail2 / fp0 / prior0），`--seeds 2 --parallel 3 --budget 10`，分块驱动只补缺题。
+  **成绩（跑完回填）：_待填_**。
+- **工程坑（本轮新增）**：
+  - 服务器间歇 SYN 丢包（`WinError 10060` / "Server disconnected"）：eval 连续 10 局错就自动停 → 分块驱动按
+    `/api/runs` 已完成槽位续跑；**评测注册表在服务器内存，重启即清**（`/api/evals/<id>` 404）。
+  - 服务器慢时（RTT 0.8–2s）整局墙钟被 RTT 放大：每局 ~40 决策 × RTT ≈ +40–80s，长跑前先测 `/api/sets` 延迟。
+  - 离线引擎（本机 rules=69 口径）与托管结算**不同源**：同一题离线 11.8M vs 托管 6.7M → 离线门只能看方向。
+- **下一阶段建议（按性价比）**：① 若本轮 240 槽聚合 ≥ v4，把 waves/threads 上限与配置组合再扫一档
+  （2→3 波、threads 4→6）；② 真正的大头仍是**每墙钟秒的搜索吞吐**（native/repo 外部编译，§18④ 工程债）与
+  **状态价值/策略引导**（B11 学习叶子在 large 场景仍负，但 policy/advantage 路线在 large 显著超 beam，可做「导航」而非叶子）；
+  ③ `lock≥4` 的 11 槽（均分 588k）与 8 个无 oracle 的 produce-008 低分槽（400–870k）是独立可攻点；
+  ④ 精确尾 horizon（tail_turns=3）需先证明 3 回合能在 8s 内 complete（当前 2 回合在深局已 deadline）。

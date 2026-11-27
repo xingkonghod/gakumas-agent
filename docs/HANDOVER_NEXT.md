@@ -1568,6 +1568,44 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
   探针 data/_drinks_probe5* 不提交；v2/v3 原版投稿零改动；探针单进程顺序 ≤3 局、
   批次前 free 1.28–1.7GB>0.6GB；未起托管未杀进程。
 
+**最近交接记录（2026-11-27 18:xx，v5「改引擎+搜索」阶段：预算饱和多波次并行 RoutePool + GNRPA 配置组合；托管进行中）**：
+- **本轮先做的是「诊断」而不是写代码**：把 v4 托管 240 局的**逐步记录全量拉下来**（`data/_v5_lockscan.py`，探针不提交）→
+  两个结论改写了缺口归因：① **238/240 局都锁上了**（仅 2 局 worlds 兜底，QQ6J5S39/1 是唯一失锁怪物）→ 剩余 17.2M 缺口
+  **不是「锁不住」而是锁定后的搜索质量**；② **每步 10s 预算只用了 2.3–4.3s**（GNRPA `transitions=500k`/起点≈0.5s 先到），
+  空转墙钟就是可换的东西。另：lock≥4 的 11 槽均分只有 588,174（其余 143+84 槽均分 1.37–1.43M）。
+- **🔑 天花板校准（`data/_v5_ceiling.py`，以后写目标先看这个）**：232 配对槽的缺口**全抹平**（低于 oracle 的补到 oracle、
+  我们已超的保留 68 槽 +18.3M）→ 240 槽均分 **1,499,295**。⇒「过 best-known 1,452,088」= 逐槽比例 0.923 → **0.986**
+  （几乎逐槽追平 best-known 12 个 farm run 的逐槽最大）；**1.50M 就是「逐槽逼近 farm 上限」**，1.55M+ 要全面反超 farm。
+- **搜索质量探针（同状态、同 transitions 预算）**：① 多 sd 重启分布（`_v5_restart_curve.py`）AS-AXME8QK2 turn4 =
+  6.11M/7.23M/**9.70M**（1.6× 跨度）、AS-BZXB28YJ turn4 = 1.64M/2.74M/**5.37M**（3.3×），但深局收敛
+  （WDKWQYW5 turn8 全 4.91M、QV6QCSN9 turn6 全 340,811）；② GNRPA 配置网格（`_v5_engine_grid.py`）同状态
+  **s=5 在 5KZSXANK +31%**（7.30M→9.54M）、**iterations=16 在 AXME8QK2 +26%**（7.50M→9.43M），但**没有一组全胜**
+  （i16s5 在 5KZSXANK −6%）→ 只能做**逐起点轮换的组合**；③ **整局 A/B 却是中性**（固定 i16/s5：AXME8QK2 −0.8% /
+  WDKWQYW5 +0.07%）——末段 `core_tail` 精确 + 早期动作主导终局分，中途搜索的估计变好不一定改首动作。
+- **v5 采纳（三条，全部只取更高终局分 → 单调安全；`waves=1/threads=1/portfolio 空/root_scan=0` 逐位复现 v4）**：
+  ① **多波次**（一波跑完用完 t_end 前还有时间就再发一波，新 sd；缺省 **waves=2 上限**——填满会让墙钟 ×2.6–3、240 槽 ~7h）；
+  ② **并行独立 core 副本**（每起点 `session.clone()` + `search_tables()` 自己的 core，ctypes 释放 GIL；**threads=4** →
+  同等墙钟 2× 起点）；③ **搜索配置组合** `2/8/3,2/8/5,2/16/3,2/16/5,3/8/5,2/4/8`（首项= v4 口径，逐起点轮换）。
+- **负结果（都做了门、默认关，别重做）**：`root_scan` 根动作枚举（离线 −9%/−1%、托管 5 槽中性）、
+  `mirror_vote` 候选镜像后验投票（几乎不触发；托管 2胜3负 CI 跨 0）、固定 i16/s5（同状态 +10–25% 但整局中性）、
+  填满预算 `waves=0`（墙钟 ×2.6–3、离线中性）、transitions 500k→2M（同 v4 b1 结论：同分）。
+- **托管**：`submissions/gkagent-ex-seed-v5/`（bench_repo **3ef3f83** feat：algo+README+NOTICE+submission，vendor MD5 与 v4
+  全一致不重编）；驱动 `data/_v4_hosted.py gkagent-ex-seed-v5 4`（只补缺题，done_slots 走 `/api/runs`；同题同种子最新会覆盖）。
+  **成绩与逐槽对比见 `submissions/gkagent-ex-seed-v5/RESULTS.md`（跑完回填）**。早期 15 槽读数：10 胜 4 负 1 平、
+  meanΔ +58k（CI 跨 0，仍不足以下结论）。
+- **服务器教训（本轮实撞）**：① 间歇 SYN 丢包 `WinError 10060` / "Server disconnected"，评测连续 10 局错会自动停
+  （`--resume <eval>` 续）；② **评测注册表在服务器内存，重启即清**（`/api/evals/<id>` 404）；③ 服务器慢时 RTT 0.8–2s
+  会把整局墙钟放大（≈每局 +40–80s）→ 长跑前先用 `/api/sets` 测延迟；④ 已上传的 episode 落盘不丢，分块驱动按
+  `/api/runs` 已完成槽位续跑即可（**不要重跑已结算槽，会覆盖旧分**）。
+- **口径**：离线引擎（本机 rules=69 口径）与托管结算**不同源**——同一题离线 11.8M vs 托管 6.7M → **离线门只能看方向，
+  托管 A/B 才是准绳**；同 config 重跑同槽 ±5–7% → 只看 240 槽聚合。
+- **下一阶段建议**：① 本轮 240 槽聚合若 ≥ v4，把 waves 2→3、threads 4→6 再扫一档；② 真正大头仍是**每墙钟秒搜索吞吐**
+  （native 外部编译工程债，§18④）与**导航式策略**（B11 policy/advantage 在 large 显著超 beam，可做引导而非叶子价值）；
+  ③ `lock≥4` 的 11 槽（均分 588k）+ 8 个无 oracle 的 produce-008 低分槽（400–870k）是独立可攻点；
+  ④ `tail_turns=3` 需先证 3 回合能在 8s 内 complete（当前 2 回合在深局已 deadline）；⑤ 开源前把 `RESULTS.md` 的复现脚本跑一遍。
+- **纪律**：DLL 不重编（vendor MD5 全一致）；AGPL 只外部引用、不拷 src；未碰 D:\Games\Gakumas、C:\GakumasLocal 只读；
+  探针 `data/_v5_*` 全部不提交；pathspec 限定 commit（bench_repo 3ef3f83 只含 submissions/gkagent-ex-seed-v5）。
+
 **最近交接记录（2026-11-27 16:2x，完结日 ex-seed-v4 托管 1,372,156；用户转向「改引擎+搜索」，新会话继续）**：
 - **战果**：`gkagent-ex-seed-v4` 托管 **240/240 = 1,372,156**（best-known 1,452,088 的 **94.5%**、榜顶
   1,486,205 的 92.3%；总榜第 3、hosted/外部第 1）；errors=0 / over=13；30 块分块、8757s ≈ 2.4h
