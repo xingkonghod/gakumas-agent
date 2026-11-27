@@ -80,3 +80,14 @@ gh repo create gakumas-agent --source=. --remote=origin --push      # 公开
 
 - 公开仓：每个阶段（大功能/成绩更新）推一次 `origin`；
 - 私有存档：重要节点 `-Push` 一次；平时每天一次不带 `-Push` 的本地存档（bundle 会覆盖当日文件）。
+
+## 6. 2026-11-28 历史脱敏重写（重要）
+
+公开前做了一次隐私脱敏：**16 个 QQ 号（群成员/用户）+ 本地 Windows 用户名路径**已从**全部历史**移除
+（`git filter-repo --replace-text`，586 个提交重写；替换为 `<QQ>` / `%USERPROFILE%` / `%TEMP%`），
+并 force-push 到 GitHub（公开）与 Gitee（私有存档）。
+
+- 后果：**2026-11-28 01:2x 之前的所有提交哈希都变了**；docs 里引用的旧哈希（如 `55fe2d4`/`4910e45`）是重写前的，
+  在远端已不存在（保留为历史记录文本，不再可 `git show`）。
+- `data/bench_repo` 是独立仓库（未纳入本次重写），其投稿提交哈希（`cd35efa`/`30884ef`）不受影响。
+- 本地旧对象备份 `.git/filter-repo/` 已删除；`backup-pre-pii-rewrite` 分支也已被同一次重写清洗。
