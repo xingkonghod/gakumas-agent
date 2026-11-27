@@ -12,7 +12,8 @@
 | `D:\GakumasAgentArchive\artifacts\` | 不入 git 的关键产物：`out/exam_setup.json`、`sim_engine_ab*.json`、`data/runs/*`、`data/bench_local/*`、`capture/traffic.jsonl` + `deck_snapshots.json` + `exam_truth.json` |
 | `D:\GakumasAgentArchive\SHA256SUMS.txt` | bundle + artifacts 的 SHA-256 清单 |
 | `%USERPROFILE%\Documents\gakumas-archive\` | **冗余副本**（防 D 盘挂掉：bundle + 清单 + README）|
-| Gitee 私有仓库 | 已建（private=true），`master` + tags 已推；实际 URL 见**本地存档 README.txt**（不写进本文件，避免串身份）|
+| Gitee 私有仓库 | 已建（private=true），`master` + tags 已推；工作仓 remote 名 `gitee` |
+| **GitHub 私有仓库（2026-11-28 新增）** | **已建（private=true）：`xingkonghod/gakumas-agent`**；工作仓 remote 名 `origin`（默认推送目标）；gh CLI 已登录（keyring），操作见 §4 |
 
 ## 2. 更新存档（可重跑，幂等）
 
@@ -20,6 +21,8 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\archive_private.ps1
 # 加 -Push 同时推到私有远端（裸仓库 origin 已指向 Gitee 私有仓库）：
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\archive_private.ps1 -Push
+# GitHub 私有仓（工作仓 origin）单独推：
+git push origin master --tags
 ```
 
 脚本会：打 `archive-YYYY-MM-DD` tag → 更新裸仓库 → 生成/覆盖当日 bundle → 备份 artifacts/capture →
@@ -46,14 +49,25 @@ python -m venv .venv; .venv\Scripts\pip install -e .
 
 ## 4. 推私有仓库（首次 / 换平台）
 
-```powershell
-# Gitee（当前在用；凭据走 Windows 凭据管理器，脚本不碰 token）
-cd D:\GakumasAgentArchive\gakumas-agent.git
-git remote set-url origin https://gitee.com/<you>/<repo>.git
-git push origin master --tags
+当前工作仓（`D:\Games\gakumas-agent`）已有两个私有远端：
 
-# GitHub（如果以后要用：需要 VPN/代理 + 账号登录，再把 origin 换成 https://github.com/<you>/<repo>.git）
+```powershell
+git remote -v
+# origin  https://github.com/xingkonghod/gakumas-agent.git   (GitHub private, 默认)
+# gitee   https://gitee.com/starry-sky-haven/gakumas-agent.git (Gitee private)
+git push origin master --tags     # GitHub 私有
+git push gitee  master --tags     # Gitee 私有
 ```
+
+GitHub 首次/换机登录（**凭据走 gh keyring / Windows 凭据管理器，脚本不碰 token**）：
+
+```powershell
+winget install --id GitHub.cli -e
+gh auth login --hostname github.com --git-protocol https --web --scopes repo
+gh repo create gakumas-agent --private --source=. --remote=origin --push
+```
+
+存档脚本的 `-Push` 只推**裸仓库的 origin（当前=Gitee）**；GitHub 直接在工作仓 `git push origin`。
 
 **安全红线**
 - 仓库只能 **Private**；本文件/README 不含 token，也不要把 token 写进任何文档/命令历史；
