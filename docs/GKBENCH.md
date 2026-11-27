@@ -878,3 +878,43 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   pathspec 限定 commit（bench_repo 3d9b9aa 仅 submissions/gkagent-expectimax-scale；主仓仅 docs/GKBENCH.md）；
   pytest bench_repo test_ctx+test_save **15 passed/9 skipped**（--basetemp=out\_pytest_tmp_pscale；
   test_bench_runner fcntl POSIX-only Windows 无法收集 pre-existing；主仓 src/tests 零改动）。
+
+## 20. 2026-11-27 完结日 ex-seed-v4（规模自适应起点）——托管 1,372,156（+3.74% vs v3，best-known 94.5%）
+
+- **结果**：`gkagent-ex-seed-v4` 托管 **240/240 = 1,372,156**（best-known 1,452,088 的 **94.5%**、榜顶
+  1,486,205 的 92.3%；总榜第 3，hosted/外部投稿第 1）。errors=0 / **over=13**（v3 为 8）；30 个分块、
+  总墙钟 **8757s ≈ 2.4h**（`--parallel 3`，`--seeds 2 --budget 10`）。v3 行 1,322,681 保留不变。
+- **动机（v3 逐槽缺口分层，`data/_v3_gap240.py`）**：v3 配对 232 槽 ratio mean 0.892 / median 0.929，
+  总缺口 28.8M；按 `step_type`：**AUDITION_FINAL 132 槽 218.5M 分、占缺口 77.7%**，MID1 98.9M/20.1%，
+  MID2 10.7M/2.2%；三层 ratio 都是 ~0.89（无系统性弱项，**绝对值差 2–4×**）→ 决赛题单位比例增益最值钱。
+- **先证伪「深度」杠杆**（`data/_v4_pair.py` b1，同题同 seed 配对）：AS-5KZSXANK `step_trans`
+  500k→1M→2M 分数**逐位相同 8,631,520**，墙钟 1.72×/2.82× → transitions 帽不是瓶颈、10s 预算有 5–8× 余量。
+- **杠杆⑤ 规模自适应起点（采纳）**：`starts_hi=6`（`limit_turn>=12` 才启用，其余 `starts=4`）。
+  离线配对（`_v4_pair_s8a/_s6a`，5 题 × 1 seed，基线复用 diag1 v3 行）：12 回合决赛
+  AS-5KZSXANK **+1,496,003**（6 与 8 同分，取 6）、AS-QV6QCSN9 +280,434、AS-P8ZJTXNA 0；
+  9 回合中期 AS-3G6FFZZT **−224,133**（s6）/−210,772（s8）、VH8WYE6J 0 → **分档而非全局加**（同一杠杆
+  在两类题方向相反：决赛盆地方差主导、中期每起点墙钟短→深度稀释）。
+- **托管配对（v4 vs v3 同槽，latest-per-slot）**：逐槽 Δ 合计 **+11,874,028（+4.28%）**；
+  **FINAL +11,145,429（+5.10%，132 槽，71 胜 43 负）**；MID1 +728,599（+0.74%，108 槽，43 胜 33 负，
+  **配置未变 → 全部来自 v3g 失锁重扫**）。最大单槽：AS-3EW6E6HV/1 **+3,362,268（+31.1%）** /
+  AS-YGF972ZK/1 +2,200,161（+25.7%）/ AS-5KZSXANK/0 **+1,566,827（+21.6%，与离线门 +1,496,003 同量级）** /
+  AS-F4FPT86S/1 +1,277,706（+29.1%）/ AS-AXME8QK2/0 +926,143；最大负例 AS-QQ6J5S39/0 −912,557。
+- **逐槽噪声口径实锤**：同 config 重跑的重复槽位分差 ±5–7%（AS-C3Y5EFGV/1 843,558→828,963、
+  AS-D34KGR3N/0 762,344→817,710）→ **单槽不可比，只看 240 槽聚合**；聚合后「没变的 MID1」落回 +0.74%、
+  「真变的 FINAL」稳定 +5.10%，方向可信。
+- **v4 后的剩余缺口（`data/_v4_gap240.py`）**：配对 232 槽 **ratio mean 0.923 / median 0.939**、
+  paired mean 1,397,897、总缺口 **17.24M**（v3 28.8M）。top：**AS-WDKWQYW5 70.4%（4.76M）** /
+  **AS-QQ6J5S39 62.1%（2.95M）** / AS-AXME8QK2 83.6%（2.77M，MID） / AS-BZXB28YJ 81.8%（2.51M） /
+  AS-YSNBNDV4 60.6%（1.27M，MID） / AS-QV6QCSN9 51.2%（1.15M） / B8ZWDS3J 73.3% / P8ZJTXNA 64.2% /
+  VWAF2GDN 62.0% / PPHWPMPP 58.8%；3EW6E6HV 已到 **98.1%**（v4 基本收口）。
+- **提交**：bench_repo **9228583**（feat，v4 = copy v3g 改，v2/v3/v3g 原版零改动、vendor DLL/exe MD5 全一致
+  不重编）+ **3c12f20**（RESULTS 真机数）。主仓 docs 本条 + HANDOVER_NEXT 条。
+- **纪律遵守**：未改 src/tests；探针 `data/_v4_*`（pair/hosted/groups/progress/gap240/ep_diag）、
+  `data/_meta_probe.py`、`data/_alloc_analysis.py`、`data/_v3_slots.json`、`data/_lb_*.py` 均不提交；
+  pathspec 限定 commit；DLL 不重编；未碰 D:\Games\Gakumas / C:\GakumasLocal 只读。
+- **v5（未开跑，用户 16:19 叫停去开新会话）**：原候选 = v4 + `vote_sec_cap` 0.8→2.0（仅 12 回合决赛；
+  依据 diag1 QV6QCSN9 +324k；门脚本 `data/_v4_pair.py` 已支持 `v5`/`v5b`/`v5t` 配置，跑了一半即停，零提交）。
+- **下一阶段方向（用户指令）**：不再靠参数微调，**改引擎 + 搜索**，做 v5，目标**大幅超过 best-known**
+  （1,452,088 / 1,486,205），达标后**群里全部开源**。剩余缺口集中在 ~10 道怪物题（搜索质量/方差），
+  参考 §18/§19：native 吞吐是工程债（gknet-v3 300ms/step ≈ 我们 3.5s）、prior 类均负（§15/§16.5）、
+  tail 目前 `tail_turns=2` 精确、`status=2`=stabilization 早停。

@@ -1568,6 +1568,39 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
   探针 data/_drinks_probe5* 不提交；v2/v3 原版投稿零改动；探针单进程顺序 ≤3 局、
   批次前 free 1.28–1.7GB>0.6GB；未起托管未杀进程。
 
+**最近交接记录（2026-11-27 16:2x，完结日 ex-seed-v4 托管 1,372,156；用户转向「改引擎+搜索」，新会话继续）**：
+- **战果**：`gkagent-ex-seed-v4` 托管 **240/240 = 1,372,156**（best-known 1,452,088 的 **94.5%**、榜顶
+  1,486,205 的 92.3%；总榜第 3、hosted/外部第 1）；errors=0 / over=13；30 块分块、8757s ≈ 2.4h
+  （`--seeds 2 --parallel 3 --budget 10`）。**v3 行 1,322,681 保留**（v4 是独立 algo 名，不覆盖）。
+- **v4 改了什么**：① **规模自适应起点** `starts_hi=6` 仅对 `limit_turn>=12`（AUDITION_FINAL），其余
+  `starts=4`；② 带上 v3g 的 **deck-modify 失锁重扫**（`rescan_open=1` + 消费图 graph-clean 门）；
+  ③ 其余与 1,322,681 那次逐位同口径（`vote_sec_cap=0.8` / lock2M / step500k / done / fp0 / prior0）。
+- **证据链**：v3 逐槽缺口 28.8M、**FINAL 占 77.7%** → 「深度」先证伪（AS-5KZSXANK `step_trans`
+  500k→1M→2M 分数逐位相同 8,631,520，墙钟 1.72×/2.82×）→ 离线配对门（`data/_v4_pair_s8a/_s6a`）
+  决赛 +1.50M/+0.28M/0、中期 −0.22M（深度稀释）→ **分档** → 托管配对 FINAL **+5.10%（132 槽 71 胜
+  43 负）**、MID1 +0.74%（配置未变 = 全部来自失锁重扫）。最大单槽 3EW6E6HV/1 +3.36M、5KZSXANK/0
+  +1.57M（与离线门同量级）；最大负例 QQ6J5S39/0 −912k。
+- **噪声口径（重要）**：同 config 重跑同一槽分差 ±5–7%（chunk0/1 重复槽实证）→ **单槽不可比，
+  只看 240 槽聚合**；聚合后没变的 MID1 落回 +0.74%、真变的 FINAL 稳定 +5.10%。
+- **v4 后剩余缺口**（`data/_v4_gap240.py`）：232 配对槽 ratio **0.923**（中位 0.939）、总缺口 **17.24M**
+  （v3 为 28.8M）。top：WDKWQYW5 70.4%（4.76M）/ QQ6J5S39 62.1%（2.95M）/ AXME8QK2 83.6%（2.77M，
+  **MID**）/ BZXB28YJ 81.8%（2.51M）/ YSNBNDV4 60.6%（**MID**）/ QV6QCSN9 51.2% / B8ZWDS3J 73.3% /
+  P8ZJTXNA 64.2% / VWAF2GDN 62.0% / PPHWPMPP 58.8%；3EW6E6HV 已 98.1%。
+- **停态**：无 python 进程、无托管驱动（v5 离线门跑到一半被用户叫停，**零提交零污染**）；服务器上只有
+  v4/v3/v2 等已结算 episodes。主仓 HEAD=75bee03+本条；bench_repo **9228583**（feat v4）+ **3c12f20**（RESULTS）。
+- **用户下一步指令（原话意图）**：**「把之前说的引擎和搜索改好，然后做 v5」**，目标**大幅超过 best-known**
+  （1.45–1.49M → 至少要 +6%，冲 1.5M+），达标后**群里全部开源**。→ 参数微调已到平台
+  （starts 6=8 饱和、深度无益、prior 类全负），剩余 17.2M 缺口集中在 ~10 道怪物题 = **搜索质量/方差**；
+  可动方向：native 吞吐（§18 工程债：gknet-v3 300ms/step ≈ 我们 3.5s）、`starts` 尾部（MID 也有大缺口，
+  但离线显示 9 回合题加起点稀释，需重新验证）、`tail_turns` 2→3（精确尾提前一回合）、
+  GNRPA levels/iterations/stabilization、更早的 RoutePool 波次（每步预算 8.5s 目前只用 ~2.3–4.3s）。
+- **纪律**：DLL 不重编（若改引擎只在外部 GKMSMainWheel 仓按路径 import/编译，注明 provenance，
+  不拷 src）；AGPL 只外部引用；不碰 D:\Games\Gakumas；C:\GakumasLocal 只读；探针 `data/_v4_*`、
+  `data/_meta_probe.py`、`data/_alloc_analysis.py`、`data/_v3_slots.json`、`data/_lb_*.py` 不提交；
+  **pathspec 限定提交**（禁 reset/checkout/-a）；pytest 用 `--basetemp=out\_pytest_tmp_*`；
+  托管分块驱动 `data/_v4_hosted.py`（done_slots 必须走 `/api/runs`，排行行有 ~1min 延迟；
+  **同题同种子「取最新」→ 重跑会覆盖旧分**）。
+
 **最近交接记录（2026-11-26 18:2x，用户"修完停"：F#56/57 修毕全量绿，bot/daemon/watcher 全停）**：
 - **F#56**（c48bf51/3589e00）：T2 手牌"预测3/实机2"=OCR 漏读一张即 mismatch 丢 known_draw →
   子集容差（缺1张且保序）+ turn 回退 + oracle 预测复用重读重试 + selector 漏读不重置候选；回归绿。
