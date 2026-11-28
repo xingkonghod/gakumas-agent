@@ -1072,3 +1072,96 @@ SetInitialCard）。**这 384 组（329 题 × 1–2 个开发种子）就是洗
   作者；`sees_seed=true`）托管 **n=360 / 均分 1,062,810 / over 12 / p95 2,061ms / step_seconds=5** —— 同属 seed 赛道，
   但 5s 预算 + 360 槽只到 1.06M（≈我们 v3 的 1.32M 之下、v6 的 0.73×）。⇒ seed 反推路线在扩散，但**我们仍领先约 37%**；
   对方 5s→10s 预算若翻倍值得留意下一次刷新（他们 32 牌序/题，我们 2 保密种子/题）。
+
+## 23. 2026-11-28 v7「最后一版」：总墙钟准入 + 串行段入 worker + 精确尾 3（自适应）+ FINAL 专项（bench_repo d57c8ef）
+
+- **用户指令（OPENING_v7 §3，顺序固定）**：① **clone/prep 计入准入**（主修：量 `session.clone()` 墙钟与 prep 随深度变化，
+  把「提交→future 完成」的**总墙钟**作为 expect（准入 ×1.25），deadline 仍只约束 C 搜索；备选 clone 进 worker / 深局降
+  `max_starts`；验收 = 深局步 ≤8s、over ≤8、同墙钟有效搜索 +20–30%）→ ② **tail_turns=3 采纳**（跑 3–5 局 dev seed 确认
+  tail 步仍 complete、think 不明显增加）→ ③ **FINAL 专项**（132 槽 = 68% 分数，v6 这层 −22,292/槽；候选 FINAL
+  `max_starts` 28–32 / `pool_threads` 5–6 / portfolio 向 i16·s5 倾斜 / lock≥4 pre-lock）。
+  流程：①+② 冒烟 → **30 槽小样门**（15 题 = 10 大决赛 + 3 MID + 2 lock≥4，同槽对 v6）→ 过门后**一次性单 eval 全量 240**
+  （不带 `--only`、parallel 6、budget 10）。判据：240 聚合 meanΔ / oracle 比例 / over；目标先 1.48M、摸 1.50M；
+  1.6M 不写进承诺（要换维度）。纪律不变（DLL 不重编 / AGPL 只引用 / 探针不提交 / pathspec 提交 / 托管只补缺题）。
+- **① 先量再改（`data/_v7_layer.py` / `_v7_clone.py` / `_v7_grid.py`，探针都不提交）**：
+  - **v6 240 局逐步记录分层**（`out/_v6_v6steps.json` 8,032 步）：MID 108 槽均分 1,094,563 / FINAL 132 槽 **1,761,290**；
+    每步起点 23.2 / 23.4（p10=24，几乎顶满）；over 18 + 18 步；FINAL 缺口最大的题 = WDKWQYW5（ratio 0.544，7.33M）、
+    3EW6E6HV（0.781，6.12M）、E8M2YFR2（0.725）、QQ6J5S39（0.832）；late-lock（lock≥4）的 VWAF2GDN/663NKTY4/QV6QCSN9 仍低。
+  - **深局步 >8s 的 48 步结构**（`out/_v7_layer.json` 的 deep 行）：24 起点、`pool_full=24`、`pool_expect_ms` 0.81–1.42s、
+    `status` 全 0；它们全是 `route/search` 步，单步 12–21s。**C 搜索本身被 deadline 截在 `min(4.0, 预期×1.5)≈1.4s`**，
+    24 起点 ÷ 4 线程最多 ~8.4s ⇒ **12–21s 的差额只能来自主线程串行段**：每步 24 次 `session.clone()` + 24 次
+    **整条路线回放核分**（`_replay_score` = 再 clone 一次 + 逐动作重放），而这两段都在 `pool_expect_ms` 的视野之外。
+  - **沙盒实测（真实锁定局快照 + dev seed）**：`session.clone()` **0.10ms**（`gk_copy` 就是 `memcpy(sizeof(Core))`；
+    8 线程并发拷贝 0.2–0.4ms、副本逐字段相同 ⇒ clone 可安全进 worker）；`prep_seconds ≈ 0.000s`；同一状态下整条路线
+    （18–21 动作）回放 **2ms**。生产形状批次（24 起点 / 4 线程 / 1.6s deadline）：**v6 布局（主线程 clone + worker 搜索 +
+    主线程回放）2.93s / w1（clone 进 worker）2.84s / w2（clone+搜索+回放全在 worker）3.11s**，`main_busy` 0.04–0.07s
+    ⇒ 这个「浅复杂度」快照上三项都便宜、三种布局无差别；21s 深局步无法在该快照复现。
+  - **结论（诚实修正 v6 的归因）**：v6 记录的「`pool_expect_ms` 只有 0.8–1.4s」不是「clone/prep 很贵」的证据，
+    而是「预期模型根本没看主线程那两段 + 样本可能滞后于瞬时变慢」。所以 v7 不赌单项，**三条同时上**：
+    (a) 预期样本换成实测总墙钟（含一切），(b) clone / 采纳核分搬进 worker（并行 + 主线程零串行），
+    (c) 新增 `pool_lane_ms` / `pool_main_ms` / `tail_probe` 诊断字段，下次能直接看。
+- **② 精确尾 3 回合（`data/_v7_smoke.py` 生产路径 dev seed 冒烟）**：AS-D7HGXSYH（12T 决赛）`turns_left=3` 的精确尾
+  **163ms complete** ⇒ `pool.proven` ⇒ 后续 12 个尾步 1.2–1.7ms；但 **AS-3EW6E6HV 的 3 回合尾跑不完**
+  （`status=deadline`，20 个尾步 × ~7s ≈ 140s think 全烧在尾上）⇒ 采纳**自适应探测**：`turns_left=3` 先用
+  `tail_probe_sec=2.0s` 试一次，没跑完就**本局退回 `tail_fallback_turns=2`**（v6 口径、后续回合不再试）。
+  门里 tail 平均 122ms（v6 84ms）、每步 think 4,691s vs 4,802s（**没变多**）⇒ 「近乎免费」的一半吃到、另一半只付一次试探。
+- **③ FINAL 专项**：
+  - **GNRPA 配置按层重排**（`out/_v5_engine_grid.json` 6 个决赛真实状态，500k transitions，4 seed/状态）：
+    相对最优均分 `2/8/3` **0.820**（v6 缺省 portfolio 首项）< `2/16/3` 0.846 < `3/16/3` 0.892 < `3/8/3` 0.899 <
+    `3/8/5` **0.932** ≈ `4/8/5` **0.933**；1M transitions 的 `3/16/3_1m` 0.991 最好但成本 ×2（不进 500k 轮换）。
+    ⇒ 决赛档 `portfolio_hi="3/8/5,4/8/5,3/8/3,2/16/5,2/8/5,2/8/3"`（**向 s5 倾斜**；注意用户建议的「i16 倾斜」在
+    500k 档被网格否掉，i16 只在 1M transitions 才好——如实记）。
+  - 决赛每步起点上限 24→**28**（`max_starts_hi`；准入已保证跑到 `t_end` 前，cap 只是安全上限）。
+  - **`pool_threads` 5→6 被门否掉**（见下），保持 4；**lock≥4 的 pre-lock 加强（mirror_vote + 8 世界）也被门否掉**。
+- **小样门（15 题 × 2 保密种子 = 30 槽，parallel 6；与 v6 门同题同槽，eval `2ca9b7c73df6` → `8132b37def8f`）**：
+
+  | 门 | 变更 | 同槽均分（v6 = 5,281,200） | meanΔ | CI95 | 逐槽 | oracle 比例 | over |
+  |---|---:|---:|---:|---|---|---|---:|
+  | gate1 | + `late_mirror_turn=3`/8 世界 + `pool_threads_hi=5` | 5,130,349 | −150,851 | [−585k,+235k] | 15 胜 12 负 3 平 | 0.9278→0.9192 | **5**（worlds 20–35s，1 槽失锁） |
+  | **gate2** | 关晚锁 mirror/worlds、`pool_threads_hi` 回 4 | **5,596,962** | **+315,761** | [−187k,+852k] | **18 胜 10 负 2 平** | **0.9278→0.9484（+2.06pt）** | **0** |
+
+  gate2 步构成（vs v6 同槽）：每步起点 **26.4**（p50=28，v6 23.5）、完整 11,918 / anytime 5,909、think 4,691s（v6 4,802s）、
+  `pool_expect_ms` med 765 / p95 1,547、`pool_lane_ms` med **771** / p95 1,556、**`pool_main_ms` med/p95 = 0/0**（v6 的串行段
+  确实被搬走了）、tail 122ms 均值。逐槽最大增益 YGF972ZK/0 **+4.83M**（6.90M→11.73M，1.61× oracle）、BZXB28YJ/0 +2.62M、
+  XPRY8BRF/0 +2.22M、BZXB28YJ/1 +1.88M、3EW6E6HV/0 +1.64M；最大负例 5KZSXANK/0 −3.90M（v6 那槽 1.324× oracle = 运气槽）、
+  QQ6J5S39/1 −1.30M、AXME8QK2/1 −1.09M。**30 槽 sd 1.46M ⇒ 只看方向**（gate2 方向为正、over 清零、oracle 比例 +2.06pt）。
+- **负结果（都进了门、默认关，别重做）**：
+  - **`pool_threads_hi=5`**（`--parallel 6` ⇒ 30 并发，超出 v6 ③ 实测的 20–24 甜点）：门里每步**完整**起点 23.3→19.8、
+    anytime 145→4,426、每步 route 墙钟 4.4→4.9s ⇒ 打印上「起点更多」但有效完整搜索更少 ⇒ 回退 4（参数保留）。
+  - **lock≥4 晚锁题 pre-lock 加强**（`late_mirror_turn=3` + 候选后验镜像投票 + `late_vote_worlds=8`）：`worlds` 步
+    3.9s→5.5s、出现 5 个 over（最大 35.3s）、并把一槽 v6 能锁的题推到 "no seed reproduces the screen" ⇒ 默认关。
+    晚锁槽方差极大（QV6QCSN9/1：v4 0.52M → v5 1.20M → gate1 1.34M → gate2 0.24M），4 槽不足以下结论。
+  - **决赛 portfolio 的 i16 倾斜**：500k transitions 档被网格否掉（见上），i16 只在 1M 档更好（成本 ×2 不进轮换）。
+- **全量 240（单 eval `558851114b80` + 1 次 resume，parallel 6，budget 10，无 `--only`）= **1,479,679**
+  （**新 PB**；vs v6 1,461,263 **+18,416 / +1.26%**；vs best-known 1,452,088 = **101.9%**、vs 榜顶 1,486,205（n=928）
+  = **99.56%**、天花板校准 1,499,295 的 **98.69%**；站上 seed 赛道第 2（第 1 是 n=928 的 best-known）、hosted/外部第 1）：
+
+  | 指标 | v6 | **v7** |
+  |---|---:|---:|
+  | 均分 | 1,461,263 | **1,479,679（+1.26%）** |
+  | 逐槽 | — | 94 胜 / 99 负 / 47 平（CI95 [−73,825,+107,612]，不显著） |
+  | 分层 | MID +58,861/槽 / FINAL −22,292/槽 | **FINAL +133,179/槽（+17.58M）/ MID −121,848/槽（−13.16M）** |
+  | oracle 比例（232 配对槽） | 0.9698（geo 0.9435） | 0.9632（**geo 0.9269**） |
+  | 每步起点 | 23.4 | **27.0 FINAL / 23.2 MID**（完整 88,035 / anytime 32,839） |
+  | 总 think | 29,755s | **28,727s（−3.5%）** |
+  | over | 36 | **14**（worlds 6 / route 5 / search 1 / fallback 2） |
+  | p50 / p95 / max | 3,846 / 7,002 / 76,341 ms | **3,931 / 7,023 / 33,187 ms** |
+  | `pool_main_ms` med/p95 | n/a（主线程串行 clone+回放） | **0 / 0 ms** |
+  | `pool_lane_ms` med | n/a（`pool_expect_ms` 733） | **735 FINAL / 678 MID ms** |
+
+  - **FINAL 专项是真增益**：最大 `AS-3EW6E6HV/1` **+4.53M**（10.84M→15.36M）、`AS-BZXB28YJ/1` +3.23M、
+    `AS-WDKWQYW5/0` +2.49M、`AS-3EW6E6HV/0` +2.09M、`AS-AXME8QK2/1` +1.74M。
+  - **MID 回退 −121,848/槽（未解决，如实记）**：单槽 `AS-F4FPT86S/0` 就占 −5.50M（v6 6.08M → v7 0.57M，该槽历史
+    方差极大、v5 期也曾 −1.70M，怀疑这次是失锁/晚锁运气槽）；其余 `AS-9CXZJCME/1` −3.14M / `AS-K46XXQEY/1` −1.33M。
+    MID 起点数没变（23.2）、think 反而 −11%，但**完整起点 88,035 vs v6 124,264** ⇒ 总墙钟准入把 MID 的 anytime 短搜
+    换掉了部分完整搜索（MID 每步预算短、多起点收益大）⇒ **下一步候选：分档准入（MID 用 `admit_mode="search"` = v6 口径、
+    FINAL 用总墙钟口径），单变量可测，本轮未做**。
+  - **over 36→14，没达到 ① 的「≤8」验收**：剩余 14 步 = worlds 6（锁定前候选管线，与 v6 同源）+ route 5 / search 1
+    （冷启动首波已发 4 个、lane 还没样本）+ fallback 2；最大 33.2s = `AS-C52Q5Q28/0` 第 3 步（`lane` 突增到 5.0s）。
+  - **自适应尾**：233 个 `turns_left=3` 探针、31 个（13%）没跑完 → 本局退回 2 回合；tail 步均 85ms（FINAL）/97ms（MID）。
+- **结论 / 下一步**：v7 用「总墙钟准入 + 串行段入 worker」换来 **FINAL +133,179/槽**（v6 这层的欠账补回来了），
+  同时 over 36→14、think −3.5%、主线程 0ms；代价是 **MID 回退 −121,848/槽**（净值仍 +1.26% = **新 PB 1,479,679**）。
+  **调度维度到这里到平台了**（1,479,679 ≈ 天花板 1,499,295 的 98.7%，差值 20k = 1.3%）：再往上必须换维度——
+  ① **分档准入**（MID v6 口径 / FINAL 总墙钟口径，最便宜的 +1% 候选）；② native 每墙钟秒吞吐（外部 GKMSMainWheel
+  工程债）；③ B11 policy/advantage 作**导航**而非叶子（需引擎 hook 或动态 prior，本轮 prior 路线仍负）；
+  ④ 晚锁题 pre-lock 决策质量（本轮 8 世界/后验投票方向负，需换做法）。1.6M 不写进承诺。

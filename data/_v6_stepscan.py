@@ -27,6 +27,7 @@ WORKERS = int(sys.argv[3]) if len(sys.argv) > 3 else 5
 STEP_KEYS = ("mode", "ms", "seed_state", "scan_s", "scan_hits", "scan_draws", "lock_turn",
              "pool_searches", "pool_waves", "pool_threads", "pool_status", "pool_adopted",
              "pool_bad", "pool_err", "pool_full", "pool_partial", "pool_expect_ms", "tail_status", "tail_why", "target", "adopted", "bad_routes",
+             "pool_lane_ms", "pool_main_ms", "tail_probe", "tail3_failed", "late_worlds", "late_vote",
              "candidates", "worlds", "vote_worlds", "votes", "rescan_used", "graph_clean",
              "error", "why", "differs", "search_why", "route_illegal", "hard_rule", "root_scan_n")
 

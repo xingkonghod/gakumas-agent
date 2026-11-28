@@ -1568,12 +1568,40 @@ pg_ctl 停内嵌 PG，9077/5432 释放，hindsight_* 工具下线。**主 agent�
   探针 data/_drinks_probe5* 不提交；v2/v3 原版投稿零改动；探针单进程顺序 ≤3 局、
   批次前 free 1.28–1.7GB>0.6GB；未起托管未杀进程。
 
-**最后一版开场白（v7：修深局无效墙钟 + tail_turns=3 + FINAL 专项）见 [OPENING_v7.md](OPENING_v7.md)** ——
-v6 已定稿：240 槽 **1,461,263**（新 PB；vs v5 +14,226/+0.98%；oracle 均值 0.9535→0.9698、geo 0.9435；
-seed 赛道第 2 / hosted 第 1），over 8→36（深局 clone/prep 未入准入 + 一次断链事故伪影）；MID +58,861/槽 /
-FINAL −22,292/槽；每步起点 23.3；⑤ tail_turns=3 已验证 14–21ms complete。v7 顺序：①clone/prep 计入准入
-②tail_turns=3 采纳 ③FINAL 专项；30 槽门 → 单 eval 全量 240（parallel 6，~90min），目标 1.48–1.50M。
-（上一阶段 v6 的开场白见 [OPENING_v6.md](OPENING_v6.md)，其 §7 有 v6 结果表。）
+**最后一版（v7）已完结 —— 结果见本文顶部 v7 条 + [OPENING_v7.md](OPENING_v7.md) §7**：
+v7 = 1,461,263 → **1,479,679**（**+18,416 / +1.26%** vs v6；oracle 均值 0.9632（geo 0.9269）；over 36→**14**；每步起点 **27.0（FINAL）/23.2（MID）**）；
+v6 定稿记录：240 槽 **1,461,263**（vs v5 +14,226/+0.98%；oracle 0.9698、geo 0.9435；seed 赛道第 2 / hosted 第 1），
+over 8→36（深局 clone/prep 未入准入 + 一次断链事故伪影）；MID +58,861/槽 / FINAL −22,292/槽；每步起点 23.3。
+（v6 的开场白见 [OPENING_v6.md](OPENING_v6.md) §7；v7 的三步 ①总墙钟准入 ②tail_turns=3 自适应 ③FINAL 专项都做完了。）
+
+**最近交接记录（2026-11-28 v7「最后一版」：总墙钟准入 + 串行段入 worker + 精确尾 3（自适应）+ FINAL 专项；全量 240 = 1,479,679）**：
+- **用户指令** = OPENING_v7 §3：① **clone/prep 计入准入**（主修，验收=深局步 ≤8s / over ≤8 / 同墙钟有效搜索 +20–30%）→
+  ② **tail_turns=3 采纳**（跑 3–5 局 dev seed 确认 tail 步 complete、think 不明显增加）→ ③ **FINAL 专项**（132 槽 68%
+  分数；候选 FINAL max_starts 28–32 / pool_threads 5–6 / portfolio 向 i16·s5 倾斜 / lock≥4 pre-lock）；
+  **流程**：①+② 冒烟 → 30 槽小样门（同槽对 v6）→ 过门后一次性单 eval 全量 240（不带 --only、parallel 6、budget 10）。
+- **① 测量结论（修正了 v6 的归因）**：`session.clone()` 实测 **0.10ms**（`gk_copy`=memcpy，8 线程并发副本逐字段相同）、
+  `prep_seconds ≈ 0`、同状态整条路线回放 2ms ⇒ **不是 clone/prep 贵**；v6 深局 12–21s 步的真因是
+  「预期只覆盖 C 搜索 + 主线程串行段（每步 24 次 clone + 24 次整条路线回放）不可见」。v7 修法三条同时上：
+  (a) 预期样本换成 **「提交→future 完成」实测总墙钟**，(b) 准入改 **lane 投影** `need=(ceil((k+1)/T)-1)·lane+lane·1.25+0.1`，
+  (c) **clone 与采纳核分搬进 worker**（回放直接跑本次搜索的副本）→ 门里 `pool_main_ms` med/p95 = **0/0**。
+- **② tail_turns=3 自适应**：dev seed 冒烟一个题 163ms complete 后 proven（后续尾步 1–2ms）、另一个题 **跑不完**
+  （deadline，20 尾步 ≈140s）⇒ 采纳 `tail_probe_sec=2.0` 试探 + 本局退回 `tail_fallback_turns=2`；门里 tail 122ms 均值、
+  每步 think 4,691s（v6 4,802s，**没变多**）。
+- **③ FINAL 专项**：决赛每步起点上限 24→**28**；决赛 portfolio `3/8/5,4/8/5,3/8/3,2/16/5,2/8/5,2/8/3`
+  （网格 6 个决赛真实状态 500k：2/8/3 rel 0.820 垫底、3/8/5 0.932 ≈ 4/8/5 0.933；**i16 倾向被否**，i16 只在 1M 档更好）；
+  `pool_threads_hi=5` **回退 4**（见负结果）；`late_mirror_turn` 默认关（见负结果）。
+- **门（15 题×2 保密种子=30 槽，与 v6 门同题同槽）**：gate1（`2ca9b7c73df6`，带晚锁 mirror/8 世界 + threads 5）
+  **−150,851 / over 5 / 1 槽失锁** ⇒ 否掉两项；**gate2（`8132b37def8f`）= +315,761（18 胜 10 负 2 平）、
+  oracle 0.9278→0.9484（+2.06pt）、over 0、每步起点 26.4、think 4,691s**。
+- **全量 240（单 eval `558851114b80`，parallel 6，budget 10，无 --only）**：**240/240 = 1,479,679（新 PB，+18,416/+1.26% vs v6）**；逐槽 94 胜 / 99 负 / 47 平，CI95 [−73,825,+107,612]（不显著）；分层 **FINAL +133,179/槽（+17.58M）/ MID −121,848/槽（−13.16M）**；oracle 0.9632（geo 0.9269）；每步起点 27.0（FINAL）/23.2（MID）、完整 88,035 / anytime 32,839；总 think 28,727s（v6 29,755s，−3.5%）；**over 36→14**；p50 3,931 / p95 7,023 / max 33,187ms；pool_main_ms med/p95 = 0/0、pool_lane_ms med 735/678ms；自适应尾 233 探针 / 31 失败。官方单行 n=240 = 1,479,679（errors 0），best-known 1,452,088 的 101.9%、榜顶 1,486,205 的 99.56%、天花板 1,499,295 的 98.69%；站上 seed 第 2 / hosted 第 1。
+- **负结果（如实，别重做）**：`pool_threads_hi=5`（30 并发超 20–24 甜点 → 门里完整起点 23.3→19.8、anytime 145→4,426、
+  每步墙钟 4.4→4.9s）；lock≥4 pre-lock 加强（8 世界 → worlds 步 3.9→5.5s、5 个 over、一槽失锁）；决赛 i16 portfolio 倾斜
+  （500k 档被网格否）；tail_turns=3 无条件采纳（部分题 deadline 白烧 7s/步 → 必须自适应）。
+- **纪律**：DLL 未重编（vendor MD5 与 v5/v6 全一致）；AGPL 只外部引用；`data/_v7_*` 探针不提交；
+  pathspec 提交；托管只补缺题/`--resume` 必配 `--only`；跑托管时未开本地重探针。
+- **下一步（最后一版之后）**：调度维度已到平台（1,479,679 ≈ 天花板 1,499,295 的 98.7%）；再往上要换维度：
+  ① native 每墙钟秒吞吐（外部 GKMSMainWheel 工程债）② B11 policy/advantage 作导航而非叶子（需引擎 hook 或动态 prior）
+  ③ 晚锁题 pre-lock 决策质量（本轮单变量试过 8 世界/后验投票，方向负，需换做法）。
 
 **最近交接记录（2026-11-28 凌晨，v6「先修引擎/搜索再全算力」阶段：v5 逐步墙钟构成 + 预算内自适应波次；全量 240 = 1,461,263 新 PB）**：
 - **用户指令** = OPENING_v6 §3：① 每步墙钟构成测量 → ② 波次准入控制（修 v5b 截断白烧）→ ③ 并行/线程配比 →
