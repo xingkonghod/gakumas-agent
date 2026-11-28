@@ -93,3 +93,7 @@ data/_v6_gate/
 data/pytest-final-*.err
 
 data/_qq_export/
+
+# v7/v8 local diagnostic probes (OPENING_v7/v8 policy: not committed)
+data/_v7_*
+data/_v8_*
