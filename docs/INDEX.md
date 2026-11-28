@@ -16,7 +16,8 @@
 
 | 顺序 | 文档 | 读什么 |
 |---|---|---|
-| 0 | [HANDOVER_NEXT.md](HANDOVER_NEXT.md) | **补什么 · 做什么 · 任务验收**（行动型交接，先看这个）|
+| 0 | [HANDOVER_NEXT.md](HANDOVER_NEXT.md) | **补什么 · 做什么 · 任务验收**（行动型交接，先看这个；顶部 = 最新一段）|
+| 0b | [OPENING_v8.md](OPENING_v8.md) | **下一段开场白**：真全锁 + 每槽 ≥90% 相对上限（v7 已定稿 1,479,679）|
 | 1 | [HANDOVER.md](HANDOVER.md) | 现状 + 已完成什么（二·补五）|
 | 2 | [MASTER_DATA.md](MASTER_DATA.md) | 主数据库怎么建的、seed 字段在哪 |
 | 4 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 采集链路的坑（改之前必看）|
