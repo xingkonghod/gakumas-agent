@@ -46,6 +46,7 @@
 
 | 顺序 | 文档 | 读什么 |
 |---|---|---|
+| 0 | [MITM_FAQ.md](MITM_FAQ.md) | **常见问题口径**：公开什么/不公开什么、工具从哪来、整合包有没有现成算法、跑榜单要不要 MITM |
 | 1 | [CAPTURE_PIPELINE.md](CAPTURE_PIPELINE.md) | 结构、配置、四个坑 |
 | 2 | [UNLOCK_REPORT.md](UNLOCK_REPORT.md) | 解锁工具怎么工作（端点/加密）|
 | 3 | [UNLOCK_ADAPT.md](UNLOCK_ADAPT.md) | hook 机制、版本适配 |
