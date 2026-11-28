@@ -212,7 +212,8 @@ B1 修正 harness 配对（small 真实牌组，同 seed）：
 > 官方 AI 232,710（0.2131×）。我们投的是 **seed 反推赛道**（模板榜 n=240，见本节表）；
 > public-safe（只看画面、不碰牌序）行另列（`gkagent-expectimax` 531k 等，见 [COMPARE](docs/COMPARE.md)）。
 
-**测试**：`pytest tests/` → **1052 条收集 / 1051 passed / 1 skipped**；`verify_shuffle` 4/4 场；
+**测试**：`pytest tests/` → **1845 条收集，全绿（exit 0；已知 1 skip = `tests/test_produce_ui.py` 的 step_047 fixture，
+被真机跑局覆写属预期）**（2026-11-28 复跑）；`verify_shuffle` 4/4 场；
 `build_exam_setup` 86/86 + 重洗 24/24；`verify_exam_wiring` 36/36 + 3/3 + 29/29。
 
 ---
