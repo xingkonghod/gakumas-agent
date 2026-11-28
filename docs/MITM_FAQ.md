@@ -41,9 +41,28 @@
 
 ## 5. 工具从哪拿
 
-GakumasUnlock（v3.5.0 那条 `yaha_proxy` + `mitm/` 技术线，作者：花吹雪また一年P）是**第三方社区工具**：
-本仓不转发、不打包；请从**作者发布处 / 群文件**获取，并自行评估 ToS 与账号风险。
-安装方式、静态分析结论与适配记录见 [UNLOCK_REPORT.md](UNLOCK_REPORT.md) / [UNLOCK_ADAPT.md](UNLOCK_ADAPT.md)。
+## 5. 工具从哪拿 / 有没有开源仓
+
+**工具本体（学马 GakumasUnlock 整合包）：没有公开仓。** 作者按「整合包」分发（群文件 / 网盘），包内文档明确写
+「Gitee 尚无上传成功证据，GitHub 和网盘已取消」；我们拿到的是 v3.5.0 的本地副本（`C:\GakumasLocal`），
+本仓不转发、不打包。安装方式、静态分析结论与适配记录见 [UNLOCK_REPORT.md](UNLOCK_REPORT.md) / [UNLOCK_ADAPT.md](UNLOCK_ADAPT.md)。
+
+**同一条技术线（`yaha_proxy` hook + `mitm/`）相关的公开仓**（工程参考，均非学马解锁工具本体）：
+
+- 作者 GitHub：<https://github.com/yuzeis>
+- 学马相关：[GKMSMainWheel](https://github.com/yuzeis/GKMSMainWheel)（考试引擎 + 原生核心，AGPL）、
+  [GKMSUINet](https://github.com/yuzeis/GKMSUINet)（出牌网络）、
+  [gkmasToolkit](https://github.com/yuzeis/gkmasToolkit)（资源解包）
+- 同作者的 MITM 框架（**其它游戏**，MITM 架构可对照）：
+  [Roco-Kingdom-MITM-Server](https://github.com/yuzeis/Roco-Kingdom-MITM-Server)、
+  [Roco-Kingdom-Protocol-Parser](https://github.com/yuzeis/Roco-Kingdom-Protocol-Parser)、
+  [StarResonanceMITMServer](https://github.com/yuzeis/StarResonanceMITMServer)、
+  [StarResonanceHeadlessMITMClient](https://github.com/yuzeis/StarResonanceHeadlessMITMClient)
+- 评测框架：[gakumas-bench](https://github.com/matto49/gakumas-bench)（gkbench 的开源实现）
+- 本地化插件（同一个 `yaha` hook 生态）：[gakuen-imas-localify](https://github.com/chinosk6/gakuen-imas-localify)
+
+> 一句话：**学马这条线只有「引擎/出牌网/解包」是开源的，解锁+采集整合包本身不在 GitHub**；
+> 想要 MITM 工程实现，看上面同作者的其它游戏 MITM 仓即可。
 
 ## 6. 风险提示（用之前先读）
 
