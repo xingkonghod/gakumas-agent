@@ -43,8 +43,14 @@
 
 ## 5. 工具从哪拿 / 有没有开源仓
 
-**工具本体（学马 GakumasUnlock 整合包）：没有公开仓。** 作者按「整合包」分发（群文件 / 网盘），包内文档明确写
-「Gitee 尚无上传成功证据，GitHub 和网盘已取消」；我们拿到的是 v3.5.0 的本地副本（`C:\GakumasLocal`），
+**这条线的来源（学马「本地化部署」）**：B 站 **`BV1uHJB63EPW`**「学园偶像大师科研成果：本地化部署」
+（UP 主 夏宇文括，2026-10-17）演示的就是 **GakumasUnlock-v3.5.0** —— 把 `GakumasUnlock\` 放进官方 DMM 客户端目录，
+`安装.bat` 替换一个 DLL 做网络 hook（`yaha_proxy`），`启动.bat` 起本地服务（`127.0.0.1:18443`）→ 本地私服 + 全内容解锁。
+**视频简介里给出的网盘就是该版本的发布渠道**；2026-11-22 作者又发了**四游戏整合启动器包**（同一技术线的更新版）。
+逐帧分析见 [LOCAL_DEPLOY_VIDEO.md](LOCAL_DEPLOY_VIDEO.md)，整合包静态分析见 [LOCAL_LAUNCHER_20261122.md](LOCAL_LAUNCHER_20261122.md)。
+
+**工具本体没有公开仓**：它是**视频 / 网盘 / 群文件**分发的整合包，不是开源仓库（包内文档明确写
+「Gitee 尚无上传成功证据，GitHub 和网盘已取消」）。我们拿到的是 v3.5.0 的本地副本（`C:\GakumasLocal`），
 本仓不转发、不打包。安装方式、静态分析结论与适配记录见 [UNLOCK_REPORT.md](UNLOCK_REPORT.md) / [UNLOCK_ADAPT.md](UNLOCK_ADAPT.md)。
 
 **同一条技术线（`yaha_proxy` hook + `mitm/`）相关的公开仓**（工程参考，均非学马解锁工具本体）：
